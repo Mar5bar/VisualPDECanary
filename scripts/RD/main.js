@@ -148,6 +148,7 @@ function init() {
     }
     clearButton = gui.add(options,'clear').name('Clear');
     gui.add(options, 'numTimestepsPerFrame', 1, 200, 1).name('TPF');
+    gui.add(uniforms.dt, 'value', 0, 1).name('Timestep');
     const fBrush = gui.addFolder('Brush');
     fBrush.add(options, 'typeOfBrush', {'Circle': 'circle', 'Horizontal line': 'hline', 'Vertical line': 'vline'}).name('Brush type');
     fBrush.add(uniforms.brushValue, 'value', 0, 1).name('Brush value');
@@ -183,13 +184,13 @@ function animate() {
         // Perform a number of timesteps per frame.
         for (let i = 0; i < options.numTimestepsPerFrame; i++){
             timestep();
-            stats.update();
         }
 
     }
 
     // Always render, in case the user has drawn.
     render();
+    stats.update();
 }
 
 function draw() {
