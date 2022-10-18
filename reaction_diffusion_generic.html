@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Generic reaction-diffusion system</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="./css/main.css">
+        <script type="text/javascript" src="./scripts/three.min.js"></script>
+        <script type="text/javascript" src="./scripts/dat.gui.min.js"></script>
+        <script type="text/javascript" src="./scripts/stats.min.js"></script>
+        <script type="module" src="./scripts/drawing_shaders.js"></script>
+        <script type="module" src="./scripts/RD/main.js"></script>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./scripts/three.min.js",
+            }
+        }
+    </script>
+    </head>
+
+    <!-- The canvas for drawing on -->
+    <div>
+    <canvas id="myCanvas"></canvas>
+    </div>
+
+    <body>
+        <!-- This is a generic reaction-diffusion solver. -->
+    </body>
+
+
+    <!-- We specify the shaders in the HTML, so that they can be modified later by the user -->
+    <!-- The shader is written in GLSL, and is simply text that will be passed to the GPU using innerHTML -->
+
+    <!-- The vertex shader will assign the vertex positions to gl_Position, which will be passed to the fragment shader  -->
+    <!-- It also records the coordinates in texture space, which we will use in the fragment shader for finite differences -->
+
+    <script type="x-shader/x-vertex" id="genericVertexShader" async>
+        varying vec2 textureCoords;
+        void main()
+        {      
+            textureCoords = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    </script>
+
+    <script type="x-shader/x-fragment" id="simulationFragShader" async>
+        precision highp float;
+        varying vec2 textureCoords;
+        uniform sampler2D textureSource;
+        uniform float dt;
+
+        void main()
+        {
+            ivec2 texSize = textureSize(textureSource,0);
+            float dx = 1.0 / float(texSize.x);
+            float dy = 1.0 / float(texSize.y);
+
+            vec2 uv = texture2D(textureSource, textureCoords).rg;
+            vec2 uvL = texture2D(textureSource, textureCoords + vec2(-dx, 0.0)).rg;
+            vec2 uvR = texture2D(textureSource, textureCoords + vec2(+dx, 0.0)).rg;
+            vec2 uvT = texture2D(textureSource, textureCoords + vec2(0.0, -dy)).rg;
+            vec2 uvB = texture2D(textureSource, textureCoords + vec2(0.0, +dy)).rg;
+
+            vec2 lap = (uvL + uvR - 2.0*uv) + (uvT + uvB - 2.0*uv);
+
+            //float du = 0.2097*lap.r - uv.r*uv.g*uv.g + 0.037*(1.0 - uv.r);
+            //float dv = 0.105*lap.g  + uv.r*uv.g*uv.g - (0.037+0.06)*uv.g;
+
+            float du = 0.0;
+            float dv = 0.1*lap.g + uv.g*(1.0 - uv.g);
+
+            //float du = 0.0000005*lap.r /dx /dx;
+            //float dv = 0.0;
+
+            vec2 updated = uv + dt * vec2(du, dv);
+
+            gl_FragColor = vec4(updated.r, updated.g, 0.0, 1.0);
+        }
+    </script>
+
+    <!-- A second fragment shader that will take the output of the simulation and modify it for being shown on the screen -->
+    <script type="x-shader/x-fragment" id="displayFragShader" async>
+        varying vec2 textureCoords;
+        uniform sampler2D textureSource;
+
+        uniform vec4 color1;
+        uniform vec4 color2;
+        uniform vec4 color3;
+        uniform vec4 color4;
+        uniform vec4 color5;
+
+        void main()
+        {   
+            float value = texture2D(textureSource, textureCoords).g;
+            vec3 col = vec3(0.0, 0.0, 0.0);
+            float a = 0.0;
+            if (value <= color1.a)
+            {
+                col = color1.rgb;
+            }
+            if (value > color1.a && value <= color2.a)
+            {
+                a = (value - color1.a)/(color2.a - color1.a);
+                col = mix(color1.rgb, color2.rgb, a);
+            }
+            if(value > color2.a && value <= color3.a)
+            {
+                a = (value - color2.a)/(color3.a - color2.a);
+                col = mix(color2.rgb, color3.rgb, a);
+            }
+            if(value > color3.a && value <= color4.a)
+            {
+                a = (value - color3.a)/(color4.a - color3.a);
+                col = mix(color3.rgb, color4.rgb, a);
+            }
+            if(value > color4.a && value <= color5.a)
+            {
+                a = (value - color4.a)/(color5.a - color4.a);
+                col = mix(color4.rgb, color5.rgb, a);
+            }
+            if(value > color5.a)
+                col = color5.rgb;
+            
+            //gl_FragColor = vec4(col.r, col.g, col.b, 1.0);
+            gl_FragColor = vec4(value, value, value, 1.0);
+            
+        }
+    </script>
+
+</html>
