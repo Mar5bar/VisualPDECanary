@@ -254,10 +254,8 @@ function render() {
 }
 
 function onDocumentMouseDown( event ){
-    if (0.0 <= uniforms.brushCoords.value.x & 
-        uniforms.brushCoords.value.x <= 1.0 &
-        0.0 <= uniforms.brushCoords.value.y & 
-        uniforms.brushCoords.value.y <= 1.0){
+    if (isWithinBoundingBox(event.clientX, event.clientY, canvas) &
+        !isWithinBoundingBox(event.clientX, event.clientY, gui.domElement)) {
         options.isDrawing = true;
     }
 }
@@ -271,6 +269,14 @@ function onDocumentMouseMove( event ){
     let x = (event.clientX - cRect.x) / cRect.width;
     let y = 1 - (event.clientY - cRect.y) / cRect.height;
     uniforms.brushCoords.value = new THREE.Vector2(x,y);
+}
+
+function isWithinBoundingBox( x, y, target ){
+    var rect = target.getBoundingClientRect();
+    return (rect.x <= x &
+            x <= rect.x+rect.width &
+            rect.y <= y &
+            y <= rect.y+rect.height);
 }
 
 function clearTextures() {
