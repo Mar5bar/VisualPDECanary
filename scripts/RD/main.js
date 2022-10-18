@@ -24,7 +24,7 @@ options = {
     displayResY: 500,
     nXDisc: 256,
     nYDisc: 256,
-    maxUPS: 60,
+    numTimestepsPerFrame: 100,
     isRunning: true,
     isDrawing: false,
     typeOfBrush: "circle",
@@ -147,7 +147,7 @@ function init() {
         pauseButton.name('Play');
     }
     clearButton = gui.add(options,'clear').name('Clear');
-    gui.add(options, 'maxUPS', 1, 60).name('Max UPS');
+    gui.add(options, 'numTimestepsPerFrame', 1, 200, 1).name('TPF');
     const fBrush = gui.addFolder('Brush');
     fBrush.add(options, 'typeOfBrush', {'Circle': 'circle', 'Horizontal line': 'hline', 'Vertical line': 'vline'}).name('Brush type');
     fBrush.add(uniforms.brushValue, 'value', 0, 1).name('Brush value');
@@ -180,21 +180,16 @@ function animate() {
     // Only timestep if the simulation is running.
     if (options.isRunning) {
 
-        delta += clock.getDelta();
-
-        // Limit the maximum number of timesteps per second.
-        if (delta * options.maxUPS > 1) {
-            for (let i = 0; i < 1; i++){
+        // Perform a number of timesteps per frame.
+        for (let i = 0; i < options.numTimestepsPerFrame; i++){
             timestep();
-            }
-            delta = delta % 1./options.maxUPS;
+            stats.update();
         }
 
     }
 
     // Always render, in case the user has drawn.
     render();
-    stats.update();
 }
 
 function draw() {
