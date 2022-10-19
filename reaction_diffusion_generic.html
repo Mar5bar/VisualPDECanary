@@ -125,8 +125,7 @@
             if(value > color5.a)
                 col = color5.rgb;
             
-            //gl_FragColor = vec4(col.r, col.g, col.b, 1.0);
-            gl_FragColor = vec4(value, value, value, 1.0);
+            gl_FragColor = vec4(col.r, col.g, col.b, 1.0);
             
         }
     </script>
