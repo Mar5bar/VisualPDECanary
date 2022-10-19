@@ -50,23 +50,25 @@
         varying vec2 textureCoords;
         uniform sampler2D textureSource;
         uniform float dt;
+        uniform float dx;
+        uniform float dy;
 
         void main()
         {
             ivec2 texSize = textureSize(textureSource,0);
-            float dx = 1.0 / float(texSize.x);
-            float dy = 1.0 / float(texSize.y);
+            float step_x = 1.0 / float(texSize.x);
+            float step_y = 1.0 / float(texSize.y);
 
             vec2 uv = texture2D(textureSource, textureCoords).rg;
-            vec2 uvL = texture2D(textureSource, textureCoords + vec2(-dx, 0.0)).rg;
-            vec2 uvR = texture2D(textureSource, textureCoords + vec2(+dx, 0.0)).rg;
-            vec2 uvT = texture2D(textureSource, textureCoords + vec2(0.0, -dy)).rg;
-            vec2 uvB = texture2D(textureSource, textureCoords + vec2(0.0, +dy)).rg;
+            vec2 uvL = texture2D(textureSource, textureCoords + vec2(-step_x, 0.0)).rg;
+            vec2 uvR = texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).rg;
+            vec2 uvT = texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).rg;
+            vec2 uvB = texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).rg;
 
-            vec2 lap = (uvL + uvR - 2.0*uv) + (uvT + uvB - 2.0*uv);
+            vec2 lap = (uvL + uvR - 2.0*uv) / dx / dx + (uvT + uvB - 2.0*uv) / dy / dy;
 
-            float du = 0.2097*lap.r - uv.r*uv.g*uv.g + 0.037*(1.0 - uv.r);
-            float dv = 0.105*lap.g  + uv.r*uv.g*uv.g - (0.037+0.06)*uv.g;
+            float du = 1.0*lap.r - uv.r*uv.g*uv.g + 0.037*(1.0 - uv.r);
+            float dv = 0.5*lap.g  + uv.r*uv.g*uv.g - (0.037+0.06)*uv.g;
 
             //float du = 0.0;
             //float dv = 0.1*lap.g + uv.g*(1.0 - uv.g);

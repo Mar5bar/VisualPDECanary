@@ -20,10 +20,10 @@ import { discShader, vLineShader, hLineShader } from "../drawing_shaders.js";
 
 // Setup some configurable options.
 options = {
-    displayResX: 500,
-    displayResY: 500,
-    nXDisc: 256,
-    nYDisc: 256,
+    displayResX: 1000,
+    displayResY: 1000,
+    nXDisc: 512,
+    nYDisc: 512,
     numTimestepsPerFrame: 100,
     isRunning: true,
     isDrawing: false,
@@ -96,7 +96,11 @@ function init() {
         color2: {type: "v4", value: new THREE.Vector4(0, 1, 0, 0.2)},
         color3: {type: "v4", value: new THREE.Vector4(1, 1, 0, 0.21)},
         color4: {type: "v4", value: new THREE.Vector4(1, 0, 0, 0.4)},
-        color5: {type: "v4", value: new THREE.Vector4(1, 1, 1, 0.6)}
+        color5: {type: "v4", value: new THREE.Vector4(1, 1, 1, 0.6)},
+
+        // Discrete step sizes in the texture.
+        dx: {type: "f", value: options.displayResX / options.nXDisc},
+        dy: {type: "f", value: options.displayResY / options.nYDisc},
         
     };
 
