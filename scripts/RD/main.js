@@ -423,7 +423,7 @@ function parseShaderString( str ) {
     str = str.replace(/V/g, 'uv.g');
 
     // Replace integers with floats.
-    str = str.replace(/(?=[^.])(\d+)(?=[^.])/, '$1.');
+    str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, '$1$2.$3');
     // Replace powers with pow.
     str = str.replace(/([a-z0-9.]*)\^([a-z0-9.]*)/g, 'pow($1, $2)');
 
@@ -434,7 +434,3 @@ function refreshEquations() {
     simMaterial.fragmentShader = [RDShaderTop(), parseShaderStrings(), RDShaderBot()].join(' ');
     simMaterial.needsUpdate = true;
 }
-
-function replaceAll(str, find, replace) {
-    return str.replace(new RegExp(find, 'g'), replace);
-  }
