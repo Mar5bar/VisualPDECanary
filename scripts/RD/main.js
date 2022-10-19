@@ -1,3 +1,5 @@
+let canvas
+
 let camera, simCamera, scene, simScene, renderer, aspectRatio
 
 let simTextureA, simTextureB
@@ -22,6 +24,7 @@ import { RDShaderTop, RDShaderBot } from "./simulation_shaders.js"
 
 // Setup some configurable options.
 options = {
+    squareCanvas: false,
     domainWidth: 1,
     domainHeight: 1,
     renderSize: 2000,
@@ -47,7 +50,7 @@ options = {
 };
 
 // Get the canvas to draw on, as specified by the html.
-const canvas = document.getElementById('simCanvas');
+canvas = document.getElementById('simCanvas');
 
 var readFromTextureB = true;
 init();
@@ -162,6 +165,8 @@ function init() {
 }
 
 function resize() {
+    // Set the shape of the canvas.
+    setCanvasShape();
     // Set the resolution of the simulation domain and the renderer.
     setSizes();
     // Assign sizes to textures.
@@ -170,6 +175,8 @@ function resize() {
     updateUniforms();
     // Update any parts of the GUI that depend on the domain size (ie brush).
     brushRadiusController.max = Math.round(options.maxDisc / 10);
+    console.log(nXDisc)
+    console.log(nYDisc)
 }
 
 function updateUniforms() {
@@ -183,18 +190,21 @@ function setSizes() {
     // We discretise the largest dimension by the maximum allowed amount (as set by the user), 
     // and downsample the other dimension. This means that the maximum discretisation parameter will 
     // govern numerical stability, not the aspect ratio.
-    if (aspectRatio >= 1) {
-        nYDisc = options.maxDisc;
-        nXDisc = Math.round(nYDisc / aspectRatio);
-    }
-    else {
-        nXDisc = options.maxDisc;
-        nYDisc = Math.round(nXDisc * aspectRatio);
-    }
+    nXDisc = options.maxDisc;
+    nYDisc = options.maxDisc;
     // Set the size of the renderer, which will interpolate from the textures.
     renderer.setSize(options.renderSize, options.renderSize, false);
     // Update uniforms.
     updateUniforms();
+}
+
+function setCanvasShape() {
+    if (options.squareCanvas) {
+        document.getElementById("simCanvas").className = "squareCanvas";
+    }
+    else {
+        document.getElementById("simCanvas").className = "fullCanvas";
+    }
 }
 
 function resizeTextures() {
@@ -272,6 +282,9 @@ function initGUI() {
     fEquations.add(options.shaderStr,'F').name("f(u,v)").onFinishChange(refreshEquations);
     fEquations.add(options.shaderStr,'G').name("g(u,v)").onFinishChange(refreshEquations);
     fEquations.open();
+    const fRendering = gui.addFolder('Rendering');
+    fRendering.add(options, 'squareCanvas').name("Square display").onFinishChange(resize);
+    fRendering.add(options, 'renderSize', 1, 4096, 1).name("Render res").onFinishChange(setSizes);
 }
 
 function animate() {

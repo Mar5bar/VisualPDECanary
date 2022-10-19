@@ -7,10 +7,19 @@ body {
 canvas {
     display: block;
     margin: auto;
+    touch-action: none;
     width: 100vw;
     height: 100vh;
-    /* max-width: 100vh; */
-    /* max-height: 100vw; */
-    aspect-ratio: 1;
-    touch-action: none;
+}
+
+.fullCanvas {
+    width: 100vw;
+    height: 100vh;
+}
+
+.squareCanvas {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vh;
+    max-height: 100vw;
 }
