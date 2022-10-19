@@ -65,11 +65,11 @@
 
             vec2 lap = (uvL + uvR - 2.0*uv) + (uvT + uvB - 2.0*uv);
 
-            //float du = 0.2097*lap.r - uv.r*uv.g*uv.g + 0.037*(1.0 - uv.r);
-            //float dv = 0.105*lap.g  + uv.r*uv.g*uv.g - (0.037+0.06)*uv.g;
+            float du = 0.2097*lap.r - uv.r*uv.g*uv.g + 0.037*(1.0 - uv.r);
+            float dv = 0.105*lap.g  + uv.r*uv.g*uv.g - (0.037+0.06)*uv.g;
 
-            float du = 0.0;
-            float dv = 0.1*lap.g + uv.g*(1.0 - uv.g);
+            //float du = 0.0;
+            //float dv = 0.1*lap.g + uv.g*(1.0 - uv.g);
 
             //float du = 0.0000005*lap.r /dx /dx;
             //float dv = 0.0;
