@@ -60,7 +60,7 @@ function init() {
     renderer.autoClear = false;
 
     // Configure textures with placeholder sizes.
-    simTextureA = new THREE.WebGLRenderTarget(1, 1,
+    simTextureA = new THREE.WebGLRenderTarget(options.maxDisc, options.maxDisc,
         {format: THREE.RGBAFormat,
         type: THREE.FloatType,
         minFilter: THREE.LinearFilter,
@@ -104,6 +104,7 @@ function init() {
         // Discrete step sizes in the texture, which will be set later.
         dx: {type: "f"},
         dy: {type: "f"},
+        aspectRatio: {type: "f"},
         
     };
 
@@ -177,7 +178,9 @@ function resize() {
 }
 
 function updateUniforms() {
-
+    uniforms.dx.value = options.domainWidth / nXDisc;
+    uniforms.dy.value = options.domainHeight / nYDisc;
+    uniforms.aspectRatio = aspectRatio;
 }
 
 function setSizes() {
@@ -195,8 +198,8 @@ function setSizes() {
     }
     // Set the size of the renderer, which will interpolate from the textures.
     renderer.setSize(options.renderSize, options.renderSize, false);
-    uniforms.dx.value = options.domainWidth / nXDisc;
-    uniforms.dy.value = options.domainHeight / nYDisc;
+    // Update uniforms.
+    updateUniforms();
 }
 
 function resizeTextures() {
@@ -237,10 +240,10 @@ function initGUI() {
     fBrush.add(options, 'typeOfBrush', {'Circle': 'circle', 'Horizontal line': 'hline', 'Vertical line': 'vline'}).name('Brush type');
     fBrush.add(uniforms.brushValue, 'value', 0, 1).name('Brush value');
     // Brush value has units of pixels (relative to the computational domain).
-    brushRadiusController = fBrush.add(uniforms.brushRadius, 'value', 1, Math.max(options.maxDisc)/10, 1).name('Brush size');
+    brushRadiusController = fBrush.add(uniforms.brushRadius, 'value', 1, Math.max(options.maxDisc)/10, 1).name('Brush size (px)');
     fBrush.open();
     const fResolution = gui.addFolder('Resolution');
-    fResolution.add(options, 'maxDisc', 1, 4096, 1).name('Disc. level').onFinishChange(resize);
+    fResolution.add(options, 'maxDisc', 1, 2048, 1).name('Disc. level').onFinishChange(resize);
     fResolution.open();
 }
 

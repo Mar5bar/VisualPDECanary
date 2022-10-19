@@ -7,6 +7,7 @@ export function discShader() {
     uniform vec2 brushCoords;
     uniform float brushRadius;
     uniform float brushValue;
+    uniform float aspectRatio;
 
     void main()
     {   
@@ -14,7 +15,7 @@ export function discShader() {
 
         ivec2 texSize = textureSize(textureSource,0);
         vec2 diff = textureCoords - brushCoords;
-        if (float(texSize.x) * length(diff) < brushRadius) {
+        if (length(diff * vec2(texSize)) < brushRadius) {
             gl_FragColor.g = brushValue;
         }
 
@@ -56,7 +57,7 @@ export function hLineShader() {
 
         ivec2 texSize = textureSize(textureSource,0);
         vec2 diff = textureCoords - brushCoords;
-        if (float(texSize.x) * length(diff.y) < brushRadius) {
+        if (float(texSize.y) * length(diff.y) < brushRadius) {
             gl_FragColor.g = brushValue;
         }
 
