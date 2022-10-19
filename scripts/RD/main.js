@@ -1,4 +1,4 @@
-let camera, simCamera, scene, simScene, renderer
+let camera, simCamera, scene, simScene, renderer, aspectRatio
 
 let simTextureA, simTextureB
 
@@ -10,23 +10,21 @@ let options, uniforms
 
 let gui, pauseButton, clearButton
 
-let stats
-
-let clock, delta
+let isRunning, isDrawing
 
 let inTex, outTex
+
+let nXDisc, nYDisc
 
 import { discShader, vLineShader, hLineShader } from "../drawing_shaders.js";
 
 // Setup some configurable options.
 options = {
-    displayResX: 1000,
-    displayResY: 1000,
-    nXDisc: 512,
-    nYDisc: 512,
+    domainWidth: 1,
+    domainHeight: 1,
+    renderSize: 2000,
+    maxDisc: 512,
     numTimestepsPerFrame: 100,
-    isRunning: true,
-    isDrawing: false,
     typeOfBrush: "circle",
     pause: function() { 
         if (this.isRunning) {
@@ -43,17 +41,35 @@ options = {
 };
 
 // Get the canvas to draw on, as specified by the html.
-const canvas = document.getElementById('myCanvas');
-
-// Scale the resolution by the aspect ratio of the canvas.
-options.displayResY = Math.round(options.displayResX * canvas.height / canvas.width);
-options.nYDisc = Math.round(options.nYDisc * canvas.height / canvas.width);
+const canvas = document.getElementById('simCanvas');
 
 var readFromTextureB = true;
 init();
 animate();
+isRunning = true;
+isDrawing = false;
 
 function init() {
+
+    // Create a renderer.
+    renderer = new THREE.WebGLRenderer({canvas: canvas, preserveDrawingBuffer: true});
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.autoClear = false;
+
+    // Set the resolution of the simulation domain and the renderer.
+    setSizes();
+
+    // Setup textures with these sizes.
+    simTextureA = new THREE.WebGLRenderTarget(nXDisc, nYDisc,
+        {format: THREE.RGBAFormat,
+        type: THREE.FloatType,
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter,});
+    simTextureB = new THREE.WebGLRenderTarget(nXDisc, nYDisc,
+        {format: THREE.RGBAFormat,
+        type: THREE.FloatType,
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter});
 
     camera = new THREE.OrthographicCamera(-0.5,0.5,0.5,-0.5, -10000, 10000);
     camera.position.z = 100;
@@ -66,17 +82,6 @@ function init() {
     simScene = new THREE.Scene();
 
     scene.add(camera);
-
-    simTextureA = new THREE.WebGLRenderTarget(options.nXDisc, options.nYDisc,
-            {format: THREE.RGBAFormat,
-            type: THREE.FloatType,
-            minFilter: THREE.LinearFilter,
-            magFilter: THREE.LinearFilter,});
-    simTextureB = new THREE.WebGLRenderTarget(options.nXDisc, options.nYDisc,
-            {format: THREE.RGBAFormat,
-            type: THREE.FloatType,
-            minFilter: THREE.LinearFilter,
-            magFilter: THREE.LinearFilter});
 
     // Periodic boundary conditions (for now).
     simTextureA.texture.wrapS = THREE.RepeatWrapping;
@@ -99,10 +104,12 @@ function init() {
         color5: {type: "v4", value: new THREE.Vector4(1, 1, 1, 0.6)},
 
         // Discrete step sizes in the texture.
-        dx: {type: "f", value: options.displayResX / options.nXDisc},
-        dy: {type: "f", value: options.displayResY / options.nYDisc},
+        aspectRatio: {type: "f", value: aspectRatio},
+        dx: {type: "f", value: options.domainWidth / nXDisc},
+        dy: {type: "f", value: options.domainHeight / nYDisc},
         
     };
+    console.log(uniforms.dx.value)
 
     // Eventually, both of these will be ShaderMaterial, with material taking simTextureA/B.texture
     // and extracting out the needed component and colouring it.
@@ -136,19 +143,50 @@ function init() {
     simDomain.position.z = 0;
     simScene.add(simDomain);
 
-    // Create a renderer.
-    renderer = new THREE.WebGLRenderer({canvas: canvas, preserveDrawingBuffer: true});
-    renderer.setPixelRatio( window.devicePixelRatio );
-    renderer.setSize(options.displayResX, options.displayResY, false);
-    renderer.autoClear = false;
-
     // Render black onto the sim textures.
     clearTextures();
 
     // Create a GUI.
+    initGUI();
+
+    // Listen for pointer events.
+    canvas.addEventListener( 'pointerdown', onDocumentPointerDown, false);
+    canvas.addEventListener( 'pointerup', onDocumentPointerUp, false);
+    canvas.addEventListener( 'pointermove', onDocumentPointerMove, false);
+
+    document.addEventListener("keypress", function onEvent(event) {
+        if (event.key === "c") {
+            reset();
+        }
+    })
+
+}
+
+function reset() {
+    
+}
+
+function setSizes() {
+    aspectRatio = canvas.getBoundingClientRect().height / canvas.getBoundingClientRect().width;
+    // We discretise the largest dimension by the maximum allowed amount (as set by the user), 
+    // and downsample the other dimension. This means that the maximum discretisation parameter will 
+    // govern numerical stability, not the aspect ratio.
+    if (aspectRatio >= 1) {
+        nYDisc = options.maxDisc;
+        nXDisc = Math.round(nYDisc / aspectRatio);
+    }
+    else {
+        nXDisc = options.maxDisc;
+        nYDisc = Math.round(nXDisc * aspectRatio);
+    }
+    // Set the size of the renderer, which will interpolate from the textures.
+    renderer.setSize(options.renderSize, options.renderSize, false);
+}
+
+function initGUI() {
     gui = new dat.GUI({closeOnTop: true})
     pauseButton = gui.add(options,'pause');
-    if (options.isRunning) {
+    if (isRunning) {
         pauseButton.name('Pause');
     }
     else {
@@ -156,38 +194,26 @@ function init() {
     }
     clearButton = gui.add(options,'clear').name('Clear');
     gui.add(options, 'numTimestepsPerFrame', 1, 200, 1).name('TPF');
-    gui.add(uniforms.dt, 'value', 0, 1).name('Timestep');
+    gui.add(uniforms.dt, 'value', 0, 1, 0.0001).name('Timestep');
     const fBrush = gui.addFolder('Brush');
     fBrush.add(options, 'typeOfBrush', {'Circle': 'circle', 'Horizontal line': 'hline', 'Vertical line': 'vline'}).name('Brush type');
     fBrush.add(uniforms.brushValue, 'value', 0, 1).name('Brush value');
     // Brush value has units of pixels (relative to the computational domain).
-    fBrush.add(uniforms.brushRadius, 'value', 1, 10, 1).name('Brush size');
+    fBrush.add(uniforms.brushRadius, 'value', 1, Math.max(nXDisc,nYDisc)/10, 1).name('Brush size');
     fBrush.open();
-
-    // Create a clock for recording framerate etc.
-    clock = new THREE.Clock();
-    delta = 0;
-
-    // Listen for pointer events.
-    canvas.addEventListener( 'pointerdown', onDocumentPointerDown, false);
-    canvas.addEventListener( 'pointerup', onDocumentPointerUp, false);
-    canvas.addEventListener( 'pointermove', onDocumentPointerMove, false);
-
-    // FPS.
-    stats = Stats();
-    document.body.appendChild(stats.dom);
+    gui.close();
 }
 
 function animate() {
     requestAnimationFrame(animate);
 
     // Draw on any input from the user, which can happen even if timestepping is not running.
-    if (options.isDrawing){
+    if (isDrawing){
        draw();
     }
 
     // Only timestep if the simulation is running.
-    if (options.isRunning) {
+    if (isRunning) {
 
         // Perform a number of timesteps per frame.
         for (let i = 0; i < options.numTimestepsPerFrame; i++){
@@ -198,7 +224,6 @@ function animate() {
 
     // Always render, in case the user has drawn.
     render();
-    stats.update();
 }
 
 function draw() {
@@ -264,11 +289,11 @@ function render() {
 
 function onDocumentPointerDown( event ){
     setBrushCoords( event, canvas )
-    options.isDrawing = true;
+    isDrawing = true;
 }
 
 function onDocumentPointerUp( event ){
-    options.isDrawing = false;
+    isDrawing = false;
 }
 
 function onDocumentPointerMove( event ){
@@ -291,13 +316,11 @@ function clearTextures() {
 }
 
 function pauseSim() {
-    clock.stop();
     pauseButton.name('Play');
-    options.isRunning = false;
+    isRunning = false;
 }
 
 function playSim() {
-    clock.start();
     pauseButton.name('Pause');
-    options.isRunning = true;
+    isRunning = true;
 }

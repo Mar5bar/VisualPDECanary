@@ -22,7 +22,7 @@
 
     <!-- The canvas for drawing on -->
     <div>
-    <canvas id="myCanvas"></canvas>
+    <canvas id="simCanvas"></canvas>
     </div>
 
     <body>
@@ -67,8 +67,8 @@
 
             vec2 lap = (uvL + uvR - 2.0*uv) / dx / dx + (uvT + uvB - 2.0*uv) / dy / dy;
 
-            float du = 1.0*lap.r - uv.r*uv.g*uv.g + 0.037*(1.0 - uv.r);
-            float dv = 0.5*lap.g  + uv.r*uv.g*uv.g - (0.037+0.06)*uv.g;
+            float du = 1.0*0.002*0.002*lap.r - uv.r*uv.g*uv.g + 0.037*(1.0 - uv.r);
+            float dv = 0.5*0.002*0.002*lap.g  + uv.r*uv.g*uv.g - (0.037+0.06)*uv.g;
 
             //float du = 0.0;
             //float dv = 0.1*lap.g + uv.g*(1.0 - uv.g);
