@@ -378,6 +378,9 @@ function setBrushCoords( event, container ){
     var cRect = container.getBoundingClientRect();
     let x = (event.clientX - cRect.x) / cRect.width;
     let y = 1 - (event.clientY - cRect.y) / cRect.height;
+    // Round to the centre of a pixel.
+    x = (Math.floor(x * nXDisc) + 0.5) / nXDisc;
+    y = (Math.floor(y * nYDisc) + 0.5) / nYDisc;
     uniforms.brushCoords.value = new THREE.Vector2(x,y);
 }
 
