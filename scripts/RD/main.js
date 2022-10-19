@@ -45,6 +45,10 @@ options = {
 // Get the canvas to draw on, as specified by the html.
 const canvas = document.getElementById('myCanvas');
 
+// Scale the resolution by the aspect ratio of the canvas.
+options.displayResY = Math.round(options.displayResX * canvas.height / canvas.width);
+options.nYDisc = Math.round(options.nYDisc * canvas.height / canvas.width);
+
 var readFromTextureB = true;
 init();
 animate();
