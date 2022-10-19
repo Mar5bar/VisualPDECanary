@@ -161,9 +161,9 @@ function init() {
     delta = 0;
 
     // Listen for pointer events.
-    document.addEventListener( 'pointerdown', onDocumentMouseDown, false);
-    document.addEventListener( 'pointerup', onDocumentMouseUp, false);
-    document.addEventListener( 'pointermove', onDocumentMouseMove, false);
+    canvas.addEventListener( 'pointerdown', onDocumentPointerDown, false);
+    canvas.addEventListener( 'pointerup', onDocumentPointerUp, false);
+    canvas.addEventListener( 'pointermove', onDocumentPointerMove, false);
 
     // FPS.
     stats = Stats();
@@ -254,30 +254,24 @@ function render() {
     renderer.render( scene, camera );
 }
 
-function onDocumentMouseDown( event ){
-    if (isWithinBoundingBox(event.clientX, event.clientY, canvas) &
-        !isWithinBoundingBox(event.clientX, event.clientY, gui.domElement)) {
-        options.isDrawing = true;
-    }
+function onDocumentPointerDown( event ){
+    setBrushCoords( event, canvas )
+    options.isDrawing = true;
 }
 
-function onDocumentMouseUp( event ){
+function onDocumentPointerUp( event ){
     options.isDrawing = false;
 }
 
-function onDocumentMouseMove( event ){
-    var cRect = canvas.getBoundingClientRect();
+function onDocumentPointerMove( event ){
+    setBrushCoords( event, canvas );
+}
+
+function setBrushCoords( event, container ){
+    var cRect = container.getBoundingClientRect();
     let x = (event.clientX - cRect.x) / cRect.width;
     let y = 1 - (event.clientY - cRect.y) / cRect.height;
     uniforms.brushCoords.value = new THREE.Vector2(x,y);
-}
-
-function isWithinBoundingBox( x, y, target ){
-    var rect = target.getBoundingClientRect();
-    return (rect.x <= x &
-            x <= rect.x+rect.width &
-            rect.y <= y &
-            y <= rect.y+rect.height);
 }
 
 function clearTextures() {
