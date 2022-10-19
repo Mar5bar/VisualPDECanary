@@ -89,7 +89,7 @@ function init() {
 
     // Define uniforms to be sent to the shaders.
     uniforms = {
-        textureSource: {value: simTextureA.texture},
+        textureSource: {type: "t"},
         brushCoords: {type: "v2", value: new THREE.Vector2(0.5,0.5)},
         brushRadius: {type: "f", value: 1},
         brushValue: {type: "f", value: 1.0},
@@ -203,11 +203,22 @@ function resizeTextures() {
     // Resize the computational domain by interpolating the existing domain onto the new discretisation.
     simDomain.material = copyMaterial;
 
-    uniforms.textureSource.value = simTextureB.texture;
-    simTextureA.setSize(nXDisc, nYDisc);
-    renderer.setRenderTarget( simTextureA );
-    renderer.render( simScene, simCamera );
-    simTextureB = simTextureA.clone();
+    if (!readFromTextureB) {
+        uniforms.textureSource.value = simTextureA.texture;
+        simTextureB.setSize(nXDisc, nYDisc);
+        renderer.setRenderTarget(simTextureB);
+        renderer.render( simScene, simCamera );
+        simTextureA = simTextureB.clone();
+    }
+    else {
+        uniforms.textureSource.value = simTextureB.texture;
+        simTextureA.setSize(nXDisc, nYDisc);
+        renderer.setRenderTarget(simTextureA);
+        renderer.render( simScene, simCamera );
+        simTextureB = simTextureA.clone();
+    }
+    readFromTextureB = !readFromTextureB;
+    render();
 }
 
 function initGUI() {
