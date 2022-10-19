@@ -160,10 +160,10 @@ function init() {
     clock = new THREE.Clock();
     delta = 0;
 
-    // Listen for clicks.
-    document.addEventListener( 'mousedown', onDocumentMouseDown, false);
-    document.addEventListener( 'mouseup', onDocumentMouseUp, false);
-    document.addEventListener( 'mousemove', onDocumentMouseMove, false);
+    // Listen for pointer events.
+    document.addEventListener( 'pointerdown', onDocumentMouseDown, false);
+    document.addEventListener( 'pointerup', onDocumentMouseUp, false);
+    document.addEventListener( 'pointermove', onDocumentMouseMove, false);
 
     // FPS.
     stats = Stats();
