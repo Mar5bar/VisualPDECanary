@@ -18,6 +18,7 @@ let nXDisc, nYDisc
 
 import { discShader, vLineShader, hLineShader } from "../drawing_shaders.js";
 import { copyShader } from "../copy_shader.js";
+import { RDShaderTop, RDShaderBot } from "./simulation_shaders.js"
 
 // Setup some configurable options.
 options = {
@@ -27,6 +28,10 @@ options = {
     maxDisc: 512,
     numTimestepsPerFrame: 100,
     typeOfBrush: "circle",
+    shaderStr: {
+        F: "-u*v^2 + 0.037*(1.0 - u)",
+        G: "u*v^2 - (0.037+0.06)*v",
+    },
     pause: function() { 
         if (isRunning) {
             pauseSim();
@@ -88,25 +93,7 @@ function init() {
     scene.add(camera);
 
     // Define uniforms to be sent to the shaders.
-    uniforms = {
-        textureSource: {type: "t"},
-        brushCoords: {type: "v2", value: new THREE.Vector2(0.5,0.5)},
-        brushRadius: {type: "f", value: 1},
-        brushValue: {type: "f", value: 1.0},
-        dt: {type: "f", value: 0.01},
-
-        color1: {type: "v4", value: new THREE.Vector4(0, 0, 0.0, 0)},
-        color2: {type: "v4", value: new THREE.Vector4(0, 1, 0, 0.2)},
-        color3: {type: "v4", value: new THREE.Vector4(1, 1, 0, 0.21)},
-        color4: {type: "v4", value: new THREE.Vector4(1, 0, 0, 0.4)},
-        color5: {type: "v4", value: new THREE.Vector4(1, 1, 1, 0.6)},
-
-        // Discrete step sizes in the texture, which will be set later.
-        dx: {type: "f"},
-        dy: {type: "f"},
-        aspectRatio: {type: "f"},
-        
-    };
+    initUniforms();
 
     // This material will display the output of the simulation.
     material = new THREE.ShaderMaterial({
@@ -124,7 +111,7 @@ function init() {
     simMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,
         vertexShader: document.getElementById( 'genericVertexShader' ).innerHTML,
-        fragmentShader: document.getElementById( 'simulationFragShader' ).innerHTML,
+        fragmentShader: [RDShaderTop(), parseShaderStrings(), RDShaderBot()].join(' '),
     })
     copyMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,
@@ -159,6 +146,14 @@ function init() {
     document.addEventListener("keypress", function onEvent(event) {
         if (event.key === "c") {
             clearTextures();
+        }
+        if (event.key === "p") {
+            if (isRunning) {
+                pauseSim();
+            }
+            else {
+                playSim();
+            }
         }
     })
 
@@ -224,27 +219,59 @@ function resizeTextures() {
     render();
 }
 
+function initUniforms() {
+    uniforms = {
+        textureSource: {type: "t"},
+        brushCoords: {type: "v2", value: new THREE.Vector2(0.5,0.5)},
+        brushRadius: {type: "f", value: options.maxDisc / 50},
+        brushValue: {type: "f", value: 1.0},
+        dt: {type: "f", value: 0.01},
+
+        color1: {type: "v4", value: new THREE.Vector4(0, 0, 0.0, 0)},
+        color2: {type: "v4", value: new THREE.Vector4(0, 1, 0, 0.2)},
+        color3: {type: "v4", value: new THREE.Vector4(1, 1, 0, 0.21)},
+        color4: {type: "v4", value: new THREE.Vector4(1, 0, 0, 0.4)},
+        color5: {type: "v4", value: new THREE.Vector4(1, 1, 1, 0.6)},
+
+        // Discrete step sizes in the texture, which will be set later.
+        dx: {type: "f"},
+        dy: {type: "f"},
+        aspectRatio: {type: "f"},
+
+        // Diffusion coefficients.
+        Du: {type: "f", value: 0.000004},
+        Dv: {type: "f", value: 0.000002},
+        
+    };
+}
+
 function initGUI() {
     gui = new dat.GUI({closeOnTop: true});
     pauseButton = gui.add(options,'pause');
     if (isRunning) {
-        pauseButton.name('Pause');
+        pauseButton.name('Pause (p)');
     }
     else {
-        pauseButton.name('Play');
+        pauseButton.name('Play (p)');
     }
-    clearButton = gui.add(options,'clear').name('Clear');
-    gui.add(options, 'numTimestepsPerFrame', 1, 200, 1).name('TPF');
-    gui.add(uniforms.dt, 'value', 0, 1, 0.0001).name('Timestep');
+    clearButton = gui.add(options,'clear').name('Clear (c)');
     const fBrush = gui.addFolder('Brush');
     fBrush.add(options, 'typeOfBrush', {'Circle': 'circle', 'Horizontal line': 'hline', 'Vertical line': 'vline'}).name('Brush type');
     fBrush.add(uniforms.brushValue, 'value', 0, 1).name('Brush value');
     // Brush value has units of pixels (relative to the computational domain).
     brushRadiusController = fBrush.add(uniforms.brushRadius, 'value', 1, Math.max(options.maxDisc)/10, 1).name('Brush size (px)');
     fBrush.open();
-    const fResolution = gui.addFolder('Resolution');
-    fResolution.add(options, 'maxDisc', 1, 2048, 1).name('Disc. level').onFinishChange(resize);
-    fResolution.open();
+    const fDomain = gui.addFolder('Domain');
+    fDomain.add(options, 'domainWidth', 0.001, 10).name('Width').onFinishChange(resize);
+    fDomain.add(options, 'domainHeight', 0.001, 10).name('Height').onFinishChange(resize);
+    fDomain.add(options, 'maxDisc', 1, 2048, 1).name('Disc. level').onFinishChange(resize);
+    const fTimestepping = gui.addFolder('Timestepping');
+    fTimestepping.add(options, 'numTimestepsPerFrame', 1, 200, 1).name('TPF');
+    fTimestepping.add(uniforms.dt, 'value', 0, 1, 0.0001).name('Timestep');
+    const fEquations = gui.addFolder('Equations');
+    fEquations.add(options.shaderStr,'F').name("f(u,v)").onFinishChange(refreshEquations);
+    fEquations.add(options.shaderStr,'G').name("g(u,v)").onFinishChange(refreshEquations);
+    fEquations.open();
 }
 
 function animate() {
@@ -371,3 +398,43 @@ function playSim() {
     pauseButton.name('Pause');
     isRunning = true;
 }
+
+// Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
+function parseShaderStrings() {
+    let out = '';
+    
+    // Prepare the f string.
+    out += 'float f = ' + parseShaderString(options.shaderStr.F) + ';\n';
+    // Prepare the g string.
+    out += 'float g = ' + parseShaderString(options.shaderStr.G) + ';\n';
+
+    return out;
+}
+
+// Parse a string into valid GLSL, replacing
+function parseShaderString( str ) {
+    // Pad the string.
+    str = ' ' + str + ' ';
+
+    // Replace u and v with uv.r and uv.g via placeholders.
+    str = str.replace(/u/g, 'U');
+    str = str.replace(/v/g, 'V');
+    str = str.replace(/U/g, 'uv.r');
+    str = str.replace(/V/g, 'uv.g');
+
+    // Replace integers with floats.
+    str = str.replace(/(?=[^.])(\d+)(?=[^.])/, '$1.');
+    // Replace powers with pow.
+    str = str.replace(/([a-z0-9.]*)\^([a-z0-9.]*)/g, 'pow($1, $2)');
+
+    return str;
+}
+
+function refreshEquations() {
+    simMaterial.fragmentShader = [RDShaderTop(), parseShaderStrings(), RDShaderBot()].join(' ');
+    simMaterial.needsUpdate = true;
+}
+
+function replaceAll(str, find, replace) {
+    return str.replace(new RegExp(find, 'g'), replace);
+  }
