@@ -22,6 +22,7 @@ import { discShader, vLineShader, hLineShader } from "../drawing_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import { RDShaderTop, RDShaderBot } from "./simulation_shaders.js"
 import { greyscaleDisplay, fiveColourDisplay, viridisDisplay } from "../display_shaders.js"
+import { genericVertexShader } from "../generic_shaders.js"
 
 // Setup some configurable options.
 options = {
@@ -103,24 +104,21 @@ function init() {
     // This material will display the output of the simulation.
     displayMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,
-        vertexShader: document.getElementById( 'genericVertexShader' ).innerHTML,
-        fragmentShader: document.getElementById( 'displayFragShader' ).innerHTML,
+        vertexShader: genericVertexShader(),
     })
     // This material allows for drawing via a number of fragment shaders, which will be swapped in before use.
     drawMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,
-        vertexShader: document.getElementById( 'genericVertexShader' ).innerHTML,
-        fragmentShader: discShader(),
+        vertexShader: genericVertexShader(),
     })
-    // These shaders perform the timestepping.
+    // This material performs the timestepping.
     simMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,
-        vertexShader: document.getElementById( 'genericVertexShader' ).innerHTML,
-        fragmentShader: [RDShaderTop(), parseShaderStrings(), RDShaderBot()].join(' '),
+        vertexShader: genericVertexShader(),
     })
     copyMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,
-        vertexShader: document.getElementById( 'genericVertexShader' ).innerHTML,
+        vertexShader: genericVertexShader(),
         fragmentShader: copyShader(),
     })
 
@@ -136,6 +134,9 @@ function init() {
     simDomain = new THREE.Mesh(simPlane, simMaterial);
     simDomain.position.z = 0;
     simScene.add(simDomain);
+
+    // Add shaders to the textures.
+    setShaders();
 
     // Render black onto the sim textures.
     clearTextures();
@@ -283,31 +284,48 @@ function initGUI() {
     }
     clearButton = gui.add(options,'clear').name('Clear (c)');
 
+    // Brush folder.
     const fBrush = gui.addFolder('Brush');
     fBrush.add(options, 'typeOfBrush', {'Circle': 'circle', 'Horizontal line': 'hline', 'Vertical line': 'vline'}).name('Brush type').onChange(setBrushType);
     fBrush.add(uniforms.brushValue, 'value', 0, 1).name('Brush value');
     brushRadiusController = fBrush.add(uniforms.brushRadius, 'value', 0, options.domainScale/10).name('Brush radius');
     fBrush.open();
 
+    // Domain folder.
     const fDomain = gui.addFolder('Domain');
     fDomain.add(options, 'domainScale', 0.001, 10).name('Largest side').onChange(resize);
     fDomain.add(options, 'spatialStep', 0.0001, options.domainScale / 50).name('Space step').onChange(resize);
     
+    // Timestepping folder.
     const fTimestepping = gui.addFolder('Timestepping');
     fTimestepping.add(options, 'numTimestepsPerFrame', 1, 200, 1).name('TPF');
     fTimestepping.add(uniforms.dt, 'value', 0, 1, 0.0001).name('Timestep');
 
+    // Equations folder.
     const fEquations = gui.addFolder('Equations');
-    fEquations.add(options.shaderStr,'F').name("f(u,v)").onFinishChange(refreshEquations);
-    fEquations.add(options.shaderStr,'G').name("g(u,v)").onFinishChange(refreshEquations);
+    // Du and Dv.
+    const DuController = fEquations.add(uniforms.Du,'value').name("Du");
+    DuController.__precision = 12;
+    DuController.updateDisplay();
+    const DvController = fEquations.add(uniforms.Dv,'value').name("Dv");
+    DvController.__precision = 12;
+    DvController.updateDisplay();
+    // Custom f(u,v) and g(u,v).
+    fEquations.add(options.shaderStr,'F').name("f(u,v)").onFinishChange(setRDEquations);
+    fEquations.add(options.shaderStr,'G').name("g(u,v)").onFinishChange(setRDEquations);
     fEquations.open();
 
+    // Rendering folder.
     const fRendering = gui.addFolder('Rendering');
     fRendering.add(options, 'squareCanvas').name("Square display").onFinishChange(resize);
     fRendering.add(options, 'renderSize', 1, 4096, 1).name("Render res").onChange(setSizes);
+
+    // Colour folder.
     fColour = gui.addFolder('Colour');
     fColour.add(options, 'whatToPlot', {'u': 'u', 'v': 'v'}).name('Colour by: ').onChange(setDisplayColourAndType);
     fColour.add(options, 'colourmap', {'Greyscale': 'greyscale', 'Viridis': 'viridis', 'RedYellowGreen': 'fiveColourDisplay'}).onChange(setDisplayColourAndType);
+
+    console.log(gui)
 }
 
 function animate() {
@@ -334,6 +352,17 @@ function animate() {
 
     // Always render, in case the user has drawn.
     render();
+}
+
+function setShaders() {
+    // Configure the display material.
+    setDisplayColourAndType();
+
+    // Configure the drawing material.
+    setBrushType();
+
+    // Configure the simulation material.
+    setRDEquations();
 }
 
 function setBrushType() {
@@ -494,7 +523,7 @@ function parseShaderString( str ) {
     return str;
 }
 
-function refreshEquations() {
+function setRDEquations() {
     simMaterial.fragmentShader = [RDShaderTop(), parseShaderStrings(), RDShaderBot()].join(' ');
     simMaterial.needsUpdate = true;
 }

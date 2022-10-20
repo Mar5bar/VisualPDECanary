@@ -23,3 +23,7 @@ canvas {
     max-width: 100vh;
     max-height: 100vw;
 }
+
+.dg .a {
+    margin-right: 15px;
+}
