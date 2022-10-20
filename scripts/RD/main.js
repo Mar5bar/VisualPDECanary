@@ -12,10 +12,7 @@ let nXDisc, nYDisc, domainWidth, domainHeight;
 import { discShader, vLineShader, hLineShader } from "../drawing_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import { RDShaderTop, RDShaderBot } from "./simulation_shaders.js";
-import {
-  greyscaleDisplay,
-  fiveColourDisplay,
-} from "../display_shaders.js";
+import { greyscaleDisplay, fiveColourDisplay } from "../display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
 
@@ -329,6 +326,12 @@ function initGUI() {
     pauseButton.name("Play (p)");
   }
   clearButton = gui.add(funsObj, "clear").name("Clear (c)");
+  gui
+    .add(options, "preset", {
+      None: "default",
+      Subcriticality: "subcritical GS",
+    })
+    .onChange(loadPreset);
 
   // Brush folder.
   const fBrush = gui.addFolder("Brush");
@@ -679,7 +682,6 @@ function loadOptions(preset) {
 
   // Loop through newOptions and overwrite anything already present.
   Object.assign(options, newOptions);
-  console.log(options);
 }
 
 function refreshGUI(folder) {

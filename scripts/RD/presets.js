@@ -26,7 +26,8 @@ export function getPreset(id) {
         typeOfBrush: "circle",
         whatToPlot: "v",
       };
-    case "default":
+      break;
+    default:
       options = {
         brushValue: 1,
         brushRadius: 1 / 20,
