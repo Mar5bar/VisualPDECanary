@@ -1,57 +1,47 @@
-let canvas
-
-let camera, simCamera, scene, simScene, renderer, aspectRatio
-
-let simTextureA, simTextureB
-
-let displayMaterial, drawMaterial, simMaterial, blackMaterial, copyMaterial
-
-let domain, simDomain
-
-let options, uniforms
-
-let gui, pauseButton, clearButton, brushRadiusController, fColour
-
-let isRunning, isDrawing
-
-let inTex, outTex
-
-let nXDisc, nYDisc, domainWidth, domainHeight
+let canvas;
+let camera, simCamera, scene, simScene, renderer, aspectRatio;
+let simTextureA, simTextureB;
+let displayMaterial, drawMaterial, simMaterial, blackMaterial, copyMaterial;
+let domain, simDomain;
+let options, uniforms;
+let gui, pauseButton, clearButton, brushRadiusController, fColour;
+let isRunning, isDrawing;
+let inTex, outTex;
+let nXDisc, nYDisc, domainWidth, domainHeight;
 
 import { discShader, vLineShader, hLineShader } from "../drawing_shaders.js";
 import { copyShader } from "../copy_shader.js";
-import { RDShaderTop, RDShaderBot } from "./simulation_shaders.js"
-import { greyscaleDisplay, fiveColourDisplay, viridisDisplay } from "../display_shaders.js"
-import { genericVertexShader } from "../generic_shaders.js"
+import { RDShaderTop, RDShaderBot } from "./simulation_shaders.js";
+import { greyscaleDisplay, fiveColourDisplay, viridisDisplay } from "../display_shaders.js";
+import { genericVertexShader } from "../generic_shaders.js";
 
 // Setup some configurable options.
 options = {
-    squareCanvas: false,
-    domainScale: 1,
-    spatialStep: 1 / 100,
-    renderSize: 2000,
-    numTimestepsPerFrame: 100,
-    typeOfBrush: "circle",
-    colourmap: "fiveColourDisplay",
-    whatToPlot: 'v',
-    minColourValue: 0,
-    maxColourValue: 1,
-    shaderStr: {
-        F: "-u*v^2 + 0.037*(1.0 - u)",
-        G: "u*v^2 - (0.037+0.06)*v",
-    },
-    pause: function() { 
-        if (isRunning) {
-            pauseSim();
-        }
-        else {
-            playSim();
-        }
-    },
-    clear: function() { 
-        clearTextures();
-        pauseSim();
-    },
+  clear: function () {
+    clearTextures();
+    pauseSim();
+  },
+  colourmap: "fiveColourDisplay",
+  domainScale: 1,
+  maxColourValue: 1,
+  minColourValue: 0,
+  numTimestepsPerFrame: 100,
+  pause: function () {
+    if (isRunning) {
+      pauseSim();
+    } else {
+      playSim();
+    }
+  },
+  renderSize: 2000,
+  shaderStr: {
+    F: "-u*v^2 + 0.037*(1.0 - u)",
+    G: "u*v^2 - (0.037+0.06)*v"
+  },
+  spatialStep: 1 / 100,
+  squareCanvas: false,
+  typeOfBrush: "circle",
+  whatToPlot: 'v'
 };
 
 // Get the canvas to draw on, as specified by the html.
@@ -253,33 +243,77 @@ function resizeTextures() {
 }
 
 function initUniforms() {
-    uniforms = {
-        textureSource: {type: "t"},
-        brushCoords: {type: "v2", value: new THREE.Vector2(0.5,0.5)},
-        brushRadius: {type: "f", value: options.domainScale / 100},
-        brushValue: {type: "f", value: 1.0},
-        dt: {type: "f", value: 0.01},
-
-        minColourValue: {type: "f", value: 0.0},
-        maxColourValue: {type: "f", value: 1.0},
-
-        colour1: {type: "v4", value: new THREE.Vector4(0, 0, 0.0, 0)},
-        colour2: {type: "v4", value: new THREE.Vector4(0, 1, 0, 0.2)},
-        colour3: {type: "v4", value: new THREE.Vector4(1, 1, 0, 0.21)},
-        colour4: {type: "v4", value: new THREE.Vector4(1, 0, 0, 0.4)},
-        colour5: {type: "v4", value: new THREE.Vector4(1, 1, 1, 0.6)},
-
-        // Discrete step sizes in the texture, which will be set later.
-        dx: {type: "f"},
-        dy: {type: "f"},
-        domainWidth: {type: "f"},
-        domainHeight: {type: "f"},
-
-        // Diffusion coefficients.
-        Du: {type: "f", value: 0.000004},
-        Dv: {type: "f", value: 0.000002},
-        
-    };
+  uniforms = {
+    brushCoords: {
+      type: "v2",
+      value: new THREE.Vector2(0.5, 0.5)
+    },
+    brushRadius: {
+      type: "f",
+      value: options.domainScale / 100
+    },
+    brushValue: {
+      type: "f",
+      value: 1.0
+    },
+    colour1: {
+      type: "v4",
+      value: new THREE.Vector4(0, 0, 0.0, 0)
+    },
+    colour2: {
+      type: "v4",
+      value: new THREE.Vector4(0, 1, 0, 0.2)
+    },
+    colour3: {
+      type: "v4",
+      value: new THREE.Vector4(1, 1, 0, 0.21)
+    },
+    colour4: {
+      type: "v4",
+      value: new THREE.Vector4(1, 0, 0, 0.4)
+    },
+    colour5: {
+      type: "v4",
+      value: new THREE.Vector4(1, 1, 1, 0.6)
+    },
+    domainHeight: {
+      type: "f"
+    },
+    domainWidth: {
+      type: "f"
+    },
+    dt: {
+      type: "f",
+      value: 0.01
+    },
+    // Diffusion coefficients.
+    Du: {
+      type: "f",
+      value: 0.000004
+    },
+    Dv: {
+      type: "f",
+      value: 0.000002
+    },
+    // Discrete step sizes in the texture, which will be set later.
+    dx: {
+      type: "f"
+    },
+    dy: {
+      type: "f"
+    },
+    maxColourValue: {
+      type: "f",
+      value: 1.0
+    },
+    minColourValue: {
+      type: "f",
+      value: 0.0
+    },
+    textureSource: {
+      type: "t"
+    }
+  };
 }
 
 function initGUI() {
@@ -412,12 +446,16 @@ function setDisplayColourAndType() {
 }
 
 function selectColourspecInShaderStr( shaderStr ) {
+    let regex = /COLOURSPEC/g;
+    let channel
+
     if (options.whatToPlot == 'u') {
-        shaderStr = shaderStr.replace(/COLOURSPEC/g,'r');
+        channel = 'r';
     }
     else if (options.whatToPlot == 'v') {
-        shaderStr = shaderStr.replace(/(COLOURSPEC)/g,'g');
+        channel = 'g';
     }
+    shaderStr = shaderStr.replace(regex, channel);
     return shaderStr
 }
 
