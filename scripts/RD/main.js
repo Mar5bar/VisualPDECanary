@@ -34,6 +34,8 @@ options = {
     typeOfBrush: "circle",
     colourmap: "fiveColourDisplay",
     whatToPlot: 'v',
+    minColourValue: 0,
+    maxColourValue: 1,
     shaderStr: {
         F: "-u*v^2 + 0.037*(1.0 - u)",
         G: "u*v^2 - (0.037+0.06)*v",
@@ -254,6 +256,9 @@ function initUniforms() {
         brushValue: {type: "f", value: 1.0},
         dt: {type: "f", value: 0.01},
 
+        minColourValue: {type: "f", value: 0.0},
+        maxColourValue: {type: "f", value: 1.0},
+
         color1: {type: "v4", value: new THREE.Vector4(0, 0, 0.0, 0)},
         color2: {type: "v4", value: new THREE.Vector4(0, 1, 0, 0.2)},
         color3: {type: "v4", value: new THREE.Vector4(1, 1, 0, 0.21)},
@@ -323,9 +328,9 @@ function initGUI() {
     // Colour folder.
     fColour = gui.addFolder('Colour');
     fColour.add(options, 'whatToPlot', {'u': 'u', 'v': 'v'}).name('Colour by: ').onChange(setDisplayColourAndType);
-    fColour.add(options, 'colourmap', {'Greyscale': 'greyscale', 'Viridis': 'viridis', 'RedYellowGreen': 'fiveColourDisplay'}).onChange(setDisplayColourAndType);
-
-    console.log(gui)
+    fColour.add(options, 'colourmap', {'Greyscale': 'greyscale', 'Viridis': 'viridis', 'RedYellowGreenWhite': 'fiveColourDisplay'}).onChange(setDisplayColourAndType);
+    fColour.add(uniforms.minColourValue, 'value').name('Min value');
+    fColour.add(uniforms.maxColourValue, 'value').name('Max value');
 }
 
 function animate() {
@@ -385,9 +390,19 @@ function setDisplayColourAndType() {
     }
     else if (options.colourmap == 'fiveColourDisplay') {
         displayMaterial.fragmentShader = selectColourspecInShaderStr(fiveColourDisplay());
+        uniforms.color1.value = new THREE.Vector4(0, 0, 0.0, 0);
+        uniforms.color2.value = new THREE.Vector4(0, 1, 0, 0.2);
+        uniforms.color3.value = new THREE.Vector4(1, 1, 0, 0.21);
+        uniforms.color4.value = new THREE.Vector4(1, 0, 0, 0.4);
+        uniforms.color5.value = new THREE.Vector4(1, 1, 1, 0.6);
     }
     else if (options.colourmap == 'viridis') {
-        displayMaterial.fragmentShader = selectColourspecInShaderStr(viridisDisplay());
+        displayMaterial.fragmentShader = selectColourspecInShaderStr(fiveColourDisplay());
+        uniforms.color1.value = new THREE.Vector4(0.2670, 0.0049, 0.3294, 0.0);
+        uniforms.color2.value = new THREE.Vector4(0.2302, 0.3213, 0.5455, 0.2);
+        uniforms.color3.value = new THREE.Vector4(0.1282, 0.5651, 0.5509, 0.4);
+        uniforms.color4.value = new THREE.Vector4(0.3629, 0.7867, 0.3866, 0.8);
+        uniforms.color5.value = new THREE.Vector4(0.9932, 0.9062, 0.1439, 1.0);
     }
     displayMaterial.needsUpdate = true;
 }
