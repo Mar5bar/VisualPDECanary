@@ -17,7 +17,7 @@ export function discShader() {
         ivec2 texSize = textureSize(textureSource,0);
         vec2 diff = textureCoords - brushCoords;
         if (length(diff * vec2(domainWidth, domainHeight)) < brushRadius) {
-            gl_FragColor.g = brushValue;
+            gl_FragColor.COLOURSPEC = brushValue;
         }
 
     }`;
@@ -39,7 +39,7 @@ export function vLineShader() {
         ivec2 texSize = textureSize(textureSource,0);
         vec2 diff = textureCoords - brushCoords;
         if (domainWidth * length(diff.x) < brushRadius) {
-            gl_FragColor.g = brushValue;
+            gl_FragColor.COLOURSPEC = brushValue;
         }
 
     }`;
@@ -61,7 +61,7 @@ export function hLineShader() {
         ivec2 texSize = textureSize(textureSource,0);
         vec2 diff = textureCoords - brushCoords;
         if (domainHeight * length(diff.y) < brushRadius) {
-            gl_FragColor.g = brushValue;
+            gl_FragColor.COLOURSPEC = brushValue;
         }
 
     }`;

@@ -4,13 +4,13 @@ let camera, simCamera, scene, simScene, renderer, aspectRatio
 
 let simTextureA, simTextureB
 
-let material, drawMaterial, simMaterial, blackMaterial, copyMaterial
+let displayMaterial, drawMaterial, simMaterial, blackMaterial, copyMaterial
 
 let domain, simDomain
 
 let options, uniforms
 
-let gui, pauseButton, clearButton, brushRadiusController
+let gui, pauseButton, clearButton, brushRadiusController, fColour
 
 let isRunning, isDrawing
 
@@ -21,15 +21,18 @@ let nXDisc, nYDisc, domainWidth, domainHeight
 import { discShader, vLineShader, hLineShader } from "../drawing_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import { RDShaderTop, RDShaderBot } from "./simulation_shaders.js"
+import { greyscaleDisplay, fiveColourDisplay, viridisDisplay } from "../display_shaders.js"
 
 // Setup some configurable options.
 options = {
     squareCanvas: false,
     domainScale: 1,
-    spatialStep: 0.01,
+    spatialStep: 1 / 256,
     renderSize: 2000,
     numTimestepsPerFrame: 100,
     typeOfBrush: "circle",
+    colourmap: "fiveColourDisplay",
+    whatToPlot: 'v',
     shaderStr: {
         F: "-u*v^2 + 0.037*(1.0 - u)",
         G: "u*v^2 - (0.037+0.06)*v",
@@ -98,7 +101,7 @@ function init() {
     initUniforms();
 
     // This material will display the output of the simulation.
-    material = new THREE.ShaderMaterial({
+    displayMaterial = new THREE.ShaderMaterial({
         uniforms: uniforms,
         vertexShader: document.getElementById( 'genericVertexShader' ).innerHTML,
         fragmentShader: document.getElementById( 'displayFragShader' ).innerHTML,
@@ -125,7 +128,7 @@ function init() {
     blackMaterial = new THREE.MeshBasicMaterial( {color: 0x000000} );
 
     const plane = new THREE.PlaneGeometry(1.0,1.0);
-    domain = new THREE.Mesh(plane, material);
+    domain = new THREE.Mesh(plane, displayMaterial);
     domain.position.z = 0;
     scene.add(domain);
 
@@ -139,6 +142,9 @@ function init() {
 
     // Create a GUI.
     initGUI();
+
+    // Set the brush type.
+    setBrushType();
 
     // Listen for pointer events.
     canvas.addEventListener( 'pointerdown', onDocumentPointerDown);
@@ -277,7 +283,7 @@ function initGUI() {
     }
     clearButton = gui.add(options,'clear').name('Clear (c)');
     const fBrush = gui.addFolder('Brush');
-    fBrush.add(options, 'typeOfBrush', {'Circle': 'circle', 'Horizontal line': 'hline', 'Vertical line': 'vline'}).name('Brush type');
+    fBrush.add(options, 'typeOfBrush', {'Circle': 'circle', 'Horizontal line': 'hline', 'Vertical line': 'vline'}).name('Brush type').onChange(setBrushType);
     fBrush.add(uniforms.brushValue, 'value', 0, 1).name('Brush value');
     brushRadiusController = fBrush.add(uniforms.brushRadius, 'value', 0, options.domainScale/10).name('Brush radius');
     fBrush.open();
@@ -294,6 +300,9 @@ function initGUI() {
     const fRendering = gui.addFolder('Rendering');
     fRendering.add(options, 'squareCanvas').name("Square display").onFinishChange(resize);
     fRendering.add(options, 'renderSize', 1, 4096, 1).name("Render res").onChange(setSizes);
+    fColour = gui.addFolder('Colour');
+    fColour.add(options, 'whatToPlot', {'u': 'u', 'v': 'v'}).name('Colour by: ').onChange(setDisplayColourAndType);
+    fColour.add(options, 'colourmap', {'Greyscale': 'greyscale', 'Viridis': 'viridis', 'RedYellowGreen': 'fiveColourDisplay'}).onChange(setDisplayColourAndType);
 }
 
 function animate() {
@@ -322,19 +331,44 @@ function animate() {
     render();
 }
 
-function draw() {
+function setBrushType() {
     // Assign the selected drawing shader to the material.
     if (options.typeOfBrush == 'circle') {
-        drawMaterial.fragmentShader = discShader();
+        drawMaterial.fragmentShader = selectColourspecInShaderStr(discShader());
     }
     else if (options.typeOfBrush == 'hline') {
-        drawMaterial.fragmentShader = hLineShader();
+        drawMaterial.fragmentShader = selectColourspecInShaderStr(hLineShader());
     }
     else if (options.typeOfBrush == 'vline') {
-        drawMaterial.fragmentShader = vLineShader();
+        drawMaterial.fragmentShader = selectColourspecInShaderStr(vLineShader());
     }
     drawMaterial.needsUpdate = true;
+}
 
+function setDisplayColourAndType() {
+    if (options.colourmap == 'greyscale') {
+        displayMaterial.fragmentShader = selectColourspecInShaderStr(greyscaleDisplay());
+    }
+    else if (options.colourmap == 'fiveColourDisplay') {
+        displayMaterial.fragmentShader = selectColourspecInShaderStr(fiveColourDisplay());
+    }
+    else if (options.colourmap == 'viridis') {
+        displayMaterial.fragmentShader = selectColourspecInShaderStr(viridisDisplay());
+    }
+    displayMaterial.needsUpdate = true;
+}
+
+function selectColourspecInShaderStr( shaderStr ) {
+    if (options.whatToPlot == 'u') {
+        shaderStr = shaderStr.replace(/COLOURSPEC/g,'r');
+    }
+    else if (options.whatToPlot == 'v') {
+        shaderStr = shaderStr.replace(/(COLOURSPEC)/g,'g');
+    }
+    return shaderStr
+}
+
+function draw() {
     // Toggle texture input/output.
     if (readFromTextureB) {
         inTex = simTextureB;
