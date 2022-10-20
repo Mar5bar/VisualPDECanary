@@ -21,28 +21,7 @@ import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
 
 // Setup some configurable options.
-options = {
-  brushValue: 1,
-  brushRadius: 1 / 10,
-  colourmap: "fiveColourDisplay",
-  domainScale: 1,
-  dt: 0.01,
-  Du: 0.000004,
-  Dv: 0.000002,
-  maxColourValue: 1,
-  minColourValue: 0,
-  numTimestepsPerFrame: 100,
-  preset: "default",
-  renderSize: 2000,
-  shaderStr: {
-    F: "-u*v^2 + 0.037*(1.0 - u)",
-    G: "u*v^2 - (0.037+0.06)*v",
-  },
-  spatialStep: 1 / 100,
-  squareCanvas: false,
-  typeOfBrush: "circle",
-  whatToPlot: "v",
-};
+options = {};
 
 funsObj = {
   clear: function () {
@@ -62,10 +41,11 @@ funsObj = {
 canvas = document.getElementById("simCanvas");
 
 var readFromTextureB = true;
+loadOptions("subcritical GS");
 init();
-// loadPreset("default");
 resize();
 animate();
+loadPreset("default");
 
 //---------------
 
@@ -670,15 +650,38 @@ function setRDEquations() {
   simMaterial.needsUpdate = true;
 }
 
-function loadPreset() {
-  // Get the (potentially partial) options object corresponding to the selected preset.
+function loadPreset(preset) {
+  // Updates the values stored in options.
+  loadOptions(preset);
 
-  getPreset(options.preset);
-
+  // Refresh the whole gui.
   refreshGUI(gui);
 
-  //   Update the uniforms from the newly set values in options.
-  updateUniforms();
+  // Trigger a resize, which will refresh all uniforms and set sizes.
+  resize();
+
+  // Set the shaders.
+  setShaders();
+
+  // Set the display color and brush type.
+  setDisplayColourAndType();
+  setBrushType();
+}
+
+function loadOptions(preset) {
+  let newOptions;
+  // Get the options from the selected preset and update options with them.
+  if (preset != undefined) {
+    newOptions = getPreset(preset);
+  } else if (options.preset != undefined) {
+    newOptions = getPreset(options.preset);
+  } else {
+    newOptions = getPreset("default");
+  }
+
+  // Loop through newOptions and overwrite anything already present.
+  Object.assign(options, newOptions);
+  console.log(options);
 }
 
 function refreshGUI(folder) {
@@ -689,6 +692,5 @@ function refreshGUI(folder) {
   // Update all the controllers at this level.
   for (let i = 0; i < folder.__controllers.length; i++) {
     folder.__controllers[i].updateDisplay();
-    console.log(folder.__controllers[i]);
   }
 }
