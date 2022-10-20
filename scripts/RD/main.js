@@ -184,6 +184,10 @@ function resize() {
     // Update any parts of the GUI that depend on the domain size (ie brush).
     brushRadiusController.max(options.domainScale / 10);
     brushRadiusController.step(options.spatialStep);
+    brushRadiusController.updateDisplay();
+}
+
+function roundBrushSizeToPix() {
     uniforms.brushRadius.value = Math.round(uniforms.brushRadius.value / options.spatialStep) * options.spatialStep;
     brushRadiusController.updateDisplay();
 }
@@ -259,11 +263,11 @@ function initUniforms() {
         minColourValue: {type: "f", value: 0.0},
         maxColourValue: {type: "f", value: 1.0},
 
-        color1: {type: "v4", value: new THREE.Vector4(0, 0, 0.0, 0)},
-        color2: {type: "v4", value: new THREE.Vector4(0, 1, 0, 0.2)},
-        color3: {type: "v4", value: new THREE.Vector4(1, 1, 0, 0.21)},
-        color4: {type: "v4", value: new THREE.Vector4(1, 0, 0, 0.4)},
-        color5: {type: "v4", value: new THREE.Vector4(1, 1, 1, 0.6)},
+        colour1: {type: "v4", value: new THREE.Vector4(0, 0, 0.0, 0)},
+        colour2: {type: "v4", value: new THREE.Vector4(0, 1, 0, 0.2)},
+        colour3: {type: "v4", value: new THREE.Vector4(1, 1, 0, 0.21)},
+        colour4: {type: "v4", value: new THREE.Vector4(1, 0, 0, 0.4)},
+        colour5: {type: "v4", value: new THREE.Vector4(1, 1, 1, 0.6)},
 
         // Discrete step sizes in the texture, which will be set later.
         dx: {type: "f"},
@@ -299,7 +303,7 @@ function initGUI() {
     // Domain folder.
     const fDomain = gui.addFolder('Domain');
     fDomain.add(options, 'domainScale', 0.001, 10).name('Largest side').onChange(resize);
-    fDomain.add(options, 'spatialStep', 0.0001, options.domainScale / 50).name('Space step').onChange(resize);
+    fDomain.add(options, 'spatialStep', 0.0001, options.domainScale / 50).name('Space step').onChange(resize).onFinishChange(roundBrushSizeToPix);
     
     // Timestepping folder.
     const fTimestepping = gui.addFolder('Timestepping');
@@ -328,7 +332,7 @@ function initGUI() {
     // Colour folder.
     fColour = gui.addFolder('Colour');
     fColour.add(options, 'whatToPlot', {'u': 'u', 'v': 'v'}).name('Colour by: ').onChange(setDisplayColourAndType);
-    fColour.add(options, 'colourmap', {'Greyscale': 'greyscale', 'Viridis': 'viridis', 'RedYellowGreenWhite': 'fiveColourDisplay'}).onChange(setDisplayColourAndType);
+    fColour.add(options, 'colourmap', {'Greyscale': 'greyscale', 'Viridis': 'viridis', 'RedYellowGreenWhite': 'fiveColourDisplay'}).onChange(setDisplayColourAndType).name('Colourmap');
     fColour.add(uniforms.minColourValue, 'value').name('Min value');
     fColour.add(uniforms.maxColourValue, 'value').name('Max value');
 }
@@ -390,19 +394,19 @@ function setDisplayColourAndType() {
     }
     else if (options.colourmap == 'fiveColourDisplay') {
         displayMaterial.fragmentShader = selectColourspecInShaderStr(fiveColourDisplay());
-        uniforms.color1.value = new THREE.Vector4(0, 0, 0.0, 0);
-        uniforms.color2.value = new THREE.Vector4(0, 1, 0, 0.2);
-        uniforms.color3.value = new THREE.Vector4(1, 1, 0, 0.21);
-        uniforms.color4.value = new THREE.Vector4(1, 0, 0, 0.4);
-        uniforms.color5.value = new THREE.Vector4(1, 1, 1, 0.6);
+        uniforms.colour1.value = new THREE.Vector4(0, 0, 0.0, 0);
+        uniforms.colour2.value = new THREE.Vector4(0, 1, 0, 0.2);
+        uniforms.colour3.value = new THREE.Vector4(1, 1, 0, 0.21);
+        uniforms.colour4.value = new THREE.Vector4(1, 0, 0, 0.4);
+        uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 0.6);
     }
     else if (options.colourmap == 'viridis') {
         displayMaterial.fragmentShader = selectColourspecInShaderStr(fiveColourDisplay());
-        uniforms.color1.value = new THREE.Vector4(0.2670, 0.0049, 0.3294, 0.0);
-        uniforms.color2.value = new THREE.Vector4(0.2302, 0.3213, 0.5455, 0.2);
-        uniforms.color3.value = new THREE.Vector4(0.1282, 0.5651, 0.5509, 0.4);
-        uniforms.color4.value = new THREE.Vector4(0.3629, 0.7867, 0.3866, 0.8);
-        uniforms.color5.value = new THREE.Vector4(0.9932, 0.9062, 0.1439, 1.0);
+        uniforms.colour1.value = new THREE.Vector4(0.2670, 0.0049, 0.3294, 0.0);
+        uniforms.colour2.value = new THREE.Vector4(0.2302, 0.3213, 0.5455, 0.2);
+        uniforms.colour3.value = new THREE.Vector4(0.1282, 0.5651, 0.5509, 0.4);
+        uniforms.colour4.value = new THREE.Vector4(0.3629, 0.7867, 0.3866, 0.8);
+        uniforms.colour5.value = new THREE.Vector4(0.9932, 0.9062, 0.1439, 1.0);
     }
     displayMaterial.needsUpdate = true;
 }
