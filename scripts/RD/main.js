@@ -16,7 +16,7 @@ let isRunning, isDrawing
 
 let inTex, outTex
 
-let nXDisc, nYDisc
+let nXDisc, nYDisc, domainWidth, domainHeight
 
 import { discShader, vLineShader, hLineShader } from "../drawing_shaders.js";
 import { copyShader } from "../copy_shader.js";
@@ -25,8 +25,7 @@ import { RDShaderTop, RDShaderBot } from "./simulation_shaders.js"
 // Setup some configurable options.
 options = {
     squareCanvas: false,
-    domainWidth: 1,
-    domainHeight: 1,
+    domainScale: 1,
     renderSize: 2000,
     maxDisc: 512,
     numTimestepsPerFrame: 100,
@@ -180,8 +179,8 @@ function resize() {
 }
 
 function updateUniforms() {
-    uniforms.dx.value = options.domainWidth / nXDisc;
-    uniforms.dy.value = options.domainHeight / nYDisc;
+    uniforms.dx.value = domainWidth / nXDisc;
+    uniforms.dy.value = domainHeight / nYDisc;
     uniforms.aspectRatio = aspectRatio;
 }
 
@@ -190,8 +189,18 @@ function setSizes() {
     // We discretise the largest dimension by the maximum allowed amount (as set by the user), 
     // and downsample the other dimension. This means that the maximum discretisation parameter will 
     // govern numerical stability, not the aspect ratio.
-    nXDisc = options.maxDisc;
-    nYDisc = options.maxDisc;
+    if (aspectRatio >= 1) {
+				nYDisc = options.maxDisc;
+				nXDisc = Math.round(nYDisc / aspectRatio);
+				domainHeight = options.domainScale;
+				domainWidth = domainHeight / aspectRatio;
+    }
+		else {
+				nXDisc = options.maxDisc;
+				nYDisc = Math.round(nXDisc * aspectRatio);
+				domainWidth = options.domainScale;
+				domainHeight = domainWidth * aspectRatio;
+		}
     // Set the size of the renderer, which will interpolate from the textures.
     renderer.setSize(options.renderSize, options.renderSize, false);
     // Update uniforms.
@@ -272,8 +281,7 @@ function initGUI() {
     brushRadiusController = fBrush.add(uniforms.brushRadius, 'value', 1, Math.max(options.maxDisc)/10, 1).name('Brush size (px)');
     fBrush.open();
     const fDomain = gui.addFolder('Domain');
-    fDomain.add(options, 'domainWidth', 0.001, 10).name('Width').onFinishChange(resize);
-    fDomain.add(options, 'domainHeight', 0.001, 10).name('Height').onFinishChange(resize);
+    fDomain.add(options, 'domainScale', 0.001, 10).name('Largest side').onFinishChange(resize);
     fDomain.add(options, 'maxDisc', 1, 2048, 1).name('Disc. level').onFinishChange(resize);
     const fTimestepping = gui.addFolder('Timestepping');
     fTimestepping.add(options, 'numTimestepsPerFrame', 1, 200, 1).name('TPF');
