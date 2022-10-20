@@ -331,6 +331,7 @@ function initGUI() {
       None: "default",
       Subcriticality: "subcritical GS",
     })
+    .name("Preset")
     .onChange(loadPreset);
 
   // Brush folder.
