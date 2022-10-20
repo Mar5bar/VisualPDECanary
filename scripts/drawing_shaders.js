@@ -7,7 +7,8 @@ export function discShader() {
     uniform vec2 brushCoords;
     uniform float brushRadius;
     uniform float brushValue;
-    uniform float aspectRatio;
+    uniform float domainWidth;
+    uniform float domainHeight;
 
     void main()
     {   
@@ -15,7 +16,7 @@ export function discShader() {
 
         ivec2 texSize = textureSize(textureSource,0);
         vec2 diff = textureCoords - brushCoords;
-        if (length(diff * vec2(texSize)) < brushRadius) {
+        if (length(diff * vec2(domainWidth, domainHeight)) < brushRadius) {
             gl_FragColor.g = brushValue;
         }
 
@@ -29,6 +30,7 @@ export function vLineShader() {
     uniform vec2 brushCoords;
     uniform float brushRadius;
     uniform float brushValue;
+    uniform float domainWidth;
 
     void main()
     {   
@@ -36,7 +38,7 @@ export function vLineShader() {
 
         ivec2 texSize = textureSize(textureSource,0);
         vec2 diff = textureCoords - brushCoords;
-        if (float(texSize.x) * length(diff.x) < brushRadius) {
+        if (domainWidth * length(diff.x) < brushRadius) {
             gl_FragColor.g = brushValue;
         }
 
@@ -50,6 +52,7 @@ export function hLineShader() {
     uniform vec2 brushCoords;
     uniform float brushRadius;
     uniform float brushValue;
+    uniform float domainHeight;
 
     void main()
     {   
@@ -57,7 +60,7 @@ export function hLineShader() {
 
         ivec2 texSize = textureSize(textureSource,0);
         vec2 diff = textureCoords - brushCoords;
-        if (float(texSize.y) * length(diff.y) < brushRadius) {
+        if (domainHeight * length(diff.y) < brushRadius) {
             gl_FragColor.g = brushValue;
         }
 

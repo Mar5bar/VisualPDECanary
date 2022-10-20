@@ -26,8 +26,8 @@ import { RDShaderTop, RDShaderBot } from "./simulation_shaders.js"
 options = {
     squareCanvas: false,
     domainScale: 1,
+    spatialStep: 0.01,
     renderSize: 2000,
-    maxDisc: 512,
     numTimestepsPerFrame: 100,
     typeOfBrush: "circle",
     shaderStr: {
@@ -173,34 +173,35 @@ function resize() {
     // Update any uniforms.
     updateUniforms();
     // Update any parts of the GUI that depend on the domain size (ie brush).
-    brushRadiusController.max = Math.round(options.maxDisc / 10);
-    console.log(nXDisc)
-    console.log(nYDisc)
+    brushRadiusController.max(options.domainScale / 10);
+    brushRadiusController.step(options.spatialStep);
+    uniforms.brushRadius.value = Math.round(uniforms.brushRadius.value / options.spatialStep) * options.spatialStep;
+    brushRadiusController.updateDisplay();
 }
 
 function updateUniforms() {
     uniforms.dx.value = domainWidth / nXDisc;
     uniforms.dy.value = domainHeight / nYDisc;
     uniforms.aspectRatio = aspectRatio;
+    uniforms.domainWidth.value = domainWidth;
+    uniforms.domainHeight.value = domainHeight;
 }
 
 function setSizes() {
     aspectRatio = canvas.getBoundingClientRect().height / canvas.getBoundingClientRect().width;
-    // We discretise the largest dimension by the maximum allowed amount (as set by the user), 
-    // and downsample the other dimension. This means that the maximum discretisation parameter will 
-    // govern numerical stability, not the aspect ratio.
+    // Set the domain size, setting the largest side to be of size options.domainScale.
     if (aspectRatio >= 1) {
-				nYDisc = options.maxDisc;
-				nXDisc = Math.round(nYDisc / aspectRatio);
 				domainHeight = options.domainScale;
 				domainWidth = domainHeight / aspectRatio;
     }
 		else {
-				nXDisc = options.maxDisc;
-				nYDisc = Math.round(nXDisc * aspectRatio);
 				domainWidth = options.domainScale;
 				domainHeight = domainWidth * aspectRatio;
 		}
+    // Using the user-specified spatial step size, compute as close a discretisation as possible that 
+    // doesn't reduce the step size below the user's choice.
+    nXDisc = Math.floor(domainWidth / options.spatialStep);
+    nYDisc = Math.floor(domainHeight / options.spatialStep);
     // Set the size of the renderer, which will interpolate from the textures.
     renderer.setSize(options.renderSize, options.renderSize, false);
     // Update uniforms.
@@ -242,7 +243,7 @@ function initUniforms() {
     uniforms = {
         textureSource: {type: "t"},
         brushCoords: {type: "v2", value: new THREE.Vector2(0.5,0.5)},
-        brushRadius: {type: "f", value: options.maxDisc / 50},
+        brushRadius: {type: "f", value: options.domainScale / 100},
         brushValue: {type: "f", value: 1.0},
         dt: {type: "f", value: 0.01},
 
@@ -255,7 +256,8 @@ function initUniforms() {
         // Discrete step sizes in the texture, which will be set later.
         dx: {type: "f"},
         dy: {type: "f"},
-        aspectRatio: {type: "f"},
+        domainWidth: {type: "f"},
+        domainHeight: {type: "f"},
 
         // Diffusion coefficients.
         Du: {type: "f", value: 0.000004},
@@ -277,12 +279,11 @@ function initGUI() {
     const fBrush = gui.addFolder('Brush');
     fBrush.add(options, 'typeOfBrush', {'Circle': 'circle', 'Horizontal line': 'hline', 'Vertical line': 'vline'}).name('Brush type');
     fBrush.add(uniforms.brushValue, 'value', 0, 1).name('Brush value');
-    // Brush value has units of pixels (relative to the computational domain).
-    brushRadiusController = fBrush.add(uniforms.brushRadius, 'value', 1, Math.max(options.maxDisc)/10, 1).name('Brush size (px)');
+    brushRadiusController = fBrush.add(uniforms.brushRadius, 'value', 0, options.domainScale/10).name('Brush radius');
     fBrush.open();
     const fDomain = gui.addFolder('Domain');
-    fDomain.add(options, 'domainScale', 0.001, 10).name('Largest side').onFinishChange(resize);
-    fDomain.add(options, 'maxDisc', 1, 2048, 1).name('Disc. level').onFinishChange(resize);
+    fDomain.add(options, 'domainScale', 0.001, 10).name('Largest side').onChange(resize);
+    fDomain.add(options, 'spatialStep', 0.0001, options.domainScale / 50).name('Space step').onChange(resize);
     const fTimestepping = gui.addFolder('Timestepping');
     fTimestepping.add(options, 'numTimestepsPerFrame', 1, 200, 1).name('TPF');
     fTimestepping.add(uniforms.dt, 'value', 0, 1, 0.0001).name('Timestep');
@@ -292,7 +293,7 @@ function initGUI() {
     fEquations.open();
     const fRendering = gui.addFolder('Rendering');
     fRendering.add(options, 'squareCanvas').name("Square display").onFinishChange(resize);
-    fRendering.add(options, 'renderSize', 1, 4096, 1).name("Render res").onFinishChange(setSizes);
+    fRendering.add(options, 'renderSize', 1, 4096, 1).name("Render res").onChange(setSizes);
 }
 
 function animate() {
