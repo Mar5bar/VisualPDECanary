@@ -15,7 +15,6 @@ import { RDShaderTop, RDShaderBot } from "./simulation_shaders.js";
 import {
   greyscaleDisplay,
   fiveColourDisplay,
-  viridisDisplay,
 } from "../display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
@@ -41,11 +40,10 @@ funsObj = {
 canvas = document.getElementById("simCanvas");
 
 var readFromTextureB = true;
-loadOptions("subcritical GS");
+loadOptions("default");
 init();
 resize();
 animate();
-loadPreset("default");
 
 //---------------
 

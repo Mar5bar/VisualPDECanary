@@ -64,18 +64,3 @@ export function greyscaleDisplay() {
         
     }`;
 }
-
-export function viridisDisplay() {
-    return `varying vec2 textureCoords;
-    uniform sampler2D textureSource;
-    uniform float minColourValue;
-    uniform float maxColourValue;
-
-    void main()
-    {   
-        float value = texture2D(textureSource, textureCoords).COLOURSPEC;
-        float scaledValue = (value - minColourValue) / (maxColourValue - minColourValue);
-        gl_FragColor = vec4(scaledValue, scaledValue, scaledValue, 1.0);
-        
-    }`;
-}
