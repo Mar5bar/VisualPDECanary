@@ -27,7 +27,7 @@ import { greyscaleDisplay, fiveColourDisplay, viridisDisplay } from "../display_
 options = {
     squareCanvas: false,
     domainScale: 1,
-    spatialStep: 1 / 256,
+    spatialStep: 1 / 100,
     renderSize: 2000,
     numTimestepsPerFrame: 100,
     typeOfBrush: "circle",
@@ -282,21 +282,26 @@ function initGUI() {
         pauseButton.name('Play (p)');
     }
     clearButton = gui.add(options,'clear').name('Clear (c)');
+
     const fBrush = gui.addFolder('Brush');
     fBrush.add(options, 'typeOfBrush', {'Circle': 'circle', 'Horizontal line': 'hline', 'Vertical line': 'vline'}).name('Brush type').onChange(setBrushType);
     fBrush.add(uniforms.brushValue, 'value', 0, 1).name('Brush value');
     brushRadiusController = fBrush.add(uniforms.brushRadius, 'value', 0, options.domainScale/10).name('Brush radius');
     fBrush.open();
+
     const fDomain = gui.addFolder('Domain');
     fDomain.add(options, 'domainScale', 0.001, 10).name('Largest side').onChange(resize);
     fDomain.add(options, 'spatialStep', 0.0001, options.domainScale / 50).name('Space step').onChange(resize);
+    
     const fTimestepping = gui.addFolder('Timestepping');
     fTimestepping.add(options, 'numTimestepsPerFrame', 1, 200, 1).name('TPF');
     fTimestepping.add(uniforms.dt, 'value', 0, 1, 0.0001).name('Timestep');
+
     const fEquations = gui.addFolder('Equations');
     fEquations.add(options.shaderStr,'F').name("f(u,v)").onFinishChange(refreshEquations);
     fEquations.add(options.shaderStr,'G').name("g(u,v)").onFinishChange(refreshEquations);
     fEquations.open();
+
     const fRendering = gui.addFolder('Rendering');
     fRendering.add(options, 'squareCanvas').name("Square display").onFinishChange(resize);
     fRendering.add(options, 'renderSize', 1, 4096, 1).name("Render res").onChange(setSizes);
@@ -449,12 +454,12 @@ function clearTextures() {
 }
 
 function pauseSim() {
-    pauseButton.name('Play');
+    pauseButton.name('Play (p)');
     isRunning = false;
 }
 
 function playSim() {
-    pauseButton.name('Pause');
+    pauseButton.name('Pause (p)');
     isRunning = true;
 }
 
