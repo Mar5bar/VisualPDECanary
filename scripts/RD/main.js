@@ -3,7 +3,7 @@ let camera, simCamera, scene, simScene, renderer, aspectRatio;
 let simTextureA, simTextureB;
 let displayMaterial, drawMaterial, simMaterial, blackMaterial, copyMaterial;
 let domain, simDomain;
-let options, uniforms;
+let options, uniforms, funsObj;
 let gui, pauseButton, clearButton, brushRadiusController, fColour;
 let isRunning, isDrawing;
 let inTex, outTex;
@@ -18,25 +18,21 @@ import {
   viridisDisplay,
 } from "../display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
+import { getPreset } from "./presets.js";
 
 // Setup some configurable options.
 options = {
-  clear: function () {
-    clearTextures();
-    pauseSim();
-  },
+  brushValue: 1,
+  brushRadius: 1 / 10,
   colourmap: "fiveColourDisplay",
   domainScale: 1,
+  dt: 0.01,
+  Du: 0.000004,
+  Dv: 0.000002,
   maxColourValue: 1,
   minColourValue: 0,
   numTimestepsPerFrame: 100,
-  pause: function () {
-    if (isRunning) {
-      pauseSim();
-    } else {
-      playSim();
-    }
-  },
+  preset: "default",
   renderSize: 2000,
   shaderStr: {
     F: "-u*v^2 + 0.037*(1.0 - u)",
@@ -48,11 +44,26 @@ options = {
   whatToPlot: "v",
 };
 
+funsObj = {
+  clear: function () {
+    clearTextures();
+    pauseSim();
+  },
+  pause: function () {
+    if (isRunning) {
+      pauseSim();
+    } else {
+      playSim();
+    }
+  },
+};
+
 // Get the canvas to draw on, as specified by the html.
 canvas = document.getElementById("simCanvas");
 
 var readFromTextureB = true;
 init();
+// loadPreset("default");
 resize();
 animate();
 
@@ -154,7 +165,7 @@ function init() {
 
   document.addEventListener("keypress", function onEvent(event) {
     if (event.key === "c") {
-      options.clear();
+      funsObj.clear();
     }
     if (event.key === "p") {
       if (isRunning) {
@@ -184,18 +195,26 @@ function resize() {
 }
 
 function roundBrushSizeToPix() {
-  uniforms.brushRadius.value =
+  options.brushRadius =
     Math.round(uniforms.brushRadius.value / options.spatialStep) *
     options.spatialStep;
+  uniforms.brushRadius.value = options.brushRadius;
   brushRadiusController.updateDisplay();
 }
 
 function updateUniforms() {
+  uniforms.aspectRatio = aspectRatio;
+  uniforms.brushRadius.value = options.brushRadius;
+  uniforms.brushValue.value = options.brushValue;
+  uniforms.domainHeight.value = domainHeight;
+  uniforms.domainWidth.value = domainWidth;
+  uniforms.dt.value = options.dt;
+  uniforms.Du.value = options.Du;
+  uniforms.Dv.value = options.Dv;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
-  uniforms.aspectRatio = aspectRatio;
-  uniforms.domainWidth.value = domainWidth;
-  uniforms.domainHeight.value = domainHeight;
+  uniforms.maxColourValue.value = options.maxColourValue;
+  uniforms.minColourValue.value = options.minColourValue;
 }
 
 function setSizes() {
@@ -325,13 +344,13 @@ function initUniforms() {
 
 function initGUI() {
   gui = new dat.GUI({ closeOnTop: true });
-  pauseButton = gui.add(options, "pause");
+  pauseButton = gui.add(funsObj, "pause");
   if (isRunning) {
     pauseButton.name("Pause (p)");
   } else {
     pauseButton.name("Play (p)");
   }
-  clearButton = gui.add(options, "clear").name("Clear (c)");
+  clearButton = gui.add(funsObj, "clear").name("Clear (c)");
 
   // Brush folder.
   const fBrush = gui.addFolder("Brush");
@@ -343,10 +362,14 @@ function initGUI() {
     })
     .name("Brush type")
     .onChange(setBrushType);
-  fBrush.add(uniforms.brushValue, "value", 0, 1).name("Brush value");
+  fBrush
+    .add(options, "brushValue", 0, 1)
+    .name("Brush value")
+    .onChange(updateUniforms);
   brushRadiusController = fBrush
-    .add(uniforms.brushRadius, "value", 0, options.domainScale / 10)
-    .name("Brush radius");
+    .add(options, "brushRadius", 0, options.domainScale / 10)
+    .name("Brush radius")
+    .onChange(updateUniforms);
   fBrush.open();
 
   // Domain folder.
@@ -364,15 +387,24 @@ function initGUI() {
   // Timestepping folder.
   const fTimestepping = gui.addFolder("Timestepping");
   fTimestepping.add(options, "numTimestepsPerFrame", 1, 200, 1).name("TPF");
-  fTimestepping.add(uniforms.dt, "value", 0, 1, 0.0001).name("Timestep");
+  fTimestepping
+    .add(options, "dt", 0, 1, 0.0001)
+    .name("Timestep")
+    .onChange(updateUniforms);
 
   // Equations folder.
   const fEquations = gui.addFolder("Equations");
   // Du and Dv.
-  const DuController = fEquations.add(uniforms.Du, "value").name("Du");
+  const DuController = fEquations
+    .add(options, "Du")
+    .name("Du")
+    .onChange(updateUniforms);
   DuController.__precision = 12;
   DuController.updateDisplay();
-  const DvController = fEquations.add(uniforms.Dv, "value").name("Dv");
+  const DvController = fEquations
+    .add(options, "Dv")
+    .name("Dv")
+    .onChange(updateUniforms);
   DvController.__precision = 12;
   DvController.updateDisplay();
   // Custom f(u,v) and g(u,v).
@@ -414,8 +446,14 @@ function initGUI() {
     })
     .onChange(setDisplayColourAndType)
     .name("Colourmap");
-  fColour.add(uniforms.minColourValue, "value").name("Min value");
-  fColour.add(uniforms.maxColourValue, "value").name("Max value");
+  fColour
+    .add(options, "minColourValue")
+    .name("Min value")
+    .onChange(updateUniforms);
+  fColour
+    .add(options, "maxColourValue")
+    .name("Max value")
+    .onChange(updateUniforms);
 }
 
 function animate() {
@@ -630,4 +668,27 @@ function setRDEquations() {
     RDShaderBot(),
   ].join(" ");
   simMaterial.needsUpdate = true;
+}
+
+function loadPreset() {
+  // Get the (potentially partial) options object corresponding to the selected preset.
+
+  getPreset(options.preset);
+
+  refreshGUI(gui);
+
+  //   Update the uniforms from the newly set values in options.
+  updateUniforms();
+}
+
+function refreshGUI(folder) {
+  // Traverse through all the subfolders and recurse.
+  for (let subfolderName in folder.__folders) {
+    refreshGUI(folder.__folders[subfolderName]);
+  }
+  // Update all the controllers at this level.
+  for (let i = 0; i < folder.__controllers.length; i++) {
+    folder.__controllers[i].updateDisplay();
+    console.log(folder.__controllers[i]);
+  }
 }
