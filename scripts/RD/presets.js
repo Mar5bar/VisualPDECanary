@@ -16,7 +16,7 @@ export function getPreset(id) {
         minColourValue: 0,
         numTimestepsPerFrame: 100,
         preset: "subcritical GS",
-        renderSize: 2000,
+        renderSize: 256,
         shaderStr: {
           F: "-u*v^2 + 0.037*(1.0 - u)",
           G: "u*v^2 - (0.037+0.06)*v",
@@ -40,7 +40,7 @@ export function getPreset(id) {
         minColourValue: 0,
         numTimestepsPerFrame: 100,
         preset: "default",
-        renderSize: 2000,
+        renderSize: 256,
         shaderStr: {
           F: "-u*v^2 + 0.037*(1.0 - u)",
           G: "u*v^2 - (0.037+0.06)*v",

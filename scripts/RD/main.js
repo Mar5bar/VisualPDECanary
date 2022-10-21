@@ -409,7 +409,7 @@ function initGUI() {
     .name("Square display")
     .onFinishChange(resize);
   fRendering
-    .add(options, "renderSize", 1, 4096, 1)
+    .add(options, "renderSize", 1, 2048, 1)
     .name("Render res")
     .onChange(setSizes);
 
