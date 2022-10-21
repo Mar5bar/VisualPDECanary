@@ -231,12 +231,14 @@ function resizeTextures() {
     simTextureB.setSize(nXDisc, nYDisc);
     renderer.setRenderTarget(simTextureB);
     renderer.render(simScene, simCamera);
+    simTextureA.dispose();
     simTextureA = simTextureB.clone();
   } else {
     uniforms.textureSource.value = simTextureB.texture;
     simTextureA.setSize(nXDisc, nYDisc);
     renderer.setRenderTarget(simTextureA);
     renderer.render(simScene, simCamera);
+    simTextureB.dispose();
     simTextureB = simTextureA.clone();
   }
   readFromTextureB = !readFromTextureB;
