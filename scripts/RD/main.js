@@ -11,7 +11,7 @@ let nXDisc, nYDisc, domainWidth, domainHeight;
 
 import { discShader, vLineShader, hLineShader } from "../drawing_shaders.js";
 import { copyShader } from "../copy_shader.js";
-import { RDShaderTop, RDShaderBot } from "./simulation_shaders.js";
+import { RDShaderTop, RDShaderBot, RDShaderPeriodic, RDShaderNoFlux } from "./simulation_shaders.js";
 import { greyscaleDisplay, fiveColourDisplay } from "../display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
@@ -401,6 +401,14 @@ function initGUI() {
     .name("g(u,v)")
     .onFinishChange(setRDEquations);
   fEquations.open();
+  // Boundary conditions.
+  fEquations
+    .add(options, "boundaryConditions", {
+      Periodic: "periodic",
+      "No flux": "noflux",
+    })
+    .name("BCs")
+    .onChange(setRDEquations);
 
   // Rendering folder.
   const fRendering = gui.addFolder("Rendering");
@@ -646,8 +654,19 @@ function parseShaderString(str) {
 }
 
 function setRDEquations() {
+  let BCStr;
+  console.log(options.boundaryConditions)
+  switch (options.boundaryConditions) {
+    case "periodic":
+      BCStr = RDShaderPeriodic();
+      break;
+    case "noflux":
+      BCStr = RDShaderNoFlux();
+      break;
+  }
   simMaterial.fragmentShader = [
     RDShaderTop(),
+    BCStr,
     parseShaderStrings(),
     RDShaderBot(),
   ].join(" ");

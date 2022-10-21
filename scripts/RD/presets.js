@@ -5,6 +5,7 @@ export function getPreset(id) {
   switch (id) {
     case "subcritical GS":
       options = {
+        boundaryConditions: "periodic",
         brushValue: 1,
         brushRadius: 1 / 10,
         colourmap: "fiveColourDisplay",
@@ -29,6 +30,7 @@ export function getPreset(id) {
       break;
     default:
       options = {
+        boundaryConditions: "periodic",
         brushValue: 1,
         brushRadius: 1 / 20,
         colourmap: "viridis",

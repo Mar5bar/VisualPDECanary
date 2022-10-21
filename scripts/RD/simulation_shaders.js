@@ -21,11 +21,27 @@ export function RDShaderTop() {
         vec2 uvR = texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).rg;
         vec2 uvT = texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).rg;
         vec2 uvB = texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).rg;
+    `;
+}
 
-        vec2 lap = (uvL + uvR - 2.0*uv) / dx / dx + (uvT + uvB - 2.0*uv) / dy / dy;
+export function RDShaderPeriodic(){
+    return ``;
+}
 
-        float du = Du * lap.r;
-        float dv = Dv * lap.g;
+export function RDShaderNoFlux() {
+    return `
+    if (textureCoords.x - step_x < 0.0) {
+        uvL = uvR;
+    }
+    if (textureCoords.x + step_x > 1.0) {
+        uvR = uvL;
+    }
+    if (textureCoords.y - step_y < 0.0) {
+        uvT = uvB;
+    }
+    if (textureCoords.y + step_y > 1.0){
+        uvB = uvT;
+    }
     `;
 }
 
@@ -36,8 +52,11 @@ export function RDShaderFG() {
 }
 
 export function RDShaderBot() {
-    return ` du += f;
-    dv += g;
+    return ` 
+    vec2 lap = (uvL + uvR - 2.0*uv) / dx / dx + (uvT + uvB - 2.0*uv) / dy / dy;
+
+    float du = Du * lap.r + f;
+    float dv = Dv * lap.g + g;
     vec2 updated = uv + dt * vec2(du, dv);
 
     gl_FragColor = vec4(updated.r, updated.g, 0.0, 1.0);
