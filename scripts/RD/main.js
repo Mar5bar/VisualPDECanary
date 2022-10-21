@@ -31,6 +31,12 @@ funsObj = {
       playSim();
     }
   },
+  copyConfig: function () {
+    let str = JSON.stringify(options, null, 4);
+    console.log(str);
+    alert(str);
+    navigator.clipboard.writeText(str);
+  }
 };
 
 // Get the canvas to draw on, as specified by the html.
@@ -335,6 +341,8 @@ function initGUI() {
     })
     .name("Preset")
     .onChange(loadPreset);
+  // Display configuration as string for saving.
+  gui.add(funsObj, "copyConfig").name("Display and copy config (d)");
 
   // Brush folder.
   const fBrush = gui.addFolder("Brush");
