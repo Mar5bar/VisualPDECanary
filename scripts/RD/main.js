@@ -683,7 +683,6 @@ function parseShaderString(str) {
 
 function setRDEquations() {
   let BCStr;
-  console.log(options.boundaryConditions)
   switch (options.boundaryConditions) {
     case "periodic":
       BCStr = RDShaderPeriodic();
@@ -756,24 +755,25 @@ function refreshGUI(folder) {
 
 function setNumberOfSpecies() {
 	switch (options.numSpecies) {
-		case 1:
+		case "1":
 			//Ensure that u is being displayed on the screen (and the brush target).
 			whatToPlotController.setValue("u");
 			
 			// Hide GUI panels related to v.
-			DvController.hide();
-			gController.hide();
-			whatToPlotController.hide();		
+      DvController.setValue(0);
+			DvController.__li.style.display = "none";
+			gController.__li.style.display = "none";
+			whatToPlotController.__li.style.display = "none";
 			
 			// Remove references to v in labels.
 			fController.name("f(u)");
 			
 			break;
-		case 2:
+		case "2":
 			// Show GUI panels related to v.
-			DvController.show();
-			gController.show();
-			whatToPlotController.show();
+			DvController.__li.style.display = "";
+			gController.__li.style.display = "";
+			whatToPlotController.__li.style.display = "";
 		
 			// Ensure correct references to v in labels are present.
 			fController.name("f(u,v)");
