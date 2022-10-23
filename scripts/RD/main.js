@@ -761,9 +761,9 @@ function setNumberOfSpecies() {
 			
 			// Hide GUI panels related to v.
       DvController.setValue(0);
-			DvController.__li.style.display = "none";
-			gController.__li.style.display = "none";
-			whatToPlotController.__li.style.display = "none";
+			hideGUIController(DvController)
+			hideGUIController(gController)
+			hideGUIController(whatToPlotController);
 			
 			// Remove references to v in labels.
 			fController.name("f(u)");
@@ -771,13 +771,21 @@ function setNumberOfSpecies() {
 			break;
 		case "2":
 			// Show GUI panels related to v.
-			DvController.__li.style.display = "";
-			gController.__li.style.display = "";
-			whatToPlotController.__li.style.display = "";
+			showGUIController(DvController)
+			showGUIController(gController)
+			showGUIController(whatToPlotController);
 		
 			// Ensure correct references to v in labels are present.
 			fController.name("f(u,v)");
 			
 			break;
 	}
+}
+
+function hideGUIController( cont ) {
+  cont.__li.style.display = "none";
+}
+
+function showGUIController( cont ) {
+  cont.__li.style.display = "";
 }
