@@ -3,7 +3,7 @@
 export function getPreset(id) {
   let options;
   switch (id) {
-    case "subcritical GS":
+    case "subcriticalGS":
       options = {
         boundaryConditions: "periodic",
         brushValue: 1,
@@ -15,8 +15,9 @@ export function getPreset(id) {
         Dv: 0.000002,
         maxColourValue: 1,
         minColourValue: 0,
+				numSpecies: 2,
         numTimestepsPerFrame: 100,
-        preset: "subcritical GS",
+        preset: "subcriticalGS",
         renderSize: 256,
         shaderStr: {
           F: "-u*v^2 + 0.037*(1.0 - u)",
@@ -40,6 +41,7 @@ export function getPreset(id) {
         Dv: 0.000002,
         maxColourValue: 0.5,
         minColourValue: 0,
+				numSpecies: 2,
         numTimestepsPerFrame: 100,
         preset: "default",
         renderSize: 256,

@@ -4,7 +4,7 @@ let simTextureA, simTextureB;
 let displayMaterial, drawMaterial, simMaterial, blackMaterial, copyMaterial;
 let domain, simDomain;
 let options, uniforms, funsObj;
-let gui, pauseButton, clearButton, brushRadiusController, fColour;
+let gui, pauseButton, clearButton, brushRadiusController, fColour, fController, gController, DvController, whatToPlotController;
 let isRunning, isDrawing;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
@@ -22,7 +22,6 @@ options = {};
 funsObj = {
   clear: function () {
     clearTextures();
-    pauseSim();
   },
   pause: function () {
     if (isRunning) {
@@ -32,9 +31,7 @@ funsObj = {
     }
   },
   copyConfig: function () {
-    let str = JSON.stringify(options, null, 4);
-    console.log(str);
-    alert(str);
+    let str = [location.href.replace(location.search, ""), "?options=", encodeURI(btoa(JSON.stringify(options)))].join("");
     navigator.clipboard.writeText(str);
   }
 };
@@ -43,7 +40,22 @@ funsObj = {
 canvas = document.getElementById("simCanvas");
 
 var readFromTextureB = true;
+
+// Load default options.
 loadOptions("default");
+
+// Check URL for any preset or specified options.
+const params = new URLSearchParams(window.location.search);
+if (params.has("preset")) {
+	// If a preset is specified, load it.
+	loadOptions(params.get("preset"));
+}
+if (params.has("options")) {
+	// If options have been provided, apply them on top of loaded options.
+	loadOptions(JSON.parse(atob(decodeURI(params.get("options")))));
+}
+
+// Initialise simulation, set size, and begin.
 init();
 resize();
 animate();
@@ -148,12 +160,15 @@ function init() {
     if (event.key === "c") {
       funsObj.clear();
     }
-    if (event.key === "p") {
+    if (event.key === " ") {
       if (isRunning) {
         pauseSim();
       } else {
         playSim();
       }
+    }
+    if (event.key === 's') {
+      funsObj.copyConfig();
     }
   });
 
@@ -329,20 +344,20 @@ function initGUI() {
   gui = new dat.GUI({ closeOnTop: true });
   pauseButton = gui.add(funsObj, "pause");
   if (isRunning) {
-    pauseButton.name("Pause (p)");
+    pauseButton.name("Pause (space)");
   } else {
-    pauseButton.name("Play (p)");
+    pauseButton.name("Play (space)");
   }
   clearButton = gui.add(funsObj, "clear").name("Clear (c)");
+  // Copy configuration as URL.
+  gui.add(funsObj, "copyConfig").name("Copy setup URL (s)");
   gui
     .add(options, "preset", {
       None: "default",
-      Subcriticality: "subcritical GS",
+      Subcriticality: "subcriticalGS",
     })
     .name("Preset")
     .onChange(loadPreset);
-  // Display configuration as string for saving.
-  gui.add(funsObj, "copyConfig").name("Display and copy config (d)");
 
   // Brush folder.
   const fBrush = gui.addFolder("Brush");
@@ -355,7 +370,7 @@ function initGUI() {
     .name("Brush type")
     .onChange(setBrushType);
   fBrush
-    .add(options, "brushValue", 0, 1)
+    .add(options, "brushValue")
     .name("Brush value")
     .onChange(updateUniforms);
   brushRadiusController = fBrush
@@ -379,13 +394,18 @@ function initGUI() {
   // Timestepping folder.
   const fTimestepping = gui.addFolder("Timestepping");
   fTimestepping.add(options, "numTimestepsPerFrame", 1, 200, 1).name("TPF");
-  fTimestepping
-    .add(options, "dt", 0, 1, 0.0001)
+  const dtController = fTimestepping
+    .add(options, "dt")
     .name("Timestep")
     .onChange(updateUniforms);
+		dtController.__precision = 12;
+    dtController.min(0);
+		dtController.updateDisplay();
 
   // Equations folder.
   const fEquations = gui.addFolder("Equations");
+	// Number of species.
+	fEquations.add(options, "numSpecies", {1: 1, 2: 2}).name("No. species").onChange(setNumberOfSpecies);
   // Du and Dv.
   const DuController = fEquations
     .add(options, "Du")
@@ -393,18 +413,18 @@ function initGUI() {
     .onChange(updateUniforms);
   DuController.__precision = 12;
   DuController.updateDisplay();
-  const DvController = fEquations
+  DvController = fEquations
     .add(options, "Dv")
     .name("Dv")
     .onChange(updateUniforms);
   DvController.__precision = 12;
   DvController.updateDisplay();
   // Custom f(u,v) and g(u,v).
-  fEquations
+  fController = fEquations
     .add(options.shaderStr, "F")
     .name("f(u,v)")
     .onFinishChange(setRDEquations);
-  fEquations
+  gController = fEquations
     .add(options.shaderStr, "G")
     .name("g(u,v)")
     .onFinishChange(setRDEquations);
@@ -431,7 +451,7 @@ function initGUI() {
 
   // Colour folder.
   fColour = gui.addFolder("Colour");
-  fColour
+  whatToPlotController = fColour
     .add(options, "whatToPlot", { u: "u", v: "v" })
     .name("Colour by: ")
     .onChange(function () {
@@ -621,12 +641,12 @@ function clearTextures() {
 }
 
 function pauseSim() {
-  pauseButton.name("Play (p)");
+  pauseButton.name("Play (space)");
   isRunning = false;
 }
 
 function playSim() {
-  pauseButton.name("Pause (p)");
+  pauseButton.name("Pause (space)");
   isRunning = true;
 }
 
@@ -701,14 +721,23 @@ function loadPreset(preset) {
 
 function loadOptions(preset) {
   let newOptions;
-  // Get the options from the selected preset and update options with them.
-  if (preset != undefined) {
-    newOptions = getPreset(preset);
-  } else if (options.preset != undefined) {
-    newOptions = getPreset(options.preset);
-  } else {
-    newOptions = getPreset("default");
-  }
+	
+	if (preset == undefined) {
+		// If no argument is given, load whatever is set in options.preset.
+		newOptions = getPreset(options.preset);
+	}
+	else if (typeof(preset) == "string") {
+		// If an argument is given and it's a string, try to load the corresponding preset.
+		newOptions = getPreset(preset);
+	}
+	else if (typeof(preset) == "object") {
+		// If the argument is an object, then assume it is an options object.
+		newOptions = preset;
+	}
+	else {
+		// Otherwise, fall back to default.
+		newOptions = getPreset("default");
+	}
 
   // Loop through newOptions and overwrite anything already present.
   Object.assign(options, newOptions);
@@ -723,4 +752,32 @@ function refreshGUI(folder) {
   for (let i = 0; i < folder.__controllers.length; i++) {
     folder.__controllers[i].updateDisplay();
   }
+}
+
+function setNumberOfSpecies() {
+	switch (options.numSpecies) {
+		case 1:
+			//Ensure that u is being displayed on the screen (and the brush target).
+			whatToPlotController.setValue("u");
+			
+			// Hide GUI panels related to v.
+			DvController.hide();
+			gController.hide();
+			whatToPlotController.hide();		
+			
+			// Remove references to v in labels.
+			fController.name("f(u)");
+			
+			break;
+		case 2:
+			// Show GUI panels related to v.
+			DvController.show();
+			gController.show();
+			whatToPlotController.show();
+		
+			// Ensure correct references to v in labels are present.
+			fController.name("f(u,v)");
+			
+			break;
+	}
 }
