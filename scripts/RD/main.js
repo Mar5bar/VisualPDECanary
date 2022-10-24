@@ -492,7 +492,7 @@ function initGUI() {
       Greyscale: "greyscale",
       Viridis: "viridis",
       Turbo: "turbo",
-      BlackGreenYellowRedWhite: "BlackGreenYellowRedWhite",
+      BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
     })
     .onChange(setDisplayColourAndType)
     .name("Colourmap");

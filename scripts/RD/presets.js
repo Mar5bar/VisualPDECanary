@@ -8,7 +8,7 @@ export function getPreset(id) {
         boundaryConditions: "periodic",
         brushValue: 1,
         brushRadius: 1 / 10,
-        colourmap: "fiveColourDisplay",
+        colourmap: "BlackGreenYellowRedWhite",
         domainScale: 1,
         dt: 0.1,
         Du: 0.000004,
