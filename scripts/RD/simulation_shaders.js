@@ -46,6 +46,23 @@ export function RDShaderNoFlux() {
     `;
 }
 
+export function RDShaderRobin() {
+    return `
+    if (textureCoords.x - step_x < 0.0) {
+        uvL.SPECIES = uvR.SPECIES - dx * robinRHSSPECIES;
+    }
+    if (textureCoords.x + step_x > 1.0) {
+        uvR.SPECIES = uvL.SPECIES + dx * robinRHSSPECIES;
+    }
+    if (textureCoords.y - step_y < 0.0) {
+        uvT.SPECIES = uvB.SPECIES - dy * robinRHSSPECIES;
+    }
+    if (textureCoords.y + step_y > 1.0){
+        uvB.SPECIES = uvT.SPECIES + dy * robinRHSSPECIES;
+    }
+    `;
+}
+
 export function RDShaderFG() {
     return ` float f = - uv.r*uv.g*uv.g + 0.037*(1.0 - uv.r);
     float g = uv.r*uv.g*uv.g - (0.037+0.06)*uv.g;

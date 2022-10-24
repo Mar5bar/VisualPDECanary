@@ -21,7 +21,7 @@ export function getPreset(id) {
         numTimestepsPerFrame: 100,
         preset: "subcriticalGS",
         renderSize: 256,
-        shaderStr: {
+        reactionStr: {
           F: "-u*v^2 + 0.037*(1.0 - u)",
           G: "u*v^2 - (0.037+0.06)*v",
         },
@@ -54,9 +54,13 @@ export function getPreset(id) {
         numTimestepsPerFrame: 100,
         preset: "default",
         renderSize: 256,
-        shaderStr: {
+        reactionStr: {
           F: "-u*v^2 + 0.037*(1.0 - u)",
           G: "u*v^2 - (0.037+0.06)*v",
+        },
+        robinStr: {
+          u: "0",
+          v: "0",
         },
         spatialStep: 1 / 200,
         squareCanvas: false,

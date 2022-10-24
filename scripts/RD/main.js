@@ -20,7 +20,9 @@ let gui,
   clearUValueController,
   vBCsController,
   dirichletUController,
-  dirichletVController;
+  dirichletVController,
+  robinUController,
+  robinVController;
 let isRunning, isDrawing;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
@@ -32,6 +34,7 @@ import {
   RDShaderBot,
   RDShaderDirichlet,
   RDShaderNoFlux,
+  RDShaderRobin,
   RDShaderUpdate,
 } from "./simulation_shaders.js";
 import { greyscaleDisplay, fiveColourDisplay } from "../display_shaders.js";
@@ -476,32 +479,25 @@ function initGUI() {
   DvController.updateDisplay();
   // Custom f(u,v) and g(u,v).
   fController = fEquations
-    .add(options.shaderStr, "F")
+    .add(options.reactionStr, "F")
     .name("f(u,v)")
     .onFinishChange(setRDEquations);
   gController = fEquations
-    .add(options.shaderStr, "G")
+    .add(options.reactionStr, "G")
     .name("g(u,v)")
     .onFinishChange(setRDEquations);
   fEquations.open();
 
-  // Boundary conditions.
+  // Boundary conditions folder.
   const fBCs = gui.addFolder("Boundary conditions");
   fBCs
     .add(options, "boundaryConditionsU", {
       Periodic: "periodic",
       "No flux": "noflux",
       Dirichlet: "dirichlet",
+      Robin: "robin",
     })
     .name("u")
-    .onChange(setBCsEqs);
-  vBCsController = fBCs
-    .add(options, "boundaryConditionsV", {
-      Periodic: "periodic",
-      "No flux": "noflux",
-      Dirichlet: "dirichlet",
-    })
-    .name("v")
     .onChange(setBCsEqs);
   dirichletUController = fBCs
     .add(options, "dirichletU")
@@ -509,10 +505,27 @@ function initGUI() {
     .onChange(updateUniforms);
   dirichletUController.__precision = 12;
   dirichletUController.updateDisplay();
+  robinUController = fBCs
+    .add(options.robinStr, "u")
+    .name("du/dn = ")
+    .onChange(setRDEquations);
+  vBCsController = fBCs
+    .add(options, "boundaryConditionsV", {
+      Periodic: "periodic",
+      "No flux": "noflux",
+      Dirichlet: "dirichlet",
+      Robin: "robin",
+    })
+    .name("v")
+    .onChange(setBCsEqs);
+  robinVController = fBCs
+    .add(options.robinStr, "v")
+    .name("dv/dn = ")
+    .onFinishChange(setRDEquations);
   dirichletVController = fBCs
     .add(options, "dirichletV")
     .name("v(boundary) = ")
-    .onChange(updateUniforms);
+    .onFinishChange(updateUniforms);
 
   // Rendering folder.
   const fRendering = gui.addFolder("Rendering");
@@ -782,9 +795,9 @@ function parseReactionStrings() {
   let out = "";
 
   // Prepare the f string.
-  out += "float f = " + parseShaderString(options.shaderStr.F) + ";\n";
+  out += "float f = " + parseShaderString(options.reactionStr.F) + ";\n";
   // Prepare the g string.
-  out += "float g = " + parseShaderString(options.shaderStr.G) + ";\n";
+  out += "float g = " + parseShaderString(options.reactionStr.G) + ";\n";
 
   return out;
 }
@@ -811,6 +824,7 @@ function parseShaderString(str) {
 function setRDEquations() {
   let noFluxSpecies = "";
   let dirichletSpecies = "";
+  let robinShader = "";
 
   // Record no-flux species.
   if (options.boundaryConditionsU == "noflux") {
@@ -828,15 +842,32 @@ function setRDEquations() {
     dirichletSpecies += "v";
   }
 
+  // Create a Robin shader block for each species separately.
+  if (options.boundaryConditionsU == "robin") {
+    robinShader += parseRobinRHS(options.robinStr.u, "SPECIES");
+    robinShader += RDShaderRobin();
+    robinShader = selectSpeciesInShaderStr(robinShader, "u");
+  }
+  if (options.boundaryConditionsV == "robin") {
+    robinShader += parseRobinRHS(options.robinStr.v, "SPECIES");
+    robinShader += RDShaderRobin();
+    robinShader = selectSpeciesInShaderStr(robinShader, "v");
+  }
+
   simMaterial.fragmentShader = [
     RDShaderTop(),
     selectSpeciesInShaderStr(RDShaderNoFlux(), noFluxSpecies),
+    robinShader,
     parseReactionStrings(),
     RDShaderUpdate(),
     selectSpeciesInShaderStr(RDShaderDirichlet(), dirichletSpecies),
     RDShaderBot(),
   ].join(" ");
   simMaterial.needsUpdate = true;
+}
+
+function parseRobinRHS( string, species ) {
+  return "float robinRHS" + species + " = " + parseShaderString(string) + ";\n";
 }
 
 function loadPreset(preset) {
@@ -984,4 +1015,18 @@ function setBCsEqs() {
   else {
     hideGUIController(dirichletVController);
   }
+
+  if (options.boundaryConditionsU == "robin") {
+    showGUIController(robinUController);
+  }
+  else {
+    hideGUIController(robinUController);
+  }
+  if (options.boundaryConditionsV == "robin") {
+    showGUIController(robinVController);
+  }
+  else {
+    hideGUIController(robinVController);
+  }
+
 }
