@@ -600,10 +600,10 @@ function setDisplayColourAndType() {
       fiveColourDisplay()
     );
     uniforms.colour1.value = new THREE.Vector4(0, 0, 0.0, 0);
-    uniforms.colour2.value = new THREE.Vector4(0, 1, 0, 0.2);
-    uniforms.colour3.value = new THREE.Vector4(1, 1, 0, 0.21);
-    uniforms.colour4.value = new THREE.Vector4(1, 0, 0, 0.4);
-    uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 0.6);
+    uniforms.colour2.value = new THREE.Vector4(0, 1, 0, 0.25);
+    uniforms.colour3.value = new THREE.Vector4(1, 1, 0, 0.5);
+    uniforms.colour4.value = new THREE.Vector4(1, 0, 0, 0.75);
+    uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 1.0);
   } else if (options.colourmap == "viridis") {
     displayMaterial.fragmentShader = selectColourspecInShaderStr(
       fiveColourDisplay()
