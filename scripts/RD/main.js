@@ -572,19 +572,19 @@ function setDisplayColourAndType() {
       fiveColourDisplay()
     );
     uniforms.colour1.value = new THREE.Vector4(0.267, 0.0049, 0.3294, 0.0);
-    uniforms.colour2.value = new THREE.Vector4(0.2302, 0.3213, 0.5455, 0.2);
-    uniforms.colour3.value = new THREE.Vector4(0.1282, 0.5651, 0.5509, 0.4);
-    uniforms.colour4.value = new THREE.Vector4(0.3629, 0.7867, 0.3866, 0.8);
+    uniforms.colour2.value = new THREE.Vector4(0.2302, 0.3213, 0.5455, 0.25);
+    uniforms.colour3.value = new THREE.Vector4(0.1282, 0.5651, 0.5509, 0.5);
+    uniforms.colour4.value = new THREE.Vector4(0.3629, 0.7867, 0.3866, 0.75);
     uniforms.colour5.value = new THREE.Vector4(0.9932, 0.9062, 0.1439, 1.0);
   } else if (options.colourmap == "turbo") {
     displayMaterial.fragmentShader = selectColourspecInShaderStr(
       fiveColourDisplay()
     );
-    uniforms.colour1.value = new THREE.Vector4(0.18995, 0.07176, 0.23217, 1.0);
-    uniforms.colour2.value = new THREE.Vector4(0.1601525, 0.7331825, 0.92519);
-    uniforms.colour3.value = new THREE.Vector4(0.638425, 0.99097, 0.236465);
-    uniforms.colour4.value = new THREE.Vector4(0.985325, 0.50182, 0.132375);
-    uniforms.colour5.value = new THREE.Vector4(0.4796, 0.01583, 0.01055);
+    uniforms.colour1.value = new THREE.Vector4(0.18995, 0.07176, 0.23217, 0.0);
+    uniforms.colour2.value = new THREE.Vector4(0.1601525, 0.7331825, 0.92519, 0.25);
+    uniforms.colour3.value = new THREE.Vector4(0.638425, 0.99097, 0.236465, 0.5);
+    uniforms.colour4.value = new THREE.Vector4(0.985325, 0.50182, 0.132375, 0.75);
+    uniforms.colour5.value = new THREE.Vector4(0.4796, 0.01583, 0.01055, 1.0);
   }
 
   displayMaterial.needsUpdate = true;
