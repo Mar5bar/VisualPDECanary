@@ -5,25 +5,36 @@ export function getPreset(id) {
   switch (id) {
     case "subcriticalGS":
       options = {
-        boundaryConditions: "periodic",
+        boundaryConditions: {
+          u: "periodic",
+          v: "periodic",
+        },
         brushValue: 1,
-        brushRadius: 1 / 10,
-        colourmap: "BlackGreenYellowRedWhite",
+        brushRadius: 1 / 20,
+        clearUValue: 0.0,
+        clearVValue: 0.0,
+        colourmap: "viridis",
         domainScale: 1,
         dt: 0.1,
-        Du: 0.000004,
-        Dv: 0.000002,
-        maxColourValueU: 1.0,
-        minColourValueU: 0,
-        maxColourValueV: 1.0,
-        minColourValueV: 0,
+        diffusion: {
+          u: 0.000004,
+          v: 0.000002,
+        },
+        maxColourValue: {
+          u: 1.0,
+          v: 1.0,
+        },
+        minColourValue: {
+          u: 0,
+          v: 0,
+        },
         numSpecies: 2,
         numTimestepsPerFrame: 100,
-        preset: "subcriticalGS",
+        preset: "subcriticality",
         renderSize: 256,
         reactionStr: {
-          F: "-u*v^2 + 0.037*(1.0 - u)",
-          G: "u*v^2 - (0.037+0.06)*v",
+          u: "-u*v^2 + 0.037*(1.0 - u)",
+          v: "u*v^2 - (0.037+0.06)*v",
         },
         spatialStep: 1 / 200,
         squareCanvas: false,
@@ -33,30 +44,40 @@ export function getPreset(id) {
       break;
     default:
       options = {
-        boundaryConditionsU: "periodic",
-        boundaryConditionsV: "periodic",
+        boundaryConditions: {
+          u: "periodic",
+          v: "periodic",
+        },
         brushValue: 1,
         brushRadius: 1 / 20,
         clearUValue: 0.0,
         clearVValue: 0.0,
         colourmap: "viridis",
-        dirichletU: 0,
-        dirichletV: 0,
+        dirichlet: {
+          u: 0,
+          v: 0,
+        },
         domainScale: 1,
         dt: 0.1,
-        Du: 0.000004,
-        Dv: 0.000002,
-        maxColourValueU: 0.5,
-        minColourValueU: 0,
-        maxColourValueV: 0.5,
-        minColourValueV: 0,
+        diffusion: {
+          u: 0.000004,
+          v: 0.000002,
+        },
+        maxColourValue: {
+          u: 1.0,
+          v: 1.0,
+        },
+        minColourValue: {
+          u: 0,
+          v: 0,
+        },
         numSpecies: 2,
         numTimestepsPerFrame: 100,
         preset: "default",
         renderSize: 256,
         reactionStr: {
-          F: "-u*v^2 + 0.037*(1.0 - u)",
-          G: "u*v^2 - (0.037+0.06)*v",
+          u: "-u*v^2 + 0.037*(1.0 - u)",
+          v: "u*v^2 - (0.037+0.06)*v",
         },
         robinStr: {
           u: "0",
