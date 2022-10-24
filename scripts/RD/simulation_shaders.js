@@ -9,6 +9,7 @@ export function RDShaderTop() {
     uniform float dy;
     uniform float Du;
     uniform float Dv;
+    uniform vec2 boundaryValues;
 
     void main()
     {
@@ -24,23 +25,23 @@ export function RDShaderTop() {
     `;
 }
 
-export function RDShaderPeriodic(){
+export function RDShaderPeriodic() {
     return ``;
 }
 
 export function RDShaderNoFlux() {
     return `
     if (textureCoords.x - step_x < 0.0) {
-        uvL = uvR;
+        uvL.SPECIES = uvR.SPECIES;
     }
     if (textureCoords.x + step_x > 1.0) {
-        uvR = uvL;
+        uvR.SPECIES = uvL.SPECIES;
     }
     if (textureCoords.y - step_y < 0.0) {
-        uvT = uvB;
+        uvT.SPECIES = uvB.SPECIES;
     }
     if (textureCoords.y + step_y > 1.0){
-        uvB = uvT;
+        uvB.SPECIES = uvT.SPECIES;
     }
     `;
 }
@@ -51,14 +52,26 @@ export function RDShaderFG() {
     `;
 }
 
-export function RDShaderBot() {
-    return ` 
+export function RDShaderUpdate() {
+    return `
     vec2 lap = (uvL + uvR - 2.0*uv) / dx / dx + (uvT + uvB - 2.0*uv) / dy / dy;
 
     float du = Du * lap.r + f;
     float dv = Dv * lap.g + g;
     vec2 updated = uv + dt * vec2(du, dv);
+    `;
+}
 
+export function RDShaderDirichlet() {
+    return `
+    if ((textureCoords.x - step_x < 0.0) || (textureCoords.x + step_x > 1.0) || (textureCoords.y - step_y < 0.0) || (textureCoords.y + step_y > 1.0)) {
+        updated.SPECIES = boundaryValues.SPECIES;
+    }
+    `
+}
+
+export function RDShaderBot() {
+    return ` 
     gl_FragColor = vec4(updated.r, updated.g, 0.0, 1.0);
 }`;
 }

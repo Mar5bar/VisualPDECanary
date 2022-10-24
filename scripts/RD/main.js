@@ -17,7 +17,10 @@ let gui,
   minColourValueVController,
   maxColourValueVController,
   clearVValueController,
-  clearUValueController;
+  clearUValueController,
+  vBCsController,
+  dirichletUController,
+  dirichletVController;
 let isRunning, isDrawing;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
@@ -27,8 +30,9 @@ import { copyShader } from "../copy_shader.js";
 import {
   RDShaderTop,
   RDShaderBot,
-  RDShaderPeriodic,
+  RDShaderDirichlet,
   RDShaderNoFlux,
+  RDShaderUpdate,
 } from "./simulation_shaders.js";
 import { greyscaleDisplay, fiveColourDisplay } from "../display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
@@ -161,13 +165,16 @@ function init() {
   simScene.add(simDomain);
 
   // Add shaders to the textures.
-  setShaders();
+  setDrawAndDisplayShaders();
 
   // Render black onto the sim textures.
   clearTextures();
 
   // Create a GUI.
   initGUI();
+
+  // Setup equations and BCs.
+  setBCsEqs();
 
   // Set the brush type.
   setBrushType();
@@ -228,6 +235,10 @@ function roundBrushSizeToPix() {
 
 function updateUniforms() {
   uniforms.aspectRatio = aspectRatio;
+  uniforms.boundaryValues.value = new THREE.Vector2(
+    options.dirichletU,
+    options.dirichletV
+  );
   uniforms.brushRadius.value = options.brushRadius;
   uniforms.brushValue.value = options.brushValue;
   uniforms.domainHeight.value = domainHeight;
@@ -303,6 +314,9 @@ function resizeTextures() {
 
 function initUniforms() {
   uniforms = {
+    boundaryValues: {
+      type: "v2",
+    },
     brushCoords: {
       type: "v2",
       value: new THREE.Vector2(0.5, 0.5),
@@ -470,14 +484,35 @@ function initGUI() {
     .name("g(u,v)")
     .onFinishChange(setRDEquations);
   fEquations.open();
+
   // Boundary conditions.
-  fEquations
-    .add(options, "boundaryConditions", {
+  const fBCs = gui.addFolder("Boundary conditions");
+  fBCs
+    .add(options, "boundaryConditionsU", {
       Periodic: "periodic",
       "No flux": "noflux",
+      Dirichlet: "dirichlet",
     })
-    .name("BCs")
-    .onChange(setRDEquations);
+    .name("u")
+    .onChange(setBCsEqs);
+  vBCsController = fBCs
+    .add(options, "boundaryConditionsV", {
+      Periodic: "periodic",
+      "No flux": "noflux",
+      Dirichlet: "dirichlet",
+    })
+    .name("v")
+    .onChange(setBCsEqs);
+  dirichletUController = fBCs
+    .add(options, "dirichletU")
+    .name("u(boundary) = ")
+    .onChange(updateUniforms);
+  dirichletUController.__precision = 12;
+  dirichletUController.updateDisplay();
+  dirichletVController = fBCs
+    .add(options, "dirichletV")
+    .name("v(boundary) = ")
+    .onChange(updateUniforms);
 
   // Rendering folder.
   const fRendering = gui.addFolder("Rendering");
@@ -567,15 +602,13 @@ function animate() {
   render();
 }
 
-function setShaders() {
+function setDrawAndDisplayShaders() {
   // Configure the display material.
   setDisplayColourAndType();
 
   // Configure the drawing material.
   setBrushType();
 
-  // Configure the simulation material.
-  setRDEquations();
 }
 
 function setBrushType() {
@@ -617,25 +650,10 @@ function setDisplayColourAndType() {
     displayMaterial.fragmentShader = selectColourspecInShaderStr(
       fiveColourDisplay()
     );
-    uniforms.colour1.value = new THREE.Vector4(0.18995, 0.07176, 0.23217, 0.0);
-    uniforms.colour2.value = new THREE.Vector4(
-      0.1601525,
-      0.7331825,
-      0.92519,
-      0.25
-    );
-    uniforms.colour3.value = new THREE.Vector4(
-      0.638425,
-      0.99097,
-      0.236465,
-      0.5
-    );
-    uniforms.colour4.value = new THREE.Vector4(
-      0.985325,
-      0.50182,
-      0.132375,
-      0.75
-    );
+    uniforms.colour1.value = new THREE.Vector4(0.19, 0.0718, 0.2322, 0.0);
+    uniforms.colour2.value = new THREE.Vector4(0.1602, 0.7332, 0.9252, 0.25);
+    uniforms.colour3.value = new THREE.Vector4(0.6384, 0.991, 0.2365, 0.5);
+    uniforms.colour4.value = new THREE.Vector4(0.9853, 0.5018, 0.1324, 0.75);
     uniforms.colour5.value = new THREE.Vector4(0.4796, 0.01583, 0.01055, 1.0);
   }
 
@@ -644,13 +662,7 @@ function setDisplayColourAndType() {
 
 function selectColourspecInShaderStr(shaderStr) {
   let regex = /COLOURSPEC/g;
-  let channel;
-
-  if (options.whatToPlot == "u") {
-    channel = "r";
-  } else if (options.whatToPlot == "v") {
-    channel = "g";
-  }
+  let channel = mapSpeciesToChannel(options.whatToPlot);
   shaderStr = shaderStr.replace(regex, channel);
   return shaderStr;
 }
@@ -765,7 +777,7 @@ function playSim() {
   isRunning = true;
 }
 
-function parseShaderStrings() {
+function parseReactionStrings() {
   // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
   let out = "";
 
@@ -785,8 +797,8 @@ function parseShaderString(str) {
   // Replace u and v with uv.r and uv.g via placeholders.
   str = str.replace(/u/g, "U");
   str = str.replace(/v/g, "V");
-  str = str.replace(/U/g, "uv.r");
-  str = str.replace(/V/g, "uv.g");
+  str = str.replace(/U/g, "uv." + mapSpeciesToChannel("u"));
+  str = str.replace(/V/g, "uv." + mapSpeciesToChannel("v"));
 
   // Replace integers with floats.
   str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3");
@@ -797,19 +809,31 @@ function parseShaderString(str) {
 }
 
 function setRDEquations() {
-  let BCStr;
-  switch (options.boundaryConditions) {
-    case "periodic":
-      BCStr = RDShaderPeriodic();
-      break;
-    case "noflux":
-      BCStr = RDShaderNoFlux();
-      break;
+  let noFluxSpecies = "";
+  let dirichletSpecies = "";
+
+  // Record no-flux species.
+  if (options.boundaryConditionsU == "noflux") {
+    noFluxSpecies += "u";
   }
+  if (options.boundaryConditionsV == "noflux") {
+    noFluxSpecies += "v";
+  }
+
+  // Record Dirichlet species.
+  if (options.boundaryConditionsU == "dirichlet") {
+    dirichletSpecies += "u";
+  }
+  if (options.boundaryConditionsV == "dirichlet") {
+    dirichletSpecies += "v";
+  }
+
   simMaterial.fragmentShader = [
     RDShaderTop(),
-    BCStr,
-    parseShaderStrings(),
+    selectSpeciesInShaderStr(RDShaderNoFlux(), noFluxSpecies),
+    parseReactionStrings(),
+    RDShaderUpdate(),
+    selectSpeciesInShaderStr(RDShaderDirichlet(), dirichletSpecies),
     RDShaderBot(),
   ].join(" ");
   simMaterial.needsUpdate = true;
@@ -826,8 +850,11 @@ function loadPreset(preset) {
   // Trigger a resize, which will refresh all uniforms and set sizes.
   resize();
 
-  // Set the shaders.
-  setShaders();
+  // Configure the simulation material.
+  setBCsEqs();
+
+  // Set the draw and display shaders.
+  setDrawAndDisplayShaders();
 
   // Set the display color and brush type.
   setDisplayColourAndType();
@@ -878,6 +905,7 @@ function setNumberOfSpecies() {
       hideGUIController(gController);
       hideGUIController(whatToPlotController);
       hideGUIController(clearVValueController);
+      hideGUIController(vBCsController);
 
       // Remove references to v in labels.
       fController.name("f(u)");
@@ -889,6 +917,9 @@ function setNumberOfSpecies() {
       showGUIController(gController);
       showGUIController(whatToPlotController);
       showGUIController(clearVValueController);
+      showGUIController(vBCsController);
+      // Set v to be periodic to reduce computational overhead.
+      vBCsController.setValue("periodic");
 
       // Ensure correct references to v in labels are present.
       fController.name("f(u,v)");
@@ -912,4 +943,45 @@ function hideGUIController(cont) {
 
 function showGUIController(cont) {
   cont.__li.style.display = "";
+}
+
+function selectSpeciesInShaderStr(shaderStr, species) {
+  // If there are no species, then return an empty string.
+  if (species.length == 0) {
+    return "";
+  }
+  let regex = /SPECIES/g;
+  let channel = mapSpeciesToChannel(species);
+  shaderStr = shaderStr.replace(regex, channel);
+  return shaderStr;
+}
+
+function mapSpeciesToChannel(speciesStr) {
+  let channel = "";
+  if (speciesStr.includes("u")) {
+    channel += "r";
+  }
+  if (speciesStr.includes("v")) {
+    channel += "g";
+  }
+  return channel;
+}
+
+function setBCsEqs() {
+  // Configure the shaders.
+  setRDEquations();
+
+  // Update the GUI.
+  if (options.boundaryConditionsU == "dirichlet") {
+    showGUIController(dirichletUController);
+  }
+  else {
+    hideGUIController(dirichletUController);
+  }
+  if (options.boundaryConditionsV == "dirichlet") {
+    showGUIController(dirichletVController);
+  }
+  else {
+    hideGUIController(dirichletVController);
+  }
 }

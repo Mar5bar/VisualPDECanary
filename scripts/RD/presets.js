@@ -33,12 +33,15 @@ export function getPreset(id) {
       break;
     default:
       options = {
-        boundaryConditions: "periodic",
+        boundaryConditionsU: "periodic",
+        boundaryConditionsV: "periodic",
         brushValue: 1,
         brushRadius: 1 / 20,
         clearUValue: 0.0,
         clearVValue: 0.0,
         colourmap: "viridis",
+        dirichletU: 0,
+        dirichletV: 0,
         domainScale: 1,
         dt: 0.1,
         Du: 0.000004,
