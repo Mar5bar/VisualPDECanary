@@ -426,9 +426,10 @@ function initGUI() {
     .name("Brush value")
     .onChange(updateUniforms);
   brushRadiusController = fBrush
-    .add(options, "brushRadius", 0, options.domainScale / 10)
+    .add(options, "brushRadius");
     .name("Brush radius")
     .onChange(updateUniforms);
+  brushRadiusController.min(0);
   fBrush.open();
 
   // Domain folder.
