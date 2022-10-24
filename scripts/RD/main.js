@@ -12,7 +12,11 @@ let gui,
   fController,
   gController,
   DvController,
-  whatToPlotController;
+  whatToPlotController,
+  minColourValueUController,
+  maxColourValueUController,
+  minColourValueVController,
+  maxColourValueVController;
 let isRunning, isDrawing;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
@@ -230,8 +234,13 @@ function updateUniforms() {
   uniforms.Dv.value = options.Dv;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
-  uniforms.maxColourValue.value = options.maxColourValue;
-  uniforms.minColourValue.value = options.minColourValue;
+  if (options.whatToPlot == "u") {
+    uniforms.maxColourValue.value = options.maxColourValueU;
+    uniforms.minColourValue.value = options.minColourValueU;
+  } else if (options.whatToPlot == "v") {
+    uniforms.maxColourValue.value = options.maxColourValueV;
+    uniforms.minColourValue.value = options.minColourValueV;
+  }
 }
 
 function setSizes() {
@@ -484,6 +493,7 @@ function initGUI() {
     .add(options, "whatToPlot", { u: "u", v: "v" })
     .name("Colour by: ")
     .onChange(function () {
+      selectColorRangeControls();
       setDisplayColourAndType();
       setBrushType();
     });
@@ -496,14 +506,23 @@ function initGUI() {
     })
     .onChange(setDisplayColourAndType)
     .name("Colourmap");
-  fColour
-    .add(options, "minColourValue")
+  minColourValueUController = fColour
+    .add(options, "minColourValueU")
     .name("Min value")
     .onChange(updateUniforms);
-  fColour
-    .add(options, "maxColourValue")
+  maxColourValueUController = fColour
+    .add(options, "maxColourValueU")
     .name("Max value")
     .onChange(updateUniforms);
+  minColourValueVController = fColour
+    .add(options, "minColourValueV")
+    .name("Min value")
+    .onChange(updateUniforms);
+  maxColourValueVController = fColour
+    .add(options, "maxColourValueV")
+    .name("Max value")
+    .onChange(updateUniforms);
+  selectColorRangeControls();
 }
 
 function animate() {
@@ -581,9 +600,24 @@ function setDisplayColourAndType() {
       fiveColourDisplay()
     );
     uniforms.colour1.value = new THREE.Vector4(0.18995, 0.07176, 0.23217, 0.0);
-    uniforms.colour2.value = new THREE.Vector4(0.1601525, 0.7331825, 0.92519, 0.25);
-    uniforms.colour3.value = new THREE.Vector4(0.638425, 0.99097, 0.236465, 0.5);
-    uniforms.colour4.value = new THREE.Vector4(0.985325, 0.50182, 0.132375, 0.75);
+    uniforms.colour2.value = new THREE.Vector4(
+      0.1601525,
+      0.7331825,
+      0.92519,
+      0.25
+    );
+    uniforms.colour3.value = new THREE.Vector4(
+      0.638425,
+      0.99097,
+      0.236465,
+      0.5
+    );
+    uniforms.colour4.value = new THREE.Vector4(
+      0.985325,
+      0.50182,
+      0.132375,
+      0.75
+    );
     uniforms.colour5.value = new THREE.Vector4(0.4796, 0.01583, 0.01055, 1.0);
   }
 
@@ -601,6 +635,29 @@ function selectColourspecInShaderStr(shaderStr) {
   }
   shaderStr = shaderStr.replace(regex, channel);
   return shaderStr;
+}
+
+function selectColorRangeControls() {
+  switch (options.whatToPlot) {
+    case "u":
+      // Show u range controllers.
+      showGUIController(minColourValueUController);
+      showGUIController(maxColourValueUController);
+
+      // Hide v range controllers.
+      hideGUIController(minColourValueVController);
+      hideGUIController(maxColourValueVController);
+      
+      break;
+    case "v":
+      // Show v range controllers.
+      showGUIController(minColourValueVController);
+      showGUIController(maxColourValueVController);
+
+      // Hide u range controllers.
+      hideGUIController(minColourValueUController);
+      hideGUIController(maxColourValueUController);
+  }
 }
 
 function draw() {
@@ -746,6 +803,7 @@ function loadPreset(preset) {
 
   // Refresh the whole gui.
   refreshGUI(gui);
+  selectColorRangeControls();
 
   // Trigger a resize, which will refresh all uniforms and set sizes.
   resize();
