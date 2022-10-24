@@ -232,12 +232,6 @@ function updateUniforms() {
   uniforms.dy.value = domainHeight / nYDisc;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
-  if (readFromTextureB) {
-    uniforms.textureSource = simTextureB.texture;
-  }
-  else {
-    uniforms.textureSource = simTextureA.texture;
-  }
 }
 
 function setSizes() {
@@ -281,6 +275,7 @@ function resizeTextures() {
     renderer.render(simScene, simCamera);
     simTextureA.dispose();
     simTextureA = simTextureB.clone();
+    uniforms.textureSource.value = simTextureB.texture;
   } else {
     uniforms.textureSource.value = simTextureB.texture;
     simTextureA.setSize(nXDisc, nYDisc);
@@ -288,6 +283,7 @@ function resizeTextures() {
     renderer.render(simScene, simCamera);
     simTextureB.dispose();
     simTextureB = simTextureA.clone();
+    uniforms.textureSource.value = simTextureA.texture;
   }
   readFromTextureB = !readFromTextureB;
   render();
