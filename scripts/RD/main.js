@@ -1,14 +1,13 @@
 let canvas;
 let camera, simCamera, scene, simScene, renderer, aspectRatio;
 let simTextureA, simTextureB;
-let displayMaterial, drawMaterial, simMaterial, blackMaterial, copyMaterial;
+let displayMaterial, drawMaterial, simMaterial, clearMaterial, copyMaterial;
 let domain, simDomain;
 let options, uniforms, funsObj;
 let gui,
   pauseButton,
   clearButton,
   brushRadiusController,
-  fColour,
   fController,
   gController,
   DvController,
@@ -16,7 +15,9 @@ let gui,
   minColourValueUController,
   maxColourValueUController,
   minColourValueVController,
-  maxColourValueVController;
+  maxColourValueVController,
+  clearVValueController,
+  clearUValueController;
 let isRunning, isDrawing;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
@@ -78,7 +79,6 @@ if (params.has("options")) {
 
 // Initialise simulation, set size, and begin.
 init();
-resize();
 animate();
 
 //---------------
@@ -147,8 +147,8 @@ function init() {
     fragmentShader: copyShader(),
   });
 
-  // A black material for initialisation.
-  blackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  // A material for clearing the domain.
+  clearMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
 
   const plane = new THREE.PlaneGeometry(1.0, 1.0);
   domain = new THREE.Mesh(plane, displayMaterial);
@@ -174,6 +174,9 @@ function init() {
 
   // Show/hide any GUI elements based on current options.
   setNumberOfSpecies();
+
+  // Set the size of the domain and related parameters.
+  resize();
 
   // Listen for pointer events.
   canvas.addEventListener("pointerdown", onDocumentPointerDown);
@@ -488,7 +491,7 @@ function initGUI() {
     .onChange(setSizes);
 
   // Colour folder.
-  fColour = gui.addFolder("Colour");
+  const fColour = gui.addFolder("Colour");
   whatToPlotController = fColour
     .add(options, "whatToPlot", { u: "u", v: "v" })
     .name("Colour by: ")
@@ -523,6 +526,21 @@ function initGUI() {
     .name("Max value")
     .onChange(updateUniforms);
   selectColorRangeControls();
+
+  // Miscellaneous folder.
+  const fMisc = gui.addFolder("Misc.");
+  clearUValueController = fMisc
+    .add(options, "clearUValue")
+    .name("u on clear")
+    .onChange(setClearValues);
+  clearUValueController.__precision = 12;
+  clearUValueController.updateDisplay();
+  clearVValueController = fMisc
+    .add(options, "clearVValue")
+    .name("v on clear")
+    .onChange(setClearValues);
+  clearVValueController.__precision = 12;
+  clearVValueController.updateDisplay();
 }
 
 function animate() {
@@ -647,7 +665,7 @@ function selectColorRangeControls() {
       // Hide v range controllers.
       hideGUIController(minColourValueVController);
       hideGUIController(maxColourValueVController);
-      
+
       break;
     case "v":
       // Show v range controllers.
@@ -730,7 +748,7 @@ function setBrushCoords(event, container) {
 }
 
 function clearTextures() {
-  simDomain.material = blackMaterial;
+  simDomain.material = clearMaterial;
   renderer.setRenderTarget(simTextureA);
   renderer.render(simScene, simCamera);
   renderer.setRenderTarget(simTextureB);
@@ -859,6 +877,7 @@ function setNumberOfSpecies() {
       hideGUIController(DvController);
       hideGUIController(gController);
       hideGUIController(whatToPlotController);
+      hideGUIController(clearVValueController);
 
       // Remove references to v in labels.
       fController.name("f(u)");
@@ -869,12 +888,22 @@ function setNumberOfSpecies() {
       showGUIController(DvController);
       showGUIController(gController);
       showGUIController(whatToPlotController);
+      showGUIController(clearVValueController);
 
       // Ensure correct references to v in labels are present.
       fController.name("f(u,v)");
 
       break;
   }
+}
+
+function setClearValues() {
+  clearMaterial.color = new THREE.Color(
+    options.clearUValue,
+    options.clearVValue,
+    0.0
+  );
+  clearMaterial.needsUpdate = true;
 }
 
 function hideGUIController(cont) {
