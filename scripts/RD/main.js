@@ -4,14 +4,27 @@ let simTextureA, simTextureB;
 let displayMaterial, drawMaterial, simMaterial, blackMaterial, copyMaterial;
 let domain, simDomain;
 let options, uniforms, funsObj;
-let gui, pauseButton, clearButton, brushRadiusController, fColour, fController, gController, DvController, whatToPlotController;
+let gui,
+  pauseButton,
+  clearButton,
+  brushRadiusController,
+  fColour,
+  fController,
+  gController,
+  DvController,
+  whatToPlotController;
 let isRunning, isDrawing;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
 
 import { discShader, vLineShader, hLineShader } from "../drawing_shaders.js";
 import { copyShader } from "../copy_shader.js";
-import { RDShaderTop, RDShaderBot, RDShaderPeriodic, RDShaderNoFlux } from "./simulation_shaders.js";
+import {
+  RDShaderTop,
+  RDShaderBot,
+  RDShaderPeriodic,
+  RDShaderNoFlux,
+} from "./simulation_shaders.js";
 import { greyscaleDisplay, fiveColourDisplay } from "../display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
@@ -31,9 +44,13 @@ funsObj = {
     }
   },
   copyConfig: function () {
-    let str = [location.href.replace(location.search, ""), "?options=", encodeURI(btoa(JSON.stringify(options)))].join("");
+    let str = [
+      location.href.replace(location.search, ""),
+      "?options=",
+      encodeURI(btoa(JSON.stringify(options))),
+    ].join("");
     navigator.clipboard.writeText(str);
-  }
+  },
 };
 
 // Get the canvas to draw on, as specified by the html.
@@ -47,12 +64,12 @@ loadOptions("default");
 // Check URL for any preset or specified options.
 const params = new URLSearchParams(window.location.search);
 if (params.has("preset")) {
-	// If a preset is specified, load it.
-	loadOptions(params.get("preset"));
+  // If a preset is specified, load it.
+  loadOptions(params.get("preset"));
 }
 if (params.has("options")) {
-	// If options have been provided, apply them on top of loaded options.
-	loadOptions(JSON.parse(atob(decodeURI(params.get("options")))));
+  // If options have been provided, apply them on top of loaded options.
+  loadOptions(JSON.parse(atob(decodeURI(params.get("options")))));
 }
 
 // Initialise simulation, set size, and begin.
@@ -151,6 +168,9 @@ function init() {
   // Set the brush type.
   setBrushType();
 
+  // Show/hide any GUI elements based on current options.
+  setNumberOfSpecies();
+
   // Listen for pointer events.
   canvas.addEventListener("pointerdown", onDocumentPointerDown);
   canvas.addEventListener("pointerup", onDocumentPointerUp);
@@ -167,7 +187,7 @@ function init() {
         playSim();
       }
     }
-    if (event.key === 's') {
+    if (event.key === "s") {
       funsObj.copyConfig();
     }
   });
@@ -188,6 +208,7 @@ function resize() {
   brushRadiusController.max(options.domainScale / 10);
   brushRadiusController.step(options.spatialStep);
   brushRadiusController.updateDisplay();
+  render();
 }
 
 function roundBrushSizeToPix() {
@@ -211,6 +232,12 @@ function updateUniforms() {
   uniforms.dy.value = domainHeight / nYDisc;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
+  if (readFromTextureB) {
+    uniforms.textureSource = simTextureB.texture;
+  }
+  else {
+    uniforms.textureSource = simTextureA.texture;
+  }
 }
 
 function setSizes() {
@@ -385,11 +412,14 @@ function initGUI() {
     .add(options, "domainScale", 0.001, 10)
     .name("Largest side")
     .onChange(resize);
-  fDomain
-    .add(options, "spatialStep", 0.0001, options.domainScale / 50)
+  const dxController = fDomain
+    .add(options, "spatialStep")
     .name("Space step")
     .onChange(resize)
     .onFinishChange(roundBrushSizeToPix);
+  dxController.__precision = 12;
+  dxController.min(0);
+  dxController.updateDisplay();
 
   // Timestepping folder.
   const fTimestepping = gui.addFolder("Timestepping");
@@ -398,14 +428,17 @@ function initGUI() {
     .add(options, "dt")
     .name("Timestep")
     .onChange(updateUniforms);
-		dtController.__precision = 12;
-    dtController.min(0);
-		dtController.updateDisplay();
+  dtController.__precision = 12;
+  dtController.min(0);
+  dtController.updateDisplay();
 
   // Equations folder.
   const fEquations = gui.addFolder("Equations");
-	// Number of species.
-	fEquations.add(options, "numSpecies", {1: 1, 2: 2}).name("No. species").onChange(setNumberOfSpecies);
+  // Number of species.
+  fEquations
+    .add(options, "numSpecies", { 1: 1, 2: 2 })
+    .name("No. species")
+    .onChange(setNumberOfSpecies);
   // Du and Dv.
   const DuController = fEquations
     .add(options, "Du")
@@ -462,7 +495,8 @@ function initGUI() {
     .add(options, "colourmap", {
       Greyscale: "greyscale",
       Viridis: "viridis",
-      RedYellowGreenWhite: "fiveColourDisplay",
+      Turbo: "turbo",
+      BlackGreenYellowRedWhite: "BlackGreenYellowRedWhite",
     })
     .onChange(setDisplayColourAndType)
     .name("Colourmap");
@@ -528,7 +562,7 @@ function setDisplayColourAndType() {
     displayMaterial.fragmentShader = selectColourspecInShaderStr(
       greyscaleDisplay()
     );
-  } else if (options.colourmap == "fiveColourDisplay") {
+  } else if (options.colourmap == "BlackGreenYellowRedWhite") {
     displayMaterial.fragmentShader = selectColourspecInShaderStr(
       fiveColourDisplay()
     );
@@ -546,7 +580,17 @@ function setDisplayColourAndType() {
     uniforms.colour3.value = new THREE.Vector4(0.1282, 0.5651, 0.5509, 0.4);
     uniforms.colour4.value = new THREE.Vector4(0.3629, 0.7867, 0.3866, 0.8);
     uniforms.colour5.value = new THREE.Vector4(0.9932, 0.9062, 0.1439, 1.0);
+  } else if (options.colourmap == "turbo") {
+    displayMaterial.fragmentShader = selectColourspecInShaderStr(
+      fiveColourDisplay()
+    );
+    uniforms.colour1.value = new THREE.Vector4(0.18995, 0.07176, 0.23217, 1.0);
+    uniforms.colour2.value = new THREE.Vector4(0.1601525, 0.7331825, 0.92519);
+    uniforms.colour3.value = new THREE.Vector4(0.638425, 0.99097, 0.236465);
+    uniforms.colour4.value = new THREE.Vector4(0.985325, 0.50182, 0.132375);
+    uniforms.colour5.value = new THREE.Vector4(0.4796, 0.01583, 0.01055);
   }
+
   displayMaterial.needsUpdate = true;
 }
 
@@ -720,23 +764,20 @@ function loadPreset(preset) {
 
 function loadOptions(preset) {
   let newOptions;
-	
-	if (preset == undefined) {
-		// If no argument is given, load whatever is set in options.preset.
-		newOptions = getPreset(options.preset);
-	}
-	else if (typeof(preset) == "string") {
-		// If an argument is given and it's a string, try to load the corresponding preset.
-		newOptions = getPreset(preset);
-	}
-	else if (typeof(preset) == "object") {
-		// If the argument is an object, then assume it is an options object.
-		newOptions = preset;
-	}
-	else {
-		// Otherwise, fall back to default.
-		newOptions = getPreset("default");
-	}
+
+  if (preset == undefined) {
+    // If no argument is given, load whatever is set in options.preset.
+    newOptions = getPreset(options.preset);
+  } else if (typeof preset == "string") {
+    // If an argument is given and it's a string, try to load the corresponding preset.
+    newOptions = getPreset(preset);
+  } else if (typeof preset == "object") {
+    // If the argument is an object, then assume it is an options object.
+    newOptions = preset;
+  } else {
+    // Otherwise, fall back to default.
+    newOptions = getPreset("default");
+  }
 
   // Loop through newOptions and overwrite anything already present.
   Object.assign(options, newOptions);
@@ -754,38 +795,38 @@ function refreshGUI(folder) {
 }
 
 function setNumberOfSpecies() {
-	switch (options.numSpecies) {
-		case "1":
-			//Ensure that u is being displayed on the screen (and the brush target).
-			whatToPlotController.setValue("u");
-			
-			// Hide GUI panels related to v.
+  switch (options.numSpecies) {
+    case "1":
+      //Ensure that u is being displayed on the screen (and the brush target).
+      whatToPlotController.setValue("u");
+
+      // Hide GUI panels related to v.
       DvController.setValue(0);
-			hideGUIController(DvController)
-			hideGUIController(gController)
-			hideGUIController(whatToPlotController);
-			
-			// Remove references to v in labels.
-			fController.name("f(u)");
-			
-			break;
-		case "2":
-			// Show GUI panels related to v.
-			showGUIController(DvController)
-			showGUIController(gController)
-			showGUIController(whatToPlotController);
-		
-			// Ensure correct references to v in labels are present.
-			fController.name("f(u,v)");
-			
-			break;
-	}
+      hideGUIController(DvController);
+      hideGUIController(gController);
+      hideGUIController(whatToPlotController);
+
+      // Remove references to v in labels.
+      fController.name("f(u)");
+
+      break;
+    case "2":
+      // Show GUI panels related to v.
+      showGUIController(DvController);
+      showGUIController(gController);
+      showGUIController(whatToPlotController);
+
+      // Ensure correct references to v in labels are present.
+      fController.name("f(u,v)");
+
+      break;
+  }
 }
 
-function hideGUIController( cont ) {
+function hideGUIController(cont) {
   cont.__li.style.display = "none";
 }
 
-function showGUIController( cont ) {
+function showGUIController(cont) {
   cont.__li.style.display = "";
 }
