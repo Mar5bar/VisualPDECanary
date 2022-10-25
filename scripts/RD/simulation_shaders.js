@@ -22,8 +22,8 @@ export function RDShaderTop() {
         vec2 uv = texture2D(textureSource, textureCoords).rg;
         vec2 uvL = texture2D(textureSource, textureCoords + vec2(-step_x, 0.0)).rg;
         vec2 uvR = texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).rg;
-        vec2 uvT = texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).rg;
-        vec2 uvB = texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).rg;
+        vec2 uvT = texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).rg;
+        vec2 uvB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).rg;
     `;
 }
 
@@ -39,10 +39,10 @@ export function RDShaderNoFlux() {
     if (textureCoords.x + step_x > 1.0) {
         uvR.SPECIES = uvL.SPECIES;
     }
-    if (textureCoords.y - step_y < 0.0) {
+    if (textureCoords.y + step_y > 1.0){
         uvT.SPECIES = uvB.SPECIES;
     }
-    if (textureCoords.y + step_y > 1.0){
+    if (textureCoords.y - step_y < 0.0) {
         uvB.SPECIES = uvT.SPECIES;
     }
     `;
@@ -56,11 +56,11 @@ export function RDShaderRobin() {
     if (textureCoords.x + step_x > 1.0) {
         uvR.SPECIES = uvL.SPECIES + dx * robinRHSSPECIES;
     }
-    if (textureCoords.y - step_y < 0.0) {
-        uvT.SPECIES = uvB.SPECIES - dy * robinRHSSPECIES;
-    }
     if (textureCoords.y + step_y > 1.0){
-        uvB.SPECIES = uvT.SPECIES + dy * robinRHSSPECIES;
+        uvT.SPECIES = uvB.SPECIES + dy * robinRHSSPECIES;
+    }
+    if (textureCoords.y - step_y < 0.0) {
+        uvB.SPECIES = uvT.SPECIES - dy * robinRHSSPECIES;
     }
     `;
 }
@@ -83,7 +83,7 @@ export function RDShaderUpdate() {
 
 export function RDShaderDirichlet() {
     return `
-    if ((textureCoords.x - step_x < 0.0) || (textureCoords.x + step_x > 1.0) || (textureCoords.y - step_y < 0.0) || (textureCoords.y + step_y > 1.0)) {
+    if ((textureCoords.x - step_x < 0.0) || (textureCoords.x + step_x > 1.0) || (textureCoords.y + step_y > 1.0) || (textureCoords.y - step_y < 0.0)) {
         updated.SPECIES = boundaryValues.SPECIES;
     }
     `
