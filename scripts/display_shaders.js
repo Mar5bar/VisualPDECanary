@@ -1,7 +1,7 @@
 // display_shaders.js
 
 export function fiveColourDisplay() {
-    return `varying vec2 textureCoords;
+  return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
     uniform float minColourValue;
     uniform float maxColourValue;
@@ -51,7 +51,7 @@ export function fiveColourDisplay() {
 }
 
 export function greyscaleDisplay() {
-    return `varying vec2 textureCoords;
+  return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
     uniform float minColourValue;
     uniform float maxColourValue;

@@ -236,7 +236,7 @@ function updateUniforms() {
   uniforms.aspectRatio = aspectRatio;
   uniforms.boundaryValues.value = new THREE.Vector2(
     options.dirichletU,
-    options.dirichletV,
+    options.dirichletV
   );
   uniforms.brushRadius.value = options.brushRadius;
   uniforms.brushValue.value = options.brushValue;
@@ -618,7 +618,6 @@ function setDrawAndDisplayShaders() {
 
   // Configure the drawing material.
   setBrushType();
-
 }
 
 function setBrushType() {
@@ -863,7 +862,7 @@ function setRDEquations() {
   simMaterial.needsUpdate = true;
 }
 
-function parseRobinRHS( string, species ) {
+function parseRobinRHS(string, species) {
   return "float robinRHS" + species + " = " + parseShaderString(string) + ";\n";
 }
 
@@ -1002,28 +1001,23 @@ function setBCsEqs() {
   // Update the GUI.
   if (options.boundaryConditionsU == "dirichlet") {
     showGUIController(dirichletUController);
-  }
-  else {
+  } else {
     hideGUIController(dirichletUController);
   }
   if (options.boundaryConditionsV == "dirichlet") {
     showGUIController(dirichletVController);
-  }
-  else {
+  } else {
     hideGUIController(dirichletVController);
   }
 
   if (options.boundaryConditionsU == "robin") {
     showGUIController(robinUController);
-  }
-  else {
+  } else {
     hideGUIController(robinUController);
   }
   if (options.boundaryConditionsV == "robin") {
     showGUIController(robinVController);
-  }
-  else {
+  } else {
     hideGUIController(robinVController);
   }
-
 }
