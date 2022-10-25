@@ -399,13 +399,6 @@ function initGUI() {
   clearButton = gui.add(funsObj, "clear").name("Clear (c)");
   // Copy configuration as URL.
   gui.add(funsObj, "copyConfig").name("Copy setup URL (s)");
-  gui
-    .add(options, "preset", {
-      None: "default",
-      Subcriticality: "subcriticalGS",
-    })
-    .name("Preset")
-    .onChange(loadPreset);
 
   // Brush folder.
   const fBrush = gui.addFolder("Brush");
@@ -586,6 +579,13 @@ function initGUI() {
     .onChange(setClearValues);
   clearValueVController.__precision = 12;
   clearValueVController.updateDisplay();
+  fMisc
+    .add(options, "preset", {
+      None: "default",
+      Subcriticality: "subcriticalGS",
+    })
+    .name("Preset")
+    .onChange(loadPreset);
 }
 
 function animate() {
