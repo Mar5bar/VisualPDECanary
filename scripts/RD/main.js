@@ -221,10 +221,6 @@ function resize() {
   resizeTextures();
   // Update any uniforms.
   updateUniforms();
-  // Update any parts of the GUI that depend on the domain size (ie brush).
-  brushRadiusController.max(options.domainScale / 10);
-  brushRadiusController.step(options.spatialStep);
-  brushRadiusController.updateDisplay();
   render();
 }
 
@@ -426,7 +422,7 @@ function initGUI() {
     .name("Brush value")
     .onChange(updateUniforms);
   brushRadiusController = fBrush
-    .add(options, "brushRadius");
+    .add(options, "brushRadius")
     .name("Brush radius")
     .onChange(updateUniforms);
   brushRadiusController.min(0);
