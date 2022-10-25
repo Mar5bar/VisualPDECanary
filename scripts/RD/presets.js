@@ -3,6 +3,32 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "heatEquation":
+      options = {
+        boundaryConditionsU: "periodic",
+        brushValue: 1,
+        brushRadius: 1 / 20,
+        clearValueU: 0.0,
+        colourmap: "viridis",
+        dirichletU: 0,
+        domainScale: 1,
+        dt: 0.1,
+        diffusionU: 0.000004,
+        maxColourValueU: 1.0,
+        minColourValueU: 0.0,
+        numSpecies: 1,
+        numTimestepsPerFrame: 100,
+        preset: "heatEquation",
+        renderSize: 256,
+        reactionStrU: "0",
+        robinStrU: "0",
+        setTimestepForStability: false,
+        spatialStep: 1 / 200,
+        squareCanvas: false,
+        typeOfBrush: "circle",
+        whatToPlot: "u",
+      };
+      break;
     case "subcriticalGS":
       options = {
         boundaryConditionsU: "periodic",

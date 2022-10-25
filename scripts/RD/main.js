@@ -74,19 +74,21 @@ var readFromTextureB = true;
 // Load default options.
 loadOptions("default");
 
+// Initialise simulation and GUI.
+init();
+
 // Check URL for any preset or specified options.
 const params = new URLSearchParams(window.location.search);
 if (params.has("preset")) {
   // If a preset is specified, load it.
-  loadOptions(params.get("preset"));
+  loadPreset(params.get("preset"));
 }
 if (params.has("options")) {
   // If options have been provided, apply them on top of loaded options.
-  loadOptions(JSON.parse(atob(decodeURI(params.get("options")))));
+  loadPreset(JSON.parse(atob(decodeURI(params.get("options")))));
 }
 
-// Initialise simulation, set size, and begin.
-init();
+// Begin the simulation.
 animate();
 
 //---------------
@@ -462,7 +464,7 @@ function initGUI() {
   const fEquations = gui.addFolder("Equations");
   // Number of species.
   fEquations
-    .add(options, "numSpecies", { 1: 1, 2: 2 })
+    .add(options, "numSpecies", {1: 1, 2: 2})
     .name("No. species")
     .onChange(setNumberOfSpecies);
   // Du and Dv.
@@ -599,6 +601,7 @@ function initGUI() {
   fMisc
     .add(options, "preset", {
       None: "default",
+      "Heat equation": "heatEquation",
       Subcriticality: "subcriticalGS",
     })
     .name("Preset")
@@ -890,6 +893,7 @@ function loadPreset(preset) {
   // Refresh the whole gui.
   refreshGUI(gui);
   selectColorRangeControls();
+  setNumberOfSpecies();
 
   // Trigger a resize, which will refresh all uniforms and set sizes.
   resize();
@@ -938,8 +942,8 @@ function refreshGUI(folder) {
 }
 
 function setNumberOfSpecies() {
-  switch (options.numSpecies) {
-    case "1":
+  switch (parseInt(options.numSpecies)) {
+    case 1:
       //Ensure that u is being displayed on the screen (and the brush target).
       whatToPlotController.setValue("u");
 
@@ -959,7 +963,7 @@ function setNumberOfSpecies() {
       fController.name("f(u)");
 
       break;
-    case "2":
+    case 2:
       // Show GUI panels related to v.
       showGUIController(DvController);
       showGUIController(gController);
