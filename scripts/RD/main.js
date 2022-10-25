@@ -235,24 +235,24 @@ function roundBrushSizeToPix() {
 function updateUniforms() {
   uniforms.aspectRatio = aspectRatio;
   uniforms.boundaryValues.value = new THREE.Vector2(
-    options.dirichlet.u,
-    options.dirichlet.v,
+    options.dirichletU,
+    options.dirichletV,
   );
   uniforms.brushRadius.value = options.brushRadius;
   uniforms.brushValue.value = options.brushValue;
   uniforms.domainHeight.value = domainHeight;
   uniforms.domainWidth.value = domainWidth;
   uniforms.dt.value = options.dt;
-  uniforms.Du.value = options.diffusion.u;
-  uniforms.Dv.value = options.diffusion.v;
+  uniforms.Du.value = options.diffusionU;
+  uniforms.Dv.value = options.diffusionV;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
   if (options.whatToPlot == "u") {
-    uniforms.maxColourValue.value = options.maxColourValue.u;
-    uniforms.minColourValue.value = options.minColourValue.u
+    uniforms.maxColourValue.value = options.maxColourValueU;
+    uniforms.minColourValue.value = options.minColourValueU;
   } else if (options.whatToPlot == "v") {
-    uniforms.maxColourValue.value = options.maxColourValue.v
-    uniforms.minColourValue.value = options.minColourValue.v
+    uniforms.maxColourValue.value = options.maxColourValueV;
+    uniforms.minColourValue.value = options.minColourValueV;
   }
 }
 
@@ -463,24 +463,24 @@ function initGUI() {
     .onChange(setNumberOfSpecies);
   // Du and Dv.
   const DuController = fEquations
-    .add(options.diffusion, "u")
+    .add(options, "diffusionU")
     .name("Du")
     .onChange(updateUniforms);
   DuController.__precision = 12;
   DuController.updateDisplay();
   DvController = fEquations
-    .add(options.diffusion, "v")
+    .add(options, "diffusionV")
     .name("Dv")
     .onChange(updateUniforms);
   DvController.__precision = 12;
   DvController.updateDisplay();
   // Custom f(u,v) and g(u,v).
   fController = fEquations
-    .add(options.reactionStr, "u")
+    .add(options, "reactionStrU")
     .name("f(u,v)")
     .onFinishChange(setRDEquations);
   gController = fEquations
-    .add(options.reactionStr, "v")
+    .add(options, "reactionStrV")
     .name("g(u,v)")
     .onFinishChange(setRDEquations);
   fEquations.open();
@@ -488,7 +488,7 @@ function initGUI() {
   // Boundary conditions folder.
   const fBCs = gui.addFolder("Boundary conditions");
   fBCs
-    .add(options.boundaryConditions, "u", {
+    .add(options, "boundaryConditionsU", {
       Periodic: "periodic",
       "No flux": "noflux",
       Dirichlet: "dirichlet",
@@ -497,17 +497,17 @@ function initGUI() {
     .name("u")
     .onChange(setBCsEqs);
   dirichletUController = fBCs
-    .add(options.dirichlet, "u")
+    .add(options, "dirichletU")
     .name("u(boundary) = ")
     .onChange(updateUniforms);
   dirichletUController.__precision = 12;
   dirichletUController.updateDisplay();
   robinUController = fBCs
-    .add(options.robinStr, "u")
+    .add(options, "robinStrU")
     .name("du/dn = ")
     .onChange(setRDEquations);
   vBCsController = fBCs
-    .add(options.boundaryConditions, "v", {
+    .add(options, "boundaryConditionsV", {
       Periodic: "periodic",
       "No flux": "noflux",
       Dirichlet: "dirichlet",
@@ -515,14 +515,14 @@ function initGUI() {
     })
     .name("v")
     .onChange(setBCsEqs);
-  robinVController = fBCs
-    .add(options.robinStr, "v")
-    .name("dv/dn = ")
-    .onFinishChange(setRDEquations);
   dirichletVController = fBCs
-    .add(options.dirichlet, "v")
+    .add(options, "dirichletV")
     .name("v(boundary) = ")
     .onFinishChange(updateUniforms);
+  robinVController = fBCs
+    .add(options, "robinStrV")
+    .name("dv/dn = ")
+    .onFinishChange(setRDEquations);
 
   // Rendering folder.
   const fRendering = gui.addFolder("Rendering");
@@ -555,19 +555,19 @@ function initGUI() {
     .onChange(setDisplayColourAndType)
     .name("Colourmap");
   minColourValueUController = fColour
-    .add(options.minColourValue, "u")
+    .add(options, "minColourValueU")
     .name("Min value")
     .onChange(updateUniforms);
   maxColourValueUController = fColour
-    .add(options.maxColourValue, "u")
+    .add(options, "maxColourValueU")
     .name("Max value")
     .onChange(updateUniforms);
   minColourValueVController = fColour
-    .add(options.minColourValue, "v")
+    .add(options, "minColourValueV")
     .name("Min value")
     .onChange(updateUniforms);
   maxColourValueVController = fColour
-    .add(options.maxColourValue, "v")
+    .add(options, "maxColourValueV")
     .name("Max value")
     .onChange(updateUniforms);
   selectColorRangeControls();
@@ -792,9 +792,9 @@ function parseReactionStrings() {
   let out = "";
 
   // Prepare the f string.
-  out += "float f = " + parseShaderString(options.reactionStr.u) + ";\n";
+  out += "float f = " + parseShaderString(options.reactionStrU) + ";\n";
   // Prepare the g string.
-  out += "float g = " + parseShaderString(options.reactionStr.v) + ";\n";
+  out += "float g = " + parseShaderString(options.reactionStrV) + ";\n";
 
   return out;
 }
@@ -824,29 +824,29 @@ function setRDEquations() {
   let robinShader = "";
 
   // Record no-flux species.
-  if (options.boundaryConditions.u == "noflux") {
+  if (options.boundaryConditionsU == "noflux") {
     noFluxSpecies += "u";
   }
-  if (options.boundaryConditions.v == "noflux") {
+  if (options.boundaryConditionsV == "noflux") {
     noFluxSpecies += "v";
   }
 
   // Record Dirichlet species.
-  if (options.boundaryConditions.u == "dirichlet") {
+  if (options.boundaryConditionsU == "dirichlet") {
     dirichletSpecies += "u";
   }
-  if (options.boundaryConditions.v == "dirichlet") {
+  if (options.boundaryConditionsV == "dirichlet") {
     dirichletSpecies += "v";
   }
 
   // Create a Robin shader block for each species separately.
-  if (options.boundaryConditions.u == "robin") {
-    robinShader += parseRobinRHS(options.robinStr.u, "SPECIES");
+  if (options.boundaryConditionsU == "robin") {
+    robinShader += parseRobinRHS(options.robinStrU, "SPECIES");
     robinShader += RDShaderRobin();
     robinShader = selectSpeciesInShaderStr(robinShader, "u");
   }
-  if (options.boundaryConditions.v == "robin") {
-    robinShader += parseRobinRHS(options.robinStr.v, "SPECIES");
+  if (options.boundaryConditionsV == "robin") {
+    robinShader += parseRobinRHS(options.robinStrV, "SPECIES");
     robinShader += RDShaderRobin();
     robinShader = selectSpeciesInShaderStr(robinShader, "v");
   }
@@ -1000,26 +1000,26 @@ function setBCsEqs() {
   setRDEquations();
 
   // Update the GUI.
-  if (options.boundaryConditions.u == "dirichlet") {
+  if (options.boundaryConditionsU == "dirichlet") {
     showGUIController(dirichletUController);
   }
   else {
     hideGUIController(dirichletUController);
   }
-  if (options.boundaryConditions.v == "dirichlet") {
+  if (options.boundaryConditionsV == "dirichlet") {
     showGUIController(dirichletVController);
   }
   else {
     hideGUIController(dirichletVController);
   }
 
-  if (options.boundaryConditions.u == "robin") {
+  if (options.boundaryConditionsU == "robin") {
     showGUIController(robinUController);
   }
   else {
     hideGUIController(robinUController);
   }
-  if (options.boundaryConditions.v == "robin") {
+  if (options.boundaryConditionsV == "robin") {
     showGUIController(robinVController);
   }
   else {
