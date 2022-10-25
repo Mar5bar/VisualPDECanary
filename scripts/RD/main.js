@@ -16,8 +16,8 @@ let gui,
   maxColourValueUController,
   minColourValueVController,
   maxColourValueVController,
-  clearVValueController,
-  clearUValueController,
+  clearValueVController,
+  clearValueUController,
   vBCsController,
   dirichletUController,
   dirichletVController,
@@ -574,18 +574,18 @@ function initGUI() {
 
   // Miscellaneous folder.
   const fMisc = gui.addFolder("Misc.");
-  clearUValueController = fMisc
-    .add(options, "clearUValue")
+  clearValueUController = fMisc
+    .add(options, "clearValueU")
     .name("u on clear")
     .onChange(setClearValues);
-  clearUValueController.__precision = 12;
-  clearUValueController.updateDisplay();
-  clearVValueController = fMisc
-    .add(options, "clearVValue")
+  clearValueUController.__precision = 12;
+  clearValueUController.updateDisplay();
+  clearValueVController = fMisc
+    .add(options, "clearValueV")
     .name("v on clear")
     .onChange(setClearValues);
-  clearVValueController.__precision = 12;
-  clearVValueController.updateDisplay();
+  clearValueVController.__precision = 12;
+  clearValueVController.updateDisplay();
 }
 
 function animate() {
@@ -931,8 +931,12 @@ function setNumberOfSpecies() {
       hideGUIController(DvController);
       hideGUIController(gController);
       hideGUIController(whatToPlotController);
-      hideGUIController(clearVValueController);
+      hideGUIController(clearValueVController);
       hideGUIController(vBCsController);
+
+      // Set v to be periodic to reduce computational overhead.
+      vBCsController.setValue("periodic");
+      clearValueVController.setValue(0);
 
       // Remove references to v in labels.
       fController.name("f(u)");
@@ -943,10 +947,8 @@ function setNumberOfSpecies() {
       showGUIController(DvController);
       showGUIController(gController);
       showGUIController(whatToPlotController);
-      showGUIController(clearVValueController);
+      showGUIController(clearValueVController);
       showGUIController(vBCsController);
-      // Set v to be periodic to reduce computational overhead.
-      vBCsController.setValue("periodic");
 
       // Ensure correct references to v in labels are present.
       fController.name("f(u,v)");
@@ -957,8 +959,8 @@ function setNumberOfSpecies() {
 
 function setClearValues() {
   clearMaterial.color = new THREE.Color(
-    options.clearUValue,
-    options.clearVValue,
+    options.clearValueU,
+    options.clearValueV,
     0.0
   );
   clearMaterial.needsUpdate = true;
