@@ -450,7 +450,7 @@ function initGUI() {
     .name("Timestep")
     .onChange(function () {
       setTimestepForCFL();
-      updateUniforms;
+      updateUniforms();
     });
   dtController.__precision = 12;
   dtController.min(0);
