@@ -11,6 +11,7 @@ let gui,
   fController,
   gController,
   DvController,
+  dtController,
   whatToPlotController,
   minColourValueUController,
   maxColourValueUController,
@@ -430,7 +431,10 @@ function initGUI() {
   const dxController = fDomain
     .add(options, "spatialStep")
     .name("Space step")
-    .onChange(resize)
+    .onChange(function () {
+      setTimestepForCFL();
+      resize();
+    })
     .onFinishChange(roundBrushSizeToPix);
   dxController.__precision = 12;
   dxController.min(0);
@@ -439,13 +443,20 @@ function initGUI() {
   // Timestepping folder.
   const fTimestepping = gui.addFolder("Timestepping");
   fTimestepping.add(options, "numTimestepsPerFrame", 1, 200, 1).name("TPF");
-  const dtController = fTimestepping
+  dtController = fTimestepping
     .add(options, "dt")
     .name("Timestep")
-    .onChange(updateUniforms);
+    .onChange(function () {
+      setTimestepForCFL();
+      updateUniforms;
+    });
   dtController.__precision = 12;
   dtController.min(0);
   dtController.updateDisplay();
+  fTimestepping
+    .add(options, "setTimestepForStability")
+    .name("Lock CFL cond.")
+    .onChange(setTimestepForCFL);
 
   // Equations folder.
   const fEquations = gui.addFolder("Equations");
@@ -1021,5 +1032,19 @@ function setBCsEqs() {
     showGUIController(robinVController);
   } else {
     hideGUIController(robinVController);
+  }
+}
+
+function setTimestepForCFL() {
+  if (options.setTimestepForStability) {
+    let CFLValue =
+      Math.max(options.diffusionU, options.diffusionV) /
+      options.spatialStep ** 2;
+    // We decrease dt so that it satisfies the CFL condition for the pure diffusion condition.
+    // However, as the inhomogeneity seems to reduce stability, we conservatively take twice as
+    // many timesteps needed for diffusion in the hope of the RD system being stable.
+    if (options.dt > (0.5 * 0.25) / CFLValue) {
+      dtController.setValue((0.5 * 0.25) / CFLValue);
+    }
   }
 }
