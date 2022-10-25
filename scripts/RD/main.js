@@ -556,6 +556,7 @@ function initGUI() {
       selectColorRangeControls();
       setDisplayColourAndType();
       setBrushType();
+      updateUniforms();
     });
   fColour
     .add(options, "colourmap", {
