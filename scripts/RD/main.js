@@ -469,13 +469,19 @@ function initGUI() {
   const DuController = fEquations
     .add(options, "diffusionU")
     .name("Du")
-    .onChange(updateUniforms);
+    .onChange(function () {
+      setTimestepForCFL();
+      updateUniforms();
+    });
   DuController.__precision = 12;
   DuController.updateDisplay();
   DvController = fEquations
     .add(options, "diffusionV")
     .name("Dv")
-    .onChange(updateUniforms);
+    .onChange(function () {
+      setTimestepForCFL();
+      updateUniforms();
+    });
   DvController.__precision = 12;
   DvController.updateDisplay();
   // Custom f(u,v) and g(u,v).
