@@ -169,7 +169,6 @@ function init() {
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
   });
-  const initMaterial = new THREE.MeshBasicMaterial
 
   const plane = new THREE.PlaneGeometry(1.0, 1.0);
   domain = new THREE.Mesh(plane, displayMaterial);
@@ -196,12 +195,12 @@ function init() {
   // Set the size of the domain and related parameters.
   resize();
 
-  // Render black onto the sim textures.
-  clearTextures();
-
   // Add shaders to the textures.
   setDrawAndDisplayShaders();
   setClearShader();
+
+  // Set the initial condition.
+  clearTextures();
 
   // Listen for pointer events.
   canvas.addEventListener("pointerdown", onDocumentPointerDown);
