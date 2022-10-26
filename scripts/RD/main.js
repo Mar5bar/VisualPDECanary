@@ -43,6 +43,7 @@ import {
   RDShaderNoFlux,
   RDShaderRobin,
   RDShaderUpdate,
+  AlanShader,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import { greyscaleDisplay, fiveColourDisplay } from "../display_shaders.js";
@@ -387,6 +388,9 @@ function initUniforms() {
     dy: {
       type: "f",
     },
+    imageSource: {
+      type: "t",
+    },
     maxColourValue: {
       type: "f",
       value: 1.0,
@@ -624,6 +628,7 @@ function initGUI() {
       None: "default",
       "Heat equation": "heatEquation",
       Subcriticality: "subcriticalGS",
+      Alan: "Alan",
     })
     .name("Preset")
     .onChange(loadPreset);
@@ -910,15 +915,20 @@ function setRDEquations() {
     robinShader = selectSpeciesInShaderStr(robinShader, "v");
   }
 
-  simMaterial.fragmentShader = [
-    RDShaderTop(),
-    selectSpeciesInShaderStr(RDShaderNoFlux(), noFluxSpecies),
-    robinShader,
-    parseReactionStrings(),
-    RDShaderUpdate(),
-    selectSpeciesInShaderStr(RDShaderDirichlet(), dirichletSpecies),
-    RDShaderBot(),
-  ].join(" ");
+  if (options.preset == "Alan") {
+    simMaterial.fragmentShader = AlanShader();
+  }
+  else {
+    simMaterial.fragmentShader = [
+      RDShaderTop(),
+      selectSpeciesInShaderStr(RDShaderNoFlux(), noFluxSpecies),
+      robinShader,
+      parseReactionStrings(),
+      RDShaderUpdate(),
+      selectSpeciesInShaderStr(RDShaderDirichlet(), dirichletSpecies),
+      RDShaderBot(),
+    ].join(" ");
+  }
   simMaterial.needsUpdate = true;
 }
 
@@ -947,6 +957,18 @@ function loadPreset(preset) {
   // Set the display color and brush type.
   setDisplayColourAndType();
   setBrushType();
+
+  // If we're in the special case of loading Alan, we need to set an additional uniform by loading an image as a texture.
+  if (options.preset == "Alan"){
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      "./scripts/RD/Alan.png",
+      // When loaded, use it as a texture and assign it to uniforms.
+      function ( texture ) {
+        uniforms.imageSource.value = texture;
+      }
+    );
+  }
 }
 
 function loadOptions(preset) {

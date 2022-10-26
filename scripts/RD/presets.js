@@ -3,6 +3,35 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "Alan":
+      options = {
+        boundaryConditionsU: "periodic",
+        boundaryConditionsV: "periodic",
+        brushValue: "1",
+        brushRadius: 1 / 20,
+        clearValueU: "0",
+        clearValueV: "0",
+        colourmap: "viridis",
+        domainScale: 1,
+        dt: 0.1,
+        diffusionU: 0.0004,
+        diffusionV: 0.008,
+        fixRandSeed: false,
+        maxColourValueU: 1.0,
+        maxColourValueV: 1.0,
+        minColourValueU: 0.0,
+        minColourValueV: 0.0,
+        numSpecies: 2,
+        numTimestepsPerFrame: 100,
+        preset: "Alan",
+        renderSize: 256,
+        setTimestepForStability: true,
+        spatialStep: 1 / 200,
+        squareCanvas: false,
+        typeOfBrush: "circle",
+        whatToPlot: "v",
+      };
+      break;
     case "heatEquation":
       options = {
         boundaryConditionsU: "noflux",
