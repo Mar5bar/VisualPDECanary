@@ -43,7 +43,6 @@ import {
   RDShaderNoFlux,
   RDShaderRobin,
   RDShaderUpdate,
-  AlanShader,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import { greyscaleDisplay, fiveColourDisplay } from "../display_shaders.js";
@@ -615,14 +614,10 @@ function initGUI() {
     .add(options, "clearValueU")
     .name("u on clear")
     .onFinishChange(setClearShader);
-  clearValueUController.__precision = 12;
-  clearValueUController.updateDisplay();
   clearValueVController = fMisc
     .add(options, "clearValueV")
     .name("v on clear")
     .onFinishChange(setClearShader);
-  clearValueVController.__precision = 12;
-  clearValueVController.updateDisplay();
   fMisc
     .add(options, "preset", {
       None: "default",
@@ -915,20 +910,15 @@ function setRDEquations() {
     robinShader = selectSpeciesInShaderStr(robinShader, "v");
   }
 
-  if (options.preset == "Alan") {
-    simMaterial.fragmentShader = AlanShader();
-  }
-  else {
-    simMaterial.fragmentShader = [
-      RDShaderTop(),
-      selectSpeciesInShaderStr(RDShaderNoFlux(), noFluxSpecies),
-      robinShader,
-      parseReactionStrings(),
-      RDShaderUpdate(),
-      selectSpeciesInShaderStr(RDShaderDirichlet(), dirichletSpecies),
-      RDShaderBot(),
-    ].join(" ");
-  }
+  simMaterial.fragmentShader = [
+    RDShaderTop(),
+    selectSpeciesInShaderStr(RDShaderNoFlux(), noFluxSpecies),
+    robinShader,
+    parseReactionStrings(),
+    RDShaderUpdate(),
+    selectSpeciesInShaderStr(RDShaderDirichlet(), dirichletSpecies),
+    RDShaderBot(),
+  ].join(" ");
   simMaterial.needsUpdate = true;
 }
 
@@ -958,17 +948,14 @@ function loadPreset(preset) {
   setDisplayColourAndType();
   setBrushType();
 
-  // If we're in the special case of loading Alan, we need to set an additional uniform by loading an image as a texture.
-  if (options.preset == "Alan"){
-    const loader = new THREE.TextureLoader();
-    loader.load(
-      "./scripts/RD/Alan.png",
-      // When loaded, use it as a texture and assign it to uniforms.
-      function ( texture ) {
-        uniforms.imageSource.value = texture;
-      }
-    );
-  }
+  const loader = new THREE.TextureLoader();
+  loader.load(
+    "./scripts/RD/Alan.png",
+    // When loaded, use it as a texture and assign it to uniforms.
+    function ( texture ) {
+      uniforms.imageSource.value = texture;
+    }
+  );
 }
 
 function loadOptions(preset) {
@@ -1019,7 +1006,7 @@ function setNumberOfSpecies() {
 
       // Set v to be periodic to reduce computational overhead.
       vBCsController.setValue("periodic");
-      clearValueVController.setValue(0);
+      clearValueVController.setValue("0");
 
       // Remove references to v in labels.
       fController.name("f(u)");
