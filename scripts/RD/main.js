@@ -48,6 +48,7 @@ import { randShader } from "../rand_shader.js";
 import { greyscaleDisplay, fiveColourDisplay } from "../display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
+import { clearShaderBot, clearShaderTop} from "../clear_shader.js";
 
 // Setup some configurable options.
 options = {};
@@ -163,9 +164,12 @@ function init() {
     vertexShader: genericVertexShader(),
     fragmentShader: copyShader(),
   });
-
   // A material for clearing the domain.
-  clearMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  clearMaterial = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: genericVertexShader(),
+  });
+  const initMaterial = new THREE.MeshBasicMaterial
 
   const plane = new THREE.PlaneGeometry(1.0, 1.0);
   domain = new THREE.Mesh(plane, displayMaterial);
@@ -176,12 +180,6 @@ function init() {
   simDomain = new THREE.Mesh(simPlane, simMaterial);
   simDomain.position.z = 0;
   simScene.add(simDomain);
-
-  // Add shaders to the textures.
-  setDrawAndDisplayShaders();
-
-  // Render black onto the sim textures.
-  clearTextures();
 
   // Create a GUI.
   initGUI();
@@ -197,6 +195,13 @@ function init() {
 
   // Set the size of the domain and related parameters.
   resize();
+
+  // Render black onto the sim textures.
+  clearTextures();
+
+  // Add shaders to the textures.
+  setDrawAndDisplayShaders();
+  setClearShader();
 
   // Listen for pointer events.
   canvas.addEventListener("pointerdown", onDocumentPointerDown);
@@ -284,6 +289,9 @@ function setSizes() {
   // doesn't reduce the step size below the user's choice.
   nXDisc = Math.floor(domainWidth / options.spatialStep);
   nYDisc = Math.floor(domainHeight / options.spatialStep);
+  // Update these values in the uniforms.
+  uniforms.nXDisc.value = nXDisc;
+  uniforms.nYDisc.value = nYDisc;
   // Set the size of the renderer, which will interpolate from the textures.
   renderer.setSize(options.renderSize, options.renderSize, false);
 }
@@ -387,6 +395,12 @@ function initUniforms() {
     minColourValue: {
       type: "f",
       value: 0.0,
+    },
+    nXDisc: {
+      type: "i",
+    },
+    nYDisc: {
+      type: "i",
     },
     seed: {
       type: "f",
@@ -597,13 +611,13 @@ function initGUI() {
   clearValueUController = fMisc
     .add(options, "clearValueU")
     .name("u on clear")
-    .onChange(setClearValues);
+    .onFinishChange(setClearShader);
   clearValueUController.__precision = 12;
   clearValueUController.updateDisplay();
   clearValueVController = fMisc
     .add(options, "clearValueV")
     .name("v on clear")
-    .onChange(setClearValues);
+    .onFinishChange(setClearShader);
   clearValueVController.__precision = 12;
   clearValueVController.updateDisplay();
   fMisc
@@ -813,6 +827,9 @@ function setBrushCoords(event, container) {
 }
 
 function clearTextures() {
+  if (!options.fixRandSeed) {
+    updateRandomSeed();
+  }
   simDomain.material = clearMaterial;
   renderer.setRenderTarget(simTextureA);
   renderer.render(simScene, simCamera);
@@ -1002,15 +1019,6 @@ function setNumberOfSpecies() {
   }
 }
 
-function setClearValues() {
-  clearMaterial.color = new THREE.Color(
-    options.clearValueU,
-    options.clearValueV,
-    0.0
-  );
-  clearMaterial.needsUpdate = true;
-}
-
 function hideGUIController(cont) {
   cont.__li.style.display = "none";
 }
@@ -1086,4 +1094,19 @@ function setTimestepForCFL() {
 function updateRandomSeed() {
   // Update the random seed used in the shaders.
   uniforms.seed.value = performance.now() % 1000;
+}
+
+function setClearShader() {
+  let shaderStr = clearShaderTop();
+  if (
+    options.clearValueU.includes("RAND") ||
+    options.clearValueV.includes("RAND")
+  ) {
+    shaderStr += randShader();
+  }
+  shaderStr += "float u = " + parseShaderString(options.clearValueU) + ";\n";
+  shaderStr += "float v = " + parseShaderString(options.clearValueV) + ";\n";
+  shaderStr += clearShaderBot();
+  clearMaterial.fragmentShader = shaderStr;
+  clearMaterial.needsUpdate = true;
 }
