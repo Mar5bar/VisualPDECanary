@@ -5,15 +5,15 @@ export function getPreset(id) {
   switch (id) {
     case "heatEquation":
       options = {
-        boundaryConditionsU: "periodic",
+        boundaryConditionsU: "noflux",
         brushValue: "1",
-        brushRadius: 1 / 20,
+        brushRadius: 0.1,
         clearValueU: "0",
-        colourmap: "viridis",
+        colourmap: "turbo",
         dirichletU: 0,
         domainScale: 1,
-        dt: 0.1,
-        diffusionU: 0.000004,
+        dt: 0.01,
+        diffusionU: 0.00001,
         maxColourValueU: 1.0,
         minColourValueU: 0.0,
         numSpecies: 1,
@@ -23,8 +23,8 @@ export function getPreset(id) {
         reactionStrU: "0",
         robinStrU: "0",
         setTimestepForStability: false,
-        spatialStep: 1 / 200,
-        squareCanvas: false,
+        spatialStep: 0.005,
+        squareCanvas: true,
         typeOfBrush: "circle",
         whatToPlot: "u",
       };
