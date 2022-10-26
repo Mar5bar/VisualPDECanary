@@ -33,7 +33,7 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "periodic",
         boundaryConditionsV: "periodic",
-        brushValue: 1,
+        brushValue: "1",
         brushRadius: 1 / 20,
         clearValueU: 0.0,
         clearValueV: 0.0,
@@ -78,6 +78,7 @@ export function getPreset(id) {
         dt: 0.1,
         diffusionU: 0.000004,
         diffusionV: 0.000002,
+        fixRandSeed: false,
         maxColourValueU: 1.0,
         maxColourValueV: 1.0,
         minColourValueU: 0.0,

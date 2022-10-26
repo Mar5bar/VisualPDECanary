@@ -9,13 +9,14 @@ export function drawShaderTop() {
     uniform float brushValue;
     uniform float domainWidth;
     uniform float domainHeight;
+    uniform float seed;
 
     void main()
     {   
         gl_FragColor = texture2D(textureSource, textureCoords);
 
         ivec2 texSize = textureSize(textureSource,0);
-        vec2 diff = textureCoords - brushCoords;`
+        vec2 diff = textureCoords - brushCoords;\n`
 }
 
 export function discShader() {

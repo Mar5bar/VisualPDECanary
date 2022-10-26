@@ -28,7 +28,13 @@ let isRunning, isDrawing;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
 
-import { discShader, vLineShader, hLineShader, drawShaderBot, drawShaderTop } from "../drawing_shaders.js";
+import {
+  discShader,
+  vLineShader,
+  hLineShader,
+  drawShaderBot,
+  drawShaderTop,
+} from "../drawing_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import {
   RDShaderTop,
@@ -257,6 +263,9 @@ function updateUniforms() {
     uniforms.maxColourValue.value = options.maxColourValueV;
     uniforms.minColourValue.value = options.minColourValueV;
   }
+  if (!options.fixRandSeed) {
+    updateRandomSeed();
+  }
 }
 
 function setSizes() {
@@ -277,8 +286,6 @@ function setSizes() {
   nYDisc = Math.floor(domainHeight / options.spatialStep);
   // Set the size of the renderer, which will interpolate from the textures.
   renderer.setSize(options.renderSize, options.renderSize, false);
-  // Update uniforms.
-  updateUniforms();
 }
 
 function setCanvasShape() {
@@ -381,6 +388,10 @@ function initUniforms() {
       type: "f",
       value: 0.0,
     },
+    seed: {
+      type: "f",
+      value: 0.0,
+    },
     textureSource: {
       type: "t",
     },
@@ -460,7 +471,7 @@ function initGUI() {
   const fEquations = gui.addFolder("Equations");
   // Number of species.
   fEquations
-    .add(options, "numSpecies", {1: 1, 2: 2})
+    .add(options, "numSpecies", { 1: 1, 2: 2 })
     .name("No. species")
     .onChange(setNumberOfSpecies);
   // Du and Dv.
@@ -603,6 +614,7 @@ function initGUI() {
     })
     .name("Preset")
     .onChange(loadPreset);
+  fMisc.add(options, "fixRandSeed").name("Fix random seed");
 }
 
 function animate() {
@@ -651,7 +663,8 @@ function setBrushType() {
   if (options.brushValue.includes("RAND")) {
     shaderStr += randShader();
   }
-  shaderStr += "float brushValue = " + parseShaderString(options.brushValue) + "\n;"
+  shaderStr +=
+    "float brushValue = " + parseShaderString(options.brushValue) + "\n;";
   shaderStr += drawShaderBot();
   // Substitute in the correct colour code.
   shaderStr = selectColourspecInShaderStr(shaderStr);
@@ -727,6 +740,10 @@ function selectColorRangeControls() {
 }
 
 function draw() {
+  // Update the random seed if we're drawing using random.
+  if (!options.fixRandSeed && options.brushValue.includes("RAND")) {
+    updateRandomSeed();
+  }
   // Toggle texture input/output.
   if (readFromTextureB) {
     inTex = simTextureB;
@@ -1064,4 +1081,9 @@ function setTimestepForCFL() {
       dtController.setValue((0.5 * 0.25) / CFLValue);
     }
   }
+}
+
+function updateRandomSeed() {
+  // Update the random seed used in the shaders.
+  uniforms.seed.value = performance.now() % 1000;
 }
