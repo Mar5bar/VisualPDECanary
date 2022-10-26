@@ -6,7 +6,7 @@ export function getPreset(id) {
     case "heatEquation":
       options = {
         boundaryConditionsU: "periodic",
-        brushValue: 1,
+        brushValue: "1",
         brushRadius: 1 / 20,
         clearValueU: 0.0,
         colourmap: "viridis",
@@ -67,7 +67,7 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "periodic",
         boundaryConditionsV: "periodic",
-        brushValue: 1,
+        brushValue: "1",
         brushRadius: 1 / 20,
         clearValueU: 0.0,
         clearValueV: 0.0,

@@ -28,7 +28,7 @@ let isRunning, isDrawing;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
 
-import { discShader, vLineShader, hLineShader } from "../drawing_shaders.js";
+import { discShader, vLineShader, hLineShader, drawShaderBot, drawShaderTop } from "../drawing_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import {
   RDShaderTop,
@@ -38,6 +38,7 @@ import {
   RDShaderRobin,
   RDShaderUpdate,
 } from "./simulation_shaders.js";
+import { randShader } from "../rand_shader.js";
 import { greyscaleDisplay, fiveColourDisplay } from "../display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
@@ -242,7 +243,6 @@ function updateUniforms() {
     options.dirichletV
   );
   uniforms.brushRadius.value = options.brushRadius;
-  uniforms.brushValue.value = options.brushValue;
   uniforms.domainHeight.value = domainHeight;
   uniforms.domainWidth.value = domainWidth;
   uniforms.dt.value = options.dt;
@@ -326,10 +326,6 @@ function initUniforms() {
     brushRadius: {
       type: "f",
       value: options.domainScale / 100,
-    },
-    brushValue: {
-      type: "f",
-      value: 1.0,
     },
     colour1: {
       type: "v4",
@@ -416,7 +412,7 @@ function initGUI() {
   fBrush
     .add(options, "brushValue")
     .name("Brush value")
-    .onChange(updateUniforms);
+    .onFinishChange(setBrushType);
   brushRadiusController = fBrush
     .add(options, "brushRadius")
     .name("Brush radius")
@@ -642,14 +638,24 @@ function setDrawAndDisplayShaders() {
 }
 
 function setBrushType() {
-  // Assign the selected drawing shader to the material.
+  // Construct a drawing shader based on the selected type and the value string.
+  let shaderStr = drawShaderTop();
   if (options.typeOfBrush == "circle") {
-    drawMaterial.fragmentShader = selectColourspecInShaderStr(discShader());
+    shaderStr += discShader();
   } else if (options.typeOfBrush == "hline") {
-    drawMaterial.fragmentShader = selectColourspecInShaderStr(hLineShader());
+    shaderStr += hLineShader();
   } else if (options.typeOfBrush == "vline") {
-    drawMaterial.fragmentShader = selectColourspecInShaderStr(vLineShader());
+    shaderStr += vLineShader();
   }
+  // If a random number has been requested, insert calculation of a random number.
+  if (options.brushValue.includes("RAND")) {
+    shaderStr += randShader();
+  }
+  shaderStr += "float brushValue = " + parseShaderString(options.brushValue) + "\n;"
+  shaderStr += drawShaderBot();
+  // Substitute in the correct colour code.
+  shaderStr = selectColourspecInShaderStr(shaderStr);
+  drawMaterial.fragmentShader = shaderStr;
   drawMaterial.needsUpdate = true;
 }
 
