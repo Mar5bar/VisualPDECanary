@@ -870,7 +870,13 @@ function parseShaderString(str) {
   // Replace integers with floats.
   str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3");
   // Replace powers with pow, including nested powers.
-  while (str != (str = str.replace(/\(((?:[^\(]|pow\()+?)\)\^(\(+.*\)+|[A-z0-9.]*)/g, "pow($1,$2)")));
+  while (
+    str !=
+    (str = str.replace(
+      /\(((?:[^\(]|pow\()+?)\)\^(\(+.*\)+|[A-z0-9.]*)/g,
+      "pow($1,$2)"
+    ))
+  );
   str = str.replace(/([A-z0-9.]*)\^([A-z0-9.]*)/g, "pow($1, $2)");
   return str;
 }
@@ -919,7 +925,9 @@ function setRDEquations() {
   // We'll inject this shader string before any boundary conditions etc, so that these params
   // are also available in BCs.
   let regex = /[,;\s]*(.+?)(?:$|[,;])+/g;
-  let kineticStr = parseShaderString(options.kineticParams.replace(regex, "float $1;\n"));
+  let kineticStr = parseShaderString(
+    options.kineticParams.replace(regex, "float $1;\n")
+  );
 
   simMaterial.fragmentShader = [
     RDShaderTop(),
