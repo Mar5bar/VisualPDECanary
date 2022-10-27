@@ -3,6 +3,33 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "travellingWave":
+      options = {
+        boundaryConditionsU: "noflux",
+        brushValue: "1",
+        brushRadius: 1 / 20,
+        clearValueU: "0",
+        colourmap: "turbo",
+        dirichletU: "0",
+        domainScale: 1,
+        dt: 0.002,
+        diffusionU: 0.000001,
+        fixRandSeed: false,
+        kineticParams: "",
+        maxColourValueU: 1.0,
+        minColourValueU: 0.0,
+        numSpecies: 1,
+        numTimestepsPerFrame: 200,
+        preset: "travellingWave",
+        renderSize: 700,
+        reactionStrU: "u*(1-u)",
+        robinStrU: "0",
+        spatialStep: 0.005,
+        squareCanvas: false,
+        typeOfBrush: "vline",
+        whatToPlot: "u",
+      };
+      break;
     case "Alan":
       options = {
         boundaryConditionsU: "periodic",
