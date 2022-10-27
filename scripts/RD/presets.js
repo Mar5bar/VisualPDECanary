@@ -3,6 +3,33 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "harshEnvironment":
+      options = {
+        boundaryConditionsU: "dirichlet",
+        brushValue: "1",
+        brushRadius: 1 / 20,
+        clearValueU: "0",
+        colourmap: "turbo",
+        dirichletU: "0",
+        domainScale: 1,
+        dt: 0.00006,
+        diffusionU: 0.0001,
+        fixRandSeed: false,
+        kineticParams: "",
+        maxColourValueU: 1.0,
+        minColourValueU: 0.0,
+        numSpecies: 1,
+        numTimestepsPerFrame: 200,
+        preset: "harshEnvironment",
+        renderSize: 700,
+        reactionStrU: "u*(1-u)",
+        robinStrU: "0",
+        spatialStep: 0.005,
+        squareCanvas: false,
+        typeOfBrush: "circle",
+        whatToPlot: "u",
+      };
+      break;
     case "travellingWave":
       options = {
         boundaryConditionsU: "noflux",
