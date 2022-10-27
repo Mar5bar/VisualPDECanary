@@ -870,7 +870,7 @@ function parseShaderString(str) {
   // Replace integers with floats.
   str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3");
   // Replace powers with pow, including nested powers.
-  while (str != (str = str.replace(/(\(*)\((.+?)\)\^(\(+.*\)|[a-z0-9.]*)/g, "$1pow($2,$3)")));
+  while (str != (str = str.replace(/\(((?:[^\(]|pow\()+?)\)\^(\(+.*\)+|[a-z0-9.]*)/g, "pow($1,$2)")));
   str = str.replace(/([a-z0-9.]*)\^([a-z0-9.]*)/g, "pow($1, $2)");
   return str;
 }
