@@ -3,6 +3,33 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "thresholdSimulation":
+      options = {
+        boundaryConditionsU: "noflux",
+        brushValue: "1",
+        brushRadius: 0.005,
+        clearValueU: "0",
+        colourmap: "turbo",
+        dirichletU: "0",
+        domainScale: 1,
+        dt: 0.002,
+        diffusionU: 0.0001,
+        fixRandSeed: false,
+        kineticParams: "",
+        maxColourValueU: 1.0,
+        minColourValueU: 0.0,
+        numSpecies: 1,
+        numTimestepsPerFrame: 200,
+        preset: "thresholdSimulation",
+        renderSize: 700,
+        reactionStrU: "u*(1-u)*(u-0.4)",
+        robinStrU: "0",
+        spatialStep: 0.005,
+        squareCanvas: false,
+        typeOfBrush: "circle",
+        whatToPlot: "u",
+      };
+      break;
     case "harshEnvironment":
       options = {
         boundaryConditionsU: "dirichlet",
