@@ -868,7 +868,7 @@ function parseShaderString(str) {
   str = str.replace(/V/g, "uv." + mapSpeciesToChannel("v"));
 
   // Replace integers with floats.
-  str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3");
+  while (str != (str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3")));
   // Replace powers with pow, including nested powers.
   while (
     str !=

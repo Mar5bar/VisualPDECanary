@@ -3,6 +3,37 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "localisedPatterns":
+      options = {
+        boundaryConditionsU: "periodic",
+        boundaryConditionsV: "periodic",
+        brushValue: "9",
+        brushRadius: 0.1,
+        clearValueU: "1",
+        clearValueV: "0.99",
+        colourmap: "turbo",
+        domainScale: 10,
+        dt: 0.002,
+        diffusionU: 0.0010,
+        diffusionV: 0.5,
+        fixRandSeed: false,
+        kineticParams: "",
+        maxColourValueU: 9.0,
+        maxColourValueV: 2.0,
+        minColourValueU: 2.0,
+        minColourValueV: 0.0,
+        numSpecies: 2,
+        numTimestepsPerFrame: 200,
+        preset: "localisedPatterns",
+        renderSize: 700,
+        reactionStrU: "(1+tanh(2*((x-5)*(x-5)+(y-5)*(y-5)-20)))-u+u^2*v",
+        reactionStrV: "0.99 - u^2*v",
+        spatialStep: 0.05,
+        squareCanvas: false,
+        typeOfBrush: "circle",
+        whatToPlot: "u",
+      };
+      break;
     case "thresholdSimulation":
       options = {
         boundaryConditionsU: "noflux",
