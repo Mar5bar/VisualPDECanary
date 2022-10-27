@@ -48,7 +48,7 @@ import { randShader } from "../rand_shader.js";
 import { greyscaleDisplay, fiveColourDisplay } from "../display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
-import { clearShaderBot, clearShaderTop} from "../clear_shader.js";
+import { clearShaderBot, clearShaderTop } from "../clear_shader.js";
 
 // Setup some configurable options.
 options = {};
@@ -248,10 +248,6 @@ function roundBrushSizeToPix() {
 
 function updateUniforms() {
   uniforms.aspectRatio = aspectRatio;
-  uniforms.boundaryValues.value = new THREE.Vector2(
-    options.dirichletU,
-    options.dirichletV
-  );
   uniforms.brushRadius.value = options.brushRadius;
   uniforms.domainHeight.value = domainHeight;
   uniforms.domainWidth.value = domainWidth;
@@ -534,13 +530,11 @@ function initGUI() {
   dirichletUController = fBCs
     .add(options, "dirichletU")
     .name("u(boundary) = ")
-    .onChange(updateUniforms);
-  dirichletUController.__precision = 12;
-  dirichletUController.updateDisplay();
+    .onFinishChange(setRDEquations);
   robinUController = fBCs
     .add(options, "robinStrU")
     .name("du/dn = ")
-    .onChange(setRDEquations);
+    .onFinishChange(setRDEquations);
   vBCsController = fBCs
     .add(options, "boundaryConditionsV", {
       Periodic: "periodic",
@@ -553,7 +547,7 @@ function initGUI() {
   dirichletVController = fBCs
     .add(options, "dirichletV")
     .name("v(boundary) = ")
-    .onFinishChange(updateUniforms);
+    .onFinishChange(setRDEquations);
   robinVController = fBCs
     .add(options, "robinStrV")
     .name("dv/dn = ")
@@ -879,7 +873,7 @@ function parseShaderString(str) {
 
 function setRDEquations() {
   let noFluxSpecies = "";
-  let dirichletSpecies = "";
+  let dirichletShader = "";
   let robinShader = "";
 
   // Record no-flux species.
@@ -890,12 +884,18 @@ function setRDEquations() {
     noFluxSpecies += "v";
   }
 
-  // Record Dirichlet species.
+  // Create Dirichlet shaders.
   if (options.boundaryConditionsU == "dirichlet") {
-    dirichletSpecies += "u";
+    dirichletShader +=
+      selectSpeciesInShaderStr(RDShaderDirichlet(), "u") +
+      parseShaderString(options.dirichletU) +
+      ";\n}\n";
   }
   if (options.boundaryConditionsV == "dirichlet") {
-    dirichletSpecies += "v";
+    dirichletShader +=
+      selectSpeciesInShaderStr(RDShaderDirichlet(), "v") +
+      parseShaderString(options.dirichletV) +
+      ";\n}\n";
   }
 
   // Create a Robin shader block for each species separately.
@@ -916,7 +916,7 @@ function setRDEquations() {
     robinShader,
     parseReactionStrings(),
     RDShaderUpdate(),
-    selectSpeciesInShaderStr(RDShaderDirichlet(), dirichletSpecies),
+    dirichletShader,
     RDShaderBot(),
   ].join(" ");
   simMaterial.needsUpdate = true;
@@ -952,7 +952,7 @@ function loadPreset(preset) {
   loader.load(
     "./scripts/RD/Alan.png",
     // When loaded, use it as a texture and assign it to uniforms.
-    function ( texture ) {
+    function (texture) {
       uniforms.imageSource.value = texture;
     }
   );
