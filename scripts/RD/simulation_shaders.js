@@ -32,7 +32,8 @@ export function RDShaderTop() {
         vec2 uvT = texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).rg;
         vec2 uvB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).rg;
 
-        float T = texture2D(imageSource, textureCoords).r;
+        vec3 Tvec = texture2D(imageSource, textureCoords).rgb;
+        float T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
     `;
 }
 
