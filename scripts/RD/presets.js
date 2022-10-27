@@ -53,7 +53,7 @@ export function getPreset(id) {
         robinStrU: "0",
         setTimestepForStability: false,
         spatialStep: 0.005,
-        squareCanvas: true,
+        squareCanvas: false,
         typeOfBrush: "circle",
         whatToPlot: "u",
       };
