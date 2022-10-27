@@ -514,6 +514,10 @@ function initGUI() {
     .add(options, "reactionStrV")
     .name("g(u,v)")
     .onFinishChange(setRDEquations);
+  fEquations
+    .add(options, "kineticParams")
+    .name("Kinetic params")
+    .onFinishChange(setRDEquations);
   fEquations.open();
 
   // Boundary conditions folder.
@@ -910,8 +914,16 @@ function setRDEquations() {
     robinShader = selectSpeciesInShaderStr(robinShader, "v");
   }
 
+  // Insert any user-defined kinetic parameters, given as a string that needs parsing.
+  // Extract variable definitions, separated by commas or semicolons, ignoring whitespace.
+  // We'll inject this shader string before any boundary conditions etc, so that these params
+  // are also available in BCs.
+  let regex = /[,;\s]*(.+?)(?:$|[,;])+/g;
+  let kineticStr = parseShaderString(options.kineticParams.replace(regex, "float $1;\n"));
+
   simMaterial.fragmentShader = [
     RDShaderTop(),
+    kineticStr,
     selectSpeciesInShaderStr(RDShaderNoFlux(), noFluxSpecies),
     robinShader,
     parseReactionStrings(),
