@@ -23,7 +23,9 @@ let gui,
   dirichletUController,
   dirichletVController,
   robinUController,
-  robinVController;
+  robinVController,
+  fMisc,
+  imController;
 let isRunning, isDrawing;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
@@ -607,7 +609,7 @@ function initGUI() {
   selectColorRangeControls();
 
   // Miscellaneous folder.
-  const fMisc = gui.addFolder("Misc.");
+  fMisc = gui.addFolder("Misc.");
   clearValueUController = fMisc
     .add(options, "clearValueU")
     .name("u on clear")
@@ -626,6 +628,7 @@ function initGUI() {
     .name("Preset")
     .onChange(loadPreset);
   fMisc.add(options, "fixRandSeed").name("Fix random seed");
+  createImageController();
 }
 
 function animate() {
@@ -968,14 +971,15 @@ function loadPreset(preset) {
   setDisplayColourAndType();
   setBrushType();
 
-  const loader = new THREE.TextureLoader();
-  loader.load(
-    "./scripts/RD/Alan.png",
-    // When loaded, use it as a texture and assign it to uniforms.
-    function (texture) {
-      uniforms.imageSource.value = texture;
-    }
-  );
+  // To get around an annoying bug in dat.gui.image, in which the
+  // controller doesn't update the value of the underlying property,
+  // we'll destroy and create a new image controller everytime we load
+  // a preset.
+  imController.remove();
+  imController = fMisc
+    .addImage(options, "imagePath")
+    .name("T(x,y) = Image:")
+    .onChange(loadImageSource);
 }
 
 function loadOptions(preset) {
@@ -1137,4 +1141,26 @@ function setClearShader() {
   shaderStr += clearShaderBot();
   clearMaterial.fragmentShader = shaderStr;
   clearMaterial.needsUpdate = true;
+}
+
+function loadImageSource() {
+  let image = new Image();
+  image.src = imController.__image.src;
+  let texture = new THREE.Texture();
+  texture.image = image;
+  image.onload = function () {
+    texture.needsUpdate = true;
+    uniforms.imageSource.value = texture;
+  };
+  texture.dispose();
+}
+
+function createImageController() {
+  // This is a bad solution to a problem that shouldn't exist.
+  // The image controller does not modify the value that you assign to it, and doesn't respond to it being changed.
+  // Hence, we create a function used solely to create the controller, which we'll do everytime a preset is loaded.
+  imController = fMisc
+    .addImage(options, "imagePath")
+    .name("T(x,y) = Image:")
+    .onChange(loadImageSource);
 }
