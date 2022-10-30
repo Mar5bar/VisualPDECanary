@@ -214,7 +214,7 @@ export function getPreset(id) {
         brushRadius: 1 / 20,
         clearValueU: "0",
         clearValueV: "0",
-        colourmap: "viridis",
+        colourmap: "turbo",
         dirichletU: "0",
         dirichletV: "0",
         domainScale: 1,

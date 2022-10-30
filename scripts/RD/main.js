@@ -423,6 +423,7 @@ function initGUI() {
   clearButton = gui.add(funsObj, "clear").name("Clear (c)");
   // Copy configuration as URL.
   gui.add(funsObj, "copyConfig").name("Copy setup URL (s)");
+  gui.close();
 
   // Brush folder.
   const fBrush = gui.addFolder("Brush");
@@ -443,8 +444,7 @@ function initGUI() {
     .name("Brush radius")
     .onChange(updateUniforms);
   brushRadiusController.min(0);
-  fBrush.open();
-
+  
   // Domain folder.
   const fDomain = gui.addFolder("Domain");
   fDomain
@@ -520,7 +520,6 @@ function initGUI() {
     .add(options, "kineticParams")
     .name("Kinetic params")
     .onFinishChange(setRDEquations);
-  fEquations.open();
 
   // Boundary conditions folder.
   const fBCs = gui.addFolder("Boundary conditions");
