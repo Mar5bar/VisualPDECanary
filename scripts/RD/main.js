@@ -84,9 +84,6 @@ var readFromTextureB = true;
 // Load default options.
 loadOptions("default");
 
-// Initialise simulation and GUI.
-init();
-
 // Check URL for any preset or specified options.
 const params = new URLSearchParams(window.location.search);
 if (params.has("preset")) {
@@ -97,6 +94,9 @@ if (params.has("options")) {
   // If options have been provided, apply them on top of loaded options.
   loadPreset(JSON.parse(atob(decodeURI(params.get("options")))));
 }
+
+// Initialise simulation and GUI.
+init();
 
 // Begin the simulation.
 animate();
@@ -444,7 +444,7 @@ function initGUI() {
     .name("Brush radius")
     .onChange(updateUniforms);
   brushRadiusController.min(0);
-  
+
   // Domain folder.
   const fDomain = gui.addFolder("Domain");
   fDomain
@@ -462,6 +462,7 @@ function initGUI() {
   dxController.__precision = 12;
   dxController.min(0);
   dxController.updateDisplay();
+  fDomain.hide();
 
   // Timestepping folder.
   const fTimestepping = gui.addFolder("Timestepping");
@@ -574,12 +575,7 @@ function initGUI() {
   whatToPlotController = fColour
     .add(options, "whatToPlot", { u: "u", v: "v" })
     .name("Colour by: ")
-    .onChange(function () {
-      selectColorRangeControls();
-      setDisplayColourAndType();
-      setBrushType();
-      updateUniforms();
-    });
+    .onChange(updateWhatToPlot);
   fColour
     .add(options, "colourmap", {
       Greyscale: "greyscale",
@@ -952,10 +948,12 @@ function loadPreset(preset) {
   // Updates the values stored in options.
   loadOptions(preset);
 
-  // Refresh the whole gui.
-  refreshGUI(gui);
-  selectColorRangeControls();
   setNumberOfSpecies();
+  if (gui != undefined) {
+    // Refresh the whole gui.
+    selectColorRangeControls();
+    refreshGUI(gui);
+  }
 
   // Trigger a resize, which will refresh all uniforms and set sizes.
   resize();
@@ -1003,13 +1001,15 @@ function loadOptions(preset) {
 }
 
 function refreshGUI(folder) {
-  // Traverse through all the subfolders and recurse.
-  for (let subfolderName in folder.__folders) {
-    refreshGUI(folder.__folders[subfolderName]);
-  }
-  // Update all the controllers at this level.
-  for (let i = 0; i < folder.__controllers.length; i++) {
-    folder.__controllers[i].updateDisplay();
+  if (folder != undefined) {
+    // Traverse through all the subfolders and recurse.
+    for (let subfolderName in folder.__folders) {
+      refreshGUI(folder.__folders[subfolderName]);
+    }
+    // Update all the controllers at this level.
+    for (let i = 0; i < folder.__controllers.length; i++) {
+      folder.__controllers[i].updateDisplay();
+    }
   }
 }
 
@@ -1017,37 +1017,46 @@ function setNumberOfSpecies() {
   switch (parseInt(options.numSpecies)) {
     case 1:
       //Ensure that u is being displayed on the screen (and the brush target).
-      whatToPlotController.setValue("u");
+      options.whatToPlot = "u";
+      updateWhatToPlot();
 
-      // Hide GUI panels related to v.
-      DvController.setValue(0);
-      hideGUIController(DvController);
-      hideGUIController(gController);
-      hideGUIController(whatToPlotController);
-      hideGUIController(clearValueVController);
-      hideGUIController(vBCsController);
+      // Set the diffusion of v to zero to prevent it causing numerical instability.
+      options.diffusionV = 0;
 
       // Set v to be periodic to reduce computational overhead.
-      vBCsController.setValue("periodic");
-      clearValueVController.setValue("0");
+      options.boundaryConditionsV = "periodic";
+      options.clearValueV = "0";
+      options.reactionStrV = "0";
+      updateUniforms();
 
-      // Remove references to v in labels.
-      fController.name("f(u)");
+      if (gui != undefined) {
+        // Hide GUI panels related to v.
+        hideGUIController(DvController);
+        hideGUIController(gController);
+        hideGUIController(whatToPlotController);
+        hideGUIController(clearValueVController);
+        hideGUIController(vBCsController);
+
+        // Remove references to v in labels.
+        fController.name("f(u)");
+      }
 
       break;
     case 2:
-      // Show GUI panels related to v.
-      showGUIController(DvController);
-      showGUIController(gController);
-      showGUIController(whatToPlotController);
-      showGUIController(clearValueVController);
-      showGUIController(vBCsController);
+      if (gui != undefined) {
+        // Show GUI panels related to v.
+        showGUIController(DvController);
+        showGUIController(gController);
+        showGUIController(whatToPlotController);
+        showGUIController(clearValueVController);
+        showGUIController(vBCsController);
 
-      // Ensure correct references to v in labels are present.
-      fController.name("f(u,v)");
-
+        // Ensure correct references to v in labels are present.
+        fController.name("f(u,v)");
+      }
       break;
   }
+  refreshGUI(gui);
 }
 
 function hideGUIController(cont) {
@@ -1162,4 +1171,11 @@ function createImageController() {
     .addImage(options, "imagePath")
     .name("T(x,y) = Image:")
     .onChange(loadImageSource);
+}
+
+function updateWhatToPlot() {
+  selectColorRangeControls();
+  setDisplayColourAndType();
+  setBrushType();
+  updateUniforms();
 }
