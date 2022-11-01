@@ -416,7 +416,7 @@ function initUniforms() {
   };
 }
 
-function initGUI() {
+function initGUI(startOpen) {
   // Initialise a GUI.
   gui = new dat.GUI({ closeOnTop: true });
 
@@ -432,6 +432,12 @@ function initGUI() {
   if (options.showCopyButton) {
     // Copy configuration as URL.
     gui.add(funsObj, "copyConfig").name("Copy setup URL (s)");
+  }
+  if (startOpen != undefined && startOpen) {
+    gui.open();
+  }
+  else 
+  {
     gui.close();
   }
 
@@ -737,9 +743,20 @@ function initGUI() {
   createImageController();
   if (inGUI("image")) {
     showGUIController(imController);
-  }
-  else {
+  } else {
     hideGUIController(imController);
+  }
+
+  // Add a toggle for showing all options.
+  if (options.onlyExposeOptions.length != 0) {
+    gui
+      .add(options,"showAllOptionsOverride")
+      .name("Show all")
+      .onChange(function () {
+        setShowAllToolsFlag();
+        deleteGUI(gui);
+        initGUI(true);
+      });
   }
 
   // If the generic options folder is empty, hide it.
@@ -1136,8 +1153,7 @@ function loadOptions(preset) {
   Object.assign(options, newOptions);
 
   // Set a flag if we will be showing all tools.
-  showAllStandardTools =
-    options.showAllOptionsOverride || options.onlyExposeOptions.length == 0;
+  setShowAllToolsFlag();
 }
 
 function refreshGUI(folder) {
@@ -1162,13 +1178,13 @@ function deleteGUI(folder) {
     }
     // Delete all the controllers at this level.
     for (let i = 0; i < folder.__controllers.length; i++) {
-      console.log(folder.__controllers[i])
+      console.log(folder.__controllers[i]);
       folder.__controllers[i].remove();
     }
     // If this is the top-level GUI, destroy it.
-    console.log(folder)
+    console.log(folder);
     if (folder == gui) {
-      console.log("Here")
+      console.log("Here");
       gui.destroy();
     }
   }
@@ -1351,4 +1367,9 @@ function updateWhatToPlot() {
 
 function inGUI(name) {
   return showAllStandardTools || options.onlyExposeOptions.includes(name);
+}
+
+function setShowAllToolsFlag() {
+  showAllStandardTools =
+      options.showAllOptionsOverride || options.onlyExposeOptions.length == 0;
 }
