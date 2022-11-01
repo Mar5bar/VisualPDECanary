@@ -62,6 +62,7 @@ options = {};
 funsObj = {
   clear: function () {
     clearTextures();
+    uniforms.time.value = 0.0;
   },
   pause: function () {
     if (isRunning) {
@@ -412,6 +413,10 @@ function initUniforms() {
     },
     textureSource: {
       type: "t",
+    },
+    time: {
+      type: "f",
+      value: 0.0,
     },
   };
 }
@@ -781,6 +786,7 @@ function animate() {
     // Perform a number of timesteps per frame.
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
       timestep();
+      uniforms.time.value += options.dt;
       // Make drawing more responsive by trying to draw every timestep.
       if (isDrawing) {
         draw();

@@ -10,6 +10,7 @@ export function drawShaderTop() {
     uniform float domainWidth;
     uniform float domainHeight;
     uniform float seed;
+    uniform float time;
 
     void main()
     {   

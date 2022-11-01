@@ -9,6 +9,7 @@ export function RDShaderTop() {
     uniform float dy;
     uniform float Du;
     uniform float Dv;
+    uniform float time;
     uniform vec2 boundaryValues;
     uniform sampler2D imageSource;
 
