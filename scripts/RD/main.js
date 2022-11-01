@@ -5,6 +5,7 @@ let displayMaterial, drawMaterial, simMaterial, clearMaterial, copyMaterial;
 let domain, simDomain;
 let options, uniforms, funsObj;
 let gui,
+  root,
   pauseButton,
   clearButton,
   brushRadiusController,
@@ -25,7 +26,10 @@ let gui,
   robinUController,
   robinVController,
   fMisc,
-  imController;
+  imController,
+  genericOptionsFolder,
+  showAllStandardTools,
+  showAll;
 let isRunning, isDrawing;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
@@ -84,6 +88,9 @@ var readFromTextureB = true;
 // Load default options.
 loadOptions("default");
 
+// Initialise simulation and GUI.
+init();
+
 // Check URL for any preset or specified options.
 const params = new URLSearchParams(window.location.search);
 if (params.has("preset")) {
@@ -94,9 +101,6 @@ if (params.has("options")) {
   // If options have been provided, apply them on top of loaded options.
   loadPreset(JSON.parse(atob(decodeURI(params.get("options")))));
 }
-
-// Initialise simulation and GUI.
-init();
 
 // Begin the simulation.
 animate();
@@ -413,7 +417,10 @@ function initUniforms() {
 }
 
 function initGUI() {
+  // Initialise a GUI.
   gui = new dat.GUI({ closeOnTop: true });
+
+  // Basic GUI elements. Always present.
   pauseButton = gui.add(funsObj, "pause");
   if (isRunning) {
     pauseButton.name("Pause (space)");
@@ -421,209 +428,327 @@ function initGUI() {
     pauseButton.name("Play (space)");
   }
   clearButton = gui.add(funsObj, "clear").name("Clear (c)");
-  // Copy configuration as URL.
-  gui.add(funsObj, "copyConfig").name("Copy setup URL (s)");
-  gui.close();
+
+  if (options.showCopyButton) {
+    // Copy configuration as URL.
+    gui.add(funsObj, "copyConfig").name("Copy setup URL (s)");
+    gui.close();
+  }
+
+  // Create a generic options folder for folderless controllers, which we'll hide later if it's empty.
+  genericOptionsFolder = gui.addFolder("Options");
 
   // Brush folder.
-  const fBrush = gui.addFolder("Brush");
-  fBrush
-    .add(options, "typeOfBrush", {
-      Circle: "circle",
-      "Horizontal line": "hline",
-      "Vertical line": "vline",
-    })
-    .name("Brush type")
-    .onChange(setBrushType);
-  fBrush
-    .add(options, "brushValue")
-    .name("Brush value")
-    .onFinishChange(setBrushType);
-  brushRadiusController = fBrush
-    .add(options, "brushRadius")
-    .name("Brush radius")
-    .onChange(updateUniforms);
-  brushRadiusController.min(0);
+  if (inGUI("brushFolder")) {
+    root = gui.addFolder("Brush");
+  } else {
+    root = genericOptionsFolder;
+  }
+
+  if (inGUI("typeOfBrush")) {
+    root
+      .add(options, "typeOfBrush", {
+        Circle: "circle",
+        "Horizontal line": "hline",
+        "Vertical line": "vline",
+      })
+      .name("Brush type")
+      .onChange(setBrushType);
+  }
+  if (inGUI("brushValue")) {
+    root
+      .add(options, "brushValue")
+      .name("Brush value")
+      .onFinishChange(setBrushType);
+  }
+  if (inGUI("brushRadius")) {
+    brushRadiusController = root
+      .add(options, "brushRadius")
+      .name("Brush radius")
+      .onChange(updateUniforms);
+    brushRadiusController.min(0);
+  }
 
   // Domain folder.
-  const fDomain = gui.addFolder("Domain");
-  fDomain
-    .add(options, "domainScale", 0.001, 10)
-    .name("Largest side")
-    .onChange(resize);
-  const dxController = fDomain
-    .add(options, "spatialStep")
-    .name("Space step")
-    .onChange(function () {
-      setTimestepForCFL();
-      resize();
-    })
-    .onFinishChange(roundBrushSizeToPix);
-  dxController.__precision = 12;
-  dxController.min(0);
-  dxController.updateDisplay();
-  fDomain.hide();
+  if (inGUI("domainFolder")) {
+    root = gui.addFolder("Domain");
+  } else {
+    root = genericOptionsFolder;
+  }
+  if (inGUI("domainScale")) {
+    root
+      .add(options, "domainScale", 0.001, 10)
+      .name("Largest side")
+      .onChange(resize);
+  }
+  if (inGUI("spatialStep")) {
+    const dxController = root
+      .add(options, "spatialStep")
+      .name("Space step")
+      .onChange(function () {
+        setTimestepForCFL();
+        resize();
+      })
+      .onFinishChange(roundBrushSizeToPix);
+    dxController.__precision = 12;
+    dxController.min(0);
+    dxController.updateDisplay();
+  }
 
   // Timestepping folder.
-  const fTimestepping = gui.addFolder("Timestepping");
-  fTimestepping.add(options, "numTimestepsPerFrame", 1, 200, 1).name("TPF");
-  dtController = fTimestepping
-    .add(options, "dt")
-    .name("Timestep")
-    .onChange(function () {
-      setTimestepForCFL();
-      updateUniforms();
-    });
-  dtController.__precision = 12;
-  dtController.min(0);
-  dtController.updateDisplay();
-  fTimestepping
-    .add(options, "setTimestepForStability")
-    .name("Lock CFL cond.")
-    .onChange(setTimestepForCFL);
+  if (inGUI("timesteppingFolder")) {
+    root = gui.addFolder("Timestepping");
+  } else {
+    root = genericOptionsFolder;
+  }
+  if (inGUI("numTimestepsPerFrame")) {
+    root.add(options, "numTimestepsPerFrame", 1, 200, 1).name("TPF");
+  }
+  if (inGUI("dt")) {
+    dtController = root
+      .add(options, "dt")
+      .name("Timestep")
+      .onChange(function () {
+        setTimestepForCFL();
+        updateUniforms();
+      });
+    dtController.__precision = 12;
+    dtController.min(0);
+    dtController.updateDisplay();
+  }
+  if (inGUI("setTimestepForStability")) {
+    root
+      .add(options, "setTimestepForStability")
+      .name("Lock CFL cond.")
+      .onChange(setTimestepForCFL);
+  }
 
   // Equations folder.
-  const fEquations = gui.addFolder("Equations");
+  if (inGUI("equationsFolder")) {
+    root = gui.addFolder("Equations");
+  } else {
+    root = genericOptionsFolder;
+  }
   // Number of species.
-  fEquations
-    .add(options, "numSpecies", { 1: 1, 2: 2 })
-    .name("No. species")
-    .onChange(setNumberOfSpecies);
+  if (inGUI("numSpecies")) {
+    root
+      .add(options, "numSpecies", { 1: 1, 2: 2 })
+      .name("No. species")
+      .onChange(setNumberOfSpecies);
+  }
   // Du and Dv.
-  const DuController = fEquations
-    .add(options, "diffusionU")
-    .name("Du")
-    .onChange(function () {
-      setTimestepForCFL();
-      updateUniforms();
-    });
-  DuController.__precision = 12;
-  DuController.updateDisplay();
-  DvController = fEquations
-    .add(options, "diffusionV")
-    .name("Dv")
-    .onChange(function () {
-      setTimestepForCFL();
-      updateUniforms();
-    });
-  DvController.__precision = 12;
-  DvController.updateDisplay();
-  // Custom f(u,v) and g(u,v).
-  fController = fEquations
-    .add(options, "reactionStrU")
-    .name("f(u,v)")
-    .onFinishChange(setRDEquations);
-  gController = fEquations
-    .add(options, "reactionStrV")
-    .name("g(u,v)")
-    .onFinishChange(setRDEquations);
-  fEquations
-    .add(options, "kineticParams")
-    .name("Kinetic params")
-    .onFinishChange(setRDEquations);
+  if (inGUI("diffusionU")) {
+    const DuController = root
+      .add(options, "diffusionU")
+      .name("Du")
+      .onChange(function () {
+        setTimestepForCFL();
+        updateUniforms();
+      });
+    DuController.__precision = 12;
+    DuController.updateDisplay();
+  }
+  if (inGUI("diffusionV")) {
+    DvController = root
+      .add(options, "diffusionV")
+      .name("Dv")
+      .onChange(function () {
+        setTimestepForCFL();
+        updateUniforms();
+      });
+    DvController.__precision = 12;
+    DvController.updateDisplay();
+  }
+  if (inGUI("reactionStrU")) {
+    // Custom f(u,v) and g(u,v).
+    fController = root
+      .add(options, "reactionStrU")
+      .name("f(u,v)")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("reactionStrV")) {
+    gController = root
+      .add(options, "reactionStrV")
+      .name("g(u,v)")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("kineticParams")) {
+    root
+      .add(options, "kineticParams")
+      .name("Kinetic params")
+      .onFinishChange(setRDEquations);
+  }
 
   // Boundary conditions folder.
-  const fBCs = gui.addFolder("Boundary conditions");
-  fBCs
-    .add(options, "boundaryConditionsU", {
-      Periodic: "periodic",
-      "No flux": "noflux",
-      Dirichlet: "dirichlet",
-      Robin: "robin",
-    })
-    .name("u")
-    .onChange(setBCsEqs);
-  dirichletUController = fBCs
-    .add(options, "dirichletU")
-    .name("u(boundary) = ")
-    .onFinishChange(setRDEquations);
-  robinUController = fBCs
-    .add(options, "robinStrU")
-    .name("du/dn = ")
-    .onFinishChange(setRDEquations);
-  vBCsController = fBCs
-    .add(options, "boundaryConditionsV", {
-      Periodic: "periodic",
-      "No flux": "noflux",
-      Dirichlet: "dirichlet",
-      Robin: "robin",
-    })
-    .name("v")
-    .onChange(setBCsEqs);
-  dirichletVController = fBCs
-    .add(options, "dirichletV")
-    .name("v(boundary) = ")
-    .onFinishChange(setRDEquations);
-  robinVController = fBCs
-    .add(options, "robinStrV")
-    .name("dv/dn = ")
-    .onFinishChange(setRDEquations);
+  if (inGUI("boundaryConditionsFolder")) {
+    root = gui.addFolder("Boundary conditions");
+  } else {
+    root = genericOptionsFolder;
+  }
+  if (inGUI("boundaryConditionsU")) {
+    root
+      .add(options, "boundaryConditionsU", {
+        Periodic: "periodic",
+        "No flux": "noflux",
+        Dirichlet: "dirichlet",
+        Robin: "robin",
+      })
+      .name("u")
+      .onChange(setBCsEqs);
+  }
+  if (inGUI("dirichletU")) {
+    dirichletUController = root
+      .add(options, "dirichletU")
+      .name("u(boundary) = ")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("robinStrU")) {
+    robinUController = root
+      .add(options, "robinStrU")
+      .name("du/dn = ")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("boundaryConditionsV")) {
+    vBCsController = root
+      .add(options, "boundaryConditionsV", {
+        Periodic: "periodic",
+        "No flux": "noflux",
+        Dirichlet: "dirichlet",
+        Robin: "robin",
+      })
+      .name("v")
+      .onChange(setBCsEqs);
+  }
+  if (inGUI("dirichletV")) {
+    dirichletVController = root
+      .add(options, "dirichletV")
+      .name("v(boundary) = ")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("robinStrV")) {
+    robinVController = root
+      .add(options, "robinStrV")
+      .name("dv/dn = ")
+      .onFinishChange(setRDEquations);
+  }
 
   // Rendering folder.
-  const fRendering = gui.addFolder("Rendering");
-  fRendering
-    .add(options, "squareCanvas")
-    .name("Square display")
-    .onFinishChange(resize);
-  fRendering
-    .add(options, "renderSize", 1, 2048, 1)
-    .name("Render res")
-    .onChange(setSizes);
+  if (inGUI("renderingFolder")) {
+    root = gui.addFolder("Rendering");
+  } else {
+    root = genericOptionsFolder;
+  }
+  if (inGUI("squareCanvas")) {
+    root
+      .add(options, "squareCanvas")
+      .name("Square display")
+      .onFinishChange(resize);
+  }
+  if (inGUI("renderSize")) {
+    root
+      .add(options, "renderSize", 1, 2048, 1)
+      .name("Render res")
+      .onChange(setSizes);
+  }
 
   // Colour folder.
-  const fColour = gui.addFolder("Colour");
-  whatToPlotController = fColour
-    .add(options, "whatToPlot", { u: "u", v: "v" })
-    .name("Colour by: ")
-    .onChange(updateWhatToPlot);
-  fColour
-    .add(options, "colourmap", {
-      Greyscale: "greyscale",
-      Viridis: "viridis",
-      Turbo: "turbo",
-      BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
-    })
-    .onChange(setDisplayColourAndType)
-    .name("Colourmap");
-  minColourValueUController = fColour
-    .add(options, "minColourValueU")
-    .name("Min value")
-    .onChange(updateUniforms);
-  maxColourValueUController = fColour
-    .add(options, "maxColourValueU")
-    .name("Max value")
-    .onChange(updateUniforms);
-  minColourValueVController = fColour
-    .add(options, "minColourValueV")
-    .name("Min value")
-    .onChange(updateUniforms);
-  maxColourValueVController = fColour
-    .add(options, "maxColourValueV")
-    .name("Max value")
-    .onChange(updateUniforms);
-  selectColorRangeControls();
+  if (inGUI("colourFolder")) {
+    root = gui.addFolder("Colour");
+  } else {
+    root = genericOptionsFolder;
+  }
+  if (inGUI("whatToPlot")) {
+    whatToPlotController = root
+      .add(options, "whatToPlot", { u: "u", v: "v" })
+      .name("Colour by: ")
+      .onChange(updateWhatToPlot);
+  }
+  if (inGUI("colourmap")) {
+    root
+      .add(options, "colourmap", {
+        Greyscale: "greyscale",
+        Viridis: "viridis",
+        Turbo: "turbo",
+        BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
+      })
+      .onChange(setDisplayColourAndType)
+      .name("Colourmap");
+  }
+  if (inGUI("minColourValueU")) {
+    minColourValueUController = root
+      .add(options, "minColourValueU")
+      .name("Min value")
+      .onChange(updateUniforms);
+  }
+  if (inGUI("maxColourValueU")) {
+    maxColourValueUController = root
+      .add(options, "maxColourValueU")
+      .name("Max value")
+      .onChange(updateUniforms);
+  }
+  if (inGUI("minColourValueV")) {
+    minColourValueVController = root
+      .add(options, "minColourValueV")
+      .name("Min value")
+      .onChange(updateUniforms);
+  }
+  if (inGUI("maxColourValueV")) {
+    maxColourValueVController = root
+      .add(options, "maxColourValueV")
+      .name("Max value")
+      .onChange(updateUniforms);
+    selectColorRangeControls();
+  }
 
   // Miscellaneous folder.
-  fMisc = gui.addFolder("Misc.");
-  clearValueUController = fMisc
-    .add(options, "clearValueU")
-    .name("u on clear")
-    .onFinishChange(setClearShader);
-  clearValueVController = fMisc
-    .add(options, "clearValueV")
-    .name("v on clear")
-    .onFinishChange(setClearShader);
-  fMisc
-    .add(options, "preset", {
-      None: "default",
-      "Heat equation": "heatEquation",
-      Subcriticality: "subcriticalGS",
-      Alan: "Alan",
-    })
-    .name("Preset")
-    .onChange(loadPreset);
-  fMisc.add(options, "fixRandSeed").name("Fix random seed");
+  if (inGUI("miscFolder")) {
+    fMisc = gui.addFolder("Misc.");
+    root = fMisc;
+  } else {
+    root = genericOptionsFolder;
+  }
+  if (inGUI("clearValueU")) {
+    clearValueUController = root
+      .add(options, "clearValueU")
+      .name("u on clear")
+      .onFinishChange(setClearShader);
+  }
+  if (inGUI("clearValueV")) {
+    clearValueVController = root
+      .add(options, "clearValueV")
+      .name("v on clear")
+      .onFinishChange(setClearShader);
+  }
+  if (inGUI("preset")) {
+    root
+      .add(options, "preset", {
+        None: "default",
+        "Heat equation": "heatEquation",
+        Subcriticality: "subcriticalGS",
+        Alan: "Alan",
+      })
+      .name("Preset")
+      .onChange(loadPreset);
+  }
+  if (inGUI("fixRandSeed")) {
+    root.add(options, "fixRandSeed").name("Fix random seed");
+  }
+  // Always make an image controller, but hide it if it's not wanted.
   createImageController();
+  if (inGUI("image")) {
+    showGUIController(imController);
+  }
+  else {
+    hideGUIController(imController);
+  }
+
+  // If the generic options folder is empty, hide it.
+  if (
+    genericOptionsFolder.__controllers.length == 0 &&
+    Object.keys(genericOptionsFolder.__folders).length == 0
+  ) {
+    genericOptionsFolder.hide();
+  }
 }
 
 function animate() {
@@ -948,6 +1073,10 @@ function loadPreset(preset) {
   // Updates the values stored in options.
   loadOptions(preset);
 
+  // Replace the GUI.
+  deleteGUI(gui);
+  initGUI();
+
   setNumberOfSpecies();
   if (gui != undefined) {
     // Refresh the whole gui.
@@ -972,11 +1101,18 @@ function loadPreset(preset) {
   // controller doesn't update the value of the underlying property,
   // we'll destroy and create a new image controller everytime we load
   // a preset.
-  imController.remove();
-  imController = fMisc
-    .addImage(options, "imagePath")
-    .name("T(x,y) = Image:")
-    .onChange(loadImageSource);
+  if (inGUI("image")) {
+    imController.remove();
+    if (inGUI("miscFolder")) {
+      root = fMisc;
+    } else {
+      root = genericOptionsFolder;
+    }
+    imController = root
+      .addImage(options, "imagePath")
+      .name("T(x,y) = Image:")
+      .onChange(loadImageSource);
+  }
 }
 
 function loadOptions(preset) {
@@ -998,6 +1134,10 @@ function loadOptions(preset) {
 
   // Loop through newOptions and overwrite anything already present.
   Object.assign(options, newOptions);
+
+  // Set a flag if we will be showing all tools.
+  showAllStandardTools =
+    options.showAllOptionsOverride || options.onlyExposeOptions.length == 0;
 }
 
 function refreshGUI(folder) {
@@ -1013,6 +1153,26 @@ function refreshGUI(folder) {
   }
 }
 
+function deleteGUI(folder) {
+  if (folder != undefined) {
+    // Traverse through all the subfolders and recurse.
+    for (let subfolderName in folder.__folders) {
+      deleteGUI(folder.__folders[subfolderName]);
+      folder.removeFolder(folder.__folders[subfolderName]);
+    }
+    // Delete all the controllers at this level.
+    for (let i = 0; i < folder.__controllers.length; i++) {
+      console.log(folder.__controllers[i])
+      folder.__controllers[i].remove();
+    }
+    // If this is the top-level GUI, destroy it.
+    console.log(folder)
+    if (folder == gui) {
+      console.log("Here")
+      gui.destroy();
+    }
+  }
+}
 function setNumberOfSpecies() {
   switch (parseInt(options.numSpecies)) {
     case 1:
@@ -1029,29 +1189,29 @@ function setNumberOfSpecies() {
       options.reactionStrV = "0";
       updateUniforms();
 
-      if (gui != undefined) {
-        // Hide GUI panels related to v.
-        hideGUIController(DvController);
-        hideGUIController(gController);
-        hideGUIController(whatToPlotController);
-        hideGUIController(clearValueVController);
-        hideGUIController(vBCsController);
+      // Hide GUI panels related to v.
+      hideGUIController(DvController);
+      hideGUIController(gController);
+      hideGUIController(whatToPlotController);
+      hideGUIController(clearValueVController);
+      hideGUIController(vBCsController);
 
-        // Remove references to v in labels.
+      // Remove references to v in labels.
+      if (fController != undefined) {
         fController.name("f(u)");
       }
 
       break;
     case 2:
-      if (gui != undefined) {
-        // Show GUI panels related to v.
-        showGUIController(DvController);
-        showGUIController(gController);
-        showGUIController(whatToPlotController);
-        showGUIController(clearValueVController);
-        showGUIController(vBCsController);
+      // Show GUI panels related to v.
+      showGUIController(DvController);
+      showGUIController(gController);
+      showGUIController(whatToPlotController);
+      showGUIController(clearValueVController);
+      showGUIController(vBCsController);
 
-        // Ensure correct references to v in labels are present.
+      // Ensure correct references to v in labels are present.
+      if (fController != undefined) {
         fController.name("f(u,v)");
       }
       break;
@@ -1060,11 +1220,15 @@ function setNumberOfSpecies() {
 }
 
 function hideGUIController(cont) {
-  cont.__li.style.display = "none";
+  if (cont != undefined) {
+    cont.__li.style.display = "none";
+  }
 }
 
 function showGUIController(cont) {
-  cont.__li.style.display = "";
+  if (cont != undefined) {
+    cont.__li.style.display = "";
+  }
 }
 
 function selectSpeciesInShaderStr(shaderStr, species) {
@@ -1167,7 +1331,12 @@ function createImageController() {
   // This is a bad solution to a problem that shouldn't exist.
   // The image controller does not modify the value that you assign to it, and doesn't respond to it being changed.
   // Hence, we create a function used solely to create the controller, which we'll do everytime a preset is loaded.
-  imController = fMisc
+  if (inGUI("miscFolder")) {
+    root = fMisc;
+  } else {
+    root = genericOptionsFolder;
+  }
+  imController = root
     .addImage(options, "imagePath")
     .name("T(x,y) = Image:")
     .onChange(loadImageSource);
@@ -1178,4 +1347,8 @@ function updateWhatToPlot() {
   setDisplayColourAndType();
   setBrushType();
   updateUniforms();
+}
+
+function inGUI(name) {
+  return showAllStandardTools || options.onlyExposeOptions.includes(name);
 }
