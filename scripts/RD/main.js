@@ -116,6 +116,8 @@ function init() {
   renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     preserveDrawingBuffer: true,
+		powerPreference: "high-performance",
+		antialias: false,
   });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
@@ -136,11 +138,11 @@ function init() {
   simTextureB.texture.wrapT = THREE.RepeatWrapping;
 
   // Create cameras for the simulation domain and the final output.
-  camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -10000, 10000);
-  camera.position.z = 100;
+  camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 1);
+  camera.position.z = 0
 
-  simCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -10000, 10000);
-  simCamera.position.z = 100;
+  simCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 1);
+  simCamera.position.z = 0;
 
   // Create two scenes: one for simulation, another for drawing.
   scene = new THREE.Scene();
