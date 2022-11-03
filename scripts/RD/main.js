@@ -30,7 +30,7 @@ let gui,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning, isDrawing;
+let isRunning, isDrawing, hasDrawn;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
 
@@ -116,8 +116,8 @@ function init() {
   renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     preserveDrawingBuffer: true,
-		powerPreference: "high-performance",
-		antialias: false,
+    powerPreference: "high-performance",
+    antialias: false,
   });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
@@ -139,7 +139,7 @@ function init() {
 
   // Create cameras for the simulation domain and the final output.
   camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 1);
-  camera.position.z = 0
+  camera.position.z = 0;
 
   simCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 1);
   simCamera.position.z = 0;
@@ -442,9 +442,7 @@ function initGUI(startOpen) {
   }
   if (startOpen != undefined && startOpen) {
     gui.open();
-  }
-  else 
-  {
+  } else {
     gui.close();
   }
 
@@ -757,7 +755,7 @@ function initGUI(startOpen) {
   // Add a toggle for showing all options.
   if (options.onlyExposeOptions.length != 0) {
     gui
-      .add(options,"showAllOptionsOverride")
+      .add(options, "showAllOptionsOverride")
       .name("Show all")
       .onChange(function () {
         setShowAllToolsFlag();
@@ -778,6 +776,7 @@ function initGUI(startOpen) {
 function animate() {
   requestAnimationFrame(animate);
 
+  hasDrawn = isDrawing;
   // Draw on any input from the user, which can happen even if timestepping is not running.
   if (isDrawing) {
     draw();
@@ -791,13 +790,16 @@ function animate() {
       uniforms.time.value += options.dt;
       // Make drawing more responsive by trying to draw every timestep.
       if (isDrawing) {
+        hasDrawn = true;
         draw();
       }
     }
   }
 
-  // Always render, in case the user has drawn.
-  render();
+  // Render if something has happened.
+  if (hasDrawn || isRunning) {
+    render();
+  }
 }
 
 function setDrawAndDisplayShaders() {
@@ -1379,5 +1381,5 @@ function inGUI(name) {
 
 function setShowAllToolsFlag() {
   showAllStandardTools =
-      options.showAllOptionsOverride || options.onlyExposeOptions.length == 0;
+    options.showAllOptionsOverride || options.onlyExposeOptions.length == 0;
 }

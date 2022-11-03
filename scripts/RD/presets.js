@@ -3,6 +3,37 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "chemicalBasisOfMorphogenesis":
+      options = {
+        boundaryConditionsU: "periodic",
+        boundaryConditionsV: "periodic",
+        brushValue: "1",
+        brushRadius: 1 / 20,
+        clearValueU: "0",
+        clearValueV: "0",
+        colourmap: "turbo",
+        domainScale: 1,
+        dt: 0.001,
+        diffusionU: 0.0000042,
+        diffusionV: 0.0002,
+        fixRandSeed: false,
+        imagePath: "./images/chemicalBasisOfMorphogenesis.png",
+        maxColourValueU: 2.3,
+        minColourValueU: 0.0,
+        numSpecies: 2,
+        numTimestepsPerFrame: 8,
+        preset: "chemicalBasisOfMorphogenesis",
+        renderSize: 652,
+        reactionStrU: "(1-T) - u + u^2*v",
+        reactionStrV: "1 - u^2*v",
+        setTimestepForStability: true,
+        showAllOptionsOverride: true,
+        spatialStep: 0.002,
+        squareCanvas: true,
+        typeOfBrush: "circle",
+        whatToPlot: "u",
+      };
+      break;
     case "localisedPatterns":
       options = {
         boundaryConditionsU: "periodic",
@@ -130,7 +161,7 @@ export function getPreset(id) {
         diffusionU: 0.0000042,
         diffusionV: 0.0002,
         fixRandSeed: false,
-        imagePath: "./scripts/RD/Alan.png",
+        imagePath: "./images/Alan.png",
         maxColourValueU: 2.3,
         minColourValueU: 0.0,
         numSpecies: 2,
@@ -224,7 +255,7 @@ export function getPreset(id) {
         diffusionU: 0.000004,
         diffusionV: 0.000002,
         fixRandSeed: false,
-        imagePath: "./scripts/RD/Alan.png",
+        imagePath: "./images/Alan.png",
         kineticParams: "",
         maxColourValueU: 1.0,
         maxColourValueV: 1.0,
