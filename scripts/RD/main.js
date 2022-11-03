@@ -790,7 +790,6 @@ function animate() {
       uniforms.time.value += options.dt;
       // Make drawing more responsive by trying to draw every timestep.
       if (isDrawing) {
-        hasDrawn = true;
         draw();
       }
     }
