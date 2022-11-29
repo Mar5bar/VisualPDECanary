@@ -87,7 +87,7 @@ funsObj = {
       .replaceAll(":",": ")
       .replace("{", "{\n\t")
       .replace("}", ',\n}');
-    str = "case: PRESETNAME:\n\toptions = " + str;
+    str = "case: PRESETNAME:\n\toptions = " + str + ";\nbreak;";
     navigator.clipboard.writeText(str);
   },
 };
