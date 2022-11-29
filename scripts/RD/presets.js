@@ -272,7 +272,6 @@ export function getPreset(id) {
         robinStrV: "0",
         setTimestepForStability: false,
         showAllOptionsOverride: false,
-        showCopyButton: true,
         spatialStep: 1 / 200,
         squareCanvas: false,
         typeOfBrush: "circle",

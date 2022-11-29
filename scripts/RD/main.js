@@ -71,7 +71,7 @@ funsObj = {
       playSim();
     }
   },
-  copyConfig: function () {
+  copyConfigAsURL: function () {
     let str = [
       location.href.replace(location.search, ""),
       "?options=",
@@ -436,10 +436,11 @@ function initGUI(startOpen) {
   }
   clearButton = gui.add(funsObj, "clear").name("Clear (c)");
 
-  if (options.showCopyButton) {
+  if (inGUI("copyConfigAsURL")) {
     // Copy configuration as URL.
-    gui.add(funsObj, "copyConfig").name("Copy setup URL (s)");
+    gui.add(funsObj, "copyConfigAsURL").name("Copy setup URL (s)");
   }
+
   if (startOpen != undefined && startOpen) {
     gui.open();
   } else {
