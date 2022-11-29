@@ -771,6 +771,10 @@ function initGUI(startOpen) {
   ) {
     genericOptionsFolder.hide();
   }
+
+  // Make sure we're showing/hiding the correct parts of the GUI.
+  setNumberOfSpecies();
+  setBCsEqs();
 }
 
 function animate() {
@@ -1119,10 +1123,6 @@ function loadPreset(preset) {
   // Set the draw and display shaders.
   setDrawAndDisplayShaders();
 
-  // Set the display color and brush type.
-  setDisplayColourAndType();
-  setBrushType();
-
   // To get around an annoying bug in dat.gui.image, in which the
   // controller doesn't update the value of the underlying property,
   // we'll destroy and create a new image controller everytime we load
@@ -1215,11 +1215,7 @@ function setNumberOfSpecies() {
       updateUniforms();
 
       // Hide GUI panels related to v.
-      hideGUIController(DvController);
-      hideGUIController(gController);
-      hideGUIController(whatToPlotController);
-      hideGUIController(clearValueVController);
-      hideGUIController(vBCsController);
+      hideVGUIPanels();
 
       // Remove references to v in labels.
       if (fController != undefined) {
@@ -1229,11 +1225,7 @@ function setNumberOfSpecies() {
       break;
     case 2:
       // Show GUI panels related to v.
-      showGUIController(DvController);
-      showGUIController(gController);
-      showGUIController(whatToPlotController);
-      showGUIController(clearValueVController);
-      showGUIController(vBCsController);
+      showVGUIPanels();
 
       // Ensure correct references to v in labels are present.
       if (fController != undefined) {
@@ -1381,4 +1373,20 @@ function inGUI(name) {
 function setShowAllToolsFlag() {
   showAllStandardTools =
     options.showAllOptionsOverride || options.onlyExposeOptions.length == 0;
+}
+
+function showVGUIPanels() {
+  showGUIController(DvController);
+  showGUIController(gController);
+  showGUIController(whatToPlotController);
+  showGUIController(clearValueVController);
+  showGUIController(vBCsController);
+}
+
+function hideVGUIPanels() {
+  hideGUIController(DvController);
+  hideGUIController(gController);
+  hideGUIController(whatToPlotController);
+  hideGUIController(clearValueVController);
+  hideGUIController(vBCsController);
 }
