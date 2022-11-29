@@ -80,10 +80,14 @@ funsObj = {
     navigator.clipboard.writeText(str);
   },
   copyConfigAsJSON: function () {
-    let str = JSON.stringify(diffObjects(options, getPreset("default")))
+    let objDiff = diffObjects(options, getPreset("default"));
+    objDiff.preset = "PRESETNAME";
+    let str = JSON.stringify(objDiff)
       .replaceAll(",", ",\n\t")
+      .replaceAll(":",": ")
       .replace("{", "{\n\t")
-      .replace("}", ",\n}");
+      .replace("}", ',\n}');
+    str = "case: PRESETNAME:\n\toptions = " + str;
     navigator.clipboard.writeText(str);
   },
 };
