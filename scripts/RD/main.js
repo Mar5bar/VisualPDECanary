@@ -79,6 +79,13 @@ funsObj = {
     ].join("");
     navigator.clipboard.writeText(str);
   },
+  copyConfigAsJSON: function () {
+    let str = JSON.stringify(diffObjects(options, getPreset("default")))
+      .replaceAll(",", ",\n\t")
+      .replace("{", "{\n\t")
+      .replace("}", ",\n}");
+    navigator.clipboard.writeText(str);
+  },
 };
 
 // Get the canvas to draw on, as specified by the html.
@@ -439,6 +446,11 @@ function initGUI(startOpen) {
   if (inGUI("copyConfigAsURL")) {
     // Copy configuration as URL.
     gui.add(funsObj, "copyConfigAsURL").name("Copy setup URL (s)");
+  }
+
+  if (inGUI("copyConfigAsJSON")) {
+    // Copy configuration as raw JSON.
+    gui.add(funsObj, "copyConfigAsJSON").name("Copy setup JSON");
   }
 
   if (startOpen != undefined && startOpen) {
@@ -1075,10 +1087,10 @@ function setRDEquations() {
   }
 
   // Insert any user-defined kinetic parameters, given as a string that needs parsing.
-  // Extract variable definitions, separated by commas or semicolons, ignoring whitespace.
+  // Extract variable definitions, separated by semicolons only, ignoring whitespace.
   // We'll inject this shader string before any boundary conditions etc, so that these params
   // are also available in BCs.
-  let regex = /[,;\s]*(.+?)(?:$|[,;])+/g;
+  let regex = /[;\s]*(.+?)(?:$|[;])+/g;
   let kineticStr = parseShaderString(
     options.kineticParams.replace(regex, "float $1;\n")
   );
@@ -1390,4 +1402,12 @@ function hideVGUIPanels() {
   hideGUIController(whatToPlotController);
   hideGUIController(clearValueVController);
   hideGUIController(vBCsController);
+}
+
+function diffObjects(o1, o2) {
+  return Object.fromEntries(
+    Object.entries(o1).filter(
+      ([k, v]) => JSON.stringify(o2[k]) !== JSON.stringify(v)
+    )
+  );
 }
