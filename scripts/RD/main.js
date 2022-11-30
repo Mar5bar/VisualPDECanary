@@ -40,7 +40,7 @@ import {
   hLineShader,
   drawShaderBot,
   drawShaderTop,
-} from "../drawing_shaders.js";
+} from "./drawing_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import {
   RDShaderTop,
@@ -51,10 +51,10 @@ import {
   RDShaderUpdate,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
-import { greyscaleDisplay, fiveColourDisplay } from "../display_shaders.js";
+import { greyscaleDisplay, fiveColourDisplay } from "./display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
-import { clearShaderBot, clearShaderTop } from "../clear_shader.js";
+import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 
 // Setup some configurable options.
 options = {};
