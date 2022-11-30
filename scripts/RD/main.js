@@ -84,9 +84,9 @@ funsObj = {
     objDiff.preset = "PRESETNAME";
     let str = JSON.stringify(objDiff)
       .replaceAll(",", ",\n\t")
-      .replaceAll(":",": ")
+      .replaceAll(":", ": ")
       .replace("{", "{\n\t")
-      .replace("}", ',\n}');
+      .replace("}", ",\n}");
     str = "case: PRESETNAME:\n\toptions = " + str + ";\nbreak;";
     navigator.clipboard.writeText(str);
   },
@@ -1117,6 +1117,9 @@ function parseRobinRHS(string, species) {
 }
 
 function loadPreset(preset) {
+  // First, reload the default preset.
+  loadOptions("default");
+
   // Updates the values stored in options.
   loadOptions(preset);
 
