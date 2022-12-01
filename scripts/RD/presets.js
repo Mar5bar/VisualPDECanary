@@ -263,7 +263,7 @@ export function getPreset(id) {
         minColourValueV: 0.0,
         numSpecies: 2,
         numTimestepsPerFrame: 100,
-        onlyExposeOptions: ["brushRadius","brushValue","brushFolder","preset"],
+        onlyExposeOptions: [],
         preset: "default",
         renderSize: 256,
         reactionStrU: "-u*v^2 + 0.037*(1.0 - u)",
