@@ -1002,6 +1002,7 @@ function clearTextures() {
   renderer.render(simScene, simCamera);
   renderer.setRenderTarget(simTextureB);
   renderer.render(simScene, simCamera);
+  render();
 }
 
 function pauseSim() {
