@@ -72,10 +72,12 @@ funsObj = {
     }
   },
   copyConfigAsURL: function () {
+    let objDiff = diffObjects(options, getPreset("default"));
+    objDiff.preset = "Custom";
     let str = [
       location.href.replace(location.search, ""),
       "?options=",
-      encodeURI(btoa(JSON.stringify(options))),
+      encodeURI(btoa(JSON.stringify(objDiff))),
     ].join("");
     navigator.clipboard.writeText(str);
   },
