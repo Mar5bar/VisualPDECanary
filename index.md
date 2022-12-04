@@ -9,8 +9,8 @@ Hello there
 * [The heat equation](heat-equation)
 
 # Logistic growth: invasion wavespeeds and boundary-induced extinction
-* [Travelling wave simulator](travelling-waves)
-* [Harsh environment simulator](harsh-environment)
+* [Logistic travelling waves](travelling-waves)
+* [Survival in a harsh environment](harsh-environment)
 
 # Thresholds and bistability in space
 * Threshold simulation
