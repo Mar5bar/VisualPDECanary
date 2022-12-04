@@ -5,7 +5,7 @@ permalink: /heat-equation/
 ---
 We'll continue studying the logistic reaction-diffusion model,
 
-$$\pd{u}{t}=\nabla^2 u+ru\left(1-\frac{u}{K}\right),$$
+$$\pd{u}{t}=D\nabla^2 u+ru\left(1-\frac{u}{K}\right),$$
 
 but now consider different boundary conditions.
 
