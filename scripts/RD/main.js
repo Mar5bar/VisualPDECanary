@@ -1210,13 +1210,10 @@ function deleteGUI(folder) {
     }
     // Delete all the controllers at this level.
     for (let i = 0; i < folder.__controllers.length; i++) {
-      console.log(folder.__controllers[i]);
       folder.__controllers[i].remove();
     }
     // If this is the top-level GUI, destroy it.
-    console.log(folder);
     if (folder == gui) {
-      console.log("Here");
       gui.destroy();
     }
   }
