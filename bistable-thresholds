@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Get started with the heat equation
-permalink: /heat-equation/
+title: Bistable thresholds
+permalink: /bistable-thresholds/
 ---
 We'll continue studying a cubic reaction-diffusion system which exhibits several phenomena involving bistability:
 

@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Get started with the heat equation
-permalink: /heat-equation/
+title: Logistic travelling waves
+permalink: /travelling-waves/
 ---
 Next we'll consider a classical reaction-diffusion equation, with a logistic nonlinearity. This is often referred to as the [Fisher-KPP equation]([https://en.wikipedia.org/wiki/Heat_equation](https://en.wikipedia.org/wiki/Fisher%27s_equation)),
 

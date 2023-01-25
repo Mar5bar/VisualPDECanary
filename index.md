@@ -13,7 +13,7 @@ Hello there
 * [Survival in a harsh environment](harsh-environment)
 
 # Thresholds and bistability in space
-* Threshold simulation
+* [Threshold simulation](bistable-threshold)
 * Spatial homogeneity localises patterns
 * Turing localisation on Turing's face
 

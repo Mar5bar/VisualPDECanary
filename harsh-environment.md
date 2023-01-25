@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Get started with the heat equation
-permalink: /heat-equation/
+title: Survival in a harsh environment
+permalink: /harsh-environment/
 ---
 We'll continue studying the logistic reaction-diffusion model,
 
