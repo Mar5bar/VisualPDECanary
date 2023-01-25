@@ -24,13 +24,17 @@ description: >- # this means to ignore newlines until "baseurl:"
   Interactive live solutions of PDE systems, right on your device
 #baseurl: "/site" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: pecnut
-github_username:  Pecnut
+#twitter_username: pecnut
+#github_username:  Pecnut
 
 # Build settings
 theme: minima
 plugins:
   - jekyll-feed
+
+# Nav bar
+header_pages:
+  - about.md
 
 # Exclude from processing.
 # The following items will not be processed, by default.
