@@ -9,7 +9,7 @@ $$\pd{u}{t}=\nabla^2 u+ru\left(1-\frac{u}{K}\right),$$
 
 with periodic boundary conditions.
 
-1. Load the [interactive simulation](https://mar5bar.github.io/mathematics-via-WebGL/reaction_diffusion_generic.html?preset=travellingWave). 
+1. Load the [interactive simulation](/sim/?preset=travellingWave). 
 
 1. Click within the box to visualise a 'line' of a population, which will then spread out as a planar wave. 
 

@@ -9,7 +9,7 @@ $$\pd{u}{t}=\nabla^2 u,$$
 
 with homogeneous Neumann (aka no-flux) boundary conditions.
 
-1. Load the [interactive simulation](/sim/reaction_diffusion_generic.html?preset=heatEquation). 
+1. Load the [interactive simulation](/sim/?preset=heatEquation). 
 
 1. Click within the box to visualise the spread of some source of heat throughout the domain. 
 
