@@ -9,7 +9,7 @@ $$\pd{u}{t}=\nabla^2 u,$$
 
 with homogeneous Neumann (aka no-flux) boundary conditions.
 
-1. Load the [interactive simulation](https://mar5bar.github.io/mathematics-via-WebGL/reaction_diffusion_generic.html?preset=heatEquation). 
+1. Load the [interactive simulation](/sim/reaction_diffusion_generic.html?preset=heatEquation). 
 
 1. Click within the box to visualise the spread of some source of heat throughout the domain. 
 
@@ -19,11 +19,11 @@ with homogeneous Neumann (aka no-flux) boundary conditions.
 
 1. Press clear at the top right to reset the simulation. 
 
-1. You can also pause the simulation, paint some initial data, and then click `play' to set it in motion. Explore how the speed depends on the diffusion coefficient (though note that this coefficient can't be too large without running into numerical problems -- see the discussion on Forward Euler ELSEWHERE). 
+1. You can also pause the simulation, paint some initial data, and then click 'play' to set it in motion. Explore how the speed depends on the diffusion coefficient (though note that this coefficient can't be too large without running into numerical problems -- see the discussion on Forward Euler ELSEWHERE). 
 
 ## Playing with boundary conditions
 
-1. Now, go to `Boundary conditions` and select `Periodic.` What do you notice? Is the total amount of heat still conserved? 
+1. Now, go to `Boundary conditions` and select `Periodic`. What do you notice? Is the total amount of heat still conserved? 
 
 1. What if you change it to Dirichlet? 
 

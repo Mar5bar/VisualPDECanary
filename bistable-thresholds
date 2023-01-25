@@ -3,7 +3,7 @@ layout: page
 title: Bistable thresholds
 permalink: /bistable-thresholds/
 ---
-We'll continue studying a cubic reaction-diffusion system which exhibits several phenomena involving bistability:
+We'll continue studying a cubic reaction–diffusion system which exhibits several phenomena involving bistability:
 
 $$\pd{u}{t}=\nabla^2 u+u(1-u)(u-a),$$
 
