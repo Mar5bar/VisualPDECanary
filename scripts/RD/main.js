@@ -16,8 +16,10 @@ let gui,
   whatToPlotController,
   minColourValueUController,
   maxColourValueUController,
+  autoMinMaxColourRangeUController,
   minColourValueVController,
   maxColourValueVController,
+  autoMinMaxColourRangeVController,
   clearValueVController,
   clearValueUController,
   vBCsController,
@@ -91,6 +93,28 @@ funsObj = {
       .replace("}", ",\n}");
     str = "case: PRESETNAME:\n\toptions = " + str + ";\nbreak;";
     navigator.clipboard.writeText(str);
+  },
+  autoMinMaxColourRangeU: function () {
+    let valRange = getMinMaxVal(speciesToChannelInd("u"));
+    if (valRange[0] == valRange[1]) {
+      // If the range is just one value, add one to the second entry.
+      valRange[1] += 1;
+    }
+    options.minColourValueU = valRange[0];
+    options.maxColourValueU = valRange[1];
+    updateUniforms();
+    refreshGUI(gui);
+  },
+  autoMinMaxColourRangeV: function () {
+    let valRange = getMinMaxVal(speciesToChannelInd("v"));
+    if (valRange[0] == valRange[1]) {
+      // If the range is just one value, add one to the second entry.
+      valRange[1] += 1;
+    }
+    options.minColourValueV = valRange[0];
+    options.maxColourValueV = valRange[1];
+    updateUniforms();
+    refreshGUI(gui);
   },
 };
 
@@ -709,24 +733,38 @@ function initGUI(startOpen) {
       .add(options, "minColourValueU")
       .name("Min value")
       .onChange(updateUniforms);
+    minColourValueUController.__precision = 2;
   }
   if (inGUI("maxColourValueU")) {
     maxColourValueUController = root
       .add(options, "maxColourValueU")
       .name("Max value")
       .onChange(updateUniforms);
+    maxColourValueUController.__precision = 2;
+  }
+  if (inGUI("autoMinMaxColourRangeU")) {
+    autoMinMaxColourRangeUController = root
+      .add(funsObj, "autoMinMaxColourRangeU")
+      .name("Auto colour");
   }
   if (inGUI("minColourValueV")) {
     minColourValueVController = root
       .add(options, "minColourValueV")
       .name("Min value")
       .onChange(updateUniforms);
+    minColourValueVController.__precision = 2;
   }
   if (inGUI("maxColourValueV")) {
     maxColourValueVController = root
       .add(options, "maxColourValueV")
       .name("Max value")
       .onChange(updateUniforms);
+    maxColourValueVController.__precision = 2;
+  }
+  if (inGUI("autoMinMaxColourRangeV")) {
+    autoMinMaxColourRangeVController = root
+      .add(funsObj, "autoMinMaxColourRangeV")
+      .name("Auto colour");
     selectColorRangeControls();
   }
 
@@ -894,7 +932,7 @@ function setDisplayColourAndType() {
 
 function selectColourspecInShaderStr(shaderStr) {
   let regex = /COLOURSPEC/g;
-  let channel = mapSpeciesToChannel(options.whatToPlot);
+  let channel = speciesToChannelChar(options.whatToPlot);
   shaderStr = shaderStr.replace(regex, channel);
   return shaderStr;
 }
@@ -905,20 +943,24 @@ function selectColorRangeControls() {
       // Show u range controllers.
       showGUIController(minColourValueUController);
       showGUIController(maxColourValueUController);
+      showGUIController(autoMinMaxColourRangeUController);
 
       // Hide v range controllers.
       hideGUIController(minColourValueVController);
       hideGUIController(maxColourValueVController);
+      hideGUIController(autoMinMaxColourRangeVController);
 
       break;
     case "v":
       // Show v range controllers.
       showGUIController(minColourValueVController);
       showGUIController(maxColourValueVController);
+      showGUIController(autoMinMaxColourRangeVController);
 
       // Hide u range controllers.
       hideGUIController(minColourValueUController);
       hideGUIController(maxColourValueUController);
+      hideGUIController(autoMinMaxColourRangeUController);
   }
 }
 
@@ -1037,8 +1079,8 @@ function parseShaderString(str) {
   // Replace u and v with uv.r and uv.g via placeholders.
   str = str.replace(/u/g, "U");
   str = str.replace(/v/g, "V");
-  str = str.replace(/U/g, "uv." + mapSpeciesToChannel("u"));
-  str = str.replace(/V/g, "uv." + mapSpeciesToChannel("v"));
+  str = str.replace(/U/g, "uv." + speciesToChannelChar("u"));
+  str = str.replace(/V/g, "uv." + speciesToChannelChar("v"));
 
   // Replace integers with floats.
   while (str != (str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3")));
@@ -1274,18 +1316,27 @@ function selectSpeciesInShaderStr(shaderStr, species) {
     return "";
   }
   let regex = /SPECIES/g;
-  let channel = mapSpeciesToChannel(species);
+  let channel = speciesToChannelChar(species);
   shaderStr = shaderStr.replace(regex, channel);
   return shaderStr;
 }
 
-function mapSpeciesToChannel(speciesStr) {
+function speciesToChannelChar(speciesStr) {
   let channel = "";
+  let listOfChannels = "rgba";
+  for (let i = 0; i < speciesStr.length; i++) {
+    channel += listOfChannels[speciesToChannelInd(speciesStr[i])];
+  }
+  return channel;
+}
+
+function speciesToChannelInd(speciesStr) {
+  let channel;
   if (speciesStr.includes("u")) {
-    channel += "r";
+    channel = 0;
   }
   if (speciesStr.includes("v")) {
-    channel += "g";
+    channel = 1;
   }
   return channel;
 }
@@ -1417,4 +1468,21 @@ function diffObjects(o1, o2) {
       ([k, v]) => JSON.stringify(o2[k]) !== JSON.stringify(v)
     )
   );
+}
+
+function getMinMaxVal(channelInd) {
+  // Return the min and max values in the simulation textures in channel channelInd.
+  let buffer = new Float32Array(nXDisc * nYDisc * 4);
+  if (!readFromTextureB) {
+    renderer.readRenderTargetPixels(simTextureA, 0, 0, nXDisc, nYDisc, buffer);
+  } else {
+    renderer.readRenderTargetPixels(simTextureB, 0, 0, nXDisc, nYDisc, buffer);
+  }
+  let minVal = Infinity;
+  let maxVal = -Infinity;
+  for (let i = channelInd; i < buffer.length / 4; i += 4) {
+    minVal = Math.min(minVal, buffer[i]);
+    maxVal = Math.max(maxVal, buffer[i]);
+  }
+  return [minVal, maxVal];
 }
