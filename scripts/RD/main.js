@@ -591,27 +591,25 @@ function initGUI(startOpen) {
       .onChange(setNumberOfSpecies);
   }
   // Du and Dv.
-  if (inGUI("diffusionU")) {
+  if (inGUI("diffusionUStr")) {
     const DuController = root
-      .add(options, "diffusionU")
+      .add(options, "diffusionUStr")
       .name("Du")
-      .onChange(function () {
+      .onFinishChange(function () {
+        updateDiffusionCoeffs();
         setTimestepForCFL();
         updateUniforms();
       });
-    DuController.__precision = 12;
-    DuController.updateDisplay();
   }
-  if (inGUI("diffusionV")) {
+  if (inGUI("diffusionVStr")) {
     DvController = root
-      .add(options, "diffusionV")
+      .add(options, "diffusionVStr")
       .name("Dv")
-      .onChange(function () {
+      .onFinishChange(function () {
+        updateDiffusionCoeffs();
         setTimestepForCFL();
         updateUniforms();
       });
-    DvController.__precision = 12;
-    DvController.updateDisplay();
   }
   if (inGUI("reactionStrU")) {
     // Custom f(u,v) and g(u,v).
@@ -1228,6 +1226,9 @@ function loadOptions(preset) {
 
   // Set a flag if we will be showing all tools.
   setShowAllToolsFlag();
+
+  // Compute any derived values.
+  updateDiffusionCoeffs();
 }
 
 function refreshGUI(folder) {
@@ -1485,4 +1486,22 @@ function getMinMaxVal(channelInd) {
     maxVal = Math.max(maxVal, buffer[i]);
   }
   return [minVal, maxVal];
+}
+
+function evaluateDiffusionStr(str) {
+  // Take a string that specifies a diffusion coefficient in terms of basic mathops and
+  // set parameters (predominantly domainLength as L).
+  // This will be very dangerous, as code injection will certainly be possible.
+  let regex = /L/g;
+  str = str.replace(regex, options.domainScale);
+
+  regex = /\^/g;
+  str = str.replace(regex, "**");
+
+  return eval(str);
+}
+
+function updateDiffusionCoeffs() {
+  options.diffusionU = evaluateDiffusionStr(options.diffusionUStr);
+  options.diffusionV = evaluateDiffusionStr(options.diffusionVStr);
 }
