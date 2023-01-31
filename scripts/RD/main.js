@@ -1,7 +1,12 @@
 let canvas;
 let camera, simCamera, scene, simScene, renderer, aspectRatio;
-let simTextureA, simTextureB;
-let displayMaterial, drawMaterial, simMaterial, clearMaterial, copyMaterial;
+let simTextureA, simTextureB, postTexture;
+let displayMaterial,
+  drawMaterial,
+  simMaterial,
+  clearMaterial,
+  copyMaterial,
+  postMaterial;
 let domain, simDomain;
 let options, uniforms, funsObj;
 let gui,
@@ -13,13 +18,11 @@ let gui,
   gController,
   DvController,
   dtController,
+  whatToDrawController,
   whatToPlotController,
-  minColourValueUController,
-  maxColourValueUController,
-  autoMinMaxColourRangeUController,
-  minColourValueVController,
-  maxColourValueVController,
-  autoMinMaxColourRangeVController,
+  minColourValueController,
+  maxColourValueController,
+  autoMinMaxColourRangeController,
   clearValueVController,
   clearValueUController,
   vBCsController,
@@ -43,6 +46,7 @@ import {
   drawShaderBot,
   drawShaderTop,
 } from "./drawing_shaders.js";
+import { computeDisplayFunShader } from "./post_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import {
   RDShaderTop,
@@ -53,7 +57,7 @@ import {
   RDShaderUpdate,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
-import { greyscaleDisplay, fiveColourDisplay } from "./display_shaders.js";
+import { fiveColourDisplay } from "./display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
@@ -94,25 +98,14 @@ funsObj = {
     str = "case: PRESETNAME:\n\toptions = " + str + ";\nbreak;";
     navigator.clipboard.writeText(str);
   },
-  autoMinMaxColourRangeU: function () {
-    let valRange = getMinMaxVal(speciesToChannelInd("u"));
+  autoMinMaxColourRange: function () {
+    let valRange = getMinMaxVal();
     if (valRange[0] == valRange[1]) {
       // If the range is just one value, add one to the second entry.
       valRange[1] += 1;
     }
-    options.minColourValueU = valRange[0];
-    options.maxColourValueU = valRange[1];
-    updateUniforms();
-    refreshGUI(gui);
-  },
-  autoMinMaxColourRangeV: function () {
-    let valRange = getMinMaxVal(speciesToChannelInd("v"));
-    if (valRange[0] == valRange[1]) {
-      // If the range is just one value, add one to the second entry.
-      valRange[1] += 1;
-    }
-    options.minColourValueV = valRange[0];
-    options.maxColourValueV = valRange[1];
+    options.minColourValue = valRange[0];
+    options.maxColourValue = valRange[1];
     updateUniforms();
     refreshGUI(gui);
   },
@@ -167,12 +160,15 @@ function init() {
     magFilter: THREE.LinearFilter,
   });
   simTextureB = simTextureA.clone();
+  postTexture = simTextureA.clone();
 
   // Periodic boundary conditions (for now).
   simTextureA.texture.wrapS = THREE.RepeatWrapping;
   simTextureA.texture.wrapT = THREE.RepeatWrapping;
   simTextureB.texture.wrapS = THREE.RepeatWrapping;
   simTextureB.texture.wrapT = THREE.RepeatWrapping;
+  postTexture.texture.wrapS = THREE.RepeatWrapping;
+  postTexture.texture.wrapT = THREE.RepeatWrapping;
 
   // Create cameras for the simulation domain and the final output.
   camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 1);
@@ -192,6 +188,11 @@ function init() {
 
   // This material will display the output of the simulation.
   displayMaterial = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: genericVertexShader(),
+  });
+  // This material performs any postprocessing before display.
+  postMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
   });
@@ -302,13 +303,8 @@ function updateUniforms() {
   uniforms.Dv.value = options.diffusionV;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
-  if (options.whatToPlot == "u") {
-    uniforms.maxColourValue.value = options.maxColourValueU;
-    uniforms.minColourValue.value = options.minColourValueU;
-  } else if (options.whatToPlot == "v") {
-    uniforms.maxColourValue.value = options.maxColourValueV;
-    uniforms.minColourValue.value = options.minColourValueV;
-  }
+  uniforms.maxColourValue.value = options.maxColourValue;
+  uniforms.minColourValue.value = options.minColourValue;
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
@@ -367,6 +363,7 @@ function resizeTextures() {
     uniforms.textureSource.value = simTextureA.texture;
   }
   readFromTextureB = !readFromTextureB;
+  postTexture.setSize(nXDisc, nYDisc);
   render();
 }
 
@@ -521,6 +518,12 @@ function initGUI(startOpen) {
       .name("Brush radius")
       .onChange(updateUniforms);
     brushRadiusController.min(0);
+  }
+  if (inGUI("whatToDraw")) {
+    whatToDrawController = root
+      .add(options, "whatToDraw", { u: "u", v: "v" })
+      .name("Draw species")
+      .onChange(setBrushType);
   }
 
   // Domain folder.
@@ -711,9 +714,9 @@ function initGUI(startOpen) {
   }
   if (inGUI("whatToPlot")) {
     whatToPlotController = root
-      .add(options, "whatToPlot", { u: "u", v: "v" })
+      .add(options, "whatToPlot")
       .name("Colour by: ")
-      .onChange(updateWhatToPlot);
+      .onFinishChange(updateWhatToPlot);
   }
   if (inGUI("colourmap")) {
     root
@@ -726,44 +729,24 @@ function initGUI(startOpen) {
       .onChange(setDisplayColourAndType)
       .name("Colourmap");
   }
-  if (inGUI("minColourValueU")) {
-    minColourValueUController = root
-      .add(options, "minColourValueU")
+  if (inGUI("minColourValue")) {
+    minColourValueController = root
+      .add(options, "minColourValue")
       .name("Min value")
       .onChange(updateUniforms);
-    minColourValueUController.__precision = 2;
+    minColourValueController.__precision = 2;
   }
-  if (inGUI("maxColourValueU")) {
-    maxColourValueUController = root
-      .add(options, "maxColourValueU")
+  if (inGUI("maxColourValue")) {
+    maxColourValueController = root
+      .add(options, "maxColourValue")
       .name("Max value")
       .onChange(updateUniforms);
-    maxColourValueUController.__precision = 2;
+    maxColourValueController.__precision = 2;
   }
-  if (inGUI("autoMinMaxColourRangeU")) {
-    autoMinMaxColourRangeUController = root
-      .add(funsObj, "autoMinMaxColourRangeU")
+  if (inGUI("autoMinMaxColourRange")) {
+    autoMinMaxColourRangeController = root
+      .add(funsObj, "autoMinMaxColourRange")
       .name("Auto colour");
-  }
-  if (inGUI("minColourValueV")) {
-    minColourValueVController = root
-      .add(options, "minColourValueV")
-      .name("Min value")
-      .onChange(updateUniforms);
-    minColourValueVController.__precision = 2;
-  }
-  if (inGUI("maxColourValueV")) {
-    maxColourValueVController = root
-      .add(options, "maxColourValueV")
-      .name("Max value")
-      .onChange(updateUniforms);
-    maxColourValueVController.__precision = 2;
-  }
-  if (inGUI("autoMinMaxColourRangeV")) {
-    autoMinMaxColourRangeVController = root
-      .add(funsObj, "autoMinMaxColourRangeV")
-      .name("Auto colour");
-    selectColorRangeControls();
   }
 
   // Miscellaneous folder.
@@ -864,6 +847,9 @@ function setDrawAndDisplayShaders() {
   // Configure the display material.
   setDisplayColourAndType();
 
+  // Configure the postprocessing material.
+  updateWhatToPlot();
+
   // Configure the drawing material.
   setBrushType();
 }
@@ -892,74 +878,48 @@ function setBrushType() {
 }
 
 function setDisplayColourAndType() {
+  displayMaterial.fragmentShader = fiveColourDisplay();
   if (options.colourmap == "greyscale") {
-    displayMaterial.fragmentShader = selectColourspecInShaderStr(
-      greyscaleDisplay()
-    );
+    uniforms.colour1.value = new THREE.Vector4(0, 0, 0, 0);
+    uniforms.colour2.value = new THREE.Vector4(0.25, 0.25, 0.25, 0.25);
+    uniforms.colour3.value = new THREE.Vector4(0.5, 0.5, 0.5, 0.5);
+    uniforms.colour4.value = new THREE.Vector4(0.75, 0.75, 0.75, 0.75);
+    uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 1);
   } else if (options.colourmap == "BlackGreenYellowRedWhite") {
-    displayMaterial.fragmentShader = selectColourspecInShaderStr(
-      fiveColourDisplay()
-    );
     uniforms.colour1.value = new THREE.Vector4(0, 0, 0.0, 0);
     uniforms.colour2.value = new THREE.Vector4(0, 1, 0, 0.25);
     uniforms.colour3.value = new THREE.Vector4(1, 1, 0, 0.5);
     uniforms.colour4.value = new THREE.Vector4(1, 0, 0, 0.75);
     uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 1.0);
   } else if (options.colourmap == "viridis") {
-    displayMaterial.fragmentShader = selectColourspecInShaderStr(
-      fiveColourDisplay()
-    );
     uniforms.colour1.value = new THREE.Vector4(0.267, 0.0049, 0.3294, 0.0);
     uniforms.colour2.value = new THREE.Vector4(0.2302, 0.3213, 0.5455, 0.25);
     uniforms.colour3.value = new THREE.Vector4(0.1282, 0.5651, 0.5509, 0.5);
     uniforms.colour4.value = new THREE.Vector4(0.3629, 0.7867, 0.3866, 0.75);
     uniforms.colour5.value = new THREE.Vector4(0.9932, 0.9062, 0.1439, 1.0);
   } else if (options.colourmap == "turbo") {
-    displayMaterial.fragmentShader = selectColourspecInShaderStr(
-      fiveColourDisplay()
-    );
     uniforms.colour1.value = new THREE.Vector4(0.19, 0.0718, 0.2322, 0.0);
     uniforms.colour2.value = new THREE.Vector4(0.1602, 0.7332, 0.9252, 0.25);
     uniforms.colour3.value = new THREE.Vector4(0.6384, 0.991, 0.2365, 0.5);
     uniforms.colour4.value = new THREE.Vector4(0.9853, 0.5018, 0.1324, 0.75);
     uniforms.colour5.value = new THREE.Vector4(0.4796, 0.01583, 0.01055, 1.0);
   }
-
   displayMaterial.needsUpdate = true;
 }
 
 function selectColourspecInShaderStr(shaderStr) {
   let regex = /COLOURSPEC/g;
-  let channel = speciesToChannelChar(options.whatToPlot);
-  shaderStr = shaderStr.replace(regex, channel);
+  shaderStr = shaderStr.replace(
+    regex,
+    speciesToChannelChar(options.whatToDraw)
+  );
   return shaderStr;
 }
 
-function selectColorRangeControls() {
-  switch (options.whatToPlot) {
-    case "u":
-      // Show u range controllers.
-      showGUIController(minColourValueUController);
-      showGUIController(maxColourValueUController);
-      showGUIController(autoMinMaxColourRangeUController);
-
-      // Hide v range controllers.
-      hideGUIController(minColourValueVController);
-      hideGUIController(maxColourValueVController);
-      hideGUIController(autoMinMaxColourRangeVController);
-
-      break;
-    case "v":
-      // Show v range controllers.
-      showGUIController(minColourValueVController);
-      showGUIController(maxColourValueVController);
-      showGUIController(autoMinMaxColourRangeVController);
-
-      // Hide u range controllers.
-      hideGUIController(minColourValueUController);
-      hideGUIController(maxColourValueUController);
-      hideGUIController(autoMinMaxColourRangeUController);
-  }
+function setDisplayFunInShader(shaderStr) {
+  let regex = /FUN/g;
+  shaderStr = shaderStr.replace(regex, parseShaderString(options.whatToPlot));
+  return shaderStr;
 }
 
 function draw() {
@@ -1007,6 +967,19 @@ function timestep() {
 }
 
 function render() {
+  // Perform any postprocessing.
+  if (readFromTextureB) {
+    inTex = simTextureB;
+  } else {
+    inTex = simTextureA;
+  }
+
+  simDomain.material = postMaterial;
+  uniforms.textureSource.value = inTex.texture;
+  renderer.setRenderTarget(postTexture);
+  renderer.render(simScene, simCamera);
+  uniforms.textureSource.value = postTexture.texture;
+
   // Render the output to the screen.
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
@@ -1173,7 +1146,6 @@ function loadPreset(preset) {
   setNumberOfSpecies();
   if (gui != undefined) {
     // Refresh the whole gui.
-    selectColorRangeControls();
     refreshGUI(gui);
   }
 
@@ -1432,10 +1404,10 @@ function createImageController() {
 }
 
 function updateWhatToPlot() {
-  selectColorRangeControls();
-  setDisplayColourAndType();
-  setBrushType();
-  updateUniforms();
+  postMaterial.fragmentShader = setDisplayFunInShader(
+    computeDisplayFunShader()
+  );
+  postMaterial.needsUpdate = true;
 }
 
 function inGUI(name) {
@@ -1450,7 +1422,6 @@ function setShowAllToolsFlag() {
 function showVGUIPanels() {
   showGUIController(DvController);
   showGUIController(gController);
-  showGUIController(whatToPlotController);
   showGUIController(clearValueVController);
   showGUIController(vBCsController);
 }
@@ -1458,7 +1429,6 @@ function showVGUIPanels() {
 function hideVGUIPanels() {
   hideGUIController(DvController);
   hideGUIController(gController);
-  hideGUIController(whatToPlotController);
   hideGUIController(clearValueVController);
   hideGUIController(vBCsController);
 }
@@ -1471,17 +1441,13 @@ function diffObjects(o1, o2) {
   );
 }
 
-function getMinMaxVal(channelInd) {
+function getMinMaxVal() {
   // Return the min and max values in the simulation textures in channel channelInd.
   let buffer = new Float32Array(nXDisc * nYDisc * 4);
-  if (!readFromTextureB) {
-    renderer.readRenderTargetPixels(simTextureA, 0, 0, nXDisc, nYDisc, buffer);
-  } else {
-    renderer.readRenderTargetPixels(simTextureB, 0, 0, nXDisc, nYDisc, buffer);
-  }
+  renderer.readRenderTargetPixels(postTexture, 0, 0, nXDisc, nYDisc, buffer);
   let minVal = Infinity;
   let maxVal = -Infinity;
-  for (let i = channelInd; i < buffer.length / 4; i += 4) {
+  for (let i = 0; i < buffer.length / 4; i += 4) {
     minVal = Math.min(minVal, buffer[i]);
     maxVal = Math.max(maxVal, buffer[i]);
   }
