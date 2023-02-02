@@ -4,7 +4,6 @@
 
 layout: page
 ---
-Hello there
 # Get started
 * [The heat equation](heat-equation)
 
