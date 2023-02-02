@@ -973,6 +973,7 @@ function setDisplayColourAndType() {
     uniforms.colour5.value = new THREE.Vector4(0.4796, 0.01583, 0.01055, 1.0);
   }
   displayMaterial.needsUpdate = true;
+  render();
 }
 
 function selectColourspecInShaderStr(shaderStr) {
