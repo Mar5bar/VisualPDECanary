@@ -5,24 +5,21 @@ export function getPreset(id) {
   switch (id) {
     case "cyclicCompetition":
       options = {
-        boundaryConditionsU: "noflux",
-        boundaryConditionsV: "noflux",
-        boundaryConditionsW: "noflux",
-        colourmap: "max species",
-        diffusionUStr: "1",
-        diffusionVStr: "0.1",
-        diffusionWStr: "0.9",
-        dt: 0.000003125,
-        kineticParams: "b = 1; c = 1; ab = 1; ac = 2; ba = 2; bc = 1; ca = 1; cb = 2",
+        clearValueU: "0.01*RAND",
+        clearValueV: "0.01*RAND",
+        clearValueW: "0.01*RAND",
+        diffusionUStr: "0.000002",
+        diffusionVStr: "0.00004",
+        diffusionWStr: "0.000008",
+        dt: 0.005,
+        kineticParams: "a=0.8; b=1.9",
         numSpecies: "3",
         preset: "cyclicCompetition",
-        reactionStrU: "u*(1 - u - ab*v - ac*w)",
-        reactionStrV: "b*v*(1 - ba*u - v - bc*w)",
-        reactionStrW: "c*w*(1 - ca*u - cb*v - w)",
-        setTimestepForStability: true,
-        diffusionU: 1,
-        diffusionV: 0.1,
-        diffusionW: 0.9,
+        reactionStrU: "u*(1-u-a*v-b*w)",
+        reactionStrV: "v*(1-b*u-v-a*w)",
+        reactionStrW: "w*(1-a*u-b*v-w)",
+        spatialStep: 0.002,
+        whatToPlot: "MAX",
       };
       break;
     case "chemicalBasisOfMorphogenesis":

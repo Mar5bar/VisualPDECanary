@@ -784,7 +784,6 @@ function initGUI(startOpen) {
         Viridis: "viridis",
         Turbo: "turbo",
         BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
-        MaxSpecies: "max species",
       })
       .onChange(setDisplayColourAndType)
       .name("Colourmap");
@@ -960,10 +959,6 @@ function setDisplayColourAndType() {
     postMaterial.fragmentShader = setDisplayFunInShader(
       computeDisplayFunShader()
     );
-    showGUIController(whatToPlotController);
-    showGUIController(minColourValueController);
-    showGUIController(maxColourValueController);
-    showGUIController(autoMinMaxColourRangeController);
   } else if (options.colourmap == "BlackGreenYellowRedWhite") {
     uniforms.colour1.value = new THREE.Vector4(0, 0, 0.0, 0);
     uniforms.colour2.value = new THREE.Vector4(0, 1, 0, 0.25);
@@ -974,10 +969,6 @@ function setDisplayColourAndType() {
     postMaterial.fragmentShader = setDisplayFunInShader(
       computeDisplayFunShader()
     );
-    showGUIController(whatToPlotController);
-    showGUIController(minColourValueController);
-    showGUIController(maxColourValueController);
-    showGUIController(autoMinMaxColourRangeController);
   } else if (options.colourmap == "viridis") {
     uniforms.colour1.value = new THREE.Vector4(0.267, 0.0049, 0.3294, 0.0);
     uniforms.colour2.value = new THREE.Vector4(0.2302, 0.3213, 0.5455, 0.25);
@@ -988,10 +979,6 @@ function setDisplayColourAndType() {
     postMaterial.fragmentShader = setDisplayFunInShader(
       computeDisplayFunShader()
     );
-    showGUIController(whatToPlotController);
-    showGUIController(minColourValueController);
-    showGUIController(maxColourValueController);
-    showGUIController(autoMinMaxColourRangeController);
   } else if (options.colourmap == "turbo") {
     uniforms.colour1.value = new THREE.Vector4(0.19, 0.0718, 0.2322, 0.0);
     uniforms.colour2.value = new THREE.Vector4(0.1602, 0.7332, 0.9252, 0.25);
@@ -1002,20 +989,8 @@ function setDisplayColourAndType() {
     postMaterial.fragmentShader = setDisplayFunInShader(
       computeDisplayFunShader()
     );
-    showGUIController(whatToPlotController);
-    showGUIController(minColourValueController);
-    showGUIController(maxColourValueController);
-    showGUIController(autoMinMaxColourRangeController);
-  } else if (options.colourmap == "max species") {
-    displayMaterial.fragmentShader = largestSpeciesShader();
-    postMaterial.fragmentShader = computeMaxSpeciesShader();
-    hideGUIController(whatToPlotController);
-    hideGUIController(minColourValueController);
-    hideGUIController(maxColourValueController);
-    hideGUIController(autoMinMaxColourRangeController);
   }
   displayMaterial.needsUpdate = true;
-  postMaterial.needsUpdate = true;
   render();
 }
 
@@ -1591,12 +1566,22 @@ function createImageController() {
 }
 
 function updateWhatToPlot() {
-  if (options.colourmap != "max species") {
+  if (options.whatToPlot == "MAX") {
+    postMaterial.fragmentShader = computeMaxSpeciesShader();
+    options.minColourValue = 0.0;
+    options.maxColourValue = 1.0;
+    updateUniforms();
+    hideGUIController(minColourValueController);
+    hideGUIController(maxColourValueController);
+    hideGUIController(autoMinMaxColourRangeController);
+  }
+  else {
     postMaterial.fragmentShader = setDisplayFunInShader(
       computeDisplayFunShader()
     );
-  } else if (options.colourmap == "max species") {
-    postMaterial.fragmentShader = computeMaxSpeciesShader();
+    showGUIController(minColourValueController);
+    showGUIController(maxColourValueController);
+    showGUIController(autoMinMaxColourRangeController);
   }
   postMaterial.needsUpdate = true;
   render();
