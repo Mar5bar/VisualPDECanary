@@ -263,8 +263,9 @@ function init() {
   document.addEventListener("keypress", function onEvent(event) {
     event = event || window.event;
     var target = event.target;
-    var targetTagName = (target.nodeType == 1) ? target.nodeName.toUpperCase() : "";
-    if ( !/INPUT|SELECT|TEXTAREA/.test(targetTagName) ) { 
+    var targetTagName =
+      target.nodeType == 1 ? target.nodeName.toUpperCase() : "";
+    if (!/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
       if (event.key === "c") {
         funsObj.clear();
       }
@@ -605,7 +606,7 @@ function initGUI(startOpen) {
   // Number of species.
   if (inGUI("numSpecies")) {
     root
-      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3})
+      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3 })
       .name("No. species")
       .onChange(setNumberOfSpecies);
   }
