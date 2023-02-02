@@ -31,6 +31,7 @@ export function getPreset(id) {
         spatialStep: 0.002,
         squareCanvas: true,
         typeOfBrush: "circle",
+        whatToDraw: "u",
         whatToPlot: "u",
       };
       break;
@@ -61,6 +62,7 @@ export function getPreset(id) {
         spatialStep: 0.05,
         squareCanvas: true,
         typeOfBrush: "circle",
+        whatToDraw: "u",
         whatToPlot: "u",
       };
       break;
@@ -88,6 +90,7 @@ export function getPreset(id) {
         spatialStep: 0.005,
         squareCanvas: false,
         typeOfBrush: "circle",
+        whatToDraw: "u",
         whatToPlot: "u",
       };
       break;
@@ -115,6 +118,7 @@ export function getPreset(id) {
         spatialStep: 0.005,
         squareCanvas: false,
         typeOfBrush: "circle",
+        whatToDraw: "u",
         whatToPlot: "u",
       };
       break;
@@ -142,6 +146,7 @@ export function getPreset(id) {
         spatialStep: 0.005,
         squareCanvas: false,
         typeOfBrush: "vline",
+        whatToDraw: "u",
         whatToPlot: "u",
       };
       break;
@@ -173,6 +178,7 @@ export function getPreset(id) {
         spatialStep: 0.002,
         squareCanvas: true,
         typeOfBrush: "circle",
+        whatToDraw: "u",
         whatToPlot: "u",
       };
       break;
@@ -200,6 +206,7 @@ export function getPreset(id) {
         spatialStep: 0.005,
         squareCanvas: false,
         typeOfBrush: "circle",
+        whatToDraw: "u",
         whatToPlot: "u",
       };
       break;
