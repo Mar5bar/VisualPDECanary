@@ -261,18 +261,23 @@ function init() {
   canvas.addEventListener("pointermove", onDocumentPointerMove);
 
   document.addEventListener("keypress", function onEvent(event) {
-    if (event.key === "c") {
-      funsObj.clear();
-    }
-    if (event.key === " ") {
-      if (isRunning) {
-        pauseSim();
-      } else {
-        playSim();
+    event = event || window.event;
+    var target = event.target;
+    var targetTagName = (target.nodeType == 1) ? target.nodeName.toUpperCase() : "";
+    if ( !/INPUT|SELECT|TEXTAREA/.test(targetTagName) ) { 
+      if (event.key === "c") {
+        funsObj.clear();
       }
-    }
-    if (event.key === "s") {
-      funsObj.copyConfig();
+      if (event.key === " ") {
+        if (isRunning) {
+          pauseSim();
+        } else {
+          playSim();
+        }
+      }
+      if (event.key === "s") {
+        funsObj.copyConfig();
+      }
     }
   });
 
@@ -1538,6 +1543,7 @@ function updateWhatToPlot() {
     computeDisplayFunShader()
   );
   postMaterial.needsUpdate = true;
+  render();
 }
 
 function inGUI(name) {
