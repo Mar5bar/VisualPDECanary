@@ -1285,8 +1285,9 @@ function loadPreset(preset) {
   // Configure the simulation material.
   setBCsEqs();
 
-  // Set the draw and display shaders.
+  // Set the draw, display, and clear shaders.
   setDrawAndDisplayShaders();
+  setClearShader();
 
   // To get around an annoying bug in dat.gui.image, in which the
   // controller doesn't update the value of the underlying property,
@@ -1594,8 +1595,7 @@ function updateWhatToPlot() {
     postMaterial.fragmentShader = setDisplayFunInShader(
       computeDisplayFunShader()
     );
-  }
-  else if (options.colourmap == "max species") {
+  } else if (options.colourmap == "max species") {
     postMaterial.fragmentShader = computeMaxSpeciesShader();
   }
   postMaterial.needsUpdate = true;
