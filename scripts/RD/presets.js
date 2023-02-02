@@ -3,6 +3,28 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "cyclicCompetition":
+      options = {
+        boundaryConditionsU: "noflux",
+        boundaryConditionsV: "noflux",
+        boundaryConditionsW: "noflux",
+        colourmap: "max species",
+        diffusionUStr: "1",
+        diffusionVStr: "0.1",
+        diffusionWStr: "0.9",
+        dt: 0.000003125,
+        kineticParams: "b = 1; c = 1; ab = 1; ac = 2; ba = 2; bc = 1; ca = 1; cb = 2",
+        numSpecies: "3",
+        preset: "cyclicCompetition",
+        reactionStrU: "u*(1 - u - ab*v - ac*w)",
+        reactionStrV: "b*v*(1 - ba*u - v - bc*w)",
+        reactionStrW: "c*w*(1 - ca*u - cb*v - w)",
+        setTimestepForStability: true,
+        diffusionU: 1,
+        diffusionV: 0.1,
+        diffusionW: 0.9,
+      };
+      break;
     case "chemicalBasisOfMorphogenesis":
       options = {
         boundaryConditionsU: "periodic",
