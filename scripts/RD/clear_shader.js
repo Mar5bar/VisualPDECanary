@@ -21,6 +21,6 @@ export function clearShaderTop() {
 
 export function clearShaderBot() {
     return `
-        gl_FragColor = vec4(u, v, 0.0, 1.0);
+        gl_FragColor = vec4(u, v, w, 1.0);
     }`;
 }

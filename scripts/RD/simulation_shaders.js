@@ -9,6 +9,7 @@ export function RDShaderTop() {
     uniform float dy;
     uniform float Du;
     uniform float Dv;
+    uniform float Dw;
     uniform float time;
     uniform vec2 boundaryValues;
     uniform sampler2D imageSource;
@@ -27,11 +28,11 @@ export function RDShaderTop() {
         float x = textureCoords.x * float(texSize.x) * dx;
         float y = textureCoords.y * float(texSize.y) * dy;
 
-        vec2 uv = texture2D(textureSource, textureCoords).rg;
-        vec2 uvL = texture2D(textureSource, textureCoords + vec2(-step_x, 0.0)).rg;
-        vec2 uvR = texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).rg;
-        vec2 uvT = texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).rg;
-        vec2 uvB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).rg;
+        vec3 uvw = texture2D(textureSource, textureCoords).rgb;
+        vec3 uvwL = texture2D(textureSource, textureCoords + vec2(-step_x, 0.0)).rgb;
+        vec3 uvwR = texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).rgb;
+        vec3 uvwT = texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).rgb;
+        vec3 uvwB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).rgb;
 
         vec3 Tvec = texture2D(imageSource, textureCoords).rgb;
         float T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
@@ -45,16 +46,16 @@ export function RDShaderPeriodic() {
 export function RDShaderNoFlux() {
     return `
     if (textureCoords.x - step_x < 0.0) {
-        uvL.SPECIES = uvR.SPECIES;
+        uvwL.SPECIES = uvwR.SPECIES;
     }
     if (textureCoords.x + step_x > 1.0) {
-        uvR.SPECIES = uvL.SPECIES;
+        uvwR.SPECIES = uvwL.SPECIES;
     }
     if (textureCoords.y + step_y > 1.0){
-        uvT.SPECIES = uvB.SPECIES;
+        uvwT.SPECIES = uvwB.SPECIES;
     }
     if (textureCoords.y - step_y < 0.0) {
-        uvB.SPECIES = uvT.SPECIES;
+        uvwB.SPECIES = uvwT.SPECIES;
     }
     `;
 }
@@ -62,33 +63,28 @@ export function RDShaderNoFlux() {
 export function RDShaderRobin() {
     return `
     if (textureCoords.x - step_x < 0.0) {
-        uvL.SPECIES = uvR.SPECIES - dx * robinRHSSPECIES;
+        uvwL.SPECIES = uvwR.SPECIES - dx * robinRHSSPECIES;
     }
     if (textureCoords.x + step_x > 1.0) {
-        uvR.SPECIES = uvL.SPECIES + dx * robinRHSSPECIES;
+        uvwR.SPECIES = uvwL.SPECIES + dx * robinRHSSPECIES;
     }
     if (textureCoords.y + step_y > 1.0){
-        uvT.SPECIES = uvB.SPECIES + dy * robinRHSSPECIES;
+        uvwT.SPECIES = uvwB.SPECIES + dy * robinRHSSPECIES;
     }
     if (textureCoords.y - step_y < 0.0) {
-        uvB.SPECIES = uvT.SPECIES - dy * robinRHSSPECIES;
+        uvwB.SPECIES = uvwT.SPECIES - dy * robinRHSSPECIES;
     }
-    `;
-}
-
-export function RDShaderFG() {
-    return ` float f = - uv.r*uv.g*uv.g + 0.037*(1.0 - uv.r);
-    float g = uv.r*uv.g*uv.g - (0.037+0.06)*uv.g;
     `;
 }
 
 export function RDShaderUpdate() {
     return `
-    vec2 lap = (uvL + uvR - 2.0*uv) / dx / dx + (uvT + uvB - 2.0*uv) / dy / dy;
+    vec3 lap = (uvwL + uvwR - 2.0*uvw) / dx / dx + (uvwT + uvwB - 2.0*uvw) / dy / dy;
 
     float du = Du * lap.r + f;
     float dv = Dv * lap.g + g;
-    vec2 updated = uv + dt * vec2(du, dv);
+    float dw = Dw * lap.b + h;
+    vec3 updated = uvw + dt * vec3(du, dv, dw);
     `;
 }
 
@@ -100,6 +96,6 @@ export function RDShaderDirichlet() {
 
 export function RDShaderBot() {
     return ` 
-    gl_FragColor = vec4(updated.r, updated.g, 0.0, 1.0);
+    gl_FragColor = vec4(updated.r, updated.g, updated.b, 1.0);
 }`;
 }

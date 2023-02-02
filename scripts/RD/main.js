@@ -16,20 +16,26 @@ let gui,
   brushRadiusController,
   fController,
   gController,
+  hController,
   DvController,
+  DwController,
   dtController,
   whatToDrawController,
   whatToPlotController,
   minColourValueController,
   maxColourValueController,
   autoMinMaxColourRangeController,
-  clearValueVController,
   clearValueUController,
+  clearValueVController,
+  clearValueWController,
   vBCsController,
+  wBCsController,
   dirichletUController,
   dirichletVController,
+  dirichletWController,
   robinUController,
   robinVController,
+  robinWController,
   fMisc,
   imController,
   genericOptionsFolder,
@@ -301,6 +307,7 @@ function updateUniforms() {
   uniforms.dt.value = options.dt;
   uniforms.Du.value = options.diffusionU;
   uniforms.Dv.value = options.diffusionV;
+  uniforms.Dw.value = options.diffusionW;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
   uniforms.maxColourValue.value = options.maxColourValue;
@@ -419,6 +426,10 @@ function initUniforms() {
       type: "f",
       value: 0.000002,
     },
+    Dw: {
+      type: "f",
+      value: 0.000002,
+    },
     // Discrete step sizes in the texture, which will be set later.
     dx: {
       type: "f",
@@ -521,7 +532,7 @@ function initGUI(startOpen) {
   }
   if (inGUI("whatToDraw")) {
     whatToDrawController = root
-      .add(options, "whatToDraw", { u: "u", v: "v" })
+      .add(options, "whatToDraw", { u: "u", v: "v", w: "w" })
       .name("Draw species")
       .onChange(setBrushType);
   }
@@ -589,7 +600,7 @@ function initGUI(startOpen) {
   // Number of species.
   if (inGUI("numSpecies")) {
     root
-      .add(options, "numSpecies", { 1: 1, 2: 2 })
+      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3})
       .name("No. species")
       .onChange(setNumberOfSpecies);
   }
@@ -614,17 +625,33 @@ function initGUI(startOpen) {
         updateUniforms();
       });
   }
+  if (inGUI("diffusionWStr")) {
+    DwController = root
+      .add(options, "diffusionWStr")
+      .name("Dw")
+      .onFinishChange(function () {
+        updateDiffusionCoeffs();
+        setTimestepForCFL();
+        updateUniforms();
+      });
+  }
   if (inGUI("reactionStrU")) {
     // Custom f(u,v) and g(u,v).
     fController = root
       .add(options, "reactionStrU")
-      .name("f(u,v)")
+      .name("f(u,v,w)")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrV")) {
     gController = root
       .add(options, "reactionStrV")
-      .name("g(u,v)")
+      .name("g(u,v,w)")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("reactionStrW")) {
+    hController = root
+      .add(options, "reactionStrW")
+      .name("h(u,v,w)")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("kineticParams")) {
@@ -684,6 +711,29 @@ function initGUI(startOpen) {
     robinVController = root
       .add(options, "robinStrV")
       .name("dv/dn = ")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("boundaryConditionsW")) {
+    wBCsController = root
+      .add(options, "boundaryConditionsW", {
+        Periodic: "periodic",
+        "No flux": "noflux",
+        Dirichlet: "dirichlet",
+        Robin: "robin",
+      })
+      .name("w")
+      .onChange(setBCsEqs);
+  }
+  if (inGUI("dirichletW")) {
+    dirichletWController = root
+      .add(options, "dirichletW")
+      .name("w(boundary) = ")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("robinStrW")) {
+    robinWController = root
+      .add(options, "robinStrW")
+      .name("dw/dn = ")
       .onFinishChange(setRDEquations);
   }
 
@@ -766,6 +816,12 @@ function initGUI(startOpen) {
     clearValueVController = root
       .add(options, "clearValueV")
       .name("v on clear")
+      .onFinishChange(setClearShader);
+  }
+  if (inGUI("clearValueW")) {
+    clearValueWController = root
+      .add(options, "clearValueW")
+      .name("w on clear")
       .onFinishChange(setClearShader);
   }
   if (inGUI("preset")) {
@@ -1038,6 +1094,8 @@ function parseReactionStrings() {
   out += "float f = " + parseShaderString(options.reactionStrU) + ";\n";
   // Prepare the g string.
   out += "float g = " + parseShaderString(options.reactionStrV) + ";\n";
+  // Prepare the w string.
+  out += "float h = " + parseShaderString(options.reactionStrW) + ";\n";
 
   return out;
 }
@@ -1047,11 +1105,13 @@ function parseShaderString(str) {
   // Pad the string.
   str = " " + str + " ";
 
-  // Replace u and v with uv.r and uv.g via placeholders.
+  // Replace u, v, and w with uvw.r, uvw.g, and uvw.b via placeholders.
   str = str.replace(/u/g, "U");
   str = str.replace(/v/g, "V");
-  str = str.replace(/U/g, "uv." + speciesToChannelChar("u"));
-  str = str.replace(/V/g, "uv." + speciesToChannelChar("v"));
+  str = str.replace(/w/g, "W");
+  str = str.replace(/U/g, "uvw." + speciesToChannelChar("u"));
+  str = str.replace(/V/g, "uvw." + speciesToChannelChar("v"));
+  str = str.replace(/W/g, "uvw." + speciesToChannelChar("w"));
 
   // Replace integers with floats.
   while (str != (str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3")));
@@ -1079,6 +1139,9 @@ function setRDEquations() {
   if (options.boundaryConditionsV == "noflux") {
     noFluxSpecies += "v";
   }
+  if (options.boundaryConditionsW == "noflux") {
+    noFluxSpecies += "w";
+  }
 
   // Create Dirichlet shaders.
   if (options.boundaryConditionsU == "dirichlet") {
@@ -1093,6 +1156,12 @@ function setRDEquations() {
       parseShaderString(options.dirichletV) +
       ";\n}\n";
   }
+  if (options.boundaryConditionsW == "dirichlet") {
+    dirichletShader +=
+      selectSpeciesInShaderStr(RDShaderDirichlet(), "w") +
+      parseShaderString(options.dirichletW) +
+      ";\n}\n";
+  }
 
   // Create a Robin shader block for each species separately.
   if (options.boundaryConditionsU == "robin") {
@@ -1104,6 +1173,11 @@ function setRDEquations() {
     robinShader += parseRobinRHS(options.robinStrV, "SPECIES");
     robinShader += RDShaderRobin();
     robinShader = selectSpeciesInShaderStr(robinShader, "v");
+  }
+  if (options.boundaryConditionsW == "robin") {
+    robinShader += parseRobinRHS(options.robinStrW, "SPECIES");
+    robinShader += RDShaderRobin();
+    robinShader = selectSpeciesInShaderStr(robinShader, "w");
   }
 
   // Insert any user-defined kinetic parameters, given as a string that needs parsing.
@@ -1233,40 +1307,82 @@ function deleteGUI(folder) {
     }
   }
 }
+
 function setNumberOfSpecies() {
   switch (parseInt(options.numSpecies)) {
     case 1:
-      //Ensure that u is being displayed on the screen (and the brush target).
+      // Ensure that u is being displayed on the screen (and the brush target).
       options.whatToPlot = "u";
       updateWhatToPlot();
 
-      // Set the diffusion of v to zero to prevent it causing numerical instability.
+      // Set the diffusion of v and w to zero to prevent them from causing numerical instability.
       options.diffusionV = 0;
+      options.diffusionW = 0;
 
-      // Set v to be periodic to reduce computational overhead.
+      // Set v and w to be periodic to reduce computational overhead.
       options.boundaryConditionsV = "periodic";
       options.clearValueV = "0";
       options.reactionStrV = "0";
+      options.boundaryConditionsW = "periodic";
+      options.clearValueW = "0";
+      options.reactionStrW = "0";
       updateUniforms();
 
-      // Hide GUI panels related to v.
+      // Hide GUI panels related to v and w.
       hideVGUIPanels();
+      hideWGUIPanels();
 
-      // Remove references to v in labels.
+      // Remove references to v and w in labels.
       if (fController != undefined) {
         fController.name("f(u)");
       }
 
       break;
     case 2:
-      // Show GUI panels related to v.
-      showVGUIPanels();
+      // Ensure that u or v is being displayed on the screen (and the brush target).
+      if (options.whatToDraw == "w") {
+        options.whatToDraw == "u";
+      }
+      if (options.whatToPlot == "w") {
+        options.whatToPlot == "u";
+      }
 
-      // Ensure correct references to v in labels are present.
+      // Set the diffusion of w to zero to prevent it from causing numerical instability.
+      options.diffusionW = 0;
+
+      // Set w to be periodic to reduce computational overhead.
+      options.boundaryConditionsW = "periodic";
+      options.clearValueW = "0";
+      options.reactionStrW = "0";
+      updateUniforms();
+
+      // Show GUI panels related to v, and hide those related to w.
+      showVGUIPanels();
+      hideWGUIPanels();
+
+      // Ensure correct references to v and w in labels are present.
       if (fController != undefined) {
         fController.name("f(u,v)");
       }
+      if (gController != undefined) {
+        gController.name("g(u,v)");
+      }
       break;
+    case 3:
+      // Show GUI panels related to v and w.
+      showVGUIPanels();
+      showWGUIPanels();
+
+      // Ensure correct references to v and w in labels are present.
+      if (fController != undefined) {
+        fController.name("f(u,v,w)");
+      }
+      if (gController != undefined) {
+        gController.name("g(u,v,w)");
+      }
+      if (hController != undefined) {
+        hController.name("h(u,v,w)");
+      }
   }
   refreshGUI(gui);
 }
@@ -1311,6 +1427,9 @@ function speciesToChannelInd(speciesStr) {
   if (speciesStr.includes("v")) {
     channel = 1;
   }
+  if (speciesStr.includes("w")) {
+    channel = 2;
+  }
   return channel;
 }
 
@@ -1329,6 +1448,11 @@ function setBCsEqs() {
   } else {
     hideGUIController(dirichletVController);
   }
+  if (options.boundaryConditionsW == "dirichlet") {
+    showGUIController(dirichletWController);
+  } else {
+    hideGUIController(dirichletWController);
+  }
 
   if (options.boundaryConditionsU == "robin") {
     showGUIController(robinUController);
@@ -1340,12 +1464,17 @@ function setBCsEqs() {
   } else {
     hideGUIController(robinVController);
   }
+  if (options.boundaryConditionsW == "robin") {
+    showGUIController(robinWController);
+  } else {
+    hideGUIController(robinWController);
+  }
 }
 
 function setTimestepForCFL() {
   if (options.setTimestepForStability) {
     let CFLValue =
-      Math.max(options.diffusionU, options.diffusionV) /
+      Math.max(options.diffusionU, options.diffusionV, options.diffusionW) /
       options.spatialStep ** 2;
     // We decrease dt so that it satisfies the CFL condition for the pure diffusion condition.
     // However, as the inhomogeneity seems to reduce stability, we conservatively take twice as
@@ -1371,6 +1500,7 @@ function setClearShader() {
   }
   shaderStr += "float u = " + parseShaderString(options.clearValueU) + ";\n";
   shaderStr += "float v = " + parseShaderString(options.clearValueV) + ";\n";
+  shaderStr += "float w = " + parseShaderString(options.clearValueW) + ";\n";
   shaderStr += clearShaderBot();
   clearMaterial.fragmentShader = shaderStr;
   clearMaterial.needsUpdate = true;
@@ -1426,11 +1556,25 @@ function showVGUIPanels() {
   showGUIController(vBCsController);
 }
 
+function showWGUIPanels() {
+  showGUIController(DwController);
+  showGUIController(hController);
+  showGUIController(clearValueWController);
+  showGUIController(wBCsController);
+}
+
 function hideVGUIPanels() {
   hideGUIController(DvController);
   hideGUIController(gController);
   hideGUIController(clearValueVController);
   hideGUIController(vBCsController);
+}
+
+function hideWGUIPanels() {
+  hideGUIController(DwController);
+  hideGUIController(hController);
+  hideGUIController(clearValueWController);
+  hideGUIController(wBCsController);
 }
 
 function diffObjects(o1, o2) {
@@ -1470,4 +1614,5 @@ function evaluateDiffusionStr(str) {
 function updateDiffusionCoeffs() {
   options.diffusionU = evaluateDiffusionStr(options.diffusionUStr);
   options.diffusionV = evaluateDiffusionStr(options.diffusionVStr);
+  options.diffusionW = evaluateDiffusionStr(options.diffusionWStr);
 }
