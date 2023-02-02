@@ -789,14 +789,20 @@ function initGUI(startOpen) {
     minColourValueController = root
       .add(options, "minColourValue")
       .name("Min value")
-      .onChange(updateUniforms);
+      .onChange(function () {
+        updateUniforms();
+        render();
+      });
     minColourValueController.__precision = 2;
   }
   if (inGUI("maxColourValue")) {
     maxColourValueController = root
       .add(options, "maxColourValue")
       .name("Max value")
-      .onChange(updateUniforms);
+      .onChange(function () {
+        updateUniforms();
+        render();
+      });
     maxColourValueController.__precision = 2;
   }
   if (inGUI("autoMinMaxColourRange")) {
