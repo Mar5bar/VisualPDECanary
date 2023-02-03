@@ -53,7 +53,8 @@ import {
   drawShaderTop,
 } from "./drawing_shaders.js";
 import {
-  computeDisplayFunShader,
+  computeDisplayFunShaderTop,
+  computeDisplayFunShaderBot,
   computeMaxSpeciesShader,
 } from "./post_shaders.js";
 import { copyShader } from "../copy_shader.js";
@@ -670,7 +671,11 @@ function initGUI(startOpen) {
     root
       .add(options, "kineticParams")
       .name("Kinetic params")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setClearShader();
+        setPostFunFragShader();
+      });
   }
 
   // Boundary conditions folder.
@@ -959,9 +964,7 @@ function setDisplayColourAndType() {
     uniforms.colour4.value = new THREE.Vector4(0.75, 0.75, 0.75, 0.75);
     uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 1);
     displayMaterial.fragmentShader = fiveColourDisplay();
-    postMaterial.fragmentShader = setDisplayFunInShader(
-      computeDisplayFunShader()
-    );
+    setPostFunFragShader();
   } else if (options.colourmap == "BlackGreenYellowRedWhite") {
     uniforms.colour1.value = new THREE.Vector4(0, 0, 0.0, 0);
     uniforms.colour2.value = new THREE.Vector4(0, 1, 0, 0.25);
@@ -969,9 +972,7 @@ function setDisplayColourAndType() {
     uniforms.colour4.value = new THREE.Vector4(1, 0, 0, 0.75);
     uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 1.0);
     displayMaterial.fragmentShader = fiveColourDisplay();
-    postMaterial.fragmentShader = setDisplayFunInShader(
-      computeDisplayFunShader()
-    );
+    setPostFunFragShader();
   } else if (options.colourmap == "viridis") {
     uniforms.colour1.value = new THREE.Vector4(0.267, 0.0049, 0.3294, 0.0);
     uniforms.colour2.value = new THREE.Vector4(0.2302, 0.3213, 0.5455, 0.25);
@@ -979,9 +980,7 @@ function setDisplayColourAndType() {
     uniforms.colour4.value = new THREE.Vector4(0.3629, 0.7867, 0.3866, 0.75);
     uniforms.colour5.value = new THREE.Vector4(0.9932, 0.9062, 0.1439, 1.0);
     displayMaterial.fragmentShader = fiveColourDisplay();
-    postMaterial.fragmentShader = setDisplayFunInShader(
-      computeDisplayFunShader()
-    );
+    setPostFunFragShader();
   } else if (options.colourmap == "turbo") {
     uniforms.colour1.value = new THREE.Vector4(0.19, 0.0718, 0.2322, 0.0);
     uniforms.colour2.value = new THREE.Vector4(0.1602, 0.7332, 0.9252, 0.25);
@@ -989,11 +988,10 @@ function setDisplayColourAndType() {
     uniforms.colour4.value = new THREE.Vector4(0.9853, 0.5018, 0.1324, 0.75);
     uniforms.colour5.value = new THREE.Vector4(0.4796, 0.01583, 0.01055, 1.0);
     displayMaterial.fragmentShader = fiveColourDisplay();
-    postMaterial.fragmentShader = setDisplayFunInShader(
-      computeDisplayFunShader()
-    );
+    setPostFunFragShader();
   }
   displayMaterial.needsUpdate = true;
+  postMaterial.needsUpdate = true;
   render();
 }
 
@@ -1544,6 +1542,15 @@ function setClearShader() {
   ) {
     shaderStr += randShader();
   }
+  // Insert any user-defined kinetic parameters, given as a string that needs parsing.
+  // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
+  // We'll inject this shader string before any boundary conditions etc, so that these params
+  // are also available in BCs.
+  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
+  let kineticStr = parseShaderString(
+    options.kineticParams.replace(regex, "float $1;\n")
+  );
+  shaderStr += kineticStr;
   shaderStr += "float u = " + parseShaderString(options.clearValueU) + ";\n";
   shaderStr += "float v = " + parseShaderString(options.clearValueV) + ";\n";
   shaderStr += "float w = " + parseShaderString(options.clearValueW) + ";\n";
@@ -1581,22 +1588,16 @@ function createImageController() {
 
 function updateWhatToPlot() {
   if (options.whatToPlot == "MAX") {
-    postMaterial.fragmentShader = computeMaxSpeciesShader();
-    options.minColourValue = 0.0;
-    options.maxColourValue = 1.0;
-    updateUniforms();
+    setPostFunMaxFragShader();
     hideGUIController(minColourValueController);
     hideGUIController(maxColourValueController);
     hideGUIController(autoMinMaxColourRangeController);
   } else {
-    postMaterial.fragmentShader = setDisplayFunInShader(
-      computeDisplayFunShader()
-    );
+    setPostFunFragShader();
     showGUIController(minColourValueController);
     showGUIController(maxColourValueController);
     showGUIController(autoMinMaxColourRangeController);
   }
-  postMaterial.needsUpdate = true;
   render();
 }
 
@@ -1675,4 +1676,24 @@ function updateDiffusionCoeffs() {
   options.diffusionU = evaluateDiffusionStr(options.diffusionUStr);
   options.diffusionV = evaluateDiffusionStr(options.diffusionVStr);
   options.diffusionW = evaluateDiffusionStr(options.diffusionWStr);
+}
+
+function setPostFunFragShader() {
+  let shaderStr = computeDisplayFunShaderTop();
+  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
+  let kineticStr = parseShaderString(
+    options.kineticParams.replace(regex, "float $1;\n")
+  );
+  shaderStr += kineticStr;
+  shaderStr += computeDisplayFunShaderBot();
+  postMaterial.fragmentShader = setDisplayFunInShader(shaderStr);
+  postMaterial.needsUpdate = true;
+}
+
+function setPostFunMaxFragShader() {
+  postMaterial.fragmentShader = computeMaxSpeciesShader();
+  postMaterial.needsUpdate = true;
+  options.minColourValue = 0.0;
+  options.maxColourValue = 1.0;
+  updateUniforms();
 }
