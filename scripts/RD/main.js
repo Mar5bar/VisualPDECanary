@@ -147,7 +147,6 @@ animate();
 //---------------
 
 function init() {
-  isRunning = true;
   isDrawing = false;
 
   // Create a renderer.
@@ -1260,6 +1259,9 @@ function loadPreset(preset) {
     // Refresh the whole gui.
     refreshGUI(gui);
   }
+  
+  // Compute any derived values.
+  updateDiffusionCoeffs();
 
   // Trigger a resize, which will refresh all uniforms and set sizes.
   resize();
@@ -1314,9 +1316,6 @@ function loadOptions(preset) {
 
   // Set a flag if we will be showing all tools.
   setShowAllToolsFlag();
-
-  // Compute any derived values.
-  updateDiffusionCoeffs();
 }
 
 function refreshGUI(folder) {
