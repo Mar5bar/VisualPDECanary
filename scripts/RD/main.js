@@ -98,6 +98,11 @@ funsObj = {
   copyConfigAsJSON: function () {
     let objDiff = diffObjects(options, getPreset("default"));
     objDiff.preset = "PRESETNAME";
+    if (objDiff.hasOwnProperty("kineticParams")) {
+      // If kinetic params have been specified, replace any commas with semicolons
+      // to allow for pretty formatting of the JSON.
+      objDiff.kineticParams = objDiff.kineticParams.replaceAll(",", ";");
+    }
     let str = JSON.stringify(objDiff)
       .replaceAll(",", ",\n\t")
       .replaceAll(":", ": ")
@@ -1215,10 +1220,10 @@ function setRDEquations() {
   }
 
   // Insert any user-defined kinetic parameters, given as a string that needs parsing.
-  // Extract variable definitions, separated by semicolons only, ignoring whitespace.
+  // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
   // We'll inject this shader string before any boundary conditions etc, so that these params
   // are also available in BCs.
-  let regex = /[;\s]*(.+?)(?:$|[;])+/g;
+  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
   let kineticStr = parseShaderString(
     options.kineticParams.replace(regex, "float $1;\n")
   );
@@ -1316,6 +1321,9 @@ function loadOptions(preset) {
 
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
+
+  // Compute any derived values.
+  updateDiffusionCoeffs();
 }
 
 function refreshGUI(folder) {
