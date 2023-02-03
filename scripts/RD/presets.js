@@ -295,6 +295,7 @@ export function getPreset(id) {
         robinStrU: "0",
         robinStrV: "0",
         robinStrW: "0",
+        runningOnLoad: true,
         setTimestepForStability: false,
         showAllOptionsOverride: false,
         spatialStep: 1 / 200,

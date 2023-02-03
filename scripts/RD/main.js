@@ -1247,6 +1247,9 @@ function loadPreset(preset) {
 
   // Updates the values stored in options.
   loadOptions(preset);
+  
+  // Check if the simulation should be running on load.
+  isRunning = options.runningOnLoad;
 
   // Replace the GUI.
   deleteGUI(gui);
