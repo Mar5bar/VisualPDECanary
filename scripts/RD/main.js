@@ -12,7 +12,7 @@ let options, uniforms, funsObj;
 let gui,
   root,
   pauseButton,
-  clearButton,
+  resetButton,
   brushRadiusController,
   fController,
   gController,
@@ -75,9 +75,8 @@ import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 options = {};
 
 funsObj = {
-  clear: function () {
-    clearTextures();
-    uniforms.time.value = 0.0;
+  reset: function () {
+    resetSim();
   },
   pause: function () {
     if (isRunning) {
@@ -256,7 +255,7 @@ function init() {
   setClearShader();
 
   // Set the initial condition.
-  clearTextures();
+  resetSim();
 
   // Listen for pointer events.
   canvas.addEventListener("pointerdown", onDocumentPointerDown);
@@ -269,8 +268,8 @@ function init() {
     var targetTagName =
       target.nodeType == 1 ? target.nodeName.toUpperCase() : "";
     if (!/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
-      if (event.key === "c") {
-        funsObj.clear();
+      if (event.key === "r") {
+        funsObj.reset();
       }
       if (event.key === " ") {
         if (isRunning) {
@@ -488,7 +487,7 @@ function initGUI(startOpen) {
   } else {
     pauseButton.name("Play (space)");
   }
-  clearButton = gui.add(funsObj, "clear").name("Clear (c)");
+  resetButton = gui.add(funsObj, "reset").name("Reset (r)");
 
   if (inGUI("copyConfigAsURL")) {
     // Copy configuration as URL.
@@ -1117,6 +1116,11 @@ function playSim() {
   isRunning = true;
 }
 
+function resetSim() {
+  clearTextures();
+  uniforms.time.value = 0.0;
+}
+
 function parseReactionStrings() {
   // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
   let out = "";
@@ -1263,6 +1267,9 @@ function loadPreset(preset) {
   // Set the draw, display, and clear shaders.
   setDrawAndDisplayShaders();
   setClearShader();
+  
+  // Reset the state of the simulation.
+  resetSim();
 
   // To get around an annoying bug in dat.gui.image, in which the
   // controller doesn't update the value of the underlying property,
