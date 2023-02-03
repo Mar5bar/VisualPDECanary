@@ -1262,9 +1262,6 @@ function loadPreset(preset) {
     refreshGUI(gui);
   }
 
-  // Compute any derived values.
-  updateDiffusionCoeffs();
-
   // Trigger a resize, which will refresh all uniforms and set sizes.
   resize();
 
