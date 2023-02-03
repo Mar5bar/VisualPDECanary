@@ -822,19 +822,19 @@ function initGUI(startOpen) {
   if (inGUI("clearValueU")) {
     clearValueUController = root
       .add(options, "clearValueU")
-      .name("u on clear")
+      .name("Initial u")
       .onFinishChange(setClearShader);
   }
   if (inGUI("clearValueV")) {
     clearValueVController = root
       .add(options, "clearValueV")
-      .name("v on clear")
+      .name("Initial v")
       .onFinishChange(setClearShader);
   }
   if (inGUI("clearValueW")) {
     clearValueWController = root
       .add(options, "clearValueW")
-      .name("w on clear")
+      .name("Initial w")
       .onFinishChange(setClearShader);
   }
   if (inGUI("preset")) {
@@ -1246,9 +1246,6 @@ function loadPreset(preset) {
 
   // Updates the values stored in options.
   loadOptions(preset);
-  
-  // Check if the simulation should be running on load.
-  isRunning = options.runningOnLoad;
 
   // Replace the GUI.
   deleteGUI(gui);
@@ -1259,7 +1256,7 @@ function loadPreset(preset) {
     // Refresh the whole gui.
     refreshGUI(gui);
   }
-  
+
   // Compute any derived values.
   updateDiffusionCoeffs();
 
@@ -1272,7 +1269,7 @@ function loadPreset(preset) {
   // Set the draw, display, and clear shaders.
   setDrawAndDisplayShaders();
   setClearShader();
-  
+
   // Reset the state of the simulation.
   resetSim();
 
@@ -1316,6 +1313,9 @@ function loadOptions(preset) {
 
   // Set a flag if we will be showing all tools.
   setShowAllToolsFlag();
+
+  // Check if the simulation should be running on load.
+  isRunning = options.runningOnLoad;
 }
 
 function refreshGUI(folder) {
@@ -1583,8 +1583,7 @@ function updateWhatToPlot() {
     hideGUIController(minColourValueController);
     hideGUIController(maxColourValueController);
     hideGUIController(autoMinMaxColourRangeController);
-  }
-  else {
+  } else {
     postMaterial.fragmentShader = setDisplayFunInShader(
       computeDisplayFunShader()
     );
