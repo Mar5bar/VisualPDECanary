@@ -14,6 +14,7 @@ let gui,
   pauseButton,
   resetButton,
   brushRadiusController,
+  lockCFLController,
   fController,
   gController,
   hController,
@@ -610,7 +611,7 @@ function initGUI(startOpen) {
     dtController.updateDisplay();
   }
   if (inGUI("setTimestepForStability")) {
-    root
+    lockCFLController = root
       .add(options, "setTimestepForStability")
       .name("Lock CFL cond.")
       .onChange(setTimestepForCFL);
@@ -637,6 +638,13 @@ function initGUI(startOpen) {
       .onChange(function () {
         setNonConstantDiffusionGUI();
         setRDEquations();
+        if (!options.constantDiffusion) {
+          options.setTimestepForStability = false;
+          refreshGUI(gui);
+          hideGUIController(lockCFLController);
+        } else {
+          showGUIController(lockCFLController);
+        }
       });
   }
   // Du and Dv.
