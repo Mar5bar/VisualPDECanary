@@ -1571,9 +1571,11 @@ function setNumberOfSpecies() {
 
       // Set the diffusion of w to zero to prevent it from causing numerical instability.
       if (!options.constantDiffusion) {
-        options.nonconstantDiffusionStrUV = "0.0";
-        options.nonconstantDiffusionStrVU = "0.0";
-        options.nonconstantDiffusionStrVV = "0.0";
+        options.nonconstantDiffusionStrUW = "0.0";
+        options.nonconstantDiffusionStrVW = "0.0";
+        options.nonconstantDiffusionStrWU = "0.0";
+        options.nonconstantDiffusionStrWV = "0.0";
+        options.nonconstantDiffusionStrWW = "0.0";
       } else {
         options.diffusionW = 0;
       }
