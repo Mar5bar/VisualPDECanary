@@ -638,13 +638,6 @@ function initGUI(startOpen) {
       .onChange(function () {
         setNonConstantDiffusionGUI();
         setRDEquations();
-        if (!options.constantDiffusion) {
-          options.setTimestepForStability = false;
-          refreshGUI(gui);
-          hideGUIController(lockCFLController);
-        } else {
-          showGUIController(lockCFLController);
-        }
       });
   }
   // Du and Dv.
@@ -1918,6 +1911,14 @@ function setPostFunMaxFragShader() {
 }
 
 function setNonConstantDiffusionGUI() {
+  if (!options.constantDiffusion) {
+    options.setTimestepForStability = false;
+    refreshGUI(gui);
+    hideGUIController(lockCFLController);
+  } else {
+    showGUIController(lockCFLController);
+  }
+  
   switch (parseInt(options.numSpecies)) {
     case 1:
       if (!options.constantDiffusion) {
