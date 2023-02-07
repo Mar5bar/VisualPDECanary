@@ -262,6 +262,7 @@ export function getPreset(id) {
       break;
     default:
       options = {
+        autoSetColourRange: false,
         boundaryConditionsU: "periodic",
         boundaryConditionsV: "periodic",
         boundaryConditionsW: "periodic",

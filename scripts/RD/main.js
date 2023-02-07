@@ -35,7 +35,8 @@ let gui,
   whatToPlotController,
   minColourValueController,
   maxColourValueController,
-  autoMinMaxColourRangeController,
+  setColourRangeController,
+  autoSetColourRangeController,
   clearValueUController,
   clearValueVController,
   clearValueWController,
@@ -124,7 +125,7 @@ funsObj = {
     str = "case: PRESETNAME:\n\toptions = " + str + ";\nbreak;";
     navigator.clipboard.writeText(str);
   },
-  autoMinMaxColourRange: function () {
+  setColourRange: function () {
     let valRange = getMinMaxVal();
     if (valRange[0] == valRange[1]) {
       // If the range is just one value, add one to the second entry.
@@ -893,10 +894,21 @@ function initGUI(startOpen) {
       });
     maxColourValueController.__precision = 2;
   }
-  if (inGUI("autoMinMaxColourRange")) {
-    autoMinMaxColourRangeController = root
-      .add(funsObj, "autoMinMaxColourRange")
-      .name("Auto colour");
+  if (inGUI("setColourRange")) {
+    setColourRangeController = root
+      .add(funsObj, "setColourRange")
+      .name("Snap range");
+  }
+  if (inGUI("autoColourRangeButton")) {
+    autoSetColourRangeController = root
+      .add(options, "autoSetColourRange")
+      .name("Auto snap?")
+      .onChange(function () {
+        if (options.autoSetColourRange) {
+          funsObj.setColourRange();
+          render();
+        }
+      });
   }
 
   // Miscellaneous folder.
@@ -1132,6 +1144,11 @@ function timestep() {
 }
 
 function render() {
+  // If selected, set the colour range.
+  if (options.autoSetColourRange) {
+    funsObj.setColourRange();
+  }
+
   // Perform any postprocessing.
   if (readFromTextureB) {
     inTex = simTextureB;
@@ -1781,12 +1798,14 @@ function updateWhatToPlot() {
     setPostFunMaxFragShader();
     hideGUIController(minColourValueController);
     hideGUIController(maxColourValueController);
-    hideGUIController(autoMinMaxColourRangeController);
+    hideGUIController(setColourRangeController);
+    hideGUIController(autoSetColourRangeController);
   } else {
     setPostFunFragShader();
     showGUIController(minColourValueController);
     showGUIController(maxColourValueController);
-    showGUIController(autoMinMaxColourRangeController);
+    showGUIController(setColourRangeController);
+    showGUIController(autoSetColourRangeController);
   }
   render();
 }
@@ -1864,7 +1883,7 @@ function getMinMaxVal() {
   renderer.readRenderTargetPixels(postTexture, 0, 0, nXDisc, nYDisc, buffer);
   let minVal = Infinity;
   let maxVal = -Infinity;
-  for (let i = 0; i < buffer.length / 4; i += 4) {
+  for (let i = 0; i < buffer.length; i += 4) {
     minVal = Math.min(minVal, buffer[i]);
     maxVal = Math.max(maxVal, buffer[i]);
   }
@@ -1918,7 +1937,7 @@ function setNonConstantDiffusionGUI() {
   } else {
     showGUIController(lockCFLController);
   }
-  
+
   switch (parseInt(options.numSpecies)) {
     case 1:
       if (!options.constantDiffusion) {
