@@ -1,8 +1,7 @@
-.nav-button{
+a.nav-button{
     background-color: rgb(44, 151, 75);
     border-color: rgba(27, 31, 36, 0.15);
-    padding: 3px 12px;
-    font-size: 12px;
+    padding: 5px 16px;
     line-height: 20px;
     color: white;
     box-shadow:rgba(27, 31, 36, 0.1) 0px 1px 0px 0px,
@@ -13,4 +12,9 @@
     transition-property: color, background-color, box-shadow, border-color;
     border: 1px solid;
     border-radius: 6px;
+}
+
+a.nav-button:hover{
+    transition-duration: .1s;
+    text-decoration: none;
 }
