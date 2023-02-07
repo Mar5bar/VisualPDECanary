@@ -35,8 +35,6 @@ plugins:
 # Nav bar
 header_pages:
   - about.md
-  - title: Play!
-    url: /sim/  
 
 # Exclude from processing.
 # The following items will not be processed, by default.

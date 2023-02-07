@@ -4,6 +4,8 @@
 
 layout: page
 ---
+Interactive live solutions of PDE systems, right on your device.
+
 # Get started
 * [The heat equation](heat-equation)
 
