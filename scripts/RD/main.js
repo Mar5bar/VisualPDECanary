@@ -133,8 +133,10 @@ funsObj = {
     }
     options.minColourValue = valRange[0];
     options.maxColourValue = valRange[1];
-    updateUniforms();
-    refreshGUI(gui);
+    uniforms.maxColourValue.value = options.maxColourValue;
+    uniforms.minColourValue.value = options.minColourValue;
+    maxColourValueController.updateDisplay();
+    minColourValueController.updateDisplay();
   },
 };
 
