@@ -1,0 +1,19 @@
+<script type="text/javascript">
+    window.MathJax = {
+        loader: {
+            load: ['ui/menu', '[tex]/ams']
+        }
+    };
+    window.MathJax = {
+        tex: {
+            macros: {
+                pd: ["\\frac{\\partial #1}{\\partial #2}", 2],
+                pdd: ["\\frac{\\partial^2 #1}{\\partial #2^2}", 2],
+            }
+        }
+    };    
+</script>
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
