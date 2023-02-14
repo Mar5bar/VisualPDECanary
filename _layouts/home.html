@@ -9,12 +9,51 @@
 
     <div class="home-banner">
         <div class='home-banner-subtitle'>Interactive live solutions of PDE systems</div>
-        <br />
         <div class='home-banner-title'>right on your device.</div>
     </div>
     <main class="page-content" aria-label="Content">
       <div class="wrapper">
+
+        <!-- {% for item in site.collections %}
+          <a href="{{ item.url }}">{{ item.label }}</a><br />
+        {% endfor %} -->
+
         {{ content }}
+
+        <h2>Tutorials</h2>
+        <div class='home_tiles'>
+          <a class='home_tile' href='basic-pdes'>
+            <div class='container'>
+              <img src='/assets/images/heat-equation.png' />
+            </div>
+            <div class='container'>
+              <div class='title'>Basic PDEs</div>
+              <div class='subtitle'>Get stuck in with the heat equation</div>
+              <div class='button'>Browse</div>
+            </div>
+          </a>
+          <a class='home_tile' href='mathematical-biology'>
+            <div class='container'>
+              <img src='/assets/images/squirrel.png' />
+            </div>
+            <div class='container'>
+              <div class='title'>Mathematical biology</div>
+              <div class='subtitle'>Squirrels, waves and patterns</div>
+              <div class='button'>Browse</div>
+            </div>
+          </a>
+          <!-- <a class='home_tile' href='nonlinear-physics'>
+            <div class='container'>
+              <img src='/assets/images/optics.jpg' />
+            </div>
+            <div class='container'>
+              <div class='title'>Nonlinear physics</div>
+              <div class='subtitle'>Optics, QFT and the rest</div>
+              <div class='button'>Browse</div>
+            </div>
+          </a> -->
+        </div>
+
       </div>
     </main>
 

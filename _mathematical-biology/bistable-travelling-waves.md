@@ -1,7 +1,8 @@
 ---
 layout: page
-title: Logistic travelling waves
-permalink: /bistable-travelling-waves/
+title: Bistable travelling waves
+# permalink: /bistable-travelling-waves/
+lesson_number: 30
 ---
 TODO MAKE THIS
 

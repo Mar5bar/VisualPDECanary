@@ -4,27 +4,8 @@
 
 layout: home
 ---
-## Get started
-<a class='home_tile' href='heat-equation'>
-    ![](/assets/images/heat-equation.png)
-    The heat equation<br />
-    $\pd{u}{t} = \nabla^2 u$
-</a>
 
-## Logistic growth: invasion wavespeeds and boundary-induced extinction
-<a class='home_tile' href='travelling-waves'>
-    ![](/assets/images/travelling-waves.png)
-    Logistic travelling waves<br />
-    $\pd{u}{t} = \nabla^2 u + ru\left(1-\frac{u}{K}\right)$
-</a>
-<a class='home_tile' href='harsh-environment'>
-    ![](/assets/images/harsh-environment.png)
-    Survival in a harsh environment<br />
-    $\pd{u}{t} = \nabla^2 u + ru\left(1-\frac{u}{K}\right)$
-</a>
+See the solution to your PDE evolve before your eyes. Paint the canvas with initial conditions and see what happens.
 
-## Thresholds and bistability in space
-* [Threshold simulation](bistable-thresholds)
-* Spatial homogeneity localises patterns
-* Turing localisation on Turing's face
+Follow a tutorial below or provide your own PDE.
 

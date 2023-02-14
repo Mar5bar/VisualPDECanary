@@ -1,11 +1,14 @@
 ---
 layout: page
 title: Get started with the heat equation
-permalink: /heat-equation/
+lesson_number: 10
+thumbnail: /assets/images/heat-equation.png
+extract: Let's see how heat diffuses over time
+equation: $\pd{u}{t}=D \nabla^2 u$
 ---
 Let's start by solving the [heat equation](https://en.wikipedia.org/wiki/Heat_equation),
 
-$$\pd{u}{t}=\nabla^2 u,$$
+$$\pd{u}{t}=D \nabla^2 u,$$
 
 with homogeneous Neumann (aka no-flux) boundary conditions.
 

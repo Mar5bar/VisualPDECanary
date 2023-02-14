@@ -1,7 +1,9 @@
 ---
 layout: page
 title: Survival in a harsh environment
-permalink: /harsh-environment/
+lesson_number: 20
+thumbnail: /assets/images/harsh-environment.png
+equation: $\pd{u}{t}=\nabla^2 u+ru\left(1-\frac{u}{K}\right)$ with no-flux boundary conditions
 ---
 We'll continue studying the logistic reaction-diffusion model,
 

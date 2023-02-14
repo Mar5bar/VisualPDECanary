@@ -36,6 +36,22 @@ plugins:
 header_pages:
   - about.md
 
+collections:
+  basic-pdes:
+    output: true
+    title: Basic PDEs
+  mathematical-biology:
+    output: true
+    title: Mathematical biology
+
+defaults:
+  -
+    scope:
+      path: ""
+      type: "mathematical-biology" # a collection in your site, in plural form
+    values:
+      thumbnail: "/assets/images/squirrel.png"
+
 # Exclude from processing.
 # The following items will not be processed, by default.
 # Any item listed under the `exclude:` key here will be automatically added to

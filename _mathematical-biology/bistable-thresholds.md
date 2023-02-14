@@ -1,7 +1,9 @@
 ---
 layout: page
 title: Bistable thresholds
-permalink: /bistable-thresholds/
+lesson_number: 40
+extract: a cubic reaction–diffusion system which exhibits several phenomena
+equation: $\pd{u}{t}=\nabla^2 u+u(1-u)(u-a)$
 ---
 We'll continue studying a cubic reaction–diffusion system which exhibits several phenomena involving bistability:
 

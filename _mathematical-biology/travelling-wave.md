@@ -1,9 +1,12 @@
 ---
 layout: page
 title: Logistic travelling waves
-permalink: /travelling-waves/
+lesson_number: 10
+thumbnail: /assets/images/travelling-waves.png
+extract: Diffusion plus logistic? What could go wrong? 
+equation: $\pd{u}{t}=\nabla^2 u+ru\left(1-\frac{u}{K}\right)$ with periodic boundary conditions
 ---
-Next we'll consider a classical reaction–diffusion equation, with a logistic nonlinearity. This is often referred to as the [Fisher–KPP equation]([https://en.wikipedia.org/wiki/Heat_equation](https://en.wikipedia.org/wiki/Fisher%27s_equation)),
+Next we'll consider a classical reaction–diffusion equation, with a logistic nonlinearity. This is often referred to as the [Fisher–KPP equation](https://en.wikipedia.org/wiki/Fisher%27s_equation),
 
 $$\pd{u}{t}=\nabla^2 u+ru\left(1-\frac{u}{K}\right),$$
 
