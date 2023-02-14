@@ -299,9 +299,6 @@ function init() {
           playSim();
         }
       }
-      if (event.key === "s") {
-        funsObj.copyConfig();
-      }
     }
   });
 
@@ -512,12 +509,12 @@ function initGUI(startOpen) {
 
   if (inGUI("copyConfigAsURL")) {
     // Copy configuration as URL.
-    gui.add(funsObj, "copyConfigAsURL").name("Copy setup URL (s)");
+    gui.add(funsObj, "copyConfigAsURL").name("Link (URL)");
   }
 
   if (inGUI("copyConfigAsJSON")) {
     // Copy configuration as raw JSON.
-    gui.add(funsObj, "copyConfigAsJSON").name("Copy setup JSON");
+    gui.add(funsObj, "copyConfigAsJSON").name("Link (JSON)");
   }
 
   if (startOpen != undefined && startOpen) {
@@ -750,7 +747,7 @@ function initGUI(startOpen) {
   if (inGUI("kineticParams")) {
     root
       .add(options, "kineticParams")
-      .name("Kinetic params")
+      .name("Parameters")
       .onFinishChange(function () {
         setRDEquations();
         setClearShader();
