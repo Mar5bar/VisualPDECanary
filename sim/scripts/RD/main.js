@@ -80,7 +80,7 @@ import {
   RDShaderUpdateCross,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
-import { fiveColourDisplay, largestSpeciesShader } from "./display_shaders.js";
+import { fiveColourDisplay } from "./display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
