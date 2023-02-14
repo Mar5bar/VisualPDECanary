@@ -299,9 +299,6 @@ function init() {
           playSim();
         }
       }
-      if (event.key === "s") {
-        funsObj.copyConfig();
-      }
     }
   });
 
