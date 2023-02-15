@@ -14,10 +14,10 @@ let gui,
   pauseButton,
   resetButton,
   brushRadiusController,
-  lockCFLController,
   fController,
   gController,
   hController,
+  crossDiffusionController,
   DuuController,
   DuvController,
   DuwController,
@@ -27,9 +27,6 @@ let gui,
   DwuController,
   DwvController,
   DwwController,
-  DuController,
-  DvController,
-  DwController,
   dtController,
   whatToDrawController,
   whatToPlotController,
@@ -76,7 +73,7 @@ import {
   RDShaderDirichlet,
   RDShaderNoFlux,
   RDShaderRobin,
-  RDShaderUpdate,
+  RDShaderUpdateNormal,
   RDShaderUpdateCross,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
@@ -266,7 +263,7 @@ function init() {
 
   // Show/hide any GUI elements based on current options.
   setNumberOfSpecies();
-  setNonConstantDiffusionGUI();
+  setCrossDiffusionGUI();
 
   // Set the size of the domain and related parameters.
   resize();
@@ -331,11 +328,9 @@ function updateUniforms() {
   uniforms.domainHeight.value = domainHeight;
   uniforms.domainWidth.value = domainWidth;
   uniforms.dt.value = options.dt;
-  uniforms.Du.value = options.diffusionU;
-  uniforms.Dv.value = options.diffusionV;
-  uniforms.Dw.value = options.diffusionW;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
+  uniforms.L.value = options.domainScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
   if (!options.fixRandSeed) {
@@ -443,19 +438,6 @@ function initUniforms() {
       type: "f",
       value: 0.01,
     },
-    // Diffusion coefficients.
-    Du: {
-      type: "f",
-      value: 0.000004,
-    },
-    Dv: {
-      type: "f",
-      value: 0.000002,
-    },
-    Dw: {
-      type: "f",
-      value: 0.000002,
-    },
     // Discrete step sizes in the texture, which will be set later.
     dx: {
       type: "f",
@@ -465,6 +447,9 @@ function initUniforms() {
     },
     imageSource: {
       type: "t",
+    },
+    L: {
+      type: "f",
     },
     maxColourValue: {
       type: "f",
@@ -580,7 +565,6 @@ function initGUI(startOpen) {
       .add(options, "spatialStep")
       .name("Space step")
       .onChange(function () {
-        setTimestepForCFL();
         resize();
       })
       .onFinishChange(roundBrushSizeToPix);
@@ -603,18 +587,11 @@ function initGUI(startOpen) {
       .add(options, "dt")
       .name("Timestep")
       .onChange(function () {
-        setTimestepForCFL();
         updateUniforms();
       });
     dtController.__precision = 12;
     dtController.min(0);
     dtController.updateDisplay();
-  }
-  if (inGUI("setTimestepForStability")) {
-    lockCFLController = root
-      .add(options, "setTimestepForStability")
-      .name("Lock CFL cond.")
-      .onChange(setTimestepForCFL);
   }
 
   // Equations folder.
@@ -631,97 +608,66 @@ function initGUI(startOpen) {
       .onChange(setNumberOfSpecies);
   }
   // Number of species.
-  if (inGUI("constantDiffusion")) {
-    root
-      .add(options, "constantDiffusion")
-      .name("Const. D?")
+  if (inGUI("crossDiffusion")) {
+    crossDiffusionController = root
+      .add(options, "crossDiffusion")
+      .name("Cross diffusion?")
       .onChange(function () {
-        setNonConstantDiffusionGUI();
+        setCrossDiffusionGUI();
         setRDEquations();
       });
   }
-  // Du and Dv.
-  if (inGUI("diffusionUStr")) {
-    DuController = root
-      .add(options, "diffusionUStr")
-      .name("D<sub>u<sub>")
-      .onFinishChange(function () {
-        updateDiffusionCoeffs();
-        setTimestepForCFL();
-        updateUniforms();
-      });
-  }
-  if (inGUI("diffusionVStr")) {
-    DvController = root
-      .add(options, "diffusionVStr")
-      .name("D<sub>v<sub>")
-      .onFinishChange(function () {
-        updateDiffusionCoeffs();
-        setTimestepForCFL();
-        updateUniforms();
-      });
-  }
-  if (inGUI("diffusionWStr")) {
-    DwController = root
-      .add(options, "diffusionWStr")
-      .name("D<sub>w<sub>")
-      .onFinishChange(function () {
-        updateDiffusionCoeffs();
-        setTimestepForCFL();
-        updateUniforms();
-      });
-  }
-  if (inGUI("nonconstantDiffusionStrUU")) {
+  if (inGUI("diffusionStrUU")) {
     DuuController = root
-      .add(options, "nonconstantDiffusionStrUU")
+      .add(options, "diffusionStrUU")
       .name("D<sub>uu<sub>")
       .onFinishChange(setRDEquations);
   }
-  if (inGUI("nonconstantDiffusionStrUV")) {
+  if (inGUI("diffusionStrUV")) {
     DuvController = root
-      .add(options, "nonconstantDiffusionStrUV")
+      .add(options, "diffusionStrUV")
       .name("D<sub>uv<sub>")
       .onFinishChange(setRDEquations);
   }
-  if (inGUI("nonconstantDiffusionStrUW")) {
+  if (inGUI("diffusionStrUW")) {
     DuwController = root
-      .add(options, "nonconstantDiffusionStrUW")
+      .add(options, "diffusionStrUW")
       .name("D<sub>uw<sub>")
       .onFinishChange(setRDEquations);
   }
-  if (inGUI("nonconstantDiffusionStrVU")) {
+  if (inGUI("diffusionStrVU")) {
     DvuController = root
-      .add(options, "nonconstantDiffusionStrVU")
+      .add(options, "diffusionStrVU")
       .name("D<sub>vu<sub>")
       .onFinishChange(setRDEquations);
   }
-  if (inGUI("nonconstantDiffusionStrVV")) {
+  if (inGUI("diffusionStrVV")) {
     DvvController = root
-      .add(options, "nonconstantDiffusionStrVV")
+      .add(options, "diffusionStrVV")
       .name("D<sub>vv<sub>")
       .onFinishChange(setRDEquations);
   }
-  if (inGUI("nonconstantDiffusionStrVW")) {
+  if (inGUI("diffusionStrVW")) {
     DvwController = root
-      .add(options, "nonconstantDiffusionStrVW")
+      .add(options, "diffusionStrVW")
       .name("D<sub>vw<sub>")
       .onFinishChange(setRDEquations);
   }
-  if (inGUI("nonconstantDiffusionStrWU")) {
+  if (inGUI("diffusionStrWU")) {
     DwuController = root
-      .add(options, "nonconstantDiffusionStrWU")
+      .add(options, "diffusionStrWU")
       .name("D<sub>wu<sub>")
       .onFinishChange(setRDEquations);
   }
-  if (inGUI("nonconstantDiffusionStrWV")) {
+  if (inGUI("diffusionStrWV")) {
     DwvController = root
-      .add(options, "nonconstantDiffusionStrWV")
+      .add(options, "diffusionStrWV")
       .name("D<sub>wv<sub>")
       .onFinishChange(setRDEquations);
   }
-  if (inGUI("nonconstantDiffusionStrWW")) {
+  if (inGUI("diffusionStrWW")) {
     DwwController = root
-      .add(options, "nonconstantDiffusionStrWW")
+      .add(options, "diffusionStrWW")
       .name("D<sub>ww<sub>")
       .onFinishChange(setRDEquations);
   }
@@ -1230,68 +1176,75 @@ function parseReactionStrings() {
   return out;
 }
 
-function parseCrossDiffusionStrings() {
+function parseNormalDiffusionStrings() {
   // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
   let out = "";
 
   // Prepare Duu, evaluating it at five points.
-  out += constantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.nonconstantDiffusionStrUU) + ";\n",
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrUU) + ";\n",
     "uu"
   );
 
-  // Prepare Duv, evaluating it at five points.
-  out += constantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.nonconstantDiffusionStrUV) + ";\n",
-    "uv"
-  );
-
-  // Prepare Duw, evaluating it at five points.
-  out += constantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.nonconstantDiffusionStrUW) + ";\n",
-    "uw"
-  );
-
-  // Prepare Dvu, evaluating it at five points.
-  out += constantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.nonconstantDiffusionStrVU) + ";\n",
-    "vu"
-  );
-
   // Prepare Dvv, evaluating it at five points.
-  out += constantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.nonconstantDiffusionStrVV) + ";\n",
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrVV) + ";\n",
     "vv"
   );
 
-  // Prepare Dvw, evaluating it at five points.
-  out += constantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.nonconstantDiffusionStrVW) + ";\n",
-    "vw"
-  );
-
-  // Prepare Dwu, evaluating it at five points.
-  out += constantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.nonconstantDiffusionStrWU) + ";\n",
-    "wu"
-  );
-
-  // Prepare Dwv, evaluating it at five points.
-  out += constantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.nonconstantDiffusionStrWV) + ";\n",
-    "wv"
-  );
-
   // Prepare Dww, evaluating it at five points.
-  out += constantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.nonconstantDiffusionStrWW) + ";\n",
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrWW) + ";\n",
     "ww"
   );
 
   return out;
 }
 
-function constantDiffusionEvaluateInSpaceStr(str, label) {
+function parseCrossDiffusionStrings() {
+  // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
+  let out = "";
+
+  // Prepare Duv, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrUV) + ";\n",
+    "uv"
+  );
+
+  // Prepare Duw, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrUW) + ";\n",
+    "uw"
+  );
+
+  // Prepare Dvu, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrVU) + ";\n",
+    "vu"
+  );
+
+  // Prepare Dvw, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrVW) + ";\n",
+    "vw"
+  );
+
+  // Prepare Dwu, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrWU) + ";\n",
+    "wu"
+  );
+
+  // Prepare Dwv, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrWV) + ";\n",
+    "wv"
+  );
+
+  return out;
+}
+
+function nonConstantDiffusionEvaluateInSpaceStr(str, label) {
   let out = "";
   let xRegex = /(?![^x])*x(?=[^x])*/g;
   let yRegex = /(?![^y])*y(?=[^y])*/g;
@@ -1395,10 +1348,11 @@ function setRDEquations() {
   );
 
   // Choose what sort of update we are doing: normal, or cross-diffusion enabled?
-  if (!options.constantDiffusion) {
-    updateShader = parseCrossDiffusionStrings() + "\n" + RDShaderUpdateCross();
+  updateShader = parseNormalDiffusionStrings() + "\n";
+  if (options.crossDiffusion) {
+    updateShader += parseCrossDiffusionStrings() + "\n" + RDShaderUpdateCross();
   } else {
-    updateShader = RDShaderUpdate();
+    updateShader += RDShaderUpdateNormal();
   }
 
   simMaterial.fragmentShader = [
@@ -1430,7 +1384,7 @@ function loadPreset(preset) {
   initGUI();
 
   setNumberOfSpecies();
-  setNonConstantDiffusionGUI();
+  setCrossDiffusionGUI();
   if (gui != undefined) {
     // Refresh the whole gui.
     refreshGUI(gui);
@@ -1492,9 +1446,6 @@ function loadOptions(preset) {
 
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
-
-  // Compute any derived values.
-  updateDiffusionCoeffs();
 }
 
 function refreshGUI(folder) {
@@ -1536,19 +1487,14 @@ function setNumberOfSpecies() {
       updateWhatToPlot();
 
       // Set the diffusion of v and w to zero to prevent them from causing numerical instability.
-      if (!options.constantDiffusion) {
-        options.nonconstantDiffusionStrUV = "0.0";
-        options.nonconstantDiffusionStrUW = "0.0";
-        options.nonconstantDiffusionStrVU = "0.0";
-        options.nonconstantDiffusionStrVV = "0.0";
-        options.nonconstantDiffusionStrVW = "0.0";
-        options.nonconstantDiffusionStrWU = "0.0";
-        options.nonconstantDiffusionStrWV = "0.0";
-        options.nonconstantDiffusionStrWW = "0.0";
-      } else {
-        options.diffusionV = 0;
-        options.diffusionW = 0;
-      }
+      options.diffusionStrUV = "0";
+      options.diffusionStrUW = "0";
+      options.diffusionStrVU = "0";
+      options.diffusionStrVV = "0";
+      options.diffusionStrVW = "0";
+      options.diffusionStrWU = "0";
+      options.diffusionStrWV = "0";
+      options.diffusionStrWW = "0";
 
       // Set v and w to be periodic to reduce computational overhead.
       options.boundaryConditionsV = "periodic";
@@ -1562,6 +1508,10 @@ function setNumberOfSpecies() {
       // Hide GUI panels related to v and w.
       hideVGUIPanels();
       hideWGUIPanels();
+
+      // Hide cross-diffusion toggle.
+      options.crossDiffusion = false;
+      hideGUIController(crossDiffusionController);
 
       // Remove references to v and w in labels.
       if (fController != undefined) {
@@ -1579,15 +1529,11 @@ function setNumberOfSpecies() {
       }
 
       // Set the diffusion of w to zero to prevent it from causing numerical instability.
-      if (!options.constantDiffusion) {
-        options.nonconstantDiffusionStrUW = "0.0";
-        options.nonconstantDiffusionStrVW = "0.0";
-        options.nonconstantDiffusionStrWU = "0.0";
-        options.nonconstantDiffusionStrWV = "0.0";
-        options.nonconstantDiffusionStrWW = "0.0";
-      } else {
-        options.diffusionW = 0;
-      }
+      options.diffusionStrUW = "0";
+      options.diffusionStrVW = "0";
+      options.diffusionStrWU = "0";
+      options.diffusionStrWV = "0";
+      options.diffusionStrWW = "0";
 
       // Set w to be periodic to reduce computational overhead.
       options.boundaryConditionsW = "periodic";
@@ -1598,6 +1544,9 @@ function setNumberOfSpecies() {
       // Show GUI panels related to v, and hide those related to w.
       showVGUIPanels();
       hideWGUIPanels();
+
+      // Show cross-diffusion toggle.
+      showGUIController(crossDiffusionController);
 
       // Ensure correct references to v and w in labels are present.
       if (fController != undefined) {
@@ -1612,6 +1561,9 @@ function setNumberOfSpecies() {
       showVGUIPanels();
       showWGUIPanels();
 
+      // Show cross-diffusion toggle.
+      showGUIController(crossDiffusionController);
+
       // Ensure correct references to v and w in labels are present.
       if (fController != undefined) {
         fController.name("f(u,v,w)");
@@ -1624,15 +1576,6 @@ function setNumberOfSpecies() {
       }
   }
   refreshGUI(gui);
-}
-
-function setTypeOfDiffusion() {
-  if (!options.constantDiffusion) {
-    // Show all panels related to nonconstant diffusion.
-    showGUIController();
-
-    // Hide all panels related to constant diffusion.
-  }
 }
 
 function hideGUIController(cont) {
@@ -1685,7 +1628,7 @@ function setBCsEqs() {
   // Configure the shaders.
   setRDEquations();
 
-  setNonConstantDiffusionGUI();
+  setCrossDiffusionGUI();
 
   // Update the GUI.
   if (options.boundaryConditionsU == "dirichlet") {
@@ -1718,20 +1661,6 @@ function setBCsEqs() {
     showGUIController(robinWController);
   } else {
     hideGUIController(robinWController);
-  }
-}
-
-function setTimestepForCFL() {
-  if (options.setTimestepForStability) {
-    let CFLValue =
-      Math.max(options.diffusionU, options.diffusionV, options.diffusionW) /
-      options.spatialStep ** 2;
-    // We decrease dt so that it satisfies the CFL condition for the pure diffusion condition.
-    // However, as the inhomogeneity seems to reduce stability, we conservatively take twice as
-    // many timesteps needed for diffusion in the hope of the RD system being stable.
-    if (options.dt > (0.5 * 0.25) / CFLValue) {
-      dtController.setValue((0.5 * 0.25) / CFLValue);
-    }
   }
 }
 
@@ -1819,35 +1748,30 @@ function setShowAllToolsFlag() {
 }
 
 function showVGUIPanels() {
-  if (!options.constantDiffusion) {
+  if (options.crossDiffusion) {
     showGUIController(DuvController);
     showGUIController(DvuController);
-    showGUIController(DvvController);
-  } else {
-    showGUIController(DvController);
   }
+  showGUIController(DvvController);
   showGUIController(gController);
   showGUIController(clearValueVController);
   showGUIController(vBCsController);
 }
 
 function showWGUIPanels() {
-  if (!options.constantDiffusion) {
+  if (options.crossDiffusion) {
     showGUIController(DuwController);
     showGUIController(DvwController);
     showGUIController(DwuController);
     showGUIController(DwvController);
-    showGUIController(DwwController);
-  } else {
-    showGUIController(DwController);
   }
+  showGUIController(DwwController);
   showGUIController(hController);
   showGUIController(clearValueWController);
   showGUIController(wBCsController);
 }
 
 function hideVGUIPanels() {
-  hideGUIController(DvController);
   hideGUIController(DuvController);
   hideGUIController(DvuController);
   hideGUIController(DvvController);
@@ -1857,7 +1781,6 @@ function hideVGUIPanels() {
 }
 
 function hideWGUIPanels() {
-  hideGUIController(DwController);
   hideGUIController(DuwController);
   hideGUIController(DvwController);
   hideGUIController(DwuController);
@@ -1902,12 +1825,6 @@ function evaluateDiffusionStr(str) {
   return eval(str);
 }
 
-function updateDiffusionCoeffs() {
-  options.diffusionU = evaluateDiffusionStr(options.diffusionUStr);
-  options.diffusionV = evaluateDiffusionStr(options.diffusionVStr);
-  options.diffusionW = evaluateDiffusionStr(options.diffusionWStr);
-}
-
 function setPostFunFragShader() {
   let shaderStr = computeDisplayFunShaderTop();
   let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
@@ -1928,69 +1845,49 @@ function setPostFunMaxFragShader() {
   updateUniforms();
 }
 
-function setNonConstantDiffusionGUI() {
-  if (!options.constantDiffusion) {
-    options.setTimestepForStability = false;
-    refreshGUI(gui);
-    hideGUIController(lockCFLController);
-  } else {
-    showGUIController(lockCFLController);
-  }
-
+function setCrossDiffusionGUI() {
   switch (parseInt(options.numSpecies)) {
     case 1:
-      if (!options.constantDiffusion) {
-        hideGUIController(DuController);
-        showGUIController(DuuController);
+      if (options.crossDiffusion) {
+        DuuController.name("D<sub>uu<sub>");
       } else {
-        showGUIController(DuController);
-        hideGUIController(DuuController);
+        DuuController.name("D<sub>u<sub>");
       }
       break;
     case 2:
-      if (!options.constantDiffusion) {
-        hideGUIController(DuController);
-        hideGUIController(DvController);
-        showGUIController(DuuController);
+      if (options.crossDiffusion) {
+        DuuController.name("D<sub>uu<sub>");
         showGUIController(DuvController);
         showGUIController(DvuController);
-        showGUIController(DvvController);
+        DvvController.name("D<sub>vv<sub>");
       } else {
-        showGUIController(DuController);
-        showGUIController(DvController);
-        hideGUIController(DuuController);
+        DuuController.name("D<sub>u<sub>");
         hideGUIController(DuvController);
         hideGUIController(DvuController);
-        hideGUIController(DvvController);
+        DvvController.name("D<sub>v<sub>");
       }
       break;
     case 3:
-      if (!options.constantDiffusion) {
-        hideGUIController(DuController);
-        hideGUIController(DvController);
-        hideGUIController(DwController);
-        showGUIController(DuuController);
+      if (options.crossDiffusion) {
+        DuuController.name("D<sub>uu<sub>");
         showGUIController(DuvController);
         showGUIController(DuwController);
         showGUIController(DvuController);
-        showGUIController(DvvController);
+        DvvController.name("D<sub>vv<sub>");
         showGUIController(DvwController);
         showGUIController(DwuController);
         showGUIController(DwvController);
-        showGUIController(DwwController);
+        DwwController.name("D<sub>ww<sub>");
       } else {
-        showGUIController(DuController);
-        showGUIController(DvController);
-        showGUIController(DwController);
-        hideGUIController(DuuController);
+        DuuController.name("D<sub>u<sub>");
         hideGUIController(DuvController);
         hideGUIController(DuwController);
         hideGUIController(DvuController);
-        hideGUIController(DvvController);
+        DvvController.name("D<sub>v<sub>");
         hideGUIController(DvwController);
         hideGUIController(DwuController);
         hideGUIController(DwvController);
-        hideGUIController(DwwController);
+        DwwController.name("D<sub>w<sub>");
       }
       break;
   }
