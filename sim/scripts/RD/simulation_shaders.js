@@ -7,9 +7,7 @@ export function RDShaderTop() {
     uniform float dt;
     uniform float dx;
     uniform float dy;
-    uniform float Du;
-    uniform float Dv;
-    uniform float Dw;
+    uniform float L;
     uniform float time;
     uniform vec2 boundaryValues;
     uniform sampler2D imageSource;
@@ -77,13 +75,15 @@ export function RDShaderRobin() {
     `;
 }
 
-export function RDShaderUpdate() {
+export function RDShaderUpdateNormal() {
     return `
-    vec3 lap = (uvwL + uvwR - 2.0*uvw) / dx / dx + (uvwT + uvwB - 2.0*uvw) / dy / dy;
+    float LDuuU = 0.5*(Duu*(uvwR.r + uvwL.r - 2.0*uvw.r) + DuuR*(uvwR.r - uvw.r) + DuuL*(uvwL.r - uvw.r)) / dx / dx +  0.5*(Duu*(uvwT.r + uvwB.r - 2.0*uvw.r) + DuuT*(uvwT.r - uvw.r) + DuuB*(uvwB.r - uvw.r)) / dy / dy;
+    float LDvvV = 0.5*(Dvv*(uvwR.g + uvwL.g - 2.0*uvw.g) + DvvR*(uvwR.g - uvw.g) + DvvL*(uvwL.g - uvw.g)) / dx / dx +  0.5*(Dvv*(uvwT.g + uvwB.g - 2.0*uvw.g) + DvvT*(uvwT.g - uvw.g) + DvvB*(uvwB.g - uvw.g)) / dy / dy;
+    float LDwwW = 0.5*(Dww*(uvwR.b + uvwL.b - 2.0*uvw.b) + DwwR*(uvwR.b - uvw.b) + DwwL*(uvwL.b - uvw.b)) / dx / dx +  0.5*(Dww*(uvwT.b + uvwB.b - 2.0*uvw.b) + DwwT*(uvwT.b - uvw.b) + DwwB*(uvwB.b - uvw.b)) / dy / dy;
 
-    float du = Du * lap.r + f;
-    float dv = Dv * lap.g + g;
-    float dw = Dw * lap.b + h;
+    float du = LDuuU + f;
+    float dv = LDvvV + g;
+    float dw = LDwwW + h;
     vec3 updated = uvw + dt * vec3(du, dv, dw);
     `;
 }
