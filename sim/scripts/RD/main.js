@@ -9,7 +9,8 @@ let displayMaterial,
   postMaterial;
 let domain, simDomain;
 let options, uniforms, funsObj;
-let leftGUI, rightGUI,
+let leftGUI,
+  rightGUI,
   root,
   pauseButton,
   resetButton,
@@ -253,7 +254,7 @@ function init() {
   simScene.add(simDomain);
 
   // Create a GUI.
-  initGUIs();
+  initGUI();
 
   // Setup equations and BCs.
   setBCsEqs();
@@ -479,18 +480,12 @@ function initUniforms() {
   };
 }
 
-function initGUIs() {
-  initRightGUI();
-  initLeftGUI();
-}
-
-function initLeftGUI() {
-  let leftGUI = new dat.GUI({ closeOnTop: false });
+function initGUI(startOpen) {
+  // Initialise the left GUI.
+  leftGUI = new dat.GUI({ closeOnTop: true });
   leftGUI.domElement.id = "leftGUI";
-}
 
-function initRightGUI(startOpen) {
-  // Initialise a GUI.
+  // Initialise the right GUI.
   rightGUI = new dat.GUI({ closeOnTop: true });
   rightGUI.domElement.id = "rightGUI";
 
@@ -514,8 +509,10 @@ function initRightGUI(startOpen) {
   }
 
   if (startOpen != undefined && startOpen) {
+    leftGUI.open();
     rightGUI.open();
   } else {
+    leftGUI.close();
     rightGUI.close();
   }
 
@@ -628,6 +625,9 @@ function initRightGUI(startOpen) {
         setRDEquations();
       });
   }
+
+  // Let's put these in the left GUI.
+  root = leftGUI;
   if (inGUI("diffusionStrUU")) {
     DuuController = root
       .add(options, "diffusionStrUU")
@@ -922,7 +922,7 @@ function initRightGUI(startOpen) {
       .onChange(function () {
         setShowAllToolsFlag();
         deleteGUI(rightGUI);
-        initRightGUI(true);
+        initGUI(true);
       });
   }
 
@@ -1392,7 +1392,7 @@ function loadPreset(preset) {
 
   // Replace the GUI.
   deleteGUIs();
-  initGUIs();
+  initGUI();
 
   setNumberOfSpecies();
   setCrossDiffusionGUI();
