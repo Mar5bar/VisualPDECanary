@@ -119,7 +119,7 @@ funsObj = {
       .replaceAll(":", ": ")
       .replace("{", "{\n\t")
       .replace("}", ",\n}");
-    str = "case \"PRESETNAME\":\n\toptions = " + str + ";\nbreak;";
+    str = 'case "PRESETNAME":\n\toptions = ' + str + ";\nbreak;";
     navigator.clipboard.writeText(str);
   },
   setColourRange: function () {
@@ -1483,8 +1483,8 @@ function setNumberOfSpecies() {
   switch (parseInt(options.numSpecies)) {
     case 1:
       // Ensure that u is being displayed on the screen (and the brush target).
+      options.whatToDraw = "u";
       options.whatToPlot = "u";
-      updateWhatToPlot();
 
       // Set the diffusion of v and w to zero to prevent them from causing numerical instability.
       options.diffusionStrUV = "0";
@@ -1503,7 +1503,6 @@ function setNumberOfSpecies() {
       options.boundaryConditionsW = "periodic";
       options.clearValueW = "0";
       options.reactionStrW = "0";
-      updateUniforms();
 
       // Hide GUI panels related to v and w.
       hideVGUIPanels();
@@ -1517,15 +1516,14 @@ function setNumberOfSpecies() {
       if (fController != undefined) {
         fController.name("f(u)");
       }
-
       break;
     case 2:
       // Ensure that u or v is being displayed on the screen (and the brush target).
       if (options.whatToDraw == "w") {
-        options.whatToDraw == "u";
+        options.whatToDraw = "u";
       }
       if (options.whatToPlot == "w") {
-        options.whatToPlot == "u";
+        options.whatToPlot = "u";
       }
 
       // Set the diffusion of w to zero to prevent it from causing numerical instability.
@@ -1539,7 +1537,6 @@ function setNumberOfSpecies() {
       options.boundaryConditionsW = "periodic";
       options.clearValueW = "0";
       options.reactionStrW = "0";
-      updateUniforms();
 
       // Show GUI panels related to v, and hide those related to w.
       showVGUIPanels();
@@ -1575,6 +1572,9 @@ function setNumberOfSpecies() {
         hController.name("h(u,v,w)");
       }
   }
+  setRDEquations();
+  updateWhatToPlot();
+  setBrushType();
   refreshGUI(gui);
 }
 
