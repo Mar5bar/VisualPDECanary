@@ -486,9 +486,9 @@ function initGUI(startOpen) {
   // Basic GUI elements. Always present.
   pauseButton = gui.add(funsObj, "pause");
   if (isRunning) {
-    pauseButton.name("Pause (space)");
+    setGUIControllerName(pauseButton, "Pause (space)");
   } else {
-    pauseButton.name("Play (space)");
+    setGUIControllerName(pauseButton, "Play (space)");
   }
   resetButton = gui.add(funsObj, "reset").name("Reset (r)");
 
@@ -1513,9 +1513,7 @@ function setNumberOfSpecies() {
       hideGUIController(crossDiffusionController);
 
       // Remove references to v and w in labels.
-      if (fController != undefined) {
-        fController.name("f(u)");
-      }
+      setGUIControllerName(fController, "f(u)");
       break;
     case 2:
       // Ensure that u or v is being displayed on the screen (and the brush target).
@@ -1546,12 +1544,8 @@ function setNumberOfSpecies() {
       showGUIController(crossDiffusionController);
 
       // Ensure correct references to v and w in labels are present.
-      if (fController != undefined) {
-        fController.name("f(u,v)");
-      }
-      if (gController != undefined) {
-        gController.name("g(u,v)");
-      }
+      setGUIControllerName(fController, "f(u,v)");
+      setGUIControllerName(gController, "g(u,v)");
       break;
     case 3:
       // Show GUI panels related to v and w.
@@ -1562,15 +1556,9 @@ function setNumberOfSpecies() {
       showGUIController(crossDiffusionController);
 
       // Ensure correct references to v and w in labels are present.
-      if (fController != undefined) {
-        fController.name("f(u,v,w)");
-      }
-      if (gController != undefined) {
-        gController.name("g(u,v,w)");
-      }
-      if (hController != undefined) {
-        hController.name("h(u,v,w)");
-      }
+      setGUIControllerName(fController, "f(u,v,w)");
+      setGUIControllerName(gController, "g(u,v,w)");
+      setGUIControllerName(hController, "h(u,v,w)");
   }
   setRDEquations();
   updateWhatToPlot();
@@ -1587,6 +1575,12 @@ function hideGUIController(cont) {
 function showGUIController(cont) {
   if (cont != undefined) {
     cont.__li.style.display = "";
+  }
+}
+
+function setGUIControllerName(cont, str) {
+  if (cont != undefined) {
+    cont.name(str);
   }
 }
 
@@ -1849,45 +1843,45 @@ function setCrossDiffusionGUI() {
   switch (parseInt(options.numSpecies)) {
     case 1:
       if (options.crossDiffusion) {
-        DuuController.name("D<sub>uu<sub>");
+        setGUIControllerName(DuuController, "D<sub>uu<sub>");
       } else {
-        DuuController.name("D<sub>u<sub>");
+        setGUIControllerName(DuuController, "D<sub>u<sub>");
       }
       break;
     case 2:
       if (options.crossDiffusion) {
-        DuuController.name("D<sub>uu<sub>");
+        setGUIControllerName(DuuController, "D<sub>uu<sub>");
         showGUIController(DuvController);
         showGUIController(DvuController);
-        DvvController.name("D<sub>vv<sub>");
+        setGUIControllerName(DvvController, "D<sub>vv<sub>");
       } else {
-        DuuController.name("D<sub>u<sub>");
+        setGUIControllerName(DuuController, "D<sub>u<sub>");
         hideGUIController(DuvController);
         hideGUIController(DvuController);
-        DvvController.name("D<sub>v<sub>");
+        setGUIControllerName(DvvController, "D<sub>v<sub>");
       }
       break;
     case 3:
       if (options.crossDiffusion) {
-        DuuController.name("D<sub>uu<sub>");
+        setGUIControllerName(DuuController, "D<sub>uu<sub>");
         showGUIController(DuvController);
         showGUIController(DuwController);
         showGUIController(DvuController);
-        DvvController.name("D<sub>vv<sub>");
+        setGUIControllerName(DvvController, "D<sub>vv<sub>");
         showGUIController(DvwController);
         showGUIController(DwuController);
         showGUIController(DwvController);
-        DwwController.name("D<sub>ww<sub>");
+        setGUIControllerName(DwwController, "D<sub>ww<sub>");
       } else {
-        DuuController.name("D<sub>u<sub>");
+        setGUIControllerName(DuuController, "D<sub>u<sub>");
         hideGUIController(DuvController);
         hideGUIController(DuwController);
         hideGUIController(DvuController);
-        DvvController.name("D<sub>v<sub>");
+        setGUIControllerName(DvvController, "D<sub>v<sub>");
         hideGUIController(DvwController);
         hideGUIController(DwuController);
         hideGUIController(DwvController);
-        DwwController.name("D<sub>w<sub>");
+        setGUIControllerName(DwwController, "D<sub>w<sub>");
       }
       break;
   }
