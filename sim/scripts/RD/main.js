@@ -486,9 +486,9 @@ function initGUI(startOpen) {
   // Basic GUI elements. Always present.
   pauseButton = gui.add(funsObj, "pause");
   if (isRunning) {
-    pauseButton.name("Pause (space)");
+    setGUIControllerName(pauseButton, "Pause (space)");
   } else {
-    pauseButton.name("Play (space)");
+    setGUIControllerName(pauseButton, "Play (space)");
   }
   resetButton = gui.add(funsObj, "reset").name("Reset (r)");
 
@@ -1262,6 +1262,9 @@ function parseShaderString(str) {
   // Pad the string.
   str = " " + str + " ";
 
+  // Replace powers with pow, including nested powers.
+  str = replaceCaratWithPow(str);
+
   // Replace u, v, and w with uvw.r, uvw.g, and uvw.b via placeholders.
   str = str.replace(/\bu\b/g, "U");
   str = str.replace(/\bv\b/g, "V");
@@ -1272,15 +1275,32 @@ function parseShaderString(str) {
 
   // Replace integers with floats.
   while (str != (str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3")));
-  // Replace powers with pow, including nested powers.
-  while (
-    str !=
-    (str = str.replace(
-      /\(((?:[^\(]|pow\()+?)\)\^(\(+.*\)+|[A-z0-9.]*)/g,
-      "pow($1,$2)"
-    ))
-  );
-  str = str.replace(/([A-z0-9.]*)\^([A-z0-9.]*)/g, "pow($1, $2)");
+
+  return str;
+}
+
+function replaceCaratWithPow(str) {
+  // Take a string and replace all instances of a carat with a pow function,
+  // matching balanced brackets.
+  if (str.indexOf("^") > -1) {
+    var tab = [];
+    var powfunc = "pow";
+    var joker = "___joker___";
+    while (str.indexOf("(") > -1) {
+      str = str.replace(/(\([^\(\)]*\))/g, function (m, t) {
+        tab.push(t);
+        return joker + (tab.length - 1);
+      });
+    }
+
+    tab.push(str);
+    str = joker + (tab.length - 1);
+    while (str.indexOf(joker) > -1) {
+      str = str.replace(new RegExp(joker + "(\\d+)", "g"), function (m, d) {
+        return tab[d].replace(/(\w*)\^(\w*)/g, powfunc + "($1,$2)");
+      });
+    }
+  }
   return str;
 }
 
@@ -1513,9 +1533,7 @@ function setNumberOfSpecies() {
       hideGUIController(crossDiffusionController);
 
       // Remove references to v and w in labels.
-      if (fController != undefined) {
-        fController.name("f(u)");
-      }
+      setGUIControllerName(fController, "f(u)");
       break;
     case 2:
       // Ensure that u or v is being displayed on the screen (and the brush target).
@@ -1546,12 +1564,8 @@ function setNumberOfSpecies() {
       showGUIController(crossDiffusionController);
 
       // Ensure correct references to v and w in labels are present.
-      if (fController != undefined) {
-        fController.name("f(u,v)");
-      }
-      if (gController != undefined) {
-        gController.name("g(u,v)");
-      }
+      setGUIControllerName(fController, "f(u,v)");
+      setGUIControllerName(gController, "g(u,v)");
       break;
     case 3:
       // Show GUI panels related to v and w.
@@ -1562,15 +1576,9 @@ function setNumberOfSpecies() {
       showGUIController(crossDiffusionController);
 
       // Ensure correct references to v and w in labels are present.
-      if (fController != undefined) {
-        fController.name("f(u,v,w)");
-      }
-      if (gController != undefined) {
-        gController.name("g(u,v,w)");
-      }
-      if (hController != undefined) {
-        hController.name("h(u,v,w)");
-      }
+      setGUIControllerName(fController, "f(u,v,w)");
+      setGUIControllerName(gController, "g(u,v,w)");
+      setGUIControllerName(hController, "h(u,v,w)");
   }
   setRDEquations();
   updateWhatToPlot();
@@ -1587,6 +1595,12 @@ function hideGUIController(cont) {
 function showGUIController(cont) {
   if (cont != undefined) {
     cont.__li.style.display = "";
+  }
+}
+
+function setGUIControllerName(cont, str) {
+  if (cont != undefined) {
+    cont.name(str);
   }
 }
 
@@ -1849,45 +1863,45 @@ function setCrossDiffusionGUI() {
   switch (parseInt(options.numSpecies)) {
     case 1:
       if (options.crossDiffusion) {
-        DuuController.name("D<sub>uu<sub>");
+        setGUIControllerName(DuuController, "D<sub>uu<sub>");
       } else {
-        DuuController.name("D<sub>u<sub>");
+        setGUIControllerName(DuuController, "D<sub>u<sub>");
       }
       break;
     case 2:
       if (options.crossDiffusion) {
-        DuuController.name("D<sub>uu<sub>");
+        setGUIControllerName(DuuController, "D<sub>uu<sub>");
         showGUIController(DuvController);
         showGUIController(DvuController);
-        DvvController.name("D<sub>vv<sub>");
+        setGUIControllerName(DvvController, "D<sub>vv<sub>");
       } else {
-        DuuController.name("D<sub>u<sub>");
+        setGUIControllerName(DuuController, "D<sub>u<sub>");
         hideGUIController(DuvController);
         hideGUIController(DvuController);
-        DvvController.name("D<sub>v<sub>");
+        setGUIControllerName(DvvController, "D<sub>v<sub>");
       }
       break;
     case 3:
       if (options.crossDiffusion) {
-        DuuController.name("D<sub>uu<sub>");
+        setGUIControllerName(DuuController, "D<sub>uu<sub>");
         showGUIController(DuvController);
         showGUIController(DuwController);
         showGUIController(DvuController);
-        DvvController.name("D<sub>vv<sub>");
+        setGUIControllerName(DvvController, "D<sub>vv<sub>");
         showGUIController(DvwController);
         showGUIController(DwuController);
         showGUIController(DwvController);
-        DwwController.name("D<sub>ww<sub>");
+        setGUIControllerName(DwwController, "D<sub>ww<sub>");
       } else {
-        DuuController.name("D<sub>u<sub>");
+        setGUIControllerName(DuuController, "D<sub>u<sub>");
         hideGUIController(DuvController);
         hideGUIController(DuwController);
         hideGUIController(DvuController);
-        DvvController.name("D<sub>v<sub>");
+        setGUIControllerName(DvvController, "D<sub>v<sub>");
         hideGUIController(DvwController);
         hideGUIController(DwuController);
         hideGUIController(DwvController);
-        DwwController.name("D<sub>w<sub>");
+        setGUIControllerName(DwwController, "D<sub>w<sub>");
       }
       break;
   }
