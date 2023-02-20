@@ -2,13 +2,13 @@
 layout: page
 title: Explore the wave equation
 lesson_number: 20
-thumbnail: /assets/images/heat-equation.png
+thumbnail: /assets/images/waveEquation.png
 extract: Play with waves and vibrations
-equation: $\pd{u}{tt}=D \nabla^2 u$
+equation: $\pdd{u}{t}=D \nabla^2 u$
 ---
 Let's next look at the [wave equation](https://en.wikipedia.org/wiki/Wave_equation),
 
-$$\pd{u}{tt}=D \nabla^2 u,$$
+$$\pdd{u}{t}=D \nabla^2 u,$$
 
 with homogeneous Neumann (aka no-flux) boundary conditions.
 
