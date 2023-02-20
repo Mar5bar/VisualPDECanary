@@ -192,6 +192,35 @@ export function getPreset(id) {
         whatToPlot: "v",
       };
       break;
+
+
+    case "swiftHohenberg":
+        options = {
+	"algebraicV": true,
+	"autoSetColourRange": true,
+	"boundaryConditionsU": "noflux",
+	"boundaryConditionsV": "noflux",
+	"crossDiffusion": true,
+	"diffusionStrUU": "0",
+	"diffusionStrUV": "-D",
+	"diffusionStrVU": "D",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dt": 0.0005,
+	"kineticParams": "r=0.1;D=0.0001;a=1;b=1",
+	"maxColourValue": 1.44703209400177,
+	"minColourValue": -1.2287852764129639,
+	"numTimestepsPerFrame": 200,
+	"renderSize": 512,
+	"reactionStrU": "(r-1)*u-2*v+a*u^2+b*u^3-u^5",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+    };
+    break;
+
     default:
       options = {
         algebraicV: false,
