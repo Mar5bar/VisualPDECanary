@@ -18,6 +18,7 @@ let leftGUI,
   fController,
   gController,
   hController,
+  algebraicVController,
   crossDiffusionController,
   DuuController,
   DuvController,
@@ -76,6 +77,7 @@ import {
   RDShaderRobin,
   RDShaderUpdateNormal,
   RDShaderUpdateCross,
+  RDShaderAlgebraic,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay } from "./display_shaders.js";
@@ -264,7 +266,7 @@ function init() {
 
   // Show/hide any GUI elements based on current options.
   setNumberOfSpecies();
-  setCrossDiffusionGUI();
+  setDiffusionOptsAndGUI();
 
   // Set the size of the domain and related parameters.
   resize();
@@ -621,7 +623,16 @@ function initGUI(startOpen) {
       .add(options, "crossDiffusion")
       .name("Cross diffusion?")
       .onChange(function () {
-        setCrossDiffusionGUI();
+        setDiffusionOptsAndGUI();
+        setRDEquations();
+      });
+  }
+  if (inGUI("algebraicV")) {
+    algebraicVController = root
+      .add(options, "algebraicV")
+      .name("Algebraic v?")
+      .onChange(function () {
+        setDiffusionOptsAndGUI();
         setRDEquations();
       });
   }
@@ -1386,6 +1397,11 @@ function setRDEquations() {
     updateShader += RDShaderUpdateNormal();
   }
 
+  // If v should be algebraic, append this to the normal update shader.
+  if (options.algebraicV && options.crossDiffusion) {
+    updateShader += selectSpeciesInShaderStr(RDShaderAlgebraic(), "v");
+  }
+
   simMaterial.fragmentShader = [
     RDShaderTop(),
     kineticStr,
@@ -1415,7 +1431,7 @@ function loadPreset(preset) {
   initGUI();
 
   setNumberOfSpecies();
-  setCrossDiffusionGUI();
+  setDiffusionOptsAndGUI();
   if (rightGUI != undefined) {
     // Refresh the whole rightGUI.
     refreshGUI(rightGUI);
@@ -1547,6 +1563,9 @@ function setNumberOfSpecies() {
       // Hide cross-diffusion toggle.
       options.crossDiffusion = false;
       hideGUIController(crossDiffusionController);
+      // Hide algebraicV toggle.
+      options.algebraicV = false;
+      hideGUIController(algebraicVController);
 
       // Remove references to v and w in labels.
       setGUIControllerName(fController, "f(u)");
@@ -1579,6 +1598,11 @@ function setNumberOfSpecies() {
       // Show cross-diffusion toggle.
       showGUIController(crossDiffusionController);
 
+      // If we're doing cross diffusion, display the algebraicV controller.
+      if (options.crossDiffusion) {
+        showGUIController(algebraicVController);
+      }
+
       // Ensure correct references to v and w in labels are present.
       setGUIControllerName(fController, "f(u,v)");
       setGUIControllerName(gController, "g(u,v)");
@@ -1590,6 +1614,10 @@ function setNumberOfSpecies() {
 
       // Show cross-diffusion toggle.
       showGUIController(crossDiffusionController);
+
+      // Hide algebraicV toggle.
+      options.algebraicV = false;
+      hideGUIController(algebraicVController);
 
       // Ensure correct references to v and w in labels are present.
       setGUIControllerName(fController, "f(u,v,w)");
@@ -1658,7 +1686,7 @@ function setBCsEqs() {
   // Configure the shaders.
   setRDEquations();
 
-  setCrossDiffusionGUI();
+  setDiffusionOptsAndGUI();
 
   // Update the GUI.
   if (options.boundaryConditionsU == "dirichlet") {
@@ -1875,9 +1903,10 @@ function setPostFunMaxFragShader() {
   updateUniforms();
 }
 
-function setCrossDiffusionGUI() {
+function setDiffusionOptsAndGUI() {
   switch (parseInt(options.numSpecies)) {
     case 1:
+      hideGUIController(algebraicVController);
       if (options.crossDiffusion) {
         setGUIControllerName(DuuController, "D<sub>uu<sub>");
       } else {
@@ -1886,11 +1915,15 @@ function setCrossDiffusionGUI() {
       break;
     case 2:
       if (options.crossDiffusion) {
+        showGUIController(algebraicVController);
         setGUIControllerName(DuuController, "D<sub>uu<sub>");
         showGUIController(DuvController);
         showGUIController(DvuController);
         setGUIControllerName(DvvController, "D<sub>vv<sub>");
       } else {
+        hideGUIController(algebraicVController);
+        options.algebraicV = false;
+        algebraicVController.updateDisplay();
         setGUIControllerName(DuuController, "D<sub>u<sub>");
         hideGUIController(DuvController);
         hideGUIController(DvuController);
@@ -1898,6 +1931,7 @@ function setCrossDiffusionGUI() {
       }
       break;
     case 3:
+      hideGUIController(algebraicVController);
       if (options.crossDiffusion) {
         setGUIControllerName(DuuController, "D<sub>uu<sub>");
         showGUIController(DuvController);
