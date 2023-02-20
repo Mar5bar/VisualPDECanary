@@ -107,10 +107,15 @@ export function RDShaderUpdateCross() {
     `;
 }
 
+export function RDShaderAlgebraic() {
+    return `
+    updated.SPECIES = LDvuU + g;`;
+}
+
 export function RDShaderDirichlet() {
     return `
     if ((textureCoords.x - step_x < 0.0) || (textureCoords.x + step_x > 1.0) || (textureCoords.y + step_y > 1.0) || (textureCoords.y - step_y < 0.0)) {
-        updated.SPECIES = `
+        updated.SPECIES = `;
 }
 
 export function RDShaderBot() {
