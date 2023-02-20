@@ -24,6 +24,16 @@ canvas {
     max-height: 100vw;
 }
 
-.dg .a {
-    margin-right: 15px;
+#rightGUI {
+    position: absolute;
+    top: 0px;
+    right: 15px;
+    margin-right: 0;
+}
+
+#leftGUI {
+    position: absolute;
+    top: 0px;
+    left: 15px;
+    margin-left: 0;
 }
