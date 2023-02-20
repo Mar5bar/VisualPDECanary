@@ -9,3 +9,5 @@ See the solution to your PDE evolve before your eyes. Paint the canvas with init
 
 Follow a tutorial below or provide your own PDE.
 
+NOTE: This website is currently being constructed! Things may break as they are updated, but please feel free to explore what is there now.
+
