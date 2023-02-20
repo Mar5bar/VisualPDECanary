@@ -9,7 +9,8 @@ let displayMaterial,
   postMaterial;
 let domain, simDomain;
 let options, uniforms, funsObj;
-let gui,
+let leftGUI,
+  rightGUI,
   root,
   pauseButton,
   resetButton,
@@ -482,40 +483,47 @@ function initUniforms() {
 }
 
 function initGUI(startOpen) {
-  // Initialise a GUI.
-  gui = new dat.GUI({ closeOnTop: true });
+  // Initialise the left GUI.
+  leftGUI = new dat.GUI({ closeOnTop: true });
+  leftGUI.domElement.id = "leftGUI";
+
+  // Initialise the right GUI.
+  rightGUI = new dat.GUI({ closeOnTop: true });
+  rightGUI.domElement.id = "rightGUI";
 
   // Basic GUI elements. Always present.
-  pauseButton = gui.add(funsObj, "pause");
+  pauseButton = rightGUI.add(funsObj, "pause");
   if (isRunning) {
     setGUIControllerName(pauseButton, "Pause (space)");
   } else {
     setGUIControllerName(pauseButton, "Play (space)");
   }
-  resetButton = gui.add(funsObj, "reset").name("Reset (r)");
+  resetButton = rightGUI.add(funsObj, "reset").name("Reset (r)");
 
   if (inGUI("copyConfigAsURL")) {
     // Copy configuration as URL.
-    gui.add(funsObj, "copyConfigAsURL").name("Link (URL)");
+    rightGUI.add(funsObj, "copyConfigAsURL").name("Link (URL)");
   }
 
   if (inGUI("copyConfigAsJSON")) {
     // Copy configuration as raw JSON.
-    gui.add(funsObj, "copyConfigAsJSON").name("Link (JSON)");
+    rightGUI.add(funsObj, "copyConfigAsJSON").name("Link (JSON)");
   }
 
   if (startOpen != undefined && startOpen) {
-    gui.open();
+    leftGUI.open();
+    rightGUI.open();
   } else {
-    gui.close();
+    leftGUI.close();
+    rightGUI.close();
   }
 
   // Create a generic options folder for folderless controllers, which we'll hide later if it's empty.
-  genericOptionsFolder = gui.addFolder("Options");
+  genericOptionsFolder = rightGUI.addFolder("Options");
 
   // Brush folder.
   if (inGUI("brushFolder")) {
-    root = gui.addFolder("Brush");
+    root = rightGUI.addFolder("Brush");
   } else {
     root = genericOptionsFolder;
   }
@@ -552,7 +560,7 @@ function initGUI(startOpen) {
 
   // Domain folder.
   if (inGUI("domainFolder")) {
-    root = gui.addFolder("Domain");
+    root = rightGUI.addFolder("Domain");
   } else {
     root = genericOptionsFolder;
   }
@@ -577,7 +585,7 @@ function initGUI(startOpen) {
 
   // Timestepping folder.
   if (inGUI("timesteppingFolder")) {
-    root = gui.addFolder("Timestepping");
+    root = rightGUI.addFolder("Timestepping");
   } else {
     root = genericOptionsFolder;
   }
@@ -598,7 +606,7 @@ function initGUI(startOpen) {
 
   // Equations folder.
   if (inGUI("equationsFolder")) {
-    root = gui.addFolder("Equations");
+    root = rightGUI.addFolder("Equations");
   } else {
     root = genericOptionsFolder;
   }
@@ -628,6 +636,9 @@ function initGUI(startOpen) {
         setRDEquations();
       });
   }
+
+  // Let's put these in the left GUI.
+  root = leftGUI;
   if (inGUI("diffusionStrUU")) {
     DuuController = root
       .add(options, "diffusionStrUU")
@@ -714,7 +725,7 @@ function initGUI(startOpen) {
 
   // Boundary conditions folder.
   if (inGUI("boundaryConditionsFolder")) {
-    root = gui.addFolder("Boundary conditions");
+    root = rightGUI.addFolder("Boundary conditions");
   } else {
     root = genericOptionsFolder;
   }
@@ -790,7 +801,7 @@ function initGUI(startOpen) {
 
   // Rendering folder.
   if (inGUI("renderingFolder")) {
-    root = gui.addFolder("Rendering");
+    root = rightGUI.addFolder("Rendering");
   } else {
     root = genericOptionsFolder;
   }
@@ -809,7 +820,7 @@ function initGUI(startOpen) {
 
   // Colour folder.
   if (inGUI("colourFolder")) {
-    root = gui.addFolder("Colour");
+    root = rightGUI.addFolder("Colour");
   } else {
     root = genericOptionsFolder;
   }
@@ -869,7 +880,7 @@ function initGUI(startOpen) {
 
   // Miscellaneous folder.
   if (inGUI("miscFolder")) {
-    fMisc = gui.addFolder("Misc.");
+    fMisc = rightGUI.addFolder("Misc.");
     root = fMisc;
   } else {
     root = genericOptionsFolder;
@@ -916,12 +927,12 @@ function initGUI(startOpen) {
 
   // Add a toggle for showing all options.
   if (options.onlyExposeOptions.length != 0) {
-    gui
+    rightGUI
       .add(options, "showAllOptionsOverride")
       .name("Show all")
       .onChange(function () {
         setShowAllToolsFlag();
-        deleteGUI(gui);
+        deleteGUI(rightGUI);
         initGUI(true);
       });
   }
@@ -1416,14 +1427,14 @@ function loadPreset(preset) {
   loadOptions(preset);
 
   // Replace the GUI.
-  deleteGUI(gui);
+  deleteGUIs();
   initGUI();
 
   setNumberOfSpecies();
   setDiffusionOptsAndGUI();
-  if (gui != undefined) {
-    // Refresh the whole gui.
-    refreshGUI(gui);
+  if (rightGUI != undefined) {
+    // Refresh the whole rightGUI.
+    refreshGUI(rightGUI);
   }
 
   // Trigger a resize, which will refresh all uniforms and set sizes.
@@ -1439,7 +1450,7 @@ function loadPreset(preset) {
   // Reset the state of the simulation.
   resetSim();
 
-  // To get around an annoying bug in dat.gui.image, in which the
+  // To get around an annoying bug in dat.rightGUI.image, in which the
   // controller doesn't update the value of the underlying property,
   // we'll destroy and create a new image controller everytime we load
   // a preset.
@@ -1497,6 +1508,11 @@ function refreshGUI(folder) {
   }
 }
 
+function deleteGUIs() {
+  deleteGUI(leftGUI);
+  deleteGUI(rightGUI);
+}
+
 function deleteGUI(folder) {
   if (folder != undefined) {
     // Traverse through all the subfolders and recurse.
@@ -1509,8 +1525,10 @@ function deleteGUI(folder) {
       folder.__controllers[i].remove();
     }
     // If this is the top-level GUI, destroy it.
-    if (folder == gui) {
-      gui.destroy();
+    if (folder == rightGUI) {
+      rightGUI.destroy();
+    } else if (folder == leftGUI) {
+      leftGUI.destroy();
     }
   }
 }
@@ -1611,7 +1629,7 @@ function setNumberOfSpecies() {
   setRDEquations();
   updateWhatToPlot();
   setBrushType();
-  refreshGUI(gui);
+  refreshGUI(rightGUI);
 }
 
 function hideGUIController(cont) {
