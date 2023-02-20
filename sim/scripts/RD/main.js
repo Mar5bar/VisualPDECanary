@@ -1308,7 +1308,7 @@ function replaceCaratWithPow(str) {
     str = joker + (tab.length - 1);
     while (str.indexOf(joker) > -1) {
       str = str.replace(new RegExp(joker + "(\\d+)", "g"), function (m, d) {
-        return tab[d].replace(/(\w*)\^(\w*)/g, powfunc + "($1,$2)");
+        return tab[d].replace(/([\w.]*)\^([\w.]*)/g, powfunc + "($1,$2)");
       });
     }
   }
