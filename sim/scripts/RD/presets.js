@@ -165,10 +165,12 @@ export function getPreset(id) {
     case "waveEquation":
       options = {
 	      "crossDiffusion": true,
-  	    "diffusionStrUU": "C/L^2",
+  	      "diffusionStrUU": "C/L^2",
 	      "diffusionStrVU": "1/L^2",
 	      "diffusionStrVV": "0",
-  	    "diffusionStrWW": "0",
+  	      "diffusionStrWW": "0",
+	      "boundaryConditionsU": "noflux",
+	      "boundaryConditionsV": "noflux",
 	      "dt": 0.001,
 	      "kineticParams": "L=100; C=0.01",
 	      "numTimestepsPerFrame": 200,
