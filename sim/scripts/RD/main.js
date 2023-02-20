@@ -1527,6 +1527,8 @@ function deleteGUI(folder) {
     // If this is the top-level GUI, destroy it.
     if (folder == rightGUI) {
       rightGUI.destroy();
+    } else if (folder == leftGUI) {
+      leftGUI.destroy();
     }
   }
 }
