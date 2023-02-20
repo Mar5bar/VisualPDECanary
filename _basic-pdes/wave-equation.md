@@ -33,5 +33,7 @@ with homogeneous Neumann (aka no-flux) boundary conditions.
 ## Numerical Notes
 
 Our solver only works for systems of first-order equations. So in fact what is being simulated is the system,
+
 $$\pd{u}{t}=v+CD\nabla^2 u, \quad \pd{v}{t} = D \nabla^2 u,$$
+
 which is the wave equation for $C=0$. The parameter $C$ is used to prevent spurious oscillations due to the equation being [hyperbolic](https://en.wikipedia.org/wiki/Hyperbolic_partial_differential_equation). Try varying the value of $C$ to observe how it changes the solution structure.
