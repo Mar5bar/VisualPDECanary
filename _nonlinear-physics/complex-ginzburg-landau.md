@@ -2,7 +2,7 @@
 layout: page
 title: Complex Ginzburg-Landau
 lesson_number: 20
-thumbnail: /assets/images/complexGinzburgLandau.PNG
+thumbnail: /assets/images/complexGinzburgLandau.png
 extract: Patterns, waves, chaos
 equation: $\pdd{u}{t}=D \nabla^2 u$
 ---
