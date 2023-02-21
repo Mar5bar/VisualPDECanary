@@ -1,4 +1,4 @@
-let canvas;
+let canvas, gl, floatLinearExtAvailable;
 let camera, simCamera, scene, simScene, renderer, aspectRatio;
 let simTextureA, simTextureB, postTexture;
 let displayMaterial,
@@ -179,6 +179,8 @@ function init() {
   });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
+  gl = renderer.getContext();
+  floatLinearExtAvailable = gl.getExtension("OES_texture_float_linear");
 
   // Configure textures with placeholder sizes.
   simTextureA = new THREE.WebGLRenderTarget(options.maxDisc, options.maxDisc, {
@@ -394,7 +396,13 @@ function resizeTextures() {
     uniforms.textureSource.value = simTextureA.texture;
   }
   readFromTextureB = !readFromTextureB;
-  postTexture.setSize(nXDisc, nYDisc);
+  // The postTexture will be larger by a scale factor sf, which will be 1 unless
+  // float filtering is not enabled by default on the platform.
+  let sf = 1;
+  if (!floatLinearExtAvailable) {
+    sf = options.smoothingScale;
+  }
+  postTexture.setSize(sf*nXDisc, sf*nYDisc);
   render();
 }
 
@@ -436,6 +444,10 @@ function initUniforms() {
     },
     domainWidth: {
       type: "f",
+    },
+    doSmoothing: {
+      type: "b",
+      value: !floatLinearExtAvailable,
     },
     dt: {
       type: "f",
@@ -816,6 +828,12 @@ function initGUI(startOpen) {
       .add(options, "renderSize", 1, 2048, 1)
       .name("Render res")
       .onChange(setSizes);
+  }
+  if (inGUI("Smoothing scale") && !floatLinearExtAvailable) {
+    root
+      .add(options, "smoothingScale", 1, 10, 1)
+      .name("Smoothing")
+      .onChange(resizeTextures);
   }
 
   // Colour folder.
@@ -1861,8 +1879,8 @@ function diffObjects(o1, o2) {
 
 function getMinMaxVal() {
   // Return the min and max values in the simulation textures in channel channelInd.
-  let buffer = new Float32Array(nXDisc * nYDisc * 4);
-  renderer.readRenderTargetPixels(postTexture, 0, 0, nXDisc, nYDisc, buffer);
+  let buffer = new Float32Array(options.smoothingScale^2 * nXDisc * nYDisc * 4);
+  renderer.readRenderTargetPixels(postTexture, 0, 0, options.smoothingScale*nXDisc, options.smoothingScale*nYDisc, buffer);
   let minVal = Infinity;
   let maxVal = -Infinity;
   for (let i = 0; i < buffer.length; i += 4) {
