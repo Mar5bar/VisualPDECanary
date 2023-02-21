@@ -180,7 +180,7 @@ function init() {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
   gl = renderer.getContext();
-  floatLinearExtAvailable = gl.getExtension("OES_texture_float_linear");
+  floatLinearExtAvailable = gl.getExtension("OES_texture_float_linear") && gl.getExtension("EXT_float_blend");
 
   // Configure textures with placeholder sizes.
   simTextureA = new THREE.WebGLRenderTarget(options.maxDisc, options.maxDisc, {
