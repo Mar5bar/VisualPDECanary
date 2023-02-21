@@ -3,25 +3,30 @@
 export function getPreset(id) {
   let options;
   switch (id) {
-    case "cyclicCompetition":
-      options = {
-        clearValueU: "0.01*RAND",
-        clearValueV: "0.01*RAND",
-        clearValueW: "0.01*RAND",
-        diffusionStrUU: "0.000002",
-        diffusionStrVV: "0.00004",
-        diffusionStrWW: "0.000008",
-        dt: 0.005,
-        kineticParams: "a=0.8; b=1.9",
-        numSpecies: "3",
-        preset: "cyclicCompetition",
-        reactionStrU: "u*(1-u-a*v-b*w)",
-        reactionStrV: "v*(1-b*u-v-a*w)",
-        reactionStrW: "w*(1-a*u-b*v-w)",
-        spatialStep: 0.002,
-        whatToPlot: "MAX",
-      };
-      break;
+	case "cyclicCompetition":
+	options = {
+	"clearValueU": "0.1*RAND+x",
+	"clearValueV": "0.1*RAND",
+	"clearValueW": "0.1*RAND",
+	"dt": 0.005,
+	"kineticParams": "a=0.8;b=1.9",
+	"numSpecies": "3",
+	"preset": "PRESETNAME",
+	"renderSize": 552,
+	"reactionStrU": "u*(1-u-a*v-b*w)",
+	"reactionStrV": "v*(1-b*u-v-a*w)",
+	"reactionStrW": "w*(1-a*u-b*v-w)",
+	"spatialStep": 0.002,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	"diffusionUStr": "0.000001",
+	"diffusionVStr": "0.00004",
+	"diffusionWStr": "0.000008",
+	"diffusionU": 0.000001,
+	"diffusionV": 0.00004,
+	"diffusionW": 0.000008,
+};
+break;  	  
     case "chemicalBasisOfMorphogenesis":
       options = {
         diffusionStrUU: "0.0000042",
@@ -43,6 +48,37 @@ export function getPreset(id) {
         whatToPlot: "u",
       };
       break;
+	case "complexGinzburgLandau":
+	options = {
+	"brushRadius": 0.02,
+	"clearValueU": "RAND",
+	"clearValueV": "RAND",
+	"diffusionStrUU": "0.00001",
+	"diffusionStrVV": "0.0001",
+	"diffusionStrWW": "0",
+	"dt": 0.001,
+	"kineticParams": "L=150;a=3;b=-1;c=-1",
+	"maxColourValue": 3.1,
+	"preset": "PRESETNAME",
+	"renderSize": 512,
+	"reactionStrU": "a*u-(u+c*v)*(u^2+v^2)",
+	"reactionStrV": "a*v+(c*u-v)*(u^2+v^2)",
+	"reactionStrW": "0",
+	"spatialStep": 0.002,
+	"whatToDraw": "u",
+	"whatToPlot": "u^2+v^2",
+	"constantDiffusion": false,
+	"nonconstantDiffusionStrUU": "1/L^2",
+	"nonconstantDiffusionStrUV": "-b/L^2",
+	"nonconstantDiffusionStrVU": "b/L^2",
+	"nonconstantDiffusionStrVV": "1/L^2",
+	"diffusionU": 0.000004,
+	"diffusionV": 0.000002,
+	"diffusionW": 0.000002,
+};
+break;  
+		  
+		  
     case "localisedPatterns":
       options = {
         brushValue: "9",
@@ -258,7 +294,7 @@ export function getPreset(id) {
         numTimestepsPerFrame: 100,
         onlyExposeOptions: [],
         preset: "default",
-        renderSize: 256,
+        renderSize: 512,
         reactionStrU: "-u*v^2 + 0.037*(1.0 - u)",
         reactionStrV: "u*v^2 - (0.037+0.06)*v",
         reactionStrW: "u*v^2 - (0.037+0.06)*v",
