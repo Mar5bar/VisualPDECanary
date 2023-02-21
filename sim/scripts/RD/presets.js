@@ -49,19 +49,20 @@ break;
       };
       break;
 	case "complexGinzburgLandau":
-	options = {
-	"brushRadius": 0.02,
+		options = {
 	"brushValue": "0",
-	"clearValueU": "RAND",
-	"clearValueV": "RAND",
+	"brushRadius": 0.02,
+	"clearValueU": "RAND*sin(3.14*7*x)*cos(3.14*7*y)",
+	"clearValueV": "RAND*sin(3.14*7*x)*cos(3.14*7*y)",
+	"crossDiffusion": true,
 	"diffusionStrUU": "0.00001",
 	"diffusionStrVV": "0.0001",
 	"diffusionStrWW": "0",
 	"dt": 0.001,
-	"kineticParams": "L=150;a=3;b=-1;c=-1",
+	"fixRandSeed": true,
+	"kineticParams": "a=3;c=-1",
 	"maxColourValue": 3.1,
 	"preset": "PRESETNAME",
-	"renderSize": 512,
 	"reactionStrU": "a*u-(u+c*v)*(u^2+v^2)",
 	"reactionStrV": "a*v+(c*u-v)*(u^2+v^2)",
 	"reactionStrW": "0",
@@ -69,15 +70,10 @@ break;
 	"whatToDraw": "u",
 	"whatToPlot": "u^2+v^2",
 	"constantDiffusion": false,
-	"nonconstantDiffusionStrUU": "1/L^2",
-	"nonconstantDiffusionStrUV": "-b/L^2",
-	"nonconstantDiffusionStrVU": "b/L^2",
-	"nonconstantDiffusionStrVV": "1/L^2",
-	"diffusionU": 0.000004,
-	"diffusionV": 0.000002,
-	"diffusionW": 0.000002,
 };
 break;  
+		  
+		  
 		  
 		  
     case "localisedPatterns":
