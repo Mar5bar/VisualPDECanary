@@ -51,6 +51,7 @@ break;
 	case "complexGinzburgLandau":
 	options = {
 	"brushRadius": 0.02,
+	"brushValue": "0",
 	"clearValueU": "RAND",
 	"clearValueV": "RAND",
 	"diffusionStrUU": "0.00001",
