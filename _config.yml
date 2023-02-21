@@ -43,6 +43,9 @@ collections:
   mathematical-biology:
     output: true
     title: Mathematical biology
+  nonlinear-physics:
+    output: true
+    title: Nonlinear physics    
 
 defaults:
   -
