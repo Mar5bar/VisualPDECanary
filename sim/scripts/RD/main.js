@@ -1,12 +1,13 @@
-let canvas;
+let canvas, gl, floatLinearExtAvailable;
 let camera, simCamera, scene, simScene, renderer, aspectRatio;
-let simTextureA, simTextureB, postTexture;
+let simTextureA, simTextureB, postTexture, interpolationTexture;
 let displayMaterial,
   drawMaterial,
   simMaterial,
   clearMaterial,
   copyMaterial,
-  postMaterial;
+  postMaterial,
+	interpolationMaterial;
 let domain, simDomain;
 let options, uniforms, funsObj;
 let leftGUI,
@@ -67,6 +68,7 @@ import {
   computeDisplayFunShaderTop,
   computeDisplayFunShaderBot,
   computeMaxSpeciesShader,
+	interpolationShader,
 } from "./post_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import {
@@ -179,6 +181,8 @@ function init() {
   });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = false;
+  gl = renderer.getContext();
+  floatLinearExtAvailable = gl.getExtension("OES_texture_float_linear") && gl.getExtension("EXT_float_blend");
 
   // Configure textures with placeholder sizes.
   simTextureA = new THREE.WebGLRenderTarget(options.maxDisc, options.maxDisc, {
@@ -189,6 +193,9 @@ function init() {
   });
   simTextureB = simTextureA.clone();
   postTexture = simTextureA.clone();
+	if (!floatLinearExtAvailable) {
+		interpolationTexture = simTextureA.clone();
+	}
 
   // Periodic boundary conditions (for now).
   simTextureA.texture.wrapS = THREE.RepeatWrapping;
@@ -223,6 +230,12 @@ function init() {
   postMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
+  });
+	// This material performs bilinear interpolation.
+	interpolationMaterial = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: genericVertexShader(),
+		fragmentShader: interpolationShader(),
   });
   // This material allows for drawing via a number of fragment shaders, which will be swapped in before use.
   drawMaterial = new THREE.ShaderMaterial({
@@ -394,7 +407,13 @@ function resizeTextures() {
     uniforms.textureSource.value = simTextureA.texture;
   }
   readFromTextureB = !readFromTextureB;
-  postTexture.setSize(nXDisc, nYDisc);
+	postTexture.setSize(nXDisc, nYDisc);
+  // The interpolationTexture will be larger by a scale factor sf.
+  if (!floatLinearExtAvailable) {
+    let sf = options.smoothingScale;
+    interpolationTexture.setSize(sf*nXDisc, sf*nYDisc);
+  }
+  
   render();
 }
 
@@ -817,6 +836,12 @@ function initGUI(startOpen) {
       .name("Render res")
       .onChange(setSizes);
   }
+  if (inGUI("Smoothing scale") && !floatLinearExtAvailable) {
+    root
+      .add(options, "smoothingScale", 1, 16, 1)
+      .name("Smoothing")
+      .onChange(resizeTextures);
+  }
 
   // Colour folder.
   if (inGUI("colourFolder")) {
@@ -1128,6 +1153,14 @@ function render() {
   renderer.setRenderTarget(postTexture);
   renderer.render(simScene, simCamera);
   uniforms.textureSource.value = postTexture.texture;
+	
+	// If the platform doesn't blend automatically, apply a bilinear filter.
+	if (!floatLinearExtAvailable) {
+		simDomain.material = interpolationMaterial;
+		renderer.setRenderTarget(interpolationTexture);
+		renderer.render(simScene, simCamera);
+		uniforms.textureSource.value = interpolationTexture.texture;
+	}
 
   // Render the output to the screen.
   renderer.setRenderTarget(null);
