@@ -2,6 +2,7 @@ body {
     margin: 0;
     padding: 0;
     background-color: white;
+    overflow: hidden;
 }
 
 canvas {
@@ -33,6 +34,13 @@ canvas {
     font-size:0.9rem !important;
 }
 
+.dg {
+    -webkit-user-select: none;   /* Safari */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;    /* IE10+/Edge */
+    user-select: none;    /* Standard */
+}
+
 #rightGUI {
     position: absolute;
     top: 0px;
@@ -57,4 +65,3 @@ canvas {
 #rightGUI div.close-button::before {
     font-size:1rem;
     content: "⚙️";
-}
