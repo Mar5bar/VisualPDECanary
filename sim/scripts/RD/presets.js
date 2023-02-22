@@ -214,6 +214,26 @@ break;
 	      "squareCanvas": true,
       };
       break;
+		  
+		  
+	case "Schnakenberg":
+	options = {
+	"autoSetColourRange": true,
+	"diffusionStrUU": "0.0001",
+	"diffusionStrVV": "0.0001*D",
+	"diffusionStrWW": "0",
+	"dt": 0.0005,
+	"kineticParams": "a = 0.01;b = 2;D=100",
+	"maxColourValue": 7.968624591827393,
+	"minColourValue": 0.028697576373815536,
+	"numTimestepsPerFrame": 200,
+	"reactionStrU": "a - u +u^2*v",
+	"reactionStrV": "b - u^2*v",
+	"reactionStrW": "0",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	};
+	break;
       
       
     case "subcriticalGS":
@@ -288,7 +308,7 @@ break;
         maxColourValue: 1.0,
         minColourValue: 0.0,
         numSpecies: 2,
-        numTimestepsPerFrame: 100,
+        numTimestepsPerFrame: 200,
         onlyExposeOptions: [],
         preset: "default",
         renderSize: 512,
