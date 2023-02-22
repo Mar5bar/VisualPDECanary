@@ -214,7 +214,7 @@ export function getPreset(id) {
         robinStrW: "0",
         runningOnLoad: true,
         showAllOptionsOverride: false,
-        smoothingScale: 4,
+        smoothingScale: 2,
         spatialStep: 1 / 200,
         squareCanvas: false,
         typeOfBrush: "circle",

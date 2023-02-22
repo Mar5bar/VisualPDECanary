@@ -12,32 +12,9 @@ export function fiveColourDisplay() {
     uniform vec4 colour4;
     uniform vec4 colour5;
 
-    uniform bool doSmoothing;
-
     void main()
     {   
-        float value;
-        if (doSmoothing) 
-        {
-            // Bilinear interpolation.
-            ivec2 texSize = textureSize(textureSource,0);
-            float step_x = 0.5 / float(texSize.x);
-            float step_y = 0.5 / float(texSize.y);
-            float valueUL = texture2D(textureSource, textureCoords + vec2(-step_x,  step_y)).r;
-            float valueUR = texture2D(textureSource, textureCoords + vec2( step_x,  step_y)).r;
-            float valueBL = texture2D(textureSource, textureCoords + vec2(-step_x, -step_y)).r;
-            float valueBR = texture2D(textureSource, textureCoords + vec2( step_x, -step_y)).r;
-
-            float fx = fract(2.0*step_x*textureCoords.x);
-            float fy = fract(2.0*step_y*textureCoords.y);
-            value = mix(mix(valueBL, valueBR, fx), mix(valueUL, valueUR, fx), fy);
-        }
-        else
-        {
-            // Directly sample the texture.
-            value = texture2D(textureSource, textureCoords).r;
-        }
-        
+        float value = texture2D(textureSource, textureCoords).r;
         float scaledValue = (value - minColourValue) / (maxColourValue - minColourValue);
         vec3 col = vec3(0.0, 0.0, 0.0);
         float a = 0.0;
