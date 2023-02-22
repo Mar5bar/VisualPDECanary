@@ -2,9 +2,9 @@
 layout: page
 title: Schnakenberg Pattern Formation
 lesson_number: 50
-thumbnail: /assets/images/schnakenberg.png
-extract: Diffusion plus logistic? What could go wrong? 
-equation: $\pd{u}{t}=\nabla^2 u+ru\left(1-\frac{u}{K}\right)$ with periodic boundary conditions
+thumbnail: /assets/images/Schnakenberg.PNG
+extract: Spots and stripes
+equation: $\pd{u}{t}=\nabla^2 u+a-u+u^2v, \quad \pd{u}{t}=D\nabla^2 b-u+u^2v,$ with periodic boundary conditions
 ---
 Next we'll consider a classical reaction–diffusion system which forms [Turing patterns](https://en.wikipedia.org/wiki/Turing_pattern). 
 
