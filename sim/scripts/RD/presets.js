@@ -242,7 +242,7 @@ break;
 	"diffusionStrUU": "0.0001",
 	"diffusionStrVV": "0.0001*D",
 	"diffusionStrWW": "0",
-	"dt": 0.0005,
+	"dt": 0.00025,
 	"kineticParams": "a = 0.01;b = 2;D=100",
 	"maxColourValue": 7.968624591827393,
 	"minColourValue": 0.028697576373815536,
