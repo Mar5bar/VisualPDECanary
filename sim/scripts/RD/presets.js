@@ -3,6 +3,26 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+		  
+		  
+	case "bistableTravellingWave":
+	options = {
+	"boundaryConditionsU": "noflux",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dt": 0.005,
+	"kineticParams": "a=0.5",
+	"numSpecies": 1,
+	"preset": "PRESETNAME",
+	"reactionStrU": "u*(u-a)*(1-u)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"typeOfBrush": "vline",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	};
+	break;
+		  
 	case "cyclicCompetition":
 	options = {
 	"clearValueU": "0.1*RAND+x",
