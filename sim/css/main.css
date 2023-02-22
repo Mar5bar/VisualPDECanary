@@ -46,3 +46,15 @@ canvas {
     left: 15px;
     margin-left: 0;
 }
+
+#rightGUI div.close-button{
+    font-size:0;
+    height:2rem;
+    background-color: #212225;
+    color: white;
+}
+
+#rightGUI div.close-button::before {
+    font-size:1rem;
+    content: "⚙️";
+}

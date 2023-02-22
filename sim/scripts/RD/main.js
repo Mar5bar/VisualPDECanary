@@ -503,7 +503,7 @@ function initUniforms() {
 
 function initGUI(startOpen) {
   // Initialise the left GUI.
-  leftGUI = new dat.GUI({ closeOnTop: true });
+  leftGUI = new dat.GUI({closeOnTop: true });
   leftGUI.domElement.id = "leftGUI";
 
   // Initialise the right GUI.
