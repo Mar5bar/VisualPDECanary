@@ -205,7 +205,7 @@ export function getPreset(id) {
         numTimestepsPerFrame: 100,
         onlyExposeOptions: [],
         preset: "default",
-        renderSize: 256,
+        renderSize: 512,
         reactionStrU: "-u*v^2 + 0.037*(1.0 - u)",
         reactionStrV: "u*v^2 - (0.037+0.06)*v",
         reactionStrW: "u*v^2 - (0.037+0.06)*v",
