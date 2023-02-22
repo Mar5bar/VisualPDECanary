@@ -234,6 +234,28 @@ break;
 	"whatToPlot": "u",
 	};
 	break;
+		  
+	case "SchnakenbergHopf":
+	options = {
+	"brushRadius": 0.02,
+	"clearValueU": "a+b",
+	"clearValueV": "b/(a+b)^2",
+	"diffusionStrUU": "0.00001",
+	"diffusionStrVV": "0.00001*D",
+	"diffusionStrWW": "0",
+	"dt": 0.001,
+	"kineticParams": "a = 0.05; b = 0.4;D=8",
+	"maxColourValue": 3.5,
+	"numTimestepsPerFrame": 200,
+	"preset": "PRESETNAME",
+	"reactionStrU": "a - u +u^2*v",
+	"reactionStrV": "b - u^2*v",
+	"reactionStrW": "0",
+	"spatialStep": 0.003,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	};
+	break;
       
       
     case "subcriticalGS":
