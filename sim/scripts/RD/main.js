@@ -1894,8 +1894,8 @@ function diffObjects(o1, o2) {
 
 function getMinMaxVal() {
   // Return the min and max values in the simulation textures in channel channelInd.
-  let buffer = new Float32Array(options.smoothingScale^2 * nXDisc * nYDisc * 4);
-  renderer.readRenderTargetPixels(postTexture, 0, 0, options.smoothingScale*nXDisc, options.smoothingScale*nYDisc, buffer);
+  let buffer = new Float32Array(nXDisc * nYDisc * 4);
+  renderer.readRenderTargetPixels(postTexture, 0, 0, nXDisc, nYDisc, buffer);
   let minVal = Infinity;
   let maxVal = -Infinity;
   for (let i = 0; i < buffer.length; i += 4) {
