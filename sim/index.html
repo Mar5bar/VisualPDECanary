@@ -6,6 +6,8 @@
         <meta http-equiv="Cache-control" content="public">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<link type="text/css" rel="stylesheet" href="./css/main.css">
+        <script src="https://code.jquery.com/jquery-3.6.3.min.js"
+            integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
         <script defer type="text/javascript" src="./scripts/three.min.js"></script>
         <script defer type="text/javascript" src="./scripts/dat.gui.min.js"></script>
         <script type="module" src="./scripts/RD/main.js"></script>
@@ -24,6 +26,13 @@
     <div>
     <canvas id="simCanvas"></canvas>
     </div>
+
+    <div class="ui_button" id="settings" title="Settings"><i class="fa-solid fa-wrench"></i></div>
+    <div class="ui_button" id="play"><i class="fa-solid fa-play"></i></div>
+    <div class="ui_button" id="pause"><i class="fa-solid fa-pause"></i></div>
+    <div class="ui_button" id="erase" title="Erase (R)"><i class="fa-solid fa-eraser"></i></div>
+    
+    <div class="ui_button" id="equations" title="Edit equations"><i class="fa-solid fa-pen"></i></div>
 
     <body>
         <!-- This is a generic reaction-diffusion solver. -->
