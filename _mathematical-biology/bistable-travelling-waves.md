@@ -3,23 +3,26 @@ layout: page
 title: Bistable travelling waves
 # permalink: /bistable-travelling-waves/
 lesson_number: 30
+thumbnail: /assets/images/travelling-waves.png
+extract: Bistability affects waves!
+equation: $\pd{u}{t}=D\nabla^2 +u(u-a)(u-1)$
 ---
-TODO MAKE THIS
 
-Next we'll consider a classical reaction–diffusion equation, with a logistic nonlinearity. This is often referred to as the [Fisher–KPP equation]([https://en.wikipedia.org/wiki/Heat_equation](https://en.wikipedia.org/wiki/Fisher%27s_equation)),
 
-$$\pd{u}{t}=\nabla^2 u+ru\left(1-\frac{u}{K}\right),$$
+Next we'll consider a bistable reaction-diffusion equation, sometimes referred to as the [Allen-Cahn]([https://people.maths.ox.ac.uk/trefethen/pdectb/allen2.pdf](https://people.maths.ox.ac.uk/trefethen/pdectb/allen2.pdf)) or Chaffee-Infante equation,
 
-with periodic boundary conditions.
+$$\pd{u}{t}=D\nabla^2 +u(u-a)(u-1),$$
 
-1. Load the [interactive simulation](/sim/?preset=travellingWave). 
+where $a \in (0,1)$ is a parameter. As with the Fisher equation, this system will admit travelling waves. Here however, one can show that the wavespeed is propirtional to,
+
+$$
+c \propto \int_0^1 u(u-a)(u-1)du = \frac{2a-1}{12},
+$$
+
+and hence we expect the waves to change their direction of travel when $a$ crosses the value $0.5$. 
+
+1. Load the [interactive simulation](/sim/?preset=bistableTravellingWave). 
 
 1. Click within the box to visualise a 'line' of a population, which will then spread out as a planar wave. 
 
-1. Explore different parameters in this model, namely $D$, $r$, and $K$. 
- 
-1. Does the wave speed, $c$, approximately follow the scaling law derived via linearisation of the wavefront (that is, $c \propto \sqrt{rD}$)? One interesting experiment to try is to see what happens if you simultaneously decrease $r$ and increase $D$ (or vice versa). This should have (approximately) the same effective wave speed, but the profile will be different as you have effectively changed the time and space scales in opposite directions.
-
-1. Does the value of the carrying capacity, $K$, matter for the speed of the wave? Or the profile?
-
-1. Next change the brush type to a circle and explore how circular waves travel. These are similar to the planar (effectively 1D) waves above, but their speed will be slightly different as the curvature of these wave fronts will influence their speed.
+1. Take values of $a=0.4$, $a=0.6$, and $a=0.5$ to see how this influences the propogation of this wave.

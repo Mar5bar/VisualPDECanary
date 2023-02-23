@@ -3,6 +3,26 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+		  
+		  
+	case "bistableTravellingWave":
+	options = {
+	"boundaryConditionsU": "noflux",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dt": 0.005,
+	"kineticParams": "a=0.5",
+	"numSpecies": 1,
+	"preset": "PRESETNAME",
+	"reactionStrU": "u*(u-a)*(1-u)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"typeOfBrush": "vline",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	};
+	break;
+		  
 	case "cyclicCompetition":
 	options = {
 	"clearValueU": "0.1*RAND+x",
@@ -214,6 +234,48 @@ break;
 	      "squareCanvas": true,
       };
       break;
+		  
+		  
+	case "Schnakenberg":
+	options = {
+	"autoSetColourRange": true,
+	"diffusionStrUU": "0.0001",
+	"diffusionStrVV": "0.0001*D",
+	"diffusionStrWW": "0",
+	"dt": 0.00025,
+	"kineticParams": "a = 0.01;b = 2;D=100",
+	"maxColourValue": 7.968624591827393,
+	"minColourValue": 0.028697576373815536,
+	"numTimestepsPerFrame": 200,
+	"reactionStrU": "a - u +u^2*v",
+	"reactionStrV": "b - u^2*v",
+	"reactionStrW": "0",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	};
+	break;
+		  
+	case "SchnakenbergHopf":
+	options = {
+	"brushRadius": 0.02,
+	"clearValueU": "a+b",
+	"clearValueV": "b/(a+b)^2",
+	"diffusionStrUU": "0.00001",
+	"diffusionStrVV": "0.00001*D",
+	"diffusionStrWW": "0",
+	"dt": 0.001,
+	"kineticParams": "a = 0.05; b = 0.4;D=8",
+	"maxColourValue": 3.5,
+	"numTimestepsPerFrame": 200,
+	"preset": "PRESETNAME",
+	"reactionStrU": "a - u +u^2*v",
+	"reactionStrV": "b - u^2*v",
+	"reactionStrW": "0",
+	"spatialStep": 0.003,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	};
+	break;
       
       
     case "subcriticalGS":
@@ -288,7 +350,7 @@ break;
         maxColourValue: 1.0,
         minColourValue: 0.0,
         numSpecies: 2,
-        numTimestepsPerFrame: 100,
+        numTimestepsPerFrame: 200,
         onlyExposeOptions: [],
         preset: "default",
         renderSize: 512,
