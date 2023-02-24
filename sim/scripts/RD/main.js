@@ -751,7 +751,10 @@ function initGUI(startOpen) {
         Robin: "robin",
       })
       .name("u")
-      .onChange(updateProblem);
+      .onChange(function() {
+	    setRDEquations();
+        setBCsGUI();
+      });
   }
   if (inGUI("dirichletU")) {
     dirichletUController = root
@@ -774,7 +777,10 @@ function initGUI(startOpen) {
         Robin: "robin",
       })
       .name("v")
-      .onChange(updateProblem);
+      .onChange(function() {
+	    setRDEquations();
+        setBCsGUI();
+      });
   }
   if (inGUI("dirichletV")) {
     dirichletVController = root
@@ -797,7 +803,10 @@ function initGUI(startOpen) {
         Robin: "robin",
       })
       .name("w")
-      .onChange(updateProblem);
+      .onChange(function() {
+	    setRDEquations();
+        setBCsGUI();
+      });
   }
   if (inGUI("dirichletW")) {
     dirichletWController = root
