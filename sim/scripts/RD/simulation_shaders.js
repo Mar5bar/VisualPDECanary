@@ -11,6 +11,7 @@ export function RDShaderTop() {
     uniform float time;
     uniform vec2 boundaryValues;
     uniform sampler2D imageSource;
+    const float pi = 3.141592653589793;
 
     float H(float val, float edge) 
     {
