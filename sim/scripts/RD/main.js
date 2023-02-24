@@ -513,30 +513,33 @@ function initGUI(startOpen) {
   rightGUI.domElement.id = "rightGUI";
 
   // Basic GUI elements. Always present.
-  pauseButton = rightGUI.add(funsObj, "pause");
-  if (isRunning) {
-    setGUIControllerName(pauseButton, "Pause (space)");
-  } else {
-    setGUIControllerName(pauseButton, "Play (space)");
-  }
-  resetButton = rightGUI.add(funsObj, "reset").name("Reset (r)");
+  // pauseButton = rightGUI.add(funsObj, "pause");
+  // if (isRunning) {
+  //   setGUIControllerName(pauseButton, "Pause (space)");
+  // } else {
+  //   setGUIControllerName(pauseButton, "Play (space)");
+  // }
+  // resetButton = rightGUI.add(funsObj, "reset").name("Reset (r)");
 
   if (inGUI("copyConfigAsURL")) {
     // Copy configuration as URL.
-    rightGUI.add(funsObj, "copyConfigAsURL").name("Link (URL)");
+    rightGUI.add(funsObj, "copyConfigAsURL").name("Copy URL");
   }
 
   if (inGUI("copyConfigAsJSON")) {
     // Copy configuration as raw JSON.
-    rightGUI.add(funsObj, "copyConfigAsJSON").name("Link (JSON)");
+    rightGUI.add(funsObj, "copyConfigAsJSON").name("Copy JSON");
   }
 
+  leftGUI.open();
+  rightGUI.open();
   if (startOpen != undefined && startOpen) {
-    leftGUI.open();
-    rightGUI.open();
+  
   } else {
-    leftGUI.close();
-    rightGUI.close();
+    // leftGUI.close();
+    $("#leftGUI").hide();
+    $("#rightGUI").hide();
+    // rightGUI.close();
   }
 
   // Create a generic options folder for folderless controllers, which we'll hide later if it's empty.
@@ -1205,12 +1208,12 @@ function clearTextures() {
 }
 
 function pauseSim() {
-  pauseButton.name("Play (space)");
+  // pauseButton.name("Play (space)");
   isRunning = false;
 }
 
 function playSim() {
-  pauseButton.name("Pause (space)");
+  // pauseButton.name("Pause (space)");
   isRunning = true;
 }
 
@@ -1993,3 +1996,27 @@ function setDiffusionOptsAndGUI() {
       break;
   }
 }
+
+
+
+/* GUI settings and equations buttons */
+
+$("#settings").click( function () {
+  $("#rightGUI").toggle();
+})
+$("#equations").click( function () {
+  $("#leftGUI").toggle();
+})
+$("#pause").click(function () {
+  pauseSim();
+  $("#pause").hide();
+  $("#play").show();
+})
+$("#play").click(function () {
+  playSim();
+  $("#play").hide();
+  $("#pause").show();
+})
+$("#erase").click(function() {
+  resetSim();
+})
