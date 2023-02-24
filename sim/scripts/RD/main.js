@@ -1598,6 +1598,7 @@ function setNumberOfSpecies() {
       hideGUIController(algebraicVController);
 
       // Remove references to v and w in labels.
+      setGUIControllerName(DuuController, "D<sub>u<sub>");
       setGUIControllerName(fController, "f(u)");
       break;
     case 2:
@@ -1937,11 +1938,8 @@ function setDiffusionOptsAndGUI() {
   switch (parseInt(options.numSpecies)) {
     case 1:
       hideGUIController(algebraicVController);
-      if (options.crossDiffusion) {
-        setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      } else {
-        setGUIControllerName(DuuController, "D<sub>u<sub>");
-      }
+      hideGUIController(crossDiffusionController);
+      setGUIControllerName(DuuController, "D<sub>u<sub>");
       break;
     case 2:
       if (options.crossDiffusion) {
@@ -1950,6 +1948,11 @@ function setDiffusionOptsAndGUI() {
         showGUIController(DuvController);
         showGUIController(DvuController);
         setGUIControllerName(DvvController, "D<sub>vv<sub>");
+        if (options.algebraicV) {
+          hideGUIController(DvvController);
+        } else {
+          showGUIController(DvvController);
+        }
       } else {
         hideGUIController(algebraicVController);
         options.algebraicV = false;
@@ -1985,6 +1988,26 @@ function setDiffusionOptsAndGUI() {
       }
       break;
   }
+}
+
+function setEquationDisplayType(ind) {
+  // Given an equation type (specified as an integer selector), set the type of
+  // equation in the UI element that displays the equations.
+  const elementID = "#equationDisplay";
+  const listOfTypes = [
+    "1Species", // 1
+    "2Species", // 2
+    "2SpeciesCrossDiffusion", // 3
+    "2SpeciesCrossDiffusionAlgebraicV", // 4
+    "3Species", // 5
+    "3SpeciesCrossDiffusion", // 6
+  ];
+  // Remove all existing classes.
+  for (let i = 0; i < listOfTypes.length; i++) {
+    document.getElementById(elementID).classList.remove(listOfTypes[i]);
+  }
+  // Add the new class.
+  document.getElementById(elementID).classList.add(listOfTypes[i]);
 }
 
 /* GUI settings and equations buttons */
