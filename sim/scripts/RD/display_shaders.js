@@ -5,12 +5,14 @@ export function fiveColourDisplay() {
     uniform sampler2D textureSource;
     uniform float minColourValue;
     uniform float maxColourValue;
+    const float pi = 3.141592653589793;
 
     uniform vec4 colour1;
     uniform vec4 colour2;
     uniform vec4 colour3;
     uniform vec4 colour4;
     uniform vec4 colour5;
+    
 
     void main()
     {   
