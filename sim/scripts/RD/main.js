@@ -1466,7 +1466,7 @@ function loadPreset(preset) {
   // Reset the state of the simulation.
   resetSim();
 
-  // To get around an annoying bug in dat.rightGUI.image, in which the
+  // To get around an annoying bug in dat.GUI.image, in which the
   // controller doesn't update the value of the underlying property,
   // we'll destroy and create a new image controller everytime we load
   // a preset.
@@ -1790,19 +1790,6 @@ function getMinMaxVal() {
     maxVal = Math.max(maxVal, buffer[i]);
   }
   return [minVal, maxVal];
-}
-
-function evaluateDiffusionStr(str) {
-  // Take a string that specifies a diffusion coefficient in terms of basic mathops and
-  // set parameters (predominantly domainLength as L).
-  // This will be very dangerous, as code injection will certainly be possible.
-  let regex = /L/g;
-  str = str.replace(regex, options.domainScale);
-
-  regex = /\^/g;
-  str = str.replace(regex, "**");
-
-  return eval(str);
 }
 
 function setPostFunFragShader() {
