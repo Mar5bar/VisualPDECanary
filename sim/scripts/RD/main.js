@@ -56,6 +56,15 @@ let leftGUI,
 let isRunning, isDrawing, hasDrawn;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
+const listOfTypes = [
+  "1Species", // 0
+  "2Species", // 1
+  "2SpeciesCrossDiffusion", // 2
+  "2SpeciesCrossDiffusionAlgebraicV", // 3
+  "3Species", // 4
+  "3SpeciesCrossDiffusion", // 5
+];
+let equationType;
 
 import {
   discShader,
@@ -273,15 +282,11 @@ function init() {
   // Create a GUI.
   initGUI();
 
-  // Setup equations and BCs.
-  setBCsEqs();
+  // Set up the problem.
+  updateProblem();
 
   // Set the brush type.
   setBrushType();
-
-  // Show/hide any GUI elements based on current options.
-  setNumberOfSpecies();
-  setDiffusionOptsAndGUI();
 
   // Set the size of the domain and related parameters.
   resize();
@@ -512,15 +517,6 @@ function initGUI(startOpen) {
   rightGUI = new dat.GUI({ closeOnTop: true });
   rightGUI.domElement.id = "rightGUI";
 
-  // Basic GUI elements. Always present.
-  // pauseButton = rightGUI.add(funsObj, "pause");
-  // if (isRunning) {
-  //   setGUIControllerName(pauseButton, "Pause (space)");
-  // } else {
-  //   setGUIControllerName(pauseButton, "Play (space)");
-  // }
-  // resetButton = rightGUI.add(funsObj, "reset").name("Reset (r)");
-
   if (inGUI("copyConfigAsURL")) {
     // Copy configuration as URL.
     rightGUI.add(funsObj, "copyConfigAsURL").name("Copy URL");
@@ -534,12 +530,11 @@ function initGUI(startOpen) {
   leftGUI.open();
   rightGUI.open();
   if (startOpen != undefined && startOpen) {
-  
+    $("#leftGUI").show();
+    $("#rightGUI").show();
   } else {
-    // leftGUI.close();
     $("#leftGUI").hide();
     $("#rightGUI").hide();
-    // rightGUI.close();
   }
 
   // Create a generic options folder for folderless controllers, which we'll hide later if it's empty.
@@ -639,26 +634,20 @@ function initGUI(startOpen) {
     root
       .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3 })
       .name("No. species")
-      .onChange(setNumberOfSpecies);
+      .onChange(updateProblem);
   }
-  // Number of species.
+  // Cross diffusion.
   if (inGUI("crossDiffusion")) {
     crossDiffusionController = root
       .add(options, "crossDiffusion")
       .name("Cross diffusion?")
-      .onChange(function () {
-        setDiffusionOptsAndGUI();
-        setRDEquations();
-      });
+      .onChange(updateProblem);
   }
   if (inGUI("algebraicV")) {
     algebraicVController = root
       .add(options, "algebraicV")
       .name("Algebraic v?")
-      .onChange(function () {
-        setDiffusionOptsAndGUI();
-        setRDEquations();
-      });
+      .onChange(updateProblem);
   }
 
   // Let's put these in the left GUI.
@@ -762,7 +751,7 @@ function initGUI(startOpen) {
         Robin: "robin",
       })
       .name("u")
-      .onChange(setBCsEqs);
+      .onChange(updateProblem);
   }
   if (inGUI("dirichletU")) {
     dirichletUController = root
@@ -785,7 +774,7 @@ function initGUI(startOpen) {
         Robin: "robin",
       })
       .name("v")
-      .onChange(setBCsEqs);
+      .onChange(updateProblem);
   }
   if (inGUI("dirichletV")) {
     dirichletVController = root
@@ -808,7 +797,7 @@ function initGUI(startOpen) {
         Robin: "robin",
       })
       .name("w")
-      .onChange(setBCsEqs);
+      .onChange(updateProblem);
   }
   if (inGUI("dirichletW")) {
     dirichletWController = root
@@ -974,10 +963,6 @@ function initGUI(startOpen) {
   ) {
     genericOptionsFolder.hide();
   }
-
-  // Make sure we're showing/hiding the correct parts of the GUI.
-  setNumberOfSpecies();
-  setBCsEqs();
 }
 
 function animate() {
@@ -1468,18 +1453,11 @@ function loadPreset(preset) {
   deleteGUIs();
   initGUI();
 
-  setNumberOfSpecies();
-  setDiffusionOptsAndGUI();
-  if (rightGUI != undefined) {
-    // Refresh the whole rightGUI.
-    refreshGUI(rightGUI);
-  }
+  // Update the equations, setup and GUI in line with new options.
+  updateProblem();
 
   // Trigger a resize, which will refresh all uniforms and set sizes.
   resize();
-
-  // Configure the simulation material.
-  setBCsEqs();
 
   // Set the draw, display, and clear shaders.
   setDrawAndDisplayShaders();
@@ -1488,7 +1466,7 @@ function loadPreset(preset) {
   // Reset the state of the simulation.
   resetSim();
 
-  // To get around an annoying bug in dat.rightGUI.image, in which the
+  // To get around an annoying bug in dat.GUI.image, in which the
   // controller doesn't update the value of the underlying property,
   // we'll destroy and create a new image controller everytime we load
   // a preset.
@@ -1571,105 +1549,6 @@ function deleteGUI(folder) {
   }
 }
 
-function setNumberOfSpecies() {
-  switch (parseInt(options.numSpecies)) {
-    case 1:
-      // Ensure that u is being displayed on the screen (and the brush target).
-      options.whatToDraw = "u";
-      options.whatToPlot = "u";
-
-      // Set the diffusion of v and w to zero to prevent them from causing numerical instability.
-      options.diffusionStrUV = "0";
-      options.diffusionStrUW = "0";
-      options.diffusionStrVU = "0";
-      options.diffusionStrVV = "0";
-      options.diffusionStrVW = "0";
-      options.diffusionStrWU = "0";
-      options.diffusionStrWV = "0";
-      options.diffusionStrWW = "0";
-
-      // Set v and w to be periodic to reduce computational overhead.
-      options.boundaryConditionsV = "periodic";
-      options.clearValueV = "0";
-      options.reactionStrV = "0";
-      options.boundaryConditionsW = "periodic";
-      options.clearValueW = "0";
-      options.reactionStrW = "0";
-
-      // Hide GUI panels related to v and w.
-      hideVGUIPanels();
-      hideWGUIPanels();
-
-      // Hide cross-diffusion toggle.
-      options.crossDiffusion = false;
-      hideGUIController(crossDiffusionController);
-      // Hide algebraicV toggle.
-      options.algebraicV = false;
-      hideGUIController(algebraicVController);
-
-      // Remove references to v and w in labels.
-      setGUIControllerName(fController, "f(u)");
-      break;
-    case 2:
-      // Ensure that u or v is being displayed on the screen (and the brush target).
-      if (options.whatToDraw == "w") {
-        options.whatToDraw = "u";
-      }
-      if (options.whatToPlot == "w") {
-        options.whatToPlot = "u";
-      }
-
-      // Set the diffusion of w to zero to prevent it from causing numerical instability.
-      options.diffusionStrUW = "0";
-      options.diffusionStrVW = "0";
-      options.diffusionStrWU = "0";
-      options.diffusionStrWV = "0";
-      options.diffusionStrWW = "0";
-
-      // Set w to be periodic to reduce computational overhead.
-      options.boundaryConditionsW = "periodic";
-      options.clearValueW = "0";
-      options.reactionStrW = "0";
-
-      // Show GUI panels related to v, and hide those related to w.
-      showVGUIPanels();
-      hideWGUIPanels();
-
-      // Show cross-diffusion toggle.
-      showGUIController(crossDiffusionController);
-
-      // If we're doing cross diffusion, display the algebraicV controller.
-      if (options.crossDiffusion) {
-        showGUIController(algebraicVController);
-      }
-
-      // Ensure correct references to v and w in labels are present.
-      setGUIControllerName(fController, "f(u,v)");
-      setGUIControllerName(gController, "g(u,v)");
-      break;
-    case 3:
-      // Show GUI panels related to v and w.
-      showVGUIPanels();
-      showWGUIPanels();
-
-      // Show cross-diffusion toggle.
-      showGUIController(crossDiffusionController);
-
-      // Hide algebraicV toggle.
-      options.algebraicV = false;
-      hideGUIController(algebraicVController);
-
-      // Ensure correct references to v and w in labels are present.
-      setGUIControllerName(fController, "f(u,v,w)");
-      setGUIControllerName(gController, "g(u,v,w)");
-      setGUIControllerName(hController, "h(u,v,w)");
-  }
-  setRDEquations();
-  updateWhatToPlot();
-  setBrushType();
-  refreshGUI(rightGUI);
-}
-
 function hideGUIController(cont) {
   if (cont != undefined) {
     cont.__li.style.display = "none";
@@ -1722,12 +1601,7 @@ function speciesToChannelInd(speciesStr) {
   return channel;
 }
 
-function setBCsEqs() {
-  // Configure the shaders.
-  setRDEquations();
-
-  setDiffusionOptsAndGUI();
-
+function setBCsGUI() {
   // Update the GUI.
   if (options.boundaryConditionsU == "dirichlet") {
     showGUIController(dirichletUController);
@@ -1849,6 +1723,9 @@ function showVGUIPanels() {
   if (options.crossDiffusion) {
     showGUIController(DuvController);
     showGUIController(DvuController);
+  } else {
+    hideGUIController(DuvController);
+    hideGUIController(DvuController);
   }
   showGUIController(DvvController);
   showGUIController(gController);
@@ -1862,6 +1739,11 @@ function showWGUIPanels() {
     showGUIController(DvwController);
     showGUIController(DwuController);
     showGUIController(DwvController);
+  } else {
+    hideGUIController(DuwController);
+    hideGUIController(DvwController);
+    hideGUIController(DwuController);
+    hideGUIController(DwvController);
   }
   showGUIController(DwwController);
   showGUIController(hController);
@@ -1910,19 +1792,6 @@ function getMinMaxVal() {
   return [minVal, maxVal];
 }
 
-function evaluateDiffusionStr(str) {
-  // Take a string that specifies a diffusion coefficient in terms of basic mathops and
-  // set parameters (predominantly domainLength as L).
-  // This will be very dangerous, as code injection will certainly be possible.
-  let regex = /L/g;
-  str = str.replace(regex, options.domainScale);
-
-  regex = /\^/g;
-  str = str.replace(regex, "**");
-
-  return eval(str);
-}
-
 function setPostFunFragShader() {
   let shaderStr = computeDisplayFunShaderTop();
   let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
@@ -1943,80 +1812,277 @@ function setPostFunMaxFragShader() {
   updateUniforms();
 }
 
-function setDiffusionOptsAndGUI() {
+function problemTypeFromOptions() {
+  // Use the currently selected options to specify an equation type as an index into listOfTypes.
   switch (parseInt(options.numSpecies)) {
     case 1:
-      hideGUIController(algebraicVController);
-      if (options.crossDiffusion) {
-        setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      } else {
-        setGUIControllerName(DuuController, "D<sub>u<sub>");
-      }
+      // 1Species
+      equationType = 0;
       break;
     case 2:
       if (options.crossDiffusion) {
-        showGUIController(algebraicVController);
-        setGUIControllerName(DuuController, "D<sub>uu<sub>");
-        showGUIController(DuvController);
-        showGUIController(DvuController);
-        setGUIControllerName(DvvController, "D<sub>vv<sub>");
+        if (options.algebraicV) {
+          // 2SpeciesCrossDiffusionAlgebraicV
+          equationType = 3;
+        } else {
+          // 2SpeciesCrossDiffusion
+          equationType = 2;
+        }
       } else {
-        hideGUIController(algebraicVController);
-        options.algebraicV = false;
-        algebraicVController.updateDisplay();
-        setGUIControllerName(DuuController, "D<sub>u<sub>");
-        hideGUIController(DuvController);
-        hideGUIController(DvuController);
-        setGUIControllerName(DvvController, "D<sub>v<sub>");
+        // 2Species
+        equationType = 1;
       }
       break;
     case 3:
-      hideGUIController(algebraicVController);
       if (options.crossDiffusion) {
-        setGUIControllerName(DuuController, "D<sub>uu<sub>");
-        showGUIController(DuvController);
-        showGUIController(DuwController);
-        showGUIController(DvuController);
-        setGUIControllerName(DvvController, "D<sub>vv<sub>");
-        showGUIController(DvwController);
-        showGUIController(DwuController);
-        showGUIController(DwvController);
-        setGUIControllerName(DwwController, "D<sub>ww<sub>");
+        // 3SpeciesCrossDiffusion
+        equationType = 5;
       } else {
-        setGUIControllerName(DuuController, "D<sub>u<sub>");
-        hideGUIController(DuvController);
-        hideGUIController(DuwController);
-        hideGUIController(DvuController);
-        setGUIControllerName(DvvController, "D<sub>v<sub>");
-        hideGUIController(DvwController);
-        hideGUIController(DwuController);
-        hideGUIController(DwvController);
-        setGUIControllerName(DwwController, "D<sub>w<sub>");
+        // 3Species
+        equationType = 4;
       }
       break;
   }
 }
 
+function configureGUI() {
+  // Set up the GUI based on the the current options: numSpecies, crossDiffusion, and algebraicV.
+  // We need a separate block for each of the six cases.
 
+  switch (equationType) {
+    case 0:
+      // 1Species
+      // Hide everything to do with v and w.
+      hideVGUIPanels();
+      hideWGUIPanels();
+
+      // Hide the cross diffusion controller and the algebraicV controller.
+      hideGUIController(crossDiffusionController);
+      hideGUIController(algebraicVController);
+
+      // Configure the controller names.
+      setGUIControllerName(DuuController, "D<sub>u<sub>");
+      setGUIControllerName(fController, "f(u)");
+      break;
+
+    case 1:
+      // 2Species
+      // Show v panels.
+      showVGUIPanels();
+      // Hide w panels.
+      hideWGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV contoller.
+      hideGUIController(algebraicVController);
+
+      // Configure the controller names.
+      setGUIControllerName(DuuController, "D<sub>u<sub>");
+      setGUIControllerName(DvvController, "D<sub>v<sub>");
+      setGUIControllerName(fController, "f(u,v)");
+      setGUIControllerName(gController, "g(u,v)");
+      break;
+
+    case 2:
+      // 2SpeciesCrossDiffusion
+      // Show v panels.
+      showVGUIPanels();
+      // Hide w panels.
+      hideWGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Show the algebraicV contoller.
+      showGUIController(algebraicVController);
+
+      // Configure the controller names.
+      setGUIControllerName(DuuController, "D<sub>uu<sub>");
+      setGUIControllerName(DvvController, "D<sub>vv<sub>");
+      setGUIControllerName(fController, "f(u,v)");
+      setGUIControllerName(gController, "g(u,v)");
+      break;
+
+    case 3:
+      // 2SpeciesCrossDiffusionAlgebraicV
+      // Show v panels.
+      showVGUIPanels();
+      hideGUIController(DvvController);
+      // Hide w panels.
+      hideWGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Show the algebraicV contoller.
+      showGUIController(algebraicVController);
+
+      // Configure the controller names.
+      setGUIControllerName(DuuController, "D<sub>uu<sub>");
+      setGUIControllerName(fController, "f(u,v)");
+      setGUIControllerName(gController, "g(u)");
+      break;
+
+    case 4:
+      // 3Species
+      // Show v panels.
+      showVGUIPanels();
+      // Show w panels.
+      showWGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV contoller.
+      hideGUIController(algebraicVController);
+
+      // Configure the controller names.
+      setGUIControllerName(DuuController, "D<sub>u<sub>");
+      setGUIControllerName(DvvController, "D<sub>v<sub>");
+      setGUIControllerName(DwwController, "D<sub>w<sub>");
+      setGUIControllerName(fController, "f(u,v,w)");
+      setGUIControllerName(gController, "g(u,v,w)");
+      setGUIControllerName(hController, "h(u,v,w)");
+      break;
+
+    case 5:
+      // 3SpeciesCrossDiffusion
+      // Show v panels.
+      showVGUIPanels();
+      // Show w panels.
+      showWGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV contoller.
+      hideGUIController(algebraicVController);
+
+      // Configure the controller names.
+      setGUIControllerName(DuuController, "D<sub>uu<sub>");
+      setGUIControllerName(DvvController, "D<sub>vv<sub>");
+      setGUIControllerName(DwwController, "D<sub>ww<sub>");
+      setGUIControllerName(fController, "f(u,v,w)");
+      setGUIControllerName(gController, "g(u,v,w)");
+      setGUIControllerName(hController, "h(u,v,w)");
+      break;
+  }
+  // Hide or show GUI elements that depend on the BCs.
+  setBCsGUI();
+  // Refresh the GUI displays.
+  refreshGUI(leftGUI);
+  refreshGUI(rightGUI);
+}
+
+function configureOptions() {
+  // Configure any options that depend on the equation type.
+
+  // Set options that only depend on the number of species.
+  switch (parseInt(options.numSpecies)) {
+    case 1:
+      options.crossDiffusion = false;
+      options.algebraicV = false;
+
+      // Ensure that u is being displayed on the screen (and the brush target).
+      options.whatToDraw = "u";
+      options.whatToPlot = "u";
+
+      // Set the diffusion of v and w to zero to prevent them from causing numerical instability.
+      options.diffusionStrUV = "0";
+      options.diffusionStrUW = "0";
+      options.diffusionStrVU = "0";
+      options.diffusionStrVV = "0";
+      options.diffusionStrVW = "0";
+      options.diffusionStrWU = "0";
+      options.diffusionStrWV = "0";
+      options.diffusionStrWW = "0";
+
+      // Set v and w to be periodic to reduce computational overhead.
+      options.boundaryConditionsV = "periodic";
+      options.clearValueV = "0";
+      options.reactionStrV = "0";
+      options.boundaryConditionsW = "periodic";
+      options.clearValueW = "0";
+      options.reactionStrW = "0";
+      break;
+    case 2:
+      // Ensure that u or v is being displayed on the screen (and the brush target).
+      if (options.whatToDraw == "w") {
+        options.whatToDraw = "u";
+      }
+      if (options.whatToPlot == "w") {
+        options.whatToPlot = "u";
+      }
+
+      // Set the diffusion of w to zero to prevent it from causing numerical instability.
+      options.diffusionStrUW = "0";
+      options.diffusionStrVW = "0";
+      options.diffusionStrWU = "0";
+      options.diffusionStrWV = "0";
+      options.diffusionStrWW = "0";
+
+      // Set w to be periodic to reduce computational overhead.
+      options.boundaryConditionsW = "periodic";
+      options.clearValueW = "0";
+      options.reactionStrW = "0";
+      break;
+    case 3:
+      options.algebraicV = false;
+      break;
+  }
+
+  // Configure any type-specific options.
+  switch (equationType) {
+    case 3:
+      // 2SpeciesCrossDiffusionAlgebraicV
+      options.diffusionStrVV = 0;
+      break;
+  }
+
+  // Refresh the GUI displays.
+  refreshGUI(leftGUI);
+  refreshGUI(rightGUI);
+}
+
+function updateProblem() {
+  // Update the problem based on the current options.
+  problemTypeFromOptions();
+  configureOptions();
+  configureGUI();
+  updateWhatToPlot();
+  setBrushType();
+  setRDEquations();
+  setEquationDisplayType();
+}
+
+function setEquationDisplayType() {
+  // Given an equation type (specified as an integer selector), set the type of
+  // equation in the UI element that displays the equations.
+  const elementID = "#equationDisplay";
+  if (document.querySelector(elementID) != null) {
+    // Remove all existing classes.
+    for (let i = 0; i < listOfTypes.length; i++) {
+      document.getElementById(elementID).classList.remove(listOfTypes[i]);
+    }
+    // Add the new class.
+    document.getElementById(elementID).classList.add(listOfTypes[equationType]);
+  }
+}
 
 /* GUI settings and equations buttons */
-
-$("#settings").click( function () {
+$("#settings").click(function () {
   $("#rightGUI").toggle();
-})
-$("#equations").click( function () {
+});
+$("#equations").click(function () {
   $("#leftGUI").toggle();
-})
+});
 $("#pause").click(function () {
   pauseSim();
   $("#pause").hide();
   $("#play").show();
-})
+});
 $("#play").click(function () {
   playSim();
   $("#play").hide();
   $("#pause").show();
-})
-$("#erase").click(function() {
+});
+$("#erase").click(function () {
   resetSim();
-})
+});
