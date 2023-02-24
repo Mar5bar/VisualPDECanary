@@ -512,15 +512,6 @@ function initGUI(startOpen) {
   rightGUI = new dat.GUI({ closeOnTop: true });
   rightGUI.domElement.id = "rightGUI";
 
-  // Basic GUI elements. Always present.
-  // pauseButton = rightGUI.add(funsObj, "pause");
-  // if (isRunning) {
-  //   setGUIControllerName(pauseButton, "Pause (space)");
-  // } else {
-  //   setGUIControllerName(pauseButton, "Play (space)");
-  // }
-  // resetButton = rightGUI.add(funsObj, "reset").name("Reset (r)");
-
   if (inGUI("copyConfigAsURL")) {
     // Copy configuration as URL.
     rightGUI.add(funsObj, "copyConfigAsURL").name("Copy URL");
@@ -534,12 +525,11 @@ function initGUI(startOpen) {
   leftGUI.open();
   rightGUI.open();
   if (startOpen != undefined && startOpen) {
-  
+    $("#leftGUI").show();
+    $("#rightGUI").show();
   } else {
-    // leftGUI.close();
     $("#leftGUI").hide();
     $("#rightGUI").hide();
-    // rightGUI.close();
   }
 
   // Create a generic options folder for folderless controllers, which we'll hide later if it's empty.
@@ -1997,26 +1987,23 @@ function setDiffusionOptsAndGUI() {
   }
 }
 
-
-
 /* GUI settings and equations buttons */
-
-$("#settings").click( function () {
+$("#settings").click(function () {
   $("#rightGUI").toggle();
-})
-$("#equations").click( function () {
+});
+$("#equations").click(function () {
   $("#leftGUI").toggle();
-})
+});
 $("#pause").click(function () {
   pauseSim();
   $("#pause").hide();
   $("#play").show();
-})
+});
 $("#play").click(function () {
   playSim();
   $("#play").hide();
   $("#pause").show();
-})
-$("#erase").click(function() {
+});
+$("#erase").click(function () {
   resetSim();
-})
+});
