@@ -158,6 +158,29 @@ break;
         whatToPlot: "u",
       };
       break;
+
+	case "inhomogHeatEquation":
+	options = {
+	"autoSetColourRange": true,
+	"boundaryConditionsU": "noflux",
+	"diffusionStrUU": "0.0001",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dt": 0.01,
+	"kineticParams": "n=2;m=2",
+	"maxColourValue": 122.81507873535156,
+	"minColourValue": -129.31619262695312,
+	"numSpecies": 1,
+	"reactionStrU": "cos(n*pi*x)*cos(m*pi*y)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
+		  
+		  
     case "travellingWave":
       options = {
         boundaryConditionsU: "noflux",
