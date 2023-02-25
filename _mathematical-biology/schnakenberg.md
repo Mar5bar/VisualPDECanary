@@ -4,11 +4,11 @@ title: Schnakenberg pattern formation
 lesson_number: 50
 thumbnail: /assets/images/Schnakenberg.PNG
 extract: Spots and stripes
-equation: $\pd{u}{t}=\nabla^2 u+a-u+u^2v, \,\, \pd{u}{t}=D\nabla^2 b-u^2v,$
+equation: $\pd{u}{t}=\nabla^2 u+a-u+u^2v, \,\, \pd{u}{t}=D\nabla^2v+ b-u^2v,$
 ---
 Next we'll consider a classical reaction–diffusion system which forms [Turing patterns](https://en.wikipedia.org/wiki/Turing_pattern). 
 
-$$\pd{u}{t}=\nabla^2 u+a-u+u^2v, \quad \pd{u}{t}=D\nabla^2 b-u^2v,$$
+$$\pd{u}{t}=\nabla^2 u+a-u+u^2v, \quad \pd{u}{t}=D\nabla^2v+ b-u^2v,$$
 
 where we need $D>1$ to form patterns, and typically take $a,b>0$.
 
