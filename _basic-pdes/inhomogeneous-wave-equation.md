@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Sources and sinks of heat
+title: Inhomogeneous waves
 lesson_number: 40
 thumbnail: /assets/images/InhomWaveEquation.PNG
 extract: Waves in an inhomogeneous medium
