@@ -67,7 +67,7 @@ canvas {
     top: 0px;
     left: 55px;
     border: 5px black solid;
-    border-radius: 5px 5px 0px 0px;
+    border-radius: 5px;
     background-color: black;
 }
 
@@ -78,8 +78,9 @@ canvas {
     background-color: #ededed;
     color: black;
     height: 85px;
-    min-width: 245px;
+    min-width: 242px;
     border-radius: 2px;
+    padding-right:3px;
 }
 
 #equation_display.flexbox {
@@ -89,9 +90,16 @@ canvas {
 
 #leftGUI,
 #rightGUI {
-    border-radius: 5px;
     padding: 5px;
     background-color: black;
+}
+
+#leftGUI{
+    border-radius: 0px 0px 5px 5px;
+}
+
+#rightGUI{
+    border-radius: 5px;
 }
 
 .ui_button {
