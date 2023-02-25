@@ -180,17 +180,15 @@ break;
 
 	case "inhomogHeatEquation":
 	options = {
-	"autoSetColourRange": true,
 	"boundaryConditionsU": "noflux",
-	"diffusionStrUU": "0.0001",
+	"diffusionStrUU": "D",
 	"diffusionStrVV": "0",
 	"diffusionStrWW": "0",
-	"dt": 0.01,
-	"kineticParams": "n=2;m=2",
-	"maxColourValue": 122.81507873535156,
-	"minColourValue": -129.31619262695312,
+	"dt": 0.004,
+	"kineticParams": "n=2;m=2;D=0.0001",
+	"minColourValue": -1,
 	"numSpecies": 1,
-	"reactionStrU": "cos(n*pi*x)*cos(m*pi*y)",
+	"reactionStrU": "cos(n*pi*x)*cos(m*pi*y)*D*pi^2*(n^2+m^2)",
 	"reactionStrV": "0",
 	"reactionStrW": "0",
 	"squareCanvas": true,
