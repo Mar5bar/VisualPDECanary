@@ -10,7 +10,7 @@ Next we'll consider a classical reaction–diffusion system which forms [Turing 
 
 $$\pd{u}{t}=\nabla^2 u+a-u+u^2v, \quad \pd{u}{t}=D\nabla^2 b-u^2v,$$
 
-where we need $D>0$ to form patterns, and typically take $a,b>0$.
+where we need $D>1$ to form patterns, and typically take $a,b>0$.
 
 * Load the [interactive simulation](/sim/?preset=Schnakenberg). 
 
