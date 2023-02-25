@@ -198,6 +198,27 @@ break;
 break;
 		  
 		  
+	case "inhomogWaveEquation":
+	options = {
+	"boundaryConditionsU": "noflux",
+	"boundaryConditionsV": "noflux",
+	"brushRadius": 0.01,
+	"crossDiffusion": true,
+	"diffusionStrUU": "C*D",
+	"diffusionStrVU": "D*(1+E*sin(pi*m*x))*(1+E*sin(n*pi*y))",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dt": 0.001,
+	"kineticParams": "D=0.0001;m=9;n=9; C=0.01;E=0.95",
+	"reactionStrU": "v",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"whatToPlot": "u",
+};
+break;
+		  
+		  
     case "travellingWave":
       options = {
         boundaryConditionsU: "noflux",
