@@ -5,7 +5,7 @@ title: Bistable travelling waves
 lesson_number: 30
 thumbnail: /assets/images/travelling-waves.png
 extract: Bistability affects waves!
-equation: $\pd{u}{t}=D\nabla^2 +u(u-a)(u-1)$
+equation: $\pd{u}{t}=D\nabla^2 u +u(u-a)(u-1)$
 ---
 
 
