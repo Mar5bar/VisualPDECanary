@@ -78,9 +78,10 @@ canvas {
     background-color: #ededed;
     color: black;
     height: 85px;
-    min-width: 242px;
+    min-width: 238px;
     border-radius: 2px;
-    padding-right:3px;
+    padding-right:5px;
+    padding-left:2px;
 }
 
 #equation_display.flexbox {
