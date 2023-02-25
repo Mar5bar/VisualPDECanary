@@ -1,12 +1,12 @@
 ---
 layout: page
-title: Complex Ginzburg-Landau
+title: Complex Ginzburg–Landau
 lesson_number: 20
 thumbnail: /assets/images/complexGinzburgLandau.png
 extract: Patterns, waves, chaos
 equation: $\pdd{u}{t}=D \nabla^2 u$
 ---
-Here is an implementation of the [(complex) Ginzburg-Landau equation](https://arxiv.org/abs/cond-mat/0106115) given by,
+Here is an implementation of the [(complex) Ginzburg–Landau equation](https://arxiv.org/abs/cond-mat/0106115) given by,
 
 $$\pdd{u}{t}=D \nabla^2 u,$$
 
