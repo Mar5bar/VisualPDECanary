@@ -4,11 +4,11 @@ title: Sources and sinks of heat
 lesson_number: 30
 thumbnail: /assets/images/InhomHeatEquation.PNG
 extract: Diffusion in an inhomogeneous medium
-equation: $\pd{u}{t}=D \nabla^2 u+f(x,y)$
+equation: $\pd{u}{t}=D \vnabla^2 u+f(x,y)$
 ---
 We now consider an inhomogeneous [heat equation](https://en.wikipedia.org/wiki/Heat_equation),
 
-$$\pd{u}{t}=D \nabla^2 u+f(x,y)$, $f(x,y) = D\pi^2(n^2+m^2)\cos\left (n\pi x \right)\cos\left (m\pi y \right)$$
+$$\pd{u}{t}=D \vnabla^2 u+f(x,y)$, $f(x,y) = D\pi^2(n^2+m^2)\cos\left (n\pi x \right)\cos\left (m\pi y \right)$$
 
 with homogeneous Neumann (aka no-flux) boundary conditions. You can use [separation of variables](https://en.wikipedia.org/wiki/Separation_of_variables#Partial_differential_equations) to show that the solution at steady state looks like,
 
