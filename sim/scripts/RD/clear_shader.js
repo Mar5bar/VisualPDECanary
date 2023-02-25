@@ -9,6 +9,7 @@ export function clearShaderTop() {
     uniform int nXDisc;
     uniform int nYDisc;
     uniform float seed;
+    const float pi = 3.141592653589793;
 
     void main()
     {
