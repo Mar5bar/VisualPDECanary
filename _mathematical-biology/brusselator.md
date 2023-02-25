@@ -4,7 +4,7 @@ title: Brusselator pattern formation
 lesson_number: 60
 thumbnail: /assets/images/Brusselator.PNG
 extract: Turing instability regions
-equation: $\pd{u}{t}=\nabla^2 u+a-(b+1)u+u^2v, \,\, \pd{u}{t}=D\nabla^2v+ bu-u^2v,$
+equation: $\pd{u}{t}=\nabla^2 u+a-(b+1)u+u^2v$ $\pd{u}{t}=D\nabla^2v+ bu-u^2v$
 ---
 Another [Turing](https://en.wikipedia.org/wiki/Turing_pattern) system is the [Brusselator](https://en.wikipedia.org/wiki/Brusselator), given by 
 
