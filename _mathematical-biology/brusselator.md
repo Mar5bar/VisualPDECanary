@@ -2,7 +2,7 @@
 layout: page
 title: Brusselator pattern formation
 lesson_number: 60
-thumbnail: /assets/images/brusselator.PNG
+thumbnail: /assets/images/Brusselator.PNG
 extract: Turing instability regions
 equation: $\pd{u}{t}=\nabla^2 u+a-(b+1)u+u^2v, \,\, \pd{u}{t}=D\nabla^2 bu-u^2v,$
 ---
