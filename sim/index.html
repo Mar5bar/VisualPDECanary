@@ -1,18 +1,38 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Generic reaction-diffusion system</title>
-        <meta charset="utf-8">
-        <meta http-equiv="Cache-control" content="public">
-        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<link type="text/css" rel="stylesheet" href="./css/main.css">
-        <script src="https://code.jquery.com/jquery-3.6.3.min.js"
-            integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
-        <script defer type="text/javascript" src="./scripts/three.min.js"></script>
-        <script defer type="text/javascript" src="./scripts/dat.gui.min.js"></script>
-        <script type="module" src="./scripts/RD/main.js"></script>
-        <script src="https://kit.fontawesome.com/246435e5e9.js" crossorigin="anonymous"></script>
 
+<head>
+    <title>Generic reaction-diffusion system</title>
+    <meta charset="utf-8">
+    <meta http-equiv="Cache-control" content="public">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="./css/main.css">
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"
+        integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+    <script defer type="text/javascript" src="./scripts/three.min.js"></script>
+    <script defer type="text/javascript" src="./scripts/dat.gui.min.js"></script>
+    <script src="https://kit.fontawesome.com/246435e5e9.js" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        window.MathJax = {
+            loader: {
+                load: ['ui/menu', '[tex]/ams']
+            }
+        };
+        window.MathJax = {
+            tex: {
+                macros: {
+                    pd: ["\\frac{\\partial #1}{\\partial #2}", 2],
+                    pdd: ["\\frac{\\partial^2 #1}{\\partial #2^2}", 2],
+                    vnabla: "\\boldsymbol{\\nabla}"
+                },
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            }
+        };    
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <script type="module" src="./scripts/RD/main.js"></script>
     <script type="importmap">
         {
             "imports": {
@@ -20,22 +40,60 @@
             }
         }
     </script>
-    </head>
+</head>
 
-    <!-- The canvas for drawing on -->
-    <div>
+<!-- The canvas for drawing on -->
+<div>
     <canvas id="simCanvas"></canvas>
+</div>
+
+<div class="ui_button" id="settings" title="Settings"><i class="fa-solid fa-wrench"></i></div>
+<div class="ui_button" id="play" title="Play (space)"><i class="fa-solid fa-play"></i></div>
+<div class="ui_button" id="pause" title="Pause (space)"><i class="fa-solid fa-pause"></i></div>
+<div class="ui_button" id="erase" title="Erase (R)"><i class="fa-solid fa-eraser"></i></div>
+
+<div class="ui_button" id="equations" title="Edit equations"><i class="fa-solid fa-pen"></i></div>
+
+<div id="equation_display">
+    <div id="equation0">
+        $\pd{u}{t} = \vnabla \cdot(D_u\vnabla u) + f$
     </div>
+    <div id="equation1">
+        $\begin{aligned}
+        \textstyle \pd{u}{t} &= \vnabla \cdot(D_u\vnabla u) + f\\
+        \textstyle \pd{v}{t} &= \vnabla \cdot(D_v\vnabla v) + g
+        \end{aligned}$
+    </div>
+    <div id="equation2">
+        $\begin{aligned}
+        \textstyle \pd{u}{t} &= \vnabla \cdot (D_{uu}\vnabla u+D_{uv}\vnabla v ) + f\\
+        \textstyle \pd{v}{t} &= \vnabla \cdot (D_{vu}\vnabla u+D_{vv}\vnabla v ) + g
+        \end{aligned}$
+    </div>
+    <div id="equation3">
+        $\begin{aligned}
+        \textstyle \pd{u}{t} &= \vnabla \cdot (D_{uu}\vnabla u+D_{uv}\vnabla v ) + f\\
+        v &= \vnabla \cdot (D_{vu}\vnabla u) + g
+        \end{aligned}$
+    </div>
+    <div id="equation4">
+        $\begin{aligned}
+        \textstyle \pd{u}{t} &= \vnabla \cdot(D_u\vnabla u) + f\\
+        \textstyle \pd{v}{t} &= \vnabla \cdot(D_v\vnabla v) + g\\
+        \textstyle \pd{w}{t} &= \vnabla \cdot(D_w\vnabla w) + h
+        \end{aligned}$
+    </div>
+    <div id="equation5">
+        $\begin{aligned}
+        \textstyle \pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w) + f\\
+        \textstyle \pd{v}{t} &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w) + g\\
+        \textstyle \pd{w}{t} &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w) + h
+        \end{aligned}$
+    </div>
+</div>
 
-    <div class="ui_button" id="settings" title="Settings"><i class="fa-solid fa-wrench"></i></div>
-    <div class="ui_button" id="play"><i class="fa-solid fa-play"></i></div>
-    <div class="ui_button" id="pause"><i class="fa-solid fa-pause"></i></div>
-    <div class="ui_button" id="erase" title="Erase (R)"><i class="fa-solid fa-eraser"></i></div>
-    
-    <div class="ui_button" id="equations" title="Edit equations"><i class="fa-solid fa-pen"></i></div>
-
-    <body>
-        <!-- This is a generic reaction-diffusion solver. -->
-    </body>
+<body>
+    <!-- This is a generic reaction-diffusion solver. -->
+</body>
 
 </html>

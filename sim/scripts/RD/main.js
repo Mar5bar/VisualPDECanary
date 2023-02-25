@@ -510,7 +510,7 @@ function initUniforms() {
 
 function initGUI(startOpen) {
   // Initialise the left GUI.
-  leftGUI = new dat.GUI({closeOnTop: true });
+  leftGUI = new dat.GUI({ closeOnTop: true });
   leftGUI.domElement.id = "leftGUI";
 
   // Initialise the right GUI.
@@ -1194,11 +1194,15 @@ function clearTextures() {
 
 function pauseSim() {
   // pauseButton.name("Play (space)");
+  $("#pause").hide();
+  $("#play").show();
   isRunning = false;
 }
 
 function playSim() {
   // pauseButton.name("Pause (space)");
+  $("#play").hide();
+  $("#pause").show();
   isRunning = true;
 }
 
@@ -1861,8 +1865,9 @@ function configureGUI() {
       hideGUIController(algebraicVController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>u<sub>");
-      setGUIControllerName(fController, "f(u)");
+      setGUIControllerName(DuuController, "$D_u$");
+      setGUIControllerName(fController, "$f(u)$");
+      
       break;
 
     case 1:
@@ -1878,10 +1883,11 @@ function configureGUI() {
       hideGUIController(algebraicVController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>u<sub>");
-      setGUIControllerName(DvvController, "D<sub>v<sub>");
-      setGUIControllerName(fController, "f(u,v)");
-      setGUIControllerName(gController, "g(u,v)");
+      setGUIControllerName(DuuController, "$D_u$");
+      setGUIControllerName(DvvController, "$D_v$");
+      setGUIControllerName(fController, "$f(u,v)$");
+      setGUIControllerName(gController, "$g(u,v)$");
+
       break;
 
     case 2:
@@ -1897,8 +1903,8 @@ function configureGUI() {
       showGUIController(algebraicVController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      setGUIControllerName(DvvController, "D<sub>vv<sub>");
+      setGUIControllerName(DuuController, "D<sub>uu</sub>");
+      setGUIControllerName(DvvController, "D<sub>vv</sub>");
       setGUIControllerName(fController, "f(u,v)");
       setGUIControllerName(gController, "g(u,v)");
       break;
@@ -1917,7 +1923,7 @@ function configureGUI() {
       showGUIController(algebraicVController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
+      setGUIControllerName(DuuController, "D<sub>uu</sub>");
       setGUIControllerName(fController, "f(u,v)");
       setGUIControllerName(gController, "g(u)");
       break;
@@ -1935,9 +1941,9 @@ function configureGUI() {
       hideGUIController(algebraicVController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>u<sub>");
-      setGUIControllerName(DvvController, "D<sub>v<sub>");
-      setGUIControllerName(DwwController, "D<sub>w<sub>");
+      setGUIControllerName(DuuController, "D<sub>u</sub>");
+      setGUIControllerName(DvvController, "D<sub>v</sub>");
+      setGUIControllerName(DwwController, "D<sub>w</sub>");
       setGUIControllerName(fController, "f(u,v,w)");
       setGUIControllerName(gController, "g(u,v,w)");
       setGUIControllerName(hController, "h(u,v,w)");
@@ -1956,9 +1962,9 @@ function configureGUI() {
       hideGUIController(algebraicVController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      setGUIControllerName(DvvController, "D<sub>vv<sub>");
-      setGUIControllerName(DwwController, "D<sub>ww<sub>");
+      setGUIControllerName(DuuController, "D<sub>uu</sub>");
+      setGUIControllerName(DvvController, "D<sub>vv</sub>");
+      setGUIControllerName(DwwController, "D<sub>ww</sub>");
       setGUIControllerName(fController, "f(u,v,w)");
       setGUIControllerName(gController, "g(u,v,w)");
       setGUIControllerName(hController, "h(u,v,w)");
@@ -2055,14 +2061,13 @@ function updateProblem() {
 function setEquationDisplayType() {
   // Given an equation type (specified as an integer selector), set the type of
   // equation in the UI element that displays the equations.
-  const elementID = "#equationDisplay";
-  if (document.querySelector(elementID) != null) {
-    // Remove all existing classes.
+  if ($("#equation_display").length) { // If it exists
+    // Remove all existing equations.
     for (let i = 0; i < listOfTypes.length; i++) {
-      document.getElementById(elementID).classList.remove(listOfTypes[i]);
+      $("#equation" + i).hide();
     }
-    // Add the new class.
-    document.getElementById(elementID).classList.add(listOfTypes[equationType]);
+    // Display the correct equation.
+    $("#equation" + equationType).show();
   }
 }
 
@@ -2075,13 +2080,9 @@ $("#equations").click(function () {
 });
 $("#pause").click(function () {
   pauseSim();
-  $("#pause").hide();
-  $("#play").show();
 });
 $("#play").click(function () {
   playSim();
-  $("#play").hide();
-  $("#pause").show();
 });
 $("#erase").click(function () {
   resetSim();

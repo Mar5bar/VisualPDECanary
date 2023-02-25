@@ -111,6 +111,13 @@ canvas {
     left: 3px;
 }
 
+#equation_display {
+    position: absolute;
+    top: 50px;
+    left: 3px;
+    background-color: white;
+}
+
 .close-button{
     display:none;
 }
