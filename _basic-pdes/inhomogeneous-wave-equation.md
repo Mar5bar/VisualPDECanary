@@ -12,7 +12,7 @@ $$\pdd{u}{t}=\vnabla\cdot(Df(x,y)\vnabla u),$$
 
 with homogeneous Neumann (aka no-flux) boundary conditions. This equation can be solved numerically as long as $f(x,y)>0$ for all $x,y$ in the domain.
 
-* Load the [interactive simulation](/sim/?preset=inhomogWaveEquation) which uses the example $f(x,y) = D*(1+E*sin(pi*m*x))*(1+E*sin(n*pi*y))$.Importantly we need $|E|<1$ to ensure the solution makes sense.
+* Load the [interactive simulation](/sim/?preset=inhomogWaveEquation) which uses the example $f(x,y) = D(1+E\sin(m\pi x))(1+E\sin(n\pi y))$. Importantly we need $|E|<1$ to ensure the solution makes sense.
 
 * You can change the values of $m$ and $n$ to observe different patterns of regions where waves propagate at different speeds. In particular, using the the function $f(x,y)$ above will lead to corners inside of the domain with very slow wave speeds, and these will become visually apparent quickly.
 
