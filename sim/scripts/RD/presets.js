@@ -23,6 +23,25 @@ export function getPreset(id) {
 	};
 	break;
 		  
+	case "brusselator":
+	options = {
+	"clearValueU": "a",
+	"clearValueV": "b/a",
+	"diffusionStrUU": "0.0001",
+	"diffusionStrVV": "0.0001*D",
+	"diffusionStrWW": "0",
+	"dt": 0.001,
+	"kineticParams": "a=2;b=3;D=7",
+	"maxColourValue": 4,
+	"minColourValue": 1,
+	"reactionStrU": "a+u^2*v-(b+1)*u",
+	"reactionStrV": "b*u-u^2*v",
+	"reactionStrW": "0",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	};
+	break;
+		  
 	case "cyclicCompetition":
 	options = {
 	"clearValueU": "0.1*RAND+x",
