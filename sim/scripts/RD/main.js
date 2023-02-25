@@ -655,74 +655,74 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrUU")) {
     DuuController = root
       .add(options, "diffusionStrUU")
-      .name("D<sub>uu<sub>")
+      .name("$D_{uu}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrUV")) {
     DuvController = root
       .add(options, "diffusionStrUV")
-      .name("D<sub>uv<sub>")
+      .name("$D_{uv}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrUW")) {
     DuwController = root
       .add(options, "diffusionStrUW")
-      .name("D<sub>uw<sub>")
+      .name("$D_{uw}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVU")) {
     DvuController = root
       .add(options, "diffusionStrVU")
-      .name("D<sub>vu<sub>")
+      .name("$D_{vu}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVV")) {
     DvvController = root
       .add(options, "diffusionStrVV")
-      .name("D<sub>vv<sub>")
+      .name("$D_{vv}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVW")) {
     DvwController = root
       .add(options, "diffusionStrVW")
-      .name("D<sub>vw<sub>")
+      .name("$D_{vw}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrWU")) {
     DwuController = root
       .add(options, "diffusionStrWU")
-      .name("D<sub>wu<sub>")
+      .name("$D_{wu}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrWV")) {
     DwvController = root
       .add(options, "diffusionStrWV")
-      .name("D<sub>wv<sub>")
+      .name("$D_{wv}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrWW")) {
     DwwController = root
       .add(options, "diffusionStrWW")
-      .name("D<sub>ww<sub>")
+      .name("$D_{ww}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrU")) {
     // Custom f(u,v) and g(u,v).
     fController = root
       .add(options, "reactionStrU")
-      .name("f(u,v,w)")
+      .name("$f(u,v,w)$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrV")) {
     gController = root
       .add(options, "reactionStrV")
-      .name("g(u,v,w)")
+      .name("$g(u,v,w)$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrW")) {
     hController = root
       .add(options, "reactionStrW")
-      .name("h(u,v,w)")
+      .name("$h(u,v,w)$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("kineticParams")) {
@@ -1535,6 +1535,12 @@ function refreshGUI(folder) {
       folder.__controllers[i].updateDisplay();
     }
   }
+  // Run MathJax to texify the parameter names (e.g. D_uu) which appear dynamically.
+  // No need to do this on page load (and indeed will throw an error) so check
+  // MathJax is defined first.
+  if(MathJax.typeset != undefined){
+    MathJax.typeset();
+  }
 }
 
 function deleteGUIs() {
@@ -1912,10 +1918,10 @@ function configureGUI() {
       showGUIController(algebraicVController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu</sub>");
-      setGUIControllerName(DvvController, "D<sub>vv</sub>");
-      setGUIControllerName(fController, "f(u,v)");
-      setGUIControllerName(gController, "g(u,v)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(DvvController, "$D_{vv}$");
+      setGUIControllerName(fController, "$f(u,v)$");
+      setGUIControllerName(gController, "$g(u,v)$");
       break;
 
     case 3:
@@ -1932,9 +1938,9 @@ function configureGUI() {
       showGUIController(algebraicVController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu</sub>");
-      setGUIControllerName(fController, "f(u,v)");
-      setGUIControllerName(gController, "g(u)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(fController, "$f(u,v)$");
+      setGUIControllerName(gController, "$g(u)$");
       break;
 
     case 4:
@@ -1950,12 +1956,12 @@ function configureGUI() {
       hideGUIController(algebraicVController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>u</sub>");
-      setGUIControllerName(DvvController, "D<sub>v</sub>");
-      setGUIControllerName(DwwController, "D<sub>w</sub>");
-      setGUIControllerName(fController, "f(u,v,w)");
-      setGUIControllerName(gController, "g(u,v,w)");
-      setGUIControllerName(hController, "h(u,v,w)");
+      setGUIControllerName(DuuController, "$D_u$");
+      setGUIControllerName(DvvController, "$D_v$");
+      setGUIControllerName(DwwController, "$D_w$");
+      setGUIControllerName(fController, "$f(u,v,w)$");
+      setGUIControllerName(gController, "$g(u,v,w)$");
+      setGUIControllerName(hController, "$h(u,v,w)$");
       break;
 
     case 5:
@@ -1971,12 +1977,12 @@ function configureGUI() {
       hideGUIController(algebraicVController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu</sub>");
-      setGUIControllerName(DvvController, "D<sub>vv</sub>");
-      setGUIControllerName(DwwController, "D<sub>ww</sub>");
-      setGUIControllerName(fController, "f(u,v,w)");
-      setGUIControllerName(gController, "g(u,v,w)");
-      setGUIControllerName(hController, "h(u,v,w)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(DvvController, "$D_{vv}$");
+      setGUIControllerName(DwwController, "$D_{ww}$");
+      setGUIControllerName(fController, "$f(u,v,w)$");
+      setGUIControllerName(gController, "$g(u,v,w)$");
+      setGUIControllerName(hController, "$h(u,v,w)$");
       break;
   }
   // Hide or show GUI elements that depend on the BCs.
