@@ -2106,6 +2106,7 @@ $("#settings").click(function () {
   $("#rightGUI").toggle();
 });
 $("#equations").click(function () {
+  $("#equation_display").toggle();
   $("#leftGUI").toggle();
 });
 $("#pause").click(function () {
