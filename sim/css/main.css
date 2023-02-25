@@ -67,7 +67,8 @@ canvas {
     top: 0px;
     left: 55px;
     border: 5px black solid;
-    border-radius: 5px;
+    border-radius: 5px 5px 0px 0px;
+    background-color: black;
 }
 
 #equation_display_box {
@@ -77,8 +78,8 @@ canvas {
     background-color: #ededed;
     color: black;
     height: 85px;
-    width: 245px;
-    border-radius: 4px;
+    min-width: 245px;
+    border-radius: 2px;
 }
 
 #equation_display.flexbox {
