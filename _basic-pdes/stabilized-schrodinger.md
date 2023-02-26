@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Schr\"{o}dinger's Equation
-lesson_number: 20
+lesson_number: 50
 thumbnail: /assets/images/waveEquation.PNG
 extract: Quantum mechanics
 equation: $i\hbar\pd{\psi}{t}=\nabla^2 \psi+V(x,t)\psi$
