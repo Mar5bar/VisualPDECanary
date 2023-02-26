@@ -4,7 +4,7 @@ title: Sources and sinks of heat
 lesson_number: 30
 thumbnail: /assets/images/InhomHeatEquation.PNG
 extract: Diffusion in an inhomogeneous medium
-equation: $\pd{u}{t}= \nabla\cdot(D(x,y)\nabla u)+f(x,y)$
+equation: $\pd{u}{t}= \nabla\cdot(g(x,y)\nabla u)+f(x,y)$
 ---
 We now consider an inhomogeneous [heat equation](https://en.wikipedia.org/wiki/Heat_equation),
 
@@ -29,13 +29,11 @@ $$
 We can also consider a diffusion coefficient which varies in space by studying
 
 $$
-\pd{u}{t}= \nabla\cdot(D(x,y)\nabla u),
+\pd{u}{t}= \nabla\cdot(g(x,y)\nabla u),
 $$
 
-where we need $D(x,y)>0$ for all $x,y$ in the domain. As a simple (but complicated-looking) example, we take,
+where we need $g(x,y)>0$ for all $x,y$ in the domain. As a simple (though complicated-looking) example, we take,
 
-$$
-D(x,y) = D(1+E\cos(n \pi (\sqrt{(x-0.5)^2+(y-0.5)^2})))
-$$
+$$g(x,y) = D\left(1+E\cos\left(n \pi \left(\sqrt{(x-0.5)^2+(y-0.5)^2}\right)\right)\right),$$
 
-where $D>0$, $n>0$, and $|E|<1$ are constants. This represents radially-oscillating regions of high and low diffusion. Setting an initial condition of $u(x,y,0)=1$ and Dirichlet boundary conditions, we can observe an immediate partitioning of the initial heat into regions bounded by the maxima of the cosine function. Click [here](/sim/?preset=inhomogDiffusionHeatEquation) to see this, and play around with the values of $n$, $E$, and $D$.
+where $D>0$, $n>0$, and $|E|<1$ are constants. This represents radially-oscillating regions of high and low diffusion. Setting an initial condition of $$u(x,y,0)=1$$ and Dirichlet boundary conditions, we can observe an immediate partitioning of the initial heat into regions bounded by the maxima of the cosine function. Click [here](/sim/?preset=inhomogDiffusionHeatEquation) to see this, and play around with the values of $n$, $E$, and $D$.
