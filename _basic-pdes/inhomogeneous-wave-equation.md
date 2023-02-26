@@ -4,11 +4,11 @@ title: Inhomogeneous waves
 lesson_number: 40
 thumbnail: /assets/images/InhomWaveEquation.PNG
 extract: Waves in an inhomogeneous medium
-equation: $\pdd{u}{t}= \nabla\cdot(Df(x,y)\nabla u) $
+equation: $\pdd{u}{t}= \nabla\cdot(f(x,y)\nabla u) $
 ---
 We now consider an inhomogeneous [wave equation](https://en.wikipedia.org/wiki/Heat_equation),
 
-$$\pdd{u}{t}=\nabla\cdot(Df(x,y)\nabla u),$$
+$$\pdd{u}{t}=\nabla\cdot(f(x,y)\nabla u),$$
 
 with homogeneous Neumann (aka no-flux) boundary conditions. This equation can be solved numerically as long as $f(x,y)>0$ for all $x,y$ in the domain.
 
