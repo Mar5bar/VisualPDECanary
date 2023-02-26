@@ -10,7 +10,7 @@ We now consider the [Schrödinger equation](https://en.wikipedia.org/wiki/Schrö
 
 $$i\hbar\pd{\psi}{t}=-\nabla^2 \psi+V(x,t)\psi$$
 
-with homogeneous Dirichlet boundary conditions. We will first consider a variant of this equation with \emph{artificial diffusion}, as in [the wave equation](/basic_pdes/wave-equation) shown before, which takes the form
+with homogeneous Dirichlet boundary conditions. We will first consider a variant of this equation with *artificial diffusion*, as in [the wave equation](/basic_pdes/wave-equation) shown before, which takes the form
 
 $$\pd{\psi}{t}=iD\nabla^2 \psi+DC\nabla^2 \psi,$$
 
@@ -28,7 +28,7 @@ We can also choose a potential $V(x,y)$ which has the effect of localizing some 
 
 $$V(x,y) = \sin(n \pi x)\sin(m\pi y), \quad $$ $$\psi(x,y,0) = (\sin(\pi x)\sin(\pi y))^10, $$
 
-which can be played with [here](/sim/?preset=stabilizedSchrodingerEquationPotential). As the solution evolves, one can observe 'tunneling' from local potential wells where the solution is highly concentrated, out to potential wells further away from the localized initial condition. Note that here the colorscale is constantly changing to observe the maximal and minimal values of $\lvert \psi \rvert$, as these vary substantially during an oscillation.
+which can be played with [here](/sim/?preset=stabilizedSchrodingerEquationPotential). As the solution evolves, one can observe *tunneling* from local potential wells where the solution is highly concentrated, out to potential wells further away from the localized initial condition. Note that here the colorscale is constantly changing to observe the maximal and minimal values of $\lvert \psi \rvert$, as these vary substantially during an oscillation.
 
 ## Numerical Notes
 
