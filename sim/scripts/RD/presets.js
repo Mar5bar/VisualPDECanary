@@ -337,6 +337,31 @@ break;
 	"whatToPlot": "u",
 	};
 	break;
+		  
+	case "stabilizedSchrodinger":
+	options = {
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
+	"brushRadius": 0.01,
+	"clearValueU": "sin(n*pi*x)*sin(m*pi*y)",
+	"crossDiffusion": true,
+	"diffusionStrUU": "C*D",
+	"diffusionStrUV": "-D",
+	"diffusionStrVU": "D",
+	"diffusionStrVV": "C*D",
+	"diffusionStrWW": "0",
+	"dt": 0.0001,
+	"kineticParams": "D=0.0002; C=0.005;n=3;m=3",
+	"maxColourValue": 1.0014781951904297,
+	"preset": "PRESETNAME",
+	"reactionStrU": "0",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "(u^2+v^2)",
+};
+break;
       
       
     case "subcriticalGS":
