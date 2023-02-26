@@ -404,6 +404,31 @@ break;
 };
 break;
       
+	case "stabilizedSchrodingerEquationPotential":
+	options = {
+	"autoSetColourRange": true,
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
+	"brushRadius": 0.01,
+	"clearValueU": "(sin(pi*x)*sin(pi*y))^10",
+	"crossDiffusion": true,
+	"diffusionStrUU": "C*D",
+	"diffusionStrUV": "-D",
+	"diffusionStrVU": "D",
+	"diffusionStrVV": "C*D",
+	"diffusionStrWW": "0",
+	"dt": 0.0001,
+	"kineticParams": "D=0.0001; C=0.004;n=15;m=15",
+	"maxColourValue": 1.5228073596954346,
+	"preset": "PRESETNAME",
+	"reactionStrU": "-sin(n*pi*x)*sin(m*pi*y)*v",
+	"reactionStrV": "sin(n*pi*x)*sin(m*pi*y)*u",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u^2+v^2",
+};
+break;
       
     case "subcriticalGS":
       options = {
