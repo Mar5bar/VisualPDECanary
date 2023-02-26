@@ -24,12 +24,6 @@ with homogeneous Neumann (aka no-flux) boundary conditions.
 
 * You can also pause the simulation ('space') , paint some initial data, and then click 'play' to set it in motion. Explore how the speed depends on the diffusion coefficient (though note that this coefficient can't be too large without running into numerical problems -- see the discussion on Forward Euler ELSEWHERE). 
 
-## Playing with boundary conditions
-
-1. Now, go to `Boundary conditions` and select `Periodic`. What do you notice? Is the total amount of heat still conserved? 
-
-1. What if you change it to Periodic? Dirichlet? 
-
 ## Numerical notes
 
 Our solver only works for systems of first-order equations. So in fact what is being simulated is the system,
@@ -46,4 +40,4 @@ $$
 u(x,y,t) = \cos(D\pi\sqrt{n^2+m^2}t)\cos(n \pi x)\cos(m \pi y),
 $$
 
-which oscillates in time and space. You can play with such an initial condition [here](/sim/waveEquationICs), changing $n,m$ and restarting the simulation with 'r' to see how these parameters influence the solution. The damping factor $C$ is also set to zero in this case. If you increase its value, the solution amplitude will decay over time. If you change the boundary conditions to Dirichlet (and set $C=0.01$), the simulation will exhibit some fascinatingly symmetric oscillations.
+which oscillates in time and space. You can play with such an initial condition [here](/sim/?preset=waveEquation), changing $n,m$ and restarting the simulation with 'r' to see how these parameters influence the solution. The damping factor $C$ is also set to zero in this case. If you increase its value, the solution amplitude will decay over time. If you change the boundary conditions to Dirichlet (and set $C=0.01$), the simulation will exhibit some fascinatingly symmetric oscillations.
