@@ -4,7 +4,7 @@ title: Schrödinger Equation
 lesson_number: 50
 thumbnail: /assets/images/waveEquation.PNG
 extract: Quantum mechanics
-equation: $i\hbar\pd{\psi}{t}=\nabla^2 \psi+V(x,t)\psi$
+equation: $i\hbar\pd{\psi}{t}=-\frac{\hbar}{2m}\nabla^2 \psi+V(x,t)\psi$
 ---
 We now consider the [Schrödinger equation](https://en.wikipedia.org/wiki/Schrödinger_equation),
 
@@ -20,7 +20,7 @@ where $D,C>0$ are positive constants. We use the initial condition $\psi(x,y,0) 
 
 * You can change the initial eigenfunction frequency by modifying $n$ and $m$, and then pressing 'r' to restart the simulation.
 
-* By default, the solution plotted is the density $$|\psi|^2 = \Re(\psi)^2+\Im(\psi)^2 = u^2+v^2$$, which will be (approximately) stationary for long periods of time. You can plot only the real or imaginary part under 'Colour,' and see how these solutions now oscillate in both space and time. Increasing the values of $n$ and $m$ will increase the speed at which this oscillation occurs, as such an initial condition will correspond to higher energy states.
+* By default, the solution plotted is the density $$\lvert \psi\rvert^2 = \Re(\psi)^2+\Im(\psi)^2 = u^2+v^2$$, which will be (approximately) stationary for long periods of time. You can plot only the real or imaginary part under 'Colour,' and see how these solutions now oscillate in both space and time. Increasing the values of $n$ and $m$ will increase the speed at which this oscillation occurs, as such an initial condition will correspond to higher energy states.
 
 ## Numerical Notes
 
