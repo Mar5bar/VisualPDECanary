@@ -2,7 +2,7 @@
 layout: page
 title: Schrödinger Equation
 lesson_number: 50
-thumbnail: /assets/images/waveEquation.PNG
+thumbnail: /assets/images/SchrodingerEquation.PNG
 extract: Quantum mechanics
 equation: $i\hbar\pd{\psi}{t}=-\frac{\hbar}{2m}\nabla^2 \psi+V(x,t)\psi$
 ---
