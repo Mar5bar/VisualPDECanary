@@ -26,7 +26,7 @@ where $D,C>0$ are positive constants. We use the initial condition $\psi(x,y,0) 
 
 We can also choose a potential $V(x,y)$ which has the effect of localizing some features of the solution. As an example, we consider 
 
-$$V(x,y) = \sin(n \pi x)\sin(m\pi y), $$ $$\psi(x,y,0) = (\sin(\pi x)\sin(\pi y))^10, $$
+$$V(x,y) = \sin(n \pi x)\sin(m\pi y), \quad $$ $$\psi(x,y,0) = (\sin(\pi x)\sin(\pi y))^10, $$
 
 which can be played with [here](/sim/?preset=stabilizedSchrodingerEquationPotential). As the solution evolves, one can observe 'tunneling' from local potential wells where the solution is highly concentrated, out to potential wells further away from the localized initial condition. Note that here the colorscale is constantly changing to observe the maximal and minimal values of $\lvert \psi \rvert$, as these vary substantially during an oscillation.
 
@@ -34,6 +34,6 @@ which can be played with [here](/sim/?preset=stabilizedSchrodingerEquationPotent
 
 The solver only works for real systems of equations. So in fact what is being simulated is the system,
 
-$$\pd{u}{t}=-D\nabla^2 v+CD\nabla^2 u+V(x,y) v, \quad \pd{v}{t} = D\nabla^2 u+CD\nabla^2 v-V(x,y)u,$$
+$$\pd{u}{t}=-D\nabla^2 v+CD\nabla^2 u+V(x,y) v, \quad $$ $$\pd{v}{t} = D\nabla^2 u+CD\nabla^2 v-V(x,y)u,$$
 
 which is a (nondimensionalized) Schrödinger equation for $C=0$. The parameter $C$ is used to prevent spurious oscillations. 
