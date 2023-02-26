@@ -36,4 +36,4 @@ where we need $g(x,y)>0$ for all $x,y$ in the domain. As a simple (though compli
 
 $$g(x,y) = D\left(1+E\cos\left(n \pi \left(\sqrt{(x-0.5)^2+(y-0.5)^2}\right)\right)\right),$$
 
-where $D>0$, $n>0$, and $|E|<1$ are constants. This represents radially-oscillating regions of high and low diffusion. Setting an initial condition of $$u(x,y,0)=1$$ and Dirichlet boundary conditions, we can observe an immediate partitioning of the initial heat into regions bounded by the maxima of the cosine function. Click [here](/sim/?preset=inhomogDiffusionHeatEquation) to see this, and play around with the values of $n$, $E$, and $D$.
+where $D>0$, $n>0$, and $\lvert E\rvert <1$ are constants. This represents radially-oscillating regions of high and low diffusion. Setting an initial condition of $$u(x,y,0)=1$$ and Dirichlet boundary conditions, we can observe an immediate partitioning of the initial heat into regions bounded by the maxima of the cosine function. Click [here](/sim/?preset=inhomogDiffusionHeatEquation) to see this, and play around with the values of $n$, $E$, and $D$.
