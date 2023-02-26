@@ -338,7 +338,7 @@ break;
 	};
 	break;
 		  
-	case "stabilizedSchrodinger":
+	case "stabilizedSchrodingerEquation":
 	options = {
 	"boundaryConditionsU": "dirichlet",
 	"boundaryConditionsV": "dirichlet",
@@ -351,15 +351,14 @@ break;
 	"diffusionStrVV": "C*D",
 	"diffusionStrWW": "0",
 	"dt": 0.0001,
-	"kineticParams": "D=0.0002; C=0.005;n=3;m=3",
-	"maxColourValue": 1.0014781951904297,
+	"kineticParams": "D=0.0001; C=0.004;n=3;m=3",
 	"preset": "PRESETNAME",
 	"reactionStrU": "0",
 	"reactionStrV": "0",
 	"reactionStrW": "0",
 	"squareCanvas": true,
 	"whatToDraw": "u",
-	"whatToPlot": "(u^2+v^2)",
+	"whatToPlot": "u^2+v^2",
 };
 break;
       
