@@ -738,7 +738,7 @@ function initGUI(startOpen) {
 
   // Boundary conditions folder.
   if (inGUI("boundaryConditionsFolder")) {
-    root = rightGUI.addFolder("Boundary conditions");
+    root = leftGUI.addFolder("Boundary conditions");
   } else {
     root = genericOptionsFolder;
   }
@@ -751,8 +751,8 @@ function initGUI(startOpen) {
         Robin: "robin",
       })
       .name("u")
-      .onChange(function() {
-	    setRDEquations();
+      .onChange(function () {
+        setRDEquations();
         setBCsGUI();
       });
   }
@@ -777,8 +777,8 @@ function initGUI(startOpen) {
         Robin: "robin",
       })
       .name("v")
-      .onChange(function() {
-	    setRDEquations();
+      .onChange(function () {
+        setRDEquations();
         setBCsGUI();
       });
   }
@@ -803,8 +803,8 @@ function initGUI(startOpen) {
         Robin: "robin",
       })
       .name("w")
-      .onChange(function() {
-	    setRDEquations();
+      .onChange(function () {
+        setRDEquations();
         setBCsGUI();
       });
   }
@@ -2022,12 +2022,11 @@ function configureOptions() {
       options.boundaryConditionsW = "periodic";
       options.clearValueW = "0";
       options.reactionStrW = "0";
-      
-      
+
       // If the f string contains any v or w references, clear it.
       if (/\b[vw]\b/.test(options.reactionStrU)) {
-	      options.reactionStrU = "0";
-	  }
+        options.reactionStrU = "0";
+      }
       break;
     case 2:
       // Ensure that u or v is being displayed on the screen (and the brush target).
@@ -2049,14 +2048,14 @@ function configureOptions() {
       options.boundaryConditionsW = "periodic";
       options.clearValueW = "0";
       options.reactionStrW = "0";
-      
+
       // If the f or g strings contains any w references, clear them.
       if (/\bw\b/.test(options.reactionStrU)) {
-	      options.reactionStrU = "0";
-	  }
-	  if (/\bw\b/.test(options.reactionStrV)) {
-	      options.reactionStrV = "0";
-	  }
+        options.reactionStrU = "0";
+      }
+      if (/\bw\b/.test(options.reactionStrV)) {
+        options.reactionStrV = "0";
+      }
       break;
     case 3:
       options.algebraicV = false;
