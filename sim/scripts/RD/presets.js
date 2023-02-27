@@ -54,7 +54,7 @@ export function getPreset(id) {
 	"diffusionStrWW": "0",
 	"dt": 0.0001,
 	"fixRandSeed": true,
-	"kineticParams": "a=0.1;dt=0.0000002;D=0.0001",
+	"kineticParams": "a=1;dt=0.0000002;D=0.0001",
 	"minColourValue": -1,
 	"reactionStrU": "u*(1-u^2)",
 	"reactionStrV": "0",
