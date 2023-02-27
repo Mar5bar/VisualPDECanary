@@ -42,7 +42,7 @@ export function getPreset(id) {
 	};
 	break;
 		  
-	case "CahnHiliard":
+	case "CahnHilliard":
 	options = {
 	"algebraicV": true,
 	"clearValueU": "tanh(30*(RAND-0.5))",
