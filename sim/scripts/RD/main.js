@@ -738,7 +738,7 @@ function initGUI(startOpen) {
 
   // Boundary conditions folder.
   if (inGUI("boundaryConditionsFolder")) {
-    root = rightGUI.addFolder("Boundary conditions");
+    root = leftGUI.addFolder("Boundary conditions");
   } else {
     root = genericOptionsFolder;
   }
