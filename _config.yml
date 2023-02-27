@@ -35,6 +35,7 @@ plugins:
 # Nav bar
 header_pages:
   - about.md
+  - user-guide.md
 
 collections:
   basic-pdes:
