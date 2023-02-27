@@ -13,7 +13,7 @@ Next we'll consider a bistable reaction-diffusion equation, sometimes referred t
 
 $$\pd{u}{t}=D\nabla^2 +u(u-a)(u-1),$$
 
-where $a \in (0,1)$ is a parameter. As with the Fisher equation, this system will admit travelling waves. Here however, one can show that the wavespeed is propirtional to,
+where $a \in (0,1)$ is a parameter. As with the Fisher equation, this system will admit travelling waves. Here however, one can show that the wavespeed is proportional to,
 
 $$
 c \propto \int_0^1 u(u-a)(u-1)du = \frac{2a-1}{12},
