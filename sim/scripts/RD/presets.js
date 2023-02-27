@@ -42,6 +42,29 @@ export function getPreset(id) {
 	};
 	break;
 		  
+	case "CahnHiliard":
+	options = {
+	"algebraicV": true,
+	"clearValueU": "tanh(30*(RAND-0.5))",
+	"crossDiffusion": true,
+	"diffusionStrUU": "D*(3*u^2-1)",
+	"diffusionStrUV": "-D",
+	"diffusionStrVU": "D*a",
+	"diffusionStrVV": 0,
+	"diffusionStrWW": "0",
+	"dt": 0.0001,
+	"fixRandSeed": true,
+	"kineticParams": "a=1;dt=0.0000002;D=0.0001",
+	"minColourValue": -1,
+	"reactionStrU": "u*(1-u^2)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
+		  
 	case "cyclicCompetition":
 	options = {
 	"clearValueU": "0.1*RAND+x",
