@@ -40,4 +40,4 @@ $$
 u(x,y,t) = \cos(D\pi\sqrt{n^2+m^2}t)\cos(n \pi x)\cos(m \pi y),
 $$
 
-which oscillates in time and space. You can play with such an initial condition [here](/sim/?preset=waveEquation), changing $n,m$ and restarting the simulation with 'r' to see how these parameters influence the solution. The damping factor $C$ is also set to zero in this case. If you increase its value, the solution amplitude will decay over time. If you change the boundary conditions to Dirichlet (and set $C=0.01$), the simulation will exhibit some fascinatingly symmetric oscillations.
+which oscillates in time and space. You can play with such an initial condition [here](/sim/?preset=waveEquationICs), changing $n,m$ and restarting the simulation with 'r' to see how these parameters influence the solution. The damping factor $C$ is also set to zero in this case. If you increase its value, the solution amplitude will decay over time. If you change the boundary conditions to Dirichlet (and set $C=0.01$), the simulation will exhibit some fascinatingly symmetric oscillations.
