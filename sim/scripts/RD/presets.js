@@ -196,6 +196,7 @@ export function getPreset(id) {
         dirichletW: "0",
         domainScale: 1,
         dt: 0.1,
+        dtInLeftGUI: false,
         fixRandSeed: false,
         imagePath: "./images/Alan.png",
         kineticParams: "",
