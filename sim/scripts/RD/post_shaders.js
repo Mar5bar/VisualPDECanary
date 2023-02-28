@@ -1,9 +1,11 @@
 // post_shaders.js
 
 export function computeDisplayFunShaderTop() {
-    return `varying vec2 textureCoords;
+  return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
     const float pi = 3.141592653589793;
+    uniform float dx;
+    uniform float dy;
 
     void main()
     {
@@ -11,8 +13,12 @@ export function computeDisplayFunShaderTop() {
 }
 
 export function computeDisplayFunShaderBot() {
-    return `
+  return `
         vec4 uvw = texture2D(textureSource, textureCoords);
+        ivec2 texSize = textureSize(textureSource,0);
+        float x = textureCoords.x * float(texSize.x) * dx;
+        float y = textureCoords.y * float(texSize.y) * dy;
+
         float value = FUN;
         gl_FragColor = vec4(value, 0.0, 0.0, 1.0);
 
@@ -20,7 +26,7 @@ export function computeDisplayFunShaderBot() {
 }
 
 export function computeMaxSpeciesShader() {
-    return `varying vec2 textureCoords;
+  return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
 
     void main()
@@ -41,7 +47,7 @@ export function computeMaxSpeciesShader() {
 }
 
 export function interpolationShader() {
-    return `varying vec2 textureCoords;
+  return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
 
     void main()
@@ -65,4 +71,4 @@ export function interpolationShader() {
             gl_FragColor = vec4(value, 0.0, 0.0, 1.0);
     }
        `;
-		 }
+}
