@@ -612,13 +612,7 @@ function initGUI(startOpen) {
     root.add(options, "numTimestepsPerFrame", 1, 200, 1).name("TPF");
   }
   if (inGUI("dt")) {
-    let tempRoot;
-    if (options.dtInLeftGUI) {
-      tempRoot = leftGUI;
-    } else {
-      tempRoot = root;
-    }
-    dtController = tempRoot
+    dtController = root
       .add(options, "dt")
       .name("Timestep")
       .onChange(function () {
