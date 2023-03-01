@@ -175,3 +175,33 @@ canvas {
 .close-button {
     display: none;
 }
+
+#try_clicking {
+    top: 0px;
+    left: 50%;
+    position: absolute;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition-property: opacity;
+}
+
+#try_clicking.fading_in {
+    opacity: 100%;
+    transition-duration: 3s;
+    transition-delay: 1s;
+}
+
+#try_clicking.fading_out {
+    opacity: 0%;
+    transition-duration: 1s;
+}
+
+p {
+    color: #fdfdfd;
+    font: 400 2.0rem/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-feature-settings: "kern" 1;
+    -moz-font-feature-settings: "kern" 1;
+    -o-font-feature-settings: "kern" 1;
+    font-feature-settings: "kern" 1;
+}

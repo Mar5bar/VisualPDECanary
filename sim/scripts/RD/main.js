@@ -53,7 +53,9 @@ let leftGUI,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning, isDrawing, hasDrawn;
+let isRunning,
+  isDrawing,
+  hasDrawn;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
 const listOfTypes = [
@@ -323,6 +325,10 @@ function init() {
   });
 
   window.addEventListener("resize", resize, false);
+
+  if (fromExternalLink()) {
+    $("#try_clicking").addClass("fading_in");
+  }
 }
 
 function resize() {
@@ -2123,13 +2129,27 @@ $("#back").click(function () {
   link.href = document.referrer; // This resolves the URL.
   // If the user arrived by typing in a URL or from an external link, have this button
   // point to the visualPDE homepage.
-  if (
-    link.href == window.location ||
-    !link.href.includes(window.location.origin)
-  ) {
+  if (fromExternalLink()) {
     window.location.href = window.location.origin;
   } else {
     // Otherwise, simply take them back a page.
     history.back();
   }
+});
+
+function fromExternalLink() {
+  const link = document.createElement("a");
+  link.href = document.referrer; // This resolves the URL.
+  return (
+    link.href == window.location || !link.href.includes(window.location.origin)
+  );
+}
+
+$("#simCanvas").one("click", function () {
+  let id = "#try_clicking";
+  $(id).removeClass("fading_in");
+  $(id).addClass("fading_out");
+  $(id).bind("webkitTransitionEnd oTransitionEnd transitionend msTransitionEnd", function () {
+    $(this).removeClass("fading_out");
+  });
 });
