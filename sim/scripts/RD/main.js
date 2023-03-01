@@ -1538,7 +1538,7 @@ function refreshGUI(folder) {
   // Run MathJax to texify the parameter names (e.g. D_uu) which appear dynamically.
   // No need to do this on page load (and indeed will throw an error) so check
   // MathJax is defined first.
-  if(MathJax.typeset != undefined){
+  if (MathJax.typeset != undefined) {
     MathJax.typeset();
   }
 }
@@ -1882,7 +1882,7 @@ function configureGUI() {
       // Configure the controller names.
       setGUIControllerName(DuuController, "$D_u$");
       setGUIControllerName(fController, "$f(u)$");
-      
+
       break;
 
     case 1:
@@ -2090,7 +2090,8 @@ function updateProblem() {
 function setEquationDisplayType() {
   // Given an equation type (specified as an integer selector), set the type of
   // equation in the UI element that displays the equations.
-  if ($("#equation_display").length) { // If it exists
+  if ($("#equation_display").length) {
+    // If it exists
     // Remove all existing equations.
     for (let i = 0; i < listOfTypes.length; i++) {
       $("#equation" + i).hide();
@@ -2116,4 +2117,19 @@ $("#play").click(function () {
 });
 $("#erase").click(function () {
   resetSim();
+});
+$("#back").click(function () {
+  const link = document.createElement("a");
+  link.href = document.referrer; // This resolves the URL.
+  // If the user arrived by typing in a URL or from an external link, have this button
+  // point to the visualPDE homepage.
+  if (
+    link.href == window.location ||
+    !link.href.includes(window.location.origin)
+  ) {
+    window.location.href = window.location.origin;
+  } else {
+    // Otherwise, simply take them back a page.
+    history.back();
+  }
 });
