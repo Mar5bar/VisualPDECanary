@@ -53,9 +53,7 @@ let leftGUI,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning,
-  isDrawing,
-  hasDrawn;
+let isRunning, isDrawing, hasDrawn;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
 const listOfTypes = [
@@ -328,6 +326,7 @@ function init() {
 
   if (fromExternalLink()) {
     $("#try_clicking").addClass("fading_in");
+    setTimeout(fadeoutTryClicking, 5000);
   }
 }
 
@@ -2145,11 +2144,16 @@ function fromExternalLink() {
   );
 }
 
-$("#simCanvas").one("click", function () {
+function fadeoutTryClicking() {
   let id = "#try_clicking";
   $(id).removeClass("fading_in");
   $(id).addClass("fading_out");
-  $(id).bind("webkitTransitionEnd oTransitionEnd transitionend msTransitionEnd", function () {
-    $(this).removeClass("fading_out");
-  });
-});
+  $(id).bind(
+    "webkitTransitionEnd oTransitionEnd transitionend msTransitionEnd",
+    function () {
+      $(this).removeClass("fading_out");
+    }
+  );
+}
+
+$("#simCanvas").one("click", fadeoutTryClicking);
