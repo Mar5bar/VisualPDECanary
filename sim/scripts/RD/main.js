@@ -173,6 +173,11 @@ if (params.has("options")) {
   loadPreset(JSON.parse(atob(decodeURI(params.get("options")))));
 }
 
+if (fromExternalLink() || options.preset == "default") {
+  $("#try_clicking").addClass("fading_in");
+  setTimeout(fadeoutTryClicking, 5000);
+}
+
 // Begin the simulation.
 animate();
 
@@ -323,11 +328,6 @@ function init() {
   });
 
   window.addEventListener("resize", resize, false);
-
-  if (fromExternalLink() || options.preset == "default") {
-    $("#try_clicking").addClass("fading_in");
-    setTimeout(fadeoutTryClicking, 5000);
-  }
 }
 
 function resize() {
