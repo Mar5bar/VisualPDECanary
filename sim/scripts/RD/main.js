@@ -324,7 +324,7 @@ function init() {
 
   window.addEventListener("resize", resize, false);
 
-  if (fromExternalLink()) {
+  if (fromExternalLink() || options.preset == "default") {
     $("#try_clicking").addClass("fading_in");
     setTimeout(fadeoutTryClicking, 5000);
   }
