@@ -406,6 +406,8 @@ break;
 	case "Schnakenberg":
 	options = {
 	"autoSetColourRange": true,
+	"clearValueU": "a + b",
+	"clearValueV": "b / (a+b)^2",
 	"diffusionStrUU": "0.0001",
 	"diffusionStrVV": "0.0001*D",
 	"diffusionStrWW": "0",
