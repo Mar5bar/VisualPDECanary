@@ -21,8 +21,10 @@ $$
 
 and hence we expect the waves to change their direction of travel when $a$ crosses the value $0.5$. 
 
-1. Load the [interactive simulation](/sim/?preset=bistableTravellingWave). 
+* Load the [interactive simulation](/sim/?preset=bistableTravellingWave). 
 
-1. Click within the box to visualise a 'line' of a population, which will then spread out as a planar wave. 
+* Click within the box to visualise a 'line' of a population, which will then spread out as a planar wave. 
 
-1. Take values of $a=0.4$, $a=0.6$, and $a=0.5$ to see how this influences the propogation of this wave.
+* The value $a=0.5$ is the threshold between expanding and contracting waves (positive or negative $c$ values). Take values of $a=0.4$, $a=0.6$, and $a=0.5$ to see how this influences the propogation of this wave. 
+
+* You can change the 'brush' to form circular regions (or input directly initial conditions) to see how other geometries of spreading waves are affected by parameter variations in this bistable system.
