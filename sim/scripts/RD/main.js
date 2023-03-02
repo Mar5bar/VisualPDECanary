@@ -139,8 +139,9 @@ funsObj = {
   setColourRange: function () {
     let valRange = getMinMaxVal();
     if (valRange[0] == valRange[1]) {
-      // If the range is just one value, add one to the second entry.
-      valRange[1] += 1;
+      // If the range is just one value, make the range width 1 centered on the given value.
+      valRange[0] -= 0.5;
+      valRange[1] += 0.5;
     }
     options.minColourValue = valRange[0];
     options.maxColourValue = valRange[1];
