@@ -156,6 +156,26 @@ break;
 };
 break;
 		  
+	case "FitzHugh-Nagumo-3":
+	options = {
+	"brushValue": "0",
+	"diffusionStrUU": "Du/L^2",
+	"diffusionStrVV": "Dv/L^2",
+	"diffusionStrWW": "Dw/L^2",
+	"dt": 0.001,
+	"kineticParams": "ev=0.2;ew=1;av=0.435;aw=0.5;az=-0.1;Du=0.005;Dv=0.2;Dw=1;L=20",
+	"maxColourValue": 2,
+	"numSpecies": "3",
+	"preset": "FitzHugh-Nagumo-3",
+	"reactionStrU": "u-u^3-v",
+	"reactionStrV": "ev*(u-av*v-aw*w-az)",
+	"reactionStrW": "ew*(u-w)",
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
+		  
 	case "GiererMeinhardtStripes":
 	options = {
 	"autoSetColourRange": true,
