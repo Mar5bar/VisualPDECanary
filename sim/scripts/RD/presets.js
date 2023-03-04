@@ -222,18 +222,17 @@ break;
       break;
     case "harshEnvironment":
       options = {
-        boundaryConditionsU: "dirichlet",
+        boundaryConditionsU: "noflux",
         diffusionStrUU: "0.0001",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         dt: 0.00006,
         numSpecies: 1,
-        numTimestepsPerFrame: 200,
         preset: "harshEnvironment",
-        renderSize: 700,
         reactionStrU: "u*(1-u)",
         reactionStrV: "0",
         reactionStrW: "0",
+	"squareCanvas": true,
         whatToDraw: "u",
         whatToPlot: "u",
       };
