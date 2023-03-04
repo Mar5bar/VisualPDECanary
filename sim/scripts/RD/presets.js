@@ -163,7 +163,7 @@ break;
 	"diffusionStrVV": "Dv/L^2",
 	"diffusionStrWW": "Dw/L^2",
 	"dt": 0.001,
-	"kineticParams": "ev=0.2;ew=1;av=0.3;aw=0.5;az=-0.1;Du=0.005;Dv=0.2;Dw=1;L=30",
+	"kineticParams": "ev=0.2;ew=1;av=0.01;aw=0.5;az=-0.1;Du=0.005;Dv=0.2;Dw=1;L=30",
 	"maxColourValue": 1.2,
 	"minColourValue": -1.2,
 	"numSpecies": "3",
