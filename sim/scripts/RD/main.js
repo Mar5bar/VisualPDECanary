@@ -2034,11 +2034,11 @@ function configureGUI() {
       showGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      setGUIControllerName(DvvController, "D<sub>vv<sub>");
-      setGUIControllerName(fController, "f(u,v,w)");
-      setGUIControllerName(gController, "g(u,v,w)");
-      setGUIControllerName(hController, "h(u,v)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(DvvController, "$D_{vv}$");
+      setGUIControllerName(fController, "$f(u,v,w)$");
+      setGUIControllerName(gController, "$g(u,v,w)$");
+      setGUIControllerName(hController, "$h(u,v)$");
       break;
   }
   // Hide or show GUI elements that depend on the BCs.
