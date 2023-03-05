@@ -153,6 +153,28 @@ export function getPreset(id) {
       };
       break;
 		  
+	case "FitzHugh-Nagumo":
+	options = {
+	"brushValue": "0",
+	"clearValueU": "0*RAND",
+	"diffusionStrUU": "Du/L^2",
+	"diffusionStrVV": "Dv/L^2",
+	"diffusionStrWW": "0",
+	"dt": 0.001,
+	"fixRandSeed": true,
+	"kineticParams": "m=5;ev=0.5;av=1;az=-0.1;Du=0.005;Dv=0.1;Dw=1;L=20",
+	"minColourValue": -1,
+	"numSpecies": "2",
+	"preset": "FitzHugh-Nagumo",
+	"reactionStrU": "u-u^3-v",
+	"reactionStrV": "ev*(u-av*v-az)",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
+		  
 		  
 	case "FitzHugh-Nagumo-Hopf":
 	options = {
