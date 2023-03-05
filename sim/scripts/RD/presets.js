@@ -171,6 +171,7 @@ export function getPreset(id) {
 	"reactionStrV": "ev*(u-av*v-aw*w-az)",
 	"reactionStrW": "ew*(u-w)",
 	"squareCanvas": true,
+	"suppressTryClickingPopup": true,
 	"whatToDraw": "u",
 	"whatToPlot": "u",
 };
