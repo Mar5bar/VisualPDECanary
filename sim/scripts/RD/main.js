@@ -177,7 +177,7 @@ if (params.has("options")) {
   loadPreset(JSON.parse(atob(decodeURI(params.get("options")))));
 }
 
-if (fromExternalLink() || options.preset == "default") {
+if ((fromExternalLink() || options.preset == "default") && !options.suppressTryClickingPopup) {
   $("#try_clicking").addClass("fading_in");
   setTimeout(fadeoutTryClicking, 5000);
 }
