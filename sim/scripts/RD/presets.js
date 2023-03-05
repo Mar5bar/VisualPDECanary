@@ -248,9 +248,10 @@ export function getPreset(id) {
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         dt: 0.0001,
+	kineticParams: "K=1",
         numSpecies: 1,
         preset: "harshEnvironment",
-        reactionStrU: "u*(1-u)",
+        reactionStrU: "u*(1-u/K)",
         reactionStrV: "0",
         reactionStrW: "0",
         squareCanvas: true,
@@ -259,7 +260,9 @@ export function getPreset(id) {
         whatToPlot: "u",
       };
       break;
-
+	  
+		  
+		  
     case "inhomogHeatEquation":
       options = {
         boundaryConditionsU: "noflux",
