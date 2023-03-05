@@ -594,7 +594,7 @@ function initGUI(startOpen) {
   }
   if (inGUI("domainScale")) {
     root
-      .add(options, "domainScale", 0.001, 10)
+      .add(options, "domainScale")
       .name("Largest side")
       .onChange(resize);
   }
