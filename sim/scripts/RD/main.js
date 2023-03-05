@@ -20,6 +20,7 @@ let leftGUI,
   gController,
   hController,
   algebraicVController,
+  algebraicWController,
   crossDiffusionController,
   DuuController,
   DuvController,
@@ -63,6 +64,7 @@ const listOfTypes = [
   "2SpeciesCrossDiffusionAlgebraicV", // 3
   "3Species", // 4
   "3SpeciesCrossDiffusion", // 5
+  "3SpeciesCrossDiffusionAlgebraicW", // 6
 ];
 let equationType;
 
@@ -88,7 +90,8 @@ import {
   RDShaderRobin,
   RDShaderUpdateNormal,
   RDShaderUpdateCross,
-  RDShaderAlgebraic,
+  RDShaderAlgebraicV,
+  RDShaderAlgebraicW,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay } from "./display_shaders.js";
@@ -647,6 +650,12 @@ function initGUI(startOpen) {
     algebraicVController = root
       .add(options, "algebraicV")
       .name("Algebraic v?")
+      .onChange(updateProblem);
+  }
+  if (inGUI("algebraicW")) {
+    algebraicWController = root
+      .add(options, "algebraicW")
+      .name("Algebraic w?")
       .onChange(updateProblem);
   }
 
@@ -1431,7 +1440,12 @@ function setRDEquations() {
 
   // If v should be algebraic, append this to the normal update shader.
   if (options.algebraicV && options.crossDiffusion) {
-    updateShader += selectSpeciesInShaderStr(RDShaderAlgebraic(), "v");
+    updateShader += selectSpeciesInShaderStr(RDShaderAlgebraicV(), "v");
+  }
+
+  // If w should be algebraic, append this to the normal update shader.
+  if (options.algebraicW && options.crossDiffusion) {
+    updateShader += selectSpeciesInShaderStr(RDShaderAlgebraicW(), "w");
   }
 
   simMaterial.fragmentShader = [
@@ -1844,8 +1858,13 @@ function problemTypeFromOptions() {
       break;
     case 3:
       if (options.crossDiffusion) {
-        // 3SpeciesCrossDiffusion
-        equationType = 5;
+        if (options.algebraicW) {
+          // 3SpeciesCrossDiffusionAlgebraicW
+          equationType = 6;
+        } else {
+          // 3SpeciesCrossDiffusion
+          equationType = 5;
+        }
       } else {
         // 3Species
         equationType = 4;
@@ -1865,9 +1884,10 @@ function configureGUI() {
       hideVGUIPanels();
       hideWGUIPanels();
 
-      // Hide the cross diffusion controller and the algebraicV controller.
+      // Hide the cross diffusion controller, the algebraicV controller, and the algebraicW controller.
       hideGUIController(crossDiffusionController);
       hideGUIController(algebraicVController);
+      hideGUIController(algebraicWController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "D<sub>u<sub>");
@@ -1883,8 +1903,9 @@ function configureGUI() {
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
-      // Hide the algebraicV contoller.
+      // Hide the algebraicV and algebraicW controllers.
       hideGUIController(algebraicVController);
+      hideGUIController(algebraicWController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "D<sub>u<sub>");
@@ -1902,8 +1923,9 @@ function configureGUI() {
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
-      // Show the algebraicV contoller.
+      // Hide the algebraicV and algebraicW controllers.
       showGUIController(algebraicVController);
+      hideGUIController(algebraicWController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "D<sub>uu<sub>");
@@ -1922,8 +1944,10 @@ function configureGUI() {
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
-      // Show the algebraicV contoller.
+      // Show the algebraicV controller.
       showGUIController(algebraicVController);
+      // Hide the algebraicW controller.
+      hideGUIController(algebraicWController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "D<sub>uu<sub>");
@@ -1940,8 +1964,9 @@ function configureGUI() {
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
-      // Hide the algebraicV contoller.
+      // Hide the algebraicV and algebraicW controllers.
       hideGUIController(algebraicVController);
+      hideGUIController(algebraicWController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "D<sub>u<sub>");
@@ -1961,8 +1986,10 @@ function configureGUI() {
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
-      // Hide the algebraicV contoller.
+      // Hide the algebraicV controller.
       hideGUIController(algebraicVController);
+      // Show the algebraicW controller.
+      showGUIController(algebraicWController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "D<sub>uu<sub>");
@@ -1971,6 +1998,29 @@ function configureGUI() {
       setGUIControllerName(fController, "f(u,v,w)");
       setGUIControllerName(gController, "g(u,v,w)");
       setGUIControllerName(hController, "h(u,v,w)");
+      break;
+
+    case 6:
+      // 3SpeciesCrossDiffusionAlgebraicW
+      // Show v panels.
+      showVGUIPanels();
+      // Show w panels.
+      showWGUIPanels();
+      hideGUIController(DwwController);
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV controller.
+      hideGUIController(algebraicVController);
+      // Show the algebraicW controller.
+      showGUIController(algebraicWController);
+
+      // Configure the controller names.
+      setGUIControllerName(DuuController, "D<sub>uu<sub>");
+      setGUIControllerName(DvvController, "D<sub>vv<sub>");
+      setGUIControllerName(fController, "f(u,v,w)");
+      setGUIControllerName(gController, "g(u,v,w)");
+      setGUIControllerName(hController, "h(u,v)");
       break;
   }
   // Hide or show GUI elements that depend on the BCs.
@@ -1988,6 +2038,7 @@ function configureOptions() {
     case 1:
       options.crossDiffusion = false;
       options.algebraicV = false;
+      options.algebraicW = false;
 
       // Ensure that u is being displayed on the screen (and the brush target).
       options.whatToDraw = "u";
@@ -2024,6 +2075,7 @@ function configureOptions() {
       if (options.whatToPlot == "w") {
         options.whatToPlot = "u";
       }
+      options.algebraicW = false;
 
       // Set the diffusion of w to zero to prevent it from causing numerical instability.
       options.diffusionStrUW = "0";
@@ -2054,8 +2106,11 @@ function configureOptions() {
   switch (equationType) {
     case 3:
       // 2SpeciesCrossDiffusionAlgebraicV
-      options.diffusionStrVV = 0;
+      options.diffusionStrVV = "0";
       break;
+    case 6:
+      // 3SpeciesCrossDiffusionAlgebraicW
+      options.diffusionStrWW = "0";
   }
 
   // Refresh the GUI displays.
