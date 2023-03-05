@@ -467,7 +467,7 @@ export function getPreset(id) {
 	options = {
         suppressTryClickingPopup: true,
 	"algebraicW": true,
-        brushValue: "-1",
+        brushValue: "-8",
 	"boundaryConditionsU": "dirichlet",
 	"boundaryConditionsV": "dirichlet",
 	"boundaryConditionsW": "dirichlet",
