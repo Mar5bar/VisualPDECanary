@@ -465,9 +465,9 @@ export function getPreset(id) {
       
       case "plateEquation":
 	options = {
-  "suppressTryClickingPopup": false, 
+        "suppressTryClickingPopup": false, 
 	"algebraicW": true,
-   "brushValue": -6,
+        "brushValue": -8,
 	"boundaryConditionsU": "dirichlet",
 	"boundaryConditionsV": "dirichlet",
 	"boundaryConditionsW": "dirichlet",
