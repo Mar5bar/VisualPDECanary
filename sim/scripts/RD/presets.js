@@ -244,8 +244,8 @@ break;
     case "harshEnvironment":
 	options = {
 	"boundaryConditionsU": "noflux",
-	"clearValueU": "0.1*exp(-1000*RAND)",
-	"diffusionStrUU": "0.0001",
+	"clearValueU": "0.1*exp(-10000*RAND)",
+	"diffusionStrUU": "0.00004",
 	"diffusionStrVV": "0",
 	"diffusionStrWW": "0",
 	"dt": 0.0001,
