@@ -2,7 +2,7 @@
 layout: page
 title: Deforming membranes
 lesson_number: 60
-thumbnail: /assets/images/waveEquation.PNG
+thumbnail: /assets/images/plateEquation.PNG
 extract: The plate equation
 equation: $\pdd{u}{t}=-D^2 \nabla^4 u-q$
 ---
