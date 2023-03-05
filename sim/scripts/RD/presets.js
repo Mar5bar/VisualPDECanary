@@ -559,6 +559,7 @@ break;
     default:
       options = {
         algebraicV: false,
+        algebraicW: false,
         autoSetColourRange: false,
         boundaryConditionsU: "periodic",
         boundaryConditionsV: "periodic",

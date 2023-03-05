@@ -108,9 +108,14 @@ export function RDShaderUpdateCross() {
     `;
 }
 
-export function RDShaderAlgebraic() {
+export function RDShaderAlgebraicV() {
     return `
     updated.SPECIES = LDvuU + g;`;
+}
+
+export function RDShaderAlgebraicW() {
+    return `
+    updated.SPECIES = LDwuU + LDwvV + h;`;
 }
 
 export function RDShaderDirichlet() {
