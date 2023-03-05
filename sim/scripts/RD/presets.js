@@ -462,6 +462,36 @@ export function getPreset(id) {
         whatToPlot: "u",
       };
       break;
+      
+      case "plateEquation":
+	options = {
+  "suppressTryClickingPopup": false, 
+	"algebraicW": true,
+   "brushValue": -6,
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
+	"boundaryConditionsW": "dirichlet",
+	"clearValueU": "-4",
+	"crossDiffusion": true,
+	"diffusionStrUU": "Dc*D",
+	"diffusionStrVV": "0",
+	"diffusionStrVW": "-D",
+	"diffusionStrWU": "D",
+	"diffusionStrWW": "0",
+	"dt": 0.0001,
+	"kineticParams": "D=0.001;q=0.003;C=0.1;Dc=0.1",
+	"maxColourValue": 0,
+	"minColourValue": -8,
+	"numSpecies": "3",
+	"preset": "plateEquation",
+	"reactionStrU": "v",
+	"reactionStrV": "-q-C*v",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 
     case "stabilizedSchrodingerEquation":
       options = {
