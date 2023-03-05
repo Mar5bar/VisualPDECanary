@@ -4,11 +4,11 @@ title: FitzHugh-Nagumo and Excitability
 lesson_number: 80
 thumbnail: /assets/images/FitzHugh-Nagumo.PNG
 extract: Patterns, spiral waves, and chaos
-equation: $\pd{u}{t}=\nabla^2 u+a+\frac{u^2}{v}-bu$, $\pd{u}{t}=D\nabla^2v+ u^2-cv$
+equation: $\pd{u}{t}=\nabla^2 u+u +u-u^3-v$, $\pd{u}{t}=D\nabla^2v+ \varepsilon_v(u-a_v v-a_z)$
 ---
 Here we look at the  [FitzHugh-Nagumo model](https://en.wikipedia.org/wiki/FitzHugh%E2%80%93Nagumo_model), given by 
 
-$$\begin{aligned}\pd{u}{t}&=\nabla^2 u+a+\frac{u^2}{v}-bu,\\ \pd{v}{t}&=D\nabla^2v+ u^2-cv,\end{aligned}$$
+$$\begin{aligned}\pd{u}{t}&=\nabla^2 u+u +u-u^3-v,\\ \pd{v}{t}&=D\nabla^2v+ \varepsilon_v(u-a_v v-a_z),\end{aligned}$$
 
 where we take $a,b,c>0$ and $D>1$.
 
