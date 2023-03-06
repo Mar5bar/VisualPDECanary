@@ -380,6 +380,10 @@ function setSizes() {
   // doesn't reduce the step size below the user's choice.
   nXDisc = Math.floor(domainWidth / options.spatialStep);
   nYDisc = Math.floor(domainHeight / options.spatialStep);
+  // If the user has specified that this is a 1D problem, set nYDisc = 1.
+  if (options.oneDimensional) {
+    nYDisc = 1;
+  }
   // Update these values in the uniforms.
   uniforms.nXDisc.value = nXDisc;
   uniforms.nYDisc.value = nYDisc;
@@ -603,6 +607,15 @@ function initGUI(startOpen) {
     dxController.__precision = 12;
     dxController.min(0);
     dxController.updateDisplay();
+  }
+  if (inGUI("oneDimensional")) {
+    const oneDimensionalController = root
+      .add(options, "oneDimensional")
+      .name("1D?")
+      .onFinishChange(function () {
+        resize();
+        
+      })
   }
 
   // Timestepping folder.

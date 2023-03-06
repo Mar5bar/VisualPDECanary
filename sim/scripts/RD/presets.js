@@ -204,6 +204,7 @@ export function getPreset(id) {
         minColourValue: 0.0,
         numSpecies: 2,
         numTimestepsPerFrame: 100,
+        oneDimensional: false,
         onlyExposeOptions: [],
         preset: "default",
         renderSize: 512,
