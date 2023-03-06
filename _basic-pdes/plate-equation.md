@@ -29,7 +29,7 @@ Here $D$ represents the relative size of the domain and its material properties 
 As in previous examples, we must write the second time derivative using a system of first-order equations. We also have to use an algebraic equation to represent the biharmonic term:
 
 $$\begin{aligned}\pd{u}{t}&=v+DD_c\nabla^2 u,\\
- \pd{v}{t} &= -D \nabla^2 w,\\
+ \pd{v}{t} &= -D \nabla^2 w -Cv -q,\\
  w &= D \nabla^2u,
  \end{aligned}$$
 
