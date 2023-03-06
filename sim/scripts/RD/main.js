@@ -546,7 +546,7 @@ function initGUI(startOpen) {
     $("#leftGUI").show();
     $("#rightGUI").show();
   } else {
-    // $("#leftGUI").hide();
+    $("#leftGUI").hide();
     $("#rightGUI").hide();
   }
 
