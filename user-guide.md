@@ -1,6 +1,6 @@
 ---
 layout: page
-title: User's Guide
+title: User guide
 permalink: /user-guide/
 ---
 
