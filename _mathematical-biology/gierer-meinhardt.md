@@ -1,12 +1,12 @@
 ---
 layout: page
-title: Gierer-Meinhardt pattern formation
+title: Gierer–Meinhardt pattern formation
 lesson_number: 70
 thumbnail: /assets/images/GiererMeinhardt.PNG
 extract: Spots and stripes
 equation: $\pd{u}{t}=\nabla^2 u+a+\frac{u^2}{v}-bu$, $\pd{u}{t}=D\nabla^2v+ u^2-cv$
 ---
-Another [Turing](https://en.wikipedia.org/wiki/Turing_pattern) system is the [Gierer-Meinhardt model](https://www.scholarpedia.org/article/Gierer-Meinhardt_model), given by 
+Another [Turing](https://en.wikipedia.org/wiki/Turing_pattern) system is the [Gierer–Meinhardt model](https://www.scholarpedia.org/article/Gierer-Meinhardt_model), given by 
 
 $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+a+\frac{u^2}{v}-bu,\\ \pd{v}{t}&=D\nabla^2v+ u^2-cv,\end{aligned}$$
 
@@ -22,4 +22,8 @@ A common way to obtain stripe-like patterns in this model is to consider saturat
 
 $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+a+\frac{u^2}{v(1+Ku^2)}-bu,\\ \pd{v}{t}&=D\nabla^2v+ u^2-cv,\end{aligned}$$
 
-where $K>0$ is a saturation constant. For very large values of $K$, the system will not admit Turing patterns, and for very small values it will behave as in the above spot-forming model. However for intermediate values of $K$, one can get labyrinthine patterns as [this simulation](/sim/?preset=GiererMeinhardtStripes). Try increasing or decreasing the size of $K$ to observe how this influences spot/stripe selection in the system. Note that the colour scale is changing to match solution maxima/minima.. 
+where $K>0$ is a saturation constant. 
+
+For very large values of $K$, the system will not admit Turing patterns, and for very small values it will behave as in the above spot-forming model. However for intermediate values of $K$, one can get labyrinthine patterns as [this simulation](/sim/?preset=GiererMeinhardtStripes). 
+
+Try increasing or decreasing the size of $K$ to observe how this influences spot/stripe selection in the system. Note that the colour scale is changing to match solution maxima/minima.
