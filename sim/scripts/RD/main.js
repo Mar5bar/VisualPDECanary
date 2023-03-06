@@ -85,9 +85,11 @@ import { copyShader } from "../copy_shader.js";
 import {
   RDShaderTop,
   RDShaderBot,
-  RDShaderDirichlet,
+  RDShaderDirichletX,
+  RDShaderDirichletY,
   RDShaderNoFlux,
-  RDShaderRobin,
+  RDShaderRobinX,
+  RDShaderRobinY,
   RDShaderUpdateNormal,
   RDShaderUpdateCross,
   RDShaderAlgebraicV,
@@ -614,8 +616,7 @@ function initGUI(startOpen) {
       .name("1D?")
       .onFinishChange(function () {
         resize();
-        
-      })
+      });
   }
 
   // Timestepping folder.
@@ -1400,38 +1401,68 @@ function setRDEquations() {
   // Create Dirichlet shaders.
   if (options.boundaryConditionsU == "dirichlet") {
     dirichletShader +=
-      selectSpeciesInShaderStr(RDShaderDirichlet(), "u") +
+      selectSpeciesInShaderStr(RDShaderDirichletX(), "u") +
       parseShaderString(options.dirichletU) +
       ";\n}\n";
+    if (!options.oneDimensional) {
+      dirichletShader +=
+        selectSpeciesInShaderStr(RDShaderDirichletY(), "u") +
+        parseShaderString(options.dirichletU) +
+        ";\n}\n";
+    }
   }
   if (options.boundaryConditionsV == "dirichlet") {
     dirichletShader +=
-      selectSpeciesInShaderStr(RDShaderDirichlet(), "v") +
+      selectSpeciesInShaderStr(RDShaderDirichletX(), "v") +
       parseShaderString(options.dirichletV) +
       ";\n}\n";
+    if (!options.oneDimensional) {
+      dirichletShader +=
+        selectSpeciesInShaderStr(RDShaderDirichletY(), "v") +
+        parseShaderString(options.dirichletV) +
+        ";\n}\n";
+    }
   }
   if (options.boundaryConditionsW == "dirichlet") {
     dirichletShader +=
-      selectSpeciesInShaderStr(RDShaderDirichlet(), "w") +
+      selectSpeciesInShaderStr(RDShaderDirichletX(), "w") +
       parseShaderString(options.dirichletW) +
       ";\n}\n";
+    if (!options.oneDimensional) {
+      dirichletShader +=
+        selectSpeciesInShaderStr(RDShaderDirichletY(), "w") +
+        parseShaderString(options.dirichletW) +
+        ";\n}\n";
+    }
   }
 
   // Create a Robin shader block for each species separately.
   if (options.boundaryConditionsU == "robin") {
     robinShader += parseRobinRHS(options.robinStrU, "SPECIES");
-    robinShader += RDShaderRobin();
+    robinShader += RDShaderRobinX();
     robinShader = selectSpeciesInShaderStr(robinShader, "u");
+    if (!options.oneDimensional) {
+      robinShader += RDShaderRobinY();
+      robinShader = selectSpeciesInShaderStr(robinShader, "u");
+    }
   }
   if (options.boundaryConditionsV == "robin") {
     robinShader += parseRobinRHS(options.robinStrV, "SPECIES");
-    robinShader += RDShaderRobin();
+    robinShader += RDShaderRobinX();
     robinShader = selectSpeciesInShaderStr(robinShader, "v");
+    if (!options.oneDimensional) {
+      robinShader += RDShaderRobinY();
+      robinShader = selectSpeciesInShaderStr(robinShader, "v");
+    }
   }
   if (options.boundaryConditionsW == "robin") {
     robinShader += parseRobinRHS(options.robinStrW, "SPECIES");
     robinShader += RDShaderRobin();
     robinShader = selectSpeciesInShaderStr(robinShader, "w");
+    if (!options.oneDimensional) {
+      robinShader += RDShaderRobinY();
+      robinShader = selectSpeciesInShaderStr(robinShader, "w");
+    }
   }
 
   // Insert any user-defined kinetic parameters, given as a string that needs parsing.
