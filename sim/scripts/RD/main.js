@@ -616,6 +616,7 @@ function initGUI(startOpen) {
       .name("1D?")
       .onFinishChange(function () {
         resize();
+        setRDEquations();
       });
   }
 
