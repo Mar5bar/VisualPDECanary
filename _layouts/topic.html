@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+
+  {%- include head.html -%}
+
+  <body>
+
+    {%- include header.html -%}
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+
+        <header class="post-header">
+          <h1 class="post-title">{{ page.title }}</h1>
+        </header>
+
+        {{ content }}
+    
+        <br />
+        
+        <h2>Explore a tutorial</h2>
+        <div class='topic_tiles'>
+
+        {% assign lessons = site[page.collection_to_list] 
+          | sort: 'lesson_number' %}
+        
+        {% for item in lessons %}
+          <a class='topic_tile' href='{{ item.url }}'>
+            <div class='container'>
+              <img src='{{ item.thumbnail }}' />
+            </div>
+            <div class='container'>
+              <div class='title'>{{ item.title }}</div>
+              <div class='subtitle'>{{ item.extract }}</div>
+              <div class='subtitle_equation'><span class='subtitle_equation'>{{ item.equation }}</span></div>
+              <!-- <div class='button'>Explore</div> -->
+            </div>
+          </a>
+        {% endfor %}
+
+        </div>
+
+      </div>
+    </main>
+
+    {%- include footer.html -%}
+    {%- include mathjax.html -%}
+
+  </body>
+
+</html>
