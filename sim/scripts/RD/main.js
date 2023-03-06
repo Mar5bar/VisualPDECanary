@@ -57,6 +57,10 @@ let leftGUI,
 let isRunning, isDrawing, hasDrawn;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
+let parametersFolder,
+  kineticParamsStrs = {},
+  kineticParamsLabels = [],
+  kineticParamsCounter = 0;
 const listOfTypes = [
   "1Species", // 0
   "2Species", // 1
@@ -542,7 +546,7 @@ function initGUI(startOpen) {
     $("#leftGUI").show();
     $("#rightGUI").show();
   } else {
-    $("#leftGUI").hide();
+    // $("#leftGUI").hide();
     $("#rightGUI").hide();
   }
 
@@ -759,6 +763,9 @@ function initGUI(startOpen) {
         updateWhatToPlot();
       });
   }
+  parametersFolder = leftGUI.addFolder("Parameters");
+  let label = "param" + kineticParamsCounter;
+  createParametersController(label, true);
 
   // Boundary conditions folder.
   if (inGUI("boundaryConditionsFolder")) {
@@ -2205,3 +2212,53 @@ $("#play").click(function () {
 $("#erase").click(function () {
   resetSim();
 });
+
+function parseKineticParam(str) {
+  str = str.replace(/\s+/g, "  ").trim();
+  return str;
+}
+
+function createParametersController(label, isNextParam) {
+  if (isNextParam) {
+    kineticParamsLabels.push(label);
+    kineticParamsStrs[label] = "";
+    let controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller.onFinishChange(function () {
+      const index = kineticParamsLabels.indexOf(label);
+      // Remove excess whitespace.
+      let str = parseKineticParam(
+        kineticParamsStrs[kineticParamsLabels.at(index)]
+      );
+      if (str == "") {
+        // If the string is empty, do nothing.
+      } else {
+        // A parameter has been added! So, we create a new controller and assign it to this parameter,
+        // delete this controller, and make a new blank controller.
+        createParametersController(kineticParamsLabels.at(index), false);
+        kineticParamsCounter += 1;
+        let label = "params" + kineticParamsCounter;
+        this.remove();
+        createParametersController(label, true);
+      }
+    });
+  } else {
+    let controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller.onFinishChange(function () {
+      // Remove excess whitespace.
+      let str = parseKineticParam(kineticParamsStrs[label]);
+      if (str == "") {
+        // If the string is empty, delete this controller.
+        this.remove();
+        // Remove the associated label and the (empty) kinetic parameters string.
+        const index = kineticParamsLabels.indexOf(label);
+        kineticParamsLabels.splice(index, 1);
+        delete kineticParamsStrs[label];
+      } else {
+        // If it's non-empty, update any dependencies.
+        setRDEquations();
+        setClearShader();
+        setPostFunFragShader();
+      }
+    });
+  }
+}
