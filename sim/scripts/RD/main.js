@@ -57,6 +57,10 @@ let leftGUI,
 let isRunning, isDrawing, hasDrawn;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
+let parametersFolder,
+  kineticParamsStrs = {},
+  kineticParamsLabels = [],
+  kineticParamsCounter = 0;
 const listOfTypes = [
   "1Species", // 0
   "2Species", // 1
@@ -548,7 +552,7 @@ function initGUI(startOpen) {
     $("#leftGUI").show();
     $("#rightGUI").show();
   } else {
-    $("#leftGUI").hide();
+    // $("#leftGUI").hide();
     $("#rightGUI").hide();
   }
 
@@ -755,16 +759,8 @@ function initGUI(startOpen) {
       .name("$h(u,v,w)$")
       .onFinishChange(setRDEquations);
   }
-  if (inGUI("kineticParams")) {
-    root
-      .add(options, "kineticParams")
-      .name("Parameters")
-      .onFinishChange(function () {
-        setRDEquations();
-        setClearShader();
-        setPostFunFragShader();
-      });
-  }
+  parametersFolder = leftGUI.addFolder("Parameters");
+  setParamsFromKineticString();
 
   // Boundary conditions folder.
   if (inGUI("boundaryConditionsFolder")) {
@@ -1074,7 +1070,6 @@ function setDisplayColourAndType() {
     uniforms.colour4.value = new THREE.Vector4(0.75, 0.75, 0.75, 0.75);
     uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 1);
     displayMaterial.fragmentShader = fiveColourDisplay();
-    setPostFunFragShader();
   } else if (options.colourmap == "BlackGreenYellowRedWhite") {
     uniforms.colour1.value = new THREE.Vector4(0, 0, 0.0, 0);
     uniforms.colour2.value = new THREE.Vector4(0, 1, 0, 0.25);
@@ -1082,7 +1077,6 @@ function setDisplayColourAndType() {
     uniforms.colour4.value = new THREE.Vector4(1, 0, 0, 0.75);
     uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 1.0);
     displayMaterial.fragmentShader = fiveColourDisplay();
-    setPostFunFragShader();
   } else if (options.colourmap == "viridis") {
     uniforms.colour1.value = new THREE.Vector4(0.267, 0.0049, 0.3294, 0.0);
     uniforms.colour2.value = new THREE.Vector4(0.2302, 0.3213, 0.5455, 0.25);
@@ -1090,7 +1084,6 @@ function setDisplayColourAndType() {
     uniforms.colour4.value = new THREE.Vector4(0.3629, 0.7867, 0.3866, 0.75);
     uniforms.colour5.value = new THREE.Vector4(0.9932, 0.9062, 0.1439, 1.0);
     displayMaterial.fragmentShader = fiveColourDisplay();
-    setPostFunFragShader();
   } else if (options.colourmap == "turbo") {
     uniforms.colour1.value = new THREE.Vector4(0.19, 0.0718, 0.2322, 0.0);
     uniforms.colour2.value = new THREE.Vector4(0.1602, 0.7332, 0.9252, 0.25);
@@ -1098,7 +1091,6 @@ function setDisplayColourAndType() {
     uniforms.colour4.value = new THREE.Vector4(0.9853, 0.5018, 0.1324, 0.75);
     uniforms.colour5.value = new THREE.Vector4(0.4796, 0.01583, 0.01055, 1.0);
     displayMaterial.fragmentShader = fiveColourDisplay();
-    setPostFunFragShader();
   }
   displayMaterial.needsUpdate = true;
   postMaterial.needsUpdate = true;
@@ -1564,7 +1556,6 @@ function loadPreset(preset) {
 
 function loadOptions(preset) {
   let newOptions;
-
   if (preset == undefined) {
     // If no argument is given, load whatever is set in options.preset.
     newOptions = getPreset(options.preset);
@@ -1578,6 +1569,11 @@ function loadOptions(preset) {
     // Otherwise, fall back to default.
     newOptions = getPreset("default");
   }
+
+  // Reset the kinetic parameters.
+  kineticParamsCounter = 0;
+  kineticParamsLabels = [];
+  kineticParamsStrs = {};
 
   // Loop through newOptions and overwrite anything already present.
   Object.assign(options, newOptions);
@@ -2207,6 +2203,89 @@ function setEquationDisplayType() {
   }
 }
 
+function removeWhitespace(str) {
+  str = str.replace(/\s+/g, "  ").trim();
+  return str;
+}
+
+function createParameterController(label, isNextParam) {
+  if (isNextParam) {
+    kineticParamsLabels.push(label);
+    kineticParamsStrs[label] = "";
+    let controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller.onFinishChange(function () {
+      const index = kineticParamsLabels.indexOf(label);
+      // Remove excess whitespace.
+      let str = removeWhitespace(
+        kineticParamsStrs[kineticParamsLabels.at(index)]
+      );
+      if (str == "") {
+        // If the string is empty, do nothing.
+      } else {
+        // A parameter has been added! So, we create a new controller and assign it to this parameter,
+        // delete this controller, and make a new blank controller.
+        createParameterController(kineticParamsLabels.at(index), false);
+        kineticParamsCounter += 1;
+        let newLabel = "params" + kineticParamsCounter;
+        this.remove();
+        createParameterController(newLabel, true);
+        // If it's non-empty, update any dependencies.
+        setKineticStringFromParams();
+      }
+    });
+  } else {
+    let controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller.onFinishChange(function () {
+      // Remove excess whitespace.
+      let str = removeWhitespace(kineticParamsStrs[label]);
+      if (str == "") {
+        // If the string is empty, delete this controller.
+        this.remove();
+        // Remove the associated label and the (empty) kinetic parameters string.
+        const index = kineticParamsLabels.indexOf(label);
+        kineticParamsLabels.splice(index, 1);
+        delete kineticParamsStrs[label];
+      } else {
+        // If it's non-empty, update any dependencies.
+        setKineticStringFromParams();
+      }
+    });
+  }
+}
+
+function setParamsFromKineticString() {
+  // Take the kineticParams string in the options and
+  // use it to populate a GUI containing these parameters
+  // as individual options.
+  let label, str
+  let strs = options.kineticParams.split(";");
+  for (var index = 0; index < strs.length; index++) {
+    str = removeWhitespace(strs[index]);
+    if (str == "") {
+      // If the string is empty, do nothing.
+    }
+    else {
+      label = "param" + kineticParamsCounter;
+      kineticParamsCounter += 1;
+      kineticParamsLabels.push(label);
+      kineticParamsStrs[label] = str;
+      createParameterController(label, false);
+    }
+  }
+  // Finally, create an empty controller for adding parameters.
+  label = "param" + kineticParamsCounter;
+  kineticParamsLabels.push(label);
+  kineticParamsStrs[label] = str;
+  createParameterController(label, true);
+}
+
+function setKineticStringFromParams() {
+  options.kineticParams = Object.values(kineticParamsStrs).join(";");
+  setRDEquations();
+  setClearShader();
+  updateWhatToPlot();
+}
+
 /* GUI settings and equations buttons */
 $("#settings").click(function () {
   $("#rightGUI").toggle();
@@ -2224,6 +2303,7 @@ $("#play").click(function () {
 $("#erase").click(function () {
   resetSim();
 });
+
 $("#back").click(function () {
   const link = document.createElement("a");
   link.href = document.referrer; // This resolves the URL.
