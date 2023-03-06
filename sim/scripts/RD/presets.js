@@ -250,6 +250,7 @@ break;
 	"reactionStrV": "u-a*v",
 	"reactionStrW": "0",
 	"spatialStep": 0.75,
+	"suppressTryClickingPopup": true,
 	"whatToDraw": "u",
 	"whatToPlot": "u",
 	"preset": "KellerSegel",
