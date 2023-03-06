@@ -753,19 +753,8 @@ function initGUI(startOpen) {
       .name("h(u,v,w)")
       .onFinishChange(setRDEquations);
   }
-  if (inGUI("kineticParams")) {
-    root
-      .add(options, "kineticParams")
-      .name("Parameters")
-      .onFinishChange(function () {
-        setRDEquations();
-        setClearShader();
-        updateWhatToPlot();
-      });
-  }
   parametersFolder = leftGUI.addFolder("Parameters");
-  let label = "param" + kineticParamsCounter;
-  createParametersController(label, true);
+  setParamsFromKineticString();
 
   // Boundary conditions folder.
   if (inGUI("boundaryConditionsFolder")) {
@@ -1557,7 +1546,6 @@ function loadPreset(preset) {
 
 function loadOptions(preset) {
   let newOptions;
-
   if (preset == undefined) {
     // If no argument is given, load whatever is set in options.preset.
     newOptions = getPreset(options.preset);
@@ -1571,6 +1559,11 @@ function loadOptions(preset) {
     // Otherwise, fall back to default.
     newOptions = getPreset("default");
   }
+
+  // Reset the kinetic parameters.
+  kineticParamsCounter = 0;
+  kineticParamsLabels = [];
+  kineticParamsStrs = {};
 
   // Loop through newOptions and overwrite anything already present.
   Object.assign(options, newOptions);
@@ -2213,12 +2206,12 @@ $("#erase").click(function () {
   resetSim();
 });
 
-function parseKineticParam(str) {
+function removeWhitespace(str) {
   str = str.replace(/\s+/g, "  ").trim();
   return str;
 }
 
-function createParametersController(label, isNextParam) {
+function createParameterController(label, isNextParam) {
   if (isNextParam) {
     kineticParamsLabels.push(label);
     kineticParamsStrs[label] = "";
@@ -2226,7 +2219,7 @@ function createParametersController(label, isNextParam) {
     controller.onFinishChange(function () {
       const index = kineticParamsLabels.indexOf(label);
       // Remove excess whitespace.
-      let str = parseKineticParam(
+      let str = removeWhitespace(
         kineticParamsStrs[kineticParamsLabels.at(index)]
       );
       if (str == "") {
@@ -2234,18 +2227,20 @@ function createParametersController(label, isNextParam) {
       } else {
         // A parameter has been added! So, we create a new controller and assign it to this parameter,
         // delete this controller, and make a new blank controller.
-        createParametersController(kineticParamsLabels.at(index), false);
+        createParameterController(kineticParamsLabels.at(index), false);
         kineticParamsCounter += 1;
-        let label = "params" + kineticParamsCounter;
+        let newLabel = "params" + kineticParamsCounter;
         this.remove();
-        createParametersController(label, true);
+        createParameterController(newLabel, true);
+        // If it's non-empty, update any dependencies.
+        setKineticStringFromParams();
       }
     });
   } else {
     let controller = parametersFolder.add(kineticParamsStrs, label).name("");
     controller.onFinishChange(function () {
       // Remove excess whitespace.
-      let str = parseKineticParam(kineticParamsStrs[label]);
+      let str = removeWhitespace(kineticParamsStrs[label]);
       if (str == "") {
         // If the string is empty, delete this controller.
         this.remove();
@@ -2255,10 +2250,41 @@ function createParametersController(label, isNextParam) {
         delete kineticParamsStrs[label];
       } else {
         // If it's non-empty, update any dependencies.
-        setRDEquations();
-        setClearShader();
-        setPostFunFragShader();
+        setKineticStringFromParams();
       }
     });
   }
+}
+
+function setParamsFromKineticString() {
+  // Take the kineticParams string in the options and
+  // use it to populate a GUI containing these parameters
+  // as individual options.
+  let label, str
+  let strs = options.kineticParams.split(";");
+  for (var index = 0; index < strs.length; index++) {
+    str = removeWhitespace(strs[index]);
+    if (str == "") {
+      // If the string is empty, do nothing.
+    }
+    else {
+      label = "param" + kineticParamsCounter;
+      kineticParamsCounter += 1;
+      kineticParamsLabels.push(label);
+      kineticParamsStrs[label] = str;
+      createParameterController(label, false);
+    }
+  }
+  // Finally, create an empty controller for adding parameters.
+  label = "param" + kineticParamsCounter;
+  kineticParamsLabels.push(label);
+  kineticParamsStrs[label] = str;
+  createParameterController(label, true);
+}
+
+function setKineticStringFromParams() {
+  options.kineticParams = Object.values(kineticParamsStrs).join(";");
+  setRDEquations();
+  setClearShader();
+  updateWhatToPlot();
 }
