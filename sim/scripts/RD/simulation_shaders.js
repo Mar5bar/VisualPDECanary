@@ -59,7 +59,7 @@ export function RDShaderNoFlux() {
     `;
 }
 
-export function RDShaderRobin() {
+export function RDShaderRobinX() {
     return `
     if (textureCoords.x - step_x < 0.0) {
         uvwL.SPECIES = uvwR.SPECIES - dx * robinRHSSPECIES;
@@ -67,6 +67,11 @@ export function RDShaderRobin() {
     if (textureCoords.x + step_x > 1.0) {
         uvwR.SPECIES = uvwL.SPECIES + dx * robinRHSSPECIES;
     }
+    `;
+}
+
+export function RDShaderRobinY() {
+    return `
     if (textureCoords.y + step_y > 1.0){
         uvwT.SPECIES = uvwB.SPECIES + dy * robinRHSSPECIES;
     }
@@ -118,9 +123,15 @@ export function RDShaderAlgebraicW() {
     updated.SPECIES = LDwuU + LDwvV + h;`;
 }
 
-export function RDShaderDirichlet() {
+export function RDShaderDirichletX() {
     return `
-    if ((textureCoords.x - step_x < 0.0) || (textureCoords.x + step_x > 1.0) || (textureCoords.y + step_y > 1.0) || (textureCoords.y - step_y < 0.0)) {
+    if ((textureCoords.x - step_x < 0.0) || (textureCoords.x + step_x > 1.0)) {
+        updated.SPECIES = `;
+}
+
+export function RDShaderDirichletY() {
+    return `
+    if ((textureCoords.y + step_y > 1.0) || (textureCoords.y - step_y < 0.0)) {
         updated.SPECIES = `;
 }
 
