@@ -1321,10 +1321,26 @@ function nonConstantDiffusionEvaluateInSpaceStr(str, label) {
   let uvwRegex = /\buvw\.\b/g;
 
   out += "float D" + label + " = " + str;
-  out += "float D" + label + "L = " + str.replaceAll(xRegex, "(x-dx)").replaceAll(uvwRegex, "uvwL.");
-  out += "float D" + label + "R = " + str.replaceAll(xRegex, "(x+dx)").replaceAll(uvwRegex, "uvwR.");
-  out += "float D" + label + "T = " + str.replaceAll(yRegex, "(y+dy)").replaceAll(uvwRegex, "uvwT.");
-  out += "float D" + label + "B = " + str.replaceAll(yRegex, "(y-dy)").replaceAll(uvwRegex, "uvwB.");
+  out +=
+    "float D" +
+    label +
+    "L = " +
+    str.replaceAll(xRegex, "(x-dx)").replaceAll(uvwRegex, "uvwL.");
+  out +=
+    "float D" +
+    label +
+    "R = " +
+    str.replaceAll(xRegex, "(x+dx)").replaceAll(uvwRegex, "uvwR.");
+  out +=
+    "float D" +
+    label +
+    "T = " +
+    str.replaceAll(yRegex, "(y+dy)").replaceAll(uvwRegex, "uvwT.");
+  out +=
+    "float D" +
+    label +
+    "B = " +
+    str.replaceAll(yRegex, "(y-dy)").replaceAll(uvwRegex, "uvwB.");
   return out;
 }
 
@@ -2258,14 +2274,13 @@ function setParamsFromKineticString() {
   // Take the kineticParams string in the options and
   // use it to populate a GUI containing these parameters
   // as individual options.
-  let label, str
+  let label, str;
   let strs = options.kineticParams.split(";");
   for (var index = 0; index < strs.length; index++) {
     str = removeWhitespace(strs[index]);
     if (str == "") {
       // If the string is empty, do nothing.
-    }
-    else {
+    } else {
       label = "param" + kineticParamsCounter;
       kineticParamsCounter += 1;
       kineticParamsLabels.push(label);
