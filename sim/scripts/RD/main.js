@@ -1224,14 +1224,12 @@ function clearTextures() {
 }
 
 function pauseSim() {
-  // pauseButton.name("Play (space)");
   $("#pause").hide();
   $("#play").show();
   isRunning = false;
 }
 
 function playSim() {
-  // pauseButton.name("Pause (space)");
   $("#play").hide();
   $("#pause").show();
   isRunning = true;
