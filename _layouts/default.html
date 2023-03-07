@@ -12,7 +12,9 @@
         {% assign collection = site.collections
         | where_exp:"collection", "collection.label == page.collection"
         | first %}
+        {% if collection %}
         <a class='collection' href='/{{ page.collection }}'>{{ collection.title }}</a>
+        {% endif %}
         {{ content }}
       </div>
     </main>
