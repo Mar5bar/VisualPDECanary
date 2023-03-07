@@ -1318,12 +1318,13 @@ function nonConstantDiffusionEvaluateInSpaceStr(str, label) {
   let out = "";
   let xRegex = /\bx\b/g;
   let yRegex = /\by\b/g;
+  let uvwRegex = /\buvw\.\b/g;
 
   out += "float D" + label + " = " + str;
-  out += "float D" + label + "L = " + str.replaceAll(xRegex, "(x-dx)");
-  out += "float D" + label + "R = " + str.replaceAll(xRegex, "(x+dx)");
-  out += "float D" + label + "T = " + str.replaceAll(yRegex, "(y+dy)");
-  out += "float D" + label + "B = " + str.replaceAll(yRegex, "(y-dy)");
+  out += "float D" + label + "L = " + str.replaceAll(xRegex, "(x-dx)").replaceAll(uvwRegex, "uvwL.");
+  out += "float D" + label + "R = " + str.replaceAll(xRegex, "(x+dx)").replaceAll(uvwRegex, "uvwR.");
+  out += "float D" + label + "T = " + str.replaceAll(yRegex, "(y+dy)").replaceAll(uvwRegex, "uvwT.");
+  out += "float D" + label + "B = " + str.replaceAll(yRegex, "(y-dy)").replaceAll(uvwRegex, "uvwB.");
   return out;
 }
 
