@@ -135,6 +135,12 @@ export function RDShaderDirichletY() {
         updated.SPECIES = `;
 }
 
+export function RDShaderDirichletIndicatorFun() {
+    return `
+    if (indicatorFun < 0.0) {
+        updated.SPECIES = `;
+}
+
 export function RDShaderBot() {
     return ` 
     gl_FragColor = vec4(updated.r, updated.g, updated.b, 1.0);

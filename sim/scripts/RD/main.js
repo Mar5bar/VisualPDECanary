@@ -22,6 +22,7 @@ let leftGUI,
   algebraicVController,
   algebraicWController,
   crossDiffusionController,
+  domainIndicatorFunController,
   DuuController,
   DuvController,
   DuwController,
@@ -41,6 +42,7 @@ let leftGUI,
   clearValueUController,
   clearValueVController,
   clearValueWController,
+  uBCsController,
   vBCsController,
   wBCsController,
   dirichletUController,
@@ -91,6 +93,7 @@ import {
   RDShaderBot,
   RDShaderDirichletX,
   RDShaderDirichletY,
+  RDShaderDirichletIndicatorFun,
   RDShaderNoFlux,
   RDShaderRobinX,
   RDShaderRobinY,
@@ -620,12 +623,38 @@ function initGUI(startOpen) {
     dxController.min(0);
     dxController.updateDisplay();
   }
+  if (inGUI("squareCanvas")) {
+    root
+      .add(options, "squareCanvas")
+      .name("Square display")
+      .onFinishChange(resize);
+  }
   if (inGUI("oneDimensional")) {
     const oneDimensionalController = root
       .add(options, "oneDimensional")
-      .name("1D?")
+      .name("1D")
       .onFinishChange(function () {
         resize();
+        setRDEquations();
+      });
+  }
+  if (inGUI("domainViaIndicatorFun")) {
+    root
+      .add(options, "domainViaIndicatorFun")
+      .name("Indicator")
+      .onFinishChange(function () {
+        configureOptions();
+        configureGUI();
+        setRDEquations();
+      });
+  }
+  if (inGUI("domainIndicatorFun")) {
+    domainIndicatorFunController = root
+      .add(options, "domainIndicatorFun")
+      .name("Ind. fun")
+      .onFinishChange(function () {
+        configureOptions();
+        configureGUI();
         setRDEquations();
       });
   }
@@ -769,7 +798,7 @@ function initGUI(startOpen) {
     root = genericOptionsFolder;
   }
   if (inGUI("boundaryConditionsU")) {
-    root
+    uBCsController = root
       .add(options, "boundaryConditionsU", {
         Periodic: "periodic",
         "No flux": "noflux",
@@ -852,12 +881,6 @@ function initGUI(startOpen) {
     root = rightGUI.addFolder("Rendering");
   } else {
     root = genericOptionsFolder;
-  }
-  if (inGUI("squareCanvas")) {
-    root
-      .add(options, "squareCanvas")
-      .name("Square display")
-      .onFinishChange(resize);
   }
   if (inGUI("renderSize")) {
     root
@@ -1414,40 +1437,60 @@ function setRDEquations() {
   }
 
   // Create Dirichlet shaders.
-  if (options.boundaryConditionsU == "dirichlet") {
+  if (options.domainViaIndicatorFun) {
     dirichletShader +=
-      selectSpeciesInShaderStr(RDShaderDirichletX(), "u") +
+      "float indicatorFun = " +
+      parseShaderString(options.domainIndicatorFun) +
+      ";\n";
+    // If the domain is being set by an indicator function, Dirichlet is the only allowable BC.
+    dirichletShader +=
+      selectSpeciesInShaderStr(RDShaderDirichletIndicatorFun(), "u") +
       parseShaderString(options.dirichletU) +
       ";\n}\n";
-    if (!options.oneDimensional) {
+    dirichletShader +=
+      selectSpeciesInShaderStr(RDShaderDirichletIndicatorFun(), "v") +
+      parseShaderString(options.dirichletU) +
+      ";\n}\n";
+    dirichletShader +=
+      selectSpeciesInShaderStr(RDShaderDirichletIndicatorFun(), "w") +
+      parseShaderString(options.dirichletU) +
+      ";\n}\n";
+  } else {
+    if (options.boundaryConditionsU == "dirichlet") {
       dirichletShader +=
-        selectSpeciesInShaderStr(RDShaderDirichletY(), "u") +
+        selectSpeciesInShaderStr(RDShaderDirichletX(), "u") +
         parseShaderString(options.dirichletU) +
         ";\n}\n";
+      if (!options.oneDimensional) {
+        dirichletShader +=
+          selectSpeciesInShaderStr(RDShaderDirichletY(), "u") +
+          parseShaderString(options.dirichletU) +
+          ";\n}\n";
+      }
     }
-  }
-  if (options.boundaryConditionsV == "dirichlet") {
-    dirichletShader +=
-      selectSpeciesInShaderStr(RDShaderDirichletX(), "v") +
-      parseShaderString(options.dirichletV) +
-      ";\n}\n";
-    if (!options.oneDimensional) {
+    if (options.boundaryConditionsV == "dirichlet") {
       dirichletShader +=
-        selectSpeciesInShaderStr(RDShaderDirichletY(), "v") +
+        selectSpeciesInShaderStr(RDShaderDirichletX(), "v") +
         parseShaderString(options.dirichletV) +
         ";\n}\n";
+      if (!options.oneDimensional) {
+        dirichletShader +=
+          selectSpeciesInShaderStr(RDShaderDirichletY(), "v") +
+          parseShaderString(options.dirichletV) +
+          ";\n}\n";
+      }
     }
-  }
-  if (options.boundaryConditionsW == "dirichlet") {
-    dirichletShader +=
-      selectSpeciesInShaderStr(RDShaderDirichletX(), "w") +
-      parseShaderString(options.dirichletW) +
-      ";\n}\n";
-    if (!options.oneDimensional) {
+    if (options.boundaryConditionsW == "dirichlet") {
       dirichletShader +=
-        selectSpeciesInShaderStr(RDShaderDirichletY(), "w") +
+        selectSpeciesInShaderStr(RDShaderDirichletX(), "w") +
         parseShaderString(options.dirichletW) +
         ";\n}\n";
+      if (!options.oneDimensional) {
+        dirichletShader +=
+          selectSpeciesInShaderStr(RDShaderDirichletY(), "w") +
+          parseShaderString(options.dirichletW) +
+          ";\n}\n";
+      }
     }
   }
 
@@ -1725,6 +1768,14 @@ function setBCsGUI() {
     showGUIController(robinWController);
   } else {
     hideGUIController(robinWController);
+  }
+
+  if (options.domainViaIndicatorFun) {
+    hideGUIController(uBCsController);
+    hideGUIController(vBCsController);
+    hideGUIController(wBCsController);
+  } else {
+    showGUIController(uBCsController);
   }
 }
 
@@ -2094,6 +2145,11 @@ function configureGUI() {
       setGUIControllerName(hController, "$h(u,v)$");
       break;
   }
+  if (options.domainViaIndicatorFun) {
+    showGUIController(domainIndicatorFunController);
+  } else {
+    hideGUIController(domainIndicatorFunController);
+  }
   // Hide or show GUI elements that depend on the BCs.
   setBCsGUI();
   // Refresh the GUI displays.
@@ -2103,6 +2159,13 @@ function configureGUI() {
 
 function configureOptions() {
   // Configure any options that depend on the equation type.
+
+  if (options.domainViaIndicatorFun) {
+    // Only allow Dirichlet conditions.
+    options.boundaryConditionsU = "dirichlet";
+    options.boundaryConditionsV = "dirichlet";
+    options.boundaryConditionsW = "dirichlet";
+  }
 
   // Set options that only depend on the number of species.
   switch (parseInt(options.numSpecies)) {
