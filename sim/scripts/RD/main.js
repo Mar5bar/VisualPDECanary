@@ -148,8 +148,9 @@ funsObj = {
   setColourRange: function () {
     let valRange = getMinMaxVal();
     if (valRange[0] == valRange[1]) {
-      // If the range is just one value, add one to the second entry.
-      valRange[1] += 1;
+      // If the range is just one value, make the range width 1 centered on the given value.
+      valRange[0] -= 0.5;
+      valRange[1] += 0.5;
     }
     options.minColourValue = valRange[0];
     options.maxColourValue = valRange[1];
@@ -180,6 +181,11 @@ if (params.has("preset")) {
 if (params.has("options")) {
   // If options have been provided, apply them on top of loaded options.
   loadPreset(JSON.parse(atob(decodeURI(params.get("options")))));
+}
+
+if ((fromExternalLink() || options.preset == "default") && !options.suppressTryClickingPopup) {
+  $("#try_clicking").addClass("fading_in");
+  setTimeout(fadeoutTryClicking, 5000);
 }
 
 // Begin the simulation.
@@ -598,7 +604,7 @@ function initGUI(startOpen) {
   }
   if (inGUI("domainScale")) {
     root
-      .add(options, "domainScale", 0.001, 10)
+      .add(options, "domainScale")
       .name("Largest side")
       .onChange(resize);
   }
@@ -683,74 +689,74 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrUU")) {
     DuuController = root
       .add(options, "diffusionStrUU")
-      .name("D<sub>uu<sub>")
+      .name("$D_{uu}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrUV")) {
     DuvController = root
       .add(options, "diffusionStrUV")
-      .name("D<sub>uv<sub>")
+      .name("$D_{uv}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrUW")) {
     DuwController = root
       .add(options, "diffusionStrUW")
-      .name("D<sub>uw<sub>")
+      .name("$D_{uw}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVU")) {
     DvuController = root
       .add(options, "diffusionStrVU")
-      .name("D<sub>vu<sub>")
+      .name("$D_{vu}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVV")) {
     DvvController = root
       .add(options, "diffusionStrVV")
-      .name("D<sub>vv<sub>")
+      .name("$D_{vv}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVW")) {
     DvwController = root
       .add(options, "diffusionStrVW")
-      .name("D<sub>vw<sub>")
+      .name("$D_{vw}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrWU")) {
     DwuController = root
       .add(options, "diffusionStrWU")
-      .name("D<sub>wu<sub>")
+      .name("$D_{wu}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrWV")) {
     DwvController = root
       .add(options, "diffusionStrWV")
-      .name("D<sub>wv<sub>")
+      .name("$D_{wv}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrWW")) {
     DwwController = root
       .add(options, "diffusionStrWW")
-      .name("D<sub>ww<sub>")
+      .name("$D_{ww}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrU")) {
     // Custom f(u,v) and g(u,v).
     fController = root
       .add(options, "reactionStrU")
-      .name("f(u,v,w)")
+      .name("$f(u,v,w)$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrV")) {
     gController = root
       .add(options, "reactionStrV")
-      .name("g(u,v,w)")
+      .name("$g(u,v,w)$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrW")) {
     hController = root
       .add(options, "reactionStrW")
-      .name("h(u,v,w)")
+      .name("$h(u,v,w)$")
       .onFinishChange(setRDEquations);
   }
   parametersFolder = leftGUI.addFolder("Parameters");
@@ -1602,6 +1608,12 @@ function refreshGUI(folder) {
       folder.__controllers[i].updateDisplay();
     }
   }
+  // Run MathJax to texify the parameter names (e.g. D_uu) which appear dynamically.
+  // No need to do this on page load (and indeed will throw an error) so check
+  // MathJax is defined first.
+  if (MathJax.typeset != undefined) {
+    MathJax.typeset();
+  }
 }
 
 function deleteGUIs() {
@@ -1947,8 +1959,9 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>u<sub>");
-      setGUIControllerName(fController, "f(u)");
+      setGUIControllerName(DuuController, "$D_u$");
+      setGUIControllerName(fController, "$f(u)$");
+
       break;
 
     case 1:
@@ -1965,10 +1978,11 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>u<sub>");
-      setGUIControllerName(DvvController, "D<sub>v<sub>");
-      setGUIControllerName(fController, "f(u,v)");
-      setGUIControllerName(gController, "g(u,v)");
+      setGUIControllerName(DuuController, "$D_u$");
+      setGUIControllerName(DvvController, "$D_v$");
+      setGUIControllerName(fController, "$f(u,v)$");
+      setGUIControllerName(gController, "$g(u,v)$");
+
       break;
 
     case 2:
@@ -1985,10 +1999,10 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      setGUIControllerName(DvvController, "D<sub>vv<sub>");
-      setGUIControllerName(fController, "f(u,v)");
-      setGUIControllerName(gController, "g(u,v)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(DvvController, "$D_{vv}$");
+      setGUIControllerName(fController, "$f(u,v)$");
+      setGUIControllerName(gController, "$g(u,v)$");
       break;
 
     case 3:
@@ -2007,9 +2021,9 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      setGUIControllerName(fController, "f(u,v)");
-      setGUIControllerName(gController, "g(u)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(fController, "$f(u,v)$");
+      setGUIControllerName(gController, "$g(u)$");
       break;
 
     case 4:
@@ -2026,12 +2040,12 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>u<sub>");
-      setGUIControllerName(DvvController, "D<sub>v<sub>");
-      setGUIControllerName(DwwController, "D<sub>w<sub>");
-      setGUIControllerName(fController, "f(u,v,w)");
-      setGUIControllerName(gController, "g(u,v,w)");
-      setGUIControllerName(hController, "h(u,v,w)");
+      setGUIControllerName(DuuController, "$D_u$");
+      setGUIControllerName(DvvController, "$D_v$");
+      setGUIControllerName(DwwController, "$D_w$");
+      setGUIControllerName(fController, "$f(u,v,w)$");
+      setGUIControllerName(gController, "$g(u,v,w)$");
+      setGUIControllerName(hController, "$h(u,v,w)$");
       break;
 
     case 5:
@@ -2049,12 +2063,12 @@ function configureGUI() {
       showGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      setGUIControllerName(DvvController, "D<sub>vv<sub>");
-      setGUIControllerName(DwwController, "D<sub>ww<sub>");
-      setGUIControllerName(fController, "f(u,v,w)");
-      setGUIControllerName(gController, "g(u,v,w)");
-      setGUIControllerName(hController, "h(u,v,w)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(DvvController, "$D_{vv}$");
+      setGUIControllerName(DwwController, "$D_{ww}$");
+      setGUIControllerName(fController, "$f(u,v,w)$");
+      setGUIControllerName(gController, "$g(u,v,w)$");
+      setGUIControllerName(hController, "$h(u,v,w)$");
       break;
 
     case 6:
@@ -2073,11 +2087,11 @@ function configureGUI() {
       showGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      setGUIControllerName(DvvController, "D<sub>vv<sub>");
-      setGUIControllerName(fController, "f(u,v,w)");
-      setGUIControllerName(gController, "g(u,v,w)");
-      setGUIControllerName(hController, "h(u,v)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(DvvController, "$D_{vv}$");
+      setGUIControllerName(fController, "$f(u,v,w)$");
+      setGUIControllerName(gController, "$g(u,v,w)$");
+      setGUIControllerName(hController, "$h(u,v)$");
       break;
   }
   // Hide or show GUI elements that depend on the BCs.
@@ -2190,33 +2204,16 @@ function updateProblem() {
 function setEquationDisplayType() {
   // Given an equation type (specified as an integer selector), set the type of
   // equation in the UI element that displays the equations.
-  const elementID = "#equationDisplay";
-  if (document.querySelector(elementID) != null) {
-    // Remove all existing classes.
+  if ($("#equation_display").length) {
+    // If it exists
+    // Remove all existing equations.
     for (let i = 0; i < listOfTypes.length; i++) {
-      document.getElementById(elementID).classList.remove(listOfTypes[i]);
+      $("#equation" + i).hide();
     }
-    // Add the new class.
-    document.getElementById(elementID).classList.add(listOfTypes[equationType]);
+    // Display the correct equation.
+    $("#equation" + equationType).show();
   }
 }
-
-/* GUI settings and equations buttons */
-$("#settings").click(function () {
-  $("#rightGUI").toggle();
-});
-$("#equations").click(function () {
-  $("#leftGUI").toggle();
-});
-$("#pause").click(function () {
-  pauseSim();
-});
-$("#play").click(function () {
-  playSim();
-});
-$("#erase").click(function () {
-  resetSim();
-});
 
 function removeWhitespace(str) {
   str = str.replace(/\s+/g, "  ").trim();
@@ -2299,3 +2296,56 @@ function setKineticStringFromParams() {
   setClearShader();
   updateWhatToPlot();
 }
+
+/* GUI settings and equations buttons */
+$("#settings").click(function () {
+  $("#rightGUI").toggle();
+});
+$("#equations").click(function () {
+  $("#equation_display").toggle();
+  $("#leftGUI").toggle();
+});
+$("#pause").click(function () {
+  pauseSim();
+});
+$("#play").click(function () {
+  playSim();
+});
+$("#erase").click(function () {
+  resetSim();
+});
+
+$("#back").click(function () {
+  const link = document.createElement("a");
+  link.href = document.referrer; // This resolves the URL.
+  // If the user arrived by typing in a URL or from an external link, have this button
+  // point to the visualPDE homepage.
+  if (fromExternalLink()) {
+    window.location.href = window.location.origin;
+  } else {
+    // Otherwise, simply take them back a page.
+    history.back();
+  }
+});
+
+function fromExternalLink() {
+  const link = document.createElement("a");
+  link.href = document.referrer; // This resolves the URL.
+  return (
+    link.href == window.location || !link.href.includes(window.location.origin)
+  );
+}
+
+function fadeoutTryClicking() {
+  let id = "#try_clicking";
+  $(id).removeClass("fading_in");
+  $(id).addClass("fading_out");
+  $(id).bind(
+    "webkitTransitionEnd oTransitionEnd transitionend msTransitionEnd",
+    function () {
+      $(this).removeClass("fading_out");
+    }
+  );
+}
+
+$("#simCanvas").one("click", fadeoutTryClicking);

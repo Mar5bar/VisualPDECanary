@@ -1,4 +1,8 @@
-The following MIT License applies to all software in this repository with the exception of dat.gui, which is covered by a separate permissive license listed below.
+All HTML and CSS in this repository not covered by the above licenses are subject to a CC-BY Attribution 4.0 license, the details of which are available in full at https://creativecommons.org/licenses/by/4.0/legalcode. In brief, they may be copied or used in any way so long as the original is appropriately referenced, by way of citing "VisualPDE.com by Benjamin Walker, Adam Townsend, and Andrew Krause".
+
+-----
+
+The following MIT License applies to all software in this repository with the exception of dat.gui, which is covered by a separate permissive license listed below, and all HTML and CSS, which are subject to the CC-BY Attribution 4.0 International license described above.
 
 MIT License
 
