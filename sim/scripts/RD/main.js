@@ -1326,14 +1326,31 @@ function parseCrossDiffusionStrings() {
 
 function nonConstantDiffusionEvaluateInSpaceStr(str, label) {
   let out = "";
-  let xRegex = /(?![^x])*x(?=[^x])*/g;
-  let yRegex = /(?![^y])*y(?=[^y])*/g;
+  let xRegex = /\bx\b/g;
+  let yRegex = /\by\b/g;
+  let uvwRegex = /\buvw\.\b/g;
 
   out += "float D" + label + " = " + str;
-  out += "float D" + label + "L = " + str.replaceAll(xRegex, "(x-dx)");
-  out += "float D" + label + "R = " + str.replaceAll(xRegex, "(x+dx)");
-  out += "float D" + label + "T = " + str.replaceAll(yRegex, "(y+dy)");
-  out += "float D" + label + "B = " + str.replaceAll(yRegex, "(y-dy)");
+  out +=
+    "float D" +
+    label +
+    "L = " +
+    str.replaceAll(xRegex, "(x-dx)").replaceAll(uvwRegex, "uvwL.");
+  out +=
+    "float D" +
+    label +
+    "R = " +
+    str.replaceAll(xRegex, "(x+dx)").replaceAll(uvwRegex, "uvwR.");
+  out +=
+    "float D" +
+    label +
+    "T = " +
+    str.replaceAll(yRegex, "(y+dy)").replaceAll(uvwRegex, "uvwT.");
+  out +=
+    "float D" +
+    label +
+    "B = " +
+    str.replaceAll(yRegex, "(y-dy)").replaceAll(uvwRegex, "uvwB.");
   return out;
 }
 
@@ -1346,12 +1363,9 @@ function parseShaderString(str) {
   str = replaceCaratWithPow(str);
 
   // Replace u, v, and w with uvw.r, uvw.g, and uvw.b via placeholders.
-  str = str.replace(/\bu\b/g, "U");
-  str = str.replace(/\bv\b/g, "V");
-  str = str.replace(/\bw\b/g, "W");
-  str = str.replace(/\bU\b/g, "uvw." + speciesToChannelChar("u"));
-  str = str.replace(/\bV\b/g, "uvw." + speciesToChannelChar("v"));
-  str = str.replace(/\bW\b/g, "uvw." + speciesToChannelChar("w"));
+  str = str.replace(/\bu\b/g, "uvw." + speciesToChannelChar("u"));
+  str = str.replace(/\bv\b/g, "uvw." + speciesToChannelChar("v"));
+  str = str.replace(/\bw\b/g, "uvw." + speciesToChannelChar("w"));
 
   // Replace integers with floats.
   while (str != (str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3")));
@@ -2257,14 +2271,13 @@ function setParamsFromKineticString() {
   // Take the kineticParams string in the options and
   // use it to populate a GUI containing these parameters
   // as individual options.
-  let label, str
+  let label, str;
   let strs = options.kineticParams.split(";");
   for (var index = 0; index < strs.length; index++) {
     str = removeWhitespace(strs[index]);
     if (str == "") {
       // If the string is empty, do nothing.
-    }
-    else {
+    } else {
       label = "param" + kineticParamsCounter;
       kineticParamsCounter += 1;
       kineticParamsLabels.push(label);
