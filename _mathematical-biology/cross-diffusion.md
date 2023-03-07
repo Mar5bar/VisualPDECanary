@@ -4,7 +4,7 @@ title: Reaction–cross-diffusion systems
 lesson_number: 100
 thumbnail: /assets/images/KellerSegel.PNG
 extract: Extended Turing spaces
-equation: $\pd{u}{t}=\nabla\cdot(D_{uu}\nabla u+D_{uv}\nabla v)+f(u,v)$, $\pd{u}{t}=\nabla\cdot(D_{vu}\nabla u+D_{vv}\nabla v)+g(u,v)$
+equation: $\pd{u}{t}=\nabla\cdot(D_{uu}\nabla u+D_{uv}\nabla v)+f(u,v)$, $\pd{v}{t}=\nabla\cdot(D_{vu}\nabla u+D_{vv}\nabla v)+g(u,v)$
 ---
 IGNORE THIS PAGE - CURRENTLY IN PROGRESS BEING BUILT!
 
