@@ -9,6 +9,10 @@
 
     <main class="page-content" aria-label="Content">
       <div class="wrapper">
+        {% assign collection = site.collections
+        | where_exp:"collection", "collection.label == page.collection"
+        | first %}
+        <a class='collection' href='/{{ page.collection }}'>{{ collection.title }}</a>
         {{ content }}
       </div>
     </main>

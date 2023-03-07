@@ -188,3 +188,20 @@ a.topic_tile div.container div.button:hover {
     transition-duration: .1s;
     text-decoration: none;
 }
+
+a.collection {
+    display: inline-block;
+    text-transform: uppercase;
+    color: #111; /*#1756a9;*/
+    font-weight: 700;
+    font-size: 11px;
+    padding: 3px 2px 2px;
+    margin-right: 10px;
+    line-height: 1.1;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+a.collection::after{
+    content:" ⟫";
+    vertical-align: 7%;
+}
