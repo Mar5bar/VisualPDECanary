@@ -234,26 +234,26 @@ break;
 	case "KellerSegel":
 	options = {
 	"brushValue": "RAND",
-	"brushRadius": 5,
+	"brushRadius": 5.6000000000000005,
 	"clearValueU": "0.01*RAND",
 	"crossDiffusion": true,
 	"diffusionStrUU": "1",
 	"diffusionStrUV": "-c*u/(1+u^2)",
 	"diffusionStrVV": "D",
 	"diffusionStrWW": "0",
-	"domainScale": 200,
-	"dt": 0.001,
+	"domainScale": 100,
+	"dt": 0.005,
 	"kineticParams": "D=1;c=4;a=0.1;",
 	"maxColourValue": 2.5,
 	"minColourValue": 0.0004821050970349461,
+	"preset": "KellerSegel",
 	"reactionStrU": "u*(1-u)",
 	"reactionStrV": "u-a*v",
 	"reactionStrW": "0",
-	"spatialStep": 0.75,
+	"spatialStep": 0.2,
 	"suppressTryClickingPopup": true,
 	"whatToDraw": "u",
 	"whatToPlot": "u",
-	"preset": "KellerSegel",
 };
 break;
 		  
