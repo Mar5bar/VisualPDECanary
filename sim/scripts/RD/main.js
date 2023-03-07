@@ -1337,12 +1337,9 @@ function parseShaderString(str) {
   str = replaceCaratWithPow(str);
 
   // Replace u, v, and w with uvw.r, uvw.g, and uvw.b via placeholders.
-  str = str.replace(/\bu\b/g, "U");
-  str = str.replace(/\bv\b/g, "V");
-  str = str.replace(/\bw\b/g, "W");
-  str = str.replace(/\bU\b/g, "uvw." + speciesToChannelChar("u"));
-  str = str.replace(/\bV\b/g, "uvw." + speciesToChannelChar("v"));
-  str = str.replace(/\bW\b/g, "uvw." + speciesToChannelChar("w"));
+  str = str.replace(/\bu\b/g, "uvw." + speciesToChannelChar("u"));
+  str = str.replace(/\bv\b/g, "uvw." + speciesToChannelChar("v"));
+  str = str.replace(/\bw\b/g, "uvw." + speciesToChannelChar("w"));
 
   // Replace integers with floats.
   while (str != (str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3")));
