@@ -1218,12 +1218,14 @@ function clearTextures() {
 }
 
 function pauseSim() {
-  // pauseButton.name("Play (space)");
+  $("#pause").hide();
+  $("#play").show();
   isRunning = false;
 }
 
 function playSim() {
-  // pauseButton.name("Pause (space)");
+  $("#play").hide();
+  $("#pause").show();
   isRunning = true;
 }
 
@@ -2208,13 +2210,9 @@ $("#equations").click(function () {
 });
 $("#pause").click(function () {
   pauseSim();
-  $("#pause").hide();
-  $("#play").show();
 });
 $("#play").click(function () {
   playSim();
-  $("#play").hide();
-  $("#pause").show();
 });
 $("#erase").click(function () {
   resetSim();
