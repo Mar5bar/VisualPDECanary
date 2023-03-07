@@ -168,18 +168,20 @@ a.home_tile div.container div.subtitle {
 }
 
 a.topic_tile div.container div.subtitle {
-    font-size: normal;
     padding-bottom: 13px;
     color: #111111;
     font-weight: 300;
 }
 
 a.topic_tile div.container div.subtitle_equation {
-    font-size: normal;
     color: #111111;
     font-weight:300;
     line-height: 1.7;
     /* padding-bottom: 13px; */
+}
+
+div.subtitle_equation mjx-container mjx-math{
+    font-size:110%;
 }
 
 a.home_tile div.container div.button {
