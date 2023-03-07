@@ -136,6 +136,10 @@ canvas {
     color: black;
 }
 
+.ui_button.top {
+    top: 0px !important;
+}
+
 #settings {
     top: 0px;
     right: 3px;
