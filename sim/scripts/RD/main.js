@@ -1316,8 +1316,8 @@ function parseCrossDiffusionStrings() {
 
 function nonConstantDiffusionEvaluateInSpaceStr(str, label) {
   let out = "";
-  let xRegex = /(?![^x])*x(?=[^x])*/g;
-  let yRegex = /(?![^y])*y(?=[^y])*/g;
+  let xRegex = /\bx\b/g;
+  let yRegex = /\by\b/g;
 
   out += "float D" + label + " = " + str;
   out += "float D" + label + "L = " + str.replaceAll(xRegex, "(x-dx)");
