@@ -26,13 +26,12 @@
         
         {% for item in lessons %}
           <a class='topic_tile' href='{{ item.url }}'>
-            <div class='container'>
-              <img src='{{ item.thumbnail }}' />
+            <div class='topic_banner' style="background-image:url('{{ item.thumbnail }}')">
             </div>
             <div class='container'>
               <div class='title'>{{ item.title }}</div>
               <div class='subtitle'>{{ item.extract }}</div>
-              <div class='subtitle_equation'><span class='subtitle_equation'>{{ item.equation }}</span></div>
+              <div class='subtitle_equation'>{{ item.equation }}</div>
               <!-- <div class='button'>Explore</div> -->
             </div>
           </a>

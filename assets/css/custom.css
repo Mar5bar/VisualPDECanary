@@ -47,16 +47,20 @@ div.home-banner-title {
     padding-right: 0.5rem;
 }
 
-div.home_tiles,
-div.topic_tiles {
+div.home_tiles {
     display: flex;
     flex-wrap: wrap;
     column-gap: 20px;
     row-gap: 20px;
 }
 
-a.home_tile,
-a.topic_tile {
+div.topic_tiles{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+    grid-column-gap: 1.875rem;
+}
+
+a.home_tile {
     display: flex;
     padding: 15px 17px 16px 17px;
     border: 1px solid;
@@ -65,6 +69,22 @@ a.topic_tile {
     line-height: 1.3;
     color: #1756a9;
     column-gap: 20px;
+}
+
+a.topic_tile {
+    /* display: flex; */
+    /* padding: 15px 17px 16px 17px; */
+    border: 1px solid;
+    border-radius: 6px;
+    border-color: rgba(27, 31, 36, 0.25);
+    line-height: 1.3;
+    color: #1756a9;
+    column-gap: 20px;
+    margin-bottom: 1.5rem;
+}
+
+a.topic_tile div.container{
+    padding: 15px 17px 13px 17px;
 }
 
 a.home_tile {
@@ -77,11 +97,18 @@ a.home_tile {
     }
 }
 
-
-
-a.topic_tile {
-    width: 100%;
+div.topic_banner{
+    height:5rem;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    border-radius: 6px 6px 0px 0px;
 }
+
+
+/* a.topic_tile {
+    width: 100%;
+} */
 
 a.home_tile:hover,
 a.topic_tile:hover {
@@ -97,10 +124,10 @@ a.home_tile img {
     height: 145px;
 }
 
-a.topic_tile img {
+/* a.topic_tile img {
     max-width: 115px;
     height: 115px;
-}
+} */
 
 a.home_tile div.container,
 a.topic_tile div.container {
@@ -122,9 +149,14 @@ a.topic_tile div.container img {
     border-radius: 6px;
 }
 
-a.home_tile div.container div.title,
-a.topic_tile div.container div.title {
+a.home_tile div.container div.title {
     font-size: 1.4rem;
+    font-weight: 500;
+    padding-bottom: 10px;
+}
+
+a.topic_tile div.container div.title {
+    font-size: 1.2rem;
     font-weight: 500;
     padding-bottom: 10px;
 }
@@ -139,11 +171,14 @@ a.topic_tile div.container div.subtitle {
     font-size: normal;
     padding-bottom: 13px;
     color: #111111;
+    font-weight: 300;
 }
 
 a.topic_tile div.container div.subtitle_equation {
     font-size: normal;
     color: #111111;
+    font-weight:300;
+    line-height: 1.7;
     /* padding-bottom: 13px; */
 }
 
