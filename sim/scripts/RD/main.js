@@ -167,6 +167,12 @@ funsObj = {
 // Get the canvas to draw on, as specified by the html.
 canvas = document.getElementById("simCanvas");
 
+// Remove the back button if we're from an internal link.
+if (!fromExternalLink()) {
+  $("#back").hide();
+  $("#equations").addClass("top");
+}
+
 var readFromTextureB = true;
 
 // Load default options.
@@ -186,7 +192,10 @@ if (params.has("options")) {
   loadPreset(JSON.parse(atob(decodeURI(params.get("options")))));
 }
 
-if ((fromExternalLink() || options.preset == "default") && !options.suppressTryClickingPopup) {
+if (
+  (fromExternalLink() || options.preset == "default") &&
+  !options.suppressTryClickingPopup
+) {
   $("#try_clicking").addClass("fading_in");
   setTimeout(fadeoutTryClicking, 5000);
 }
@@ -606,10 +615,7 @@ function initGUI(startOpen) {
     root = genericOptionsFolder;
   }
   if (inGUI("domainScale")) {
-    root
-      .add(options, "domainScale")
-      .name("Largest side")
-      .onChange(resize);
+    root.add(options, "domainScale").name("Largest side").onChange(resize);
   }
   if (inGUI("spatialStep")) {
     const dxController = root
