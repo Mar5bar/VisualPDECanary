@@ -22,7 +22,7 @@ export function computeDisplayFunShaderTop() {
        `;
 }
 
-export function computeDisplayFunShaderBot() {
+export function computeDisplayFunShaderMid() {
   return `
         vec4 uvw = texture2D(textureSource, textureCoords);
         ivec2 texSize = textureSize(textureSource,0);
@@ -30,12 +30,10 @@ export function computeDisplayFunShaderBot() {
         float y = textureCoords.y * float(texSize.y) * dy;
 
         float value = FUN;
-        gl_FragColor = vec4(value, 0.0, 0.0, 1.0);
-
-    }`;
+        gl_FragColor = vec4(value, 0.0, 0.0, 1.0);`;
 }
 
-export function computeMaxSpeciesShader() {
+export function computeMaxSpeciesShaderMid() {
   return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
 
@@ -52,8 +50,16 @@ export function computeMaxSpeciesShader() {
         else if (uvw.b >= uvw.r && uvw.b >= uvw.g) {
             value = 1.0;
         }
-        gl_FragColor = vec4(value, 0.0, 0.0, 1.0);
-    }`;
+        gl_FragColor = vec4(value, 0.0, 0.0, 1.0);`;
+}
+
+export function postShaderDomainIndicator() {
+  return `
+  gl_FragColor.g = float(float(indicatorFun) <= 0.0);`
+}
+
+export function postGenericShaderBot() {
+  return `}`
 }
 
 export function interpolationShader() {

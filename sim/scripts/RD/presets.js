@@ -671,6 +671,7 @@ break;
         algebraicV: false,
         algebraicW: false,
         autoSetColourRange: false,
+        backgroundColour: [1,1,1,1],
         boundaryConditionsU: "periodic",
         boundaryConditionsV: "periodic",
         boundaryConditionsW: "periodic",
