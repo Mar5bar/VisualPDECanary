@@ -7,6 +7,16 @@ export function computeDisplayFunShaderTop() {
     uniform float dx;
     uniform float dy;
 
+    float safepow(float x, float y) {
+      if (x >= 0.0) {
+          return pow(x,y);
+      }
+      if (mod(y,2.0) == 0.0) {
+          return pow(-x,y);
+      }
+      return -pow(-x,y);
+    }
+
     void main()
     {
        `;

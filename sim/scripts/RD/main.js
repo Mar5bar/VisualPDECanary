@@ -1393,7 +1393,7 @@ function replaceCaratWithPow(str) {
   // matching balanced brackets.
   if (str.indexOf("^") > -1) {
     var tab = [];
-    var powfunc = "pow";
+    var powfunc = "safepow";
     var joker = "___joker___";
     while (str.indexOf("(") > -1) {
       str = str.replace(/(\([^\(\)]*\))/g, function (m, t) {
