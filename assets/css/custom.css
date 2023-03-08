@@ -242,3 +242,27 @@ a.collection::after{
     content:" ⟫";
     vertical-align: 7%;
 }
+
+.ui_button_documentation {
+    display: inline-flex;
+    z-index: 3;
+
+    margin-left: 3px;
+    margin-right: 3px;
+
+    background-color: #ededed;
+    color: #606060;
+    font-size: 1.1rem;
+    height: 35px;
+    width: 35px;
+    align-items: center;
+    justify-content: center;
+    /* box-shadow: 0 0 5px rgba(0, 0, 0, 0.15); */
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    text-shadow: 0 1px #fff;
+}
+
+.post-content h3{
+    margin-top:3rem;
+}

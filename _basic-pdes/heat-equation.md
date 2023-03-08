@@ -10,24 +10,39 @@ Let's start by solving the [heat equation](https://en.wikipedia.org/wiki/Heat_eq
 
 $$\pd{u}{t}=D \nabla^2 u,$$
 
-with homogeneous Neumann (aka no-flux) boundary conditions.
+on a rectangular 2D domain with homogeneous Neumann (aka no-flux) boundary conditions,
 
-1. Load the [interactive simulation](/sim/?preset=heatEquation). 
+$$\pd{u}{x}(0) = \pd{u}{x}(L_x) = \pd{u}{y}(0) = \pd{u}{y}(L_y) = 0.$$
 
-1. Click within the box to visualise the spread of some source of heat throughout the domain. 
+1. Load the [interactive simulation](/sim/?preset=heatEquation), which has been set up for this tutorial.
 
-1. You can increase the diffusion coefficient (for example, by removing a zero) to increase how fast this blob spreads out throughout the domain. 
+1. Click or tap on the screen to visualise the spread of some source of heat throughout the domain. 
 
-1. You can also click around the corners/edges to see how the boundary conditions conserves the total amount of heat within the domain. 
+1. Now press {{ layout.pause }}, paint some initial data, and then press {{ layout.play }} to set it in motion.
 
-1. Press clear at the top right to reset the simulation. 
+1. Press {{ layout.erase }} to clear the screen. 
 
-1. You can also pause the simulation, paint some initial data, and then click 'play' to set it in motion. Explore how the speed depends on the diffusion coefficient (though note that this coefficient can't be too large without running into numerical problems -- see the discussion on Forward Euler ELSEWHERE). 
+### Playing with the diffusion coefficient, $D$
 
-## Playing with boundary conditions
+What does changing the diffusion coefficient, $D$, do? 
 
-1. Now, go to `Boundary conditions` and select `Periodic`. What do you notice? Is the total amount of heat still conserved? 
+1. Change its value by clicking {{ layout.equations }} and editing the value of $D_u$: try multiplying it by 10. 
 
-1. What if you change it to Dirichlet? 
+1. Now click again on the screen and see how fast this blob spreads out throughout the domain. 
+
+Explore how the speed depends on the diffusion coefficient. You can safely increase $D$ up to [VALUE] without hitting numerical problems: see the discussion on forward Euler ELSEWHERE. 
+
+### Playing with boundary conditions
+
+What effect do the boundary conditions have? 
+
+1. Click around the corners and edges to see how the Neumann boundary conditions conserve the total amount of heat within the domain. 
+
+1. Now, go to {{ layout.equations }}→**Boundary conditions** and select **Periodic** for $u$. What do you notice? Is the total amount of heat still conserved? 
+
+1. What if you change the boundary conditions to **Dirichlet**? 
 
 Explore how heat flows through the domain under these different scenarios.
+
+
+
