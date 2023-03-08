@@ -257,6 +257,37 @@ break;
 };
 break;
 		  
+	case "KellerSegelHeart":
+	options = {
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
+	"brushValue": "RAND",
+	"brushRadius": 5.5,
+	"clearValueU": "0.001",
+	"crossDiffusion": true,
+	"diffusionStrUU": "1",
+	"diffusionStrUV": "-c*u/(1+u^2)",
+	"diffusionStrVV": "D",
+	"diffusionStrWW": "0",
+	"domainIndicatorFun": "(((x-140)/80)^2 + ((y-140)/80)^2 - 1)^3 - ((x-140)/80)^2*((y-140)/80)^3 < 0",
+	"domainScale": 280,
+	"domainViaIndicatorFun": true,
+	"dt": 0.005,
+	"kineticParams": "D=1;c=4;a=0.1;",
+	"maxColourValue": 2.5,
+	"minColourValue": 0.0004821050970349461,
+	"preset": "KellerSegelHeart",
+	"reactionStrU": "u*(1-u)",
+	"reactionStrV": "u-a*v",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"squareCanvas": true,
+	"suppressTryClickingPopup": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
+		  
     case "GiererMeinhardtStripes":
       options = {
         autoSetColourRange: true,
