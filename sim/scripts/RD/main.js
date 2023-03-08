@@ -83,8 +83,10 @@ import {
 } from "./drawing_shaders.js";
 import {
   computeDisplayFunShaderTop,
-  computeDisplayFunShaderBot,
-  computeMaxSpeciesShader,
+  computeDisplayFunShaderMid,
+  computeMaxSpeciesShaderMid,
+  postGenericShaderBot,
+  postShaderDomainIndicator,
   interpolationShader,
 } from "./post_shaders.js";
 import { copyShader } from "../copy_shader.js";
@@ -359,6 +361,8 @@ function roundBrushSizeToPix() {
 
 function updateUniforms() {
   uniforms.aspectRatio = aspectRatio;
+  let c = options.backgroundColour;
+  uniforms.backgroundColour.value = new THREE.Vector4(c[0], c[1], c[2], c[3]);
   uniforms.brushRadius.value = options.brushRadius;
   uniforms.domainHeight.value = domainHeight;
   uniforms.domainWidth.value = domainWidth;
@@ -442,6 +446,9 @@ function resizeTextures() {
 
 function initUniforms() {
   uniforms = {
+    backgroundColour: {
+      type: "v4",
+    },
     boundaryValues: {
       type: "v2",
     },
@@ -650,6 +657,7 @@ function initGUI(startOpen) {
         configureOptions();
         configureGUI();
         setRDEquations();
+        setPostFunFragShader();
       });
   }
 
@@ -1930,13 +1938,25 @@ function setPostFunFragShader() {
     options.kineticParams.replace(regex, "float $1;\n")
   );
   shaderStr += kineticStr;
-  shaderStr += computeDisplayFunShaderBot();
-  postMaterial.fragmentShader = setDisplayFunInShader(shaderStr);
+  shaderStr += computeDisplayFunShaderMid();
+  postMaterial.fragmentShader =
+    setDisplayFunInShader(shaderStr) +
+    postShaderDomainIndicator().replace(
+      /indicatorFun/g,
+      parseShaderString(options.domainIndicatorFun)
+    ) +
+    postGenericShaderBot();
   postMaterial.needsUpdate = true;
 }
 
 function setPostFunMaxFragShader() {
-  postMaterial.fragmentShader = computeMaxSpeciesShader();
+  postMaterial.fragmentShader =
+    computeMaxSpeciesShaderMid() +
+    postShaderDomainIndicator().replace(
+      /indicatorFun/g,
+      parseShaderString(options.domainIndicatorFun)
+    ) +
+    postGenericShaderBot();
   postMaterial.needsUpdate = true;
   options.minColourValue = 0.0;
   options.maxColourValue = 1.0;
