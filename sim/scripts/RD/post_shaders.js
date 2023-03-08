@@ -62,18 +62,14 @@ export function postGenericShaderBot() {
   return `}`
 }
 
-export function interpolationShaderTop() {
+export function interpolationShader() {
   return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
-    uniform float dx;
-    uniform float dy;
 
     void main()
     {
 			// Bilinear interpolation of scalar values.
             ivec2 texSize = textureSize(textureSource,0);
-            float x = textureCoords.x * float(texSize.x) * dx;
-            float y = textureCoords.y * float(texSize.y) * dy;
             float fx = fract(textureCoords.x * float(texSize.x) - 0.5);
             float fy = fract(textureCoords.y * float(texSize.y) - 0.5);
             float lowerx = textureCoords.x - fx / float(texSize.x);
@@ -88,6 +84,7 @@ export function interpolationShaderTop() {
 
             float value = mix(mix(valueLB, valueRB, fx), mix(valueLT, valueRT, fx), fy);
             
-            gl_FragColor = vec4(value, 0.0, 0.0, 1.0);
-       `;
+            gl_FragColor = texture2D(textureSource, textureCoords);
+            gl_FragColor.r = value;
+      }`;
 }
