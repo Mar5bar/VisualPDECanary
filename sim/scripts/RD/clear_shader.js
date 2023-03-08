@@ -11,6 +11,16 @@ export function clearShaderTop() {
     uniform float seed;
     const float pi = 3.141592653589793;
 
+    float safepow(float x, float y) {
+        if (x >= 0.0) {
+            return pow(x,y);
+        }
+        if (mod(round(y),2.0) == 0.0) {
+            return pow(-x,y);
+        }
+        return -pow(-x,y);
+    }
+
     void main()
     {
         float x = textureCoords.x * float(nXDisc) * dx;
