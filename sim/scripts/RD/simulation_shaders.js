@@ -137,7 +137,7 @@ export function RDShaderDirichletY() {
 
 export function RDShaderDirichletIndicatorFun() {
     return `
-    if (indicatorFun < 0.0) {
+    if (float(indicatorFun) <= 0.0) {
         updated.SPECIES = `;
 }
 
