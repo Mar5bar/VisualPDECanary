@@ -88,7 +88,7 @@ import {
   computeMaxSpeciesShaderMid,
   postGenericShaderBot,
   postShaderDomainIndicator,
-  interpolationShader,
+  interpolationShaderTop,
 } from "./post_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import {
@@ -276,7 +276,7 @@ function init() {
   interpolationMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
-    fragmentShader: interpolationShader(),
+    fragmentShader: interpolationShaderTop(),
   });
   // This material allows for drawing via a number of fragment shaders, which will be swapped in before use.
   drawMaterial = new THREE.ShaderMaterial({
@@ -668,7 +668,7 @@ function initGUI(startOpen) {
         configureOptions();
         configureGUI();
         setRDEquations();
-        setPostFunFragShader();
+        updateWhatToPlot();
       });
   }
 
@@ -1871,6 +1871,9 @@ function updateWhatToPlot() {
     showGUIController(setColourRangeController);
     showGUIController(autoSetColourRangeController);
   }
+  if (!floatLinearExtAvailable) {
+    setPostInterpolationShader();
+  }
   render();
 }
 
@@ -1986,6 +1989,17 @@ function setPostFunMaxFragShader() {
   options.minColourValue = 0.0;
   options.maxColourValue = 1.0;
   updateUniforms();
+}
+
+function setPostInterpolationShader() {
+  interpolationMaterial.fragmentShader =
+    interpolationShaderTop() +
+    postShaderDomainIndicator().replace(
+      /indicatorFun/g,
+      parseShaderString(options.domainIndicatorFun)
+    ) +
+    postGenericShaderBot();
+  interpolationMaterial.needsUpdate = true;
 }
 
 function problemTypeFromOptions() {
