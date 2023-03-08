@@ -361,7 +361,6 @@ function roundBrushSizeToPix() {
 }
 
 function updateUniforms() {
-  uniforms.aspectRatio = aspectRatio;
   uniforms.backgroundColour.value = new THREE.Color(options.backgroundColour);
   uniforms.brushRadius.value = options.brushRadius;
   uniforms.domainHeight.value = domainHeight;
