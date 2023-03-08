@@ -1432,22 +1432,22 @@ function setRDEquations() {
 
   // Create Dirichlet shaders.
   if (options.domainViaIndicatorFun) {
-    dirichletShader +=
-      "float indicatorFun = " +
-      parseShaderString(options.domainIndicatorFun) +
-      ";\n";
     // If the domain is being set by an indicator function, Dirichlet is the only allowable BC.
+    let str = RDShaderDirichletIndicatorFun().replace(
+      /indicatorFun/g,
+      parseShaderString(options.domainIndicatorFun)
+    );
     dirichletShader +=
-      selectSpeciesInShaderStr(RDShaderDirichletIndicatorFun(), "u") +
+      selectSpeciesInShaderStr(str, "u") +
       parseShaderString(options.dirichletU) +
       ";\n}\n";
     dirichletShader +=
-      selectSpeciesInShaderStr(RDShaderDirichletIndicatorFun(), "v") +
-      parseShaderString(options.dirichletU) +
+      selectSpeciesInShaderStr(str, "v") +
+      parseShaderString(options.dirichletV) +
       ";\n}\n";
     dirichletShader +=
-      selectSpeciesInShaderStr(RDShaderDirichletIndicatorFun(), "w") +
-      parseShaderString(options.dirichletU) +
+      selectSpeciesInShaderStr(str, "w") +
+      parseShaderString(options.dirichletW) +
       ";\n}\n";
   } else {
     if (options.boundaryConditionsU == "dirichlet") {
