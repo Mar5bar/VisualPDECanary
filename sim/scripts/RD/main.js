@@ -15,6 +15,7 @@ let leftGUI,
   root,
   pauseButton,
   resetButton,
+  backgroundColourController,
   brushRadiusController,
   fController,
   gController,
@@ -361,8 +362,7 @@ function roundBrushSizeToPix() {
 
 function updateUniforms() {
   uniforms.aspectRatio = aspectRatio;
-  let c = options.backgroundColour;
-  uniforms.backgroundColour.value = new THREE.Vector4(c[0], c[1], c[2], c[3]);
+  uniforms.backgroundColour.value = new THREE.Color(options.backgroundColour);
   uniforms.brushRadius.value = options.brushRadius;
   uniforms.domainHeight.value = domainHeight;
   uniforms.domainWidth.value = domainWidth;
@@ -447,7 +447,7 @@ function resizeTextures() {
 function initUniforms() {
   uniforms = {
     backgroundColour: {
-      type: "v4",
+      type: "v3",
     },
     boundaryValues: {
       type: "v2",
@@ -954,6 +954,14 @@ function initGUI(startOpen) {
           funsObj.setColourRange();
           render();
         }
+      });
+  }
+  if (inGUI("backgroundColour")) {
+    backgroundColourController = root
+      .addColor(options, "backgroundColour")
+      .name("Background")
+      .onChange(function () {
+        updateUniforms();
       });
   }
 
@@ -2153,8 +2161,10 @@ function configureGUI() {
   }
   if (options.domainViaIndicatorFun) {
     showGUIController(domainIndicatorFunController);
+    showGUIController(backgroundColourController);
   } else {
     hideGUIController(domainIndicatorFunController);
+    hideGUIController(backgroundColourController);
   }
   // Hide or show GUI elements that depend on the BCs.
   setBCsGUI();

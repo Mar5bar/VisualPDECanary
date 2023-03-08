@@ -12,7 +12,7 @@ export function fiveColourDisplay() {
     uniform vec4 colour3;
     uniform vec4 colour4;
     uniform vec4 colour5;
-    uniform vec4 backgroundColour;
+    uniform vec3 backgroundColour;
     
 
     void main()
@@ -20,7 +20,7 @@ export function fiveColourDisplay() {
         vec2 values = texture2D(textureSource, textureCoords).rg;
         if (values.g > 0.5)
         {
-            gl_FragColor = backgroundColour;
+            gl_FragColor = vec4(backgroundColour.r,backgroundColour.g,backgroundColour.b,1.0);
             return;
         }
         float value = values.r;
