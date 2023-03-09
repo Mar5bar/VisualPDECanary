@@ -42,12 +42,12 @@ collections:
   basic-pdes:
     output: true
     title: Basic PDEs
-  mathematical-biology:
-    output: true
-    title: Mathematical biology
   art:
     output: true
     title: Art of PDEs
+  mathematical-biology:
+    output: true
+    title: Mathematical biology
   nonlinear-physics:
     output: true
     title: Nonlinear physics    
