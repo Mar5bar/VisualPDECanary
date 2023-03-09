@@ -593,26 +593,26 @@ function initGUI(startOpen) {
         "Horizontal line": "hline",
         "Vertical line": "vline",
       })
-      .name("Brush type")
+      .name("Type")
       .onChange(setBrushType);
   }
   if (inGUI("brushValue")) {
     root
       .add(options, "brushValue")
-      .name("Brush value")
+      .name("Value")
       .onFinishChange(setBrushType);
   }
   if (inGUI("brushRadius")) {
     brushRadiusController = root
       .add(options, "brushRadius")
-      .name("Brush radius")
+      .name("Radius")
       .onChange(updateUniforms);
     brushRadiusController.min(0);
   }
   if (inGUI("whatToDraw")) {
     whatToDrawController = root
       .add(options, "whatToDraw", { u: "u", v: "v", w: "w" })
-      .name("Draw species")
+      .name("Species")
       .onChange(setBrushType);
   }
 
