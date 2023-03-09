@@ -5,7 +5,7 @@ export function getPreset(id) {
   switch (id) {
     case "bistableTravellingWave":
       options = {
-        boundaryConditionsU: "noflux",
+        boundaryConditionsU: "neumann",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         dt: 0.005,
@@ -335,7 +335,7 @@ break;
       break;
     case "thresholdSimulation":
       options = {
-        boundaryConditionsU: "noflux",
+        boundaryConditionsU: "neumann",
         brushRadius: 0.005,
         diffusionStrUU: "0.0001",
         diffusionStrVV: "0",
@@ -355,7 +355,7 @@ break;
 
     case "harshEnvironment":
       options = {
-        boundaryConditionsU: "noflux",
+        boundaryConditionsU: "neumann",
         clearValueU: "0.1*exp(-10000*RAND)",
         diffusionStrUU: "0.00004",
         diffusionStrVV: "0",
@@ -378,7 +378,7 @@ break;
 		  
     case "inhomogHeatEquation":
       options = {
-        boundaryConditionsU: "noflux",
+        boundaryConditionsU: "neumann",
         diffusionStrUU: "D",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
@@ -418,8 +418,8 @@ break;
 
     case "inhomogWaveEquation":
       options = {
-        boundaryConditionsU: "noflux",
-        boundaryConditionsV: "noflux",
+        boundaryConditionsU: "neumann",
+        boundaryConditionsV: "neumann",
         brushRadius: 0.01,
         crossDiffusion: true,
         diffusionStrUU: "C*D",
@@ -439,7 +439,7 @@ break;
 
     case "travellingWave":
       options = {
-        boundaryConditionsU: "noflux",
+        boundaryConditionsU: "neumann",
         diffusionStrUU: "0.000001",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
@@ -479,7 +479,7 @@ break;
       break;
     case "heatEquation":
       options = {
-        boundaryConditionsU: "noflux",
+        boundaryConditionsU: "neumann",
         diffusionStrUU: "0.00001",
         dt: 0.01,
         numSpecies: 1,
@@ -499,8 +499,8 @@ break;
         diffusionStrVU: "D",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
-        boundaryConditionsU: "noflux",
-        boundaryConditionsV: "noflux",
+        boundaryConditionsU: "neumann",
+        boundaryConditionsV: "neumann",
         dt: 0.001,
         kineticParams: "D=0.0001; C=0.01",
         numTimestepsPerFrame: 200,
@@ -515,8 +515,8 @@ break;
 
     case "waveEquationICs":
       options = {
-        boundaryConditionsU: "noflux",
-        boundaryConditionsV: "noflux",
+        boundaryConditionsU: "neumann",
+        boundaryConditionsV: "neumann",
         clearValueU: "cos(n*pi*x)*cos(m*pi*y)",
         crossDiffusion: true,
         diffusionStrUU: "C*D",
@@ -673,8 +673,8 @@ break;
       options = {
         algebraicV: true,
         autoSetColourRange: true,
-        boundaryConditionsU: "noflux",
-        boundaryConditionsV: "noflux",
+        boundaryConditionsU: "neumann",
+        boundaryConditionsV: "neumann",
         crossDiffusion: true,
         diffusionStrUU: "0",
         diffusionStrUV: "-D",
