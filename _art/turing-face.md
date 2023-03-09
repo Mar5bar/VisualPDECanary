@@ -2,7 +2,7 @@
 layout: page
 title: Turing on Turing
 lesson_number: 10
-thumbnail: /assets/images/Alan.png
+thumbnail: /assets/images/Alan.PNG
 extract: Even your own image!
 equation: $\pd{u}{t}=\nabla^2 u+(1-T(x,y)) - u + u^2*v$, $\pd{v}{t}=D\nabla^2v+ 1 - u^2*v$
 ---
