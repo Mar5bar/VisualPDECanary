@@ -563,7 +563,7 @@ function initGUI(startOpen) {
 
   if (inGUI("copyConfigAsJSON")) {
     // Copy configuration as raw JSON.
-    rightGUI.add(funsObj, "copyConfigAsJSON").name("Copy JSON");
+    rightGUI.add(funsObj, "copyConfigAsJSON").name("Copy code");
   }
 
   leftGUI.open();
@@ -712,7 +712,7 @@ function initGUI(startOpen) {
   if (inGUI("crossDiffusion")) {
     crossDiffusionController = root
       .add(options, "crossDiffusion")
-      .name("Cross diffusion?")
+      .name("Cross diffusion")
       .onChange(updateProblem);
   }
   if (inGUI("algebraicV")) {
@@ -918,7 +918,7 @@ function initGUI(startOpen) {
   if (inGUI("renderSize")) {
     root
       .add(options, "renderSize", 1, 2048, 1)
-      .name("Render res")
+      .name("Resolution")
       .onChange(setSizes);
   }
   if (inGUI("Smoothing scale") && !floatLinearExtAvailable) {
@@ -979,7 +979,7 @@ function initGUI(startOpen) {
   if (inGUI("autoColourRangeButton")) {
     autoSetColourRangeController = root
       .add(options, "autoSetColourRange")
-      .name("Auto snap?")
+      .name("Auto snap")
       .onChange(function () {
         if (options.autoSetColourRange) {
           funsObj.setColourRange();
