@@ -45,6 +45,9 @@ collections:
   mathematical-biology:
     output: true
     title: Mathematical biology
+  art:
+    output: true
+    title: Art of PDEs
   nonlinear-physics:
     output: true
     title: Nonlinear physics    
