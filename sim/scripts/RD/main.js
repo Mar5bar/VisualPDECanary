@@ -589,7 +589,7 @@ function initGUI(startOpen) {
   if (inGUI("typeOfBrush")) {
     root
       .add(options, "typeOfBrush", {
-        Circle: "circle",
+        "Disk": "circle",
         "Horizontal line": "hline",
         "Vertical line": "vline",
       })
@@ -655,7 +655,7 @@ function initGUI(startOpen) {
   if (inGUI("domainViaIndicatorFun")) {
     root
       .add(options, "domainViaIndicatorFun")
-      .name("Indicator")
+      .name("Implicit")
       .onFinishChange(function () {
         configureOptions();
         configureGUI();
@@ -681,7 +681,7 @@ function initGUI(startOpen) {
     root = genericOptionsFolder;
   }
   if (inGUI("numTimestepsPerFrame")) {
-    root.add(options, "numTimestepsPerFrame", 1, 200, 1).name("TPF");
+    root.add(options, "numTimestepsPerFrame", 1, 200, 1).name("Steps/frame");
   }
   if (inGUI("dt")) {
     dtController = root
@@ -829,19 +829,19 @@ function initGUI(startOpen) {
   if (inGUI("dirichletU")) {
     dirichletUController = root
       .add(options, "dirichletStrU")
-      .name("$u$")
+      .name("$\\left.u\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrU")) {
     neumannUController = root
       .add(options, "neumannStrU")
-      .name("$\\pd{u}{n}$")
+      .name("$\\left.\\pd{u}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrU")) {
     robinUController = root
       .add(options, "robinStrU")
-      .name("$\\pd{u}{n}$")
+      .name("$\\left.\\pd{u}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("boundaryConditionsV")) {
@@ -861,19 +861,19 @@ function initGUI(startOpen) {
   if (inGUI("dirichletV")) {
     dirichletVController = root
       .add(options, "dirichletStrV")
-      .name("v")
+      .name("$\\left.v\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrV")) {
     neumannVController = root
       .add(options, "neumannStrV")
-      .name("$\\pd{v}{n}$")
+      .name("$\\left.\\pd{v}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrV")) {
     robinVController = root
       .add(options, "robinStrV")
-      .name("$\\pd{v}{n}$")
+      .name("$\\left.\\pd{v}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("boundaryConditionsW")) {
@@ -893,19 +893,19 @@ function initGUI(startOpen) {
   if (inGUI("dirichletW")) {
     dirichletWController = root
       .add(options, "dirichletStrW")
-      .name("w")
+      .name("$\\left.w\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrW")) {
     neumannWController = root
       .add(options, "neumannStrW")
-      .name("$\\pd{w}{n}$")
+      .name("$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrW")) {
     robinWController = root
       .add(options, "robinStrW")
-      .name("$\\pd{w}{n}$")
+      .name("$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
 
@@ -1006,19 +1006,19 @@ function initGUI(startOpen) {
   if (inGUI("clearValueU")) {
     clearValueUController = root
       .add(options, "clearValueU")
-      .name("Initial u")
+      .name("Initial $u$")
       .onFinishChange(setClearShader);
   }
   if (inGUI("clearValueV")) {
     clearValueVController = root
       .add(options, "clearValueV")
-      .name("Initial v")
+      .name("Initial $v$")
       .onFinishChange(setClearShader);
   }
   if (inGUI("clearValueW")) {
     clearValueWController = root
       .add(options, "clearValueW")
-      .name("Initial w")
+      .name("Initial $w$")
       .onFinishChange(setClearShader);
   }
   if (inGUI("preset")) {
@@ -1651,7 +1651,7 @@ function loadPreset(preset) {
     }
     imController = root
       .addImage(options, "imagePath")
-      .name("T(x,y) = Image:")
+      .name("$T(x,y)$")
       .onChange(loadImageSource);
   }
 }
@@ -1897,7 +1897,7 @@ function createImageController() {
   }
   imController = root
     .addImage(options, "imagePath")
-    .name("T(x,y) = Image:")
+    .name("$T(x,y)$")
     .onChange(loadImageSource);
 }
 
