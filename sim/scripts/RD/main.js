@@ -589,7 +589,7 @@ function initGUI(startOpen) {
   if (inGUI("typeOfBrush")) {
     root
       .add(options, "typeOfBrush", {
-        "Disk": "circle",
+        Disk: "circle",
         "Horizontal line": "hline",
         "Vertical line": "vline",
       })
@@ -597,10 +597,7 @@ function initGUI(startOpen) {
       .onChange(setBrushType);
   }
   if (inGUI("brushValue")) {
-    root
-      .add(options, "brushValue")
-      .name("Value")
-      .onFinishChange(setBrushType);
+    root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
   }
   if (inGUI("brushRadius")) {
     brushRadiusController = root
@@ -1024,10 +1021,31 @@ function initGUI(startOpen) {
   if (inGUI("preset")) {
     root
       .add(options, "preset", {
-        None: "default",
-        "Heat equation": "heatEquation",
-        Subcriticality: "subcriticalGS",
+        "A harsh environment": "harshEnvironment",
         Alan: "Alan",
+        Beginnings: "chemicalBasisOfMorphogenesis",
+        "Bistable travelling waves": "bistableTravellingWave",
+        Brusellator: "brusselator",
+        "Cahn-Hilliard": "CahnHilliard",
+        "Complex Ginzburg-Landau": "complexGinzburgLandau",
+        "Cyclic competition": "cyclicCompetition",
+        "Gierer-Meinhardt": "GiererMeinhardt",
+        "Gierer-Meinhardt: stripes": "GiererMeinhardtStripes",
+        "Gray-Scott": "subcriticalGS",
+        "Heat equation": "heatEquation",
+        "Inhomogeneous heat eqn": "inhomogHeatEquation",
+        "Inhomogeneous wave eqn": "inhomogWaveEquation",
+        "Localised patterns": "localisedPatterns",
+        Schnakenberg: "Schnakenberg",
+        "Schnakenberg-Hopf": "SchnakenbergHopf",
+        "Schrodinger + potential": "stabilizedSchrodingerEquationPotential",
+        Schrodinger: "stabilizedSchrodingerEquation",
+        "Swift-Hohenberg": "swiftHohenberg",
+        Thresholding: "thresholdSimulation",
+        "Travelling waves": "travellingWave",
+        "Variable diff heat eqn": "inhomogDiffusionHeatEquation",
+        "Wave equation w/ ICs": "waveEquationICs",
+        "Wave equation": "waveEquation",
       })
       .name("Preset")
       .onChange(loadPreset);
