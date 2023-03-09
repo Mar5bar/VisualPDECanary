@@ -2508,4 +2508,4 @@ function fadeoutTryClicking() {
   );
 }
 
-$("#simCanvas").one("pointerdown", fadeoutTryClicking);
+$("#simCanvas").one("pointerdown touchstart", fadeoutTryClicking);
