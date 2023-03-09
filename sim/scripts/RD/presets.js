@@ -473,6 +473,7 @@ break;
         showAllOptionsOverride: true,
         spatialStep: 0.002,
         squareCanvas: true,
+	suppressTryClickingPopup: true,
         whatToDraw: "u",
         whatToPlot: "u",
       };
