@@ -52,23 +52,6 @@ export function RDShaderPeriodic() {
     return ``;
 }
 
-export function RDShaderNoFlux() {
-    return `
-    if (textureCoords.x - step_x < 0.0) {
-        uvwL.SPECIES = uvwR.SPECIES;
-    }
-    if (textureCoords.x + step_x > 1.0) {
-        uvwR.SPECIES = uvwL.SPECIES;
-    }
-    if (textureCoords.y + step_y > 1.0){
-        uvwT.SPECIES = uvwB.SPECIES;
-    }
-    if (textureCoords.y - step_y < 0.0) {
-        uvwB.SPECIES = uvwT.SPECIES;
-    }
-    `;
-}
-
 export function RDShaderRobinX() {
     return `
     if (textureCoords.x - step_x < 0.0) {

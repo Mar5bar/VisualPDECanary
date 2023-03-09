@@ -49,6 +49,9 @@ let leftGUI,
   dirichletUController,
   dirichletVController,
   dirichletWController,
+  neumannUController,
+  neumannVController,
+  neumannWController,
   robinUController,
   robinVController,
   robinWController,
@@ -97,7 +100,6 @@ import {
   RDShaderDirichletX,
   RDShaderDirichletY,
   RDShaderDirichletIndicatorFun,
-  RDShaderNoFlux,
   RDShaderRobinX,
   RDShaderRobinY,
   RDShaderUpdateNormal,
@@ -802,8 +804,8 @@ function initGUI(startOpen) {
     uBCsController = root
       .add(options, "boundaryConditionsU", {
         Periodic: "periodic",
-        "No flux": "noflux",
         Dirichlet: "dirichlet",
+        Neumann: "neumann",
         Robin: "robin",
       })
       .name("u")
@@ -814,8 +816,14 @@ function initGUI(startOpen) {
   }
   if (inGUI("dirichletU")) {
     dirichletUController = root
-      .add(options, "dirichletU")
+      .add(options, "dirichletStrU")
       .name("u(boundary) = ")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("neumannStrU")) {
+    neumannUController = root
+      .add(options, "neumannStrU")
+      .name("du/dn = ")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrU")) {
@@ -828,8 +836,8 @@ function initGUI(startOpen) {
     vBCsController = root
       .add(options, "boundaryConditionsV", {
         Periodic: "periodic",
-        "No flux": "noflux",
         Dirichlet: "dirichlet",
+        Neumann: "neumann",
         Robin: "robin",
       })
       .name("v")
@@ -840,8 +848,14 @@ function initGUI(startOpen) {
   }
   if (inGUI("dirichletV")) {
     dirichletVController = root
-      .add(options, "dirichletV")
+      .add(options, "dirichletStrV")
       .name("v(boundary) = ")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("neumannStrV")) {
+    neumannVController = root
+      .add(options, "neumannStrV")
+      .name("dv/dn = ")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrV")) {
@@ -854,8 +868,8 @@ function initGUI(startOpen) {
     wBCsController = root
       .add(options, "boundaryConditionsW", {
         Periodic: "periodic",
-        "No flux": "noflux",
         Dirichlet: "dirichlet",
+        Neumann: "neumann",
         Robin: "robin",
       })
       .name("w")
@@ -866,8 +880,14 @@ function initGUI(startOpen) {
   }
   if (inGUI("dirichletW")) {
     dirichletWController = root
-      .add(options, "dirichletW")
+      .add(options, "dirichletStrW")
       .name("w(boundary) = ")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("neumannStrW")) {
+    neumannWController = root
+      .add(options, "neumannStrW")
+      .name("dw/dn = ")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrW")) {
@@ -1429,20 +1449,32 @@ function replaceCaratWithPow(str) {
 }
 
 function setRDEquations() {
-  let noFluxSpecies = "";
+  let neumannShader = "";
   let dirichletShader = "";
   let robinShader = "";
   let updateShader = "";
 
-  // Record no-flux species.
-  if (options.boundaryConditionsU == "noflux") {
-    noFluxSpecies += "u";
+  // Create a Neumann shader block for each species separately, which is just a special case of Robin.
+  if (options.boundaryConditionsU == "neumann") {
+    neumannShader += parseRobinRHS(options.neumannStrU, "u");
+    neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), "u");
+    if (!options.oneDimensional) {
+      neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "u");
+    }
   }
-  if (options.boundaryConditionsV == "noflux") {
-    noFluxSpecies += "v";
+  if (options.boundaryConditionsV == "neumann") {
+    neumannShader += parseRobinRHS(options.neumannStrV, "v");
+    neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), "v");
+    if (!options.oneDimensional) {
+      neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "v");
+    }
   }
-  if (options.boundaryConditionsW == "noflux") {
-    noFluxSpecies += "w";
+  if (options.boundaryConditionsW == "neumann") {
+    neumannShader += parseRobinRHS(options.neumannStrW, "w");
+    neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), "w");
+    if (!options.oneDimensional) {
+      neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "w");
+    }
   }
 
   // Create Dirichlet shaders.
@@ -1454,50 +1486,50 @@ function setRDEquations() {
     );
     dirichletShader +=
       selectSpeciesInShaderStr(str, "u") +
-      parseShaderString(options.dirichletU) +
+      parseShaderString(options.dirichletStrU) +
       ";\n}\n";
     dirichletShader +=
       selectSpeciesInShaderStr(str, "v") +
-      parseShaderString(options.dirichletV) +
+      parseShaderString(options.dirichletStrV) +
       ";\n}\n";
     dirichletShader +=
       selectSpeciesInShaderStr(str, "w") +
-      parseShaderString(options.dirichletW) +
+      parseShaderString(options.dirichletStrW) +
       ";\n}\n";
   } else {
     if (options.boundaryConditionsU == "dirichlet") {
       dirichletShader +=
         selectSpeciesInShaderStr(RDShaderDirichletX(), "u") +
-        parseShaderString(options.dirichletU) +
+        parseShaderString(options.dirichletStrU) +
         ";\n}\n";
       if (!options.oneDimensional) {
         dirichletShader +=
           selectSpeciesInShaderStr(RDShaderDirichletY(), "u") +
-          parseShaderString(options.dirichletU) +
+          parseShaderString(options.dirichletStrU) +
           ";\n}\n";
       }
     }
     if (options.boundaryConditionsV == "dirichlet") {
       dirichletShader +=
         selectSpeciesInShaderStr(RDShaderDirichletX(), "v") +
-        parseShaderString(options.dirichletV) +
+        parseShaderString(options.dirichletStrV) +
         ";\n}\n";
       if (!options.oneDimensional) {
         dirichletShader +=
           selectSpeciesInShaderStr(RDShaderDirichletY(), "v") +
-          parseShaderString(options.dirichletV) +
+          parseShaderString(options.dirichletStrV) +
           ";\n}\n";
       }
     }
     if (options.boundaryConditionsW == "dirichlet") {
       dirichletShader +=
         selectSpeciesInShaderStr(RDShaderDirichletX(), "w") +
-        parseShaderString(options.dirichletW) +
+        parseShaderString(options.dirichletStrW) +
         ";\n}\n";
       if (!options.oneDimensional) {
         dirichletShader +=
           selectSpeciesInShaderStr(RDShaderDirichletY(), "w") +
-          parseShaderString(options.dirichletW) +
+          parseShaderString(options.dirichletStrW) +
           ";\n}\n";
       }
     }
@@ -1505,30 +1537,24 @@ function setRDEquations() {
 
   // Create a Robin shader block for each species separately.
   if (options.boundaryConditionsU == "robin") {
-    robinShader += parseRobinRHS(options.robinStrU, "SPECIES");
-    robinShader += RDShaderRobinX();
-    robinShader = selectSpeciesInShaderStr(robinShader, "u");
+    robinShader += parseRobinRHS(options.robinStrU, "u");
+    robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "u");
     if (!options.oneDimensional) {
-      robinShader += RDShaderRobinY();
-      robinShader = selectSpeciesInShaderStr(robinShader, "u");
+      robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "u");
     }
   }
   if (options.boundaryConditionsV == "robin") {
-    robinShader += parseRobinRHS(options.robinStrV, "SPECIES");
-    robinShader += RDShaderRobinX();
-    robinShader = selectSpeciesInShaderStr(robinShader, "v");
+    robinShader += parseRobinRHS(options.robinStrV, "v");
+    robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "v");
     if (!options.oneDimensional) {
-      robinShader += RDShaderRobinY();
-      robinShader = selectSpeciesInShaderStr(robinShader, "v");
+      robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "v");
     }
   }
   if (options.boundaryConditionsW == "robin") {
-    robinShader += parseRobinRHS(options.robinStrW, "SPECIES");
-    robinShader += RDShaderRobin();
-    robinShader = selectSpeciesInShaderStr(robinShader, "w");
+    robinShader += parseRobinRHS(options.robinStrW, "w");
+    robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "w");
     if (!options.oneDimensional) {
-      robinShader += RDShaderRobinY();
-      robinShader = selectSpeciesInShaderStr(robinShader, "w");
+      robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "w");
     }
   }
 
@@ -1562,7 +1588,7 @@ function setRDEquations() {
   simMaterial.fragmentShader = [
     RDShaderTop(),
     kineticStr,
-    selectSpeciesInShaderStr(RDShaderNoFlux(), noFluxSpecies),
+    neumannShader,
     robinShader,
     parseReactionStrings(),
     updateShader,
@@ -1710,9 +1736,11 @@ function selectSpeciesInShaderStr(shaderStr, species) {
   if (species.length == 0) {
     return "";
   }
-  let regex = /SPECIES/g;
+  let regex = /\bSPECIES\b/g;
   let channel = speciesToChannelChar(species);
   shaderStr = shaderStr.replace(regex, channel);
+  regex = /\brobinRHSSPECIES\b/g;
+  shaderStr = shaderStr.replace(regex, "robinRHS" + species);
   return shaderStr;
 }
 
@@ -1755,6 +1783,22 @@ function setBCsGUI() {
     showGUIController(dirichletWController);
   } else {
     hideGUIController(dirichletWController);
+  }
+
+  if (options.boundaryConditionsU == "neumann") {
+    showGUIController(neumannUController);
+  } else {
+    hideGUIController(neumannUController);
+  }
+  if (options.boundaryConditionsV == "neumann") {
+    showGUIController(neumannVController);
+  } else {
+    hideGUIController(neumannVController);
+  }
+  if (options.boundaryConditionsW == "neumann") {
+    showGUIController(neumannWController);
+  } else {
+    hideGUIController(neumannWController);
   }
 
   if (options.boundaryConditionsU == "robin") {
