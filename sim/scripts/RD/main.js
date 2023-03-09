@@ -820,7 +820,7 @@ function initGUI(startOpen) {
         Neumann: "neumann",
         Robin: "robin",
       })
-      .name("u")
+      .name("$u$")
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
@@ -829,19 +829,19 @@ function initGUI(startOpen) {
   if (inGUI("dirichletU")) {
     dirichletUController = root
       .add(options, "dirichletStrU")
-      .name("u(boundary) = ")
+      .name("$u$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrU")) {
     neumannUController = root
       .add(options, "neumannStrU")
-      .name("du/dn = ")
+      .name("$\\pd{u}{n}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrU")) {
     robinUController = root
       .add(options, "robinStrU")
-      .name("du/dn = ")
+      .name("$\\pd{u}{n}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("boundaryConditionsV")) {
@@ -852,7 +852,7 @@ function initGUI(startOpen) {
         Neumann: "neumann",
         Robin: "robin",
       })
-      .name("v")
+      .name("$v$")
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
@@ -861,19 +861,19 @@ function initGUI(startOpen) {
   if (inGUI("dirichletV")) {
     dirichletVController = root
       .add(options, "dirichletStrV")
-      .name("v(boundary) = ")
+      .name("v")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrV")) {
     neumannVController = root
       .add(options, "neumannStrV")
-      .name("dv/dn = ")
+      .name("$\\pd{v}{n}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrV")) {
     robinVController = root
       .add(options, "robinStrV")
-      .name("dv/dn = ")
+      .name("$\\pd{v}{n}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("boundaryConditionsW")) {
@@ -884,7 +884,7 @@ function initGUI(startOpen) {
         Neumann: "neumann",
         Robin: "robin",
       })
-      .name("w")
+      .name("$w$")
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
@@ -893,19 +893,19 @@ function initGUI(startOpen) {
   if (inGUI("dirichletW")) {
     dirichletWController = root
       .add(options, "dirichletStrW")
-      .name("w(boundary) = ")
+      .name("w")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrW")) {
     neumannWController = root
       .add(options, "neumannStrW")
-      .name("dw/dn = ")
+      .name("$\\pd{w}{n}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrW")) {
     robinWController = root
       .add(options, "robinStrW")
-      .name("dw/dn = ")
+      .name("$\\pd{w}{n}$")
       .onFinishChange(setRDEquations);
   }
 
