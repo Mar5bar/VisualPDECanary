@@ -2508,4 +2508,4 @@ function fadeoutTryClicking() {
   );
 }
 
-$("#simCanvas").one("click", fadeoutTryClicking);
+$("#simCanvas").one("pointerdown", fadeoutTryClicking);
