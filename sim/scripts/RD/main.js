@@ -156,8 +156,9 @@ funsObj = {
   setColourRange: function () {
     let valRange = getMinMaxVal();
     if (valRange[0] == valRange[1]) {
-      // If the range is just one value, add one to the second entry.
-      valRange[1] += 1;
+      // If the range is just one value, make the range width 1 centered on the given value.
+      valRange[0] -= 0.5;
+      valRange[1] += 0.5;
     }
     options.minColourValue = valRange[0];
     options.maxColourValue = valRange[1];
@@ -170,6 +171,12 @@ funsObj = {
 
 // Get the canvas to draw on, as specified by the html.
 canvas = document.getElementById("simCanvas");
+
+// Remove the back button if we're from an internal link.
+if (!fromExternalLink()) {
+  $("#back").hide();
+  $("#equations").addClass("top");
+}
 
 var readFromTextureB = true;
 
@@ -188,6 +195,14 @@ if (params.has("preset")) {
 if (params.has("options")) {
   // If options have been provided, apply them on top of loaded options.
   loadPreset(JSON.parse(atob(decodeURI(params.get("options")))));
+}
+
+if (
+  (fromExternalLink() || options.preset == "default") &&
+  !options.suppressTryClickingPopup
+) {
+  $("#try_clicking").addClass("fading_in");
+  setTimeout(fadeoutTryClicking, 5000);
 }
 
 // Begin the simulation.
@@ -548,7 +563,7 @@ function initGUI(startOpen) {
 
   if (inGUI("copyConfigAsJSON")) {
     // Copy configuration as raw JSON.
-    rightGUI.add(funsObj, "copyConfigAsJSON").name("Copy JSON");
+    rightGUI.add(funsObj, "copyConfigAsJSON").name("Copy code");
   }
 
   leftGUI.open();
@@ -574,30 +589,27 @@ function initGUI(startOpen) {
   if (inGUI("typeOfBrush")) {
     root
       .add(options, "typeOfBrush", {
-        Circle: "circle",
+        Disk: "circle",
         "Horizontal line": "hline",
         "Vertical line": "vline",
       })
-      .name("Brush type")
+      .name("Type")
       .onChange(setBrushType);
   }
   if (inGUI("brushValue")) {
-    root
-      .add(options, "brushValue")
-      .name("Brush value")
-      .onFinishChange(setBrushType);
+    root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
   }
   if (inGUI("brushRadius")) {
     brushRadiusController = root
       .add(options, "brushRadius")
-      .name("Brush radius")
+      .name("Radius")
       .onChange(updateUniforms);
     brushRadiusController.min(0);
   }
   if (inGUI("whatToDraw")) {
     whatToDrawController = root
       .add(options, "whatToDraw", { u: "u", v: "v", w: "w" })
-      .name("Draw species")
+      .name("Species")
       .onChange(setBrushType);
   }
 
@@ -608,10 +620,7 @@ function initGUI(startOpen) {
     root = genericOptionsFolder;
   }
   if (inGUI("domainScale")) {
-    root
-      .add(options, "domainScale", 0.001, 10)
-      .name("Largest side")
-      .onChange(resize);
+    root.add(options, "domainScale").name("Largest side").onChange(resize);
   }
   if (inGUI("spatialStep")) {
     const dxController = root
@@ -643,7 +652,7 @@ function initGUI(startOpen) {
   if (inGUI("domainViaIndicatorFun")) {
     root
       .add(options, "domainViaIndicatorFun")
-      .name("Indicator")
+      .name("Implicit")
       .onFinishChange(function () {
         configureOptions();
         configureGUI();
@@ -669,7 +678,7 @@ function initGUI(startOpen) {
     root = genericOptionsFolder;
   }
   if (inGUI("numTimestepsPerFrame")) {
-    root.add(options, "numTimestepsPerFrame", 1, 400, 1).name("TPF");
+    root.add(options, "numTimestepsPerFrame", 1, 400, 1).name("Steps/frame");
   }
   if (inGUI("dt")) {
     dtController = root
@@ -700,7 +709,7 @@ function initGUI(startOpen) {
   if (inGUI("crossDiffusion")) {
     crossDiffusionController = root
       .add(options, "crossDiffusion")
-      .name("Cross diffusion?")
+      .name("Cross diffusion")
       .onChange(updateProblem);
   }
   if (inGUI("algebraicV")) {
@@ -721,74 +730,74 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrUU")) {
     DuuController = root
       .add(options, "diffusionStrUU")
-      .name("D<sub>uu<sub>")
+      .name("$D_{uu}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrUV")) {
     DuvController = root
       .add(options, "diffusionStrUV")
-      .name("D<sub>uv<sub>")
+      .name("$D_{uv}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrUW")) {
     DuwController = root
       .add(options, "diffusionStrUW")
-      .name("D<sub>uw<sub>")
+      .name("$D_{uw}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVU")) {
     DvuController = root
       .add(options, "diffusionStrVU")
-      .name("D<sub>vu<sub>")
+      .name("$D_{vu}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVV")) {
     DvvController = root
       .add(options, "diffusionStrVV")
-      .name("D<sub>vv<sub>")
+      .name("$D_{vv}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVW")) {
     DvwController = root
       .add(options, "diffusionStrVW")
-      .name("D<sub>vw<sub>")
+      .name("$D_{vw}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrWU")) {
     DwuController = root
       .add(options, "diffusionStrWU")
-      .name("D<sub>wu<sub>")
+      .name("$D_{wu}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrWV")) {
     DwvController = root
       .add(options, "diffusionStrWV")
-      .name("D<sub>wv<sub>")
+      .name("$D_{wv}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrWW")) {
     DwwController = root
       .add(options, "diffusionStrWW")
-      .name("D<sub>ww<sub>")
+      .name("$D_{ww}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrU")) {
     // Custom f(u,v) and g(u,v).
     fController = root
       .add(options, "reactionStrU")
-      .name("f(u,v,w)")
+      .name("$f(u,v,w)$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrV")) {
     gController = root
       .add(options, "reactionStrV")
-      .name("g(u,v,w)")
+      .name("$g(u,v,w)$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrW")) {
     hController = root
       .add(options, "reactionStrW")
-      .name("h(u,v,w)")
+      .name("$h(u,v,w)$")
       .onFinishChange(setRDEquations);
   }
   parametersFolder = leftGUI.addFolder("Parameters");
@@ -808,7 +817,7 @@ function initGUI(startOpen) {
         Neumann: "neumann",
         Robin: "robin",
       })
-      .name("u")
+      .name("$u$")
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
@@ -817,19 +826,19 @@ function initGUI(startOpen) {
   if (inGUI("dirichletU")) {
     dirichletUController = root
       .add(options, "dirichletStrU")
-      .name("u(boundary) = ")
+      .name("$\\left.u\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrU")) {
     neumannUController = root
       .add(options, "neumannStrU")
-      .name("du/dn = ")
+      .name("$\\left.\\pd{u}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrU")) {
     robinUController = root
       .add(options, "robinStrU")
-      .name("du/dn = ")
+      .name("$\\left.\\pd{u}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("boundaryConditionsV")) {
@@ -840,7 +849,7 @@ function initGUI(startOpen) {
         Neumann: "neumann",
         Robin: "robin",
       })
-      .name("v")
+      .name("$v$")
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
@@ -849,19 +858,19 @@ function initGUI(startOpen) {
   if (inGUI("dirichletV")) {
     dirichletVController = root
       .add(options, "dirichletStrV")
-      .name("v(boundary) = ")
+      .name("$\\left.v\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrV")) {
     neumannVController = root
       .add(options, "neumannStrV")
-      .name("dv/dn = ")
+      .name("$\\left.\\pd{v}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrV")) {
     robinVController = root
       .add(options, "robinStrV")
-      .name("dv/dn = ")
+      .name("$\\left.\\pd{v}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("boundaryConditionsW")) {
@@ -872,7 +881,7 @@ function initGUI(startOpen) {
         Neumann: "neumann",
         Robin: "robin",
       })
-      .name("w")
+      .name("$w$")
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
@@ -881,19 +890,19 @@ function initGUI(startOpen) {
   if (inGUI("dirichletW")) {
     dirichletWController = root
       .add(options, "dirichletStrW")
-      .name("w(boundary) = ")
+      .name("$\\left.w\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrW")) {
     neumannWController = root
       .add(options, "neumannStrW")
-      .name("dw/dn = ")
+      .name("$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrW")) {
     robinWController = root
       .add(options, "robinStrW")
-      .name("dw/dn = ")
+      .name("$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
 
@@ -906,7 +915,7 @@ function initGUI(startOpen) {
   if (inGUI("renderSize")) {
     root
       .add(options, "renderSize", 1, 2048, 1)
-      .name("Render res")
+      .name("Resolution")
       .onChange(setSizes);
   }
   if (inGUI("Smoothing scale") && !floatLinearExtAvailable) {
@@ -967,7 +976,7 @@ function initGUI(startOpen) {
   if (inGUI("autoColourRangeButton")) {
     autoSetColourRangeController = root
       .add(options, "autoSetColourRange")
-      .name("Auto snap?")
+      .name("Auto snap")
       .onChange(function () {
         if (options.autoSetColourRange) {
           funsObj.setColourRange();
@@ -994,28 +1003,49 @@ function initGUI(startOpen) {
   if (inGUI("clearValueU")) {
     clearValueUController = root
       .add(options, "clearValueU")
-      .name("Initial u")
+      .name("Initial $u$")
       .onFinishChange(setClearShader);
   }
   if (inGUI("clearValueV")) {
     clearValueVController = root
       .add(options, "clearValueV")
-      .name("Initial v")
+      .name("Initial $v$")
       .onFinishChange(setClearShader);
   }
   if (inGUI("clearValueW")) {
     clearValueWController = root
       .add(options, "clearValueW")
-      .name("Initial w")
+      .name("Initial $w$")
       .onFinishChange(setClearShader);
   }
   if (inGUI("preset")) {
     root
       .add(options, "preset", {
-        None: "default",
-        "Heat equation": "heatEquation",
-        Subcriticality: "subcriticalGS",
+        "A harsh environment": "harshEnvironment",
         Alan: "Alan",
+        Beginnings: "chemicalBasisOfMorphogenesis",
+        "Bistable travelling waves": "bistableTravellingWave",
+        Brusellator: "brusselator",
+        "Cahn-Hilliard": "CahnHilliard",
+        "Complex Ginzburg-Landau": "complexGinzburgLandau",
+        "Cyclic competition": "cyclicCompetition",
+        "Gierer-Meinhardt": "GiererMeinhardt",
+        "Gierer-Meinhardt: stripes": "GiererMeinhardtStripes",
+        "Gray-Scott": "subcriticalGS",
+        "Heat equation": "heatEquation",
+        "Inhomogeneous heat eqn": "inhomogHeatEquation",
+        "Inhomogeneous wave eqn": "inhomogWaveEquation",
+        "Localised patterns": "localisedPatterns",
+        Schnakenberg: "Schnakenberg",
+        "Schnakenberg-Hopf": "SchnakenbergHopf",
+        "Schrodinger + potential": "stabilizedSchrodingerEquationPotential",
+        Schrodinger: "stabilizedSchrodingerEquation",
+        "Swift-Hohenberg": "swiftHohenberg",
+        Thresholding: "thresholdSimulation",
+        "Travelling waves": "travellingWave",
+        "Variable diff heat eqn": "inhomogDiffusionHeatEquation",
+        "Wave equation w/ ICs": "waveEquationICs",
+        "Wave equation": "waveEquation",
       })
       .name("Preset")
       .onChange(loadPreset);
@@ -1635,7 +1665,7 @@ function loadPreset(preset) {
     }
     imController = root
       .addImage(options, "imagePath")
-      .name("T(x,y) = Image:")
+      .name("$T(x,y)$")
       .onChange(loadImageSource);
   }
 }
@@ -1681,6 +1711,12 @@ function refreshGUI(folder) {
     for (let i = 0; i < folder.__controllers.length; i++) {
       folder.__controllers[i].updateDisplay();
     }
+  }
+  // Run MathJax to texify the parameter names (e.g. D_uu) which appear dynamically.
+  // No need to do this on page load (and indeed will throw an error) so check
+  // MathJax is defined first.
+  if (MathJax.typeset != undefined) {
+    MathJax.typeset();
   }
 }
 
@@ -1875,7 +1911,7 @@ function createImageController() {
   }
   imController = root
     .addImage(options, "imagePath")
-    .name("T(x,y) = Image:")
+    .name("$T(x,y)$")
     .onChange(loadImageSource);
 }
 
@@ -2065,8 +2101,9 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>u<sub>");
-      setGUIControllerName(fController, "f(u)");
+      setGUIControllerName(DuuController, "$D$");
+      setGUIControllerName(fController, "$f(u)$");
+
       break;
 
     case 1:
@@ -2083,10 +2120,11 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>u<sub>");
-      setGUIControllerName(DvvController, "D<sub>v<sub>");
-      setGUIControllerName(fController, "f(u,v)");
-      setGUIControllerName(gController, "g(u,v)");
+      setGUIControllerName(DuuController, "$D_u$");
+      setGUIControllerName(DvvController, "$D_v$");
+      setGUIControllerName(fController, "$f(u,v)$");
+      setGUIControllerName(gController, "$g(u,v)$");
+
       break;
 
     case 2:
@@ -2103,10 +2141,10 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      setGUIControllerName(DvvController, "D<sub>vv<sub>");
-      setGUIControllerName(fController, "f(u,v)");
-      setGUIControllerName(gController, "g(u,v)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(DvvController, "$D_{vv}$");
+      setGUIControllerName(fController, "$f(u,v)$");
+      setGUIControllerName(gController, "$g(u,v)$");
       break;
 
     case 3:
@@ -2125,9 +2163,9 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      setGUIControllerName(fController, "f(u,v)");
-      setGUIControllerName(gController, "g(u)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(fController, "$f(u,v)$");
+      setGUIControllerName(gController, "$g(u)$");
       break;
 
     case 4:
@@ -2144,12 +2182,12 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>u<sub>");
-      setGUIControllerName(DvvController, "D<sub>v<sub>");
-      setGUIControllerName(DwwController, "D<sub>w<sub>");
-      setGUIControllerName(fController, "f(u,v,w)");
-      setGUIControllerName(gController, "g(u,v,w)");
-      setGUIControllerName(hController, "h(u,v,w)");
+      setGUIControllerName(DuuController, "$D_u$");
+      setGUIControllerName(DvvController, "$D_v$");
+      setGUIControllerName(DwwController, "$D_w$");
+      setGUIControllerName(fController, "$f(u,v,w)$");
+      setGUIControllerName(gController, "$g(u,v,w)$");
+      setGUIControllerName(hController, "$h(u,v,w)$");
       break;
 
     case 5:
@@ -2167,12 +2205,12 @@ function configureGUI() {
       showGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      setGUIControllerName(DvvController, "D<sub>vv<sub>");
-      setGUIControllerName(DwwController, "D<sub>ww<sub>");
-      setGUIControllerName(fController, "f(u,v,w)");
-      setGUIControllerName(gController, "g(u,v,w)");
-      setGUIControllerName(hController, "h(u,v,w)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(DvvController, "$D_{vv}$");
+      setGUIControllerName(DwwController, "$D_{ww}$");
+      setGUIControllerName(fController, "$f(u,v,w)$");
+      setGUIControllerName(gController, "$g(u,v,w)$");
+      setGUIControllerName(hController, "$h(u,v,w)$");
       break;
 
     case 6:
@@ -2191,11 +2229,11 @@ function configureGUI() {
       showGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "D<sub>uu<sub>");
-      setGUIControllerName(DvvController, "D<sub>vv<sub>");
-      setGUIControllerName(fController, "f(u,v,w)");
-      setGUIControllerName(gController, "g(u,v,w)");
-      setGUIControllerName(hController, "h(u,v)");
+      setGUIControllerName(DuuController, "$D_{uu}$");
+      setGUIControllerName(DvvController, "$D_{vv}$");
+      setGUIControllerName(fController, "$f(u,v,w)$");
+      setGUIControllerName(gController, "$g(u,v,w)$");
+      setGUIControllerName(hController, "$h(u,v)$");
       break;
   }
   if (options.domainViaIndicatorFun) {
@@ -2322,33 +2360,16 @@ function updateProblem() {
 function setEquationDisplayType() {
   // Given an equation type (specified as an integer selector), set the type of
   // equation in the UI element that displays the equations.
-  const elementID = "#equationDisplay";
-  if (document.querySelector(elementID) != null) {
-    // Remove all existing classes.
+  if ($("#equation_display").length) {
+    // If it exists
+    // Remove all existing equations.
     for (let i = 0; i < listOfTypes.length; i++) {
-      document.getElementById(elementID).classList.remove(listOfTypes[i]);
+      $("#equation" + i).hide();
     }
-    // Add the new class.
-    document.getElementById(elementID).classList.add(listOfTypes[equationType]);
+    // Display the correct equation.
+    $("#equation" + equationType).show();
   }
 }
-
-/* GUI settings and equations buttons */
-$("#settings").click(function () {
-  $("#rightGUI").toggle();
-});
-$("#equations").click(function () {
-  $("#leftGUI").toggle();
-});
-$("#pause").click(function () {
-  pauseSim();
-});
-$("#play").click(function () {
-  playSim();
-});
-$("#erase").click(function () {
-  resetSim();
-});
 
 function removeWhitespace(str) {
   str = str.replace(/\s+/g, "  ").trim();
@@ -2431,3 +2452,56 @@ function setKineticStringFromParams() {
   setClearShader();
   updateWhatToPlot();
 }
+
+/* GUI settings and equations buttons */
+$("#settings").click(function () {
+  $("#rightGUI").toggle();
+});
+$("#equations").click(function () {
+  $("#equation_display").toggle();
+  $("#leftGUI").toggle();
+});
+$("#pause").click(function () {
+  pauseSim();
+});
+$("#play").click(function () {
+  playSim();
+});
+$("#erase").click(function () {
+  resetSim();
+});
+
+$("#back").click(function () {
+  const link = document.createElement("a");
+  link.href = document.referrer; // This resolves the URL.
+  // If the user arrived by typing in a URL or from an external link, have this button
+  // point to the visualPDE homepage.
+  if (fromExternalLink()) {
+    window.location.href = window.location.origin;
+  } else {
+    // Otherwise, simply take them back a page.
+    history.back();
+  }
+});
+
+function fromExternalLink() {
+  const link = document.createElement("a");
+  link.href = document.referrer; // This resolves the URL.
+  return (
+    link.href == window.location || !link.href.includes(window.location.origin)
+  );
+}
+
+function fadeoutTryClicking() {
+  let id = "#try_clicking";
+  $(id).removeClass("fading_in");
+  $(id).addClass("fading_out");
+  $(id).bind(
+    "webkitTransitionEnd oTransitionEnd transitionend msTransitionEnd",
+    function () {
+      $(this).removeClass("fading_out");
+    }
+  );
+}
+
+$("#simCanvas").one("pointerdown touchstart", fadeoutTryClicking);

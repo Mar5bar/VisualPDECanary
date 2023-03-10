@@ -13,6 +13,12 @@ canvas {
     height: 100vh;
 }
 
+.prevent-select {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+  }
+
 .fullCanvas {
     width: 100vw;
     height: 100vh;
@@ -30,15 +36,23 @@ canvas {
 }
 
 .dg {
-    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
-    font-size:0.9rem !important;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+    font-size: 0.9rem !important;
+}
+
+.dg ul {
+    direction: ltr;
 }
 
 .dg {
-    -webkit-user-select: none;   /* Safari */
-    -moz-user-select: none;    /* Firefox */
-    -ms-user-select: none;    /* IE10+/Edge */
-    user-select: none;    /* Standard */
+    -webkit-user-select: none;
+    /* Safari */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* IE10+/Edge */
+    user-select: none;
+    /* Standard */
 }
 
 /* Simulation GUI */
@@ -48,33 +62,73 @@ canvas {
     top: 0px;
     right: 40px;
     /* margin-right: 0; */
+    direction: rtl;
 }
 
 #leftGUI {
     position: absolute;
-    top: 0px;
+    top: 90px;
     left: 55px;
     margin-left: 0;
+    direction: ltr;
 }
 
-#leftGUI, #rightGUI{
+#equation_display {
+    display: none;
+    position: absolute;
+    top: 0px;
+    left: 55px;
+    border: 5px black solid;
     border-radius: 5px;
-    padding:5px;
     background-color: black;
 }
 
-.ui_button{
+#equation_display_box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ededed;
+    color: black;
+    height: 85px;
+    min-width: 238px;
+    border-radius: 2px;
+    padding-right:5px;
+    padding-left:2px;
+}
+
+#equation_display.flexbox {
+    display: flex;
+    /* JQuery toggles to flex */
+}
+
+#leftGUI,
+#rightGUI {
+    padding: 5px;
+    background-color: black;
+    resize: horizontal;
+    overflow-x: auto;
+}
+
+#leftGUI{
+    border-radius: 0px 0px 5px 5px;
+}
+
+#rightGUI{
+    border-radius: 5px;
+}
+
+.ui_button {
     position: absolute;
     display: flex;
     z-index: 3;
 
-    margin:5px;
+    margin: 5px;
 
     background-color: #ededed;
     color: #606060;
-    font-size:1.1rem;
-    height:35px;
-    width:35px;
+    font-size: 1.1rem;
+    height: 35px;
+    width: 35px;
     align-items: center;
     justify-content: center;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
@@ -84,33 +138,81 @@ canvas {
     text-shadow: 0 1px #fff;
 }
 
-.ui_button:hover{
-    color:black;
+.ui_button:hover {
+    color: black;
 }
 
-#settings{
+.ui_button.top {
+    top: 0px !important;
+}
+
+#settings {
     top: 0px;
     right: 3px;
 }
-#pause{
+
+#pause {
     top: 50px;
     right: 3px;
     z-index: 1;
 }
-#play{
+
+#play {
     top: 50px;
     right: 3px;
-    z-index:0;
+    z-index: 0;
 }
-#erase{
+
+#erase {
     top: 90px;
     right: 3px;
 }
-#equations{
+
+#back {
     top: 0px;
     left: 3px;
 }
 
-.close-button{
-    display:none;
+#equations {
+    top: 40px;
+    left: 3px;
+}
+
+#equation_display div mjx-container {
+    font-size: 113.1% !important;
+}
+
+.close-button {
+    display: none;
+}
+
+#try_clicking {
+    top: 0px;
+    left: 50%;
+    position: absolute;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition-property: opacity;
+    pointer-events: none;
+}
+
+#try_clicking.fading_in {
+    opacity: 100%;
+    transition-duration: 3s;
+    transition-delay: 1s;
+}
+
+#try_clicking.fading_out {
+    opacity: 0%;
+    transition-duration: 1s;
+}
+
+p {
+    color: #fdfdfd;
+    font: 400 2.0rem/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-feature-settings: "kern" 1;
+    -moz-font-feature-settings: "kern" 1;
+    -o-font-feature-settings: "kern" 1;
+    font-feature-settings: "kern" 1;
 }
