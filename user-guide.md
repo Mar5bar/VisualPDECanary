@@ -1,9 +1,8 @@
 ---
-layout: page
+# Feel free to add content and custom Front Matter to this file.
+# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
+
+layout: topic
 title: User guide
-permalink: /user-guide/
+collection_to_list: user-guide
 ---
-
-This site is under construction, so the guide is not written yet.
-
-Below we give a brief overview of the simulation tool used in all of the examples on the website.

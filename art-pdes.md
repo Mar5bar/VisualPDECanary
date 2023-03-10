@@ -3,6 +3,6 @@
 # To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 
 layout: topic
-title: Mathematical biology
-collection_to_list: mathematical-biology
+title: Art of PDEs
+collection_to_list: art-pdes
 ---

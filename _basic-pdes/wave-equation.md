@@ -10,19 +10,39 @@ Let's next look at the [wave equation](https://en.wikipedia.org/wiki/Wave_equati
 
 $$\pdd{u}{t}=D \nabla^2 u,$$
 
-with homogeneous Neumann (aka no-flux) boundary conditions.
+on a square 2D domain with homogeneous Neumann (aka no-flux) boundary conditions,
 
-* Load the [interactive simulation](/sim/?preset=waveEquation). 
+$$\pd{u}{x}(0) = \pd{u}{x}(L) = \pd{u}{y}(0) = \pd{u}{y}(L) = 0.$$
 
-* Click within the box to visualise a disturbance in the medium which will then propogate in all directions. 
+1. Load the [interactive simulation](/sim/?preset=waveEquation), which has been set up for this tutorial.
 
-* You can increase the diffusion coefficient (for example, by removing a zero) to increase how fast this disturbance spreads out throughout the domain. 
+1. Click or tap on the screen to visualise a disturbance in the medium which will then propagate in all directions. 
 
-* You can also click around the corners/edges to see how the boundary conditions cause the wave to bounce around within the box.
+1. Now press {{ layout.pause }}, paint some initial data, and then press {{ layout.play }} to set it in motion.
 
-* Press clear at the top right (or press R) to reset the simulation. 
+1. Press {{ layout.erase }} to clear the screen. 
 
-* You can also pause the simulation (space bar), paint some initial data, and then click play to set it in motion. Explore how the speed depends on the diffusion coefficient (though note that this coefficient can't be too large without running into numerical problems -- see the discussion on forward Euler ELSEWHERE). 
+### Playing with the diffusion coefficient, $D$
+
+What does changing the diffusion coefficient, $D$, do? 
+
+1. Change its value by clicking {{ layout.equations }} and editing the value of $D$: try increasing it by a factor of 10. 
+
+1. Now click again on the screen and see how fast the disturbance spreads out throughout the domain. 
+
+Explore how the speed depends on the diffusion coefficient. You can safely increase $D$ up to [VALUE] without hitting numerical problems: see the discussion on forward Euler ELSEWHERE. 
+
+### Playing with boundary conditions
+
+What effect do the boundary conditions have? 
+
+1. Click around the corners and edges to see how the Neumann boundary conditions cause the wave to bounce around within the box.
+
+1. Now, go to {{ layout.equations }}→**Boundary conditions** and select **Periodic** for $u$. What do you notice? 
+
+1. What if you change the boundary conditions to **Dirichlet**? 
+
+Explore how waves propagate through the domain under these different scenarios.
 
 ## Numerical notes
 
@@ -32,14 +52,25 @@ $$\begin{aligned}\pd{u}{t}&=v+CD\nabla^2 u,\\
  \pd{v}{t} &= D \nabla^2 u,
  \end{aligned}$$
 
-which is the wave equation for $C=0$. The parameter $C$ is used to prevent spurious oscillations due to the equation being [hyperbolic](https://en.wikipedia.org/wiki/Hyperbolic_partial_differential_equation). Try varying the value of $C$ to observe how it changes the solution structure.
+which becomes the wave equation when $C=0$. 
+
+The parameter $C$ is used to prevent spurious oscillations due to the equation being [hyperbolic](https://en.wikipedia.org/wiki/Hyperbolic_partial_differential_equation). Try varying the value of $C$ to observe how it changes the solution structure.
 
 ## Standing wave solutions
 
-If we take $u(x,y,0) = \cos(n \pi x)\cos(m \pi y)$ and $u_t(x,y,0)=0$ with Neumann boundary conditions, we can find a standing wave solution of the form
+If we take initial conditions of 
+
+$$\begin{aligned}u(x,y,0) &= \cos(n \pi x)\cos(m \pi y),\\ 
+\pd{u}{t}(x,y,0)&=0,\end{aligned}$$ 
+
+with Neumann boundary conditions, we can find a standing wave solution of the form
 
 $$
-u(x,y,t) = \cos(D\pi\sqrt{n^2+m^2}t)\cos(n \pi x)\cos(m \pi y),
+u(x,y,t) = \cos(D\pi\sqrt{n^2+m^2}\,t)\cos(n \pi x)\cos(m \pi y),
 $$
 
-which oscillates in time and space. You can play with such an initial condition [here](/sim/?preset=waveEquationICs), changing $n$ and $m$, and restarting the simulation by pressing R to see how these parameters influence the solution. The damping factor $C$ is also set to zero in this case. If you increase its value, the solution amplitude will decay over time. If you change the boundary conditions to Dirichlet (and set $C=0.01$), the simulation will exhibit some fascinatingly symmetric oscillations.
+which oscillates in time and space. 
+
+You can play with such an initial condition [here](/sim/?preset=waveEquationICs), changing $n$ and $m$, and restarting the simulation by pressing {{ layout.erase }} to see how these parameters influence the solution. 
+
+The damping factor $C$ is also set to zero in this case. If you increase its value, the solution amplitude will decay over time. If you change the boundary conditions to Dirichlet (and set $C=0.01$), the simulation will exhibit some fascinatingly symmetric oscillations.

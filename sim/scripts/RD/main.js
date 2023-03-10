@@ -2105,7 +2105,7 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_u$");
+      setGUIControllerName(DuuController, "$D$");
       setGUIControllerName(fController, "$f(u)$");
 
       break;
@@ -2508,4 +2508,4 @@ function fadeoutTryClicking() {
   );
 }
 
-$("#simCanvas").one("click", fadeoutTryClicking);
+$("#simCanvas").one("pointerdown touchstart", fadeoutTryClicking);
