@@ -678,7 +678,7 @@ function initGUI(startOpen) {
     root = genericOptionsFolder;
   }
   if (inGUI("numTimestepsPerFrame")) {
-    root.add(options, "numTimestepsPerFrame", 1, 200, 1).name("Steps/frame");
+    root.add(options, "numTimestepsPerFrame", 1, 400, 1).name("Steps/frame");
   }
   if (inGUI("dt")) {
     dtController = root
