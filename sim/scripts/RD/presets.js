@@ -709,7 +709,7 @@ break;
         boundaryConditionsW: "periodic",
         brushValue: "1",
         brushRadius: 1 / 20,
-        clearValueU: "0",
+        clearValueU: "1.0",
         clearValueV: "0",
         clearValueW: "0",
         colourmap: "turbo",
