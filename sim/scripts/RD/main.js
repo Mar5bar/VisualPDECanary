@@ -1067,10 +1067,6 @@ function animate() {
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
       timestep();
       uniforms.time.value += options.dt;
-      // Make drawing more responsive by trying to draw every timestep.
-      if (isDrawing) {
-        draw();
-      }
     }
   }
 
