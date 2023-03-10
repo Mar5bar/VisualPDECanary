@@ -10,7 +10,7 @@ extract: Two-minute top tips
 Pressing {{ layout.equations }} opens up the **equations panel**.
 
 {:refdef: style="text-align: center;"}
-![Under construction](/assets/images/equations-panel.png)
+![Under construction](/assets/images/equations-panel.png){: width="253px" }
 {: refdef}
 
 Here you can:
