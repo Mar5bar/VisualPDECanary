@@ -193,6 +193,7 @@ canvas {
     transform: translateX(-50%);
     opacity: 0;
     transition-property: opacity;
+    pointer-events: none;
 }
 
 #try_clicking.fading_in {
