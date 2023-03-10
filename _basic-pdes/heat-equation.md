@@ -10,7 +10,7 @@ Let's start by solving the [heat equation](https://en.wikipedia.org/wiki/Heat_eq
 
 $$\pd{u}{t}=D \nabla^2 u,$$
 
-on a rectangular 2D domain with homogeneous Neumann (aka no-flux) boundary conditions,
+on a [rectangular 2D domain](/user-guide/quick-start#domain-shape) with homogeneous Neumann (aka no-flux) [boundary conditions](/user-guide/quick-start#boundary-conditions),
 
 $$\pd{u}{x}(0) = \pd{u}{x}(L_x) = \pd{u}{y}(0) = \pd{u}{y}(L_y) = 0.$$
 
@@ -26,7 +26,7 @@ $$\pd{u}{x}(0) = \pd{u}{x}(L_x) = \pd{u}{y}(0) = \pd{u}{y}(L_y) = 0.$$
 
 What does changing the diffusion coefficient, $D$, do? 
 
-1. Change its value by clicking {{ layout.equations }} and editing the value of $D_u$: try multiplying it by 10. 
+1. Change its value by clicking {{ layout.equations }} and editing the value of $D$: try increasing it by a factor of 10. 
 
 1. Now click again on the screen and see how fast this blob spreads out throughout the domain. 
 

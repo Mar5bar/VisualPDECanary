@@ -50,7 +50,10 @@ collections:
     title: Mathematical biology
   nonlinear-physics:
     output: true
-    title: Nonlinear physics    
+    title: Nonlinear physics
+  user-guide:
+    output: true
+    title: User guide
 
 defaults:
   -

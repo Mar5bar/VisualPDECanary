@@ -263,6 +263,6 @@ a.collection::after{
     text-shadow: 0 1px #fff;
 }
 
-.post-content h3{
+.post-content h2, .post-content h3{
     margin-top:3rem;
 }

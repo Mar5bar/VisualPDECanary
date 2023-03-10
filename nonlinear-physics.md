@@ -6,11 +6,3 @@ layout: topic
 title: Nonlinear physics
 collection_to_list: nonlinear-physics
 ---
-<!-- 
-### Tutorials
-
-Swift-Hohenberg 
-
-    Threshold simulation
-    Spatial homogeneity localises patterns
-    Turing localisation on Turing’s face -->
