@@ -571,9 +571,11 @@ function initGUI(startOpen) {
   if (startOpen != undefined && startOpen) {
     $("#leftGUI").show();
     $("#rightGUI").show();
+    $("#equation_display").show();
   } else {
     $("#leftGUI").hide();
     $("#rightGUI").hide();
+    $("#equation_display").hide();
   }
 
   // Create a generic options folder for folderless controllers, which we'll hide later if it's empty.
