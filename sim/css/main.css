@@ -1,8 +1,13 @@
+html, body {
+    -webkit-overflow-scrolling : touch !important;
+    overflow: hidden !important;
+    height: 100% !important;
+}
+
 body {
     margin: 0;
     padding: 0;
     background-color: white;
-    overflow: hidden;
 }
 
 canvas {
