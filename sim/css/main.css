@@ -2,6 +2,12 @@ html, body {
     -webkit-overflow-scrolling : touch !important;
     overflow: hidden !important;
     height: 100% !important;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 body {
