@@ -248,7 +248,6 @@ function init() {
   simScene = new THREE.Scene();
 
   scene.add(camera);
-  scene.background = new THREE.Color(0xffffff);
 
   // Define uniforms to be sent to the shaders.
   initUniforms();
