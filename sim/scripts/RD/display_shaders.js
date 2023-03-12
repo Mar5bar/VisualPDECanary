@@ -69,3 +69,15 @@ export function largestSpeciesShader() {
           gl_FragColor = texture2D(textureSource, textureCoords);
       }`;
 }
+
+export function surfaceVertexShader() {
+    return `varying vec2 textureCoords;
+    uniform sampler2D textureSource;
+    void main()
+    {      
+        textureCoords = uv;
+        vec3 newPosition = position;
+        newPosition.z += texture2D(textureSource, textureCoords).r;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+    }`
+}

@@ -1,5 +1,5 @@
 let canvas, gl, floatLinearExtAvailable;
-let camera, simCamera, scene, simScene, renderer, aspectRatio;
+let camera, simCamera, scene, simScene, renderer, aspectRatio, controls;
 let simTextureA, simTextureB, postTexture, interpolationTexture;
 let displayMaterial,
   drawMaterial,
@@ -60,7 +60,7 @@ let leftGUI,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning, isDrawing, hasDrawn;
+let isRunning, isDrawing, hasDrawn, canDraw;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
 let parametersFolder,
@@ -108,10 +108,12 @@ import {
   RDShaderAlgebraicW,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
-import { fiveColourDisplay } from "./display_shaders.js";
+import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
+import * as THREE from "../three.module.js";
+import { OrbitControls } from "../OrbitControls.js";
 
 // Setup some configurable options.
 options = {};
@@ -203,10 +205,10 @@ function init() {
     canvas: canvas,
     preserveDrawingBuffer: true,
     powerPreference: "high-performance",
-    antialias: false,
+    antialias: true,
   });
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.autoClear = false;
+  renderer.autoClear = true;
   gl = renderer.getContext();
   floatLinearExtAvailable =
     gl.getExtension("OES_texture_float_linear") &&
@@ -234,11 +236,12 @@ function init() {
   postTexture.texture.wrapT = THREE.RepeatWrapping;
 
   // Create cameras for the simulation domain and the final output.
-  camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 1);
-  camera.position.z = 0;
+  camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
+  camera.position.z = 1;
+  controls = new OrbitControls(camera, renderer.domElement);
 
-  simCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 1);
-  simCamera.position.z = 0;
+  simCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
+  simCamera.position.z = 1;
 
   // Create two scenes: one for simulation, another for drawing.
   scene = new THREE.Scene();
@@ -286,10 +289,7 @@ function init() {
     vertexShader: genericVertexShader(),
   });
 
-  const plane = new THREE.PlaneGeometry(1.0, 1.0);
-  domain = new THREE.Mesh(plane, displayMaterial);
-  domain.position.z = 0;
-  scene.add(domain);
+  createDisplayDomain();
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
   simDomain = new THREE.Mesh(simPlane, simMaterial);
@@ -314,6 +314,9 @@ function init() {
 
   // Set the initial condition.
   resetSim();
+
+  // Configure the camera.
+  configureCamera();
 
   // Listen for pointer events.
   canvas.addEventListener("pointerdown", onDocumentPointerDown);
@@ -352,6 +355,25 @@ function resize() {
   // Update any uniforms.
   updateUniforms();
   render();
+}
+
+function configureCamera() {
+  if (options.threeD) {
+    controls.enabled = true;
+    canDraw = false;
+    domain.rotation.x = -Math.PI / 2;
+    camera.zoom = 0.8;
+    camera.updateProjectionMatrix();
+    displayMaterial.vertexShader = surfaceVertexShader();
+    displayMaterial.needsUpdate = true;
+  } else {
+    controls.enabled = false;
+    controls.reset();
+    canDraw = true;
+    domain.rotation.x = 0;
+    displayMaterial.vertexShader = genericVertexShader();
+    displayMaterial.needsUpdate = true;
+  }
 }
 
 function roundBrushSizeToPix() {
@@ -403,6 +425,24 @@ function setSizes() {
   uniforms.nYDisc.value = nYDisc;
   // Set the size of the renderer, which will interpolate from the textures.
   renderer.setSize(options.renderSize, options.renderSize, false);
+}
+
+function createDisplayDomain() {
+  const plane = new THREE.PlaneGeometry(
+    1.0,
+    1.0,
+    options.renderSize,
+    options.renderSize
+  );
+  domain = new THREE.Mesh(plane, displayMaterial);
+  domain.material.side = THREE.DoubleSide;
+  domain.position.z = 0;
+  scene.add(domain);
+  if (options.threeD) {
+    domain.rotation.x = -Math.PI / 2;
+  } else {
+    domain.rotation.x = 0;
+  }
 }
 
 function setCanvasShape() {
@@ -907,7 +947,15 @@ function initGUI(startOpen) {
     root
       .add(options, "renderSize", 1, 2048, 1)
       .name("Render res")
-      .onChange(setSizes);
+      .onChange(function () {
+        domain.geometry.dispose();
+        scene.remove(domain);
+        createDisplayDomain();
+        setSizes();
+      });
+  }
+  if (inGUI("threeD")) {
+    root.add(options, "threeD").name("Surface plot").onChange(configureCamera);
   }
   if (inGUI("Smoothing scale") && !floatLinearExtAvailable) {
     root
@@ -1057,7 +1105,7 @@ function animate() {
 
   hasDrawn = isDrawing;
   // Draw on any input from the user, which can happen even if timestepping is not running.
-  if (isDrawing) {
+  if (isDrawing & canDraw) {
     draw();
   }
 

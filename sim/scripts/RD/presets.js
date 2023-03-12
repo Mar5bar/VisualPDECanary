@@ -225,6 +225,7 @@ export function getPreset(id) {
         smoothingScale: 2,
         spatialStep: 1 / 200,
         squareCanvas: false,
+        threeD: false,
         typeOfBrush: "circle",
         whatToDraw: "v",
         whatToPlot: "v",
