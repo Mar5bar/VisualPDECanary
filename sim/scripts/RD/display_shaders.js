@@ -17,12 +17,7 @@ export function fiveColourDisplay() {
 
     void main()
     {   
-        vec2 values = texture2D(textureSource, textureCoords).rg;
-        if (values.g > 0.5)
-        {
-            gl_FragColor = vec4(backgroundColour.r,backgroundColour.g,backgroundColour.b,1.0);
-            return;
-        }
+        vec4 values = texture2D(textureSource, textureCoords);
         float value = values.r;
         float scaledValue = (value - minColourValue) / (maxColourValue - minColourValue);
         vec3 col = vec3(0.0, 0.0, 0.0);
@@ -55,7 +50,7 @@ export function fiveColourDisplay() {
         {
             col = colour5.rgb;
         }
-        gl_FragColor = vec4(col.r, col.g, col.b, 1.0);
+        gl_FragColor = vec4(col.r, col.g, col.b, values.a);
         
     }`;
 }
