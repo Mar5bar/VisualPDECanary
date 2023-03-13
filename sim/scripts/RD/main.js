@@ -35,6 +35,8 @@ let leftGUI,
   dtController,
   whatToDrawController,
   threeDHeightScaleController,
+  cameraThetaController,
+  cameraPhiController,
   whatToPlotController,
   minColourValueController,
   maxColourValueController,
@@ -261,6 +263,13 @@ function init() {
   camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
   camera.position.z = 1;
   controls = new OrbitControls(camera, renderer.domElement);
+  controls.addEventListener("change", function () {
+    options.cameraTheta =
+      90 - (180 * Math.atan2(camera.position.z, camera.position.y)) / Math.PI;
+    options.cameraPhi =
+      (180 * Math.atan2(camera.position.x, camera.position.z)) / Math.PI;
+    refreshGUI(rightGUI);
+  });
 
   simCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
   simCamera.position.z = 1;
@@ -386,9 +395,17 @@ function configureCamera() {
     controls.enabled = true;
     canDraw = false;
     camera.zoom = 0.8;
+    const pos = new THREE.Vector3().setFromSphericalCoords(
+      1,
+      Math.PI / 2 - (options.cameraTheta * Math.PI) / 180,
+      (options.cameraPhi * Math.PI) / 180
+    );
+    camera.position.set(pos.x, pos.y, pos.z);
+    camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
     displayMaterial.vertexShader = surfaceVertexShader();
     displayMaterial.needsUpdate = true;
+    console.log(camera.position);
   } else {
     controls.enabled = false;
     controls.reset();
@@ -991,6 +1008,18 @@ function initGUI(startOpen) {
       .add(options, "threeDHeightScale")
       .name("Max height")
       .onChange(updateUniforms);
+  }
+  if (inGUI("cameraTheta")) {
+    cameraThetaController = root
+      .add(options, "cameraTheta")
+      .name("View $\\theta$")
+      .onChange(configureCamera);
+  }
+  if (inGUI("cameraPhi")) {
+    cameraPhiController = root
+      .add(options, "cameraPhi")
+      .name("View $\\phi$")
+      .onChange(configureCamera);
   }
   if (inGUI("Smoothing scale") && !floatLinearExtAvailable) {
     root
@@ -2329,8 +2358,12 @@ function configureGUI() {
   // Hide or show GUI elements to do with surface plotting.
   if (options.threeD) {
     showGUIController(threeDHeightScaleController);
+    showGUIController(cameraThetaController);
+    showGUIController(cameraPhiController);
   } else {
     hideGUIController(threeDHeightScaleController);
+    hideGUIController(cameraThetaController);
+    hideGUIController(cameraPhiController);
   }
   // Refresh the GUI displays.
   refreshGUI(leftGUI);

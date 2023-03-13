@@ -709,6 +709,8 @@ break;
         boundaryConditionsW: "periodic",
         brushValue: "1",
         brushRadius: 1 / 20,
+        cameraTheta: 30,
+        cameraPhi: 30,
         clearValueU: "1.0",
         clearValueV: "0",
         clearValueW: "0",
