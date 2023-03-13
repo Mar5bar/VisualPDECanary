@@ -739,7 +739,7 @@ break;
         neumannStrV: "0",
         neumannStrW: "0",
         numSpecies: 2,
-        numTimestepsPerFrame: 100,
+        numTimestepsPerFrame: 200,
         oneDimensional: false,
         onlyExposeOptions: [],
         preset: "default",
