@@ -44,6 +44,8 @@ function presetMap() {
     boundaryConditionsW: "bW",
     brushValue: "bv",
     brushRadius: "br",
+    cameraTheta: "ct",
+    cameraPhi: "cp",
     clearValueU: "cU",
     clearValueV: "cV",
     clearValueW: "cW",
