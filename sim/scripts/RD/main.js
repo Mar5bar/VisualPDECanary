@@ -15,7 +15,6 @@ let leftGUI,
   root,
   pauseButton,
   resetButton,
-  backgroundColourController,
   brushRadiusController,
   fController,
   gController,
@@ -35,6 +34,7 @@ let leftGUI,
   DwwController,
   dtController,
   whatToDrawController,
+  threeDHeightScaleController,
   whatToPlotController,
   minColourValueController,
   maxColourValueController,
@@ -248,6 +248,7 @@ function init() {
   simScene = new THREE.Scene();
 
   scene.add(camera);
+  scene.background = new THREE.Color(options.backgroundColour);
 
   // Define uniforms to be sent to the shaders.
   initUniforms();
@@ -361,7 +362,6 @@ function configureCamera() {
   if (options.threeD) {
     controls.enabled = true;
     canDraw = false;
-    domain.rotation.x = -Math.PI / 2;
     camera.zoom = 0.8;
     camera.updateProjectionMatrix();
     displayMaterial.vertexShader = surfaceVertexShader();
@@ -370,10 +370,10 @@ function configureCamera() {
     controls.enabled = false;
     controls.reset();
     canDraw = true;
-    domain.rotation.x = 0;
     displayMaterial.vertexShader = genericVertexShader();
     displayMaterial.needsUpdate = true;
   }
+  setDomainOrientation();
 }
 
 function roundBrushSizeToPix() {
@@ -392,6 +392,7 @@ function updateUniforms() {
   uniforms.dt.value = options.dt;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
+  uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.L.value = options.domainScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
@@ -438,6 +439,10 @@ function createDisplayDomain() {
   domain.material.side = THREE.DoubleSide;
   domain.position.z = 0;
   scene.add(domain);
+  setDomainOrientation();
+}
+
+function setDomainOrientation() {
   if (options.threeD) {
     domain.rotation.x = -Math.PI / 2;
   } else {
@@ -536,6 +541,9 @@ function initUniforms() {
       type: "f",
     },
     dy: {
+      type: "f",
+    },
+    heightScale: {
       type: "f",
     },
     imageSource: {
@@ -955,7 +963,19 @@ function initGUI(startOpen) {
       });
   }
   if (inGUI("threeD")) {
-    root.add(options, "threeD").name("Surface plot").onChange(configureCamera);
+    root
+      .add(options, "threeD")
+      .name("Surface plot")
+      .onChange(function () {
+        configureGUI();
+        configureCamera();
+      });
+  }
+  if (inGUI("threeDHeightScale")) {
+    threeDHeightScaleController = root
+      .add(options, "threeDHeightScale")
+      .name("Max height")
+      .onChange(updateUniforms);
   }
   if (inGUI("Smoothing scale") && !floatLinearExtAvailable) {
     root
@@ -1024,11 +1044,12 @@ function initGUI(startOpen) {
       });
   }
   if (inGUI("backgroundColour")) {
-    backgroundColourController = root
+    root
       .addColor(options, "backgroundColour")
       .name("Background")
       .onChange(function () {
         updateUniforms();
+        scene.background = new THREE.Color(options.backgroundColour);
       });
   }
 
@@ -1667,8 +1688,14 @@ function loadPreset(preset) {
   setDrawAndDisplayShaders();
   setClearShader();
 
+  updateUniforms();
+  scene.background = new THREE.Color(options.backgroundColour);
+
   // Reset the state of the simulation.
   resetSim();
+
+  // Set the camera.
+  configureCamera();
 
   // To get around an annoying bug in dat.GUI.image, in which the
   // controller doesn't update the value of the underlying property,
@@ -2248,13 +2275,17 @@ function configureGUI() {
   }
   if (options.domainViaIndicatorFun) {
     showGUIController(domainIndicatorFunController);
-    showGUIController(backgroundColourController);
   } else {
     hideGUIController(domainIndicatorFunController);
-    hideGUIController(backgroundColourController);
   }
   // Hide or show GUI elements that depend on the BCs.
   setBCsGUI();
+  // Hide or show GUI elements to do with surface plotting.
+  if (options.threeD) {
+    showGUIController(threeDHeightScaleController);
+  } else {
+    hideGUIController(threeDHeightScaleController);
+  }
   // Refresh the GUI displays.
   refreshGUI(leftGUI);
   refreshGUI(rightGUI);
