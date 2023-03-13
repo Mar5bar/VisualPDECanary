@@ -118,6 +118,7 @@ import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import * as THREE from "../three.module.js";
 import { OrbitControls } from "../OrbitControls.js";
 import { minifyPreset, maxifyPreset } from "./minify_preset.js";
+import { LZString } from "../lz-string.min.js";
 
 // Setup some configurable options.
 options = {};
@@ -140,7 +141,7 @@ funsObj = {
     let str = [
       location.href.replace(location.search, ""),
       "?options=",
-      encodeURI(btoa(JSON.stringify(objDiff))),
+      LZString.compressToEncodedURIComponent(JSON.stringify(objDiff)),
     ].join("");
     navigator.clipboard.writeText(str);
   },
@@ -194,7 +195,9 @@ if (params.has("preset")) {
 }
 if (params.has("options")) {
   // If options have been provided, apply them on top of loaded options.
-  var newParams = JSON.parse(atob(decodeURI(params.get("options"))));
+  var newParams = JSON.parse(
+    LZString.decompressFromEncodedURIComponent(params.get("options"))
+  );
   if (newParams.hasOwnProperty("p")) {
     // This has been minified, so maxify before loading.
     newParams = maxifyPreset(newParams);
@@ -254,8 +257,8 @@ function init() {
         90 - (180 * Math.atan2(camera.position.z, camera.position.y)) / Math.PI;
       options.cameraPhi =
         (180 * Math.atan2(camera.position.x, camera.position.z)) / Math.PI;
-        options.cameraZoom = camera.zoom;
-        refreshGUI(rightGUI);
+      options.cameraZoom = camera.zoom;
+      refreshGUI(rightGUI);
     }
   });
 
