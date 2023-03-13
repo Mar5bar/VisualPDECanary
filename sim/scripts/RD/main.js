@@ -257,6 +257,7 @@ function init() {
   displayMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
+    transparent: true,
   });
   // This material performs any postprocessing before display.
   postMaterial = new THREE.ShaderMaterial({
@@ -385,7 +386,6 @@ function roundBrushSizeToPix() {
 }
 
 function updateUniforms() {
-  uniforms.backgroundColour.value = new THREE.Color(options.backgroundColour);
   uniforms.brushRadius.value = options.brushRadius;
   uniforms.domainHeight.value = domainHeight;
   uniforms.domainWidth.value = domainWidth;
@@ -492,9 +492,6 @@ function resizeTextures() {
 
 function initUniforms() {
   uniforms = {
-    backgroundColour: {
-      type: "v3",
-    },
     boundaryValues: {
       type: "v2",
     },
@@ -1048,7 +1045,6 @@ function initGUI(startOpen) {
       .addColor(options, "backgroundColour")
       .name("Background")
       .onChange(function () {
-        updateUniforms();
         scene.background = new THREE.Color(options.backgroundColour);
       });
   }
@@ -1688,7 +1684,10 @@ function loadPreset(preset) {
   setDrawAndDisplayShaders();
   setClearShader();
 
+  // Update any uniforms.
   updateUniforms();
+
+  // Set the background color.
   scene.background = new THREE.Color(options.backgroundColour);
 
   // Reset the state of the simulation.
