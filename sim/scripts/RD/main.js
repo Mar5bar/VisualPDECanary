@@ -114,6 +114,7 @@ import { getPreset } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import * as THREE from "../three.module.js";
 import { OrbitControls } from "../OrbitControls.js";
+import { minifyPreset, maxifyPreset } from "./minify_preset.js";
 
 // Setup some configurable options.
 options = {};
@@ -132,6 +133,7 @@ funsObj = {
   copyConfigAsURL: function () {
     let objDiff = diffObjects(options, getPreset("default"));
     objDiff.preset = "Custom";
+    objDiff = minifyPreset(objDiff);
     let str = [
       location.href.replace(location.search, ""),
       "?options=",
@@ -189,7 +191,12 @@ if (params.has("preset")) {
 }
 if (params.has("options")) {
   // If options have been provided, apply them on top of loaded options.
-  loadPreset(JSON.parse(atob(decodeURI(params.get("options")))));
+  var newParams = JSON.parse(atob(decodeURI(params.get("options"))));
+  if (newParams.hasOwnProperty("p")) {
+    // This has been minified, so maxify before loading.
+    newParams = maxifyPreset(newParams);
+  }
+  loadPreset(newParams);
 }
 
 // Begin the simulation.
