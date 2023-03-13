@@ -711,6 +711,7 @@ break;
         brushRadius: 1 / 20,
         cameraTheta: 30,
         cameraPhi: 30,
+        cameraZoom: 0.8,
         clearValueU: "1.0",
         clearValueV: "0",
         clearValueW: "0",

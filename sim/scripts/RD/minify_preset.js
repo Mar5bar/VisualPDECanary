@@ -46,6 +46,7 @@ function presetMap() {
     brushRadius: "br",
     cameraTheta: "ct",
     cameraPhi: "cp",
+    cameraZoom: "cz",
     clearValueU: "cU",
     clearValueV: "cV",
     clearValueW: "cW",
