@@ -37,6 +37,7 @@ let leftGUI,
   threeDHeightScaleController,
   cameraThetaController,
   cameraPhiController,
+  cameraZoomController,
   whatToPlotController,
   minColourValueController,
   maxColourValueController,
@@ -246,14 +247,16 @@ function init() {
 
   // Create cameras for the simulation domain and the final output.
   camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
-  camera.position.z = 1;
   controls = new OrbitControls(camera, renderer.domElement);
   controls.addEventListener("change", function () {
-    options.cameraTheta =
-      90 - (180 * Math.atan2(camera.position.z, camera.position.y)) / Math.PI;
-    options.cameraPhi =
-      (180 * Math.atan2(camera.position.x, camera.position.z)) / Math.PI;
-    refreshGUI(rightGUI);
+    if (options.threeD) {
+      options.cameraTheta =
+        90 - (180 * Math.atan2(camera.position.z, camera.position.y)) / Math.PI;
+      options.cameraPhi =
+        (180 * Math.atan2(camera.position.x, camera.position.z)) / Math.PI;
+        options.cameraZoom = camera.zoom;
+        refreshGUI(rightGUI);
+    }
   });
 
   simCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
@@ -379,7 +382,7 @@ function configureCamera() {
   if (options.threeD) {
     controls.enabled = true;
     canDraw = false;
-    camera.zoom = 0.8;
+    camera.zoom = options.cameraZoom;
     const pos = new THREE.Vector3().setFromSphericalCoords(
       1,
       Math.PI / 2 - (options.cameraTheta * Math.PI) / 180,
@@ -1008,6 +1011,12 @@ function initGUI(startOpen) {
     cameraPhiController = root
       .add(options, "cameraPhi")
       .name("View $\\phi$")
+      .onChange(configureCamera);
+  }
+  if (inGUI("cameraZoom")) {
+    cameraZoomController = root
+      .add(options, "cameraZoom")
+      .name("Zoom")
       .onChange(configureCamera);
   }
   if (inGUI("Smoothing scale") && !floatLinearExtAvailable) {
@@ -2320,10 +2329,12 @@ function configureGUI() {
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
     showGUIController(cameraPhiController);
+    showGUIController(cameraZoomController);
   } else {
     hideGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
     hideGUIController(cameraPhiController);
+    hideGUIController(cameraZoomController);
   }
   // Refresh the GUI displays.
   refreshGUI(leftGUI);
