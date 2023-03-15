@@ -202,6 +202,7 @@ export function getPreset(id) {
         domainIndicatorFun: "1",
         domainScale: 1,
         domainViaIndicatorFun: false,
+        drawIn3D: false,
         dt: 0.1,
         fixRandSeed: false,
         imagePath: "./images/Alan.png",
