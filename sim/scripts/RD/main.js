@@ -415,7 +415,6 @@ function configureCamera() {
     camera.updateProjectionMatrix();
     displayMaterial.vertexShader = surfaceVertexShader();
     displayMaterial.needsUpdate = true;
-    console.log(camera.position);
   } else {
     controls.enabled = false;
     controls.reset();
