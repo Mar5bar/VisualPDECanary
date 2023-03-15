@@ -261,7 +261,8 @@ function init() {
 
   // Create cameras for the simulation domain and the final output.
   camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
-  controls = new OrbitControls(camera, renderer.domElement);
+  controls = new OrbitControls(camera, canvas);
+  controls.listenToKeyEvents(document);
   controls.addEventListener("change", function () {
     if (options.threeD) {
       options.cameraTheta =

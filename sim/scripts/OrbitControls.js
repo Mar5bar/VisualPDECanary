@@ -65,7 +65,7 @@ class OrbitControls extends EventDispatcher {
 
 		// Set to false to disable rotating
 		this.enableRotate = true;
-		this.rotateSpeed = 1.0;
+		this.rotateSpeed = 5.0;
 
 		// Set to false to disable panning
 		this.enablePan = true;
@@ -610,61 +610,25 @@ class OrbitControls extends EventDispatcher {
 
 				case scope.keys.UP:
 
-					if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
-
-						rotateUp( 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
-
-					} else {
-
-						pan( 0, scope.keyPanSpeed );
-
-					}
-
+					rotateUp( 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
 					needsUpdate = true;
 					break;
 
 				case scope.keys.BOTTOM:
 
-					if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
-
-						rotateUp( - 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
-
-					} else {
-
-						pan( 0, - scope.keyPanSpeed );
-
-					}
-
+					rotateUp( - 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
 					needsUpdate = true;
 					break;
 
 				case scope.keys.LEFT:
 
-					if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
-
-						rotateLeft( 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
-
-					} else {
-
-						pan( scope.keyPanSpeed, 0 );
-
-					}
-
+					rotateLeft( 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
 					needsUpdate = true;
 					break;
 
 				case scope.keys.RIGHT:
 
-					if ( event.ctrlKey || event.metaKey || event.shiftKey ) {
-
-						rotateLeft( - 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
-
-					} else {
-
-						pan( - scope.keyPanSpeed, 0 );
-
-					}
-
+					rotateLeft( - 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
 					needsUpdate = true;
 					break;
 
@@ -1044,8 +1008,7 @@ class OrbitControls extends EventDispatcher {
 		}
 
 		function onKeyDown( event ) {
-
-			if ( scope.enabled === false || scope.enablePan === false ) return;
+			if ( scope.enabled === false ) return;
 
 			handleKeyDown( event );
 
