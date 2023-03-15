@@ -67,6 +67,7 @@ function presetMap() {
     domainIndicatorFun: "d",
     domainScale: "ds",
     domainViaIndicatorFun: "dv",
+    drawIn3D: "dr",
     dt: "dt",
     fixRandSeed: "f",
     imagePath: "i",
