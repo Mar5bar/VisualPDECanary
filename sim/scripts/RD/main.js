@@ -1,5 +1,13 @@
 let canvas, gl, floatLinearExtAvailable;
-let camera, simCamera, scene, simScene, renderer, aspectRatio, controls;
+let camera,
+  simCamera,
+  scene,
+  simScene,
+  renderer,
+  aspectRatio,
+  controls,
+  raycaster,
+  clampedCoords;
 let simTextureA, simTextureB, postTexture, interpolationTexture;
 let displayMaterial,
   drawMaterial,
@@ -8,7 +16,7 @@ let displayMaterial,
   copyMaterial,
   postMaterial,
   interpolationMaterial;
-let domain, simDomain;
+let domain, simDomain, simpleDomain;
 let options, uniforms, funsObj;
 let leftGUI,
   rightGUI,
@@ -16,6 +24,7 @@ let leftGUI,
   pauseButton,
   resetButton,
   brushRadiusController,
+  drawIn3DController,
   fController,
   gController,
   hController,
@@ -63,7 +72,7 @@ let leftGUI,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning, isDrawing, hasDrawn, canDraw;
+let isRunning, isDrawing, hasDrawn;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight;
 let parametersFolder,
@@ -227,6 +236,8 @@ animate();
 
 function init() {
   isDrawing = false;
+  raycaster = new THREE.Raycaster();
+  clampedCoords = new THREE.Vector2();
 
   // Create a renderer.
   renderer = new THREE.WebGLRenderer({
@@ -328,6 +339,15 @@ function init() {
     vertexShader: genericVertexShader(),
   });
 
+  // Create an invisible, low-poly plane used for raycasting.
+  const basicPlane = new THREE.PlaneGeometry(1.0, 1.0);
+  const basicMaterial = new THREE.MeshBasicMaterial();
+  simpleDomain = new THREE.Mesh(basicPlane, basicMaterial);
+  simpleDomain.material.side = THREE.DoubleSide;
+  simpleDomain.visible = false;
+  simpleDomain.position.z = 0;
+  scene.add(simpleDomain);
+
   createDisplayDomain();
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
@@ -399,7 +419,6 @@ function resize() {
 function configureCamera() {
   if (options.threeD) {
     controls.enabled = true;
-    canDraw = false;
     camera.zoom = options.cameraZoom;
     const pos = new THREE.Vector3().setFromSphericalCoords(
       1,
@@ -415,7 +434,6 @@ function configureCamera() {
   } else {
     controls.enabled = false;
     controls.reset();
-    canDraw = true;
     displayMaterial.vertexShader = genericVertexShader();
     displayMaterial.needsUpdate = true;
   }
@@ -490,8 +508,10 @@ function createDisplayDomain() {
 function setDomainOrientation() {
   if (options.threeD) {
     domain.rotation.x = -Math.PI / 2;
+    simpleDomain.rotation.x = -Math.PI / 2;
   } else {
     domain.rotation.x = 0;
+    simpleDomain.rotation.x = 0;
   }
 }
 
@@ -688,6 +708,9 @@ function initGUI(startOpen) {
       .add(options, "whatToDraw", { u: "u", v: "v", w: "w" })
       .name("Species")
       .onChange(setBrushType);
+  }
+  if (inGUI("drawIn3D")) {
+    drawIn3DController = root.add(options, "drawIn3D").name("3D enabled");
   }
 
   // Domain folder.
@@ -1202,7 +1225,7 @@ function animate() {
 
   hasDrawn = isDrawing;
   // Draw on any input from the user, which can happen even if timestepping is not running.
-  if (isDrawing & canDraw) {
+  if (isDrawing & (!options.threeD | options.drawIn3D)) {
     draw();
   }
 
@@ -1398,6 +1421,21 @@ function setBrushCoords(event, container) {
   var cRect = container.getBoundingClientRect();
   let x = (event.clientX - cRect.x) / cRect.width;
   let y = 1 - (event.clientY - cRect.y) / cRect.height;
+  if (options.threeD & options.drawIn3D) {
+    // If we're in 3D, we have to project onto the simulation domain.
+    // We need x,y between -1 and 1.
+    clampedCoords.x = 2 * x - 1;
+    clampedCoords.y = 2 * y - 1;
+    raycaster.setFromCamera(clampedCoords, camera);
+    var intersects = raycaster.intersectObject(simpleDomain, false);
+    if (intersects.length > 0) {
+      x = intersects[0].uv.x;
+      y = intersects[0].uv.y;
+    } else {
+      x = -1;
+      y = -1;
+    }
+  }
   // Round to the centre of a pixel.
   x = (Math.floor(x * nXDisc) + 0.5) / nXDisc;
   y = (Math.floor(y * nYDisc) + 0.5) / nYDisc;
@@ -2373,11 +2411,13 @@ function configureGUI() {
     showGUIController(cameraThetaController);
     showGUIController(cameraPhiController);
     showGUIController(cameraZoomController);
+    showGUIController(drawIn3DController);
   } else {
     hideGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
     hideGUIController(cameraPhiController);
     hideGUIController(cameraZoomController);
+    hideGUIController(drawIn3DController);
   }
   // Refresh the GUI displays.
   refreshGUI(leftGUI);
