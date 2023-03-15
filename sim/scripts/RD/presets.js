@@ -318,6 +318,37 @@ break;
 };
 break;
 		  
+	case "KuramotoSivashinsky3D":
+	options = {
+	"algebraicV": true,
+	"autoSetColourRange": true,
+	"brushValue": "-44",
+	"brushRadius": 2,
+	"clearValueU": "-45",
+	"crossDiffusion": true,
+	"diffusionStrUU": "-1-u",
+	"diffusionStrUV": "-1",
+	"diffusionStrVU": "1",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 150,
+	"drawIn3D": true,
+	"dt": 0.001,
+	"kineticParams": "a=0.03;",
+	"maxColourValue": -25.7167911529541,
+	"minColourValue": -37.65152359008789,
+	"numSpecies": "2",
+	"preset": "KuramotoSivashinsky3D",
+	"reactionStrU": "u*v-a*u",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"threeD": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
+		  
     case "GiererMeinhardtStripes":
       options = {
         autoSetColourRange: true,
@@ -639,6 +670,39 @@ break;
 	"squareCanvas": true,
 	"whatToDraw": "u",
 	"whatToPlot": "u",
+};
+break;
+		  
+	case "plateEquation3D":
+	options = {
+	"algebraicW": true,
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
+	"boundaryConditionsW": "dirichlet",
+	"brushValue": "-8",
+	"cameraTheta": 131.97379772425356,
+	"cameraPhi": -156.79802955664945,
+	"clearValueU": "0",
+	"crossDiffusion": true,
+	"diffusionStrUU": "Dc*D",
+	"diffusionStrVV": "0",
+	"diffusionStrVW": "-D",
+	"diffusionStrWU": "D",
+	"diffusionStrWW": "0",
+	"drawIn3D": true,
+	"dt": 0.0001,
+	"kineticParams": "D=0.001;q=0.000;C=0.1;Dc=0.1;",
+	"minColourValue": -4,
+	"numSpecies": "3",
+	"preset": "plateEquation3D",
+	"reactionStrU": "v",
+	"reactionStrV": "-q-C*v",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"threeD": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	"undefined": true,
 };
 break;
 
