@@ -19,7 +19,13 @@ export function minifyPreset(preset) {
   var miniPreset = {};
   const pm = presetMap();
   for (var key of Object.keys(preset)) {
-    miniPreset[pm.get(key)] = preset[key];
+    if (pm.map.hasOwnProperty(key)) {
+      // Use a minified name if one is defined.
+      miniPreset[pm.get(key)] = preset[key];
+    } else {
+      // Fallback to inserting the non-minified version.
+      miniPreset[key] = preset[key];
+    }
   }
   return miniPreset;
 }
@@ -28,7 +34,13 @@ export function maxifyPreset(mp) {
   var preset = {};
   const pm = presetMap();
   for (var key of Object.keys(mp)) {
-    preset[pm.revGet(key)] = mp[key];
+    if (pm.reverseMap.hasOwnProperty(key)) {
+      // Use a minified name if one is defined.
+      preset[pm.revGet(key)] = mp[key];
+    } else {
+      // Fallback to inserting the non-minified version.
+      preset[key] = mp[key];
+    }
   }
   return preset;
 }
