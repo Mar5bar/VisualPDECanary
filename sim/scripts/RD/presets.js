@@ -124,6 +124,7 @@ export function getPreset(id) {
         fixRandSeed: true,
         kineticParams: "a=3;c=-1",
         maxColourValue: 3.1,
+	numTimestepsPerFrame: 50,
         preset: "complexGinzburgLandau",
         reactionStrU: "a*u-(u+c*v)*(u^2+v^2)",
         reactionStrV: "a*v+(c*u-v)*(u^2+v^2)",
