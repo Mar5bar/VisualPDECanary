@@ -698,6 +698,7 @@ break;
 	"reactionStrU": "v",
 	"reactionStrV": "-q-C*v",
 	"reactionStrW": "0",
+	"squareCanvas": true,
 	"threeD": true,
 	"whatToDraw": "u",
 	"whatToPlot": "u",
