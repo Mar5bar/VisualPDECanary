@@ -288,6 +288,35 @@ break;
 	"whatToPlot": "u",
 };
 break;
+		 
+	case "KuramotoSivashinsky":
+	options = {
+	"algebraicV": true,
+	"autoSetColourRange": true,
+	"brushValue": "-44",
+	"brushRadius": 2,
+	"clearValueU": "-45",
+	"crossDiffusion": true,
+	"diffusionStrUU": "-1-u",
+	"diffusionStrUV": "-1",
+	"diffusionStrVU": "1",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 150,
+	"dt": 0.001,
+	"kineticParams": "a=0.03;",
+	"maxColourValue": -15.152745246887207,
+	"minColourValue": -16.152745246887207,
+	"numSpecies": "2",
+	"preset": "KuramotoSivashinsky",
+	"reactionStrU": "u*v-a*u",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 		  
     case "GiererMeinhardtStripes":
       options = {
