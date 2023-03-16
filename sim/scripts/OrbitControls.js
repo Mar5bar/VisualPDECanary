@@ -65,7 +65,8 @@ class OrbitControls extends EventDispatcher {
 
 		// Set to false to disable rotating
 		this.enableRotate = true;
-		this.rotateSpeed = 5.0;
+		this.rotateSpeed = 1.0;
+		this.rotateSpeedWithKeys = 5.0;
 
 		// Set to false to disable panning
 		this.enablePan = true;
@@ -610,25 +611,25 @@ class OrbitControls extends EventDispatcher {
 
 				case scope.keys.UP:
 
-					rotateUp( 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
+					rotateUp( 2 * Math.PI * scope.rotateSpeedWithKeys / scope.domElement.clientHeight );
 					needsUpdate = true;
 					break;
 
 				case scope.keys.BOTTOM:
 
-					rotateUp( - 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
+					rotateUp( - 2 * Math.PI * scope.rotateSpeedWithKeys / scope.domElement.clientHeight );
 					needsUpdate = true;
 					break;
 
 				case scope.keys.LEFT:
 
-					rotateLeft( 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
+					rotateLeft( 2 * Math.PI * scope.rotateSpeedWithKeys / scope.domElement.clientHeight );
 					needsUpdate = true;
 					break;
 
 				case scope.keys.RIGHT:
 
-					rotateLeft( - 2 * Math.PI * scope.rotateSpeed / scope.domElement.clientHeight );
+					rotateLeft( - 2 * Math.PI * scope.rotateSpeedWithKeys / scope.domElement.clientHeight );
 					needsUpdate = true;
 					break;
 

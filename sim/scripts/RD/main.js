@@ -220,6 +220,9 @@ animate();
 //---------------
 
 function init() {
+  // Define uniforms to be sent to the shaders.
+  initUniforms();
+
   isDrawing = false;
   raycaster = new THREE.Raycaster();
   clampedCoords = new THREE.Vector2();
@@ -271,6 +274,7 @@ function init() {
         (180 * Math.atan2(camera.position.x, camera.position.z)) / Math.PI;
       options.cameraZoom = camera.zoom;
       refreshGUI(rightGUI);
+      render();
     }
   });
 
@@ -283,9 +287,6 @@ function init() {
 
   scene.add(camera);
   scene.background = new THREE.Color(options.backgroundColour);
-
-  // Define uniforms to be sent to the shaders.
-  initUniforms();
 
   // This material will display the output of the simulation.
   displayMaterial = new THREE.ShaderMaterial({
@@ -326,7 +327,7 @@ function init() {
   });
 
   // Create an invisible, low-poly plane used for raycasting.
-  const basicPlane = new THREE.PlaneGeometry(1.0, 1.0);
+  const basicPlane = new THREE.PlaneGeometry(1, 1, 1, 1);
   const basicMaterial = new THREE.MeshBasicMaterial();
   simpleDomain = new THREE.Mesh(basicPlane, basicMaterial);
   simpleDomain.material.side = THREE.DoubleSide;
@@ -341,6 +342,12 @@ function init() {
   simDomain.position.z = 0;
   simScene.add(simDomain);
 
+  // Configure the camera.
+  configureCamera();
+
+  // Set the size of the domain and related parameters.
+  resize();
+
   // Create a GUI.
   initGUI();
 
@@ -350,18 +357,12 @@ function init() {
   // Set the brush type.
   setBrushType();
 
-  // Set the size of the domain and related parameters.
-  resize();
-
   // Add shaders to the textures.
   setDrawAndDisplayShaders();
   setClearShader();
 
   // Set the initial condition.
   resetSim();
-
-  // Configure the camera.
-  configureCamera();
 
   // Listen for pointer events.
   canvas.addEventListener("pointerdown", onDocumentPointerDown);
@@ -449,7 +450,7 @@ function updateUniforms() {
   }
 }
 
-function setSizes() {
+function computeCanvasSizesAndAspect() {
   aspectRatio =
     canvas.getBoundingClientRect().height /
     canvas.getBoundingClientRect().width;
@@ -461,6 +462,10 @@ function setSizes() {
     domainWidth = options.domainScale;
     domainHeight = domainWidth * aspectRatio;
   }
+}
+
+function setSizes() {
+  computeCanvasSizesAndAspect();
   // Using the user-specified spatial step size, compute as close a discretisation as possible that
   // doesn't reduce the step size below the user's choice.
   nXDisc = Math.floor(domainWidth / options.spatialStep);
@@ -478,8 +483,8 @@ function setSizes() {
 
 function createDisplayDomain() {
   const plane = new THREE.PlaneGeometry(
-    1.0,
-    1.0,
+    1,
+    1,
     options.renderSize,
     options.renderSize
   );
@@ -1346,6 +1351,16 @@ function render() {
     funsObj.setColourRange();
   }
 
+  if (options.threeD & options.drawIn3D) {
+    let val =
+      (getMeanVal() - options.minColourValue) /
+        (options.maxColourValue - options.minColourValue) -
+      0.5;
+    simpleDomain.position.y =
+      options.threeDHeightScale * Math.min(Math.max(val, -0.5), 0.5);
+    simpleDomain.updateWorldMatrix();
+  }
+
   // Perform any postprocessing.
   if (readFromTextureB) {
     inTex = simTextureB;
@@ -2136,6 +2151,17 @@ function getMinMaxVal() {
     maxVal = Math.max(maxVal, buffer[i]);
   }
   return [minVal, maxVal];
+}
+
+function getMeanVal() {
+  // Return the mean values in the simulation textures in channel channelInd.
+  let buffer = new Float32Array(nXDisc * nYDisc * 4);
+  renderer.readRenderTargetPixels(postTexture, 0, 0, nXDisc, nYDisc, buffer);
+  let total = 0;
+  for (let i = 0; i < buffer.length; i += 4) {
+    total += buffer[i];
+  }
+  return total / (nXDisc * nYDisc);
 }
 
 function setPostFunFragShader() {
