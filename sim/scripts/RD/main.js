@@ -1262,7 +1262,13 @@ function setDrawAndDisplayShaders() {
 
 function setBrushType() {
   // Construct a drawing shader based on the selected type and the value string.
-  let shaderStr = drawShaderTop();
+  // Insert any user-defined kinetic parameters, given as a string that needs parsing.
+  // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
+  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
+  let kineticStr = parseShaderString(
+    options.kineticParams.replace(regex, "float $1;\n")
+  );
+  let shaderStr = drawShaderTop() + kineticStr;
   if (options.typeOfBrush == "circle") {
     shaderStr += discShader();
   } else if (options.typeOfBrush == "hline") {
