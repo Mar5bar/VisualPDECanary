@@ -1388,12 +1388,17 @@ function render() {
 }
 
 function onDocumentPointerDown(event) {
-  setBrushCoords(event, canvas);
-  isDrawing = true;
+  isDrawing = setBrushCoords(event, canvas);
+  if (options.threeD & isDrawing) {
+    controls.enabled = false;
+  }
 }
 
 function onDocumentPointerUp(event) {
   isDrawing = false;
+  if (options.threeD) {
+    controls.enabled = true;
+  }
 }
 
 function onDocumentPointerMove(event) {
@@ -1423,6 +1428,7 @@ function setBrushCoords(event, container) {
   x = (Math.floor(x * nXDisc) + 0.5) / nXDisc;
   y = (Math.floor(y * nYDisc) + 0.5) / nYDisc;
   uniforms.brushCoords.value = new THREE.Vector2(x, y);
+  return (0 <= x) & (x <= 1) & (0 <= y) & (y <= 1);
 }
 
 function clearTextures() {
