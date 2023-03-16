@@ -494,8 +494,8 @@ function setSizes() {
 function createDisplayDomains() {
   computeCanvasSizesAndAspect();
   const plane = new THREE.PlaneGeometry(
-    domainWidth,
-    domainHeight,
+    domainWidth / m,
+    domainHeight / m,
     options.renderSize,
     options.renderSize
   );
@@ -506,8 +506,8 @@ function createDisplayDomains() {
   
   // Create an invisible, low-poly plane used for raycasting.
   const simplePlane = new THREE.PlaneGeometry(
-    domainWidth,
-    domainHeight,
+    domainWidth / m,
+    domainHeight / m,
     1,
     1
   );
