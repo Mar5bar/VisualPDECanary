@@ -184,6 +184,16 @@ funsObj = {
     maxColourValueController.updateDisplay();
     minColourValueController.updateDisplay();
   },
+  linePlot: function () {
+    options.oneDimensional = true;
+    options.cameraTheta = 0.5;
+    options.cameraPhi = 0;
+    options.threeD = true;
+    resize();
+    setRDEquations();
+    configureGUI();
+    configureCamera();
+  },
 };
 
 // Get the canvas to draw on, as specified by the html.
@@ -288,8 +298,8 @@ function init() {
 
   scene.add(camera);
   scene.background = new THREE.Color(options.backgroundColour);
-  
-  basicMaterial = new THREE.MeshBasicMaterial({side: THREE.DoubleSide});
+
+  basicMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
   // This material will display the output of the simulation.
   displayMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
@@ -504,7 +514,7 @@ function createDisplayDomains() {
   domain = new THREE.Mesh(plane, displayMaterial);
   domain.position.z = 0;
   scene.add(domain);
-  
+
   // Create an invisible, low-poly plane used for raycasting.
   const simplePlane = new THREE.PlaneGeometry(
     domainWidth / maxDim,
@@ -1040,6 +1050,9 @@ function initGUI(startOpen) {
         createDisplayDomains();
         setSizes();
       });
+  }
+  if (inGUI("linePlot")) {
+    root.add(funsObj, "linePlot").name("Line plot");
   }
   if (inGUI("threeD")) {
     root
