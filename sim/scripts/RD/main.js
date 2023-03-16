@@ -1427,7 +1427,7 @@ function render() {
 
 function onDocumentPointerDown(event) {
   isDrawing = setBrushCoords(event, canvas);
-  if (options.threeD & isDrawing) {
+  if (options.threeD & isDrawing & options.drawIn3D) {
     controls.enabled = false;
   }
 }
