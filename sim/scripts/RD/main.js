@@ -75,7 +75,7 @@ let leftGUI,
   showAll;
 let isRunning, isDrawing, hasDrawn;
 let inTex, outTex;
-let nXDisc, nYDisc, domainWidth, domainHeight;
+let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
 let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
@@ -425,10 +425,6 @@ function replaceDisplayDomains() {
 function configureCamera() {
   computeCanvasSizesAndAspect();
   if (options.threeD) {
-    camera.left = -domainWidth / 2;
-    camera.right = domainWidth / 2;
-    camera.top = domainHeight / 2;
-    camera.bottom = -domainHeight / 2;
     controls.enabled = true;
     camera.zoom = options.cameraZoom;
     const pos = new THREE.Vector3().setFromSphericalCoords(
@@ -442,15 +438,15 @@ function configureCamera() {
     displayMaterial.vertexShader = surfaceVertexShader();
     displayMaterial.needsUpdate = true;
   } else {
-    camera.left = -domainWidth / 2;
-    camera.right = domainWidth / 2;
-    camera.top = domainHeight / 2;
-    camera.bottom = -domainHeight / 2;
     controls.enabled = false;
     controls.reset();
     displayMaterial.vertexShader = genericVertexShader();
     displayMaterial.needsUpdate = true;
   }
+  camera.left = -domainWidth / (2 * maxDim);
+  camera.right = domainWidth / (2 * maxDim);
+  camera.top = domainHeight / (2 * maxDim);
+  camera.bottom = -domainHeight / (2 * maxDim);
   setDomainOrientation();
 }
 
@@ -490,6 +486,7 @@ function computeCanvasSizesAndAspect() {
     domainWidth = options.domainScale;
     domainHeight = domainWidth * aspectRatio;
   }
+  maxDim = Math.max(domainWidth, domainHeight);
 }
 
 function setSizes() {
