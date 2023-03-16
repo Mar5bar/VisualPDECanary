@@ -185,7 +185,7 @@ funsObj = {
   },
   setColourRange: function () {
     let valRange = getMinMaxVal();
-    if (valRange[0] == valRange[1]) {
+    if (Math.abs(valRange[0] - valRange[1]) < 0.001) {
       // If the range is just one value, add one to the second entry.
       valRange[1] += 1;
     }
