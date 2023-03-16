@@ -9,7 +9,8 @@ let camera,
   raycaster,
   clampedCoords;
 let simTextureA, simTextureB, postTexture, interpolationTexture;
-let displayMaterial,
+let basicMaterial,
+  displayMaterial,
   drawMaterial,
   simMaterial,
   clearMaterial,
@@ -326,16 +327,7 @@ function init() {
     vertexShader: genericVertexShader(),
   });
 
-  // Create an invisible, low-poly plane used for raycasting.
-  const basicPlane = new THREE.PlaneGeometry(1, 1, 1, 1);
-  const basicMaterial = new THREE.MeshBasicMaterial();
-  simpleDomain = new THREE.Mesh(basicPlane, basicMaterial);
-  simpleDomain.material.side = THREE.DoubleSide;
-  simpleDomain.visible = false;
-  simpleDomain.position.z = 0;
-  scene.add(simpleDomain);
-
-  createDisplayDomain();
+  createDisplayDomains();
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
   simDomain = new THREE.Mesh(simPlane, simMaterial);
@@ -400,11 +392,28 @@ function resize() {
   resizeTextures();
   // Update any uniforms.
   updateUniforms();
+  // Configure the camera.
+  configureCamera();
+  // Create new display domains with the correct sizes.
+  replaceDisplayDomains();
   render();
 }
 
+function replaceDisplayDomains() {
+  domain.geometry.dispose();
+  scene.remove(domain);
+  simpleDomain.geometry.dispose();
+  scene.remove(simpleDomain);
+  createDisplayDomains();
+}
+
 function configureCamera() {
+  computeCanvasSizesAndAspect();
   if (options.threeD) {
+    camera.left = -domainWidth / 2;
+    camera.right = domainWidth / 2;
+    camera.top = domainHeight / 2;
+    camera.bottom = -domainHeight / 2;
     controls.enabled = true;
     camera.zoom = options.cameraZoom;
     const pos = new THREE.Vector3().setFromSphericalCoords(
@@ -418,6 +427,10 @@ function configureCamera() {
     displayMaterial.vertexShader = surfaceVertexShader();
     displayMaterial.needsUpdate = true;
   } else {
+    camera.left = -domainWidth / 2;
+    camera.right = domainWidth / 2;
+    camera.top = domainHeight / 2;
+    camera.bottom = -domainHeight / 2;
     controls.enabled = false;
     controls.reset();
     displayMaterial.vertexShader = genericVertexShader();
@@ -481,10 +494,11 @@ function setSizes() {
   renderer.setSize(options.renderSize, options.renderSize, false);
 }
 
-function createDisplayDomain() {
+function createDisplayDomains() {
+  computeCanvasSizesAndAspect();
   const plane = new THREE.PlaneGeometry(
-    1,
-    1,
+    domainWidth,
+    domainHeight,
     options.renderSize,
     options.renderSize
   );
@@ -492,6 +506,19 @@ function createDisplayDomain() {
   domain.material.side = THREE.DoubleSide;
   domain.position.z = 0;
   scene.add(domain);
+  
+  // Create an invisible, low-poly plane used for raycasting.
+  const simplePlane = new THREE.PlaneGeometry(
+    domainWidth,
+    domainHeight,
+    1,
+    1
+  );
+  simpleDomain = new THREE.Mesh(simplePlane, basicMaterial);
+  simpleDomain.material.side = THREE.DoubleSide;
+  simpleDomain.position.z = 0;
+  simpleDomain.visible = false;
+  scene.add(simpleDomain);
   setDomainOrientation();
 }
 
@@ -1013,7 +1040,7 @@ function initGUI(startOpen) {
       .onChange(function () {
         domain.geometry.dispose();
         scene.remove(domain);
-        createDisplayDomain();
+        createDisplayDomains();
         setSizes();
       });
   }
