@@ -1,0 +1,36 @@
+<script type="text/javascript">
+    window.MathJax = {
+        loader: {
+            load: ['ui/menu', '[tex]/ams']
+        },
+        tex: {
+            macros: {
+                pd: ["\\frac{\\partial #1}{\\partial #2}", 2],
+                pdd: ["\\frac{\\partial^2 #1}{\\partial #2^2}", 2],
+                vnabla: "\\boldsymbol{\\nabla}",
+                d: "\\mathrm{d}",
+                boundary: "\\partial\\Omega",
+                onboundary: "\\vert_{\\boundary}"
+            },
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+        },
+        startup: {
+            ready: () => {
+                MathJax.startup.defaultReady();
+                MathJax.startup.promise.then(() => {
+                    fitty("mjx-container[display='true']", { minSize: 5, maxSize: 32 });
+                    jQuery('mjx-container[display="true"]').css("width", "100%");
+                    
+                    fitty(".subtitle_equation mjx-container", { minSize: 5, maxSize: 16 });
+                    // jQuery('.subtitle_equation mjx-container').css("width", "100%");
+                });
+            }
+        }
+    };
+</script>
+
+<script type="text/javascript" id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js">
+    </script>
+
+<script src="https://visualpde.com/assets/js/fitty.min.js"></script>
