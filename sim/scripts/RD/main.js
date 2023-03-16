@@ -90,6 +90,18 @@ const listOfTypes = [
   "3SpeciesCrossDiffusionAlgebraicW", // 6
 ];
 let equationType;
+const numsAsWords = [
+  "zero",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+];
 
 import {
   discShader,
@@ -1659,6 +1671,13 @@ function parseShaderString(str) {
   str = str.replace(/\bu\b/g, "uvw." + speciesToChannelChar("u"));
   str = str.replace(/\bv\b/g, "uvw." + speciesToChannelChar("v"));
   str = str.replace(/\bw\b/g, "uvw." + speciesToChannelChar("w"));
+
+  // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
+  let regex;
+  for (let num = 0; num < 10; num++) {
+    regex = new RegExp("([a-zA-Z]+[0-9]*)(" + num.toString() + ")", "g");
+    while (str != (str = str.replace(regex, "$1" + numsAsWords[num])));
+  }
 
   // Replace integers with floats.
   while (str != (str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3")));
