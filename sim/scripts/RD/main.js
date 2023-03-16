@@ -185,6 +185,16 @@ funsObj = {
     maxColourValueController.updateDisplay();
     minColourValueController.updateDisplay();
   },
+  linePlot: function () {
+    options.oneDimensional = true;
+    options.cameraTheta = 0.5;
+    options.cameraPhi = 0;
+    options.threeD = true;
+    resize();
+    setRDEquations();
+    configureGUI();
+    configureCamera();
+  },
 };
 
 // Get the canvas to draw on, as specified by the html.
@@ -304,11 +314,13 @@ function init() {
   scene.add(camera);
   scene.background = new THREE.Color(options.backgroundColour);
 
+  basicMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
   // This material will display the output of the simulation.
   displayMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
     transparent: true,
+    side: THREE.DoubleSide,
   });
   // This material performs any postprocessing before display.
   postMaterial = new THREE.ShaderMaterial({
@@ -515,10 +527,9 @@ function createDisplayDomains() {
     options.renderSize
   );
   domain = new THREE.Mesh(plane, displayMaterial);
-  domain.material.side = THREE.DoubleSide;
   domain.position.z = 0;
   scene.add(domain);
-  
+
   // Create an invisible, low-poly plane used for raycasting.
   const simplePlane = new THREE.PlaneGeometry(
     domainWidth / maxDim,
@@ -527,7 +538,6 @@ function createDisplayDomains() {
     1
   );
   simpleDomain = new THREE.Mesh(simplePlane, basicMaterial);
-  simpleDomain.material.side = THREE.DoubleSide;
   simpleDomain.position.z = 0;
   simpleDomain.visible = false;
   scene.add(simpleDomain);
@@ -1051,6 +1061,9 @@ function initGUI(startOpen) {
         createDisplayDomains();
         setSizes();
       });
+  }
+  if (inGUI("linePlot")) {
+    root.add(funsObj, "linePlot").name("Line plot");
   }
   if (inGUI("threeD")) {
     root
