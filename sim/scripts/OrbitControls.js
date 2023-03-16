@@ -606,6 +606,10 @@ class OrbitControls extends EventDispatcher {
 		function handleKeyDown( event ) {
 
 			let needsUpdate = false;
+			var target = event.target;
+			var targetTagName =
+			target.nodeType == 1 ? target.nodeName.toUpperCase() : "";
+			if (/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {return}
 
 			switch ( event.code ) {
 
