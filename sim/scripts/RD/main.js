@@ -288,12 +288,14 @@ function init() {
 
   scene.add(camera);
   scene.background = new THREE.Color(options.backgroundColour);
-
+  
+  basicMaterial = new THREE.MeshBasicMaterial({side: THREE.DoubleSide});
   // This material will display the output of the simulation.
   displayMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
     transparent: true,
+    side: THREE.DoubleSide,
   });
   // This material performs any postprocessing before display.
   postMaterial = new THREE.ShaderMaterial({
@@ -500,7 +502,6 @@ function createDisplayDomains() {
     options.renderSize
   );
   domain = new THREE.Mesh(plane, displayMaterial);
-  domain.material.side = THREE.DoubleSide;
   domain.position.z = 0;
   scene.add(domain);
   
@@ -512,7 +513,6 @@ function createDisplayDomains() {
     1
   );
   simpleDomain = new THREE.Mesh(simplePlane, basicMaterial);
-  simpleDomain.material.side = THREE.DoubleSide;
   simpleDomain.position.z = 0;
   simpleDomain.visible = false;
   scene.add(simpleDomain);
