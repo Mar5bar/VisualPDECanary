@@ -790,7 +790,10 @@ function initGUI(startOpen) {
     root
       .add(options, "squareCanvas")
       .name("Square display")
-      .onFinishChange(resize);
+      .onFinishChange(function () {
+        resize();
+        configureCamera();
+      });
   }
   if (inGUI("oneDimensional")) {
     const oneDimensionalController = root
