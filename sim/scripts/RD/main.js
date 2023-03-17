@@ -185,10 +185,11 @@ funsObj = {
   },
   setColourRange: function () {
     let valRange = getMinMaxVal();
-    if (Math.abs(valRange[0] - valRange[1]) < 0.001) {
+    if (Math.abs(valRange[0] - valRange[1]) < 0.005) {
       // If the range is just one value, make the range width 1 centered on the given value.
-      valRange[0] -= 0.5;
-      valRange[1] += 0.5;
+      const meanVal = (valRange[0] + valRange[1]) / 2;
+      valRange[0] = meanVal - 0.0025;
+      valRange[1] = meanVal + 0.0025;
     }
     options.minColourValue = valRange[0];
     options.maxColourValue = valRange[1];
