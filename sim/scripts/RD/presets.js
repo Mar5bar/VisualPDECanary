@@ -462,24 +462,27 @@ break;
 break;
 
     case "inhomogDiffusionHeatEquation":
-      options = {
-        boundaryConditionsU: "dirichlet",
-        clearValueU: "1",
-        diffusionStrUU: "D*(1+E*cos(n*pi*(sqrt((x-0.5)^2+(y-0.5)^2))))",
-        diffusionStrVV: "0",
-        diffusionStrWW: "0",
-        dt: 0.004,
-        kineticParams: "D=0.0001;E=0.99;n=30",
-        numSpecies: 1,
-        preset: "inhomogDiffusionHeatEquation",
-        reactionStrU: "0",
-        reactionStrV: "0",
-        reactionStrW: "0",
-        squareCanvas: true,
-        whatToDraw: "u",
-        whatToPlot: "u",
-      };
-      break;
+	options = {
+	"boundaryConditionsU": "dirichlet",
+	"brushRadius": 5,
+	"clearValueU": "1",
+	"diffusionStrUU": "D*(1+E*cos(n*pi*(sqrt((x/100-0.5)^2+(y/100-0.5)^2))))",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 100,
+	"dt": 0.004,
+	"kineticParams": "D=1;E=0.99;n=40;",
+	"numSpecies": 1,
+	"preset": "inhomogDiffusionHeatEquation",
+	"reactionStrU": "0",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 
     case "inhomogWaveEquation":
       options = {
