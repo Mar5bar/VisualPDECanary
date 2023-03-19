@@ -546,7 +546,7 @@ break;
 	"boundaryConditionsU": "dirichlet",
 	"brushRadius": 30,
 	"clearValueU": "0",
-	"diffusionStrUU": "10",
+	"diffusionStrUU": "1",
 	"diffusionStrVV": "0",
 	"diffusionStrWW": "0",
 	"domainScale": 320,
