@@ -542,19 +542,26 @@ break;
       };
       break;
     case "heatEquation":
-      options = {
-        boundaryConditionsU: "neumann",
-        diffusionStrUU: "0.00001",
-        dt: 0.01,
-        numSpecies: 1,
-        onlyExposeOptions: [],
-        preset: "heatEquation",
-        reactionStrU: "0",
-        spatialStep: 0.005,
-        whatToDraw: "u",
-        whatToPlot: "u",
-      };
-      break;
+	options = {
+	"boundaryConditionsU": "dirichlet",
+	"brushRadius": 30,
+	"clearValueU": "0",
+	"diffusionStrUU": "10",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 320,
+	"dt": 0.01,
+	"numSpecies": 1,
+	"preset": "heatEquation",
+	"reactionStrU": "0",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 1.5,
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 
     case "waveEquation":
       options = {
