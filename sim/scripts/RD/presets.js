@@ -510,6 +510,31 @@ break;
         whatToPlot: "u",
       };
       break;
+case "dampedWaveEquation":
+	options = {
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
+	"brushRadius": 2,
+	"clearValueU": "0",
+	"crossDiffusion": true,
+	"diffusionStrUU": "C*D",
+	"diffusionStrVU": "D",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dirichletStrU": "cos(m*x*pi/100)*cos(m*y*pi/100)",
+	"domainScale": 100,
+	"dt": 0.002,
+	"kineticParams": "D=1;C=0.01;m=8;d=0;",
+	"minColourValue": -1,
+	"preset": "PRESETNAME",
+	"reactionStrU": "v",
+	"reactionStrV": "-d*v",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"squareCanvas": true,
+	"whatToPlot": "u",
+};
+break;
 
     case "travellingWave":
       options = {
