@@ -562,6 +562,35 @@ break;
 	"whatToPlot": "u",
 };
 break;
+		  
+	case "heatEquation1D":
+	options = {
+	"boundaryConditionsU": "neumann",
+	"brushRadius": 20,
+	"cameraTheta": 0.5,
+	"cameraPhi": 0,
+	"cameraZoom": 1,
+	"clearValueU": "cos(m*pi*x/320)",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 320,
+	"dt": 0.01,
+	"kineticParams": "m=8;",
+	"minColourValue": -1,
+	"numSpecies": 1,
+	"oneDimensional": true,
+	"preset": "heatEquation1D",
+	"reactionStrU": "0",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 1.5,
+	"squareCanvas": true,
+	"threeD": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 
     case "waveEquation":
       options = {
