@@ -594,6 +594,7 @@ break;
 
     case "waveEquation":
       options = {
+	brushRadius: 5,
         crossDiffusion: true,
         diffusionStrUU: "C*D",
         diffusionStrVU: "D",
