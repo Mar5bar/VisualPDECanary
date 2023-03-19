@@ -23,7 +23,7 @@ $$u(x,y) = -\cos \left(\frac{n\pi x}{L} \right)\cos \left(\frac{m\pi y}{L} \righ
 * You can use any function $f(x,y)$ instead of the one given above. However, if $f(x,y)$ does not satisfy the constraint that $\int_0^1\int_0^1 f(x,y) \, \d x \, \d y=0$, then the solution will either grow or decrease without bound. An easy way to prove this is to multiply the equation by $u$ and integrate to find, after applying the Neumann boundary conditions,
  
 $$
-\frac{1}{2}\pd{}{t}\int_0^1 \int_0^1 u^2 \, \d x \, \d y = \int_0^L\int_0^L f(x,y) \, \d x \, \d y.
+\frac{1}{2}\pd{}{t}\int_0^L \int_0^L u^2 \, \d x \, \d y = \int_0^L\int_0^L f(x,y) \, \d x \, \d y.
 $$
 
 ## Inhomogeneous transport
