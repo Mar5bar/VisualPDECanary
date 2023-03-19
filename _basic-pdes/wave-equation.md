@@ -26,23 +26,11 @@ $$\pd{u}{x}(0) = \pd{u}{x}(L) = \pd{u}{y}(0) = \pd{u}{y}(L) = 0.$$
 
 What does changing the diffusion coefficient, $D$, do? 
 
-1. Change its value by clicking {{ layout.equations }} and editing the value of $D$: try increasing it by a factor of 10. 
+1. Change its value by clicking {{ layout.equations }} and editing the value of $D$: try increasing it by a factor of 10 or even 100. 
 
 1. Now click again on the screen and see how fast the disturbance spreads out throughout the domain. 
 
-Explore how the speed depends on the diffusion coefficient. You can safely increase $D$ up to [VALUE] without hitting numerical problems: see the discussion on forward Euler ELSEWHERE. 
-
-### Playing with boundary conditions
-
-What effect do the boundary conditions have? 
-
-1. Click around the corners and edges to see how the Neumann boundary conditions cause the wave to bounce around within the box.
-
-1. Now, go to {{ layout.equations }}→**Boundary conditions** and select **Periodic** for $u$. What do you notice? 
-
-1. What if you change the boundary conditions to **Dirichlet**? 
-
-Explore how waves propagate through the domain under these different scenarios.
+Explore how the speed depends on the diffusion coefficient.
 
 ## Numerical notes
 
@@ -60,13 +48,13 @@ The parameter $C$ is used to prevent spurious oscillations due to the equation b
 
 If we take initial conditions of 
 
-$$\begin{aligned}u(x,y,0) &= \cos(n \pi x)\cos(m \pi y),\\ 
+$$\begin{aligned}u(x,y,0) &= \cos\left(\frac{n \pi x}{L}\right)\cos\left(\frac{m \pi y}{L}\right),\\ 
 \pd{u}{t}(x,y,0)&=0,\end{aligned}$$ 
 
 with Neumann boundary conditions, we can find a standing wave solution of the form
 
 $$
-u(x,y,t) = \cos(D\pi\sqrt{n^2+m^2}\,t)\cos(n \pi x)\cos(m \pi y),
+u(x,y,t) = \cos(\frac{D\pi\sqrt{n^2+m^2}}{L}\,t)\cos\left(\frac{n \pi x}{L}\right)\cos\left(\frac{m \pi y}{L}\right),
 $$
 
 which oscillates in time and space. 
