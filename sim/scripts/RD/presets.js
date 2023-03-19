@@ -544,7 +544,7 @@ break;
     case "heatEquation":
 	options = {
 	"boundaryConditionsU": "neumann",
-	"brushRadius": 30,
+	"brushRadius": 20,
 	"clearValueU": "0",
 	"diffusionStrUU": "1",
 	"diffusionStrVV": "0",
