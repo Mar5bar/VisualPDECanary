@@ -6,3 +6,5 @@ layout: topic
 title: Basic PDEs
 collection_to_list: basic-pdes
 ---
+
+This is a collection of classical linear PDEs which can be explored. They complement the [quick start guide](user-guide/quick-start) in introducing features of the VisualPDE solver.
