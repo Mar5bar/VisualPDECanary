@@ -615,26 +615,29 @@ break;
       break;
 
     case "waveEquationICs":
-      options = {
-        boundaryConditionsU: "neumann",
-        boundaryConditionsV: "neumann",
-        clearValueU: "cos(n*pi*x)*cos(m*pi*y)",
-        crossDiffusion: true,
-        diffusionStrUU: "C*D",
-        diffusionStrVU: "D",
-        diffusionStrVV: "0",
-        diffusionStrWW: "0",
-        dt: 0.001,
-        kineticParams: "D=0.0001; C=0;n=4;m=4",
-        minColourValue: -1,
-        preset: "waveEquationICs",
-        reactionStrU: "v",
-        reactionStrV: "0",
-        reactionStrW: "0",
-        squareCanvas: true,
-        whatToPlot: "u",
-      };
-      break;
+	options = {
+	"boundaryConditionsU": "neumann",
+	"boundaryConditionsV": "neumann",
+	"brushRadius": 5,
+	"clearValueU": "cos(n*pi*x/100)*cos(m*pi*y/100)",
+	"crossDiffusion": true,
+	"diffusionStrUU": "C*D",
+	"diffusionStrVU": "D",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 100,
+	"dt": 0.001,
+	"kineticParams": "D=1;C=0;n=4;m=4;",
+	"minColourValue": -1,
+	"preset": "waveEquationICs",
+	"reactionStrU": "v",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"squareCanvas": true,
+	"whatToPlot": "u",
+};
+break;
 
     case "Schnakenberg":
       options = {
