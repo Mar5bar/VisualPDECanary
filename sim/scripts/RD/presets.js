@@ -543,7 +543,7 @@ break;
       break;
     case "heatEquation":
 	options = {
-	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsU": "neumann",
 	"brushRadius": 30,
 	"clearValueU": "0",
 	"diffusionStrUU": "1",
