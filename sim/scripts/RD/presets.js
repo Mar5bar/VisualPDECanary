@@ -456,6 +456,7 @@ break;
 	"reactionStrW": "0",
 	"spatialStep": 0.5,
 	"squareCanvas": true,
+	"suppressTryClickingPopup": true,
 	"whatToDraw": "u",
 	"whatToPlot": "u",
 };
@@ -479,6 +480,7 @@ break;
 	"reactionStrW": "0",
 	"spatialStep": 0.5,
 	"squareCanvas": true,
+	"suppressTryClickingPopup": true,
 	"whatToDraw": "u",
 	"whatToPlot": "u",
 };
