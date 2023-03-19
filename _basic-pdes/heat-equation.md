@@ -12,7 +12,7 @@ $$\pd{u}{t}=D \nabla^2 u,$$
 
 on a [rectangular 2D domain](/user-guide/quick-start#domain-shape) with homogeneous Neumann (aka no-flux) [boundary conditions](/user-guide/quick-start#boundary-conditions),
 
-$$\pd{u}{x}(0) = \pd{u}{x}(L_x) = \pd{u}{y}(0) = \pd{u}{y}(L_y) = 0.$$
+$$\pd{u}{x}(0,y,t) = \pd{u}{x}(L_x,y,t) = \pd{u}{y}(x,0,t) = \pd{u}{y}(x,L_y,t) = 0.$$
 
 1. Load the [interactive simulation](/sim/?preset=heatEquation), which has been set up for this tutorial.
 
@@ -30,7 +30,7 @@ What does changing the diffusion coefficient, $D$, do?
 
 1. Now click again on the screen and see how fast this blob spreads out throughout the domain. 
 
-Explore how the speed depends on the diffusion coefficient. You can safely increase $D$ up to [VALUE] without hitting numerical problems: see the discussion on forward Euler ELSEWHERE. 
+Explore how the speed depends on the diffusion coefficient. You can safely increase $D$ up to around $D=50$ without hitting numerical problems: see the discussion on [timestepping issues](user-guide/solver#timestepping). 
 
 ### Playing with boundary conditions
 
@@ -44,5 +44,12 @@ What effect do the boundary conditions have?
 
 Explore how heat flows through the domain under these different scenarios.
 
+### Exact solutions in 1D
 
+We now explore analytical solutions in one spatial dimension. We can solve the equation to get the following solution using the initial condition,
 
+$$
+u(x,0) = \cos\left(\frac{m*\pi}{L}\right) \implies u(x,t) = e^{-D\left(\frac{m\pi}{L}\right)^2}\cos\left(\frac{m*\pi}{L}\right),
+$$
+
+with $m$ a positive integer. These solutions decay to 0 as time increases. Importantly, the rate of decay depends on the frequency of the initial perturbation $m$, with larger $m$ (or larger $D$) leading to more quickly decaying solutions. You can explore these solutions [here](/sim/?preset=heatEquation1D).
