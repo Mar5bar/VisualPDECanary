@@ -30,7 +30,7 @@ What does changing the diffusion coefficient, $D$, do?
 
 1. Now click again on the screen and see how fast this blob spreads out throughout the domain. 
 
-Explore how the speed depends on the diffusion coefficient. You can safely increase $D$ up to around $D=50$ without hitting numerical problems: see the discussion on [timestepping issues](user-guide/solver#timestepping). 
+Explore how the speed depends on the diffusion coefficient. You can safely increase $D$ up to around $D=50$ without hitting numerical problems: see the discussion on [timestepping issues](/user-guide/solver#timestepping). 
 
 ### Playing with boundary conditions
 
