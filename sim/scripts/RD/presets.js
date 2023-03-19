@@ -490,7 +490,7 @@ break;
       options = {
         boundaryConditionsU: "neumann",
         boundaryConditionsV: "neumann",
-        brushRadius: 5,
+        brushRadius: 1,
 	clearValueU: "0",
         clearValueV: "0",
         crossDiffusion: true,
@@ -500,7 +500,7 @@ break;
         diffusionStrWW: "0",
 	domainScale: 100,
         dt: 0.001,
-        kineticParams: "D=1;m=9;n=9; C=0.01;E=0.95",
+        kineticParams: "D=1;m=9;n=9; C=0.01;E=0.97",
         preset: "inhomogWaveEquation",
         reactionStrU: "v",
         reactionStrV: "0",
