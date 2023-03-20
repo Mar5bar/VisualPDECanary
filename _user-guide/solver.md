@@ -6,7 +6,7 @@ thumbnail: /assets/images/UnderTheHood.png
 extract: Under the hood of VisualPDE
 ---
 
-### Overview <a id='overview'>
+<!-- Brief overview -->
 
 ### The equations <a id='equations'>
 
@@ -17,4 +17,8 @@ extract: Under the hood of VisualPDE
 ### Boundary conditions <a id='boundary-conditions'>
 
 ### Doing this in your browser, quickly <a id='browser'>
+Solving PDEs is hard. To solve them in real time in your browser, VisualPDE gives all the hard work to the graphics chip (GPU) on your device, making use of [WebGL](https://en.wikipedia.org/wiki/WebGL) and a low-level shader language called [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language).
 
+Every time your browser requests a frame from VisualPDE (which might be up to 60 times per second), some Javascript coordinates the solving of the discrete equations, displaying the solution, and incorporating anything you've drawn, which all happen on the GPU. Each frame, we typically perform hundreds of timesteps to give you a smooth experience, mitigating the limitations of our [Forward Euler solver](#timestepping).
+
+Our implementation is freely available on [GitHub](https://github.com/Pecnut/visual-pde)
