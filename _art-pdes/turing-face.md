@@ -10,4 +10,4 @@ Functions of space can allow us to change how a PDE solution varies in space and
 
 * Load the [interactive simulation](/sim/?preset=Alan). 
 
-* You can upload your own image by clicking on {{ layout.settings }}→**Misc** and click on the image of Turing's face. The image will be effectively treated as a greyscale function $T(x,y)$ which will be approximately 1 when the image is close to white, and approximately 0 when the image is close to black.
+* You can upload your own image by clicking on {{ layout.settings }}→**Misc** and then clicking on the image of Turing's face. The image will be effectively treated as a greyscale function $T(x,y)$, which will be approximately 1 when the image is close to white and approximately 0 when the image is close to black.
