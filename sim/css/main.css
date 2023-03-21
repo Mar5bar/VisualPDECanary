@@ -116,6 +116,48 @@ canvas {
     left: 3px;
 }
 
-.close-button{
-    display:none;
+.close-button {
+    display: none;
+}
+
+p, .colourbarLabel {
+    color: #fdfdfd;
+    font: 400 2.0rem/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-feature-settings: "kern" 1;
+    -moz-font-feature-settings: "kern" 1;
+    -o-font-feature-settings: "kern" 1;
+    font-feature-settings: "kern" 1;
+}
+
+.colourbarMain {
+    display: none;
+    position: absolute;
+    bottom: 20px;
+    width: 60%;
+    height: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 2px solid #000;
+    border-radius: 5px;
+}
+
+.colourbarLabel {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+    width: fit-content;
+    color: #fff;
+}
+
+#minLabel {
+    left: 2px;
+    text-align: left;
+}
+
+#maxLabel {
+    right: 2px;
+    text-align: right;
 }

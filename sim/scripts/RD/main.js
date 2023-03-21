@@ -195,6 +195,7 @@ funsObj = {
     uniforms.minColourValue.value = options.minColourValue;
     maxColourValueController.updateDisplay();
     minColourValueController.updateDisplay();
+    updateColourbarLims();
   },
   linePlot: function () {
     options.oneDimensional = true;
@@ -360,6 +361,9 @@ function init() {
 
   // Configure the camera.
   configureCamera();
+
+  // Configure the colourbar.
+  configureColourbar();
 
   // Set the size of the domain and related parameters.
   resize();
@@ -1130,7 +1134,10 @@ function initGUI(startOpen) {
         Turbo: "turbo",
         BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
       })
-      .onChange(setDisplayColourAndType)
+      .onChange(function () {
+        setDisplayColourAndType();
+        configureColourbar();
+      })
       .name("Colourmap");
   }
   if (inGUI("minColourValue")) {
@@ -1139,6 +1146,7 @@ function initGUI(startOpen) {
       .name("Min value")
       .onChange(function () {
         updateUniforms();
+        updateColourbarLims();
         render();
       });
     minColourValueController.__precision = 2;
@@ -1149,6 +1157,7 @@ function initGUI(startOpen) {
       .name("Max value")
       .onChange(function () {
         updateUniforms();
+        updateColourbarLims();
         render();
       });
     maxColourValueController.__precision = 2;
@@ -1168,6 +1177,12 @@ function initGUI(startOpen) {
           render();
         }
       });
+  }
+  if (inGUI("colourbar")) {
+    root
+      .add(options, "colourbar")
+      .name("Colourbar")
+      .onChange(configureColourbar);
   }
   if (inGUI("backgroundColour")) {
     root
@@ -1273,6 +1288,9 @@ function animate() {
 function setDrawAndDisplayShaders() {
   // Configure the display material.
   setDisplayColourAndType();
+
+  // Configure the colourbar.
+  configureColourbar();
 
   // Configure the postprocessing material.
   updateWhatToPlot();
@@ -2701,3 +2719,90 @@ function setKineticStringFromParams() {
   setClearShader();
   updateWhatToPlot();
 }
+
+function configureColourbar() {
+  if (options.colourbar) {
+    $("#colourbar").show();
+    let cString = "linear-gradient(90deg, ";
+    cString +=
+      "rgb(" +
+      uniforms.colour1.value
+        .toArray()
+        .slice(0, -1)
+        .map((x) => x * 255)
+        .toString() +
+      ") 0%,";
+    cString +=
+      "rgb(" +
+      uniforms.colour2.value
+        .toArray()
+        .slice(0, -1)
+        .map((x) => x * 255)
+        .toString() +
+      ") 25%,";
+    cString +=
+      "rgb(" +
+      uniforms.colour3.value
+        .toArray()
+        .slice(0, -1)
+        .map((x) => x * 255)
+        .toString() +
+      ") 50%,";
+    cString +=
+      "rgb(" +
+      uniforms.colour4.value
+        .toArray()
+        .slice(0, -1)
+        .map((x) => x * 255)
+        .toString() +
+      ") 75%,";
+    cString +=
+      "rgb(" +
+      uniforms.colour5.value
+        .toArray()
+        .slice(0, -1)
+        .map((x) => x * 255)
+        .toString() +
+      ") 100%";
+    cString += ")";
+    $("#colourbar").css("background", cString);
+    updateColourbarLims();
+  } else {
+    $("#colourbar").hide();
+  }
+}
+
+function updateColourbarLims() {
+  $("#minLabel").html(formatLabelNum(options.minColourValue));
+  $("#maxLabel").html(formatLabelNum(options.maxColourValue));
+  if (
+    uniforms.colour1.value
+      .toArray()
+      .slice(0, -1)
+      .reduce((a, b) => a + b, 0) < 0.7
+  ) {
+    // If the background colour is closer to black than white, set
+    // the label to be white.
+    $("#minLabel").css("color", "#fff");
+  } else {
+    $("#minLabel").css("color", "#000");
+  }
+  if (
+    uniforms.colour5.value
+      .toArray()
+      .slice(0, -1)
+      .reduce((a, b) => a + b, 0) < 0.7
+  ) {
+    // If the background colour is closer to black than white, set
+    // the label to be white.
+    $("#maxLabel").css("color", "#fff");
+  } else {
+    $("#maxLabel").css("color", "#000");
+  }
+}
+
+function formatLabelNum(num) {
+  return num.toFixed(2);
+}
+
+$("#simCanvas").one("pointerdown touchstart", fadeoutTryClicking);
