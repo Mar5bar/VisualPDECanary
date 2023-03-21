@@ -1088,6 +1088,7 @@ function initGUI(startOpen) {
       .onChange(function () {
         configureGUI();
         configureCamera();
+        render();
       });
   }
   if (inGUI("threeDHeightScale")) {
