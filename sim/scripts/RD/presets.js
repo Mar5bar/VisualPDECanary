@@ -893,6 +893,7 @@ break;
         clearValueU: "1.0",
         clearValueV: "0",
         clearValueW: "0",
+        colourbar: false,
         colourmap: "turbo",
         crossDiffusion: false,
         diffusionStrUU: "0.000004",
