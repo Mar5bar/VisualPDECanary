@@ -15,8 +15,3 @@ $$\begin{aligned}\pd{u}{t}&=\nabla\cdot(D_{uu}\nabla u+D_{uv}\nabla v)+f(u,v),\\
 * Load the [interactive simulation](/sim/?preset=CrossDiffusion). 
 
 
-# Spiral wave patterns
-
-* Next we consider the reaction kinetics:
-
-$$ f(u,v) = r-pu^2+u^2v, \quad g(u,v) = pu^2+u^2v-\frac{v}{q+v}.$$
