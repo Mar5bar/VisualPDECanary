@@ -1,7 +1,7 @@
 ---
 layout: page
 title: The VisualPDE solver
-lesson_number: 20
+lesson_number: 30
 thumbnail: /assets/images/UnderTheHood.png
 extract: Under the hood of VisualPDE
 ---

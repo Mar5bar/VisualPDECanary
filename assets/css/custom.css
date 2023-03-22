@@ -266,3 +266,13 @@ a.collection::after{
 .post-content h2, .post-content h3{
     margin-top:3rem;
 }
+
+.post-content li {
+    margin-top:0.5rem;
+}
+span.click_sequence{
+    display:block;
+    margin-left:2rem;
+    margin-top:0.5rem;
+    margin-bottom:0.3rem;
+}
