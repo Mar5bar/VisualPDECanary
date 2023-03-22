@@ -378,14 +378,14 @@ function init() {
   // Configure the camera.
   configureCamera();
 
-  // Configure the colourbar.
-  configureColourbar();
-
   // Set the size of the domain and related parameters.
   resize();
 
   // Create a GUI.
   initGUI();
+
+  // Configure the GUI.
+  configureGUI();
 
   // Set up the problem.
   updateProblem();
@@ -850,6 +850,12 @@ function initGUI(startOpen) {
     dtController.min(0);
     dtController.updateDisplay();
   }
+  if (inGUI("timeDisplay")) {
+    root
+      .add(options, "timeDisplay")
+      .name("Show time")
+      .onChange(configureTimeDisplay);
+  }
 
   // Equations folder.
   if (inGUI("equationsFolder")) {
@@ -1310,6 +1316,7 @@ function animate() {
       timestep();
       uniforms.time.value += options.dt;
     }
+    updateTimeDisplay();
   }
 
   // Render if something has happened.
@@ -1568,6 +1575,7 @@ function playSim() {
 function resetSim() {
   clearTextures();
   uniforms.time.value = 0.0;
+  updateTimeDisplay();
 }
 
 function parseReactionStrings() {
@@ -2536,6 +2544,8 @@ function configureGUI() {
     hideGUIController(cameraZoomController);
     hideGUIController(drawIn3DController);
   }
+  configureColourbar();
+  configureTimeDisplay();
   // Refresh the GUI displays.
   refreshGUI(leftGUI);
   refreshGUI(rightGUI);
@@ -2848,8 +2858,8 @@ function configureColourbar() {
 }
 
 function updateColourbarLims() {
-  $("#minLabel").html(formatLabelNum(options.minColourValue));
-  $("#maxLabel").html(formatLabelNum(options.maxColourValue));
+  $("#minLabel").html(formatLabelNum(options.minColourValue, 2));
+  $("#maxLabel").html(formatLabelNum(options.maxColourValue, 2));
   if (
     uniforms.colour1.value
       .toArray()
@@ -2876,8 +2886,22 @@ function updateColourbarLims() {
   }
 }
 
-function formatLabelNum(num) {
-  return num.toFixed(2);
+function formatLabelNum(num, depth) {
+  return num.toPrecision(depth);
+}
+
+function configureTimeDisplay() {
+  if (options.timeDisplay) {
+    $("#timeDisplay").show();
+  } else {
+    $("#timeDisplay").hide();
+  }
+}
+
+function updateTimeDisplay() {
+  if (options.timeDisplay) {
+    $("#timeLabel").html("t = " + formatLabelNum(uniforms.time.value,3));
+  }
 }
 
 $("#simCanvas").one("pointerdown touchstart", fadeoutTryClicking);

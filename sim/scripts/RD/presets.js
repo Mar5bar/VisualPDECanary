@@ -941,6 +941,7 @@ break;
         suppressTryClickingPopup: false,
         threeD: false,
         threeDHeightScale: 0.3,
+        timeDisplay: false,
         typeOfBrush: "circle",
         whatToDraw: "v",
         whatToPlot: "v",
