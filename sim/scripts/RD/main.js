@@ -691,7 +691,7 @@ function initUniforms() {
     textureSource: {
       type: "t",
     },
-    time: {
+    t: {
       type: "f",
       value: 0.0,
     },
@@ -1325,7 +1325,7 @@ function animate() {
     // Perform a number of timesteps per frame.
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
       timestep();
-      uniforms.time.value += options.dt;
+      uniforms.t.value += options.dt;
     }
     updateTimeDisplay();
   }
@@ -1585,7 +1585,7 @@ function playSim() {
 
 function resetSim() {
   clearTextures();
-  uniforms.time.value = 0.0;
+  uniforms.t.value = 0.0;
   updateTimeDisplay();
   // Start a timer that checks for NaNs every second.
   checkForNaN();
@@ -2916,7 +2916,7 @@ function configureTimeDisplay() {
 
 function updateTimeDisplay() {
   if (options.timeDisplay) {
-    let str = formatLabelNum(uniforms.time.value, 3);
+    let str = formatLabelNum(uniforms.t.value, 3);
     str = str.replace(/e(\+)*(\-)*([0-9]*)/, " x 10<sup>$2$3<sup>");
     $("#timeLabel").html("t = " + str);
   }
