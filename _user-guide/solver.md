@@ -16,10 +16,10 @@ $$\begin{aligned}
     \textstyle \pd{u}{t} &= \vnabla \cdot(D_u\vnabla u) + f\\
     \textstyle \pd{v}{t} &= \vnabla \cdot(D_v\vnabla v) + g.
 \end{aligned}$$
-Here, $u$ and $v$ are the scalar fields that we solve for, $t$ is time, and the divergence and gradient operators are the usual spatial operators in a 2D Euclidean domain. In general, the reaction kinetics, $f$ and $g$, and the diffusion coefficients, $D_u$ and $D_v$, can each be functions of time, space, and the scalar fields, though we often don't explicitly write these potential dependencies.
+Here, $u$ and $v$ are the scalar fields that we solve for, $t$ is time, and the divergence and gradient operators are the usual spatial operators in a 2D Euclidean domain. In general, the reaction kinetics ($f$ and $g$) and the diffusion coefficients ($D_u$ and $D_v$) can each be functions of time, space, and the scalar fields, though we often don't explicitly write these potential dependencies.
 
 ### The domain <a id='domain'>
-A PDE problem is not well-posed without specifying a domain (or [boundary conditions](#boundary-conditions)). We typically determine the domain $\domain$ from the size of your device, fixing the largest side to be of length $L$ and maintaining an aspect ratio of 1:1. As most screens are not square, we also provide a toggle {{ layout.settings }}→**Domain**→**Square**, just in case you insist on having a square domain.
+A PDE problem is not well-posed without specifying a domain (or [boundary conditions](#boundary-conditions)). We typically determine the domain $\domain$ from the size of your device, fixing the largest side to be of length $L$ and maintaining an aspect ratio of 1:1. As most screens are not square, we also provide a toggle under {{ layout.settings }}→**Domain**→**Square**, just in case we want to have a square domain.
 
 However, not all domains are rectangular. 
 
