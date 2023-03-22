@@ -412,7 +412,7 @@ function init() {
       target.nodeType == 1 ? target.nodeName.toUpperCase() : "";
     if (!/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
       if (event.key === "r") {
-        funsObj.reset();
+        $("#erase").click();
       }
       if (event.key === " ") {
         if (isRunning) {
@@ -1576,6 +1576,8 @@ function resetSim() {
   clearTextures();
   uniforms.time.value = 0.0;
   updateTimeDisplay();
+  // Start a timer that checks for NaNs every second.
+  checkForNaN();
 }
 
 function parseReactionStrings() {
@@ -2900,10 +2902,33 @@ function configureTimeDisplay() {
 
 function updateTimeDisplay() {
   if (options.timeDisplay) {
-    let str = formatLabelNum(uniforms.time.value,3);
-    str = str.replace(/e(\+)*(\-)*([0-9]*)/, " x 10<sup>$2$3<\sup>");
+    let str = formatLabelNum(uniforms.time.value, 3);
+    str = str.replace(/e(\+)*(\-)*([0-9]*)/, " x 10<sup>$2$3<sup>");
     $("#timeLabel").html("t = " + str);
   }
+}
+
+function checkForNaN() {
+  // Check to see if a NaN value is in the first entry of the simulation array, which would mean that we've hit overflow or instability.
+  let vals = getMinMaxVal();
+  if (!isFinite(vals[0]) || !isFinite(vals[0])) {
+    $("#oops_hit_nan").addClass("fading_in");
+    $("#erase").one("click", fadeoutOops);
+  } else {
+    setTimeout(checkForNaN, 1000);
+  }
+}
+
+function fadeoutOops() {
+  let id = "#oops_hit_nan";
+  $(id).removeClass("fading_in");
+  $(id).addClass("fading_out");
+  $(id).bind(
+    "webkitTransitionEnd oTransitionEnd transitionend msTransitionEnd",
+    function () {
+      $(this).removeClass("fading_out");
+    }
+  );
 }
 
 $("#simCanvas").one("pointerdown touchstart", fadeoutTryClicking);

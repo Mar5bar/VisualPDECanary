@@ -199,7 +199,7 @@ canvas {
 }
 
 #try_clicking {
-    top: 0px;
+    top: 20px;
     left: 50%;
     position: absolute;
     transform: translateX(-50%);
@@ -208,14 +208,41 @@ canvas {
     pointer-events: none;
 }
 
-#try_clicking.fading_in {
-    opacity: 100%;
+.message {
+    transform: translateX(-50%) translateY(-50%);
+    opacity: 0;
+    transition-property: opacity;
+    background-color: #000;
+    border: 2px solid #000;
+    border-radius: 10px;
+    text-align: center;
+    pointer-events: none;
+    padding: 0 5px;
+}
+
+.message p {
+    margin: 0;
+    padding: 0;
+    font-size: 1.5rem;
+}
+
+#oops_hit_nan {
+    top: 50%;
+    width: 80%;
+    left: 50%;
+    position: absolute;
+    background-color: transparent;
+    border: none;
+}
+
+.fading_in {
+    opacity: 100% !important;
     transition-duration: 3s;
     transition-delay: 1s;
 }
 
-#try_clicking.fading_out {
-    opacity: 0%;
+.fading_out {
+    opacity: 0% !important;
     transition-duration: 1s;
 }
 
