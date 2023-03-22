@@ -896,36 +896,42 @@ function initGUI(startOpen) {
     DuuController = root
       .add(options, "diffusionStrUU")
       .name("$D_{uu}$")
+      .title("function of u, v, w, t")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrUV")) {
     DuvController = root
       .add(options, "diffusionStrUV")
       .name("$D_{uv}$")
+      .title("function of u, v, w, t")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrUW")) {
     DuwController = root
       .add(options, "diffusionStrUW")
       .name("$D_{uw}$")
+      .title("function of u, v, w, t")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVU")) {
     DvuController = root
       .add(options, "diffusionStrVU")
       .name("$D_{vu}$")
+      .title("function of u, v, w, t")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVV")) {
     DvvController = root
       .add(options, "diffusionStrVV")
       .name("$D_{vv}$")
+      .title("function of u, v, w, t")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrVW")) {
     DvwController = root
       .add(options, "diffusionStrVW")
       .name("$D_{vw}$")
+      .title("function of u, v, w, t")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrWU")) {
@@ -938,31 +944,36 @@ function initGUI(startOpen) {
     DwvController = root
       .add(options, "diffusionStrWV")
       .name("$D_{wv}$")
+      .title("function of u, v, w, t")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("diffusionStrWW")) {
     DwwController = root
       .add(options, "diffusionStrWW")
       .name("$D_{ww}$")
+      .title("function of u, v, w, t")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrU")) {
     // Custom f(u,v) and g(u,v).
     fController = root
       .add(options, "reactionStrU")
-      .name("$f(u,v,w)$")
+      .name("$f$")
+      .title("function of u, v, w, t")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrV")) {
     gController = root
       .add(options, "reactionStrV")
-      .name("$g(u,v,w)$")
+      .name("$g$")
+      .title("function of u, v, w, t")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("reactionStrW")) {
     hController = root
       .add(options, "reactionStrW")
-      .name("$h(u,v,w)$")
+      .name("$h$")
+      .title("function of u, v, w, t")
       .onFinishChange(setRDEquations);
   }
   parametersFolder = leftGUI.addFolder("Parameters");
@@ -2035,9 +2046,12 @@ function showGUIController(cont) {
   }
 }
 
-function setGUIControllerName(cont, str) {
+function setGUIControllerName(cont, str, title) {
   if (cont != undefined) {
     cont.name(str);
+    if (title != undefined){
+      cont.title(title);
+    }
   }
 }
 
@@ -2390,8 +2404,8 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D$");
-      setGUIControllerName(fController, "$f(u)$");
+      setGUIControllerName(DuuController, "$D$", "function of u, t");
+      setGUIControllerName(fController, "$f$", "function of u, t");
 
       break;
 
@@ -2409,10 +2423,10 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_u$");
-      setGUIControllerName(DvvController, "$D_v$");
-      setGUIControllerName(fController, "$f(u,v)$");
-      setGUIControllerName(gController, "$g(u,v)$");
+      setGUIControllerName(DuuController, "$D_u$", "function of u, v, t");
+      setGUIControllerName(DvvController, "$D_v$", "function of u, v, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, t");
 
       break;
 
@@ -2430,10 +2444,10 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$");
-      setGUIControllerName(DvvController, "$D_{vv}$");
-      setGUIControllerName(fController, "$f(u,v)$");
-      setGUIControllerName(gController, "$g(u,v)$");
+      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, t");
+      setGUIControllerName(DvvController, "$D_{vv}$", "function of u, v, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, t");
       break;
 
     case 3:
@@ -2452,9 +2466,9 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$");
-      setGUIControllerName(fController, "$f(u,v)$");
-      setGUIControllerName(gController, "$g(u)$");
+      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, t");
+      setGUIControllerName(gController, "$g$", "function of u, t");
       break;
 
     case 4:
@@ -2471,12 +2485,12 @@ function configureGUI() {
       hideGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_u$");
-      setGUIControllerName(DvvController, "$D_v$");
-      setGUIControllerName(DwwController, "$D_w$");
-      setGUIControllerName(fController, "$f(u,v,w)$");
-      setGUIControllerName(gController, "$g(u,v,w)$");
-      setGUIControllerName(hController, "$h(u,v,w)$");
+      setGUIControllerName(DuuController, "$D_u$", "function of u, v, w, t");
+      setGUIControllerName(DvvController, "$D_v$", "function of u, v, w, t");
+      setGUIControllerName(DwwController, "$D_w$", "function of u, v, w, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, w, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, w, t");
       break;
 
     case 5:
@@ -2494,12 +2508,12 @@ function configureGUI() {
       showGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$");
-      setGUIControllerName(DvvController, "$D_{vv}$");
-      setGUIControllerName(DwwController, "$D_{ww}$");
-      setGUIControllerName(fController, "$f(u,v,w)$");
-      setGUIControllerName(gController, "$g(u,v,w)$");
-      setGUIControllerName(hController, "$h(u,v,w)$");
+      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, w, t");
+      setGUIControllerName(DvvController, "$D_{vv}$", "function of u, v, w, t");
+      setGUIControllerName(DwwController, "$D_{ww}$", "function of u, v, w, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, w, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, w, t");
       break;
 
     case 6:
@@ -2518,11 +2532,11 @@ function configureGUI() {
       showGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$");
-      setGUIControllerName(DvvController, "$D_{vv}$");
-      setGUIControllerName(fController, "$f(u,v,w)$");
-      setGUIControllerName(gController, "$g(u,v,w)$");
-      setGUIControllerName(hController, "$h(u,v)$");
+      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, w, t");
+      setGUIControllerName(DvvController, "$D_{vv}$", "function of u, v, w, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, w, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, t");
       break;
   }
   if (options.domainViaIndicatorFun) {
