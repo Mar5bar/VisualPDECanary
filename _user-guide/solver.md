@@ -12,10 +12,10 @@ We are always looking for ways to improve and extend VisualPDE, especially ways 
 
 ### The equations <a id='equations'>
 VisualPDE can solve a variety of PDE systems posed in 2D space, many of which are straightforward extensions of the two-species reaction-diffusion system
-$\begin{aligned}
+$$\begin{aligned}
     \textstyle \pd{u}{t} &= \vnabla \cdot(D_u\vnabla u) + f\\
     \textstyle \pd{v}{t} &= \vnabla \cdot(D_v\vnabla v) + g.
-\end{aligned}$
+\end{aligned}$$
 Here, $u$ and $v$ are the scalar fields that we solve for, $t$ is time, and the divergence and gradient operators are the usual spatial operators in a 2D Euclidean domain. In general, the reaction kinetics, $f$ and $g$, and the diffusion coefficients, $D_u$ and $D_v$, can each be functions of time, space, and the scalar fields, though we often don't explicitly write these potential dependencies.
 
 ### The domain <a id='domain'>
