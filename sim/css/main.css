@@ -281,3 +281,7 @@ p, .colourbarLabel, .timeLabel  {
     font-variant-numeric: tabular-nums;
     color: #fff;
 }
+
+sup {
+    line-height: 0;
+}

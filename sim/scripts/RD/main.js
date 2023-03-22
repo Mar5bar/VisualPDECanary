@@ -2900,7 +2900,9 @@ function configureTimeDisplay() {
 
 function updateTimeDisplay() {
   if (options.timeDisplay) {
-    $("#timeLabel").html("t = " + formatLabelNum(uniforms.time.value,3));
+    let str = formatLabelNum(uniforms.time.value,3);
+    str = str.replace(/e(\+)*(\-)*([0-9]*)/, " x 10<sup>$2$3<\sup>");
+    $("#timeLabel").html("t = " + str);
   }
 }
 
