@@ -1,7 +1,7 @@
 ---
 layout: page
 title: What can VisualPDE solve?
-lesson_number: 20
+lesson_number: 30
 thumbnail: /assets/images/squirrel.png
 extract: A brief intro to the systems we simulate here
 ---
@@ -22,9 +22,20 @@ $$\begin{aligned}
 \text{or}\left\{\begin{matrix}\displaystyle\pd{w}{t} \\ w\end{matrix}\right. & 
 \begin{aligned}
     &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w) + h \vphantom{\displaystyle\pd{w}{t}}, \\
-    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v) + h,
+    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v) + h.
 \end{aligned}
 \end{aligned}$$
+
+In matrix form, we can summarise this by saying we solve systems of the form
+
+$$\m{M} \pd{\v{u}}{t} = \vnabla\cdot(\m{D}\vnabla\v{u}) + \v{f},$$
+
+where
+
+* $\v{u}$ is a vector of one, two or three components,
+* $\m{M}$ is either the identity or identity with one zero; you might know this as a 'mass matrix',
+* $\m{D}$ is a possibly nonlinear matrix which may contain zeros; you might know this as a 'diffusion tensor',
+* $\v{f}$ is a vector of one, two or three components that contains our interaction or kinetic terms.
 
 VisualPDE allows you to easily change the [number of components](quick-start#equations) and the [boundary conditions](quick-start#boundary-conditions). You can set initial conditions just by tapping the screen.
 

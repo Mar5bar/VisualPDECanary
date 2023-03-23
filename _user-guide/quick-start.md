@@ -14,7 +14,7 @@ Pressing {{ layout.equations }} opens up the **equations panel**.
 {: refdef}
 
 Here you can:
-* See the equation being simulated, here $\pd{u}{t} = \vnabla\cdot(D\vnabla u) + f$.
+* See the [equation being simulated](#equations), here $\pd{u}{t} = \vnabla\cdot(D\vnabla u) + f$.
 * Set the named functions in the equations, here $D$ and $f$. These can be functions of any component and time (here $u$ and $t$), and of any parameters which will be defined further down the panel.
 * Set the value of any extra parameters
 * Set the [boundary conditions](#boundary-conditions)
