@@ -78,7 +78,7 @@ Choose the expression that you want to be used to colour the domain, which can b
 Set the resolution at which your browser renders the simulation. This only impacts on displaying the solution and is completely independent of the spatial discretisation. In surface plots, increase the resolution to render the surface more smoothly.
 
 **Line plot**\
-Click to configure the camera to show you a quasi-line plot, which enforces a 1D domain. In practice, this is a surface plot viewed almost from the side. In the default view, you may find it difficult to paint onto the domain (requires a 3D-enabled brush) - rotating the viewpoint can rectify this at the expense of a line-like appearance.
+Click to configure the camera to show you a quasi-line plot, which enforces a 1D domain. In practice, this is a surface plot viewed almost from the side. In the default view, you may find it difficult to paint onto the domain (requires a 3D-enabled brush) – rotating the viewpoint can rectify this at the expense of a line-like appearance.
 
 **Surface plot**\
 Plot the solution as a surface. The height is determined by the chosen **Expression**, the limits of the colour axis, and the **Max height** parameter. The limits of the colour axis specify the values at which the height of the surface is capped.
@@ -105,7 +105,7 @@ Click to instantly snap **Min value** and **Max value** to the current minimum a
 **Auto snap**\
 Toggle the automatic snapping of the colourmap limits. This can be very useful if you don't know the range in which **Expression** will fall, especially if it is changing frequently.
 
-**Color bar**\
+**Colour bar**\
 Toggle the display of the current colour bar and limits.
 
 **Background**\
