@@ -7,23 +7,27 @@ extract: A glossary of all the features you can play with
 ---
 
 ### Share your simulation <a id='copy-url'>
-##### Copy URL
 **Copy URL**\
 Share a link to the simulation you have created. This copies the URL to your clipboard and includes all the settings, but not the current solution.
 
-* <span class='click_sequence'>{{ layout.settings }} → **Copy code**</span>
+**Copy code**\
 Copy a more verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples.
 
 ### Brush <a id='brush'>
-Paint values onto the canvas by clicking/touching the domain. 
+**Type**\
+Change the shape of the brush, choosing between **Circle**, **Horizontal line**, and **Vertical line**.
 
-* <span class='click_sequence'>{{ layout.settings }} → **Brush** → **Type**</span>
-* You can change the **brush shape** by selecting from <span class='click_sequence'>{{ layout.settings }} → **Brush** → **Type**</span>
-* Change the **value** that you are painting by selecting <span class='click_sequence'>{{ layout.settings }} → **Brush** → **Value**</span>\
-This can be a function of $x$, $y$, $t$, any of the unknowns, and 'RAND', a uniformly random value in $[0,1]$.
-* Change the **brush size** by selecting <span class='click_sequence'>{{ layout.settings }} → **Brush** → **Radius**</span>
-* Change the **species** ($u$, $v$, $w$) you are painting by selecting from <span class='click_sequence'>{{ layout.settings }} → **Brush** → **Species**</span>
-* (Surface plot only) Allow yourself to draw while viewing the solution as a surface using <span class='click_sequence'>{{ layout.settings }} → **Brush** → **3D enabled**</span>
+**Value**\
+Change the **value** that you are painting. This can be a function of $x$, $y$, $t$, any of the unknowns, and 'RAND', a uniformly random value in $[0,1]$.
+
+**Radius**\
+Change the brush size, relative to the configured domain size.
+
+**Species**\
+Set the **species** ($u$, $v$, $w$) you are painting.
+
+**3D enabled**\
+Allow yourself to draw while viewing the solution as a surface (surface plot only).
 
 ### Domain <a id='domain'>
 VisualPDE offers a number of options for customising the domain $\domain$.
