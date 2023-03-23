@@ -86,8 +86,8 @@ Plot the solution as a surface. The height is determined by the chosen **Express
 **Max height**\
 The maximum height of a plotted surface, relative to the size $L$ of the domain. Changing this parameter effectively makes the surface variation more/less prominent.
 
-**View $\theta$; View $\phi$**\
-[Euler angles](https://en.wikipedia.org/wiki/Euler_angles) specifying the current 3D viewpoint, with $\theta\in[0,\pi]$ and $\phi\in[0,2\pi]$. As Euler angles [don't do a perfect job](https://en.wikipedia.org/wiki/Gimbal_lock) of describing orientations, this you may find that a viewpoint loaded in from a URL isn't quite what you expected, but only if you were looking at the surface from far behind and underneath the default view. You can manipulate these values either by inputting new values, or see them update as you rotate the viewpoint with your pointer (click and drag).
+**View $\theta$/$\phi$**\
+[Euler angles](https://en.wikipedia.org/wiki/Euler_angles) specifying the current 3D viewpoint, with $\theta\in[0,\pi]$ and $\phi\in[0,2\pi]$. As Euler angles [don't do a perfect job](https://en.wikipedia.org/wiki/Gimbal_lock) of describing orientations, you may find that a viewpoint loaded in from a URL isn't quite what you expected, but only if you were looking at the surface from far behind and underneath the default view. You can manipulate these values either by inputting new values, or see them update as you rotate the viewpoint with your pointer (click and drag).
 
 **Zoom**\
 The current zoom level of the 3D view. You can manipulate the value directly or, on touch devices, by 'pinching to zoom'.
