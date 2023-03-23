@@ -2,7 +2,7 @@
 layout: page
 title: Advanced options
 lesson_number: 40
-thumbnail: /assets/images/Brusselator.png
+thumbnail: /assets/images/Brusselator.PNG
 extract: A glossary of the additional features you can play with
 ---
 
