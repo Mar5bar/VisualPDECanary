@@ -21,18 +21,18 @@ Here you can:
 
 ### Domain shape <a id='domain-shape'>
 
-The default **domain** for solving PDEs is a 2D rectangle, $\Omega = [0,L_x]\times[0,L_y]$, which fits the size of your browser window or phone screen. Throughout VisualPDE, we use coordinates $x\in[0,L_x]$ and $y\in[0,L_y]$.
+The default **domain** for solving PDEs is a 2D rectangle, $\domain = [0,L_x]\times[0,L_y]$, which fits the size of your browser window or phone screen. Throughout VisualPDE, we use coordinates $x\in[0,L_x]$ and $y\in[0,L_y]$.
 
-You can force the domain to be square, $\Omega = [0,L]\times[0,L]$, by toggling <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Square**</span>
+You can force the domain to be square, $\domain = [0,L]\times[0,L]$, by toggling <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Square**</span>
 
 ### Boundary conditions <a id='boundary-conditions'>
 
-The following **boundary conditions** are available to allow you to set the value of the function, or the value of its derivative, along the boundary $\partial \Omega$ of the domain $\Omega$:
+The following **boundary conditions** are available to allow you to set the value of the function, or the value of its derivative, along the boundary $\boundary$ of the domain $\domain$:
 
 * Periodic
-* [Dirichlet](https://en.wikipedia.org/wiki/Dirichlet_boundary_condition) (e.g. $u\|_{\partial \Omega} = 0$)
-* [Neumann](https://en.wikipedia.org/wiki/Neumann_boundary_condition) (e.g. $\pd{u}{n}\|_{\partial \Omega} = 0$)
-* [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition) (e.g. $(u + \pd{u}{n})\|\_{\partial \Omega} = 0$)
+* [Dirichlet](https://en.wikipedia.org/wiki/Dirichlet_boundary_condition) (e.g. $u\onboundary = 0$)
+* [Neumann](https://en.wikipedia.org/wiki/Neumann_boundary_condition) (e.g. $\pd{u}{n}\onboundary = 0$)
+* [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition) (e.g. $(u + \pd{u}{n})\|\onboundary = 0$)
 
 You can swap between boundary conditions by choosing <span class='click_sequence'>{{ layout.equations }} → **Boundary conditions**</span> and selecting from the list for each variable.
 
