@@ -186,7 +186,7 @@ funsObj = {
   setColourRange: function () {
     let valRange = getMinMaxVal();
     if (Math.abs(valRange[0] - valRange[1]) < 0.005) {
-      // If the range is just one value, make the range width 1 centered on the given value.
+      // If the range is just one value, make the range width equal to 0.005 centered on the given value.
       const meanVal = (valRange[0] + valRange[1]) / 2;
       valRange[0] = meanVal - 0.0025;
       valRange[1] = meanVal + 0.0025;
