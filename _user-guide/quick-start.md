@@ -15,13 +15,13 @@ Pressing {{ layout.equations }} opens up the **equations panel**.
 
 Here you can:
 * See the [equation being simulated](#equations), here $\pd{u}{t} = \vnabla\cdot(D\vnabla u) + f$.
-* Set the named functions in the equations, here $D$ and $f$. These can be functions of any component and time (here $u$ and $t$), and of any parameters which will be defined further down the panel.
+* Set the named functions in the equations, here $D$ and $f$. These can be functions of any of the unknowns, space, and time (here $u$, $x$, $y$, and $t$), and of any parameters that will be defined further down the panel.
 * Set the value of any extra parameters
 * Set the [boundary conditions](#boundary-conditions)
 
 ### Domain shape <a id='domain-shape'>
 
-The default **domain** for solving PDEs is a 2D rectangle, $\Omega = [0,L_x]\times[0,L_y]$, which fits the size of your browser window or phone screen.
+The default **domain** for solving PDEs is a 2D rectangle, $\Omega = [0,L_x]\times[0,L_y]$, which fits the size of your browser window or phone screen. Throughout VisualPDE, we use coordinates $x\in[0,L_x]$ and $y\in[0,L_y]$.
 
 You can force the domain to be square, $\Omega = [0,L]\times[0,L]$, by toggling <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Square**</span>
 
@@ -42,9 +42,9 @@ The simplest system VisualPDE can solve is a single PDE,
 
 $$\pd{u}{t} = \vnabla \cdot (D \vnabla u) + f,$$
 
-where $D$ and $f$ are functions of $u$ and $t$ you can specify.
+where $D$ and $f$ are functions of $u$, $x$, $y$, and $t$ that you can specify.
 
-The most complicated type is a system of PDEs in three components, $u$, $v$ and $w$:
+The most complicated type is a system of PDEs in three unknowns, $u$, $v$ and $w$:
 
 $$\begin{aligned}
 \pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w) + f,\\
@@ -56,9 +56,9 @@ $$\begin{aligned}
 \end{aligned}
 \end{aligned}$$
 
-where $D_{uu}, \dots,  D_{ww}$ and $f$, $g$ and $h$ are functions of $u$, $v$, $w$ and $t$ that you can specify.
+where $D_{uu}, \dots,  D_{ww}$ and $f$, $g$ and $h$ are functions of $u$, $v$, $w$, $x$, $y$, and $t$ that you can specify.
 
-* You can change the number of components by choosing <span class='click_sequence'>{{ layout.settings }} → **Equations** → **No. species**</span>
-* In systems of multiple components, you can include terms representing cross-diffusion (e.g. $D_{uv}$, $D_{vu}$) by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Cross**</span>
-* In systems of multiple components, you can choose between a differential or algebraic equation for the final component (e.g. '$\partial w/\partial t=$' or '$w=$') by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Algebraic w?** (or **v?**)</span>
+* You can change the number of unknowns by choosing <span class='click_sequence'>{{ layout.settings }} → **Equations** → **No. species**</span>
+* In systems of multiple unknowns, you can include terms representing cross-diffusion (e.g. $D_{uv}$, $D_{vu}$) by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Cross**</span>
+* In systems of multiple unknowns, you can choose between a differential or algebraic equation for the final component (e.g. '$\partial w/\partial t=$' or '$w=$') by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Algebraic w?** (or **v?**)</span>
 

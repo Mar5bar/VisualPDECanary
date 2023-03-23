@@ -11,19 +11,19 @@ VisualPDE aims to be a plug-and-play, browser-based solver and visualiser for a 
 We are always looking for ways to improve and extend VisualPDE, especially ways of reaching a broader audience and new communities. If you have any questions or suggestions about anything related to VisualPDE, we'd love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com)!
 
 ### The equations <a id='equations'>
-VisualPDE can solve a variety of PDE systems posed in 2D space, many of which are straightforward extensions of the two-species reaction–diffusion system,
+VisualPDE can solve a variety of PDE systems posed in 1D or 2D space, many of which are straightforward extensions of the two-species reaction–diffusion system,
 
 $$\begin{aligned}
     \textstyle \pd{u}{t} &= \vnabla \cdot(D_u\vnabla u) + f,\\
     \textstyle \pd{v}{t} &= \vnabla \cdot(D_v\vnabla v) + g.
 \end{aligned}$$
 
-Here, $u$ and $v$ are the scalar fields that we solve for, $t$ is time, and the divergence and gradient operators are the usual spatial operators in a 2D Euclidean domain. In general, the reaction kinetics ($f$ and $g$) and the diffusion coefficients ($D_u$ and $D_v$) can each be functions of time, space, and the scalar fields, though we often don't explicitly write these potential dependencies.
+Here, $u$ and $v$ are the scalar unknowns that we solve for, $t$ is time, and the divergence and gradient operators are the usual spatial operators in a 2D Euclidean domain. In general, the interaction/kinetic terms ($f$ and $g$) and the diffusion coefficients ($D_u$ and $D_v$) can each be functions of time, space, and the unknowns, though we often don't explicitly write these potential dependencies. See [here](what-can-visualpde-solve) for a comprehensive summary of the types of PDEs that VisualPDE can solve.
 
 ### The domain <a id='domain'>
-A PDE problem is not well-posed without specifying a domain (or [boundary conditions](#boundary-conditions)). We typically determine the domain $\domain$ from the size of your device, fixing the largest side to be of length $L$ and maintaining an aspect ratio of 1:1. As most screens are not square, we also provide a toggle under <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Square**</span> just in case we want to have a square domain.
+A PDE problem is not well-posed without specifying a domain (or [boundary conditions](#boundary-conditions)). We typically determine the domain $\domain$ from the size of your device, fixing the largest side to be of length $L$ and maintaining an aspect ratio of 1:1. As most screens are not square, we also provide a toggle under <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Square**</span> just in case a square domain is needed.
 
-However, not all domains are rectangular. 
+However, not all domains are rectangular. To accommodate this, VisualPDE allows you to specify an arbitrary domain via a [level-set](https://en.wikipedia.org/wiki/Level-set_method) or [indicator function](https://en.wikipedia.org/wiki/Indicator_function) approach, under <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Implicit**</span>. To make this work in practice, VisualPDE uses this user-specified function to determine which parts $\domain$ to include in the simulation, though doing so prevents you from specifying boundary conditions that include derivatives (computing normals to user-specified curves is not something we wanted to think about).
 
 ### Spatial discretisation <a id='spatial-discretisation'>
 If $D_u$ and $D_v$ were simply constants, as they were when we began the development of VisualPDE, a [central differences discretisation](https://en.wikipedia.org/wiki/Discrete_Laplace_operator) of the resulting Laplacian $\nabla^2$ would suffice.
