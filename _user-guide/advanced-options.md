@@ -6,6 +6,8 @@ thumbnail: /assets/images/Brusselator.PNG
 extract: A glossary of all the features you can play with
 ---
 
+We describe the basic functionality of every option that can be found in {{ layout.settings }}.
+
 ### Share your simulation <a id='copy-url'>
 **Copy URL**\
 Share a link to the simulation you have created. This copies the URL to your clipboard and includes all the settings, but not the current solution.
