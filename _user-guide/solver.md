@@ -35,8 +35,15 @@ $$\textstyle \vnabla \cdot(D_u\vnabla u) \approx \frac{D_u(x-\dx)[u(x-\dx) - u(x
 at a point $x$, where we've omitted any dependence of any quantities on anything other than space. Notably, this is just a standard central differences scheme if $D_u$ is constant. Adding the above to itself with $x$ replaced with $y$ gives the 2D discretisation, and adding in additional terms is simple by linearity.
 
 ### Timestepping <a id='timestepping'>
+With space discretised as above, we are faced with a large system of coupled ordinary differential equations to solve, which represent the evolution of the unknowns at each discrete gridpoint of the spatial domain. Ideally, VisualPDE would use modern, advanced solvers that are both accurate and stable in practice. In practice, we use the following scheme:
 
-Overall, our core numerical approach closely resembles the somewhat obtusely named [FTCS](https://en.wikipedia.org/wiki/FTCS_scheme) scheme, where our finite difference stencil for the spatial discretisation is complicated by allowing the diffusion coefficients to be non-constant.
+$\pd{u}{t} \approx \frac{u(t+\dt) - u(t)}{\dt}$
+
+for timestep $\dt$, which you might recognise as [Forward Euler](https://en.wikipedia.org/wiki/Euler_method). This scheme is far from state-of-the-art, but it is straightforward and intuitive to implement on massively parallel computing hardware (more on that [later](#browser)). 
+
+In practice, its simplicity can lead to some problems, with [numerical instability](https://en.wikipedia.org/wiki/Euler_method#Numerical_stability) being perhaps the most pathological. Loosely speaking, the interaction between the Forward Euler scheme with our spatial discretisation can lead to numerical artefacts ruining the solution, which typically occur when the ratio $D \dt / \dx^2$ is too small, where $D$ is any of the diffusion coefficients in the problem. VisualPDE will try to tell you when it's fallen foul of this (we periodically check for 'NaN' or $\pm\infty$ in the solution), at which point you might want to try reducing $\dt$, reducing the diffusion coefficients in your problem, or increasing $\dx$ (we recommend trying each of these things in this order).
+
+Despite its limitations, this scheme has enabled VisualPDE to solve every system that we've thrown at it, though some tuning of the timestep can be necessary.
 
 ### Boundary conditions <a id='boundary-conditions'>
 VisualPDE implements four types of boundary condition: periodic, [Dirichlet](https://en.wikipedia.org/wiki/Dirichlet_boundary_condition), [Neumann](https://en.wikipedia.org/wiki/Neumann_boundary_condition), and [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition). As each of these are slightly different in character, we briefly describe the general form of each condition that can be used in VisualPDE, along with notes on how this is enforced in the simulation.
