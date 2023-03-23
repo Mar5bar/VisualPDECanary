@@ -55,10 +55,18 @@ Periodic boundary conditions, where $u(x+L_x,y)=u(x,y)$ etc, are the simplest to
 Dirichlet boundary conditions take the form $u\onboundary = a(x,y,t)$ for a user-specified function $a$. These are easy to enforce, as we simply override our usual timestepping for any nodes on the boundary of the domain. If the user has chosen to use an implicitly defined domain, we assign $a(x,y,t)$ to all points outside of $\domain$.
 
 #### Neumann
-Neumann boundary conditions are specified as $\pd{u}{n}\onboundary = a(x,y,t)$ for a user-specified function $a$, where $\pd{u}{n}$ denotes a derivative in the direction of the (inward-pointing) normal to the boundary. Implementing a Neumann boundary condition is done via so-called **ghost nodes** in our discretisation. For instance, enforcing $\pd{u}{n}\onboundary = 0$ at the left-most $x$ boundary of a rectangular domain is achieved in practice by taking $u(-\dx,y) = u(\dx,y)$ in the finite-difference operator described [above](#spatial-discretisation).
+Neumann boundary conditions are specified as $\pd{u}{n}\onboundary = a(x,y,t)$ for a user-specified function $a$, where $\pd{u}{n}$ denotes a derivative in the direction of the (inward-pointing) normal to the boundary. Implementing a Neumann boundary condition is done via so-called **ghost nodes** in our discretisation. For instance, enforcing $\pd{u}{n}\onboundary = 0$ at the left-most $x$ boundary of a rectangular domain is achieved in practice by taking 
+
+$$u(-\dx,y) = u(\dx,y)$$ 
+
+in the finite-difference operator described [above](#spatial-discretisation).
 
 #### Robin
-Robin boundary conditions are a natural combination of Dirichlet and Neumann conditions, which we pose in the form of a generalised Neumann condition $\pd{u}{n}\onboundary = a(u,x,y,t)$, where the right-hand side can now depend on $u$ (and any other unknown in multi-species systems). These conditions are implemented in the same way as Neumann conditions. For example, enforcing $\pd{u}{n}\onboundary = u\onboundary$ at the left-most $x$ boundary of a rectangular domain is achieved in practice by taking $u(-\dx,y) = u(\dx,y) - 2\dx u(0,y)$ in the finite-difference operator described [above](#spatial-discretisation), approximating the derivative at the boundary with a simple central difference.
+Robin boundary conditions are a natural combination of Dirichlet and Neumann conditions, which we pose in the form of a generalised Neumann condition $\pd{u}{n}\onboundary = a(u,x,y,t)$, where the right-hand side can now depend on $u$ (and any other unknown in multi-species systems). These conditions are also implemented with ghost nodes. For example, enforcing $\pd{u}{n}\onboundary = u\onboundary$ at the left-most $x$ boundary of a rectangular domain is achieved in practice by taking 
+
+$$u(-\dx,y) = u(\dx,y) - 2\dx u(0,y)$$ 
+
+in the finite-difference operator described [above](#spatial-discretisation), approximating the derivative at the boundary with a simple central difference.
 
 ### Doing this in your browser, quickly <a id='browser'>
 Solving PDEs is hard. To solve them in real time in your browser, VisualPDE gives all the hard work to the graphics chip (GPU) on your device, making use of [WebGL](https://en.wikipedia.org/wiki/WebGL) and a low-level shader language called [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language).
