@@ -7,7 +7,8 @@ extract: A glossary of all the features you can play with
 ---
 
 ### Share your simulation <a id='copy-url'>
-* <span class='click_sequence'>{{ layout.settings }} → **Copy URL**</span>
+##### Copy URL
+**Copy URL**\
 Share a link to the simulation you have created. This copies the URL to your clipboard and includes all the settings, but not the current solution.
 
 * <span class='click_sequence'>{{ layout.settings }} → **Copy code**</span>
