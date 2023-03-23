@@ -2,7 +2,7 @@
 layout: page
 title: Kuramoto–Sivashinsky equation
 lesson_number: 40
-thumbnail: /assets/images/CahnHilliard.PNG
+thumbnail: /assets/images/KuramotoSivashinsky.png
 extract: Phase separation
 equation: $\pd{u}{t}=-\nabla^2u-\nabla^4u-|\nabla u| $
 ---
