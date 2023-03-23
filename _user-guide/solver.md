@@ -64,7 +64,7 @@ in the finite-difference operator described [above](#spatial-discretisation).
 #### Robin
 Robin boundary conditions are a natural combination of Dirichlet and Neumann conditions, which we pose in the form of a generalised Neumann condition $\pd{u}{n}\onboundary = a(u,x,y,t)$, where the right-hand side can now depend on $u$ (and any other unknown in multi-species systems). These conditions are also implemented with ghost nodes. For example, enforcing $\pd{u}{n}\onboundary = u\onboundary$ at the left-most $x$ boundary of a rectangular domain is achieved in practice by taking 
 
-$$u(-\dx,y) = u(\dx,y) - 2\dx u(0,y)$$ 
+$$u(-\dx,y) = u(\dx,y) - 2 u(0,y)\dx$$ 
 
 in the finite-difference operator described [above](#spatial-discretisation), approximating the derivative at the boundary with a simple central difference.
 
