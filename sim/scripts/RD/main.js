@@ -2925,7 +2925,7 @@ function updateTimeDisplay() {
 function checkForNaN() {
   // Check to see if a NaN value is in the first entry of the simulation array, which would mean that we've hit overflow or instability.
   let vals = getMinMaxVal();
-  if (!isFinite(vals[0]) || !isFinite(vals[0])) {
+  if (!isFinite(vals[0]) || !isFinite(vals[1])) {
     $("#oops_hit_nan").addClass("fading_in");
     $("#erase").one("click", fadeoutOops);
   } else {

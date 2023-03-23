@@ -229,10 +229,9 @@ canvas {
 #oops_hit_nan {
     top: 50%;
     width: 80%;
+    max-width: 90vh;
     left: 50%;
     position: absolute;
-    background-color: transparent;
-    border: none;
 }
 
 .fading_in {
