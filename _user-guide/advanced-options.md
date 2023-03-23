@@ -112,7 +112,7 @@ Toggle the display of the current colour bar and limits.
 Set the background colour of the simulation window, which you will see often when using **Surface Plot** or **Implicit**.
 
 ### Misc <a id='misc'>
-**Initial $u$/$v$/$w$**\
+**Initial $u$,$v$,$w$**\
 Specify the values to which the unknowns are initialised when resetting the simulation. These expressions can be functions of $x$, $y$, the special string 'RAND' that assigns a random number in [0,1] to each point in the domain, along with any user-defined parameters.
 
 **Preset**\
@@ -121,5 +121,5 @@ Select a preset from a long list of examples included in VisualPDE. This list is
 **Fix random**\
 Fix the seed of the (pseudo)random number generator used to assign values to 'RAND' in all free-text fields in the VisualPDE interface. Note that 'RAND' is always heterogeneous in space.
 
-**$T(x,y)**\
+**$T(x,y)$**\
 Define the scalar field $T(x,y)$, which is derived from an image that you can upload. The spatially varying field averages the RGB values of the image at each point in space, effectively treating it as greyscale, and maps it onto $\domain$ by stretching it edge-to-edge. Note that this does not respect **Implicit**. The default draws from an image of [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing).
