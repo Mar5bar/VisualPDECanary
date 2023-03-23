@@ -20,7 +20,6 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 1.5,
-        squareCanvas: true,
         whatToDraw: "u",
         whatToPlot: "u",
       };
