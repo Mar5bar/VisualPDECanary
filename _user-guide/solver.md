@@ -37,7 +37,7 @@ at a point $x$, where we've omitted any dependence of any quantities on anything
 ### Timestepping <a id='timestepping'>
 With space discretised as above, we are faced with a large system of coupled ordinary differential equations to solve, which represent the evolution of the unknowns at each discrete gridpoint of the spatial domain. Ideally, VisualPDE would use modern, advanced solvers that are both accurate and stable in practice. In practice, we use the following scheme:
 
-$$\pd{u}{t} \approx \frac{u(t+\dt) - u(t)}{\dt}$$
+$$ \textstyle \pd{u}{t} \approx \frac{u(t+\dt) - u(t)}{\dt}$$
 
 for timestep $\dt$, a scheme that you might recognise as [Forward Euler](https://en.wikipedia.org/wiki/Euler_method). This approach is far from state-of-the-art, but it is straightforward and intuitive to implement on massively parallel computing hardware (more on that [later](#browser)). 
 
@@ -57,14 +57,14 @@ Dirichlet boundary conditions take the form $u\onboundary = a(x,y,t)$ for a user
 #### Neumann
 Neumann boundary conditions are specified as $\pd{u}{n}\onboundary = a(x,y,t)$ for a user-specified function $a$, where $\pd{u}{n}$ denotes a derivative in the direction of the (inward-pointing) normal to the boundary. Implementing a Neumann boundary condition is done via so-called **ghost nodes** in our discretisation. For instance, enforcing $\pd{u}{n}\onboundary = 0$ at the left-most $x$ boundary of a rectangular domain is achieved in practice by taking 
 
-$$u(-\dx,y) = u(\dx,y)$$ 
+$$\textstyle u(-\dx,y) = u(\dx,y)$$ 
 
 in the finite-difference operator described [above](#spatial-discretisation).
 
 #### Robin
 Robin boundary conditions are a natural combination of Dirichlet and Neumann conditions, which we pose in the form of a generalised Neumann condition $\pd{u}{n}\onboundary = a(u,x,y,t)$, where the right-hand side can now depend on $u$ (and any other unknown in multi-species systems). These conditions are also implemented with ghost nodes. For example, enforcing $\pd{u}{n}\onboundary = u\onboundary$ at the left-most $x$ boundary of a rectangular domain is achieved in practice by taking 
 
-$$u(-\dx,y) = u(\dx,y) - 2 u(0,y)\dx$$ 
+$$\textstyle u(-\dx,y) = u(\dx,y) - 2 u(0,y)\dx$$ 
 
 in the finite-difference operator described [above](#spatial-discretisation), approximating the derivative at the boundary with a simple central difference.
 
