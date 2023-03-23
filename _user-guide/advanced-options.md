@@ -42,7 +42,7 @@ VisualPDE offers a number of options for customising the domain $\domain$.
 You can define the domain by setting a boolean (e.g. $x<0.5$) or a simple expression (e.g. $x-0.5$), where (strict) positivity identifies the interior of the domain, in <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Ind. fun**</span>
 
 ### Timestepping <a id='timestepping'>
-Configure the Forward-Euler timestepping scheme described [here](/user-guide/solver).
+Configure the forward Euler timestepping scheme described [here](/user-guide/solver).
 
 * Set how many timesteps will be performed every time your browser requests a frame from VisualPDE with <span class='click_sequence'>{{ layout.settings }} → **Timestepping** → **Steps/frame**</span>\
 This effectively allows you to speed up/slow down the simulation without altering the timestep.
