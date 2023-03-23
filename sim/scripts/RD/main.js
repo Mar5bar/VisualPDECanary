@@ -1088,6 +1088,12 @@ function initGUI(startOpen) {
   } else {
     root = genericOptionsFolder;
   }
+  if (inGUI("whatToPlot")) {
+    whatToPlotController = root
+      .add(options, "whatToPlot")
+      .name("Expression: ")
+      .onFinishChange(updateWhatToPlot);
+  }
   if (inGUI("renderSize")) {
     root
       .add(options, "renderSize", 1, 2048, 1)
@@ -1148,12 +1154,6 @@ function initGUI(startOpen) {
     root = rightGUI.addFolder("Colour");
   } else {
     root = genericOptionsFolder;
-  }
-  if (inGUI("whatToPlot")) {
-    whatToPlotController = root
-      .add(options, "whatToPlot")
-      .name("Colour by: ")
-      .onFinishChange(updateWhatToPlot);
   }
   if (inGUI("colourmap")) {
     root
