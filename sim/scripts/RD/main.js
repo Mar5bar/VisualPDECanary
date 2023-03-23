@@ -1167,7 +1167,7 @@ function initGUI(startOpen) {
         setDisplayColourAndType();
         configureColourbar();
       })
-      .name("Colourmap");
+      .name("Colour map");
   }
   if (inGUI("minColourValue")) {
     minColourValueController = root
@@ -1210,7 +1210,7 @@ function initGUI(startOpen) {
   if (inGUI("colourbar")) {
     root
       .add(options, "colourbar")
-      .name("Colourbar")
+      .name("Colour bar")
       .onChange(configureColourbar);
   }
   if (inGUI("backgroundColour")) {
