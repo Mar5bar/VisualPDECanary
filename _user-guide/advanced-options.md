@@ -7,16 +7,16 @@ extract: A glossary of all the features you can play with
 ---
 
 ### Share your simulation <a id='copy-url'>
-You can share a link to the simulation you have created by clicking
-<span class='click_sequence'>{{ layout.settings }} → **Copy URL**</span>
-This copies the URL to your clipboard. This includes all the settings, but not the current solution.
+* <span class='click_sequence'>{{ layout.settings }} → **Copy URL**</span>
+Share a link to the simulation you have created. This copies the URL to your clipboard and includes all the settings, but not the current solution.
 
-You can copy a more verbose description of your simulation in JSON form, especially useful if you're extending VisualPDE with your own examples, by clicking
-<span class='click_sequence'>{{ layout.settings }} → **Copy code**</span>
+* <span class='click_sequence'>{{ layout.settings }} → **Copy code**</span>
+Copy a more verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples.
 
 ### Brush <a id='brush'>
 Paint values onto the canvas by clicking/touching the domain. 
 
+* <span class='click_sequence'>{{ layout.settings }} → **Brush** → **Type**</span>
 * You can change the **brush shape** by selecting from <span class='click_sequence'>{{ layout.settings }} → **Brush** → **Type**</span>
 * Change the **value** that you are painting by selecting <span class='click_sequence'>{{ layout.settings }} → **Brush** → **Value**</span>\
 This can be a function of $x$, $y$, $t$, any of the unknowns, and 'RAND', a uniformly random value in $[0,1]$.
@@ -35,7 +35,7 @@ VisualPDE offers a number of options for customising the domain $\domain$.
 You can define the domain by setting a boolean (e.g. $x<0.5$) or a simple expression (e.g. $x-0.5$), where (strict) positivity identifies the interior of the domain, in <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Ind. fun**</span>
 
 ### Timestepping <a id='timestepping'>
-Configure the Forward-Euler timestepping scheme described [here](/_user-guide/solver).
+Configure the Forward-Euler timestepping scheme described [here](/user-guide/solver).
 
 * Set how many timesteps will be performed every time your browser requests a frame from VisualPDE with <span class='click_sequence'>{{ layout.settings }} → **Timestepping** → **Steps/frame**</span>\
 This effectively allows you to speed up/slow down the simulation without altering the timestep.
@@ -43,8 +43,16 @@ This effectively allows you to speed up/slow down the simulation without alterin
 * Toggle showing the current simulation time using <span class='click_sequence'>{{ layout.settings }} → **Timestepping** → **Show time**</span>
 
 ### Equations <a id='equations'>
+Set the type of system for VisualPDE to solve.
+
+* Configure the number of unknowns (1, 2, or 3) in the system with <span class='click_sequence'>{{ layout.settings }} → **Equations** → **No. species**</span>
+* Enable cross diffusion in systems with 2 or more species via <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Cross**</span>
+* Convert the final equation to be an algebraic one in systems with cross diffusion enabled with <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Algebraic v/w?**</span>
 
 ### Rendering <a id='rendering'>
+Configure how VisualPDE will render the solution.
+
+* 
 
 ### Change how colour is used <a id='colour'>
 VisualPDE uses a colour map to visualise the concentration of one species on the canvas.
