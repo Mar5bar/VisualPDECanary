@@ -9,7 +9,7 @@ export function drawShaderTop() {
     uniform float domainWidth;
     uniform float domainHeight;
     uniform float seed;
-    uniform float time;
+    uniform float t;
     uniform float dx;
     uniform float dy;
     const float pi = 3.141592653589793;
