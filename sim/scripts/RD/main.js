@@ -2815,7 +2815,7 @@ function setEquationDisplayType() {
   }
   $("#typeset_equation").html(str);
   if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise($("#typeset_equation"));
+    MathJax.typesetPromise();
   }
 }
 
