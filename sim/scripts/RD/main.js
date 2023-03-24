@@ -2255,12 +2255,16 @@ function updateWhatToPlot() {
     hideGUIController(maxColourValueController);
     hideGUIController(setColourRangeController);
     hideGUIController(autoSetColourRangeController);
+    options.autoSetColourRange = false;
+    refreshGUI(rightGUI);
+    updateColourbarLims();
   } else {
     setPostFunFragShader();
     showGUIController(minColourValueController);
     showGUIController(maxColourValueController);
     showGUIController(setColourRangeController);
     showGUIController(autoSetColourRangeController);
+    updateColourbarLims();
   }
   render();
 }
@@ -2918,8 +2922,19 @@ function configureColourbar() {
 }
 
 function updateColourbarLims() {
-  $("#minLabel").html(formatLabelNum(options.minColourValue, 2));
-  $("#maxLabel").html(formatLabelNum(options.maxColourValue, 2));
+  if (options.whatToPlot == "MAX") {
+    $("#minLabel").html("$u$");
+    $("#midLabel").html("$v$");
+    $("#maxLabel").html("$w$");
+    $("#midLabel").show();
+    if (MathJax.typeset != undefined) {
+      MathJax.typeset();
+    }
+  } else {
+    $("#minLabel").html(formatLabelNum(options.minColourValue, 2));
+    $("#maxLabel").html(formatLabelNum(options.maxColourValue, 2));
+    $("#midLabel").hide();
+  }
   if (
     uniforms.colour1.value
       .toArray()
@@ -2931,6 +2946,18 @@ function updateColourbarLims() {
     $("#minLabel").css("color", "#fff");
   } else {
     $("#minLabel").css("color", "#000");
+  }
+  if (
+    uniforms.colour3.value
+      .toArray()
+      .slice(0, -1)
+      .reduce((a, b) => a + b, 0) < 0.7
+  ) {
+    // If the background colour is closer to black than white, set
+    // the label to be white.
+    $("#midLabel").css("color", "#fff");
+  } else {
+    $("#midLabel").css("color", "#000");
   }
   if (
     uniforms.colour5.value

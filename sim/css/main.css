@@ -292,6 +292,13 @@ p, .colourbarLabel, .timeLabel  {
     text-align: right;
 }
 
+#midLabel {
+    display: none;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    text-align: center;
+}
+
 .time {
     display: none;
     position: absolute;
