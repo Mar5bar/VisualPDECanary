@@ -2809,6 +2809,8 @@ function setEquationDisplayType() {
     if (options.diffusionStrWV.match(/[a-zA-Z]/))
       str = str.replaceAll(/\bD_{wv}\b/g, +"[" + options.diffusionStrWV + "]");
 
+    str = str.replaceAll(/\+\s*-/g,"-");
+
     str = parseStringToTEX(str);
   }
   $("#typeset_equation").html(str);
