@@ -2,7 +2,7 @@
 layout: page
 title: Quick start
 lesson_number: 10
-thumbnail: /assets/images/heat-equation.png
+thumbnail: /assets/images/start.png
 extract: Two-minute top tips
 ---
 
