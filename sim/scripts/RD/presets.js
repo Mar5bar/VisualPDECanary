@@ -112,26 +112,30 @@ export function getPreset(id) {
       };
       break;
     case "chemicalBasisOfMorphogenesis":
-      options = {
-        diffusionStrUU: "0.0000042",
-        diffusionStrVV: "0.0002",
-        diffusionStrWW: "0",
-        dt: 0.001,
-        imagePathTwo: "./images/chemicalBasisOfMorphogenesis.png",
-        maxColourValue: 2.3,
-        numTimestepsPerFrame: 8,
-        preset: "chemicalBasisOfMorphogenesis",
-        renderSize: 652,
-        reactionStrU: "(1-T) - u + u^2*v",
-        reactionStrV: "1 - u^2*v",
-        reactionStrW: "0",
-        showAllOptionsOverride: true,
-        spatialStep: 0.002,
-        squareCanvas: true,
-        whatToDraw: "u",
-        whatToPlot: "u",
-      };
-      break;
+	options = {
+	"brushRadius": 0.0495,
+	"clearValueU": "3.5*(1-T)",
+	"clearValueV": "1",
+	"diffusionStrUU": "0.000006",
+	"diffusionStrVV": "0.0001",
+	"diffusionStrWW": "0",
+	"dt": 0.001,
+	"imagePathTwo": "./images/chemicalBasisOfMorphogenesis.png",
+	"maxColourValue": 3.5,
+	"preset": "chemicalBasisOfMorphogenesis",
+	"renderSize": 652,
+	"reactionStrU": "0.01 - u + u^2*v",
+	"reactionStrV": "1 - u^2*v",
+	"reactionStrW": "0",
+  "resetOnImageLoad": true,
+  "runningOnLoad": false,
+	"showAllOptionsOverride": true,
+	"spatialStep": 0.0015,
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
     case "complexGinzburgLandau":
       options = {
         brushValue: "0",
