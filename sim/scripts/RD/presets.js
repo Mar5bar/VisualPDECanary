@@ -27,6 +27,7 @@ export function getPreset(id) {
     case "bistableTravellingWave":
       options = {
         boundaryConditionsU: "neumann",
+        clearValueU: "0",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         dt: 0.005,
