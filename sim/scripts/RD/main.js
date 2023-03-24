@@ -2223,7 +2223,9 @@ function createImageControllers() {
     .addImage(options, "imagePathTwo")
     .name("$T(x,y)$")
     .onChange(loadImageSourceTwo);
-  window.MathJax.typeset();
+  if (MathJax.typeset != undefined) {
+      MathJax.typeset();
+    }
   if (inGUI("imageOne")) {
     showGUIController(imControllerOne);
   } else {
