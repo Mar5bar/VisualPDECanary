@@ -121,5 +121,6 @@ Select a preset from a long list of examples included in VisualPDE. This list is
 **Fix random**\
 Fix the seed of the (pseudo)random number generator used to assign values to 'RAND' in all free-text fields in the VisualPDE interface. Note that 'RAND' is always heterogeneous in space.
 
-**$T(x,y)$**\
-Define the scalar field $T(x,y)$, which is derived from an image that you can upload. The spatially varying field averages the RGB values of the image at each point in space, effectively treating it as greyscale, and maps it onto $\domain$ by stretching it edge-to-edge. Note that this does not respect **Implicit**. The default draws from an image of [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing).
+
+**$S(x,y)$, $T(x,y)$**\
+Define the scalar fields $S(x,y) and $T(x,y)$, which are derived from images that you can upload by clicking on the current image. Via the symbols 'S' and 'T' throughout VisualPDE, you can access the average RGB value of each image at each point in space, effectively treating them as greyscale. Advanced users can access the individual RGBA channels via 'SR', 'SG', etc. VisualPDE will stretch images so that they cover the domain edge-to-edge. Note that this does not respect **Implicit**. The defaults draw from an image of [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing).
