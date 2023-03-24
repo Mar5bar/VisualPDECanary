@@ -90,6 +90,7 @@ const listOfTypes = [
   "3SpeciesCrossDiffusionAlgebraicW", // 6
 ];
 let equationType;
+let takeAScreenshot = false;
 const numsAsWords = [
   "zero",
   "one",
@@ -270,7 +271,6 @@ function init() {
   // Create a renderer.
   renderer = new THREE.WebGLRenderer({
     canvas: canvas,
-    preserveDrawingBuffer: true,
     powerPreference: "high-performance",
     antialias: true,
   });
@@ -1513,6 +1513,18 @@ function render() {
   // Render the output to the screen.
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
+  if (takeAScreenshot) {
+    takeAScreenshot = false;
+    var link = document.createElement("a");
+    link.download = "VisualPDEScreenshot";
+    renderer.setSize(options.renderSize, Math.round(options.renderSize * aspectRatio), false);
+    renderer.render(scene, camera);
+    link.href = renderer.domElement.toDataURL();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setSizes();
+  }
 }
 
 function onDocumentPointerDown(event) {
@@ -2786,6 +2798,9 @@ $("#play").click(function () {
 });
 $("#erase").click(function () {
   resetSim();
+});
+$("#screenshot").click(function () {
+  takeAScreenshot = true;
 });
 
 $("#back").click(function () {

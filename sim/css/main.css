@@ -180,6 +180,11 @@ canvas {
     right: 3px;
 }
 
+#screenshot {
+    top: 130px;
+    right: 3px;
+}
+
 #back {
     top: 0px;
     left: 3px;
