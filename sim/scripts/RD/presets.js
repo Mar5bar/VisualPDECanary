@@ -116,6 +116,7 @@ export function getPreset(id) {
 	"brushRadius": 0.0495,
 	"clearValueU": "3.5*(1-T)",
 	"clearValueV": "1",
+	"colourmap": "viridis",
 	"diffusionStrUU": "0.000006",
 	"diffusionStrVV": "0.0001",
 	"diffusionStrWW": "0",
