@@ -20,7 +20,7 @@ $$u(x,y) = -\cos \left(\frac{n\pi x}{L} \right)\cos \left(\frac{m\pi y}{L} \righ
 
 * You can change the values of $m$ and $n$ to observe different patterns of sources/sinks of heat in the domain.
 
-* You can use any function $f(x,y)$ instead of the one given above. However, if $f(x,y)$ does not satisfy the constraint that $\int_0^1\int_0^1 f(x,y) \, \d x \, \d y=0$, then the solution will either grow or decrease without bound. An easy way to prove this is to multiply the equation by $u$ and integrate to find, after applying the Neumann boundary conditions,
+* You can use any function $f(x,y)$ instead of the one given above. However, if $f(x,y)$ does not satisfy the constraint that $\int_0^L\int_0^L f(x,y) \, \d x \, \d y=0$, then the solution will either grow or decrease without bound. An easy way to prove this is to multiply the equation by $u$ and integrate to find, after applying the Neumann boundary conditions,
  
 $$
 \frac{1}{2}\pd{}{t}\int_0^L \int_0^L u^2 \, \d x \, \d y = \int_0^L\int_0^L f(x,y) \, \d x \, \d y.
@@ -36,6 +36,6 @@ $$
 
 where we need $g(x,y)>0$ for all $x,y$ in the domain. As a simple (though complicated-looking) example, we take,
 
-$$g(x,y) = D\left(1+E\cos\left(n \pi \left(\sqrt{(x/L-0.5)^2+(y/L-0.5)^2}\right)\right)\right),$$
+$$g(x,y) = D\left[1+E\cos\left(n \pi \sqrt{(x/L-0.5)^2+(y/L-0.5)^2}\right)\right],$$
 
 where $D>0$, $n>0$, and $\lvert E\rvert <1$ are constants. This represents radially-oscillating regions of high and low diffusion. Setting an initial condition of $$u(x,y,0)=1$$ and Dirichlet boundary conditions, we can observe an immediate partitioning of the initial heat into regions bounded by the maxima of the cosine function. Click [here](/sim/?preset=inhomogDiffusionHeatEquation) to see this, and play around with the values of $n$, $E$ and $D$.
