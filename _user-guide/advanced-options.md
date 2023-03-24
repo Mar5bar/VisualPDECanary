@@ -70,6 +70,9 @@ Enable cross diffusion in systems with 2 or more species.
 **Algebraic**\
 Convert the final equation to be algebraic in systems with cross diffusion enabled.
 
+**Typeset**\
+VisualPDE will try to typeset your governing equations using the custom diffusion coefficients and interaction/kinetic terms. Terms will not be substituted if they are just constants.
+
 ### Rendering <a id='rendering'>
 **Expression**\
 Choose the expression that you want to be used to colour the domain, which can be any function of the species solved for, as well as space, time, and user-defined parameters. Often, this is either $u$, $v$, or $w$. Alternatively, setting this to 'MAX' will colour the domain by the maximum of the species.
