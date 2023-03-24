@@ -69,7 +69,8 @@ let leftGUI,
   robinVController,
   robinWController,
   fMisc,
-  imController,
+  imControllerOne,
+  imControllerTwo,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
@@ -664,7 +665,10 @@ function initUniforms() {
     heightScale: {
       type: "f",
     },
-    imageSource: {
+    imageSourceOne: {
+      type: "t",
+    },
+    imageSourceTwo: {
       type: "t",
     },
     L: {
@@ -1282,12 +1286,17 @@ function initGUI(startOpen) {
   if (inGUI("fixRandSeed")) {
     root.add(options, "fixRandSeed").name("Fix random seed");
   }
-  // Always make an image controller, but hide it if it's not wanted.
-  createImageController();
-  if (inGUI("image")) {
-    showGUIController(imController);
+  // Always make images controller, but hide them if they're not wanted.
+  createImageControllers();
+  if (inGUI("imageOne")) {
+    showGUIController(imControllerOne);
   } else {
-    hideGUIController(imController);
+    hideGUIController(imControllerOne);
+  }
+  if (inGUI("imageTwo")) {
+    showGUIController(imControllerTwo);
+  } else {
+    hideGUIController(imControllerTwo);
   }
 
   // Add a toggle for showing all options.
@@ -1957,17 +1966,24 @@ function loadPreset(preset) {
   // controller doesn't update the value of the underlying property,
   // we'll destroy and create a new image controller everytime we load
   // a preset.
-  if (inGUI("image")) {
-    imController.remove();
-    if (inGUI("miscFolder")) {
-      root = fMisc;
-    } else {
-      root = genericOptionsFolder;
-    }
-    imController = root
-      .addImage(options, "imagePath")
+  if (inGUI("miscFolder")) {
+    root = fMisc;
+  } else {
+    root = genericOptionsFolder;
+  }
+  if (inGUI("imageOne")) {
+    imControllerOne.remove();
+    imControllerOne = root
+      .addImage(options, "imagePathOne")
+      .name("$S(x,y)$")
+      .onChange(loadImageSourceOne);
+  }
+  if (inGUI("imageTwo")) {
+    imControllerTwo.remove();
+    imControllerTwo = root
+      .addImage(options, "imagePathTwo")
       .name("$T(x,y)$")
-      .onChange(loadImageSource);
+      .onChange(loadImageSourceTwo);
   }
 }
 
@@ -2192,20 +2208,32 @@ function setClearShader() {
   clearMaterial.needsUpdate = true;
 }
 
-function loadImageSource() {
+function loadImageSourceOne() {
   let image = new Image();
-  image.src = imController.__image.src;
+  image.src = imControllerOne.__image.src;
   let texture = new THREE.Texture();
   texture.image = image;
   image.onload = function () {
     texture.needsUpdate = true;
-    uniforms.imageSource.value = texture;
+    uniforms.imageSourceOne.value = texture;
   };
   texture.dispose();
 }
 
-function createImageController() {
-  // This is a bad solution to a problem that shouldn't exist.
+function loadImageSourceTwo() {
+  let image = new Image();
+  image.src = imControllerTwo.__image.src;
+  let texture = new THREE.Texture();
+  texture.image = image;
+  image.onload = function () {
+    texture.needsUpdate = true;
+    uniforms.imageSourceTwo.value = texture;
+  };
+  texture.dispose();
+}
+
+function createImageControllers() {
+  // This is a bad Twosolution to a problem that shouldn't exist.
   // The image controller does not modify the value that you assign to it, and doesn't respond to it being changed.
   // Hence, we create a function used solely to create the controller, which we'll do everytime a preset is loaded.
   if (inGUI("miscFolder")) {
@@ -2213,10 +2241,14 @@ function createImageController() {
   } else {
     root = genericOptionsFolder;
   }
-  imController = root
-    .addImage(options, "imagePath")
+  imControllerOne = root
+    .addImage(options, "imagePathOne")
+    .name("$S(x,y)$")
+    .onChange(loadImageSourceOne);
+  imControllerTwo = root
+    .addImage(options, "imagePathTwo")
     .name("$T(x,y)$")
-    .onChange(loadImageSource);
+    .onChange(loadImageSourceTwo);
 }
 
 function updateWhatToPlot() {

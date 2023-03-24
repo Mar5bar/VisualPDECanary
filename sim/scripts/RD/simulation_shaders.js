@@ -10,7 +10,8 @@ export function RDShaderTop() {
     uniform float L;
     uniform float t;
     uniform vec2 boundaryValues;
-    uniform sampler2D imageSource;
+    uniform sampler2D imageSourceOne;
+    uniform sampler2D imageSourceTwo;
     const float pi = 3.141592653589793;
 
     float H(float val, float edge) 
@@ -43,8 +44,18 @@ export function RDShaderTop() {
         vec3 uvwT = texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).rgb;
         vec3 uvwB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).rgb;
 
-        vec3 Tvec = texture2D(imageSource, textureCoords).rgb;
+        vec4 Svec = texture2D(imageSourceOne, textureCoords);
+        float S = (Svec.x + Svec.y + Svec.z) / 3.0;
+        float SR = Svec.r;
+        float SG = Svec.g;
+        float SB = Svec.b;
+        float SA = Svec.a;
+        vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
         float T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
+        float TR = Tvec.r;
+        float TG = Tvec.g;
+        float TB = Tvec.b;
+        float TA = Tvec.a;
     `;
 }
 

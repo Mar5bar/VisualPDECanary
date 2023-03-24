@@ -3,7 +3,8 @@
 export function drawShaderTop() {
   return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
-	  uniform sampler2D imageSource;
+	  uniform sampler2D imageSourceOne;
+	  uniform sampler2D imageSourceTwo;
     uniform vec2 brushCoords;
     uniform float brushRadius;
     uniform float domainWidth;
@@ -28,8 +29,18 @@ export function drawShaderTop() {
     {   
         vec4 uvw = texture2D(textureSource, textureCoords);
         gl_FragColor = uvw;
-        vec3 Tvec = texture2D(imageSource, textureCoords).rgb;
+        vec4 Svec = texture2D(imageSourceOne, textureCoords);
+        float S = (Svec.x + Svec.y + Svec.z) / 3.0;
+        float SR = Svec.r;
+        float SG = Svec.g;
+        float SB = Svec.b;
+        float SA = Svec.a;
+        vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
         float T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
+        float TR = Tvec.r;
+        float TG = Tvec.g;
+        float TB = Tvec.b;
+        float TA = Tvec.a;
 
         ivec2 texSize = textureSize(textureSource,0);
         float x = textureCoords.x * float(texSize.x) * dx;
