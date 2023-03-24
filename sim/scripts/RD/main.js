@@ -90,7 +90,7 @@ const listOfTypes = [
   "3SpeciesCrossDiffusion", // 5
   "3SpeciesCrossDiffusionAlgebraicW", // 6
 ];
-let equationType;
+let equationType, savedHTML;
 let takeAScreenshot = false;
 const numsAsWords = [
   "zero",
@@ -143,6 +143,8 @@ import * as THREE from "../three.module.js";
 import { OrbitControls } from "../OrbitControls.js";
 import { minifyPreset, maxifyPreset } from "./minify_preset.js";
 import { LZString } from "../lz-string.min.js";
+import { equationTEXFun } from "./TEX.js";
+let equationTEX = equationTEXFun();
 
 // Setup some configurable options.
 options = {};
@@ -893,6 +895,12 @@ function initGUI(startOpen) {
       .name("Algebraic w?")
       .onChange(updateProblem);
   }
+  if (inGUI("typesetCustomEqs")) {
+    root
+      .add(options, "typesetCustomEqs")
+      .name("Typeset")
+      .onChange(setEquationDisplayType);
+  }
 
   // Let's put these in the left GUI.
   root = leftGUI;
@@ -901,62 +909,89 @@ function initGUI(startOpen) {
       .add(options, "diffusionStrUU")
       .name("$D_{uu}$")
       .title("function of u, v, w, t")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   if (inGUI("diffusionStrUV")) {
     DuvController = root
       .add(options, "diffusionStrUV")
       .name("$D_{uv}$")
       .title("function of u, v, w, t")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   if (inGUI("diffusionStrUW")) {
     DuwController = root
       .add(options, "diffusionStrUW")
       .name("$D_{uw}$")
       .title("function of u, v, w, t")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   if (inGUI("diffusionStrVU")) {
     DvuController = root
       .add(options, "diffusionStrVU")
       .name("$D_{vu}$")
       .title("function of u, v, w, t")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   if (inGUI("diffusionStrVV")) {
     DvvController = root
       .add(options, "diffusionStrVV")
       .name("$D_{vv}$")
       .title("function of u, v, w, t")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   if (inGUI("diffusionStrVW")) {
     DvwController = root
       .add(options, "diffusionStrVW")
       .name("$D_{vw}$")
       .title("function of u, v, w, t")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   if (inGUI("diffusionStrWU")) {
     DwuController = root
       .add(options, "diffusionStrWU")
       .name("$D_{wu}$")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   if (inGUI("diffusionStrWV")) {
     DwvController = root
       .add(options, "diffusionStrWV")
       .name("$D_{wv}$")
       .title("function of u, v, w, t")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   if (inGUI("diffusionStrWW")) {
     DwwController = root
       .add(options, "diffusionStrWW")
       .name("$D_{ww}$")
       .title("function of u, v, w, t")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   if (inGUI("reactionStrU")) {
     // Custom f(u,v) and g(u,v).
@@ -964,21 +999,30 @@ function initGUI(startOpen) {
       .add(options, "reactionStrU")
       .name("$f$")
       .title("function of u, v, w, t")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   if (inGUI("reactionStrV")) {
     gController = root
       .add(options, "reactionStrV")
       .name("$g$")
       .title("function of u, v, w, t")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   if (inGUI("reactionStrW")) {
     hController = root
       .add(options, "reactionStrW")
       .name("$h$")
       .title("function of u, v, w, t")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
   }
   parametersFolder = leftGUI.addFolder("Parameters");
   setParamsFromKineticString();
@@ -1723,8 +1767,8 @@ function parseShaderString(str) {
   // Pad the string.
   str = " " + str + " ";
 
-  // Replace powers with pow, including nested powers.
-  str = replaceCaratWithPow(str);
+  // Replace powers with safepow, including nested powers.
+  str = replaceBinOperator(str, "^", "safepow($1,$2)");
 
   // Replace u, v, and w with uvw.r, uvw.g, and uvw.b via placeholders.
   str = str.replace(/\bu\b/g, "uvw." + speciesToChannelChar("u"));
@@ -1744,13 +1788,14 @@ function parseShaderString(str) {
   return str;
 }
 
-function replaceCaratWithPow(str) {
+function replaceBinOperator(str, op, form) {
   // Take a string and replace all instances of a carat with a pow function,
   // matching balanced brackets.
+  const needsEscaping = "^*".includes(op);
   if (str.indexOf("^") > -1) {
     var tab = [];
-    var powfunc = "safepow";
     var joker = "___joker___";
+    var regex = new RegExp("(([" + op + "()]*))", "g");
     while (str.indexOf("(") > -1) {
       str = str.replace(/(\([^\(\)]*\))/g, function (m, t) {
         tab.push(t);
@@ -1760,9 +1805,14 @@ function replaceCaratWithPow(str) {
 
     tab.push(str);
     str = joker + (tab.length - 1);
+    if (needsEscaping) {
+      regex = new RegExp("([\\w.]*)\\" + op + "([\\w.]*)", "g");
+    } else {
+      regex = new RegExp("([\\w.]*)" + op + "([\\w.]*)", "g");
+    }
     while (str.indexOf(joker) > -1) {
       str = str.replace(new RegExp(joker + "(\\d+)", "g"), function (m, d) {
-        return tab[d].replace(/([\w.]*)\^([\w.]*)/g, powfunc + "($1,$2)");
+        return tab[d].replace(regex, form);
       });
     }
   }
@@ -2010,8 +2060,8 @@ function refreshGUI(folder) {
   // Run MathJax to texify the parameter names (e.g. D_uu) which appear dynamically.
   // No need to do this on page load (and indeed will throw an error) so check
   // MathJax is defined first.
-  if (MathJax.typeset != undefined) {
-    MathJax.typeset();
+  if (MathJax.typesetPromise != undefined) {
+    MathJax.typesetPromise();
   }
 }
 
@@ -2233,8 +2283,8 @@ function createImageControllers() {
     .addImage(options, "imagePathTwo")
     .name("$T(x,y)$")
     .onChange(loadImageSourceTwo);
-  if (MathJax.typeset != undefined) {
-    MathJax.typeset();
+  if (MathJax.typesetPromise != undefined) {
+    MathJax.typesetPromise();
   }
   if (inGUI("imageOne")) {
     showGUIController(imControllerOne);
@@ -2722,15 +2772,63 @@ function updateProblem() {
 function setEquationDisplayType() {
   // Given an equation type (specified as an integer selector), set the type of
   // equation in the UI element that displays the equations.
-  if ($("#equation_display").length) {
-    // If it exists
-    // Remove all existing equations.
-    for (let i = 0; i < listOfTypes.length; i++) {
-      $("#equation" + i).hide();
+  let str = equationTEX[equationType];
+  if (options.typesetCustomEqs) {
+    // Replace any customisable parts of the TEX with the user input.
+    if (options.reactionStrU.match(/[a-zA-Z]/))
+      str = str.replaceAll(/\bf\b/g, options.reactionStrU);
+    if (options.reactionStrV.match(/[a-zA-Z]/))
+      str = str.replaceAll(/\bg\b/g, options.reactionStrV);
+    if (options.reactionStrW.match(/[a-zA-Z]/))
+      str = str.replaceAll(/\bh\b/g, options.reactionStrW);
+
+    if (options.diffusionStrUU.match(/[a-zA-Z]/)) {
+      str = str.replaceAll(/\bD\b/g, "[" + options.diffusionStrUU + "]");
+      str = str.replaceAll(/\bD_u\b/g, "[" + options.diffusionStrUU + "]");
+      str = str.replaceAll(/\bD_{uu}\b/g, "[" + options.diffusionStrUU + "]");
     }
-    // Display the correct equation.
-    $("#equation" + equationType).show();
+    if (options.diffusionStrVV.match(/[a-zA-Z]/)) {
+      str = str.replaceAll(/\bD_v\b/g, "[" + options.diffusionStrVV + "]");
+      str = str.replaceAll(/\bD_{vv}\b/g, "[" + options.diffusionStrVV + "]");
+    }
+    if (options.diffusionStrWW.match(/[a-zA-Z]/)) {
+      str = str.replaceAll(/\bD_w\b/g, "[" + options.diffusionStrWW + "]");
+      str = str.replaceAll(/\bD_{ww}\b/g, "[" + options.diffusionStrWW + "]");
+    }
+
+    if (options.diffusionStrUV.match(/[a-zA-Z]/))
+      str = str.replaceAll(/\bD_{uv}\b/g, +"[" + options.diffusionStrUV + "]");
+    if (options.diffusionStrUW.match(/[a-zA-Z]/))
+      str = str.replaceAll(/\bD_{uw}\b/g, +"[" + options.diffusionStrUW + "]");
+    if (options.diffusionStrVU.match(/[a-zA-Z]/))
+      str = str.replaceAll(/\bD_{vu}\b/g, +"[" + options.diffusionStrVU + "]");
+    if (options.diffusionStrVW.match(/[a-zA-Z]/))
+      str = str.replaceAll(/\bD_{vw}\b/g, +"[" + options.diffusionStrVW + "]");
+    if (options.diffusionStrWU.match(/[a-zA-Z]/))
+      str = str.replaceAll(/\bD_{wu}\b/g, +"[" + options.diffusionStrWU + "]");
+    if (options.diffusionStrWV.match(/[a-zA-Z]/))
+      str = str.replaceAll(/\bD_{wv}\b/g, +"[" + options.diffusionStrWV + "]");
+
+    str = parseStringToTEX(str);
   }
+  $("#typeset_equation").html(str);
+  if (MathJax.typesetPromise != undefined) {
+    MathJax.typesetPromise($("#typeset_equation"));
+  }
+}
+
+function parseStringToTEX(str) {
+  // Parse a string into valid TEX by replacing * and ^.
+  // Remove *.
+  str = str.replaceAll(/\*/g, "");
+
+  // Replace powers with well-formatted ^, including nested powers.
+  str = replaceBinOperator(str, "^", "{$1}^{$2}");
+
+  // Replace / with well-formatted \frac, including nested fractions.
+  // str = replaceBinOperator(str, "/", "\\frac{$1}{$2}");
+
+  return str;
 }
 
 function removeWhitespace(str) {
@@ -2927,8 +3025,8 @@ function updateColourbarLims() {
     $("#midLabel").html("$v$");
     $("#maxLabel").html("$w$");
     $("#midLabel").show();
-    if (MathJax.typeset != undefined) {
-      MathJax.typeset();
+    if (MathJax.typesetPromise != undefined) {
+      MathJax.typesetPromise();
     }
   } else {
     $("#minLabel").html(formatLabelNum(options.minColourValue, 2));

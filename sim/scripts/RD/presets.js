@@ -965,6 +965,7 @@ export function getPreset(id) {
         threeDHeightScale: 0.3,
         timeDisplay: false,
         typeOfBrush: "circle",
+        typesetCustomEqs: false,
         whatToDraw: "v",
         whatToPlot: "v",
       };
