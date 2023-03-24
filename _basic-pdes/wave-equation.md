@@ -54,7 +54,7 @@ $$\begin{aligned}u(x,y,0) &= \cos\left(\frac{n \pi x}{L}\right)\cos\left(\frac{m
 with Neumann boundary conditions, we can find a standing wave solution of the form
 
 $$
-u(x,y,t) = \cos(\frac{D\pi\sqrt{n^2+m^2}}{L}\,t)\cos\left(\frac{n \pi x}{L}\right)\cos\left(\frac{m \pi y}{L}\right),
+u(x,y,t) = \cos\left(\frac{D\pi\sqrt{n^2+m^2}}{L}\,t\right)\cos\left(\frac{n \pi x}{L}\right)\cos\left(\frac{m \pi y}{L}\right),
 $$
 
 which oscillates in time and space. 
