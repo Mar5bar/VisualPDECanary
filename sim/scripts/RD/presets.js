@@ -947,6 +947,7 @@ export function getPreset(id) {
         oneDimensional: false,
         onlyExposeOptions: [],
         preset: "default",
+        resetOnImageLoad: false,
         renderSize: 512,
         reactionStrU: "-u*v^2 + 0.037*(1.0 - u)",
         reactionStrV: "u*v^2 - (0.037+0.06)*v",

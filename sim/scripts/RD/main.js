@@ -1516,7 +1516,11 @@ function render() {
     takeAScreenshot = false;
     var link = document.createElement("a");
     link.download = "VisualPDEScreenshot";
-    renderer.setSize(options.renderSize, Math.round(options.renderSize * aspectRatio), false);
+    renderer.setSize(
+      options.renderSize,
+      Math.round(options.renderSize * aspectRatio),
+      false
+    );
     renderer.render(scene, camera);
     link.href = renderer.domElement.toDataURL();
     document.body.appendChild(link);
@@ -2051,7 +2055,7 @@ function showGUIController(cont) {
 function setGUIControllerName(cont, str, title) {
   if (cont != undefined) {
     cont.name(str);
-    if (title != undefined){
+    if (title != undefined) {
       cont.title(title);
     }
   }
@@ -2190,6 +2194,9 @@ function loadImageSourceOne() {
   image.onload = function () {
     texture.needsUpdate = true;
     uniforms.imageSourceOne.value = texture;
+    if (options.resetOnImageLoad) {
+      resetSim();
+    }
   };
   texture.dispose();
 }
@@ -2202,12 +2209,15 @@ function loadImageSourceTwo() {
   image.onload = function () {
     texture.needsUpdate = true;
     uniforms.imageSourceTwo.value = texture;
+    if (options.resetOnImageLoad) {
+      resetSim();
+    }
   };
   texture.dispose();
 }
 
 function createImageControllers() {
-  // This is a bad Twosolution to a problem that shouldn't exist.
+  // This is a bad solution to a problem that shouldn't exist.
   // The image controller does not modify the value that you assign to it, and doesn't respond to it being changed.
   // Hence, we create a function used solely to create the controller, which we'll do everytime a preset is loaded.
   if (inGUI("miscFolder")) {
@@ -2224,8 +2234,8 @@ function createImageControllers() {
     .name("$T(x,y)$")
     .onChange(loadImageSourceTwo);
   if (MathJax.typeset != undefined) {
-      MathJax.typeset();
-    }
+    MathJax.typeset();
+  }
   if (inGUI("imageOne")) {
     showGUIController(imControllerOne);
   } else {
