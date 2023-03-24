@@ -1288,16 +1288,6 @@ function initGUI(startOpen) {
   }
   // Always make images controller, but hide them if they're not wanted.
   createImageControllers();
-  if (inGUI("imageOne")) {
-    showGUIController(imControllerOne);
-  } else {
-    hideGUIController(imControllerOne);
-  }
-  if (inGUI("imageTwo")) {
-    showGUIController(imControllerTwo);
-  } else {
-    hideGUIController(imControllerTwo);
-  }
 
   // Add a toggle for showing all options.
   if (options.onlyExposeOptions.length != 0) {
@@ -1966,25 +1956,9 @@ function loadPreset(preset) {
   // controller doesn't update the value of the underlying property,
   // we'll destroy and create a new image controller everytime we load
   // a preset.
-  if (inGUI("miscFolder")) {
-    root = fMisc;
-  } else {
-    root = genericOptionsFolder;
-  }
-  if (inGUI("imageOne")) {
-    imControllerOne.remove();
-    imControllerOne = root
-      .addImage(options, "imagePathOne")
-      .name("$S(x,y)$")
-      .onChange(loadImageSourceOne);
-  }
-  if (inGUI("imageTwo")) {
-    imControllerTwo.remove();
-    imControllerTwo = root
-      .addImage(options, "imagePathTwo")
-      .name("$T(x,y)$")
-      .onChange(loadImageSourceTwo);
-  }
+  imControllerOne.remove();
+  imControllerTwo.remove();
+  createImageControllers();
 }
 
 function loadOptions(preset) {
@@ -2249,6 +2223,17 @@ function createImageControllers() {
     .addImage(options, "imagePathTwo")
     .name("$T(x,y)$")
     .onChange(loadImageSourceTwo);
+  window.MathJax.typeset();
+  if (inGUI("imageOne")) {
+    showGUIController(imControllerOne);
+  } else {
+    hideGUIController(imControllerOne);
+  }
+  if (inGUI("imageTwo")) {
+    showGUIController(imControllerTwo);
+  } else {
+    hideGUIController(imControllerTwo);
+  }
 }
 
 function updateWhatToPlot() {
