@@ -970,6 +970,7 @@ break;
         threeD: false,
         threeDHeightScale: 0.3,
         timeDisplay: false,
+        tryClickingText: "Try clicking!",
         typeOfBrush: "circle",
         typesetCustomEqs: false,
         whatToDraw: "v",

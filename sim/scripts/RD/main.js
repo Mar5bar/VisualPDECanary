@@ -254,6 +254,7 @@ if (
   (fromExternalLink() || options.preset == "default") &&
   !options.suppressTryClickingPopup
 ) {
+  $("#try_clicking").html("<p>"+options.tryClickingText+"</p>");
   $("#try_clicking").addClass("fading_in");
   setTimeout(fadeoutTryClicking, 5000);
 }
