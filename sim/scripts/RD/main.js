@@ -2934,6 +2934,7 @@ $("#erase").click(function () {
 });
 $("#screenshot").click(function () {
   takeAScreenshot = true;
+  render();
 });
 
 $("#back").click(function () {
