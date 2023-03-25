@@ -2822,7 +2822,7 @@ function setEquationDisplayType() {
 function parseStringToTEX(str) {
   // Parse a string into valid TEX by replacing * and ^.
   // Remove *.
-  str = str.replaceAll(/\*/g, "");
+  str = str.replaceAll(/\*/g, " ");
 
   // Replace powers with well-formatted ^, including nested powers.
   str = replaceBinOperator(str, "^", "{$1}^{$2}");
