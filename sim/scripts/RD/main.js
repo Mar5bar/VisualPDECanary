@@ -92,6 +92,8 @@ const listOfTypes = [
 ];
 let equationType, savedHTML;
 let takeAScreenshot = false;
+let buffer,
+  bufferFilled = false;
 const numsAsWords = [
   "zero",
   "one",
@@ -254,7 +256,7 @@ if (
   (fromExternalLink() || options.preset == "default") &&
   !options.suppressTryClickingPopup
 ) {
-  $("#try_clicking").html("<p>"+options.tryClickingText+"</p>");
+  $("#try_clicking").html("<p>" + options.tryClickingText + "</p>");
   $("#try_clicking").addClass("fading_in");
   setTimeout(fadeoutTryClicking, 5000);
 }
@@ -537,6 +539,8 @@ function setSizes() {
   uniforms.nYDisc.value = nYDisc;
   // Set the size of the renderer, which will interpolate from the textures.
   renderer.setSize(options.renderSize, options.renderSize, false);
+  buffer = new Float32Array(nXDisc * nYDisc * 4);
+  bufferFilled = false;
 }
 
 function createDisplayDomains() {
@@ -1296,6 +1300,15 @@ function initGUI(startOpen) {
       .name("Initial $w$")
       .onFinishChange(setClearShader);
   }
+  if (inGUI("integrate")) {
+    root
+      .add(options, "integrate")
+      .name("Integrate")
+      .onChange(function () {
+        configureIntegralDisplay();
+        render();
+      });
+  }
   if (inGUI("preset")) {
     root
       .add(options, "preset", {
@@ -1371,7 +1384,6 @@ function animate() {
       timestep();
       uniforms.t.value += options.dt;
     }
-    updateTimeDisplay();
   }
 
   // Render if something has happened.
@@ -1545,6 +1557,17 @@ function render() {
   renderer.setRenderTarget(postTexture);
   renderer.render(simScene, simCamera);
   uniforms.textureSource.value = postTexture.texture;
+  bufferFilled = false;
+
+  // If selected, update the time display.
+  if (options.timeDisplay) {
+    updateTimeDisplay();
+  }
+
+  // If selected, update the integral display.
+  if (options.integrate) {
+    updateIntegralDisplay();
+  }
 
   // If the platform doesn't blend automatically, apply a bilinear filter.
   if (!floatLinearExtAvailable) {
@@ -2391,8 +2414,7 @@ function diffObjects(o1, o2) {
 
 function getMinMaxVal() {
   // Return the min and max values in the simulation textures in channel channelInd.
-  let buffer = new Float32Array(nXDisc * nYDisc * 4);
-  renderer.readRenderTargetPixels(postTexture, 0, 0, nXDisc, nYDisc, buffer);
+  fillBuffer();
   let minVal = Infinity;
   let maxVal = -Infinity;
   for (let i = 0; i < buffer.length; i += 4) {
@@ -2404,8 +2426,7 @@ function getMinMaxVal() {
 
 function getMeanVal() {
   // Return the mean values in the simulation textures in channel channelInd.
-  let buffer = new Float32Array(nXDisc * nYDisc * 4);
-  renderer.readRenderTargetPixels(postTexture, 0, 0, nXDisc, nYDisc, buffer);
+  fillBuffer();
   let total = 0;
   for (let i = 0; i < buffer.length; i += 4) {
     total += buffer[i];
@@ -2658,6 +2679,7 @@ function configureGUI() {
   }
   configureColourbar();
   configureTimeDisplay();
+  configureIntegralDisplay();
   // Refresh the GUI displays.
   refreshGUI(leftGUI);
   refreshGUI(rightGUI);
@@ -2810,7 +2832,7 @@ function setEquationDisplayType() {
     if (options.diffusionStrWV.match(/[a-zA-Z]/))
       str = str.replaceAll(/\bD_{wv}\b/g, +"[" + options.diffusionStrWV + "]");
 
-    str = str.replaceAll(/\+\s*-/g,"-");
+    str = str.replaceAll(/\+\s*-/g, "-");
 
     str = parseStringToTEX(str);
   }
@@ -3095,6 +3117,36 @@ function updateTimeDisplay() {
   }
 }
 
+function configureIntegralDisplay() {
+  if (options.integrate) {
+    $("#integralDisplay").show();
+  } else {
+    $("#integralDisplay").hide();
+  }
+}
+
+function updateIntegralDisplay() {
+  fillBuffer();
+  let dA = uniforms.dx.value;
+  if (!options.oneDimensional) {
+    dA = dA * uniforms.dy.value;
+  }
+  let total = 0;
+  for (let i = 0; i < buffer.length; i += 4) {
+    total += buffer[i];
+  }
+  total *= dA;
+  let str = "";
+  options.oneDimensional ? (str += "$\\int") : (str += "$\\iint");
+  str += "_{\\domain}" + parseStringToTEX(options.whatToPlot) + "\\,\\d x";
+  options.oneDimensional ? {} : (str += "\\d y");
+  str += " = " + formatLabelNum(total, 4) + "$";
+  $("#integralLabel").html(str);
+  if (MathJax.typesetPromise != undefined) {
+    MathJax.typesetPromise();
+  }
+}
+
 function checkForNaN() {
   // Check to see if a NaN value is in the first entry of the simulation array, which would mean that we've hit overflow or instability.
   let vals = getMinMaxVal();
@@ -3116,6 +3168,13 @@ function fadeoutOops() {
       $(this).removeClass("fading_out");
     }
   );
+}
+
+function fillBuffer() {
+  if (!bufferFilled) {
+    renderer.readRenderTargetPixels(postTexture, 0, 0, nXDisc, nYDisc, buffer);
+    bufferFilled = true;
+  }
 }
 
 $("#simCanvas").one("pointerdown touchstart", fadeoutTryClicking);

@@ -250,7 +250,7 @@ canvas {
     transition-duration: 1s;
 }
 
-p, .colourbarLabel, .timeLabel  {
+p, .label  {
     color: #fdfdfd;
     font: 400 2.0rem/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     -webkit-text-size-adjust: 100%;
@@ -312,6 +312,27 @@ p, .colourbarLabel, .timeLabel  {
 }
 
 .timeLabel {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+}
+
+.integral {
+    display: none;
+    position: absolute;
+    bottom: 20px;
+    height: 20px;
+    left: 20px;
+    border: 2px solid #000;
+    border-radius: 5px;
+    background-color: #000;
+    vertical-align: middle;
+}
+
+.integralLabel {
     position: relative;
     top: 50%;
     transform: translateY(-50%);

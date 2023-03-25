@@ -942,6 +942,7 @@ break;
         fixRandSeed: false,
         imagePathOne: "./images/Alan.png",
         imagePathTwo: "./images/Alan.png",
+        integrate: false,
         kineticParams: "",
         maxColourValue: 1.0,
         minColourValue: 0.0,

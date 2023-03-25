@@ -23,6 +23,8 @@
                     pd: ["\\frac{\\partial #1}{\\partial #2}", 2],
                     pdd: ["\\frac{\\partial^2 #1}{\\partial #2^2}", 2],
                     vnabla: "\\boldsymbol{\\nabla}",
+                    d: "\\mathrm{d}",
+                    domain: "\\mathit{\\Omega}",
                     boundary: "\\partial\\Omega",
                 },
                 inlineMath: [['$', '$'], ['\\(', '\\)']]
@@ -79,13 +81,17 @@
 </div>
 
 <div class="colourbarMain prevent-select" id="colourbar">
-    <div class="colourbarLabel" id="minLabel">0</div>
-    <div class="colourbarLabel" id="midLabel">0.5</div>
-    <div class="colourbarLabel" id="maxLabel">1</div>
+    <div class="label colourbarLabel" id="minLabel">0</div>
+    <div class="label colourbarLabel" id="midLabel">0.5</div>
+    <div class="label colourbarLabel" id="maxLabel">1</div>
 </div>
 
 <div class="time prevent-select" id="timeDisplay">
-    <div class="timeLabel" id="timeLabel"></div>
+    <div class="label timeLabel" id="timeLabel"></div>
+</div>
+
+<div class="integral prevent-select" id="integralDisplay">
+    <div class="label integralLabel" id="integralLabel"></div>
 </div>
 
 <body>

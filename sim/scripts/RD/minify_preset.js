@@ -85,6 +85,7 @@ function presetMap() {
     fixRandSeed: "f",
     imagePathOne: "io",
     imagePathTwo: "it",
+    integrate: "i",
     kineticParams: "k",
     maxColourValue: "ma",
     minColourValue: "mi",
