@@ -332,12 +332,17 @@ p, .label  {
 }
 
 .integralLabel {
+    display: inline-block;
     position: relative;
     top: 50%;
     transform: translateY(-50%);
     font-size: 1rem;
     font-variant-numeric: tabular-nums;
     color: #fff;
+}
+
+#integralValue {
+    display: inline-block;
 }
 
 sup {

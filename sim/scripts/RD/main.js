@@ -2331,15 +2331,15 @@ function updateWhatToPlot() {
     hideGUIController(autoSetColourRangeController);
     options.autoSetColourRange = false;
     refreshGUI(rightGUI);
-    configureColourbar();
   } else {
     setPostFunFragShader();
     showGUIController(minColourValueController);
     showGUIController(maxColourValueController);
     showGUIController(setColourRangeController);
     showGUIController(autoSetColourRangeController);
-    configureColourbar();
   }
+  configureColourbar();
+  configureIntegralDisplay();
   render();
 }
 
@@ -3128,6 +3128,14 @@ function updateTimeDisplay() {
 function configureIntegralDisplay() {
   if (options.integrate) {
     $("#integralDisplay").show();
+    let str = "";
+    options.oneDimensional ? (str += "$\\int") : (str += "$\\iint");
+    str += "_{\\domain}" + parseStringToTEX(options.whatToPlot) + "\\,\\d x";
+    options.oneDimensional ? {} : (str += "\\d y");
+    $("#integralLabel").html(str + " = $");
+    if (MathJax.typesetPromise != undefined) {
+      MathJax.typesetPromise($("#integralLabel"));
+    }
   } else {
     $("#integralDisplay").hide();
   }
@@ -3144,15 +3152,7 @@ function updateIntegralDisplay() {
     total += buffer[i];
   }
   total *= dA;
-  let str = "";
-  options.oneDimensional ? (str += "$\\int") : (str += "$\\iint");
-  str += "_{\\domain}" + parseStringToTEX(options.whatToPlot) + "\\,\\d x";
-  options.oneDimensional ? {} : (str += "\\d y");
-  str += " = " + formatLabelNum(total, 4) + "$";
-  $("#integralLabel").html(str);
-  if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise($("#integralLabel"));
-  }
+  $("#integralValue").html(formatLabelNum(total,4));
 }
 
 function checkForNaN() {
