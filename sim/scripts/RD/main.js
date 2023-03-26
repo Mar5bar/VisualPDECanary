@@ -1813,13 +1813,12 @@ function parseShaderString(str) {
 }
 
 function replaceBinOperator(str, op, form) {
-  // Take a string and replace all instances of a carat with a pow function,
+  // Take a string and replace all instances of op with form,
   // matching balanced brackets.
   const needsEscaping = "^*".includes(op);
-  if (str.indexOf("^") > -1) {
-    var tab = [];
-    var joker = "___joker___";
-    var regex = new RegExp("(([" + op + "()]*))", "g");
+  if (str.indexOf(op) > -1) {
+    let tab = [];
+    let joker = "___joker___";
     while (str.indexOf("(") > -1) {
       str = str.replace(/(\([^\(\)]*\))/g, function (m, t) {
         tab.push(t);
@@ -1829,11 +1828,37 @@ function replaceBinOperator(str, op, form) {
 
     tab.push(str);
     str = joker + (tab.length - 1);
+    let regex;
     if (needsEscaping) {
       regex = new RegExp("([\\w.]*)\\" + op + "([\\w.]*)", "g");
     } else {
       regex = new RegExp("([\\w.]*)" + op + "([\\w.]*)", "g");
     }
+    while (str.indexOf(joker) > -1) {
+      str = str.replace(new RegExp(joker + "(\\w+)", "g"), function (m, d) {
+        return tab[d].replace(regex, form);
+      });
+    }
+  }
+  return str;
+}
+
+function replaceFunction(str, fun, form) {
+  // Take a string and replace all instances of op with form,
+  // matching balanced brackets.
+  if (str.indexOf(fun) > -1) {
+    let tab = [];
+    let joker = "___joker___";
+    while (str.indexOf("(") > -1) {
+      str = str.replace(/(\([^\(\)]*\))/g, function (m, t) {
+        tab.push(t);
+        return joker + (tab.length - 1);
+      });
+    }
+
+    tab.push(str);
+    str = joker + (tab.length - 1);
+    let regex = new RegExp(fun + "([\\w.]*)", "g");
     while (str.indexOf(joker) > -1) {
       str = str.replace(new RegExp(joker + "(\\d+)", "g"), function (m, d) {
         return tab[d].replace(regex, form);
@@ -2832,8 +2857,6 @@ function setEquationDisplayType() {
     if (options.diffusionStrWV.match(/[a-zA-Z]/))
       str = str.replaceAll(/\bD_{wv}\b/g, +"[" + options.diffusionStrWV + "]");
 
-    str = str.replaceAll(/\+\s*-/g, "-");
-
     str = parseStringToTEX(str);
   }
   $("#typeset_equation").html(str);
@@ -2844,6 +2867,15 @@ function setEquationDisplayType() {
 
 function parseStringToTEX(str) {
   // Parse a string into valid TEX by replacing * and ^.
+  // Replace +- and -+ with simply -
+  str = str.replaceAll(/\+\s*-/g, "-");
+  str = str.replaceAll(/-\s*\+/g, "-");
+
+  // Replace common functions with commands.
+  str = replaceFunction(str, "sin", "\\sin{$1}");
+  str = replaceFunction(str, "cos", "\\cos{$1}");
+  str = replaceFunction(str, "tan", "\\tan{$1}");
+
   // Remove *.
   str = str.replaceAll(/\*/g, " ");
 
@@ -3050,14 +3082,13 @@ function updateColourbarLims() {
     $("#minLabel").html("$u$");
     $("#midLabel").html("$v$");
     $("#maxLabel").html("$w$");
-    $("#midLabel").show();
-    if (MathJax.typesetPromise != undefined) {
-      MathJax.typesetPromise();
-    }
   } else {
     $("#minLabel").html(formatLabelNum(options.minColourValue, 2));
+    $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
     $("#maxLabel").html(formatLabelNum(options.maxColourValue, 2));
-    $("#midLabel").hide();
+  }
+  if (MathJax.typesetPromise != undefined) {
+    MathJax.typesetPromise();
   }
   if (
     uniforms.colour1.value
