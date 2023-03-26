@@ -817,6 +817,7 @@ function initGUI(startOpen) {
       .onFinishChange(function () {
         resize();
         setRDEquations();
+        configureIntegralDisplay();
       });
   }
   if (inGUI("domainViaIndicatorFun")) {
