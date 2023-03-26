@@ -2331,14 +2331,14 @@ function updateWhatToPlot() {
     hideGUIController(autoSetColourRangeController);
     options.autoSetColourRange = false;
     refreshGUI(rightGUI);
-    updateColourbarLims();
+    configureColourbar();
   } else {
     setPostFunFragShader();
     showGUIController(minColourValueController);
     showGUIController(maxColourValueController);
     showGUIController(setColourRangeController);
     showGUIController(autoSetColourRangeController);
-    updateColourbarLims();
+    configureColourbar();
   }
   render();
 }
@@ -3046,6 +3046,16 @@ function configureColourbar() {
       ") 100%";
     cString += ")";
     $("#colourbar").css("background", cString);
+    if (options.whatToPlot == "MAX") {
+      $("#minLabel").html("$u$");
+      $("#midLabel").html("$v$");
+      $("#maxLabel").html("$w$");
+    } else {
+      $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
+    }
+    if (MathJax.typesetPromise != undefined) {
+      MathJax.typesetPromise();
+    }
     updateColourbarLims();
   } else {
     $("#colourbar").hide();
@@ -3053,17 +3063,9 @@ function configureColourbar() {
 }
 
 function updateColourbarLims() {
-  if (options.whatToPlot == "MAX") {
-    $("#minLabel").html("$u$");
-    $("#midLabel").html("$v$");
-    $("#maxLabel").html("$w$");
-  } else {
+  if (options.whatToPlot != "MAX") {
     $("#minLabel").html(formatLabelNum(options.minColourValue, 2));
-    $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
     $("#maxLabel").html(formatLabelNum(options.maxColourValue, 2));
-  }
-  if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise();
   }
   if (
     uniforms.colour1.value
