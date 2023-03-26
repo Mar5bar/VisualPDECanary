@@ -1843,31 +1843,6 @@ function replaceBinOperator(str, op, form) {
   return str;
 }
 
-function replaceFunction(str, fun, form) {
-  // Take a string and replace all instances of op with form,
-  // matching balanced brackets.
-  if (str.indexOf(fun) > -1) {
-    let tab = [];
-    let joker = "___joker___";
-    while (str.indexOf("(") > -1) {
-      str = str.replace(/(\([^\(\)]*\))/g, function (m, t) {
-        tab.push(t);
-        return joker + (tab.length - 1);
-      });
-    }
-
-    tab.push(str);
-    str = joker + (tab.length - 1);
-    let regex = new RegExp(fun + "([\\w.]*)", "g");
-    while (str.indexOf(joker) > -1) {
-      str = str.replace(new RegExp(joker + "(\\d+)", "g"), function (m, d) {
-        return tab[d].replace(regex, form);
-      });
-    }
-  }
-  return str;
-}
-
 function setRDEquations() {
   let neumannShader = "";
   let dirichletShader = "";
@@ -2872,9 +2847,9 @@ function parseStringToTEX(str) {
   str = str.replaceAll(/-\s*\+/g, "-");
 
   // Replace common functions with commands.
-  str = replaceFunction(str, "sin", "\\sin{$1}");
-  str = replaceFunction(str, "cos", "\\cos{$1}");
-  str = replaceFunction(str, "tan", "\\tan{$1}");
+  str = str.replaceAll(/\bsin/g, "\\sin");
+  str = str.replaceAll(/\bcos/g, "\\cos");
+  str = str.replaceAll(/\btan/g, "\\tan");
 
   // Remove *.
   str = str.replaceAll(/\*/g, " ");
