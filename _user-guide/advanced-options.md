@@ -118,6 +118,9 @@ Set the background colour of the simulation window, which you will see often whe
 **Initial $u$,$v$,$w$**\
 Specify the values to which the unknowns are initialised when resetting the simulation. These expressions can be functions of $x$, $y$, the special string 'RAND' that assigns a random number in [0,1] to each point in the domain, along with any user-defined parameters.
 
+**Integrate**\
+Display the integral of **Expression** over the domain. This integral is approximated by a simple Riemann sum, with accuracy improving with mesh refinement. This can be used to track the numerical evolution of quantities that should be conserved in a system.
+
 **Preset**\
 Select a preset from a long list of examples included in VisualPDE. This list is a subset of all the examples and will likely only be useful if you are wanting to quickly switch between many different examples.
 
