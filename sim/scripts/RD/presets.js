@@ -863,6 +863,40 @@ break;
         whatToPlot: "u^2+v^2",
       };
       break;
+	case "stabilizedSchrodinger1D":
+	options = {
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
+	"brushRadius": 0,
+	"cameraTheta": 0.5,
+	"cameraPhi": 0,
+	"clearValueU": "exp(-(0.5*pi/s^2)*(x/100-x0)^2)*cos(a*x)/N",
+	"clearValueV": "exp(-(0.5*pi/s^2)*(x/100-x0)^2)*sin(a*x)/N",
+	"crossDiffusion": true,
+	"diffusionStrUU": "C*D",
+	"diffusionStrUV": "-D",
+	"diffusionStrVU": "D",
+	"diffusionStrVV": "C*D",
+	"diffusionStrWW": "0",
+	"domainScale": 100,
+	"dt": 0.0001,
+	"integrate": true,
+	"kineticParams": "D=1;C=0.0007;a=4;s=0.08;x0=0.5;V=100;N=2.8279;d=0.000;",
+	"maxColourValue": 0.9,
+	"numTimestepsPerFrame": 400,
+	"oneDimensional": true,
+	"preset": "stabilizedSchrodinger1D",
+	"reactionStrU": "V*v*(x/100-0.5)^2",
+	"reactionStrV": "-V*u*(x/100-0.5)^2",
+	"reactionStrW": "0",
+	"spatialStep": 0.35,
+	"squareCanvas": true,
+	"threeD": true,
+	"timeDisplay": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u^2+v^2",
+};
+break;
 
     case "subcriticalGS":
       options = {
