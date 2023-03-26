@@ -133,7 +133,7 @@ export function getPreset(id) {
 	"showAllOptionsOverride": true,
 	"spatialStep": 0.0015,
 	"squareCanvas": true,
-	"suppressTryClickingPopup": true,
+	tryClickingText: "Press play!"
 	"whatToDraw": "u",
 	"whatToPlot": "u",
 };
