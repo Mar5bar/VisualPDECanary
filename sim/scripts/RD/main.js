@@ -718,16 +718,6 @@ function initGUI(startOpen) {
   rightGUI = new dat.GUI({ closeOnTop: true });
   rightGUI.domElement.id = "rightGUI";
 
-  if (inGUI("copyConfigAsURL")) {
-    // Copy configuration as URL.
-    rightGUI.add(funsObj, "copyConfigAsURL").name("Copy URL");
-  }
-
-  if (inGUI("copyConfigAsJSON")) {
-    // Copy configuration as raw JSON.
-    rightGUI.add(funsObj, "copyConfigAsJSON").name("Copy code");
-  }
-
   leftGUI.open();
   rightGUI.open();
   if (startOpen != undefined && startOpen) {
@@ -1345,8 +1335,17 @@ function initGUI(startOpen) {
   if (inGUI("fixRandSeed")) {
     root.add(options, "fixRandSeed").name("Fix random seed");
   }
+  if (inGUI("copyConfigAsJSON")) {
+    // Copy configuration as raw JSON.
+    root.add(funsObj, "copyConfigAsJSON").name("Copy code");
+  }
   // Always make images controller, but hide them if they're not wanted.
   createImageControllers();
+  
+  if (inGUI("copyConfigAsURL")) {
+    // Copy configuration as URL.
+    rightGUI.add(funsObj, "copyConfigAsURL").name("Copy URL");
+  }
 
   // Add a toggle for showing all options.
   if (options.onlyExposeOptions.length != 0) {
