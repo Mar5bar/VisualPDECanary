@@ -900,7 +900,12 @@ function initGUI(startOpen) {
   }
 
   // Let's put these in the left GUI.
-  root = leftGUI;
+  // Equations folder.
+  if (inGUI("equationsFolder")) {
+    root = leftGUI.addFolder("Equations");
+  } else {
+    root = genericOptionsFolder;
+  }
   if (inGUI("diffusionStrUU")) {
     DuuController = root
       .add(options, "diffusionStrUU")
@@ -1126,6 +1131,31 @@ function initGUI(startOpen) {
       .name("$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
+  
+  // Initial conditions folder.
+  if (inGUI("initFolder")) {
+    root = leftGUI.addFolder("Initial conditions");
+  } else {
+    root = genericOptionsFolder;
+  }
+  if (inGUI("clearValueU")) {
+    clearValueUController = root
+      .add(options, "clearValueU")
+      .name("Initial $u$")
+      .onFinishChange(setClearShader);
+  }
+  if (inGUI("clearValueV")) {
+    clearValueVController = root
+      .add(options, "clearValueV")
+      .name("Initial $v$")
+      .onFinishChange(setClearShader);
+  }
+  if (inGUI("clearValueW")) {
+    clearValueWController = root
+      .add(options, "clearValueW")
+      .name("Initial $w$")
+      .onFinishChange(setClearShader);
+  }
 
   // Rendering folder.
   if (inGUI("renderingFolder")) {
@@ -1283,24 +1313,6 @@ function initGUI(startOpen) {
     root = fMisc;
   } else {
     root = genericOptionsFolder;
-  }
-  if (inGUI("clearValueU")) {
-    clearValueUController = root
-      .add(options, "clearValueU")
-      .name("Initial $u$")
-      .onFinishChange(setClearShader);
-  }
-  if (inGUI("clearValueV")) {
-    clearValueVController = root
-      .add(options, "clearValueV")
-      .name("Initial $v$")
-      .onFinishChange(setClearShader);
-  }
-  if (inGUI("clearValueW")) {
-    clearValueWController = root
-      .add(options, "clearValueW")
-      .name("Initial $w$")
-      .onFinishChange(setClearShader);
   }
   if (inGUI("integrate")) {
     root
