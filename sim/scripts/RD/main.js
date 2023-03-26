@@ -68,6 +68,7 @@ let leftGUI,
   robinUController,
   robinVController,
   robinWController,
+  fIm,
   fMisc,
   imControllerOne,
   imControllerTwo,
@@ -1265,6 +1266,16 @@ function initGUI(startOpen) {
         scene.background = new THREE.Color(options.backgroundColour);
       });
   }
+  
+  // Images folder.
+  if (inGUI("imagesFolder")) {
+    fIm = rightGUI.addFolder("Images");
+    root = fIm;
+  } else {
+    root = genericOptionsFolder;
+  }
+  // Always make images controller, but hide them if they're not wanted.
+  createImageControllers();
 
   // Miscellaneous folder.
   if (inGUI("miscFolder")) {
@@ -1339,8 +1350,6 @@ function initGUI(startOpen) {
     // Copy configuration as raw JSON.
     root.add(funsObj, "copyConfigAsJSON").name("Copy code");
   }
-  // Always make images controller, but hide them if they're not wanted.
-  createImageControllers();
   
   if (inGUI("copyConfigAsURL")) {
     // Copy configuration as URL.
@@ -2294,8 +2303,8 @@ function createImageControllers() {
   // This is a bad solution to a problem that shouldn't exist.
   // The image controller does not modify the value that you assign to it, and doesn't respond to it being changed.
   // Hence, we create a function used solely to create the controller, which we'll do everytime a preset is loaded.
-  if (inGUI("miscFolder")) {
-    root = fMisc;
+  if (inGUI("imagesFolder")) {
+    root = fIm;
   } else {
     root = genericOptionsFolder;
   }
