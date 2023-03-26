@@ -900,9 +900,9 @@ function initGUI(startOpen) {
   }
 
   // Let's put these in the left GUI.
-  // Equations folder.
-  if (inGUI("equationsFolder")) {
-    root = leftGUI.addFolder("Equations");
+  // Definitions folder.
+  if (inGUI("definitionsFolder")) {
+    root = leftGUI.addFolder("Definitions");
   } else {
     root = genericOptionsFolder;
   }
