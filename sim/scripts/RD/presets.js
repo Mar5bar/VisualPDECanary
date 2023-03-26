@@ -88,29 +88,37 @@ export function getPreset(id) {
       break;
 
     case "cyclicCompetition":
-      options = {
-        clearValueU: "0.1*RAND+x",
-        clearValueV: "0.1*RAND",
-        clearValueW: "0.1*RAND",
-        dt: 0.005,
-        kineticParams: "a=0.8;b=1.9",
-        numSpecies: "3",
-        preset: "cyclicCompetition",
-        renderSize: 552,
-        reactionStrU: "u*(1-u-a*v-b*w)",
-        reactionStrV: "v*(1-b*u-v-a*w)",
-        reactionStrW: "w*(1-a*u-b*v-w)",
-        spatialStep: 0.002,
-        whatToDraw: "u",
-        whatToPlot: "u",
-        diffusionUStr: "0.000001",
-        diffusionVStr: "0.00004",
-        diffusionWStr: "0.000008",
-        diffusionU: 0.000001,
-        diffusionV: 0.00004,
-        diffusionW: 0.000008,
-      };
-      break;
+	options = {
+	"boundaryConditionsU": "neumann",
+	"boundaryConditionsV": "neumann",
+	"boundaryConditionsW": "neumann",
+	"brushRadius": 0,
+	"clearValueU": "0.1*RAND+x/100",
+	"clearValueV": "0.1*(1+RAND)",
+	"clearValueW": "0.1*(1+RAND)",
+	"diffusionStrUU": "2",
+	"diffusionStrVV": "0.5",
+	"diffusionStrWW": "0.5",
+	"domainScale": 500,
+	"dt": 0.007,
+	"fixRandSeed": true,
+	"kineticParams": "a=0.8;b=1.9",
+	"numSpecies": "3",
+	"preset": "cyclicCompetition",
+	"reactionStrU": "u*(1-u-a*v-b*w)",
+	"reactionStrV": "v*(1-b*u-v-a*w)",
+	"reactionStrW": "w*(1-a*u-b*v-w)",
+	"spatialStep": 2,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	"diffusionUStr": "0.000001",
+	"diffusionVStr": "0.00004",
+	"diffusionWStr": "0.000008",
+	"diffusionU": 0.000001,
+	"diffusionV": 0.00004,
+	"diffusionW": 0.000008,
+};
+break;
     case "chemicalBasisOfMorphogenesis":
 	options = {
 	"brushRadius": 0.0495,
