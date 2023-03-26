@@ -799,7 +799,7 @@ break;
 	domainScale: 100,
         drawIn3D: true,
         dt: 0.0001,
-        kineticParams: "D=0.001;q=0.000;C=0.1;Dc=0.1;",
+        kineticParams: "D=10;q=0.000;C=0.1;Dc=0.1;",
         minColourValue: -3,
         numSpecies: "3",
         preset: "plateEquation3D",
