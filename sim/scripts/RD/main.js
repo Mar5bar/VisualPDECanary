@@ -3054,7 +3054,7 @@ function configureColourbar() {
       $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
     }
     if (MathJax.typesetPromise != undefined) {
-      MathJax.typesetPromise();
+      MathJax.typesetPromise($("#midLabel"));
     }
     updateColourbarLims();
   } else {
@@ -3151,7 +3151,7 @@ function updateIntegralDisplay() {
   str += " = " + formatLabelNum(total, 4) + "$";
   $("#integralLabel").html(str);
   if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise();
+    MathJax.typesetPromise($("#integralLabel"));
   }
 }
 
