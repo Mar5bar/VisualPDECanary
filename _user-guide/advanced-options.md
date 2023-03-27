@@ -8,13 +8,6 @@ extract: A glossary of all the features you can play with
 
 The basic functionality of every option that can be found in {{ layout.settings }}
 
-### Share your simulation <a id='copy-url'>
-**Copy URL**\
-Share a link to the simulation you have created. This copies the URL to your clipboard and includes all the settings, but not the current solution.
-
-**Copy code**\
-Copy a more verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples.
-
 ### Brush <a id='brush'>
 **Type**\
 Change the shape of the brush, choosing between **Circle**, **Horizontal line**, and **Vertical line**.
@@ -115,18 +108,22 @@ Toggle the display of the current colour bar and limits.
 Set the background colour of the simulation window, which you will see often when using **Surface Plot** or **Implicit**.
 
 ### Misc <a id='misc'>
-**Initial $u$,$v$,$w$**\
-Specify the values to which the unknowns are initialised when resetting the simulation. These expressions can be functions of $x$, $y$, the special string 'RAND' that assigns a random number in [0,1] to each point in the domain, along with any user-defined parameters.
-
 **Integrate**\
 Display the integral of **Expression** over the domain. This integral is approximated by a simple Riemann sum, with accuracy improving with mesh refinement. This can be used to track the numerical evolution of quantities that should be conserved in a system.
-
-**Preset**\
-Select a preset from a long list of examples included in VisualPDE. This list is a subset of all the examples and will likely only be useful if you are wanting to quickly switch between many different examples.
 
 **Fix random**\
 Fix the seed of the (pseudo)random number generator used to assign values to 'RAND' in all free-text fields in the VisualPDE interface. Note that 'RAND' is always heterogeneous in space.
 
+**Copy code**\
+Copy a verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples.
 
+**Preset**\
+Select a preset from a long list of examples included in VisualPDE. This list is a subset of all the examples and will likely only be useful if you are wanting to quickly switch between many different examples.
+
+### Images <a id='images'>
 **$S(x,y)$, $T(x,y)$**\
 Define the scalar fields $S(x,y)$ and $T(x,y)$, which are derived from images that you can upload by clicking on the current image. Via the symbols 'S' and 'T' throughout VisualPDE, you can access the average RGB value of each image at each point in space, effectively treating them as greyscale. Advanced users can access the individual RGBA channels via 'SR', 'SG', etc. VisualPDE will stretch images so that they cover the domain edge-to-edge. Note that this does not respect **Implicit**. The defaults draw from an image of [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing).
+
+### Share your simulation <a id='copy-url'>
+**Copy URL**\
+Share a link to the simulation you have created. This copies the URL to your clipboard and includes all the settings, but not the current solution.

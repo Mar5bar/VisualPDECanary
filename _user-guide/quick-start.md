@@ -15,9 +15,10 @@ Pressing {{ layout.equations }} opens up the **equations panel**.
 
 Here you can:
 * See the [equation being simulated](#equations), here $\pd{u}{t} = \vnabla\cdot(D\vnabla u) + f$.
-* Set the named functions in the equations, here $D$ and $f$. These can be functions of any of the unknowns, space, and time (here $u$, $x$, $y$, and $t$), and of any parameters that will be defined further down the panel.
-* Set the value of any extra parameters
-* Set the [boundary conditions](#boundary-conditions)
+* Set the named functions in the equations, here $D$ and $f$, under **Definitions**. These can be functions of any of the unknowns, space, and time (here $u$, $x$, $y$, and $t$), and of any parameters that will be defined further down the panel.
+* Set the value of any extra parameters.
+* Set the [boundary conditions](#boundary-conditions).
+* Set the [initial conditions](#initial-conditions).
 
 ### Domain shape <a id='domain-shape'>
 
@@ -35,6 +36,9 @@ The following **boundary conditions** are available to allow you to set the valu
 * [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition) (e.g. $(u + \pd{u}{n})\|\onboundary = 0$)
 
 You can swap between boundary conditions by choosing <span class='click_sequence'>{{ layout.equations }} → **Boundary conditions**</span> and selecting from the list for each variable.
+
+### Initial conditions <a id='initial-conditions>
+You can specify the values to which the unknowns ($u$, $v$, $w$) are initialised when resetting the simulation. These expressions can be functions of $x$, $y$, the special string 'RAND' that assigns a random number in [0,1] to each point in the domain, along with any user-defined parameters and the images $S$ and $T$ (see the [advanced documentation](/user-guide/advanced-options) for more details).
 
 ### Changing the equations <a id='equations'>
 

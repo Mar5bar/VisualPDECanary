@@ -1323,6 +1323,13 @@ function initGUI(startOpen) {
         render();
       });
   }
+  if (inGUI("fixRandSeed")) {
+    root.add(options, "fixRandSeed").name("Fix random seed");
+  }
+  if (inGUI("copyConfigAsJSON")) {
+    // Copy configuration as raw JSON.
+    root.add(funsObj, "copyConfigAsJSON").name("Copy code");
+  }
   if (inGUI("preset")) {
     root
       .add(options, "preset", {
@@ -1354,13 +1361,6 @@ function initGUI(startOpen) {
       })
       .name("Preset")
       .onChange(loadPreset);
-  }
-  if (inGUI("fixRandSeed")) {
-    root.add(options, "fixRandSeed").name("Fix random seed");
-  }
-  if (inGUI("copyConfigAsJSON")) {
-    // Copy configuration as raw JSON.
-    root.add(funsObj, "copyConfigAsJSON").name("Copy code");
   }
 
   if (inGUI("copyConfigAsURL")) {
