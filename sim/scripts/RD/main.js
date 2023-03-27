@@ -3142,7 +3142,7 @@ function updateTimeDisplay() {
   if (options.timeDisplay) {
     let str = formatLabelNum(uniforms.t.value, 3);
     str = str.replace(/e(\+)*(\-)*([0-9]*)/, " x 10<sup>$2$3<sup>");
-    $("#timeLabel").html("t = " + str);
+    $("#timeValue").html(str);
   }
 }
 
