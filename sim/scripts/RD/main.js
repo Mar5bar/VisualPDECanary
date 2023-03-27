@@ -2704,6 +2704,13 @@ function configureGUI() {
   // Refresh the GUI displays.
   refreshGUI(leftGUI);
   refreshGUI(rightGUI);
+  if (isRunning) {
+    $("#play").hide();
+    $("#pause").show();
+  } else {
+    $("#play").show();
+    $("#pause").hide();
+  }
 }
 
 function configureOptions() {
