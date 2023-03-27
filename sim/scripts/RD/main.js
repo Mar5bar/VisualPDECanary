@@ -1141,19 +1141,19 @@ function initGUI(startOpen) {
   if (inGUI("clearValueU")) {
     clearValueUController = root
       .add(options, "clearValueU")
-      .name("Initial $u$")
+      .name("$\\left.u\\right\\rvert_{t=0}$")
       .onFinishChange(setClearShader);
   }
   if (inGUI("clearValueV")) {
     clearValueVController = root
       .add(options, "clearValueV")
-      .name("Initial $v$")
+      .name("$\\left.v\\right\\rvert_{t=0}$")
       .onFinishChange(setClearShader);
   }
   if (inGUI("clearValueW")) {
     clearValueWController = root
       .add(options, "clearValueW")
-      .name("Initial $w$")
+      .name("$\\left.w\\right\\rvert_{t=0}$")
       .onFinishChange(setClearShader);
   }
 

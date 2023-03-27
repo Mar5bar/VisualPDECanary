@@ -29,7 +29,7 @@ Allow yourself to draw while viewing the solution as a surface (surface plot onl
 Change the largest side $L$ of the domain.
 
 **Space step**\
-Set the spatial step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the spatial step (as discussed [here](/user-guide/solver)).
+Set the spatial step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the spatial step (as discussed [here](/user-guide/solver#timestepping)).
 
 **Square**\
 Toggle whether or not the domain is forced to be square, independent of the aspect ratio of your device/window.
