@@ -1294,6 +1294,7 @@ function initGUI(startOpen) {
       .name("Background")
       .onChange(function () {
         scene.background = new THREE.Color(options.backgroundColour);
+        render();
       });
   }
 
