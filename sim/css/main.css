@@ -345,3 +345,7 @@ p, .label  {
 sup {
     line-height: 0;
 }
+
+.secondRowUI {
+    bottom: 50px !important;
+}

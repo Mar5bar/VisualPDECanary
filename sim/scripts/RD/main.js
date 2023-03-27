@@ -1131,7 +1131,7 @@ function initGUI(startOpen) {
       .name("$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
-  
+
   // Initial conditions folder.
   if (inGUI("initFolder")) {
     root = leftGUI.addFolder("Initial conditions");
@@ -1296,7 +1296,7 @@ function initGUI(startOpen) {
         scene.background = new THREE.Color(options.backgroundColour);
       });
   }
-  
+
   // Images folder.
   if (inGUI("imagesFolder")) {
     fIm = rightGUI.addFolder("Images");
@@ -1362,7 +1362,7 @@ function initGUI(startOpen) {
     // Copy configuration as raw JSON.
     root.add(funsObj, "copyConfigAsJSON").name("Copy code");
   }
-  
+
   if (inGUI("copyConfigAsURL")) {
     // Copy configuration as URL.
     rightGUI.add(funsObj, "copyConfigAsURL").name("Copy URL");
@@ -3143,6 +3143,7 @@ function updateTimeDisplay() {
     let str = formatLabelNum(uniforms.t.value, 3);
     str = str.replace(/e(\+)*(\-)*([0-9]*)/, " x 10<sup>$2$3<sup>");
     $("#timeValue").html(str);
+    checkColorbarPosition();
   }
 }
 
@@ -3163,17 +3164,20 @@ function configureIntegralDisplay() {
 }
 
 function updateIntegralDisplay() {
-  fillBuffer();
-  let dA = uniforms.dx.value;
-  if (!options.oneDimensional) {
-    dA = dA * uniforms.dy.value;
+  if (options.integrate) {
+    fillBuffer();
+    let dA = uniforms.dx.value;
+    if (!options.oneDimensional) {
+      dA = dA * uniforms.dy.value;
+    }
+    let total = 0;
+    for (let i = 0; i < buffer.length; i += 4) {
+      total += buffer[i];
+    }
+    total *= dA;
+    $("#integralValue").html(formatLabelNum(total, 4));
+    checkColorbarPosition();
   }
-  let total = 0;
-  for (let i = 0; i < buffer.length; i += 4) {
-    total += buffer[i];
-  }
-  total *= dA;
-  $("#integralValue").html(formatLabelNum(total,4));
 }
 
 function checkForNaN() {
@@ -3203,6 +3207,27 @@ function fillBuffer() {
   if (!bufferFilled) {
     renderer.readRenderTargetPixels(postTexture, 0, 0, nXDisc, nYDisc, buffer);
     bufferFilled = true;
+  }
+}
+
+function checkColorbarPosition() {
+  if (options.colourbar) {
+    let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
+    if (options.integrate) {
+      let integralDims = $("#integralDisplay")[0].getBoundingClientRect();
+      if (colourbarDims.left <= integralDims.left + integralDims.width) {
+        $("#colourbar").addClass("secondRowUI");
+        return;
+      }
+    }
+    if (options.timeDisplay) {
+      let timeDims = $("#timeDisplay")[0].getBoundingClientRect();
+      if (colourbarDims.left + colourbarDims.width >= timeDims.left) {
+        $("#colourbar").addClass("secondRowUI");
+        return;
+      }
+    }
+    $("#colourbar").removeClass("secondRowUI");
   }
 }
 
