@@ -1174,7 +1174,10 @@ function initGUI(startOpen) {
     whatToPlotController = root
       .add(options, "whatToPlot")
       .name("Expression: ")
-      .onFinishChange(updateWhatToPlot);
+      .onFinishChange(function() {
+        updateWhatToPlot();
+        render();
+      });
   }
   if (inGUI("renderSize")) {
     root
