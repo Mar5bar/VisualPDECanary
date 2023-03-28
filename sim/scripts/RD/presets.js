@@ -595,8 +595,8 @@ break;
       options = {
         boundaryConditionsU: "periodic",
         boundaryConditionsV: "periodic",
-        diffusionStrUU: "0.0000042",
-        diffusionStrVV: "0.0002",
+        diffusionStrUU: "0.042",
+        diffusionStrVV: "2",
 	domainScale: 100,
         dt: 0.001,
         imagePathTwo: "./images/Alan.png",
