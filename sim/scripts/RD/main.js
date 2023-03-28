@@ -293,8 +293,9 @@ function init() {
   // Create a renderer.
   renderer = new THREE.WebGLRenderer({
     canvas: canvas,
+    preserveDrawingBuffer: true,
     powerPreference: "high-performance",
-    antialias: true,
+    antialias: false,
   });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = true;
