@@ -221,6 +221,14 @@ funsObj = {
     let str = "";
     str += JSON.stringify(options);
     str += JSON.stringify(uniforms);
+    str += JSON.stringify({
+      nXDisc: nXDisc,
+      nYDisc: nYDisc,
+      domainHeight: domainHeight,
+      domainWidth: domainWidth,
+      aspectRatio: aspectRatio,
+      canvas: canvas.getBoundingClientRect(),
+    });
     navigator.clipboard.writeText(str);
   },
 };
