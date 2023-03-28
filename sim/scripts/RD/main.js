@@ -529,6 +529,11 @@ function setSizes() {
   computeCanvasSizesAndAspect();
   // Using the user-specified spatial step size, compute as close a discretisation as possible that
   // doesn't reduce the step size below the user's choice.
+  if (options.spatialStep == 0) {
+    // Prevent a crash if a 0 spatial step is specified.
+    alert("Oops! A spatial step of 0 would almost certainly crash your device. We've reset it to 1% of the maximum domain length to prevent this.")
+    options.spatialStep = options.domainScale / 100;
+  }
   nXDisc = Math.floor(domainWidth / options.spatialStep);
   nYDisc = Math.floor(domainHeight / options.spatialStep);
   // If the user has specified that this is a 1D problem, set nYDisc = 1.
