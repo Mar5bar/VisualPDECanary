@@ -512,8 +512,8 @@ function updateUniforms() {
 
 function computeCanvasSizesAndAspect() {
   aspectRatio =
-    canvas.getBoundingClientRect().height /
-    canvas.getBoundingClientRect().width;
+    canvas.clientHeight /
+    canvas.clientWidth;
   // Set the domain size, setting the largest side to be of size options.domainScale.
   if (aspectRatio >= 1) {
     domainHeight = options.domainScale;
