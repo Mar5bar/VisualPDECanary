@@ -216,6 +216,13 @@ funsObj = {
     configureGUI();
     configureCamera();
   },
+  debug: function () {
+    // Write lots of data to the clipboard.
+    let str = "";
+    str += JSON.stringify(options);
+    str += JSON.stringify(uniforms);
+    navigator.clipboard.writeText(str);
+  },
 };
 
 // Get the canvas to draw on, as specified by the html.
@@ -511,9 +518,7 @@ function updateUniforms() {
 }
 
 function computeCanvasSizesAndAspect() {
-  aspectRatio =
-    canvas.clientHeight /
-    canvas.clientWidth;
+  aspectRatio = canvas.clientHeight / canvas.clientWidth;
   // Set the domain size, setting the largest side to be of size options.domainScale.
   if (aspectRatio >= 1) {
     domainHeight = options.domainScale;
@@ -1174,7 +1179,7 @@ function initGUI(startOpen) {
     whatToPlotController = root
       .add(options, "whatToPlot")
       .name("Expression: ")
-      .onFinishChange(function() {
+      .onFinishChange(function () {
         updateWhatToPlot();
         render();
       });
@@ -1372,6 +1377,10 @@ function initGUI(startOpen) {
       })
       .name("Preset")
       .onChange(loadPreset);
+  }
+  if (inGUI("debug")) {
+    // Debug.
+    root.add(funsObj, "debug").name("Copy debug info");
   }
 
   if (inGUI("copyConfigAsURL")) {
@@ -1829,7 +1838,7 @@ function parseShaderString(str) {
       case "0":
         return "1";
       case "1":
-        return "("+p1+")";
+        return "(" + p1 + ")";
       case "2":
         return "(" + p1 + ")*(" + p1 + ")";
       case "3":
