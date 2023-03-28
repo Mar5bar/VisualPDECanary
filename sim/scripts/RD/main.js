@@ -1821,7 +1821,20 @@ function parseShaderString(str) {
   str = " " + str + " ";
 
   // Replace powers with safepow, including nested powers.
-  str = replaceBinOperator(str, "^", "safepow($1,$2)");
+  str = replaceBinOperator(str, "^", function (m, p1, p2) {
+    switch (p2) {
+      case "0":
+        return "1";
+      case "1":
+        return "("+p1+")";
+      case "2":
+        return "(" + p1 + ")*(" + p1 + ")";
+      case "3":
+        return "(" + p1 + ")*(" + p1 + ")*(" + p1 + ")";
+      default:
+        return "safepow(" + p1 + "," + p2 + ")";
+    }
+  });
 
   // Replace u, v, and w with uvw.r, uvw.g, and uvw.b via placeholders.
   str = str.replace(/\bu\b/g, "uvw." + speciesToChannelChar("u"));
