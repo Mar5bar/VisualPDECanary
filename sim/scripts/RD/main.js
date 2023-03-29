@@ -1303,7 +1303,7 @@ function initGUI(startOpen) {
   if (inGUI("forceManualInterpolation")) {
     forceManualInterpolationController = root
       .add(options, "forceManualInterpolation")
-      .name("Man. interp.")
+      .name("Man. smooth")
       .onChange(configureManualInterpolation);
   }
 
