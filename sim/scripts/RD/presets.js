@@ -1012,7 +1012,7 @@ break;
         robinStrW: "0",
         runningOnLoad: true,
         showAllOptionsOverride: false,
-        smoothingScale: 2,
+        smoothingScale: 4,
         spatialStep: 1 / 200,
         squareCanvas: false,
         suppressTryClickingPopup: false,
