@@ -231,6 +231,41 @@ funsObj = {
     });
     navigator.clipboard.writeText(str);
   },
+  debugSmallSquare: function () {
+    $("#simCanvas").css("width", "200px");
+    $("#simCanvas").css("height", "200px");
+    resize();
+  },
+  debugSmallRect: function () {
+    $("#simCanvas").css("width", "200px");
+    $("#simCanvas").css("height", "400px");
+    resize();
+  },
+  debugTallRect: function () {
+    $("#simCanvas").css("width", "200px");
+    $("#simCanvas").css("height", "600px");
+    resize();
+  },
+  debugTallerRect: function () {
+    $("#simCanvas").css("width", "200px");
+    $("#simCanvas").css("height", "800px");
+    resize();
+  },
+  debugWideRect: function () {
+    $("#simCanvas").css("width", "400px");
+    $("#simCanvas").css("height", "600px");
+    resize();
+  },
+  debugHundredTall: function () {
+    $("#simCanvas").css("width", "400px");
+    $("#simCanvas").css("height", "100%");
+    resize();
+  },
+  debugHundredVHTall: function () {
+    $("#simCanvas").css("width", "400px");
+    $("#simCanvas").css("height", "100vh");
+    resize();
+  },
 };
 
 // Get the canvas to draw on, as specified by the html.
@@ -401,6 +436,7 @@ function init() {
   configureCamera();
 
   // Set the size of the domain and related parameters.
+  setCanvasShape();
   resize();
 
   // Create a GUI.
@@ -450,18 +486,16 @@ function init() {
 }
 
 function resize() {
-  // Set the shape of the canvas.
-  setCanvasShape();
   // Set the resolution of the simulation domain and the renderer.
   setSizes();
   // Assign sizes to textures.
   resizeTextures();
   // Update any uniforms.
   updateUniforms();
-  // Configure the camera.
-  configureCamera();
   // Create new display domains with the correct sizes.
   replaceDisplayDomains();
+  // Configure the camera.
+  configureCamera();
   render();
 }
 
@@ -485,7 +519,6 @@ function configureCamera() {
     );
     camera.position.set(pos.x, pos.y, pos.z);
     camera.lookAt(0, 0, 0);
-    camera.updateProjectionMatrix();
     displayMaterial.vertexShader = surfaceVertexShader();
     displayMaterial.needsUpdate = true;
   } else {
@@ -498,6 +531,7 @@ function configureCamera() {
   camera.right = domainWidth / (2 * maxDim);
   camera.top = domainHeight / (2 * maxDim);
   camera.bottom = -domainHeight / (2 * maxDim);
+  camera.updateProjectionMatrix();
   setDomainOrientation();
 }
 
@@ -526,7 +560,9 @@ function updateUniforms() {
 }
 
 function computeCanvasSizesAndAspect() {
-  aspectRatio = canvas.getBoundingClientRect().height / canvas.getBoundingClientRect().width;
+  aspectRatio =
+    canvas.getBoundingClientRect().height /
+    canvas.getBoundingClientRect().width;
   // Set the domain size, setting the largest side to be of size options.domainScale.
   if (aspectRatio >= 1) {
     domainHeight = options.domainScale;
@@ -636,8 +672,6 @@ function resizeTextures() {
     let sf = options.smoothingScale;
     interpolationTexture.setSize(sf * nXDisc, sf * nYDisc);
   }
-
-  render();
 }
 
 function initUniforms() {
@@ -817,6 +851,7 @@ function initGUI(startOpen) {
       .add(options, "squareCanvas")
       .name("Square display")
       .onFinishChange(function () {
+        setCanvasShape();
         resize();
         configureCamera();
       });
@@ -1244,7 +1279,10 @@ function initGUI(startOpen) {
     root
       .add(options, "smoothingScale", 1, 16, 1)
       .name("Smoothing")
-      .onChange(resizeTextures);
+      .onChange(function () {
+        resizeTextures();
+        render();
+      });
   }
 
   // Colour folder.
@@ -1386,6 +1424,31 @@ function initGUI(startOpen) {
       .name("Preset")
       .onChange(loadPreset);
   }
+  let debugFolder = root.addFolder("Debug");
+  root = debugFolder;
+  root.add(funsObj, "debugSmallSquare").name("SmallSquare");
+  root.add(funsObj, "debugSmallRect").name("SmallRect");
+  root.add(funsObj, "debugTallRect").name("TallRect");
+  root.add(funsObj, "debugTallerRect").name("TallerRect");
+  root.add(funsObj, "debugWideRect").name("WideRect");
+  root.add(funsObj, "debugHundredTall").name("HundredTall");
+  root.add(funsObj, "debugHundredVHTall").name("HundredVHTall");
+  let test = { height: "100px", width: "100px" };
+  root
+    .add(test, "height")
+    .name("Height: ")
+    .onFinishChange(function () {
+      $("#simCanvas").css("height", test.height);
+      resize();
+    });
+  root
+    .add(test, "width")
+    .name("Width: ")
+    .onFinishChange(function () {
+      $("#simCanvas").css("width", test.width);
+      resize();
+    });
+
   if (inGUI("debug")) {
     // Debug.
     root.add(funsObj, "debug").name("Copy debug info");
@@ -2074,6 +2137,7 @@ function loadPreset(preset) {
   updateProblem();
 
   // Trigger a resize, which will refresh all uniforms and set sizes.
+  setCanvasShape();
   resize();
 
   // Set the draw, display, and clear shaders.
