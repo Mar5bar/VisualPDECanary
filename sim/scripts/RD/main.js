@@ -8,7 +8,7 @@ let camera,
   controls,
   raycaster,
   clampedCoords;
-let simTextureA, simTextureB, postTexture, interpolationTexture;
+let simTextureA, simTextureB, postTexture, interpolationTexture, simTextureOpts;
 let basicMaterial,
   displayMaterial,
   drawMaterial,
@@ -339,12 +339,13 @@ function init() {
     gl.getExtension("EXT_float_blend");
 
   // Configure textures with placeholder sizes.
-  simTextureA = new THREE.WebGLRenderTarget(options.maxDisc, options.maxDisc, {
+  simTextureOpts = {
     format: THREE.RGBAFormat,
     type: THREE.FloatType,
-    minFilter: THREE.LinearFilter,
-    magFilter: THREE.LinearFilter,
-  });
+    minFilter: THREE.NearestFilter,
+    magFilter: THREE.NearestFilter,
+  };
+  simTextureA = new THREE.WebGLRenderTarget(options.maxDisc, options.maxDisc, simTextureOpts);
   simTextureB = simTextureA.clone();
   postTexture = simTextureA.clone();
   if (!floatLinearExtAvailable) {
