@@ -88,6 +88,12 @@ The maximum height of a plotted surface, relative to the size $L$ of the domain.
 **Zoom**\
 The current zoom level of the 3D view. You can manipulate the value directly or, on touch devices, by 'pinching to zoom'.
 
+**Smoothing scale**\
+Control the degree of smoothing applied to the simulation output before display. Setting this value to zero turns off all smoothing. Larger values demand more memory and compute power, but increasingly smooth the output with bilinear interpolation. Only available if manual smoothing is enabled.
+
+**Man. smooth (manual smoothing)**\
+Use this option to force the use of manual, configurable, unoptimised filtering in place of device-default interplation of displayed colours. This toggle is not available on devices that do not support smoothing by default; in this case, manual smoothing is always enabled.
+
 ### Colour <a id='colour'>
 **Colour map**\
 Set the current colour map being used to convert **Expression** into a colour value. Use the dropdown to select from the available options. We have tried to cater for everyone in these options but, if you find that no colour map is available that allows you to easily distinguish between values, please let us know at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can add a more appropriate map.
