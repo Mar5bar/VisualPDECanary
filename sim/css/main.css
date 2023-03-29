@@ -231,6 +231,28 @@ canvas {
     font-size: 1.5rem;
 }
 
+#warning {
+    display: none;
+    top: 50%;
+    width: 80%;
+    max-width: 90vh;
+    left: 50%;
+    position: absolute;
+    opacity: 100;
+    pointer-events: all;
+}
+
+.btn-primary {
+    width: 80px;
+    color: #000 !important;
+    font-size: 1.2rem;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-feature-settings: "kern" 1;
+    -moz-font-feature-settings: "kern" 1;
+    -o-font-feature-settings: "kern" 1;
+    font-feature-settings: "kern" 1;
+}
+
 #oops_hit_nan {
     top: 50%;
     width: 80%;

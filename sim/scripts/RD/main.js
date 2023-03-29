@@ -281,6 +281,20 @@ if (!fromExternalLink()) {
 
 var readFromTextureB = true;
 
+// Warn the user about flashing images and ask for cookie permission to store this.
+if (!warningCookieExists()) {
+  // Display the warning message.
+  $("#warning").css("display", "block");
+  const permission = await Promise.race([
+    waitListener(document.getElementById("warning_ok"), "click", true),
+    waitListener(document.getElementById("warning_no"), "click", false),
+  ]);
+  if (permission) {
+    setWarningCookie();
+  }
+  $("#warning").css("display", "none");
+}
+
 // Load default options.
 loadOptions("default");
 
@@ -3391,6 +3405,34 @@ function configureManualInterpolation() {
 
 function isManuallyInterpolating() {
   return manualInterpolationNeeded || options.forceManualInterpolation;
+}
+
+function warningCookieExists() {
+  var cookieArr = document.cookie.split(";");
+  for (var i = 0; i < cookieArr.length; i++) {
+    var cookiePair = cookieArr[i].split("=");
+    if ("warning" == cookiePair[0].trim()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function setWarningCookie() {
+  const d = new Date();
+  d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
+  let expires = "expires=" + d.toUTCString();
+  document.cookie = "warning" + "=" + "true" + ";" + expires + ";path=/";
+}
+
+function waitListener(element, listenerName, val) {
+  return new Promise(function (resolve, reject) {
+    var listener = (event) => {
+      element.removeEventListener(listenerName, listener);
+      resolve(val);
+    };
+    element.addEventListener(listenerName, listener);
+  });
 }
 
 $("#simCanvas").one("pointerdown touchstart", fadeoutTryClicking);
