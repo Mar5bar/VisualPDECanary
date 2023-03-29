@@ -297,7 +297,6 @@ function init() {
     powerPreference: "high-performance",
     antialias: false,
   });
-  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.autoClear = true;
   gl = renderer.getContext();
   floatLinearExtAvailable =
@@ -527,7 +526,7 @@ function updateUniforms() {
 }
 
 function computeCanvasSizesAndAspect() {
-  aspectRatio = canvas.clientHeight / canvas.clientWidth;
+  aspectRatio = canvas.getBoundingClientRect().height / canvas.getBoundingClientRect().width;
   // Set the domain size, setting the largest side to be of size options.domainScale.
   if (aspectRatio >= 1) {
     domainHeight = options.domainScale;
