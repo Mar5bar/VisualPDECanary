@@ -1437,14 +1437,14 @@ function initGUI(startOpen) {
   root
     .add(test, "height")
     .name("Height: ")
-    .onFinishChange(function () {
+    .onChange(function () {
       $("#simCanvas").css("height", test.height);
       resize();
     });
   root
     .add(test, "width")
     .name("Width: ")
-    .onFinishChange(function () {
+    .onChange(function () {
       $("#simCanvas").css("width", test.width);
       resize();
     });
