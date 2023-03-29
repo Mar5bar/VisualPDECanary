@@ -988,6 +988,7 @@ break;
         drawIn3D: false,
         dt: 0.1,
         fixRandSeed: false,
+        forceManualInterpolation: false,
         imagePathOne: "./images/Alan.png",
         imagePathTwo: "./images/Alan.png",
         integrate: false,

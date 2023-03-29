@@ -1,4 +1,4 @@
-let canvas, gl, floatLinearExtAvailable;
+let canvas, gl, manualInterpolationNeeded;
 let camera,
   simCamera,
   scene,
@@ -48,6 +48,8 @@ let leftGUI,
   cameraThetaController,
   cameraPhiController,
   cameraZoomController,
+  forceManualInterpolationController,
+  smoothingScaleController,
   whatToPlotController,
   minColourValueController,
   maxColourValueController,
@@ -334,23 +336,31 @@ function init() {
   });
   renderer.autoClear = true;
   gl = renderer.getContext();
-  floatLinearExtAvailable =
+  // Check if we should be interpolating manual.
+  manualInterpolationNeeded = !(
     gl.getExtension("OES_texture_float_linear") &&
-    gl.getExtension("EXT_float_blend");
+    gl.getExtension("EXT_float_blend")
+  );
 
   // Configure textures with placeholder sizes.
   simTextureOpts = {
     format: THREE.RGBAFormat,
     type: THREE.FloatType,
     minFilter: THREE.NearestFilter,
-    magFilter: THREE.NearestFilter,
   };
-  simTextureA = new THREE.WebGLRenderTarget(options.maxDisc, options.maxDisc, simTextureOpts);
+  // If you're on Android, you must use a NEAREST magnification filter to avoid rounding issues.
+  manualInterpolationNeeded |= /android/i.test(navigator.userAgent);
+  manualInterpolationNeeded
+    ? (simTextureOpts.magFilter = THREE.NearestFilter)
+    : (simTextureOpts.magFilter = THREE.LinearFilter);
+  simTextureA = new THREE.WebGLRenderTarget(
+    options.maxDisc,
+    options.maxDisc,
+    simTextureOpts
+  );
   simTextureB = simTextureA.clone();
   postTexture = simTextureA.clone();
-  if (!floatLinearExtAvailable) {
-    interpolationTexture = simTextureA.clone();
-  }
+  interpolationTexture = simTextureA.clone();
 
   // Periodic boundary conditions (for now).
   simTextureA.texture.wrapS = THREE.RepeatWrapping;
@@ -455,6 +465,9 @@ function init() {
   // Add shaders to the textures.
   setDrawAndDisplayShaders();
   setClearShader();
+
+  // Configure interpolation.
+  configureManualInterpolation();
 
   // Set the initial condition.
   resetSim();
@@ -671,10 +684,10 @@ function resizeTextures() {
   readFromTextureB = !readFromTextureB;
   postTexture.setSize(nXDisc, nYDisc);
   // The interpolationTexture will be larger by a scale factor sf.
-  if (!floatLinearExtAvailable) {
-    let sf = options.smoothingScale;
-    interpolationTexture.setSize(sf * nXDisc, sf * nYDisc);
-  }
+  interpolationTexture.setSize(
+    (options.smoothingScale + 1) * nXDisc,
+    (options.smoothingScale + 1) * nYDisc
+  );
 }
 
 function initUniforms() {
@@ -1278,14 +1291,20 @@ function initGUI(startOpen) {
       .name("Zoom")
       .onChange(configureCamera);
   }
-  if (inGUI("Smoothing scale") && !floatLinearExtAvailable) {
-    root
-      .add(options, "smoothingScale", 1, 16, 1)
+  if (inGUI("Smoothing scale")) {
+    smoothingScaleController = root
+      .add(options, "smoothingScale", 0, 16, 1)
       .name("Smoothing")
       .onChange(function () {
         resizeTextures();
         render();
       });
+  }
+  if (inGUI("forceManualInterpolation")) {
+    forceManualInterpolationController = root
+      .add(options, "forceManualInterpolation")
+      .name("Man. interp.")
+      .onChange(configureManualInterpolation);
   }
 
   // Colour folder.
@@ -1684,8 +1703,8 @@ function render() {
     updateIntegralDisplay();
   }
 
-  // If the platform doesn't blend automatically, apply a bilinear filter.
-  if (!floatLinearExtAvailable) {
+  // If we want to smooth manually, apply a bilinear filter.
+  if (isManuallyInterpolating()) {
     simDomain.material = interpolationMaterial;
     renderer.setRenderTarget(interpolationTexture);
     renderer.render(simScene, simCamera);
@@ -1751,8 +1770,8 @@ function setBrushCoords(event, container) {
     }
   }
   // Round to near-pixel coordinates.
-  x = (Math.floor(x * nXDisc + 0.5)) / nXDisc;
-  y = (Math.floor(y * nYDisc + 0.5)) / nYDisc;
+  x = Math.round(x * nXDisc) / nXDisc;
+  y = Math.round(y * nYDisc) / nYDisc;
   uniforms.brushCoords.value = new THREE.Vector2(x, y);
   return (0 <= x) & (x <= 1) & (0 <= y) & (y <= 1);
 }
@@ -2166,6 +2185,9 @@ function loadPreset(preset) {
   imControllerOne.remove();
   imControllerTwo.remove();
   createImageControllers();
+
+  // Configure interpolation.
+  configureManualInterpolation();
 }
 
 function loadOptions(preset) {
@@ -2819,6 +2841,12 @@ function configureGUI() {
     $("#play").show();
     $("#pause").hide();
   }
+  manualInterpolationNeeded
+    ? hideGUIController(forceManualInterpolationController)
+    : showGUIController(forceManualInterpolationController);
+  isManuallyInterpolating()
+    ? showGUIController(smoothingScaleController)
+    : hideGUIController(smoothingScaleController);
 }
 
 function configureOptions() {
@@ -3344,6 +3372,25 @@ function checkColorbarPosition() {
     }
     $("#colourbar").removeClass("secondRowUI");
   }
+}
+
+function configureManualInterpolation() {
+  if (isManuallyInterpolating()) {
+    simTextureA.texture.magFilter = THREE.NearestFilter;
+    simTextureB.texture.magFilter = THREE.NearestFilter;
+    postTexture.texture.magFilter = THREE.NearestFilter;
+    interpolationTexture.texture.magFilter = THREE.NearestFilter;
+  } else {
+    simTextureA.texture.magFilter = THREE.LinearFilter;
+    simTextureB.texture.magFilter = THREE.LinearFilter;
+    postTexture.texture.magFilter = THREE.LinearFilter;
+    interpolationTexture.texture.magFilter = THREE.LinearFilter;
+  }
+  configureGUI();
+}
+
+function isManuallyInterpolating() {
+  return manualInterpolationNeeded || options.forceManualInterpolation;
 }
 
 $("#simCanvas").one("pointerdown touchstart", fadeoutTryClicking);

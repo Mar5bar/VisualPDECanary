@@ -83,6 +83,7 @@ function presetMap() {
     drawIn3D: "dr",
     dt: "dt",
     fixRandSeed: "f",
+    forceManualInterpolation: "fI",
     imagePathOne: "io",
     imagePathTwo: "it",
     integrate: "i",
