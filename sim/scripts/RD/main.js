@@ -273,6 +273,14 @@ funsObj = {
 // Get the canvas to draw on, as specified by the html.
 canvas = document.getElementById("simCanvas");
 
+// Warn the user is any errors occur.
+console.error = function (error) {
+  alert(
+    "VisualPDE has thrown an error, most likely as a result of the definitions and parameters. Check for syntax errors, and reload the page if the interface is unresponsive."
+  );
+  return error;
+}
+
 // Remove the back button if we're from an internal link.
 if (!fromExternalLink()) {
   $("#back").hide();
