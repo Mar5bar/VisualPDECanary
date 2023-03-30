@@ -128,19 +128,20 @@ break;
 	"clearValueU": "3.5*(1-T)",
 	"clearValueV": "1",
 	"colourmap": "viridis",
-	"diffusionStrUU": "0.000006",
+	"diffusionStrUU": "0.00001",
 	"diffusionStrVV": "0.0001",
 	"diffusionStrWW": "0",
 	"dt": 0.001,
 	"imagePathTwo": "./images/chemicalBasisOfMorphogenesis.png",
+	"kineticParams": "a=0.01;b=0.8;",
 	"maxColourValue": 3.5,
 	"preset": "chemicalBasisOfMorphogenesis",
+	"resetOnImageLoad": true,
 	"renderSize": 652,
-	"reactionStrU": "0.01 - u + u^2*v",
-	"reactionStrV": "1 - u^2*v",
+	"reactionStrU": "a - u + u^2*v",
+	"reactionStrV": "b - u^2*v",
 	"reactionStrW": "0",
-  "resetOnImageLoad": true,
-  "runningOnLoad": false,
+	"runningOnLoad": false,
 	"showAllOptionsOverride": true,
 	"spatialStep": 0.0015,
 	"squareCanvas": true,
@@ -149,6 +150,9 @@ break;
 	"whatToPlot": "u",
 };
 break;
+		  
+		  
+		  
     case "complexGinzburgLandau":
       options = {
         brushValue: "0",
