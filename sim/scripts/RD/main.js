@@ -77,7 +77,7 @@ let leftGUI,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning, isDrawing, hasDrawn, lastBadParam, errorTimer;
+let isRunning, isDrawing, hasDrawn, lastBadParam;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
 let parametersFolder,
@@ -276,13 +276,12 @@ canvas = document.getElementById("simCanvas");
 // Warn the user is any errors occur.
 console.error = function (error) {
   let msg =
-    "<p>VisualPDE is throwing an error, most likely as a result of the definitions and parameters. Check for syntax errors, and reload the page if the interface is unresponsive.</p><p>" +
+    "<p>VisualPDE is throwing an error, most likely as a result of the definitions and parameters. Check for syntax errors, and reload the page if the interface is unresponsive. Click to dismiss.</p><p>" +
     error.toString().match(/ERROR.*/) +
     "</p>";
   $("#error").html(msg);
   $("#error").addClass("fading_in");
-  clearTimeout(errorTimer);
-  errorTimer = setTimeout(() => fadeout("#error"), 8000);
+  $(document).one("click", () => fadeout("#error"));
   return error;
 };
 
