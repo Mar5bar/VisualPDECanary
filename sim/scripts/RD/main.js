@@ -3468,7 +3468,7 @@ function usingReservedNames() {
 function checkForReservedNames() {
   let badName = usingReservedNames();
   // If there's a bad parameter name, and we've not just alerted the user to it, show an alert.
-  if (badName && badName!=lastBadParam) {
+  if (badName && badName != lastBadParam) {
     lastBadParam = badName;
     alert(
       'The name "' +
