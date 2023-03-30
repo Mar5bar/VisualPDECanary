@@ -280,7 +280,7 @@ console.error = function (error) {
     error.toString().match(/ERROR.*/) +
     "</p>";
   $("#error").html(msg);
-  $("#error").addClass("fading_in");
+  fadein("#error");
   $("#error").one("click", () => fadeout("#error"));
   return error;
 };
@@ -336,7 +336,7 @@ if (
   !options.suppressTryClickingPopup
 ) {
   $("#try_clicking").html("<p>" + options.tryClickingText + "</p>");
-  $("#try_clicking").addClass("fading_in");
+  fadein("#try_clicking");
   setTimeout(() => fadeout("#try_clicking"), 5000);
 }
 
@@ -3185,6 +3185,12 @@ function fromExternalLink() {
   );
 }
 
+function fadein(id) {
+  $(id).removeClass("fading_out");
+  $(id).show();
+  $(id).addClass("fading_in");
+}
+
 function fadeout(id) {
   $(id).removeClass("fading_in");
   $(id).addClass("fading_out");
@@ -3192,6 +3198,7 @@ function fadeout(id) {
     "webkitTransitionEnd oTransitionEnd transitionend msTransitionEnd",
     function () {
       $(this).removeClass("fading_out");
+      $(this).hide();
     }
   );
 }
@@ -3359,7 +3366,7 @@ function checkForNaN() {
   // Check to see if a NaN value is in the first entry of the simulation array, which would mean that we've hit overflow or instability.
   let vals = getMinMaxVal();
   if (!isFinite(vals[0]) || !isFinite(vals[1])) {
-    $("#oops_hit_nan").addClass("fading_in");
+    fadein("#oops_hit_nan");
     $("#erase").one("click", () => fadeout("#oops_hit_nan"));
   } else {
     setTimeout(checkForNaN, 1000);
