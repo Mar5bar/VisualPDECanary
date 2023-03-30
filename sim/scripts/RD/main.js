@@ -77,7 +77,7 @@ let leftGUI,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning, isDrawing, hasDrawn, lastBadParam;
+let isRunning, isDrawing, hasDrawn, lastBadParam, errorTimer;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
 let parametersFolder,
@@ -281,7 +281,8 @@ console.error = function (error) {
     "</p>";
   $("#error").html(msg);
   $("#error").addClass("fading_in");
-  setTimeout(() => fadeout("#error"), 5000);
+  clearTimeout(errorTimer);
+  errorTimer = setTimeout(() => fadeout("#error"), 8000);
   return error;
 };
 
