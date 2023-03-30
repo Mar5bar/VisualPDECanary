@@ -57,7 +57,7 @@ Periodic boundary conditions, where $u(x+L_x,y)=u(x,y)$ etc, are the simplest to
 Dirichlet boundary conditions take the form $u\onboundary = a(x,y,t)$ for a user-specified function $a$. These are easy to enforce, as we simply override our usual timestepping for any nodes on the boundary of the domain. If the user has chosen to use an implicitly defined domain, we assign $a(x,y,t)$ to all points outside of $\domain$.
 
 #### Neumann
-Neumann boundary conditions are specified as $\pd{u}{n}\onboundary = a(x,y,t)$ for a user-specified function $a$, where $\pd{u}{n}$ denotes a derivative in the direction of the (inward-pointing) normal to the boundary. Implementing a Neumann boundary condition is done via so-called **ghost nodes** in our discretisation. For instance, enforcing $\pd{u}{n}\onboundary = 0$ at the left-most $x$ boundary of a rectangular domain is achieved in practice by taking 
+Neumann boundary conditions are specified as $\pd{u}{n}\onboundary = a(x,y,t)$ for a user-specified function $a$, where $\pd{u}{n}$ denotes a derivative in the direction of the (outward-pointing) normal to the boundary. Implementing a Neumann boundary condition is done via so-called **ghost nodes** in our discretisation. For instance, enforcing $\pd{u}{n}\onboundary = 0$ at the left-most $x$ boundary of a rectangular domain is achieved in practice by taking 
 
 $$\textstyle u(x-\dx,y) = u(x+\dx,y)$$ 
 
