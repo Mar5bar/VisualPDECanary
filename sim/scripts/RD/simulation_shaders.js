@@ -69,7 +69,7 @@ export function RDShaderRobinX() {
         uvwL.SPECIES = uvwR.SPECIES - 2.0 * dx * robinRHSSPECIES;
     }
     if (textureCoords.x + step_x > 1.0) {
-        uvwR.SPECIES = uvwL.SPECIES + 2.0 * dx * robinRHSSPECIES;
+        uvwR.SPECIES = uvwL.SPECIES - 2.0 * dx * robinRHSSPECIES;
     }
     `;
 }
@@ -77,7 +77,7 @@ export function RDShaderRobinX() {
 export function RDShaderRobinY() {
     return `
     if (textureCoords.y + step_y > 1.0){
-        uvwT.SPECIES = uvwB.SPECIES + 2.0 * dy * robinRHSSPECIES;
+        uvwT.SPECIES = uvwB.SPECIES - 2.0 * dy * robinRHSSPECIES;
     }
     if (textureCoords.y - step_y < 0.0) {
         uvwB.SPECIES = uvwT.SPECIES - 2.0 * dy * robinRHSSPECIES;
