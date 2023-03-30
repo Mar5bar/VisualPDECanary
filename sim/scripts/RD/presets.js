@@ -64,28 +64,31 @@ export function getPreset(id) {
       break;
 
     case "CahnHilliard":
-      options = {
-        algebraicV: true,
-        clearValueU: "tanh(30*(RAND-0.5))",
-        crossDiffusion: true,
-        diffusionStrUU: "D*(3*u^2-1)",
-        diffusionStrUV: "-D",
-        diffusionStrVU: "D*a",
-        diffusionStrVV: 0,
-        diffusionStrWW: "0",
-        dt: 0.0001,
-        fixRandSeed: true,
-        kineticParams: "a=1;dt=0.0000002;D=0.0001",
-        minColourValue: -1,
-        preset: "CahnHilliard",
-        reactionStrU: "u*(1-u^2)",
-        reactionStrV: "0",
-        reactionStrW: "0",
-        squareCanvas: true,
-        whatToDraw: "u",
-        whatToPlot: "u",
-      };
-      break;
+	options = {
+	"algebraicV": true,
+	"brushRadius": 5,
+	"clearValueU": "tanh(30*(RAND-0.5))",
+	"crossDiffusion": true,
+	"diffusionStrUU": "r*D*(3*u^2-1)",
+	"diffusionStrUV": "r*-D",
+	"diffusionStrVU": "r*D*a",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 100,
+	"dt": 0.0005,
+	"fixRandSeed": true,
+	"kineticParams": "a=1;r=0.01;D=1;",
+	"minColourValue": -1,
+	"preset": "CahnHilliard",
+	"reactionStrU": "r*u*(1-u^2)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 
     case "cyclicCompetition":
 	options = {
