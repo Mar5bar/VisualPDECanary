@@ -64,28 +64,31 @@ export function getPreset(id) {
       break;
 
     case "CahnHilliard":
-      options = {
-        algebraicV: true,
-        clearValueU: "tanh(30*(RAND-0.5))",
-        crossDiffusion: true,
-        diffusionStrUU: "D*(3*u^2-1)",
-        diffusionStrUV: "-D",
-        diffusionStrVU: "D*a",
-        diffusionStrVV: 0,
-        diffusionStrWW: "0",
-        dt: 0.0001,
-        fixRandSeed: true,
-        kineticParams: "a=1;dt=0.0000002;D=0.0001",
-        minColourValue: -1,
-        preset: "CahnHilliard",
-        reactionStrU: "u*(1-u^2)",
-        reactionStrV: "0",
-        reactionStrW: "0",
-        squareCanvas: true,
-        whatToDraw: "u",
-        whatToPlot: "u",
-      };
-      break;
+	options = {
+	"algebraicV": true,
+	"brushRadius": 5,
+	"clearValueU": "tanh(30*(RAND-0.5))",
+	"crossDiffusion": true,
+	"diffusionStrUU": "r*D*(3*u^2-1)",
+	"diffusionStrUV": "r*-D",
+	"diffusionStrVU": "r*D*a",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 100,
+	"dt": 0.0005,
+	"fixRandSeed": true,
+	"kineticParams": "a=1;r=0.01;D=1;",
+	"minColourValue": -1,
+	"preset": "CahnHilliard",
+	"reactionStrU": "r*u*(1-u^2)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 
     case "cyclicCompetition":
 	options = {
@@ -125,19 +128,20 @@ break;
 	"clearValueU": "3.5*(1-T)",
 	"clearValueV": "1",
 	"colourmap": "viridis",
-	"diffusionStrUU": "0.000006",
+	"diffusionStrUU": "0.00001",
 	"diffusionStrVV": "0.0001",
 	"diffusionStrWW": "0",
 	"dt": 0.001,
 	"imagePathTwo": "./images/chemicalBasisOfMorphogenesis.png",
+	"kineticParams": "a=0.01;b=0.8;",
 	"maxColourValue": 3.5,
 	"preset": "chemicalBasisOfMorphogenesis",
+	"resetOnImageLoad": true,
 	"renderSize": 652,
-	"reactionStrU": "0.01 - u + u^2*v",
-	"reactionStrV": "1 - u^2*v",
+	"reactionStrU": "a - u + u^2*v",
+	"reactionStrV": "b - u^2*v",
 	"reactionStrW": "0",
-  "resetOnImageLoad": true,
-  "runningOnLoad": false,
+	"runningOnLoad": false,
 	"showAllOptionsOverride": true,
 	"spatialStep": 0.0015,
 	"squareCanvas": true,
@@ -146,6 +150,9 @@ break;
 	"whatToPlot": "u",
 };
 break;
+		  
+		  
+		  
     case "complexGinzburgLandau":
       options = {
         brushValue: "0",
