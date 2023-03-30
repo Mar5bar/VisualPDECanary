@@ -281,7 +281,7 @@ console.error = function (error) {
     "</p>";
   $("#error").html(msg);
   $("#error").addClass("fading_in");
-  $(document).one("click", () => fadeout("#error"));
+  $("#error").one("click", () => fadeout("#error"));
   return error;
 };
 
