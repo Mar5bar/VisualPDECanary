@@ -279,7 +279,6 @@ canvas {
 .fading_out {
     opacity: 0% !important;
     transition-duration: 1s;
-    pointer-events: none !important;
 }
 
 p, .label  {
