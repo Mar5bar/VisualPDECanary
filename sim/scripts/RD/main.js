@@ -275,11 +275,12 @@ canvas = document.getElementById("simCanvas");
 
 // Warn the user is any errors occur.
 console.error = function (error) {
-  alert(
-    "VisualPDE has thrown an error, most likely as a result of the definitions and parameters. Check for syntax errors, and reload the page if the interface is unresponsive."
-  );
+  let msg =
+    "VisualPDE has thrown an error, most likely as a result of the definitions and parameters. Check for syntax errors, and reload the page if the interface is unresponsive.\n" +
+    error.toString().match(/ERROR.*/);
+  isRunning ? alert(msg) : {};
   return error;
-}
+};
 
 // Remove the back button if we're from an internal link.
 if (!fromExternalLink()) {
@@ -3091,10 +3092,8 @@ function createParameterController(label, isNextParam) {
         const index = kineticParamsLabels.indexOf(label);
         kineticParamsLabels.splice(index, 1);
         delete kineticParamsStrs[label];
-      } else {
-        // If it's non-empty, update any dependencies.
-        setKineticStringFromParams();
       }
+      setKineticStringFromParams();
     });
   }
 }
