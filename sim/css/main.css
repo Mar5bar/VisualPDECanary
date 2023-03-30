@@ -242,6 +242,15 @@ canvas {
     pointer-events: all;
 }
 
+#error {
+    top: 50%;
+    width: 80%;
+    max-width: 90vh;
+    left: 50%;
+    position: absolute;
+    opacity: 0;
+}
+
 .btn-primary {
     width: 80px;
     color: #000 !important;

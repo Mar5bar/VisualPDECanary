@@ -276,9 +276,12 @@ canvas = document.getElementById("simCanvas");
 // Warn the user is any errors occur.
 console.error = function (error) {
   let msg =
-    "VisualPDE has thrown an error, most likely as a result of the definitions and parameters. Check for syntax errors, and reload the page if the interface is unresponsive.\n" +
-    error.toString().match(/ERROR.*/);
-  isRunning ? alert(msg) : {};
+    "<p>VisualPDE is throwing an error, most likely as a result of the definitions and parameters. Check for syntax errors, and reload the page if the interface is unresponsive.</p><p>" +
+    error.toString().match(/ERROR.*/) +
+    "</p>";
+  $("#error").html(msg);
+  $("#error").addClass("fading_in");
+  setTimeout(() => fadeout("#error"), 5000);
   return error;
 };
 
@@ -334,7 +337,7 @@ if (
 ) {
   $("#try_clicking").html("<p>" + options.tryClickingText + "</p>");
   $("#try_clicking").addClass("fading_in");
-  setTimeout(fadeoutTryClicking, 5000);
+  setTimeout(() => fadeout("#try_clicking"), 5000);
 }
 
 // Begin the simulation.
@@ -3182,8 +3185,7 @@ function fromExternalLink() {
   );
 }
 
-function fadeoutTryClicking() {
-  let id = "#try_clicking";
+function fadeout(id) {
   $(id).removeClass("fading_in");
   $(id).addClass("fading_out");
   $(id).bind(
@@ -3358,22 +3360,10 @@ function checkForNaN() {
   let vals = getMinMaxVal();
   if (!isFinite(vals[0]) || !isFinite(vals[1])) {
     $("#oops_hit_nan").addClass("fading_in");
-    $("#erase").one("click", fadeoutOops);
+    $("#erase").one("click", () => fadeout("#oops_hit_nan"));
   } else {
     setTimeout(checkForNaN, 1000);
   }
-}
-
-function fadeoutOops() {
-  let id = "#oops_hit_nan";
-  $(id).removeClass("fading_in");
-  $(id).addClass("fading_out");
-  $(id).bind(
-    "webkitTransitionEnd oTransitionEnd transitionend msTransitionEnd",
-    function () {
-      $(this).removeClass("fading_out");
-    }
-  );
 }
 
 function fillBuffer() {
@@ -3488,4 +3478,4 @@ function checkForReservedNames() {
   return badName;
 }
 
-$("#simCanvas").one("pointerdown touchstart", fadeoutTryClicking);
+$("#simCanvas").one("pointerdown touchstart", () => fadeout("#try_clicking"));
