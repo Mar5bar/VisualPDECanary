@@ -77,7 +77,7 @@ let leftGUI,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning, isDrawing, hasDrawn;
+let isRunning, isDrawing, hasDrawn, lastBadParam;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
 let parametersFolder,
@@ -3114,13 +3114,22 @@ function setParamsFromKineticString() {
   kineticParamsLabels.push(label);
   kineticParamsStrs[label] = str;
   createParameterController(label, true);
+  // Check if any reserved names are being used.
+  if (checkForReservedNames()) {
+    options.kineticParams = "";
+    setRDEquations();
+    setClearShader();
+    updateWhatToPlot();
+  }
 }
 
 function setKineticStringFromParams() {
   options.kineticParams = Object.values(kineticParamsStrs).join(";");
-  setRDEquations();
-  setClearShader();
-  updateWhatToPlot();
+  if (!checkForReservedNames()) {
+    setRDEquations();
+    setClearShader();
+    updateWhatToPlot();
+  }
 }
 
 /* GUI settings and equations buttons */
@@ -3433,6 +3442,43 @@ function waitListener(element, listenerName, val) {
     };
     element.addEventListener(listenerName, listener);
   });
+}
+
+function getReservedStrs() {
+  // Load an RD shader and find floats, vecs, and ivecs.
+  let regex = /(?:float|vec\d|ivec\d)\b\s+(\w+)\b/g;
+  let str = RDShaderTop() + RDShaderUpdateCross();
+  return [...str.matchAll(regex)].map((x) => x[1]);
+}
+
+function usingReservedNames() {
+  let regex = /(\w+)\s*=/g;
+  let names = [...options.kineticParams.matchAll(regex)]
+    .map((x) => x[1])
+    .join(" ");
+  let lastTest = false;
+  const flag = getReservedStrs().some(function (name) {
+    let regex = new RegExp("\\b" + name + "\\b", "g");
+    lastTest = name;
+    return regex.test(names);
+  });
+  return flag ? lastTest : false;
+}
+
+function checkForReservedNames() {
+  let badName = usingReservedNames();
+  // If there's a bad parameter name, and we've not just alerted the user to it, show an alert.
+  if (badName && badName!=lastBadParam) {
+    lastBadParam = badName;
+    alert(
+      'The name "' +
+        badName +
+        "\" is used under the hood, so can't be used as a parameter. Please use a different name for " +
+        badName +
+        "."
+    );
+  }
+  return badName;
 }
 
 $("#simCanvas").one("pointerdown touchstart", fadeoutTryClicking);
