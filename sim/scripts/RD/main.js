@@ -1947,9 +1947,9 @@ function parseShaderString(str) {
       case "1":
         return "(" + p1 + ")";
       case "2":
-        return "(" + p1 + ")*(" + p1 + ")";
+        return "((" + p1 + ")*(" + p1 + "))";
       case "3":
-        return "(" + p1 + ")*(" + p1 + ")*(" + p1 + ")";
+        return "((" + p1 + ")*(" + p1 + ")*(" + p1 + "))";
       default:
         return "safepow(" + p1 + "," + p2 + ")";
     }
