@@ -581,7 +581,7 @@ break;
       options = {
         boundaryConditionsU: "neumann",
         brushRadius: 0.049,
-        clearValueU: "1.0",
+        clearValueU: "0.0",
         diffusionStrUU: "0.000001",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
