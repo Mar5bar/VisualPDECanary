@@ -748,6 +748,7 @@ break;
       options = {
         boundaryConditionsU: "periodic",
         boundaryConditionsV: "periodic",
+	brushRadius: 2,
         diffusionStrUU: "0.042",
         diffusionStrVV: "2",
 	domainScale: 100,
