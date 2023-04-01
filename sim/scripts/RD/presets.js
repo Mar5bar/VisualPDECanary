@@ -119,18 +119,19 @@ break;
 	"diffusionWStr": "0.000008",
 	"diffusionU": 0.000001,
 	"diffusionV": 0.00004,
-	"diffusionW": 0.000008,
+	"diffusionW": 0.000008, 
 };
 break;
     case "chemicalBasisOfMorphogenesis":
 	options = {
-	"brushRadius": 0.0495,
+	"brushRadius": 5,
 	"clearValueU": "3.5*(1-T)",
 	"clearValueV": "1",
 	"colourmap": "viridis",
-	"diffusionStrUU": "0.00001",
-	"diffusionStrVV": "0.0001",
+	"diffusionStrUU": "0.1",
+	"diffusionStrVV": "1",
 	"diffusionStrWW": "0",
+	"domainScale": 100,
 	"dt": 0.001,
 	"imagePathTwo": "./images/chemicalBasisOfMorphogenesis.png",
 	"kineticParams": "a=0.01;b=0.8;",
@@ -143,7 +144,7 @@ break;
 	"reactionStrW": "0",
 	"runningOnLoad": false,
 	"showAllOptionsOverride": true,
-	"spatialStep": 0.0015,
+	"spatialStep": 0.15,
 	"squareCanvas": true,
 	"tryClickingText": "Press play!",
 	"whatToDraw": "u",
