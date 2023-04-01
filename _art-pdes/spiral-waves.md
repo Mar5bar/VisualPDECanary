@@ -1,20 +1,16 @@
 ---
 layout: page
-title: Complex Ginzburg–Landau
+title: Spiral Waves
 lesson_number: 20
-thumbnail: /assets/images/complexGinzburgLandau.png
+thumbnail: /assets/images/spiralWaves.png
 extract: Patterns, waves, chaos
-equation: $\pdd{u}{t}=D \nabla^2 u$
+equation: $\pd{u}{t}=D_u\nabla^2 u+au-(u+cv)(u^2+v^2)$, $\pd{v}{t}=D_v\nabla^2v+av+(cu-v)(u^2+v^2)$
 ---
-Here is an implementation of the [(complex) Ginzburg–Landau equation](https://arxiv.org/abs/cond-mat/0106115) given by,
 
-$$\pdd{u}{t}=D \nabla^2 u,$$
+This is a simulation of reaction-diffusion system loosely related to $\lambda$-$\omega$ models of spiral waves, which takes the form:
 
-NEED TO UPDATE THIS
+$$
+\begin{aligned}\pd{u}{t}&=D_u\nabla^2 u+au-(u+cv)(u^2+v^2),\\ \pd{v}{t}&=D_v\nabla^2v+av+(cu-v)(u^2+v^2),\end{aligned}
+$$
 
-1. Load the [interactive simulation](/sim/?preset=complexGinzburgLandau). 
-
-
-
-## Numerical Notes
-UPDATE THIS
+* Load the [interactive simulation](/sim/?preset=lambdaOmega). This plots the solution as the quantity $u^2+v^2$, which evolves from a wave-like initial condition into broken waves which coalesce into spiral waves as the seemingly most stable structures.
