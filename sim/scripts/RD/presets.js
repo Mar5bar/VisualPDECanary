@@ -252,16 +252,16 @@ case "GiererMeinhardtStripeICs":
 break;
 	case "GiererMeinhardtStripes":
       	options = {
-        autoSetColourRange: true,
+	"brushRadius": 2,
         clearValueV: "1",
         diffusionStrUU: "1",
         diffusionStrVV: "D",
         diffusionStrWW: "0",
-	"domainScale": 100,
+	"domainScale": 200,
         dt: 0.0005,
         kineticParams: "a=0.5;b=1;c=6.1;K=0.003;D=100",
-        maxColourValue: 9.410100936889648,
-        minColourValue: 1.0677992105484009,
+        maxColourValue: 9,
+        minColourValue: 1.5,
         preset: "GiererMeinhardtStripes",
         reactionStrU: "a+u^2/(v*(1+K*u^2))-b*u",
         reactionStrV: "u^2-c*v",
