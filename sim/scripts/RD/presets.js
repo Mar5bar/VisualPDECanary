@@ -170,7 +170,6 @@ break;
 	"reactionStrV": "a*v+(c*u-v)*(u^2+v^2)",
 	"reactionStrW": "0",
 	"spatialStep": 0.2,
-	"typesetCustomEqs": true,
 	"whatToDraw": "u",
 	"whatToPlot": "u^2+v^2",
 	"constantDiffusion": false,
