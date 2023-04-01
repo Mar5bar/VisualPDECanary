@@ -731,7 +731,7 @@ break;
         diffusionStrUU: "1",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
-        dt: 0.00002,
+        dt: 0.0005,
         numSpecies: 1,
         preset: "travellingWave",
         reactionStrU: "u*(1-u)",
