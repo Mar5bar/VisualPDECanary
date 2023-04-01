@@ -635,7 +635,6 @@ break;
 	options = {
 	"boundaryConditionsU": "neumann",
 	brushRadius: 2,
-	brushValue: 1,
 	"clearValueU": "0.1*exp(-10000*RAND)",
 	"colourbar": true,
 	"diffusionStrUU": "0.01",
@@ -760,7 +759,6 @@ break;
     case "travellingWave":
 	options = {
 	"boundaryConditionsU": "neumann",
-	brushValue: 1,
 	"clearValueU": "0.0",
 	"diffusionStrUU": "1",
 	"diffusionStrVV": "0",
