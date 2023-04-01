@@ -715,9 +715,38 @@ break;
         reactionStrW: "0",
         spatialStep: 0.5,
         squareCanvas: true,
+	suppressTryClickingPopup: true,
         whatToPlot: "u",
       };
       break;
+	case "waveEquation1D":
+	options = {
+	"boundaryConditionsU": "neumann",
+	"boundaryConditionsV": "neumann",
+	"brushRadius": 5,
+	"cameraTheta": 0.5,
+	"cameraPhi": 0,
+	"clearValueU": "exp(-(35*pi)*(x/100-0.5)^2)",
+	"crossDiffusion": true,
+	"diffusionStrUU": "C*D",
+	"diffusionStrVU": "D",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 100,
+	"dt": 0.002,
+	"kineticParams": "D=1; C=0.01",
+	"oneDimensional": true,
+	"preset": "waveEquation1D",
+	"reactionStrU": "v",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"squareCanvas": true,
+	suppressTryClickingPopup: true,
+	"threeD": true,
+	"whatToPlot": "u",
+};
+break;
 
     case "Schnakenberg":
       options = {
