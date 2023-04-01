@@ -16,6 +16,22 @@ where we take $a,b,c>0$ and $D>1$.
 
 * Changing any of the parameters can lead to different solutions, though this system generically favours spot-like patterns. Note that the colour scale here is fixed, but that changing parameters will lead to solutions with different maxima and minima, so using the auto-snap feature may be advised.
 
+# Stripes stability
+
+We can observe the instability of stripe patterns in this model by choosing initial conditions which become stripes along one direction. We set,
+
+$$
+u(0,x,y) = 1+\cos(n\pi x/L), \quad v(0,x,y) = 1,
+$$
+
+with $n$ an integer. 
+
+* Load the [simulation](/sim/?preset=GiererMeinhardtStripeICs). 
+
+* Change the value of $n$ and restart the simulation by pressing {{ layout.erase }}. In each case a different number of initial stripes will evolve into some number of stripes, but they should persist indefinitely.
+
+* Now click on or near a stripe to destabilize it into spots. Note that the Brush value (found in {{ layout.settings }} → **Brush**) is set to $1.01u$, so that it is a relatively small perturbation of the current solution. 
+
 # Saturation leads to stripes
 
 A common way to obtain stripe-like patterns in this model is to consider saturation of the self-activation term ($u^2/v$ in the equation above). In this case we have the model
