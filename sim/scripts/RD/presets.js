@@ -606,7 +606,10 @@ break;
     case "harshEnvironment":
 	options = {
 	"boundaryConditionsU": "neumann",
+	brushRadius: 2,
+	brushValue: K,
 	"clearValueU": "0.1*exp(-10000*RAND)",
+	"colourbar": true,
 	"diffusionStrUU": "0.01",
 	"diffusionStrVV": "0",
 	"diffusionStrWW": "0",
