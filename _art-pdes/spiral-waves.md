@@ -17,4 +17,4 @@ $$
 
 * Clicking can perturb these waves, and clicking with dragging can induce new spiral centres (or destroy old ones).
 
-* You can also generate your own waves by setting the initial conditions to zero under <span class='click_sequence'>{{ layout.equations }} → **Initial conditions**</span>, and then clicking to generate radial pulses, or dragging to perturb them.
+* You can also generate your own waves by setting the initial conditions to zero under {{ layout.equations }} → **Initial conditions**, and then clicking to generate radial pulses, or dragging to perturb them.
