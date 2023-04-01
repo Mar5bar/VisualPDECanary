@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Bistability: Invasion and Persistence
+title: Bistability -- Invasion and Persistence
 # permalink: /bistable-travelling-waves/
 lesson_number: 30
 thumbnail: /assets/images/travelling-waves.png
