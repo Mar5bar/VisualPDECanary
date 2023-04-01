@@ -607,7 +607,7 @@ break;
 	options = {
 	"boundaryConditionsU": "neumann",
 	brushRadius: 2,
-	brushValue: K,
+	brushValue: 1,
 	"clearValueU": "0.1*exp(-10000*RAND)",
 	"colourbar": true,
 	"diffusionStrUU": "0.01",
@@ -732,7 +732,7 @@ break;
     case "travellingWave":
 	options = {
 	"boundaryConditionsU": "neumann",
-	brushValue: K,
+	brushValue: 1,
 	"clearValueU": "0.0",
 	"diffusionStrUU": "1",
 	"diffusionStrVV": "0",
@@ -740,7 +740,7 @@ break;
 	"dt": 0.0005,
 	"kineticParams": "K=1;r=1;",
 	minColourValue: 0,
-	maxColourValue: K,
+	maxColourValue: 1,
 	"numSpecies": 1,
 	"preset": "travellingWave",
 	"reactionStrU": "r*u*(1-u/K)",
