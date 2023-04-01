@@ -213,7 +213,8 @@ break;
 	"domainScale": 100,
         dt: 0.0005,
         kineticParams: "a=0.5;b=1;c=6.1;D=100",
-        maxColourValue: 25,
+	"maxColourValue": 14,
+	"minColourValue": 0.6,
         preset: "GiererMeinhardt",
         reactionStrU: "a+u^2/v-b*u",
         reactionStrV: "u^2-c*v",
@@ -223,6 +224,33 @@ break;
         whatToPlot: "u",
       };
       break;
+case "GiererMeinhardtStripeICs":
+	options = {
+	"boundaryConditionsU": "neumann",
+	"boundaryConditionsV": "neumann",
+	"brushValue": "1.01*u",
+	"brushRadius": 2,
+	"clearValueU": "3*(1+cos(n*pi*x/100))",
+	"clearValueV": "1",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "D",
+	"diffusionStrWW": "0",
+	"domainScale": 100,
+	"dt": 0.0005,
+	"kineticParams": "a=0.5;b=1;c=6.1;D=100;n=6;",
+	"maxColourValue": 14,
+	"minColourValue": 0.6,
+	"numTimestepsPerFrame": 200,
+	"preset": "GiererMeinhardtStripeICs",
+	"reactionStrU": "a+u^2/v-b*u",
+	"reactionStrV": "u^2-c*v",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
+		  
 	case "GMHeterogeneousOscillationsMixedBCs":
 	options = {
 	"boundaryConditionsU": "dirichlet",
