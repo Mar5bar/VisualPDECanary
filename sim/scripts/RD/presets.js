@@ -42,6 +42,25 @@ export function getPreset(id) {
         whatToPlot: "u",
       };
       break;
+	case "bistableSurvival":
+	options = {
+	"boundaryConditionsU": "neumann",
+	"brushRadius": 1,
+	"clearValueU": "0",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dt": 0.005,
+	"kineticParams": "a=0.4;",
+	"numSpecies": 1,
+	"preset": "PRESETNAME",
+	"reactionStrU": "u*(u-a)*(1-u)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 
     case "brusselator":
       options = {
