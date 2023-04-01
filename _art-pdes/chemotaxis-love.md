@@ -4,7 +4,7 @@ title: We ❤️ PDEs
 lesson_number: 20
 thumbnail: /assets/images/hearts.png
 extract: Beating hearts and slime moulds
-equation: $\pd{u}{t}=\nabla^2 u+ ❤️$ ❤️
+equation: $\pd{u}{t}=\nabla^2 u+$❤️
 ---
 Here are some examples of a PDE solutions on a domain based on a [heart-shaped curve](https://mathworld.wolfram.com/HeartCurve.html). 
 
