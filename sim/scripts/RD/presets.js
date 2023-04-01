@@ -262,6 +262,7 @@ break;
         kineticParams: "a=0.5;b=1;c=6.1;K=0.003;D=100",
         maxColourValue: 9,
         minColourValue: 1.5,
+	"numTimestepsPerFrame": 200,
         preset: "GiererMeinhardtStripes",
         reactionStrU: "a+u^2/(v*(1+K*u^2))-b*u",
         reactionStrV: "u^2-c*v",
@@ -271,6 +272,30 @@ break;
         whatToPlot: "u",
       };
       break;
+	case "GMHeterogeneous2D":
+	options = {
+	"autoSetColourRange": true,
+	"boundaryConditionsU": "dirichlet",
+	"brushRadius": 2,
+	"clearValueV": "1",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "D",
+	"diffusionStrWW": "0",
+	"domainScale": 100,
+	"dt": 0.0005,
+	"kineticParams": "a=1;b=1.5;c=6.1;D=55;B=0;A=0;",
+	"maxColourValue": 12.804131507873535,
+	"numTimestepsPerFrame": 200,
+	"preset": "GMHeterogeneous2D",
+	"reactionStrU": "(a+A*x/100)+u^2/v-(b+B*x/100)*u",
+	"reactionStrV": "u^2-c*v",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 		  
 	case "GMHeterogeneousOscillationsMixedBCs":
 	options = {
