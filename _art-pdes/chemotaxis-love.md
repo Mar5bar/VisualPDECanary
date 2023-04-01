@@ -12,7 +12,7 @@ Here are some examples of a PDE solutions on a domain based on a [heart-shaped c
 
 Models like [FitzHugh-Nagumo](/mathematical-biology/fitzhugh-nagumo) are the basis for a lot of work in cardiac electrophysiology and related areas. So let's solve these PDEs in a heart!
 
-* Load the [interactive simulation](/sim/?preset=FHNBeatingHeart) and enjoy. You can click {{ layout.settings }}→**Rendering** and click the box for **Surface plot** to get a 3D view of the beating heart. If you also change the Dirichlet boundary condition (under {{ layout.equations }}→**Boundary conditions**) to set $u=-1$ at the boundaries, it will make for a nicer view in 3D.
+* Load the [interactive simulation](/sim/?preset=FHNBeatingHeart) and enjoy. You can click {{ layout.settings }}→**Rendering** and click the box for **Surface plot** to get a 3D view of the beating heart. 
 
 # Chemotaxis
 
