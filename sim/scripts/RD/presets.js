@@ -66,8 +66,8 @@ break;
       options = {
         clearValueU: "a",
         clearValueV: "b/a",
-        diffusionStrUU: "0.0001",
-        diffusionStrVV: "0.0001*D",
+        diffusionStrUU: "1",
+        diffusionStrVV: "D",
         diffusionStrWW: "0",
         dt: 0.001,
         kineticParams: "a=2;b=3;D=8",
