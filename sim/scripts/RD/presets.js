@@ -728,10 +728,10 @@ break;
         boundaryConditionsU: "neumann",
         brushRadius: 5,
         clearValueU: "0.0",
-        diffusionStrUU: "0.01",
+        diffusionStrUU: "1",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
-        dt: 0.002,
+        dt: 0.00002,
         numSpecies: 1,
         preset: "travellingWave",
         reactionStrU: "u*(1-u)",
@@ -742,6 +742,29 @@ break;
         whatToPlot: "u",
       };
       break;
+    case "travellingWave1D":
+	options = {
+	"boundaryConditionsU": "neumann",
+	"cameraTheta": 0.5,
+	"cameraPhi": 0,
+	"clearValueU": "(1+tanh(90*(0.05-x/100)))/2",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dt": 0.0001,
+	"numSpecies": 1,
+	"numTimestepsPerFrame": 400,
+	"oneDimensional": true,
+	"preset": "travellingWave1D",
+	"reactionStrU": "u*(1-u)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"threeD": true,
+	"typeOfBrush": "vline",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
     case "Alan":
       options = {
         boundaryConditionsU: "periodic",
