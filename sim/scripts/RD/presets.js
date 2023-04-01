@@ -78,7 +78,7 @@ case "FHNBeatingHeart":
 	"domainScale": 280,
 	"domainViaIndicatorFun": true,
 	"dt": 0.001,
-	"kineticParams": "D=20;ev=0.5;av=.01;az=-0.1;",
+	"kineticParams": "D=10;ev=0.5;av=.01;az=-0.1;",
 	"minColourValue": -1,
 	"preset": "FHNBeatingHeart",
 	"reactionStrU": "u-u^3-v",
