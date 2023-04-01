@@ -726,16 +726,14 @@ break;
     case "travellingWave":
       options = {
         boundaryConditionsU: "neumann",
-        brushRadius: 0.049,
+        brushRadius: 5,
         clearValueU: "0.0",
-        diffusionStrUU: "0.000001",
+        diffusionStrUU: "0.01",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         dt: 0.002,
         numSpecies: 1,
-        numTimestepsPerFrame: 200,
         preset: "travellingWave",
-        renderSize: 700,
         reactionStrU: "u*(1-u)",
         reactionStrV: "0",
         reactionStrW: "0",
