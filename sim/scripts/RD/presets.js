@@ -747,6 +747,33 @@ break;
 	"whatToPlot": "u",
 };
 break;
+		  
+	case "waveEquation3D":
+	options = {
+	"boundaryConditionsU": "neumann",
+	"boundaryConditionsV": "neumann",
+	"brushRadius": 5,
+	"cameraTheta": 31.171766170073973,
+	"cameraPhi": 6.119583405771913,
+	"clearValueU": "exp(-(35*pi)*(x/100-0.5)^2)*exp(-(35*pi)*(y/100-0.5)^2)",
+	"crossDiffusion": true,
+	"diffusionStrUU": "C*D",
+	"diffusionStrVU": "D",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 100,
+	"dt": 0.002,
+	"kineticParams": "D=1; C=0.01",
+	"preset": "waveEquation3D",
+	"reactionStrU": "v",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 0.5,
+	"squareCanvas": true,
+	"threeD": true,
+	"whatToPlot": "u",
+};
+break;
 
     case "Schnakenberg":
       options = {
