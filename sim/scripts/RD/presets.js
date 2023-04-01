@@ -867,7 +867,7 @@ break;
 
     case "Schnakenberg":
       options = {
-        autoSetColourRange: true,
+	brushRadius: 2,
         clearValueU: "a + b",
         clearValueV: "b / (a+b)^2",
         diffusionStrUU: "1",
