@@ -724,24 +724,24 @@ break;
       break;
 
     case "travellingWave":
-      options = {
-        boundaryConditionsU: "neumann",
-        brushRadius: 5,
-        clearValueU: "0.0",
-        diffusionStrUU: "1",
-        diffusionStrVV: "0",
-        diffusionStrWW: "0",
-        dt: 0.0005,
-        numSpecies: 1,
-        preset: "travellingWave",
-        reactionStrU: "u*(1-u)",
-        reactionStrV: "0",
-        reactionStrW: "0",
-        typeOfBrush: "vline",
-        whatToDraw: "u",
-        whatToPlot: "u",
-      };
-      break;
+	options = {
+	"boundaryConditionsU": "neumann",
+	"clearValueU": "0.0",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dt": 0.0005,
+	"kineticParams": "K=1;r=1;",
+	"numSpecies": 1,
+	"preset": "travellingWave",
+	"reactionStrU": "r*u*(1-u/K)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"typeOfBrush": "vline",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
     case "travellingWave1D":
 	options = {
 	"boundaryConditionsU": "neumann",
