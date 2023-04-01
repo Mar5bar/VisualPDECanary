@@ -604,25 +604,28 @@ break;
       break;
 
     case "harshEnvironment":
-      options = {
-        boundaryConditionsU: "neumann",
-        clearValueU: "0.1*exp(-10000*RAND)",
-        diffusionStrUU: "0.00004",
-        diffusionStrVV: "0",
-        diffusionStrWW: "0",
-        dt: 0.0001,
-        kineticParams: "K=1",
-        numSpecies: 1,
-        preset: "harshEnvironment",
-        reactionStrU: "u*(1-u/K)",
-        reactionStrV: "0",
-        reactionStrW: "0",
-        squareCanvas: true,
-        suppressTryClickingPopup: true,
-        whatToDraw: "u",
-        whatToPlot: "u",
-      };
-      break;
+	options = {
+	"boundaryConditionsU": "neumann",
+	"clearValueU": "0.1*exp(-10000*RAND)",
+	"diffusionStrUU": "0.01",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 10,
+	"dt": 0.0001,
+	"fixRandSeed": true,
+	"kineticParams": "K=1;",
+	"numSpecies": 1,
+	"preset": "harshEnvironment",
+	"reactionStrU": "u*(1-u/K)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 0.05,
+	"squareCanvas": true,
+	"suppressTryClickingPopup": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 
     case "inhomogHeatEquation":
       options = {
