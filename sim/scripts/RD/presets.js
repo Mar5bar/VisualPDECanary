@@ -1075,7 +1075,7 @@ break;
       options = {
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
-        brushRadius: 0.01,
+        brushRadius: 1,
         clearValueU: "sin(n*pi*x/100)*sin(m*pi*y/100)",
         crossDiffusion: true,
         diffusionStrUU: "C*D",
@@ -1102,7 +1102,7 @@ break;
         autoSetColourRange: true,
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
-        brushRadius: 0.01,
+        brushRadius: 1,
         clearValueU: "(sin(pi*x/100)*sin(pi*y/100))^10",
         crossDiffusion: true,
         diffusionStrUU: "C*D",
@@ -1128,7 +1128,7 @@ break;
 	options = {
 	"boundaryConditionsU": "dirichlet",
 	"boundaryConditionsV": "dirichlet",
-	"brushRadius": 0,
+	"brushRadius": 1,
 	"cameraTheta": 0.5,
 	"cameraPhi": 0,
 	"clearValueU": "exp(-(0.5*pi/s^2)*(x/100-x0)^2)*cos(a*x)/N",
