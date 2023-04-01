@@ -220,7 +220,70 @@ break;
         whatToPlot: "u",
       };
       break;
-
+	case "GMHeterogeneousOscillationsMixedBCs":
+	options = {
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "neumann",
+	"brushRadius": 0,
+	"cameraTheta": 0.5,
+	"cameraPhi": 0,
+	"cameraZoom": 0.76,
+	"clearValueU": "1",
+	"clearValueV": "1",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "D",
+	"diffusionStrWW": "0",
+	"dirichletStrV": "1.8",
+	"domainScale": 50,
+	"dt": 0.0005,
+	"kineticParams": "a=0.95;b=1.6;c=3;D=55;cm=5;",
+	"maxColourValue": 5,
+	"numTimestepsPerFrame": 400,
+	"oneDimensional": true,
+	"preset": "GMHeterogeneousOscillationsMixedBCs",
+	"reactionStrU": "a+u^2/v-b*u-cm*(x/55)*u",
+	"reactionStrV": "u^2-c*v",
+	"reactionStrW": "0",
+	"spatialStep": 0.25,
+	"squareCanvas": true,
+	"threeD": true,
+	"timeDisplay": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
+case "GMHeterogeneousOscillationsDirichletBCs":
+	options = {
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
+	"brushRadius": 0,
+	"cameraTheta": 0.5,
+	"cameraPhi": 0,
+	"cameraZoom": 0.76,
+	"clearValueU": "1",
+	"clearValueV": "1",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "D",
+	"diffusionStrWW": "0",
+	"dirichletStrV": "2",
+	"domainScale": 70,
+	"dt": 0.0005,
+	"kineticParams": "a=0.95;b=1.6;c=3;D=55;cm=4;",
+	"maxColourValue": 5,
+	"numTimestepsPerFrame": 400,
+	"oneDimensional": true,
+	"preset": "GMHeterogeneousOscillationsDirichletBCs",
+	"reactionStrU": "a+u^2/v-b*u-cm*(x/55)*u",
+	"reactionStrV": "u^2-c*v",
+	"reactionStrW": "0",
+	"spatialStep": 0.25,
+	"squareCanvas": true,
+	"threeD": true,
+	"timeDisplay": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
     case "FitzHugh-Nagumo":
       options = {
         brushValue: "0",
