@@ -13,7 +13,7 @@ $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+a+G(x)+\frac{u^2}{v}-(b+H(x))u,\\ \pd{v}{
 
 where we will vary the domain and boundary conditions, as well as the functions $G,H$, in the examples below. 
 
-* The [interactive simulation](/sim/?preset=GiererMeinhardtIsolating) starts by taking homogeneous Dirichlet boundary conditions for $u$, and homogeneous Neumann boundary conditions for $v$. Despite an initially uniform solution, these boundary conditions are sufficient to perturb the equilibrium to form a patterned state.
+* The [interactive simulation](/sim/?preset=GMHeterogeneous2D) starts by taking homogeneous Dirichlet boundary conditions for $u$, and homogeneous Neumann boundary conditions for $v$. Despite an initially uniform solution, these boundary conditions are sufficient to perturb the equilibrium to form a patterned state.
 
 * This simulation sets $G = Ax/L$ and $H = Bx/L$, so that taking nonzero values of $A$ and $B$ will lead to spatially heterogeneous forcing. Try setting $A=-1$ or $B=5$ to observe how this leads to size and wavelength differences across the domain.
 
