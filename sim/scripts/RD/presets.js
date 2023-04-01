@@ -155,7 +155,7 @@ break;
 	options = {
 	"brushValue": "2",
 	"brushRadius": 1,
-	"clearValueU": "sin(2*pi*x/100)*sin(2*pi*y/100)*exp(-(35*pi)*(x/100-0.5)^2)*exp(-(35*pi)*(y/100-0.25)^2)",
+	"clearValueU": "sin(2*pi*x/100)*sin(2*pi*y/100)",
 	"diffusionStrUU": "0.2",
 	"diffusionStrVV": "1",
 	"diffusionStrWW": "0",
@@ -170,7 +170,6 @@ break;
 	"reactionStrV": "a*v+(c*u-v)*(u^2+v^2)",
 	"reactionStrW": "0",
 	"spatialStep": 0.2,
-	"typesetCustomEqs": true,
 	"whatToDraw": "u",
 	"whatToPlot": "u^2+v^2",
 	"constantDiffusion": false,
