@@ -205,10 +205,12 @@ break;
 
     case "GiererMeinhardt":
       options = {
+	"brushRadius": 2,
         clearValueV: "1",
-        diffusionStrUU: "0.00005",
-        diffusionStrVV: "0.00005*D",
+        diffusionStrUU: "1",
+        diffusionStrVV: "D",
         diffusionStrWW: "0",
+	"domainScale": 100,
         dt: 0.0005,
         kineticParams: "a=0.5;b=1;c=6.1;D=100",
         maxColourValue: 25,
@@ -216,6 +218,7 @@ break;
         reactionStrU: "a+u^2/v-b*u",
         reactionStrV: "u^2-c*v",
         reactionStrW: "0",
+	"spatialStep": 0.5,
         whatToDraw: "u",
         whatToPlot: "u",
       };
@@ -224,7 +227,7 @@ break;
 	options = {
 	"boundaryConditionsU": "dirichlet",
 	"boundaryConditionsV": "neumann",
-	"brushRadius": 0,
+	"brushRadius": 1,
 	"cameraTheta": 0.5,
 	"cameraPhi": 0,
 	"cameraZoom": 0.76,
