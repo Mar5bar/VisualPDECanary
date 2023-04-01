@@ -759,6 +759,7 @@ break;
 	"reactionStrU": "u*(1-u)",
 	"reactionStrV": "0",
 	"reactionStrW": "0",
+	suppressTryClickingPopup: true,
 	"threeD": true,
 	"typeOfBrush": "vline",
 	"whatToDraw": "u",
