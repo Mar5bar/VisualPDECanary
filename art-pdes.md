@@ -6,3 +6,5 @@ layout: topic
 title: Art of PDEs
 collection_to_list: art-pdes
 ---
+
+A collection of visually-pleasing simulations, which can be tailored to a user's taste.
