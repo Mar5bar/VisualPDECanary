@@ -62,6 +62,34 @@ export function getPreset(id) {
         whatToPlot: "u",
       };
       break;
+case "FHNBeatinghHeart":
+	options = {
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
+	"brushValue": "RAND",
+	"brushRadius": 5.5,
+	"clearValueU": "0.001",
+	"diffusionStrUU": "1",
+	"diffusionStrUV": "-c*u/(1+u^2)",
+	"diffusionStrVV": "D",
+	"diffusionStrWW": "0",
+	"dirichletStrU": "1",
+	"domainIndicatorFun": "(((x-140)/80)^2 + ((y-140)/80)^2 - 1)^3 - ((x-140)/80)^2*((y-140)/80)^3 < 0",
+	"domainScale": 280,
+	"domainViaIndicatorFun": true,
+	"dt": 0.001,
+	"kineticParams": "D=50;ev=0.5;av=.01;az=-0.1;",
+	"minColourValue": -1,
+	"preset": "FHNBeatinghHeart",
+	"reactionStrU": "u-u^3-v",
+	"reactionStrV": "ev*(u-av*v-az)",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"suppressTryClickingPopup": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 
     case "CahnHilliard":
 	options = {
