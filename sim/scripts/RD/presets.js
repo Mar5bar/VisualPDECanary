@@ -62,7 +62,7 @@ export function getPreset(id) {
         whatToPlot: "u",
       };
       break;
-case "FHNBeatinghHeart":
+case "FHNBeatingHeart":
 	options = {
 	"boundaryConditionsU": "dirichlet",
 	"boundaryConditionsV": "dirichlet",
@@ -80,7 +80,7 @@ case "FHNBeatinghHeart":
 	"dt": 0.001,
 	"kineticParams": "D=50;ev=0.5;av=.01;az=-0.1;",
 	"minColourValue": -1,
-	"preset": "FHNBeatinghHeart",
+	"preset": "FHNBeatingHeart",
 	"reactionStrU": "u-u^3-v",
 	"reactionStrV": "ev*(u-av*v-az)",
 	"reactionStrW": "0",
