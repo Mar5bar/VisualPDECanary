@@ -1220,6 +1220,7 @@ break;
         autoSetColourRange: true,
         boundaryConditionsU: "neumann",
         boundaryConditionsV: "neumann",
+	clearValueU: "0",
         crossDiffusion: true,
         diffusionStrUU: "0",
         diffusionStrUV: "-D",
