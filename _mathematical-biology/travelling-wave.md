@@ -24,4 +24,4 @@ with periodic boundary conditions.
 
 1. Next change the brush type to a circle and explore how circular waves travel. These are similar to the planar (effectively 1D) waves above, but their speed will be slightly different as the curvature of these wave fronts will influence their speed.
 
-1. You can also explore this kind of wave in a 1D model [here](/sim/?preset=travellingWave). You can press {{ layout.erase }} to reset the simulation as you change parameters.
+1. You can also explore this kind of wave in a 1D model [here](/sim/?preset=travellingWave1D). You can press {{ layout.erase }} to reset the simulation as you change parameters.
