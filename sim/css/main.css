@@ -249,6 +249,7 @@ canvas {
     left: 50%;
     position: absolute;
     pointer-events: all;
+    z-index: 1;
 }
 
 .btn-primary {
