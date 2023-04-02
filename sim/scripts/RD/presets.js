@@ -15,7 +15,7 @@ export function getPreset(id) {
         dt: 0.001,
         imagePathTwo: "./images/qr-code-home.png",
         maxColourValue: 0,
-        minColourValue: -1,
+        minColourValue: -2.3,
         numTimestepsPerFrame: 100,
         preset: "QR",
         renderSize: 652,
