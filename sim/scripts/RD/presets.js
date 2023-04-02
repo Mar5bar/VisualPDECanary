@@ -510,7 +510,26 @@ export function getPreset(id) {
         whatToPlot: "u",
       };
       break;
-
+case "GrayScott":
+	options = {
+	"clearValueU": "0",
+	"clearValueV": "1",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "2",
+	"diffusionStrWW": "0",
+	"domainScale": 1000,
+	"kineticParams": "a=0.037;b=0.06;",
+	"maxColourValue": 0.5,
+	"minColourValue": 4.7000597191981797e-8,
+	"reactionStrU": "u^2*v - (a+b)*u",
+	"reactionStrV": "-u^2*v + a*(1 - v)",
+	"reactionStrW": "0",
+	"spatialStep": 3,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	"preset": "GrayScott",
+};
+break;
     case "KellerSegel":
       options = {
         brushValue: "RAND",
