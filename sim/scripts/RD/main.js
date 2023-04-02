@@ -3036,6 +3036,11 @@ function setEquationDisplayType() {
   regex = /=\s*(\\\\|\n)/g;
   str = str.replaceAll(regex, "=0$1");
 
+  // Look for div(const * grad(blah)), and move the constant outside the bracket.
+  // By this point, a single word (with no square brackets) in the divergence must be a constant.
+  regex = /\\vnabla\s*\\cdot\s*\((\w*)\s*\\vnabla\s*(u)\s*\)/g;
+  str = str.replaceAll(regex, "$1 \\lap $2");
+
   str = parseStringToTEX(str);
   }
   $("#typeset_equation").html(str);
@@ -3521,8 +3526,11 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
   // Insert user-defined input into str in place of original, surrounded by delimiters.
   // E.g. str = some TeX, regex = /(D_{uu}) (\\vnabla u)/g; input = "2*a"; delimiters = " ";
   // If the input is 0, just remove the original from str.
-  if (input.replace(/\s+/g, "  ").trim() == "0")
+  let trimmed = input.replace(/\s+/g, "  ").trim();
+  if (trimmed == "0" || trimmed == "0.0")
     return str.replaceAll(regex, "");
+  if (trimmed == "1" || trimmed == "1.0")
+    return str.replaceAll(regex, "$2");
   // If the input contains letters (like parameters), insert it with delimiters.
   if (input.match(/[a-zA-Z]/)) {
     if (input.match(/[\+-]/) && delimiters != undefined) {
