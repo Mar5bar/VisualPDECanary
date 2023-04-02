@@ -11,7 +11,7 @@ We now consider an example of a cross-diffusion system based on the following re
 
 $$\begin{aligned}\pd{u}{t}&=\vnabla\cdot(D_{uu}\vnabla u+D_{uv}\vnabla v)+a-u+u^2v,\\ \pd{v}{t}&=\vnabla\cdot(D_{vu}\vnabla u+D_{vv}\vnabla v)+b-u^2v,\end{aligned}$$
 
-which is a cross-diffusion version of the [Schnakenberg](/mathematical-biology/schnakenberg).
+which is a cross-diffusion version of the [Schnakenberg model](/mathematical-biology/schnakenberg).
 
 * Load the [interactive simulation](/sim/?preset=crossDiffusionSchnakenberg). 
 
