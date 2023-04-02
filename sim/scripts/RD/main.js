@@ -393,8 +393,12 @@ function init() {
   simTextureA.texture.wrapT = THREE.RepeatWrapping;
   simTextureB.texture.wrapS = THREE.RepeatWrapping;
   simTextureB.texture.wrapT = THREE.RepeatWrapping;
-  postTexture.texture.wrapS = THREE.RepeatWrapping;
-  postTexture.texture.wrapT = THREE.RepeatWrapping;
+  
+  // The post and interpolation materials, used for display, will always edge clamp.
+  postTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
+  postTexture.texture.wrapT = THREE.ClampToEdgeWrapping;
+  interpolationTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
+  interpolationTexture.texture.wrapT = THREE.ClampToEdgeWrapping;
 
   // Create cameras for the simulation domain and the final output.
   camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
