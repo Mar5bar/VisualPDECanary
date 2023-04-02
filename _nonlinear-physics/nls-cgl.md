@@ -1,10 +1,10 @@
 ---
 layout: page
-title: Nonlinear Schrödinger/Complex Ginzburg-Landau
+title: Complex Ginzburg-Landau
 lesson_number: 20
 thumbnail: /assets/images/complexGinzburgLandau.png
-extract: Phase separation
-equation: $\pd{u}{t}=-\nabla^2u-\nabla^4u-|\nabla u| $
+extract: A world of complexity
+equation: $\pd{\psi}{t}=(D_r+iD_i)\nabla^2 \psi+(a_r+ia_i)\psi+(b_r+ib_i)\psi|\psi|^2$
 ---
 Here is an implementation of a [(complex) Ginzburg-Landau equation](https://arxiv.org/abs/cond-mat/0106115) given by:
 
@@ -26,4 +26,4 @@ $$\begin{aligned}\pd{u}{t}&=D_r\nabla^2u-D_i\nabla^2 v+a_ru-a_iv+(b_ru-b_iv)(u^2
 
 # Solitons 
 
-COMING SOON! Integrable systems are tough...
+Nonlinear Schrödinger and more COMING SOON! Integrable systems are tough...
