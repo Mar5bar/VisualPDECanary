@@ -81,6 +81,35 @@ break;
         whatToPlot: "u",
       };
       break;
+
+
+case "crossdiffusionSchnakenberg":
+	options = {
+	"brushRadius": 2,
+	"clearValueU": "a + b",
+	"clearValueV": "b / (a+b)^2",
+	"crossDiffusion": true,
+	"diffusionStrUU": "1",
+	"diffusionStrUV": "3",
+	"diffusionStrVU": "0.2",
+	"diffusionStrVV": "1",
+	"diffusionStrWW": "0",
+	"domainScale": 50,
+	"dt": 0.001,
+	"kineticParams": "a  =  0.01;b  =  2.5;D=100;",
+	"maxColourValue": 3.5,
+	"minColourValue": -1,
+	"numTimestepsPerFrame": 200,
+	"preset": "crossdiffusionSchnakenberg",
+	"reactionStrU": "a - u +u^2*v",
+	"reactionStrV": "b - u^2*v",
+	"reactionStrW": "0",
+	"spatialStep": 0.2,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
+
 case "FHNBeatingHeart":
 	options = {
 	"boundaryConditionsU": "dirichlet",
