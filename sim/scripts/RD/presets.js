@@ -7,14 +7,16 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "periodic",
         boundaryConditionsV: "periodic",
+        colourmap: "greyscale",
         brushRadius: 2,
         diffusionStrUU: "0.042",
         diffusionStrVV: "2",
         domainScale: 100,
         dt: 0.001,
         imagePathTwo: "./images/qr-code.png",
-        maxColourValue: 2.3,
-        numTimestepsPerFrame: 200,
+        maxColourValue: 0,
+        minColourValue: -2.3,
+        numTimestepsPerFrame: 100,
         preset: "QR",
         renderSize: 652,
         reactionStrU: "(1-T) - u + u^2*v",
@@ -24,7 +26,7 @@ export function getPreset(id) {
         squareCanvas: true,
         suppressTryClickingPopup: true,
         whatToDraw: "u",
-        whatToPlot: "u",
+        whatToPlot: "-u",
       };
       break;
     case "unstableHeatEquation":
