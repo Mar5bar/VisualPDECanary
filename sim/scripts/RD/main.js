@@ -313,11 +313,13 @@ loadOptions("default");
 // Initialise simulation and GUI.
 init();
 
+let loadedSearchParams = false;
 // Check URL for any preset or specified options.
 const params = new URLSearchParams(window.location.search);
 if (params.has("preset")) {
   // If a preset is specified, load it.
   loadPreset(params.get("preset"));
+  loadedSearchParams = true;
 }
 if (params.has("options")) {
   // If options have been provided, apply them on top of loaded options.
@@ -329,6 +331,10 @@ if (params.has("options")) {
     newParams = maxifyPreset(newParams);
   }
   loadPreset(newParams);
+  loadedSearchParams = true;
+}
+if (!loadedSearchParams) {
+  loadPreset("GrayScott");
 }
 
 if (
