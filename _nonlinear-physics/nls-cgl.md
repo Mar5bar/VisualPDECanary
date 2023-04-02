@@ -15,3 +15,15 @@ where, typically, we need $b_r,D_r \geq 0$ for solutions to exist etc.
 * Load the [interactive simulation](/sim/?preset=complexGinzburgLandau). 
 
 * Change the parameters $b_i$ to see a wide range of interesting behaviours. $b_i=-5, -1, 0, 1, 2$ for example all give distinct dynamical regimes.
+
+# Numerical Notes
+
+As in the [Schrödinger Equation](/basic-pdes/stabilised-schrodinger), we have to separate out the real and imaginary parts of $\psi$ to simulate it. We write $\psi=u+iv$ to find,
+
+$$\begin{aligned}\pd{u}{t}&=D_r\nabla^2u-D_i\nabla^2 v+a_ru-a_iv+(b_ru-b_iv)(u^2+v^2),\\ 
+\pd{v}{t} &= D_i\nabla^2 u+D_r\nabla^2v+a_rv+a_iu+(b_rv+b_iu)(u^2+v^2).
+\end{aligned}$$
+
+# Solitons 
+
+COMING SOON! Integrable systems are tough...
