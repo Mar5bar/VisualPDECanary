@@ -83,7 +83,7 @@ break;
       break;
 
 
-case "crossdiffusionSchnakenberg":
+case "crossDiffusionSchnakenberg":
 	options = {
 	"brushRadius": 2,
 	"clearValueU": "a + b",
@@ -100,7 +100,7 @@ case "crossdiffusionSchnakenberg":
 	"maxColourValue": 3.5,
 	"minColourValue": -1,
 	"numTimestepsPerFrame": 200,
-	"preset": "crossdiffusionSchnakenberg",
+	"preset": "crossDiffusionSchnakenberg",
 	"reactionStrU": "a - u +u^2*v",
 	"reactionStrV": "b - u^2*v",
 	"reactionStrW": "0",
