@@ -863,7 +863,7 @@ function initGUI(startOpen) {
   }
   if (inGUI("whatToDraw")) {
     whatToDrawController = root
-      .add(options, "whatToDraw", { u: "u", v: "v", w: "w", "u,v": "uv", "u, w": "uw", "v, w": "vw", "u, v, w": "uvw" })
+      .add(options, "whatToDraw", { u: "u", v: "v", w: "w" })
       .name("Species")
       .onChange(setBrushType);
   }
