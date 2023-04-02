@@ -2992,41 +2992,51 @@ function setEquationDisplayType() {
   let str = equationTEX[equationType];
   if (options.typesetCustomEqs) {
     // Replace any customisable parts of the TEX with the user input.
-    if (options.reactionStrU.match(/[a-zA-Z]/))
-      str = str.replaceAll(/\bf\b/g, options.reactionStrU);
-    if (options.reactionStrV.match(/[a-zA-Z]/))
-      str = str.replaceAll(/\bg\b/g, options.reactionStrV);
-    if (options.reactionStrW.match(/[a-zA-Z]/))
-      str = str.replaceAll(/\bh\b/g, options.reactionStrW);
+    str = replaceUserDefReac(str, /\bf\b/g, options.reactionStrU);
+    str = replaceUserDefReac(str, /\bg\b/g, options.reactionStrV);
+    str = replaceUserDefReac(str, /\bh\b/g, options.reactionStrW);
 
-    if (options.diffusionStrUU.match(/[a-zA-Z]/)) {
-      str = str.replaceAll(/\bD\b/g, "[" + options.diffusionStrUU + "]");
-      str = str.replaceAll(/\bD_u\b/g, "[" + options.diffusionStrUU + "]");
-      str = str.replaceAll(/\bD_{uu}\b/g, "[" + options.diffusionStrUU + "]");
-    }
-    if (options.diffusionStrVV.match(/[a-zA-Z]/)) {
-      str = str.replaceAll(/\bD_v\b/g, "[" + options.diffusionStrVV + "]");
-      str = str.replaceAll(/\bD_{vv}\b/g, "[" + options.diffusionStrVV + "]");
-    }
-    if (options.diffusionStrWW.match(/[a-zA-Z]/)) {
-      str = str.replaceAll(/\bD_w\b/g, "[" + options.diffusionStrWW + "]");
-      str = str.replaceAll(/\bD_{ww}\b/g, "[" + options.diffusionStrWW + "]");
-    }
+    str = replaceUserDefDiff(str, /\b(D) (\\vnabla u)/g, options.diffusionStrUU,"[]");
+    str = replaceUserDefDiff(str, /\b(D_u) (\\vnabla u)/g, options.diffusionStrUU,"[]");
+    str = replaceUserDefDiff(str, /\b(D_{uu}) (\\vnabla u)/g, options.diffusionStrUU,"[]");
 
-    if (options.diffusionStrUV.match(/[a-zA-Z]/))
-      str = str.replaceAll(/\bD_{uv}\b/g, +"[" + options.diffusionStrUV + "]");
-    if (options.diffusionStrUW.match(/[a-zA-Z]/))
-      str = str.replaceAll(/\bD_{uw}\b/g, +"[" + options.diffusionStrUW + "]");
-    if (options.diffusionStrVU.match(/[a-zA-Z]/))
-      str = str.replaceAll(/\bD_{vu}\b/g, +"[" + options.diffusionStrVU + "]");
-    if (options.diffusionStrVW.match(/[a-zA-Z]/))
-      str = str.replaceAll(/\bD_{vw}\b/g, +"[" + options.diffusionStrVW + "]");
-    if (options.diffusionStrWU.match(/[a-zA-Z]/))
-      str = str.replaceAll(/\bD_{wu}\b/g, +"[" + options.diffusionStrWU + "]");
-    if (options.diffusionStrWV.match(/[a-zA-Z]/))
-      str = str.replaceAll(/\bD_{wv}\b/g, +"[" + options.diffusionStrWV + "]");
+    str = replaceUserDefDiff(str, /\b(D_v) (\\vnabla v)/g, options.diffusionStrVV,"[]");
+    str = replaceUserDefDiff(str, /\b(D_{vv}) (\\vnabla v)/g, options.diffusionStrVV,"[]");
 
-    str = parseStringToTEX(str);
+    str = replaceUserDefDiff(str, /\b(D_w) (\\vnabla w)/g, options.diffusionStrWW,"[]");
+    str = replaceUserDefDiff(str, /\b(D_{ww}) (\\vnabla w)/g, options.diffusionStrWW,"[]");
+
+    str = replaceUserDefDiff(str, /\b(D_{uv}) (\\vnabla v)/g, options.diffusionStrUV,"[]");
+    str = replaceUserDefDiff(str, /\b(D_{uw}) (\\vnabla w)/g, options.diffusionStrUW,"[]");
+    str = replaceUserDefDiff(str, /\b(D_{vu}) (\\vnabla u)/g, options.diffusionStrVU,"[]");
+    str = replaceUserDefDiff(str, /\b(D_{vw}) (\\vnabla w)/g, options.diffusionStrVW,"[]");
+    str = replaceUserDefDiff(str, /\b(D_{wu}) (\\vnabla u)/g, options.diffusionStrWU,"[]");
+    str = replaceUserDefDiff(str, /\b(D_{wv}) (\\vnabla v)/g, options.diffusionStrWV,"[]");
+
+  // Look through the string for any open brackets followed by a +.
+  let regex = /\(\s*\+/g;
+  while (str != (str = str.replace(regex, "(")));
+  // Look through the string for any + followed by a ).
+  regex = /\+\s*\)/g;
+  while (str != (str = str.replace(regex, ")")));
+
+  // Look through the string for any empty divergence operators, and remove them if so.
+  regex = /\\vnabla \\cdot\(\s*\)/g;
+  str = str.replaceAll(regex, "");
+
+  // Look through the string for any = +, and remove the +.
+  regex = /=\s*\+/g;
+  str = str.replaceAll(regex, "=");
+
+  // Look through the string for any + \\\\, and remove the +.
+  regex = /\+\s*(\\\\|\n)/g;
+  str = str.replaceAll(regex, "$1");
+
+  // Look for = followed by a newline, and insert 0.
+  regex = /=\s*(\\\\|\n)/g;
+  str = str.replaceAll(regex, "=0$1");
+
+  str = parseStringToTEX(str);
   }
   $("#typeset_equation").html(str);
   if (MathJax.typesetPromise != undefined) {
@@ -3487,6 +3497,42 @@ function checkForReservedNames() {
     );
   }
   return badName;
+}
+
+function replaceUserDefReac(str, regex, input) {
+  // Insert user-defined input into str in place of original.
+  // E.g. str = some TeX, regex = /\bf\b/g; input = "2*a".
+  // If the input is 0, just remove the original from str.
+  if (input.replace(/\s+/g, "  ").trim() == "0")
+    return str.replaceAll(regex, "");
+  // If the input contains letters (like parameters), insert it with delimiters.
+  if (input.match(/[a-zA-Z]/))
+    return str.replaceAll(regex, input);
+  // If it's just a scalar, keep the original.
+  return str
+}
+
+function replaceUserDefDiff(str, regex, input, delimiters) {
+  // Insert user-defined input into str in place of original, surrounded by delimiters.
+  // E.g. str = some TeX, regex = /(D_{uu}) (\\vnabla u)/g; input = "2*a"; delimiters = " ";
+  // If the input is 0, just remove the original from str.
+  if (input.replace(/\s+/g, "  ").trim() == "0")
+    return str.replaceAll(regex, "");
+  // If the input contains letters (like parameters), insert it with delimiters.
+  if (input.match(/[a-zA-Z]/)) {
+    if (input.match(/[\+-]/) && delimiters != undefined) {
+      // If it needs delimiting.
+      console.log(delimiters)
+      return str.replaceAll(regex, delimiters[0]+input+delimiters[1]+"$2");
+    }
+    else {
+      // If it doesn't need delimiting.
+      return str.replaceAll(regex, input + "$2");
+    }
+  }
+  // If it's just a scalar, keep the original.
+  return str
+
 }
 
 $("#simCanvas").one("pointerdown touchstart", () => fadeout("#try_clicking"));
