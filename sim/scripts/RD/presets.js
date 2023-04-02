@@ -1341,7 +1341,7 @@ break;
         timeDisplay: false,
         tryClickingText: "Try clicking!",
         typeOfBrush: "circle",
-        typesetCustomEqs: false,
+        typesetCustomEqs: true,
         whatToDraw: "v",
         whatToPlot: "v",
       };
