@@ -3,6 +3,30 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "QR":
+      options = {
+        boundaryConditionsU: "periodic",
+        boundaryConditionsV: "periodic",
+        brushRadius: 2,
+        diffusionStrUU: "0.042",
+        diffusionStrVV: "2",
+        domainScale: 100,
+        dt: 0.001,
+        imagePathTwo: "./images/qr-code.png",
+        maxColourValue: 2.3,
+        numTimestepsPerFrame: 200,
+        preset: "QR",
+        renderSize: 652,
+        reactionStrU: "(1-T) - u + u^2*v",
+        reactionStrV: "1 - u^2*v",
+        showAllOptionsOverride: true,
+        spatialStep: 0.2,
+        squareCanvas: true,
+        suppressTryClickingPopup: true,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
     case "unstableHeatEquation":
       options = {
         boundaryConditionsU: "neumann",
