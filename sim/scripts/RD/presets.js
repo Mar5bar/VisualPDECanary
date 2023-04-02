@@ -225,30 +225,27 @@ break;
 break;
 		  
     case "complexGinzburgLandau":
-      options = {
-        brushValue: "0",
-        brushRadius: 0.02,
-        clearValueU: "RAND*sin(3.14*7*x)*cos(3.14*7*y)",
-        clearValueV: "RAND*sin(3.14*7*x)*cos(3.14*7*y)",
-        crossDiffusion: true,
-        diffusionStrUU: "0.00001",
-        diffusionStrVV: "0.0001",
-        diffusionStrWW: "0",
-        dt: 0.001,
-        fixRandSeed: true,
-        kineticParams: "a=3;c=-1",
-        maxColourValue: 3.1,
-        numTimestepsPerFrame: 50,
-        preset: "complexGinzburgLandau",
-        reactionStrU: "a*u-(u+c*v)*(u^2+v^2)",
-        reactionStrV: "a*v+(c*u-v)*(u^2+v^2)",
-        reactionStrW: "0",
-        spatialStep: 0.002,
-        whatToDraw: "u",
-        whatToPlot: "u^2+v^2",
-        constantDiffusion: false,
-      };
-      break;
+	options = {
+	"autoSetColourRange": true,
+	"clearValueU": "sin(n*x*pi/100)*sin(m*y*pi/100)",
+	"clearValueV": "sin(n*x*pi/100)*sin(m*y*pi/100)",
+	"crossDiffusion": true,
+	"diffusionStrUU": "Dr",
+	"diffusionStrUV": "-Di",
+	"diffusionStrVU": "Di",
+	"diffusionStrVV": "Dr",
+	"diffusionStrWW": "0",
+	"dt": 0.001,
+	"kineticParams": "Dr=0.1;Di=1;ar=1;ai=1;br=-1;bi=0;n=10;m=10;",
+	"maxColourValue": 1.6760534048080444,
+	"minColourValue": 0.00015078618889674544,
+	"reactionStrU": "ar*u-ai*v+(br*u-bi*v)*(u^2+v^2)",
+	"reactionStrV": "ar*v+ai*u+(br*v+bi*u)*(u^2+v^2)",
+	"reactionStrW": "0",
+	"whatToPlot": "u^2+v^2",
+	"preset": "complexGinzburgLandau",
+};
+break;
 
     case "GiererMeinhardt":
       options = {
