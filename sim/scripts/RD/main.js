@@ -3038,7 +3038,7 @@ function setEquationDisplayType() {
 
   // Look for div(const * grad(blah)), and move the constant outside the bracket.
   // By this point, a single word (with no square brackets) in the divergence must be a constant.
-  regex = /\\vnabla\s*\\cdot\s*\((\w*)\s*\\vnabla\s*(u)\s*\)/g;
+  regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}]*)\s*\\vnabla\s*([uvw])\s*\)/g;
   str = str.replaceAll(regex, "$1 \\lap $2");
 
   str = parseStringToTEX(str);
