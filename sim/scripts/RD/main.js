@@ -3057,6 +3057,8 @@ function parseStringToTEX(str) {
   str = str.replaceAll(/\bsin/g, "\\sin");
   str = str.replaceAll(/\bcos/g, "\\cos");
   str = str.replaceAll(/\btan/g, "\\tan");
+  str = str.replaceAll(/\bexp/g, "\\exp");
+  str = str.replaceAll(/\blog/g, "\\log");
 
   // Remove *.
   str = str.replaceAll(/\*/g, " ");
