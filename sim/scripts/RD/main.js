@@ -148,7 +148,7 @@ import * as THREE from "../three.module.js";
 import { OrbitControls } from "../OrbitControls.js";
 import { minifyPreset, maxifyPreset } from "./minify_preset.js";
 import { LZString } from "../lz-string.min.js";
-import { equationTEXFun } from "./TEX.js";
+import { equationTEXFun, substituteGreek } from "./TEX.js";
 let equationTEX = equationTEXFun();
 
 // Setup some configurable options.
@@ -3045,6 +3045,9 @@ function setEquationDisplayType() {
 }
 
 function parseStringToTEX(str) {
+  // Prepend \\ to any Greek character.
+  str = substituteGreek(str);
+
   // Parse a string into valid TEX by replacing * and ^.
   // Replace +- and -+ with simply -
   str = str.replaceAll(/\+\s*-/g, "-");
@@ -3522,7 +3525,6 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
   if (input.match(/[a-zA-Z]/)) {
     if (input.match(/[\+-]/) && delimiters != undefined) {
       // If it needs delimiting.
-      console.log(delimiters)
       return str.replaceAll(regex, delimiters[0]+input+delimiters[1]+"$2");
     }
     else {

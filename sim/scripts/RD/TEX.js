@@ -30,5 +30,35 @@ export function equationTEXFun() {
     \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{vu} \\vnabla u+D_{vv} \\vnabla v+D_{vw} \\vnabla w) + g\\\\
     w &= \\vnabla \\cdot(D_{wu} \\vnabla u+D_{wv} \\vnabla v) + h
     \\end{aligned}$`;
-    return out;
+  return out;
+}
+
+export function substituteGreek(str) {
+  let listOfGreek = [
+    "alpha",
+    "beta",
+    "gamma",
+    "delta",
+    "epsilon",
+    "zeta",
+    "eta",
+    "theta",
+    "iota",
+    "kappa",
+    "lambda",
+    "mu",
+    "nu",
+    "xi",
+    "pi",
+    "rho",
+    "sigma",
+    "tau",
+    "upsilon",
+    "phi",
+    "chi",
+    "psi",
+    "omega",
+  ];
+  let regex = new RegExp("\\b(" + listOfGreek.join("|") + ")\\b", "ig");
+  return str.replaceAll(regex, "\\" + "$1");
 }
