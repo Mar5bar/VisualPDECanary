@@ -8,10 +8,3 @@ layout: home
 See the solution to your PDE evolve before your eyes. Paint the canvas with initial conditions and see what happens.
 
 Follow a tutorial below or provide your own PDE.
-
-{:refdef: style="text-align: center;"}
-![Under construction](/assets/images/construction.gif)
-{: refdef}
-
-This website is currently being constructed! Things may break as they are updated, but please feel free to explore what is there now.
-
