@@ -217,8 +217,8 @@ canvas {
     transform: translateX(-50%) translateY(-50%);
     opacity: 0;
     transition-property: opacity;
-    background-color: #000;
-    border: 2px solid #000;
+    background-color: #30204a;
+    border: 2px solid #30204a;
     border-radius: 10px;
     text-align: center;
     pointer-events: none;
