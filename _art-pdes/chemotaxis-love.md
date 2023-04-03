@@ -10,7 +10,7 @@ Here are some examples of a PDE solutions on a domain based on a [heart-shaped c
 
 # Excitability
 
-Models like [FitzHugh-Nagumo](/mathematical-biology/fitzhugh-nagumo) are the basis for a lot of work in cardiac electrophysiology and related areas. So let's solve these PDEs in a heart!
+Models like [FitzHugh–Nagumo](/mathematical-biology/fitzhugh-nagumo) are the basis for a lot of work in cardiac electrophysiology and related areas. So let's solve these PDEs in a heart!
 
 * Load the [interactive simulation](/sim/?preset=FHNBeatingHeart) and enjoy. You can click {{ layout.settings }}→**Rendering** and click the box for **Surface plot** to get a 3D view of the beating heart. 
 
@@ -20,6 +20,6 @@ The next example is based on the [Keller--Segel model for chemotaxis](/mathemati
 
 * Load the [interactive simulation](/sim/?preset=KellerSegelHeart) and enjoy. 
 
-# Numerical Health Warning:
+# Numerical health warning
 
 Our implementation of internal boundaries is somewhat crude, so for now we only support Dirichlet conditions on these boundaries.

@@ -22,6 +22,8 @@ but now we consider different boundary conditions.
 $$
 D < \frac{L^2}{2\pi^2} \approx 5.066,
 $$
-as $L=10$ in our simulation. For diffusion coefficients larger than this value, the extinction equilibrium, $u=0$, is stable. Try simulating the system at $D=4$, and $D=6$, clicking if needed to introduce some additional population into the domain. NB: You can check the condition more precisely by looking at $D$ values closer to the boundary, but the timescale to reach equilibrium will be long, and the amplitude of $u$ will become very small.
+as $L=10$ in our simulation. For diffusion coefficients larger than this value, the extinction equilibrium, $u=0$, is stable. Try simulating the system at $D=4$, and $D=6$, clicking if needed to introduce some additional population into the domain. 
+
+    **Note**: You can check the condition more precisely by looking at $D$ values closer to the boundary, but the timescale to reach equilibrium will be long, and the amplitude of $u$ will become very small.
 
 * The analytical condition above does not depend on the carrying capacity $K$. Set $K=1000$, and simulate the system at $D=4$ and $D=6$ in this case to confirm that $K$ will not change the boundary of where the populations persists, though it will change the structure of the solution when $u>0$. Again you may need to click to introduce some population into the domain. With this value of $K$, it is easier to see the solution's behaviour near the critical diffusion threshold. The values $D=5$ and $D=5.2$ are good choices, for example.

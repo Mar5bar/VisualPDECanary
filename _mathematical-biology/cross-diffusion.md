@@ -13,9 +13,9 @@ $$\begin{aligned}\pd{u}{t}&=\vnabla\cdot(D_{uu}\vnabla u+D_{uv}\vnabla v)+a-u+u^
 
 which is a cross-diffusion version of the [Schnakenberg model](/mathematical-biology/schnakenberg).
 
-* Load the [interactive simulation](/sim/?preset=crossDiffusionSchnakenberg). 
+* Load the [interactive simulation](/sim/?preset=crossDiffusionSchnakenberg) 
 
-* The default parameters create localized inverted spots (sometimes called "dark solitons") wherever the perturbation is, but these do not seem to propagate patterns in any direction. 
+* The default parameters create localised inverted spots (sometimes called 'dark solitons') wherever the perturbation is, but these do not seem to propagate patterns in any direction. 
 
 * Setting the value of $b=1$ gives pattern formation closer to the Schnakenberg system observed before, though note that the self-diffusion terms are equal.
 

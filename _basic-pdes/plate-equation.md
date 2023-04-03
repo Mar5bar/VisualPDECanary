@@ -35,7 +35,7 @@ $$\begin{aligned}\pd{u}{t}&=v+DD_c\nabla^2 u,\\
 
 which is the plate equation for $D_c=0$. The parameter $D_c$ is used to prevent spurious oscillations as seen in the wave equation.
 
-## 3D Deformations
+## 3D deformations
 
 
 * Load the [interactive simulation](/sim/?preset=plateEquation3D). 

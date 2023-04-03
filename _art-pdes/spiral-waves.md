@@ -1,13 +1,13 @@
 ---
 layout: page
-title: Spiral Waves
+title: Spiral waves
 lesson_number: 40
 thumbnail: /assets/images/spiralWaves.png
-extract: You spin me right 'round, baby
-equation: $\pd{u}{t}=D_u\nabla^2 u+au-(u+cv)(u^2+v^2)$, $\pd{v}{t}=D_v\nabla^2v+av+(cu-v)(u^2+v^2)$
+extract: You spin me right ’round, baby
+equation: $\pd{u}{t}=D_u\nabla^2 u+au-(u+cv)(u^2+v^2),$ $\pd{v}{t}=D_v\nabla^2v+av+(cu-v)(u^2+v^2)$
 ---
 
-This is a simulation of reaction-diffusion system loosely related to $\lambda$-$\omega$ models of spiral waves, which takes the form:
+This is a simulation of a reaction–diffusion system loosely related to $\lambda$-$\omega$ models of spiral waves, which takes the form:
 
 $$
 \begin{aligned}\pd{u}{t}&=D_u\nabla^2 u+au-(u+cv)(u^2+v^2),\\ \pd{v}{t}&=D_v\nabla^2v+av+(cu-v)(u^2+v^2),\end{aligned}

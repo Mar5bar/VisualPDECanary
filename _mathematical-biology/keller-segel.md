@@ -10,9 +10,11 @@ We now consider [Keller–Segel models of chemotaxis](https://en.wikipedia.org/w
 
 $$\begin{aligned}\pd{u}{t}&=\nabla^2 u-\vnabla \cdot(\chi(u)\nabla v)+f(u),\\ \pd{v}{t}&=D\nabla^2v+ g(u,v),\end{aligned}$$
 
-where we take $\chi=\frac{cu}{1+u^2}$, $f(u)=u(1-u)$, and $g(u,v) = u-av$.
+where we take 
 
-* Load the [interactive simulation](/sim/?preset=KellerSegel). 
+$$\begin{aligned}\chi&=\displaystyle\frac{cu}{1+u^2},\\f(u)&=u(1-u),\\g(u,v) &= u-av.\end{aligned}$$
+
+* Load the [interactive simulation](/sim/?preset=KellerSegel) 
 
 * The initial condition condition is a small random initial population, which eventually grows towards the homogeneous equilibrium of $u=1$, $v=1/a$, but will undergo pattern formation as it nears this equilibrium. 
 

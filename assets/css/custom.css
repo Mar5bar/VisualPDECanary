@@ -22,7 +22,7 @@ a[href*='/sim/']:hover {
     color: white;
 }
 
-a[href*='wikipedia'], a[href*='scholarpedia'] {
+a[href*='//']:not([href*='visualpde.com']) {
     color:#111111;
     text-decoration: underline;
 }

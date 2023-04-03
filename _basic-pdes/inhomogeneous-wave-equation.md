@@ -22,7 +22,7 @@ with homogeneous Neumann (aka no-flux) boundary conditions. This equation can be
 
 * Unlike in the [homogeneous case](/basic-pdes/wave-equation), we by default plot $u$ here, but you can change this to $v$ using the menu at the right side labelled **Rendering**.
 
-### Damped Waves and Inhomogeneous Boundaries
+### Damped waves and inhomogeneous boundaries
 
 We next consider the damped wave equation,
 

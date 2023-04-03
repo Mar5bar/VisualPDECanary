@@ -12,11 +12,11 @@ $$\begin{aligned}\pd{u}{t}&=\nabla^2 u +u-u^3-v,\\ \pd{v}{t}&=D\nabla^2v+ \varep
 
 where we take $D>1$.
 
-* Load the [interactive simulation](/sim/?preset=FitzHugh-Nagumo){:target="_blank"}. 
+* Load the [interactive simulation](/sim/?preset=FitzHugh-Nagumo){:target="_blank"} 
 
 * Click in the domain to initiate a pattern-forming instability, which will form roughly concentric rings as it expands.
 
-* This system has many different kinds of solutions which are stable over long time periods. To see this, change the initial condition (under 'Misc' on the right) so that $u$ has the value 'RAND'. Then press 'r' to reset the simulation. It should now exhibit patterns which are much more spot-like.
+* This system has many different kinds of solutions which are stable over long time periods. To see this, change the initial condition, under <span class='click_sequence'>{{ layout.equations }} → **Initial conditions**</span> so that $u\|_{t=0}$ has the value '**RAND**'.  Then press {{ layout.restart }} to restart the simulation. It should now exhibit patterns which are much more spot-like.
 
 # Turing–Hopf bifurcations
 
@@ -30,7 +30,9 @@ $$
 
 for some integer $m$ and domain length $L=280$. 
 
-This simulation is shown [here](/sim/?preset=FitzHugh-Nagumo-Hopf){:target="_blank"}, and can display long-time solutions that exhibit all three kinds of behaviour, depending on the values of $m$, $D$, and the other parameters. Try $m=4$, $m=3$, and $m=6$ for example.
+* Load the [interactive simulation](/sim/?preset=FitzHugh-Nagumo-Hopf){:target="_blank"}
+
+* This simulation can display long-time solutions that exhibit all three kinds of behaviour, depending on the values of $m$, $D$, and the other parameters. Try $m=4$, $m=3$, and $m=6$ for example.
 
 # Three-species variant
 
@@ -38,6 +40,8 @@ A three-species variant of the FitzHugh–Nagumo model is
 
 $$\begin{aligned}\pd{u}{t}&=\nabla^2 u +u-u^3-v,\\ \pd{v}{t}&=D_v\nabla^2v+ \varepsilon_v(u-a_v v-a_w w-a_z)\\ \pd{w}{t}&=D_w\nabla^2w+ \varepsilon_w(u-w).\end{aligned}$$
 
-* An [interactive simulation](/sim/?preset=FitzHugh-Nagumo-3){:target="_blank"} demonstrates the dynamics of this system in a regime which has both homogeneous limit cycles and pattern formation competing against one another.
+* Load the [interactive simulation](/sim/?preset=FitzHugh-Nagumo-3){:target="_blank"} 
+
+* The simulation demonstrates the dynamics of this system in a regime which has both homogeneous limit cycles and pattern formation competing against one another.
 
 * The initial pattern formed in this simulation will eventually be destroyed by the oscillations. You can increase the value of $a_v$ to stabilise the pattern for longer, and if $a_v=0.1$, the pattern will eventually overtake the oscillations and fill the entire domain.

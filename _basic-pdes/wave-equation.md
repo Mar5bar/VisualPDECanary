@@ -66,7 +66,7 @@ The damping factor $C$ is also set to zero in this case. If you increase its val
 
 ## 1D and 2D waves
 
-In a 1D domain, [d'Alembert's Solution](https://mathworld.wolfram.com/dAlembertsSolution.html) to the wave equation can be used to show that an initial disturbance in $u$ (and not $u_t$) will cause rightward and leftward moving waves.
+In a 1D domain, [d'Alembert's solution](https://mathworld.wolfram.com/dAlembertsSolution.html) to the wave equation can be used to show that an initial disturbance in $u$ (and not $u_t$) will cause rightward and leftward moving waves.
 
-This can be seen in [this simulation](/sim/?preset=waveEquation1D) in 1D. In principle the same concept works for higher dimensions, though reflections from boundary conditions can lead to more complicated behaviour, as seen in this [2D simulation](/sim/?preset=waveEquation3D) plotted as a surface.
+This can be seen in this [1D simulation](/sim/?preset=waveEquation1D). In principle the same concept works for higher dimensions, though reflections from boundary conditions can lead to more complicated behaviour, as seen in this [2D simulation](/sim/?preset=waveEquation3D) plotted as a surface.
 
