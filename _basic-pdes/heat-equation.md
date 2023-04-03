@@ -38,7 +38,7 @@ What effect do the boundary conditions have?
 
 1. Click around the corners and edges to see how the Neumann boundary conditions conserve the total amount of heat within the domain. 
 
-1. Now, go to {{ layout.equations }}→**Boundary conditions** and select **Periodic** for $u$. What do you notice? Is the total amount of heat still conserved? 
+1. Now, go to <span class='click_sequence'>{{ layout.equations }} → **Boundary conditions**</span> and select **Periodic** for $u$. What do you notice? Is the total amount of heat still conserved? 
 
 1. What if you change the boundary conditions to **Dirichlet**? 
 
