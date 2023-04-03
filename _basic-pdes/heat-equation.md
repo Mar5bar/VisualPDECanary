@@ -49,7 +49,7 @@ Explore how heat flows through the domain under these different scenarios.
 We now explore analytical solutions in one spatial dimension. We can solve the equation to get the following solution using the initial condition,
 
 $$
-u(x,0) = \cos\left(\frac{m\pi}{L}\right) \implies u(x,t) = \mathrm{e}^{-D\left(\frac{m\pi}{L}\right)^2}\cos\left(\frac{m\pi}{L}\right),
+u(x,0) = \cos\left(\frac{m\pi}{L}\right) \implies u(x,t) = e^{-Dt\left(\frac{m\pi}{L}\right)^2}\cos\left(\frac{m\pi x}{L}\right),
 $$
 
 with $m$ a positive integer. These solutions decay to 0 as time increases. Importantly, the rate of decay depends on the frequency of the initial perturbation $m$, with larger $m$ (or larger $D$) leading to more quickly decaying solutions. You can explore these solutions [here](/sim/?preset=heatEquation1D).
