@@ -275,14 +275,17 @@ canvas = document.getElementById("simCanvas");
 
 // Warn the user is any errors occur.
 console.error = function (error) {
+  let errorStr = error.toString();
+  console.log(errorStr);
+  let regex = /ERROR.*/;
+  (regex.test(errorStr)) ? errorStr = errorStr.match(regex) : {};
   let msg =
     "<p>VisualPDE is throwing an error, most likely as a result of the definitions and parameters. Check for syntax errors, and reload the page if the interface is unresponsive. Click to dismiss.</p><p>" +
-    error.toString().match(/ERROR.*/) +
+    errorStr +
     "</p>";
   $("#error").html(msg);
   fadein("#error");
   $("#error").one("click", () => fadeout("#error"));
-  return error;
 };
 
 // Remove the back button if we're from an internal link.
