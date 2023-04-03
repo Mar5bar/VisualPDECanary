@@ -1972,6 +1972,10 @@ function parseShaderString(str) {
         return "((" + p1 + ")*(" + p1 + "))";
       case "3":
         return "((" + p1 + ")*(" + p1 + ")*(" + p1 + "))";
+      case "4":
+        return "((" + p1 + ")*(" + p1 + ")*(" + p1 + ")*(" + p1 + "))";
+      case "5":
+        return "((" + p1 + ")*(" + p1 + ")*(" + p1 + ")*(" + p1 + ")*(" + p1 + "))";
       default:
         return "safepow(" + p1 + "," + p2 + ")";
     }
