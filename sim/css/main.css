@@ -234,12 +234,52 @@ canvas {
 #warning {
     display: none;
     top: 50%;
-    width: 80%;
-    max-width: 90vh;
+    max-width: 30vh;
+    width: 20rem;
     left: 50%;
     position: absolute;
     opacity: 100;
     pointer-events: all;
+    padding:1.5rem 3rem 1.5rem 3rem;
+    background-color: white;
+    border: 1px rgba(27, 31, 36, 0.15) solid;
+    border-radius:6px;
+
+}
+
+#warning p{
+    color: #111;
+    font-size: medium;
+}
+
+#warning_ok, #warning_no {
+    font-size:1rem;
+    margin-bottom:0.5rem;
+    text-align: center;
+    width: 13rem;
+    border: 1px solid;
+    border-radius: 6px;
+    border-color: rgba(27, 31, 36, 0.15);
+    padding: 5px 16px;
+    box-shadow: rgba(27, 31, 36, 0.1) 0px 1px 0px 0px, rgba(255, 255, 255, 0.03) 0px 1px 0px 0px inset;
+    transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
+    transition-duration: 80ms;
+}
+#warning_ok{
+    background-color: #1756a9;
+    color: white !important;
+}
+#warning_ok:hover{
+    background-color:#134484;
+    cursor: pointer;
+}
+/* #warning_np{
+    background-color:white;
+    color: #1756a9 !important;
+} */
+#warning_no:hover{
+    background-color:#ddd;
+    cursor: pointer;
 }
 
 #error {
