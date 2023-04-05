@@ -231,7 +231,7 @@ canvas {
     font-size: 1.5rem;
 }
 
-#warning {
+#warning, #oops_hit_nan, #error {
     display: none;
     top: 50%;
     max-width: 30vh;
@@ -247,12 +247,17 @@ canvas {
 
 }
 
-#warning p{
+#warning p, #oops_hit_nan p, #error p{
     color: #111;
     font-size: medium;
 }
 
-#warning_ok, #warning_no {
+#error_description{
+    font-family: monospace;
+    font-size: small;
+}
+
+#warning_ok, #warning_no, #warning_restart {
     font-size:1rem;
     margin-bottom:0.5rem;
     text-align: center;
@@ -277,12 +282,29 @@ canvas {
     background-color:white;
     color: #1756a9 !important;
 } */
-#warning_no:hover{
+#warning_no, #warning_restart{
+    color: #111;
+}
+#warning_no:hover, #warning_restart:hover{
     background-color:#ddd;
     cursor: pointer;
+    color: #111 !important;
+}
+.error_infinity{
+    text-align:center;
+    color:#ff4188;
+    font-size:3rem;
+}
+p.error_para{
+    margin-bottom:0.9rem;
+}
+i.icon_on_text_button{
+    color:#606060;
+    margin-right:0.4rem;
 }
 
-#error {
+
+/* #error {
     top: 50%;
     width: 80%;
     max-width: 90vh;
@@ -290,11 +312,11 @@ canvas {
     position: absolute;
     pointer-events: all;
     z-index: 1;
-}
+} */
 
 .btn-primary {
     width: 80px;
-    color: #000 !important;
+    color: #000;
     font-size: 1.2rem;
     -webkit-text-size-adjust: 100%;
     -webkit-font-feature-settings: "kern" 1;
@@ -303,13 +325,13 @@ canvas {
     font-feature-settings: "kern" 1;
 }
 
-#oops_hit_nan {
+/* #oops_hit_nan {
     top: 50%;
     width: 80%;
     max-width: 90vh;
     left: 50%;
     position: absolute;
-}
+} */
 
 .fading_in {
     opacity: 100% !important;
