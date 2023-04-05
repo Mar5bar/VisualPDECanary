@@ -3207,8 +3207,6 @@ $("#help").click(function () {
 })
 
 $("#back").click(function () {
-  const link = document.createElement("a");
-  link.href = document.referrer; // This resolves the URL.
   // If the user arrived by typing in a URL or from an external link, have this button
   // point to the visualPDE homepage.
   if (fromExternalLink()) {
