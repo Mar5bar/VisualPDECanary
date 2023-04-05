@@ -191,7 +191,12 @@ canvas {
 }
 
 #equations {
-    top: 40px;
+    top: 50px;
+    left: 3px;
+}
+
+#help {
+    top: 90px;
     left: 3px;
 }
 

@@ -288,7 +288,8 @@ console.error = function (error) {
 // Remove the back button if we're from an internal link.
 if (!fromExternalLink()) {
   $("#back").hide();
-  $("#equations").addClass("top");
+  $("#equations").css("top", "-=50");
+  $("#help").css("top", "-=50");
 }
 
 var readFromTextureB = true;
@@ -3201,6 +3202,9 @@ $("#screenshot").click(function () {
   takeAScreenshot = true;
   render();
 });
+$("#help").click(function () {
+  window.open(window.location.origin + "/user-guide", "_blank");
+})
 
 $("#back").click(function () {
   const link = document.createElement("a");
