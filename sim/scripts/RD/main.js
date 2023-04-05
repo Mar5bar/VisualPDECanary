@@ -3203,7 +3203,7 @@ $("#screenshot").click(function () {
   render();
 });
 $("#help").click(function () {
-  window.location.href = window.location.origin + "/user-guide";
+  window.open(window.location.origin + "/user-guide", "_blank");
 })
 
 $("#back").click(function () {
