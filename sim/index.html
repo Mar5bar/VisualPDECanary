@@ -83,8 +83,19 @@
 <div class="ui_button" id="equations" title="Edit equations"><i class="fa-solid fa-pencil"></i></div>
 
 <div class="message" id="try_clicking" title="Try clicking!"><p>Try clicking!</p></div>
-<div class="message" id="oops_hit_nan" title="Oops!"><p>Oops! It looks like things have spiralled off to infinity, or the numerical solver is unstable. Check the equations, or try reducing the timestep, and reset the simulation.</p></div>
-<div class="message" id="error"></div>
+<div class="message" id="oops_hit_nan">
+    <div class="error_infinity"><i class="fa-sharp fa-solid fa-infinity"></i></div>
+    <p class="error_para"><strong>Oops!</strong> It looks like things have spiralled off to infinity, or the numerical solver is unstable.</p>
+    <p class="error_para">Check the equations, or try reducing the timestep, and restart the simulation.</p>
+    <button id="warning_restart" class="btn-primary"><i class="fa-solid fa-arrow-rotate-left icon_on_text_button"></i>Restart</button>
+</div>
+<div class="message" id="error">
+    <div class="error_infinity"><i class="fa-solid fa-clipboard-question"></i></div>
+    <p class="error_para"><strong>Hmmm...</strong> VisualPDE is throwing an error, most likely as a result of the definitions and parameters.</p>
+    <p class="error_para">Check for syntax errors, and reload the page if the interface is unresponsive.</p>
+    <p class="error_para" id='error_description'></p>
+    <button id="warning_no" class="btn-primary"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
+</div>
 
 <div id="equation_display">
     <div id="equation_display_box">

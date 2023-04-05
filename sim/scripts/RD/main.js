@@ -279,11 +279,8 @@ console.error = function (error) {
   console.log(errorStr);
   let regex = /ERROR.*/;
   (regex.test(errorStr)) ? errorStr = errorStr.match(regex) : {};
-  let msg =
-    "<p>VisualPDE is throwing an error, most likely as a result of the definitions and parameters. Check for syntax errors, and reload the page if the interface is unresponsive. Click to dismiss.</p><p>" +
-    errorStr +
-    "</p>";
-  $("#error").html(msg);
+  let msg = errorStr;
+  $("#error_description").html(msg);
   fadein("#error");
   $("#error").one("click", () => fadeout("#error"));
 };
@@ -3194,6 +3191,10 @@ $("#play").click(function () {
   playSim();
 });
 $("#erase").click(function () {
+  resetSim();
+});
+$("#warning_restart").click(function () {
+  $("#oops_hit_nan").hide();
   resetSim();
 });
 $("#screenshot").click(function () {
