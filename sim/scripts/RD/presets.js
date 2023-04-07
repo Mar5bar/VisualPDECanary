@@ -1309,7 +1309,7 @@ export function getPreset(id) {
         numTimestepsPerFrame: 200,
         preset: "swiftHohenberg",
         renderSize: 512,
-        reactionStrU: "(r-1)*u-2*v+a*u^2+b*u^3+cu^5",
+        reactionStrU: "(r-1)*u-2*v+a*u^2+b*u^3+c*u^5",
         reactionStrV: "0",
         reactionStrW: "0",
         squareCanvas: true,
