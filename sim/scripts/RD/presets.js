@@ -761,7 +761,7 @@ export function getPreset(id) {
         minColourValue: -1,
         numSpecies: 1,
         preset: "inhomogHeatEquation",
-        reactionStrU: "cos(n*pi*x/100)*cos(m*pi*y/100)*D*pi^2*(n^2+m^2)/100^2",
+        reactionStrU: "cos(n*pi*x/100)*cos(m*pi*y/100)*pi^2*(n^2+m^2)/100^2",
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 0.5,
