@@ -154,20 +154,19 @@ let equationTEX = equationTEXFun();
 // Setup some configurable options.
 options = {};
 
+// An object with functions as fields that the GUI controllers can call.
 funsObj = {
   reset: function () {
     resetSim();
   },
-  pause: function () {
-    if (isRunning) {
-      pauseSim();
-    } else {
-      playSim();
-    }
+  toggleRunning: function () {
+    isRunning ? pauseSim() : playSim();
   },
   copyConfigAsURL: function () {
+    // Encode the current simulation configuration as a URL and put it on the clipboard.
     let objDiff = diffObjects(options, getPreset("default"));
     objDiff.preset = "Custom";
+    // Minify the field names in order to generate shorter URLs.
     objDiff = minifyPreset(objDiff);
     let str = [
       location.href.replace(location.search, ""),
@@ -177,6 +176,7 @@ funsObj = {
     navigator.clipboard.writeText(str);
   },
   copyConfigAsJSON: function () {
+    // Encode the current simulation configuration as raw JSON and put it on the clipboard.
     let objDiff = diffObjects(options, getPreset("default"));
     objDiff.preset = "PRESETNAME";
     if (objDiff.hasOwnProperty("kineticParams")) {
@@ -193,6 +193,7 @@ funsObj = {
     navigator.clipboard.writeText(str);
   },
   setColourRange: function () {
+    // Set the range of the colour axis based on the extremes of the computed values.
     let valRange = getMinMaxVal();
     if (Math.abs(valRange[0] - valRange[1]) < 0.005) {
       // If the range is just one value, make the range width equal to 0.005 centered on the given value.
@@ -209,6 +210,7 @@ funsObj = {
     updateColourbarLims();
   },
   linePlot: function () {
+    // View the output as a line plot, which is really a surface viewed almost directly from the side.
     options.oneDimensional = true;
     options.cameraTheta = 0.5;
     options.cameraPhi = 0;
@@ -219,7 +221,7 @@ funsObj = {
     configureCamera();
   },
   debug: function () {
-    // Write lots of data to the clipboard.
+    // Write lots of data to the clipboard for debugging.
     let str = "";
     str += JSON.stringify(options);
     str += JSON.stringify(uniforms);
@@ -273,14 +275,13 @@ funsObj = {
 // Get the canvas to draw on, as specified by the html.
 canvas = document.getElementById("simCanvas");
 
-// Warn the user is any errors occur.
+// Warn the user if any errors occur.
 console.error = function (error) {
   let errorStr = error.toString();
   console.log(errorStr);
   let regex = /ERROR.*/;
-  (regex.test(errorStr)) ? errorStr = errorStr.match(regex) : {};
-  let msg = errorStr;
-  $("#error_description").html(msg);
+  regex.test(errorStr) ? (errorStr = errorStr.match(regex)) : {};
+  $("#error_description").html(errorStr);
   fadein("#error");
   $("#error").one("click", () => fadeout("#error"));
 };
@@ -288,10 +289,13 @@ console.error = function (error) {
 // Remove the back button if we're from an internal link.
 if (!fromExternalLink()) {
   $("#back").hide();
+  // Shift up the other buttons on the left.
   $("#equations").css("top", "-=50");
   $("#help").css("top", "-=50");
 }
 
+// Arbitrarily choose to first read from the "B" texture, noting that we will
+// flip-flop between two textures, A and B.
 var readFromTextureB = true;
 
 // Warn the user about flashing images and ask for cookie permission to store this.
@@ -314,13 +318,14 @@ loadOptions("default");
 // Initialise simulation and GUI.
 init();
 
-let loadedSearchParams = false;
+// Unless this value is set to false later, we will load a default preset.
+let shouldLoadDefault = true;
 // Check URL for any preset or specified options.
 const params = new URLSearchParams(window.location.search);
 if (params.has("preset")) {
   // If a preset is specified, load it.
   loadPreset(params.get("preset"));
-  loadedSearchParams = true;
+  shouldLoadDefault = false;
 }
 if (params.has("options")) {
   // If options have been provided, apply them on top of loaded options.
@@ -332,19 +337,24 @@ if (params.has("options")) {
     newParams = maxifyPreset(newParams);
   }
   loadPreset(newParams);
-  loadedSearchParams = true;
+  shouldLoadDefault = false;
 }
-if (!loadedSearchParams) {
+if (shouldLoadDefault) {
+  // Load a specific preset as the default.
   loadPreset("GrayScott");
 }
 
+// If the "Try clicking!" popup is allowed, show it iff we're from an external link 
+// or have loaded the default simulation.
 if (
-  (fromExternalLink() || options.preset == "default") &&
+  (fromExternalLink() || shouldLoadDefault) &&
   !options.suppressTryClickingPopup
 ) {
   $("#try_clicking").html("<p>" + options.tryClickingText + "</p>");
   fadein("#try_clicking");
+  // Fadeout either after the user clicks on the canvas or 5s passes.
   setTimeout(() => fadeout("#try_clicking"), 5000);
+  $("#simCanvas").one("pointerdown touchstart", () => fadeout("#try_clicking"));
 }
 
 // Begin the simulation.
@@ -352,12 +362,18 @@ animate();
 
 //---------------
 
+// Initialise all aspects of the site, including both the simulation and the GUI.
 function init() {
   // Define uniforms to be sent to the shaders.
   initUniforms();
 
+  // Define a quantity to track if the user is drawing.
   isDrawing = false;
+
+  // Define a raycaster to be used in 3D plotting.
   raycaster = new THREE.Raycaster();
+
+  // Initialise a vector of grid-clamped coordinates.
   clampedCoords = new THREE.Vector2();
 
   // Create a renderer.
@@ -369,13 +385,15 @@ function init() {
   });
   renderer.autoClear = true;
   gl = renderer.getContext();
-  // Check if we should be interpolating manual.
+
+  // Check if we should be interpolating manually due to extensions not being supported.
   manualInterpolationNeeded = !(
     gl.getExtension("OES_texture_float_linear") &&
     gl.getExtension("EXT_float_blend")
   );
 
-  // Configure textures with placeholder sizes.
+  // Configure textures with placeholder sizes. We'll need two textures for simulation (A,B), one for 
+  // post processing, and another for (optional) manual interpolation.
   simTextureOpts = {
     format: THREE.RGBAFormat,
     type: THREE.FloatType,
@@ -400,8 +418,8 @@ function init() {
   simTextureA.texture.wrapT = THREE.RepeatWrapping;
   simTextureB.texture.wrapS = THREE.RepeatWrapping;
   simTextureB.texture.wrapT = THREE.RepeatWrapping;
-  
-  // The post and interpolation materials, used for display, will always edge clamp.
+
+  // The post and interpolation materials, used for display, will always edge clamp to avoid artefacts.
   postTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
   postTexture.texture.wrapT = THREE.ClampToEdgeWrapping;
   interpolationTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
@@ -514,6 +532,7 @@ function init() {
   canvas.addEventListener("pointerup", onDocumentPointerUp);
   canvas.addEventListener("pointermove", onDocumentPointerMove);
 
+  // Listen for keypresses.
   document.addEventListener("keypress", function onEvent(event) {
     event = event || window.event;
     var target = event.target;
@@ -524,11 +543,7 @@ function init() {
         $("#erase").click();
       }
       if (event.key === " ") {
-        if (isRunning) {
-          pauseSim();
-        } else {
-          playSim();
-        }
+        funsObj.toggleRunning();
       }
     }
   });
@@ -680,6 +695,8 @@ function createDisplayDomains() {
 }
 
 function setDomainOrientation() {
+  // Configure the orientation of the simulation domain, which we modify for 3D to make
+  // convenient use of Euler angles for the camera controls.
   if (options.threeD) {
     domain.rotation.x = -Math.PI / 2;
     simpleDomain.rotation.x = -Math.PI / 2;
@@ -720,7 +737,7 @@ function resizeTextures() {
   }
   readFromTextureB = !readFromTextureB;
   postTexture.setSize(nXDisc, nYDisc);
-  // The interpolationTexture will be larger by a scale factor sf.
+  // The interpolationTexture will be larger by a scale factor options.smoothingScale + 1.
   interpolationTexture.setSize(
     (options.smoothingScale + 1) * nXDisc,
     (options.smoothingScale + 1) * nYDisc
@@ -728,6 +745,7 @@ function resizeTextures() {
 }
 
 function initUniforms() {
+  // Initialise the uniforms to be passed to the shaders.
   uniforms = {
     boundaryValues: {
       type: "v2",
@@ -1976,7 +1994,9 @@ function parseShaderString(str) {
       case "4":
         return "((" + p1 + ")*(" + p1 + ")*(" + p1 + ")*(" + p1 + "))";
       case "5":
-        return "((" + p1 + ")*(" + p1 + ")*(" + p1 + ")*(" + p1 + ")*(" + p1 + "))";
+        return (
+          "((" + p1 + ")*(" + p1 + ")*(" + p1 + ")*(" + p1 + ")*(" + p1 + "))"
+        );
       default:
         return "safepow(" + p1 + "," + p2 + ")";
     }
@@ -3007,52 +3027,117 @@ function setEquationDisplayType() {
     str = replaceUserDefReac(str, /\bg\b/g, options.reactionStrV);
     str = replaceUserDefReac(str, /\bh\b/g, options.reactionStrW);
 
-    str = replaceUserDefDiff(str, /\b(D) (\\vnabla u)/g, options.diffusionStrUU,"[]");
-    str = replaceUserDefDiff(str, /\b(D_u) (\\vnabla u)/g, options.diffusionStrUU,"[]");
-    str = replaceUserDefDiff(str, /\b(D_{uu}) (\\vnabla u)/g, options.diffusionStrUU,"[]");
+    str = replaceUserDefDiff(
+      str,
+      /\b(D) (\\vnabla u)/g,
+      options.diffusionStrUU,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_u) (\\vnabla u)/g,
+      options.diffusionStrUU,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{uu}) (\\vnabla u)/g,
+      options.diffusionStrUU,
+      "[]"
+    );
 
-    str = replaceUserDefDiff(str, /\b(D_v) (\\vnabla v)/g, options.diffusionStrVV,"[]");
-    str = replaceUserDefDiff(str, /\b(D_{vv}) (\\vnabla v)/g, options.diffusionStrVV,"[]");
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_v) (\\vnabla v)/g,
+      options.diffusionStrVV,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{vv}) (\\vnabla v)/g,
+      options.diffusionStrVV,
+      "[]"
+    );
 
-    str = replaceUserDefDiff(str, /\b(D_w) (\\vnabla w)/g, options.diffusionStrWW,"[]");
-    str = replaceUserDefDiff(str, /\b(D_{ww}) (\\vnabla w)/g, options.diffusionStrWW,"[]");
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_w) (\\vnabla w)/g,
+      options.diffusionStrWW,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{ww}) (\\vnabla w)/g,
+      options.diffusionStrWW,
+      "[]"
+    );
 
-    str = replaceUserDefDiff(str, /\b(D_{uv}) (\\vnabla v)/g, options.diffusionStrUV,"[]");
-    str = replaceUserDefDiff(str, /\b(D_{uw}) (\\vnabla w)/g, options.diffusionStrUW,"[]");
-    str = replaceUserDefDiff(str, /\b(D_{vu}) (\\vnabla u)/g, options.diffusionStrVU,"[]");
-    str = replaceUserDefDiff(str, /\b(D_{vw}) (\\vnabla w)/g, options.diffusionStrVW,"[]");
-    str = replaceUserDefDiff(str, /\b(D_{wu}) (\\vnabla u)/g, options.diffusionStrWU,"[]");
-    str = replaceUserDefDiff(str, /\b(D_{wv}) (\\vnabla v)/g, options.diffusionStrWV,"[]");
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{uv}) (\\vnabla v)/g,
+      options.diffusionStrUV,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{uw}) (\\vnabla w)/g,
+      options.diffusionStrUW,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{vu}) (\\vnabla u)/g,
+      options.diffusionStrVU,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{vw}) (\\vnabla w)/g,
+      options.diffusionStrVW,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{wu}) (\\vnabla u)/g,
+      options.diffusionStrWU,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{wv}) (\\vnabla v)/g,
+      options.diffusionStrWV,
+      "[]"
+    );
 
-  // Look through the string for any open brackets followed by a +.
-  let regex = /\(\s*\+/g;
-  while (str != (str = str.replace(regex, "(")));
-  // Look through the string for any + followed by a ).
-  regex = /\+\s*\)/g;
-  while (str != (str = str.replace(regex, ")")));
+    // Look through the string for any open brackets followed by a +.
+    let regex = /\(\s*\+/g;
+    while (str != (str = str.replace(regex, "(")));
+    // Look through the string for any + followed by a ).
+    regex = /\+\s*\)/g;
+    while (str != (str = str.replace(regex, ")")));
 
-  // Look through the string for any empty divergence operators, and remove them if so.
-  regex = /\\vnabla \\cdot\(\s*\)/g;
-  str = str.replaceAll(regex, "");
+    // Look through the string for any empty divergence operators, and remove them if so.
+    regex = /\\vnabla \\cdot\(\s*\)/g;
+    str = str.replaceAll(regex, "");
 
-  // Look through the string for any = +, and remove the +.
-  regex = /=\s*\+/g;
-  str = str.replaceAll(regex, "=");
+    // Look through the string for any = +, and remove the +.
+    regex = /=\s*\+/g;
+    str = str.replaceAll(regex, "=");
 
-  // Look through the string for any + \\\\, and remove the +.
-  regex = /\+\s*(\\\\|\n)/g;
-  str = str.replaceAll(regex, "$1");
+    // Look through the string for any + \\\\, and remove the +.
+    regex = /\+\s*(\\\\|\n)/g;
+    str = str.replaceAll(regex, "$1");
 
-  // Look for = followed by a newline, and insert 0.
-  regex = /=\s*(\\\\|\n)/g;
-  str = str.replaceAll(regex, "=0$1");
+    // Look for = followed by a newline, and insert 0.
+    regex = /=\s*(\\\\|\n)/g;
+    str = str.replaceAll(regex, "=0$1");
 
-  // Look for div(const * grad(blah)), and move the constant outside the bracket.
-  // By this point, a single word (with no square brackets) in the divergence must be a constant.
-  regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}]*)\s*\\vnabla\s*([uvw])\s*\)/g;
-  str = str.replaceAll(regex, "$1 \\lap $2");
+    // Look for div(const * grad(blah)), and move the constant outside the bracket.
+    // By this point, a single word (with no square brackets) in the divergence must be a constant.
+    regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}]*)\s*\\vnabla\s*([uvw])\s*\)/g;
+    str = str.replaceAll(regex, "$1 \\lap $2");
 
-  str = parseStringToTEX(str);
+    str = parseStringToTEX(str);
   }
   $("#typeset_equation").html(str);
   if (MathJax.typesetPromise != undefined) {
@@ -3169,6 +3254,7 @@ function setParamsFromKineticString() {
 }
 
 function setKineticStringFromParams() {
+  // Combine the custom parameters into a single string for storage, so long as no reserved names are used.
   options.kineticParams = Object.values(kineticParamsStrs).join(";");
   if (!checkForReservedNames()) {
     setRDEquations();
@@ -3204,7 +3290,7 @@ $("#screenshot").click(function () {
 });
 $("#help").click(function () {
   window.open(window.location.origin + "/user-guide", "_blank");
-})
+});
 
 $("#back").click(function () {
   // If the user arrived by typing in a URL or from an external link, have this button
@@ -3496,11 +3582,14 @@ function getReservedStrs() {
 }
 
 function usingReservedNames() {
+  // Check if the user is trying to use any reserved names as kinetic parameters.
+  // If so, return the name of a reserved parameter. Otherwise, return false.
   let regex = /(\w+)\s*=/g;
   let names = [...options.kineticParams.matchAll(regex)]
     .map((x) => x[1])
     .join(" ");
   let lastTest = false;
+  // Check all of the names, saving at least one reserved name if any are found.
   const flag = getReservedStrs().some(function (name) {
     let regex = new RegExp("\\b" + name + "\\b", "g");
     lastTest = name;
@@ -3532,10 +3621,9 @@ function replaceUserDefReac(str, regex, input) {
   if (input.replace(/\s+/g, "  ").trim() == "0")
     return str.replaceAll(regex, "");
   // If the input contains letters (like parameters), insert it with delimiters.
-  if (input.match(/[a-zA-Z]/))
-    return str.replaceAll(regex, input);
+  if (input.match(/[a-zA-Z]/)) return str.replaceAll(regex, input);
   // If it's just a scalar, keep the original.
-  return str
+  return str;
 }
 
 function replaceUserDefDiff(str, regex, input, delimiters) {
@@ -3543,24 +3631,21 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
   // E.g. str = some TeX, regex = /(D_{uu}) (\\vnabla u)/g; input = "2*a"; delimiters = " ";
   // If the input is 0, just remove the original from str.
   let trimmed = input.replace(/\s+/g, "  ").trim();
-  if (trimmed == "0" || trimmed == "0.0")
-    return str.replaceAll(regex, "");
-  if (trimmed == "1" || trimmed == "1.0")
-    return str.replaceAll(regex, "$2");
+  if (trimmed == "0" || trimmed == "0.0") return str.replaceAll(regex, "");
+  if (trimmed == "1" || trimmed == "1.0") return str.replaceAll(regex, "$2");
   // If the input contains letters (like parameters), insert it with delimiters.
   if (input.match(/[a-zA-Z]/)) {
     if (input.match(/[\+-]/) && delimiters != undefined) {
       // If it needs delimiting.
-      return str.replaceAll(regex, delimiters[0]+input+delimiters[1]+"$2");
-    }
-    else {
+      return str.replaceAll(
+        regex,
+        delimiters[0] + input + delimiters[1] + "$2"
+      );
+    } else {
       // If it doesn't need delimiting.
       return str.replaceAll(regex, input + "$2");
     }
   }
   // If it's just a scalar, keep the original.
-  return str
-
+  return str;
 }
-
-$("#simCanvas").one("pointerdown touchstart", () => fadeout("#try_clicking"));
