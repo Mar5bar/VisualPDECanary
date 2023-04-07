@@ -10,7 +10,7 @@ Swift–Hohenberg equation:
 
 $$\pd{u}{t} = ru - (k_c^2+\nabla^2)^2u+au^2+bu^3+cu^5,$$
 
-with periodic boundary conditions, and we need $c<0$ or $b<0$ if $c=0$ for stability.
+with periodic boundary conditions, and we need $c<0$ (or $b<0$ if $c=0$) for stability.
 
 * Load the [interactive simulation](/sim/?preset=swiftHohenberg). 
 
