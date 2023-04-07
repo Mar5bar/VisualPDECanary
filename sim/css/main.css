@@ -34,12 +34,15 @@ canvas {
 .fullCanvas {
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
 }
 
 .squareCanvas {
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     max-width: 100vh;
+    max-width: 100dvh;
     max-height: 100vw;
 }
 
