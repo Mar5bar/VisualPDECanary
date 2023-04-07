@@ -3146,8 +3146,6 @@ function setEquationDisplayType() {
 }
 
 function parseStringToTEX(str) {
-  // Prepend \\ to any Greek character.
-  str = substituteGreek(str);
 
   // Parse a string into valid TEX by replacing * and ^.
   // Replace +- and -+ with simply -
@@ -3169,6 +3167,9 @@ function parseStringToTEX(str) {
 
   // Replace / with well-formatted \frac, including nested fractions.
   // str = replaceBinOperator(str, "/", "\\frac{$1}{$2}");
+
+  // Prepend \\ to any Greek character.
+  str = substituteGreek(str);
 
   return str;
 }
