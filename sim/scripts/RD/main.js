@@ -344,7 +344,7 @@ if (shouldLoadDefault) {
   loadPreset("GrayScott");
 }
 
-// If the "Try clicking!" popup is allowed, show it iff we're from an external link 
+// If the "Try clicking!" popup is allowed, show it iff we're from an external link
 // or have loaded the default simulation.
 if (
   (fromExternalLink() || shouldLoadDefault) &&
@@ -392,7 +392,7 @@ function init() {
     gl.getExtension("EXT_float_blend")
   );
 
-  // Configure textures with placeholder sizes. We'll need two textures for simulation (A,B), one for 
+  // Configure textures with placeholder sizes. We'll need two textures for simulation (A,B), one for
   // post processing, and another for (optional) manual interpolation.
   simTextureOpts = {
     format: THREE.RGBAFormat,
@@ -707,11 +707,9 @@ function setDomainOrientation() {
 }
 
 function setCanvasShape() {
-  if (options.squareCanvas) {
-    document.getElementById("simCanvas").className = "squareCanvas";
-  } else {
-    document.getElementById("simCanvas").className = "fullCanvas";
-  }
+  options.squareCanvas
+    ? $("#simCanvas").addClass("squareCanvas")
+    : $("#simCanvas").removeClass("squareCanvas");
 }
 
 function resizeTextures() {
@@ -3146,7 +3144,6 @@ function setEquationDisplayType() {
 }
 
 function parseStringToTEX(str) {
-
   // Parse a string into valid TEX by replacing * and ^.
   // Replace +- and -+ with simply -
   str = str.replaceAll(/\+\s*-/g, "-");
