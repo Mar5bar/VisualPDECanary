@@ -1317,6 +1317,36 @@ export function getPreset(id) {
         whatToPlot: "u",
       };
       break;
+      case "swiftHohenbergLocalised":
+	options = {
+	"algebraicV": true,
+	"autoSetColourRange": true,
+	"boundaryConditionsU": "neumann",
+	"boundaryConditionsV": "neumann",
+	"brushRadius": 1,
+	"clearValueU": "(cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)",
+	"crossDiffusion": true,
+	"diffusionStrUU": "0",
+	"diffusionStrUV": "-D",
+	"diffusionStrVU": "D",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 150,
+	"dt": 0.0005,
+	"kineticParams": "r=-0.28;D=1;a=1.6;b=-1;",
+	"maxColourValue": 1.325366735458374,
+	"minColourValue": -0.4033077657222748,
+	"numTimestepsPerFrame": 200,
+	"preset": "swiftHohenbergLocalised",
+	"reactionStrU": "(r-1)*u-2*v+a*u^2+b*u^3",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"timeDisplay": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
 
     default:
       options = {
