@@ -161,13 +161,11 @@ canvas {
 #pause {
     top: 50px;
     right: 3px;
-    z-index: 1;
 }
 
 #play {
     top: 50px;
     right: 3px;
-    z-index: 0;
 }
 
 #erase {
