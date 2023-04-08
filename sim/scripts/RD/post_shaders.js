@@ -7,6 +7,8 @@ export function computeDisplayFunShaderTop() {
     uniform float dx;
     uniform float dy;
     uniform float t;
+    uniform sampler2D imageSourceOne;
+    uniform sampler2D imageSourceTwo;
 
     float H(float val, float edge) 
     {
@@ -35,6 +37,19 @@ export function computeDisplayFunShaderMid() {
         ivec2 texSize = textureSize(textureSource,0);
         float x = textureCoords.x * float(texSize.x) * dx;
         float y = textureCoords.y * float(texSize.y) * dy;
+
+        vec4 Svec = texture2D(imageSourceOne, textureCoords);
+        float S = (Svec.x + Svec.y + Svec.z) / 3.0;
+        float SR = Svec.r;
+        float SG = Svec.g;
+        float SB = Svec.b;
+        float SA = Svec.a;
+        vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
+        float T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
+        float TR = Tvec.r;
+        float TG = Tvec.g;
+        float TB = Tvec.b;
+        float TA = Tvec.a;
 
         float value = FUN;
         gl_FragColor = vec4(value, 0.0, 0.0, 1.0);`;

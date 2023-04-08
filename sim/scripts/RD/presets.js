@@ -567,7 +567,7 @@ export function getPreset(id) {
         diffusionStrUU: "0.5",
         diffusionStrVV: "0.008",
         diffusionStrWW: "4",
-        dirichletStrU: "",
+        dirichletStrU: "0",
         dirichletStrW: "15*(1+cos(t/40))",
         dt: 0.0005,
         fixRandSeed: true,
