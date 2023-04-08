@@ -558,33 +558,34 @@ export function getPreset(id) {
         preset: "GrayScott",
       };
       break;
-case "ImmunotherapyModel":
-	options = {
-	"brushValue": "2",
-	"brushRadius": 0.3,
-	"clearValueU": " s_u/(mu-p_u*s_w/(nu*(g_u+s_w/nu)))",
-	"clearValueW": "s_w/nu",
-	"diffusionStrUU": "0.5",
-	"diffusionStrVV": "0.008",
-	"diffusionStrWW": "4",
-	"dirichletStrU": "",
-	"dirichletStrW": "15*(1+cos(t/40))",
-	"dt": 0.0005,
-	"fixRandSeed": true,
-	"kineticParams": "c=0.3;mu=0.167;p_u=0.69167;g_u=20;p_v=0.5555556;g_v=0.1;p_w=27.778;g_w=0.001;nu=55.55556;s_w=10;s_u=0.0;",
-	"maxColourValue": 0.8,
-	"minColourValue": 2.0937555942135368e-15,
-	"numSpecies": "3",
-	"numTimestepsPerFrame": 200,
-	"preset": "PRESETNAME",
-	"reactionStrU": "c*v-mu*u+p_u*u*w/(g_u+w)+s_u",
-	"reactionStrV": "v*(1-v)-p_v*u*v/(g_v+v)",
-	"reactionStrW": "p_w*u*v/(g_w+v)-nu*w+s_w",
-	"spatialStep": 0.25,
-	"timeDisplay": true,
-};
-break;
-		  
+    case "ImmunotherapyModel":
+      options = {
+        brushValue: "2",
+        brushRadius: 3,
+        clearValueU: " s_u/(mu-p_u*s_w/(nu*(g_u+s_w/nu)))",
+        clearValueW: "s_w/nu",
+        diffusionStrUU: "0.5",
+        diffusionStrVV: "0.008",
+        diffusionStrWW: "4",
+        dirichletStrU: "",
+        dirichletStrW: "15*(1+cos(t/40))",
+        dt: 0.0005,
+        fixRandSeed: true,
+        kineticParams:
+          "c=0.3;mu=0.167;p_u=0.69167;g_u=20;p_v=0.5555556;g_v=0.1;p_w=27.778;g_w=0.001;nu=55.55556;s_w=10;s_u=0.0;",
+        maxColourValue: 0.8,
+        minColourValue: 0.0,
+        numSpecies: "3",
+        numTimestepsPerFrame: 200,
+        preset: "ImmunotherapyModel",
+        reactionStrU: "c*v-mu*u+p_u*u*w/(g_u+w)+s_u",
+        reactionStrV: "v*(1-v)-p_v*u*v/(g_v+v)",
+        reactionStrW: "p_w*u*v/(g_w+v)-nu*w+s_w",
+        spatialStep: 0.25,
+        timeDisplay: true,
+      };
+      break;
+
     case "KellerSegel":
       options = {
         brushValue: "RAND",
@@ -1344,36 +1345,37 @@ break;
         whatToPlot: "u",
       };
       break;
-      case "swiftHohenbergLocalised":
-	options = {
-	"algebraicV": true,
-	"autoSetColourRange": true,
-	"boundaryConditionsU": "neumann",
-	"boundaryConditionsV": "neumann",
-	"brushRadius": 1,
-	"clearValueU": "(cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)",
-	"crossDiffusion": true,
-	"diffusionStrUU": "0",
-	"diffusionStrUV": "-D",
-	"diffusionStrVU": "D",
-	"diffusionStrVV": "0",
-	"diffusionStrWW": "0",
-	"domainScale": 150,
-	"dt": 0.0005,
-	"kineticParams": "r=-0.28;D=1;a=1.6;b=-1;",
-	"maxColourValue": 1.325366735458374,
-	"minColourValue": -0.4033077657222748,
-	"numTimestepsPerFrame": 200,
-	"preset": "swiftHohenbergLocalised",
-	"reactionStrU": "(r-1)*u-2*v+a*u^2+b*u^3",
-	"reactionStrV": "0",
-	"reactionStrW": "0",
-	"squareCanvas": true,
-	"timeDisplay": true,
-	"whatToDraw": "u",
-	"whatToPlot": "u",
-};
-break;
+    case "swiftHohenbergLocalised":
+      options = {
+        algebraicV: true,
+        autoSetColourRange: true,
+        boundaryConditionsU: "neumann",
+        boundaryConditionsV: "neumann",
+        brushRadius: 1,
+        clearValueU:
+          "(cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)",
+        crossDiffusion: true,
+        diffusionStrUU: "0",
+        diffusionStrUV: "-D",
+        diffusionStrVU: "D",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        domainScale: 150,
+        dt: 0.0005,
+        kineticParams: "r=-0.28;D=1;a=1.6;b=-1;",
+        maxColourValue: 1.325366735458374,
+        minColourValue: -0.4033077657222748,
+        numTimestepsPerFrame: 200,
+        preset: "swiftHohenbergLocalised",
+        reactionStrU: "(r-1)*u-2*v+a*u^2+b*u^3",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        squareCanvas: true,
+        timeDisplay: true,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
 
     default:
       options = {
