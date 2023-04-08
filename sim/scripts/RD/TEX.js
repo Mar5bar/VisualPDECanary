@@ -60,5 +60,5 @@ export function substituteGreek(str) {
     "omega",
   ];
   let regex = new RegExp("\\b(" + listOfGreek.join("|") + ")(\\b|_)", "ig");
-  return str.replaceAll(regex, "\\" + "$1");
+  return str.replaceAll(regex, "\\" + "$1$2");
 }
