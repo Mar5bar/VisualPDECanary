@@ -3286,9 +3286,6 @@ $("#screenshot").click(function () {
   takeAScreenshot = true;
   render();
 });
-$("#help").click(function () {
-  window.open(window.location.origin + "/user-guide", "_blank");
-});
 
 $("#back").click(function () {
   // If the user arrived by typing in a URL or from an external link, have this button
