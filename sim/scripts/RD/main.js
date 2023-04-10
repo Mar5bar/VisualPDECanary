@@ -2218,17 +2218,17 @@ function loadPreset(preset) {
   // Maintain compatibility with links/presets that set the deprecated threeD or oneDimensional options.
   if (options.threeD != undefined) {
     if (options.threeD) {
-      options.dimension = 3;
-      if (options.plotType == undefined) {
-        options.plotType = "plane";
-      }
+      options.dimension = 2;
+      options.plotType = "surface";
     }
+    delete options.threeD
   }
   if (options.oneDimensional != undefined) {
     if (options.oneDimensional) {
       options.dimension = 1;
       options.plotType = "line";
     }
+    delete options.oneDimensional
   }
 
   // Replace the GUI.
