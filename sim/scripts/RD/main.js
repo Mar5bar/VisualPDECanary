@@ -3134,9 +3134,11 @@ function setEquationDisplayType() {
       "[]"
     );
 
-    // Look through the string for any open brackets followed by a +.
+    // Look through the string for any open brackets ( or [ followed by a + or -.
     let regex = /\(\s*\+/g;
     while (str != (str = str.replace(regex, "(")));
+    regex = /\[\s*\+/g;
+    while (str != (str = str.replace(regex, "[")));
     // Look through the string for any + followed by a ).
     regex = /\+\s*\)/g;
     while (str != (str = str.replace(regex, ")")));
@@ -3177,9 +3179,16 @@ function setEquationDisplayType() {
 
 function parseStringToTEX(str) {
   // Parse a string into valid TEX by replacing * and ^.
+  // Look through the string for any [+-blah] and replace it with +- blah.
+  str = str.replaceAll(/\[([\+-]?[\w\{\}]*)\]/g, "$1");
+
+  // Look through the string and replace any + + with +.
+  while (str != (str = str.replace(/\+\s*\+/g, "+")));
+  
   // Replace +- and -+ with simply -
   str = str.replaceAll(/\+\s*-/g, "-");
   str = str.replaceAll(/-\s*\+/g, "-");
+
 
   // Replace common functions with commands.
   str = str.replaceAll(/\bsin/g, "\\sin");
