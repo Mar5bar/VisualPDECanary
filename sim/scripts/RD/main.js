@@ -3171,7 +3171,7 @@ function setEquationDisplayType() {
       /\\vnabla\s*\\cdot\s*\(([\w\{\}\*\^]*)\s*\\vnabla\s*([uvw])\s*\)/g;
     str = str.replaceAll(regex, function(match, g1, g2) {
       if (!/\b[xyuvwq]\b/g.test(g1)) {
-        return g1 + "\\lap" + g2;
+        return g1 + " \\lap " + g2;
       } else {
         return match;
       }
