@@ -17,13 +17,14 @@ let basicMaterial,
   copyMaterial,
   postMaterial,
   interpolationMaterial;
-let domain, simDomain, simpleDomain;
+let domain, simDomain, clickDomain;
 let options, uniforms, funsObj;
 let leftGUI,
   rightGUI,
   root,
   pauseButton,
   resetButton,
+  typeOfBrushController,
   brushRadiusController,
   drawIn3DController,
   fController,
@@ -208,17 +209,6 @@ funsObj = {
     maxColourValueController.updateDisplay();
     minColourValueController.updateDisplay();
     updateColourbarLims();
-  },
-  linePlot: function () {
-    // View the output as a line plot, which is really a surface viewed almost directly from the side.
-    options.oneDimensional = true;
-    options.cameraTheta = 0.5;
-    options.cameraPhi = 0;
-    options.threeD = true;
-    resize();
-    setRDEquations();
-    configureGUI();
-    configureCamera();
   },
   debug: function () {
     // Write lots of data to the clipboard for debugging.
@@ -430,7 +420,7 @@ function init() {
   controls = new OrbitControls(camera, canvas);
   controls.listenToKeyEvents(document);
   controls.addEventListener("change", function () {
-    if (options.threeD) {
+    if (options.dimension == 3) {
       options.cameraTheta =
         90 - (180 * Math.atan2(camera.position.z, camera.position.y)) / Math.PI;
       options.cameraPhi =
@@ -499,7 +489,7 @@ function init() {
   simScene.add(simDomain);
 
   // Configure the camera.
-  configureCamera();
+  configureCameraAndClicks();
 
   // Set the size of the domain and related parameters.
   setCanvasShape();
@@ -561,38 +551,43 @@ function resize() {
   // Create new display domains with the correct sizes.
   replaceDisplayDomains();
   // Configure the camera.
-  configureCamera();
+  configureCameraAndClicks();
   render();
 }
 
 function replaceDisplayDomains() {
   domain.geometry.dispose();
   scene.remove(domain);
-  simpleDomain.geometry.dispose();
-  scene.remove(simpleDomain);
+  clickDomain.geometry.dispose();
+  scene.remove(clickDomain);
   createDisplayDomains();
 }
 
-function configureCamera() {
+function configureCameraAndClicks() {
+  // Setup the camera position, orientation, and the invisible surface used for click detection.
   computeCanvasSizesAndAspect();
-  if (options.threeD) {
-    controls.enabled = true;
-    camera.zoom = options.cameraZoom;
-    const pos = new THREE.Vector3().setFromSphericalCoords(
-      1,
-      Math.PI / 2 - (options.cameraTheta * Math.PI) / 180,
-      (options.cameraPhi * Math.PI) / 180
-    );
-    camera.position.set(pos.x, pos.y, pos.z);
-    camera.lookAt(0, 0, 0);
-    displayMaterial.vertexShader = surfaceVertexShader();
-    displayMaterial.needsUpdate = true;
-  } else {
-    controls.enabled = false;
-    controls.reset();
-    displayMaterial.vertexShader = genericVertexShader();
-    displayMaterial.needsUpdate = true;
+  switch (options.plotType) {
+    case "line":
+      options.cameraTheta = 0.5;
+      options.cameraPhi = 0;
+      controls.enabled = false;
+      camera.zoom = 0.8;
+      setCameraPos();
+      displayMaterial.vertexShader = surfaceVertexShader();
+      break;
+    case "plane":
+      controls.enabled = false;
+      controls.reset();
+      displayMaterial.vertexShader = genericVertexShader();
+      break;
+    case "surface":
+      controls.enabled = true;
+      camera.zoom = options.cameraZoom;
+      setCameraPos();
+      displayMaterial.vertexShader = surfaceVertexShader();
+      break;
   }
+  displayMaterial.needsUpdate = true;
   camera.left = -domainWidth / (2 * maxDim);
   camera.right = domainWidth / (2 * maxDim);
   camera.top = domainHeight / (2 * maxDim);
@@ -656,7 +651,7 @@ function setSizes() {
   nXDisc = Math.floor(domainWidth / options.spatialStep);
   nYDisc = Math.floor(domainHeight / options.spatialStep);
   // If the user has specified that this is a 1D problem, set nYDisc = 1.
-  if (options.oneDimensional) {
+  if (options.dimension == 1) {
     nYDisc = 1;
   }
   // Update these values in the uniforms.
@@ -687,22 +682,29 @@ function createDisplayDomains() {
     1,
     1
   );
-  simpleDomain = new THREE.Mesh(simplePlane, basicMaterial);
-  simpleDomain.position.z = 0;
-  simpleDomain.visible = false;
-  scene.add(simpleDomain);
+  clickDomain = new THREE.Mesh(simplePlane, basicMaterial);
+  clickDomain.position.z = 0;
+  clickDomain.visible = false;
+  scene.add(clickDomain);
   setDomainOrientation();
 }
 
 function setDomainOrientation() {
-  // Configure the orientation of the simulation domain, which we modify for 3D to make
+  // Configure the orientation of the simulation domain and the click domain, which we modify for 3D to make
   // convenient use of Euler angles for the camera controls.
-  if (options.threeD) {
-    domain.rotation.x = -Math.PI / 2;
-    simpleDomain.rotation.x = -Math.PI / 2;
-  } else {
-    domain.rotation.x = 0;
-    simpleDomain.rotation.x = 0;
+  switch (options.plotType) {
+    case "line":
+      domain.rotation.x = -Math.PI / 2;
+      clickDomain.rotation.x = -Math.PI / 2;
+      break;
+    case "plane":
+      domain.rotation.x = 0;
+      clickDomain.rotation.x = 0;
+      break;
+    case "surface":
+      domain.rotation.x = -Math.PI / 2;
+      clickDomain.rotation.x = -Math.PI / 2;
+      break;
   }
 }
 
@@ -865,7 +867,7 @@ function initGUI(startOpen) {
   }
 
   if (inGUI("typeOfBrush")) {
-    root
+    typeOfBrushController = root
       .add(options, "typeOfBrush", {
         Disk: "circle",
         "Horizontal line": "hline",
@@ -900,6 +902,15 @@ function initGUI(startOpen) {
   } else {
     root = genericOptionsFolder;
   }
+  if (inGUI("dimension")) {
+    root
+      .add(options, "dimension", { 1: 1, 2: 2 })
+      .name("Dimension")
+      .onChange(function () {
+        configureDimension();
+        render();
+      });
+  }
   if (inGUI("domainScale")) {
     root.add(options, "domainScale").name("Largest side").onChange(resize);
   }
@@ -922,17 +933,7 @@ function initGUI(startOpen) {
       .onFinishChange(function () {
         setCanvasShape();
         resize();
-        configureCamera();
-      });
-  }
-  if (inGUI("oneDimensional")) {
-    const oneDimensionalController = root
-      .add(options, "oneDimensional")
-      .name("1D")
-      .onFinishChange(function () {
-        resize();
-        setRDEquations();
-        configureIntegralDisplay();
+        configureCameraAndClicks();
       });
   }
   if (inGUI("domainViaIndicatorFun")) {
@@ -1307,16 +1308,17 @@ function initGUI(startOpen) {
         setSizes();
       });
   }
-  if (inGUI("linePlot")) {
-    root.add(funsObj, "linePlot").name("Line plot");
-  }
-  if (inGUI("threeD")) {
+  if (inGUI("plotType")) {
     root
-      .add(options, "threeD")
-      .name("Surface plot")
+      .add(options, "plotType", {
+        "1D (Line)": "line",
+        "2D (Plane)": "plane",
+        "2D (Surface)": "surface",
+      })
+      .name("Plot type")
       .onChange(function () {
-        configureGUI();
-        configureCamera();
+        configurePlotType();
+        document.activeElement.blur();
         render();
       });
   }
@@ -1330,19 +1332,19 @@ function initGUI(startOpen) {
     cameraThetaController = root
       .add(options, "cameraTheta")
       .name("View $\\theta$")
-      .onChange(configureCamera);
+      .onChange(configureCameraAndClicks);
   }
   if (inGUI("cameraPhi")) {
     cameraPhiController = root
       .add(options, "cameraPhi")
       .name("View $\\phi$")
-      .onChange(configureCamera);
+      .onChange(configureCameraAndClicks);
   }
   if (inGUI("cameraZoom")) {
     cameraZoomController = root
       .add(options, "cameraZoom")
       .name("Zoom")
-      .onChange(configureCamera);
+      .onChange(configureCameraAndClicks);
   }
   if (inGUI("Smoothing scale")) {
     smoothingScaleController = root
@@ -1560,7 +1562,7 @@ function animate() {
 
   hasDrawn = isDrawing;
   // Draw on any input from the user, which can happen even if timestepping is not running.
-  if (isDrawing & (!options.threeD | options.drawIn3D)) {
+  if (isDrawing & (options.drawIn3D | (options.plotType != "surface"))) {
     draw();
   }
 
@@ -1722,14 +1724,14 @@ function render() {
     funsObj.setColourRange();
   }
 
-  if (options.threeD & options.drawIn3D) {
+  if (options.drawIn3D & (options.plotType == "surface")) {
     let val =
       (getMeanVal() - options.minColourValue) /
         (options.maxColourValue - options.minColourValue) -
       0.5;
-    simpleDomain.position.y =
+    clickDomain.position.y =
       options.threeDHeightScale * Math.min(Math.max(val, -0.5), 0.5);
-    simpleDomain.updateWorldMatrix();
+    clickDomain.updateWorldMatrix();
   }
 
   // Perform any postprocessing.
@@ -1787,14 +1789,14 @@ function render() {
 
 function onDocumentPointerDown(event) {
   isDrawing = setBrushCoords(event, canvas);
-  if (options.threeD & isDrawing & options.drawIn3D) {
+  if (isDrawing & options.drawIn3D & (options.plotType == "surface")) {
     controls.enabled = false;
   }
 }
 
 function onDocumentPointerUp(event) {
   isDrawing = false;
-  if (options.threeD) {
+  if (options.plotType == "surface") {
     controls.enabled = true;
   }
 }
@@ -1807,13 +1809,13 @@ function setBrushCoords(event, container) {
   var cRect = container.getBoundingClientRect();
   let x = (event.clientX - cRect.x) / cRect.width;
   let y = 1 - (event.clientY - cRect.y) / cRect.height;
-  if (options.threeD & options.drawIn3D) {
+  if (options.drawIn3D & (options.plotType == "surface")) {
     // If we're in 3D, we have to project onto the simulation domain.
     // We need x,y between -1 and 1.
     clampedCoords.x = 2 * x - 1;
     clampedCoords.y = 2 * y - 1;
     raycaster.setFromCamera(clampedCoords, camera);
-    var intersects = raycaster.intersectObject(simpleDomain, false);
+    var intersects = raycaster.intersectObject(clickDomain, false);
     if (intersects.length > 0) {
       x = intersects[0].uv.x;
       y = intersects[0].uv.y;
@@ -1821,6 +1823,9 @@ function setBrushCoords(event, container) {
       x = -1;
       y = -1;
     }
+  } else if (options.plotType == "line") {
+    x = (x - 0.5) / camera.zoom + 0.5;
+    y = 0.5;
   }
   // Round to near-pixel coordinates.
   x = Math.round(x * nXDisc) / nXDisc;
@@ -2059,21 +2064,21 @@ function setRDEquations() {
   if (options.boundaryConditionsU == "neumann") {
     neumannShader += parseRobinRHS(options.neumannStrU, "u");
     neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), "u");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "u");
     }
   }
   if (options.boundaryConditionsV == "neumann") {
     neumannShader += parseRobinRHS(options.neumannStrV, "v");
     neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), "v");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "v");
     }
   }
   if (options.boundaryConditionsW == "neumann") {
     neumannShader += parseRobinRHS(options.neumannStrW, "w");
     neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), "w");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "w");
     }
   }
@@ -2103,7 +2108,7 @@ function setRDEquations() {
         selectSpeciesInShaderStr(RDShaderDirichletX(), "u") +
         parseShaderString(options.dirichletStrU) +
         ";\n}\n";
-      if (!options.oneDimensional) {
+      if (options.dimension > 1) {
         dirichletShader +=
           selectSpeciesInShaderStr(RDShaderDirichletY(), "u") +
           parseShaderString(options.dirichletStrU) +
@@ -2115,7 +2120,7 @@ function setRDEquations() {
         selectSpeciesInShaderStr(RDShaderDirichletX(), "v") +
         parseShaderString(options.dirichletStrV) +
         ";\n}\n";
-      if (!options.oneDimensional) {
+      if (options.dimension > 1) {
         dirichletShader +=
           selectSpeciesInShaderStr(RDShaderDirichletY(), "v") +
           parseShaderString(options.dirichletStrV) +
@@ -2127,7 +2132,7 @@ function setRDEquations() {
         selectSpeciesInShaderStr(RDShaderDirichletX(), "w") +
         parseShaderString(options.dirichletStrW) +
         ";\n}\n";
-      if (!options.oneDimensional) {
+      if (options.dimension > 1) {
         dirichletShader +=
           selectSpeciesInShaderStr(RDShaderDirichletY(), "w") +
           parseShaderString(options.dirichletStrW) +
@@ -2140,21 +2145,21 @@ function setRDEquations() {
   if (options.boundaryConditionsU == "robin") {
     robinShader += parseRobinRHS(options.robinStrU, "u");
     robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "u");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "u");
     }
   }
   if (options.boundaryConditionsV == "robin") {
     robinShader += parseRobinRHS(options.robinStrV, "v");
     robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "v");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "v");
     }
   }
   if (options.boundaryConditionsW == "robin") {
     robinShader += parseRobinRHS(options.robinStrW, "w");
     robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "w");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "w");
     }
   }
@@ -2210,6 +2215,22 @@ function loadPreset(preset) {
   // Updates the values stored in options.
   loadOptions(preset);
 
+  // Maintain compatibility with links/presets that set the deprecated threeD or oneDimensional options.
+  if (options.threeD != undefined) {
+    if (options.threeD) {
+      options.dimension = 3;
+      if (options.plotType == undefined) {
+        options.plotType = "plane";
+      }
+    }
+  }
+  if (options.oneDimensional != undefined) {
+    if (options.oneDimensional) {
+      options.dimension = 1;
+      options.plotType = "line";
+    }
+  }
+
   // Replace the GUI.
   deleteGUIs();
   initGUI();
@@ -2235,7 +2256,7 @@ function loadPreset(preset) {
   resetSim();
 
   // Set the camera.
-  configureCamera();
+  configureCameraAndClicks();
 
   // To get around an annoying bug in dat.GUI.image, in which the
   // controller doesn't update the value of the underlying property,
@@ -2874,7 +2895,7 @@ function configureGUI() {
   // Hide or show GUI elements that depend on the BCs.
   setBCsGUI();
   // Hide or show GUI elements to do with surface plotting.
-  if (options.threeD) {
+  if (options.plotType == "surface") {
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
     showGUIController(cameraPhiController);
@@ -2890,6 +2911,10 @@ function configureGUI() {
   configureColourbar();
   configureTimeDisplay();
   configureIntegralDisplay();
+  // Show/hide/modify GUI elements that depend on dimension.
+  options.plotType == "line"
+    ? hideGUIController(typeOfBrushController)
+    : showGUIController(typeOfBrushController);
   // Refresh the GUI displays.
   refreshGUI(leftGUI);
   refreshGUI(rightGUI);
@@ -3006,6 +3031,8 @@ function configureOptions() {
 function updateProblem() {
   // Update the problem based on the current options.
   problemTypeFromOptions();
+  configurePlotType();
+  configureDimension();
   configureOptions();
   configureGUI();
   updateWhatToPlot();
@@ -3454,9 +3481,9 @@ function configureIntegralDisplay() {
   if (options.integrate) {
     $("#integralDisplay").show();
     let str = "";
-    options.oneDimensional ? (str += "$\\int") : (str += "$\\iint");
+    options.dimension == 1 ? (str += "$\\int") : (str += "$\\iint");
     str += "_{\\domain}" + parseStringToTEX(options.whatToPlot) + "\\,\\d x";
-    options.oneDimensional ? {} : (str += "\\d y");
+    options.dimension == 1 ? {} : (str += "\\d y");
     $("#integralLabel").html(str + " = $");
     if (MathJax.typesetPromise != undefined) {
       MathJax.typesetPromise($("#integralLabel"));
@@ -3469,9 +3496,11 @@ function configureIntegralDisplay() {
 function updateIntegralDisplay() {
   if (options.integrate) {
     fillBuffer();
-    let dA = uniforms.dx.value;
-    if (!options.oneDimensional) {
-      dA = dA * uniforms.dy.value;
+    let dA;
+    if (options.dimension == 1) {
+      dA = uniforms.dx.value;
+    } else if (options.dimension == 2) {
+      dA = uniforms.dx.value * uniforms.dy.value;
     }
     let total = 0;
     for (let i = 0; i < buffer.length; i += 4) {
@@ -3643,4 +3672,41 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
   }
   // If it's just a scalar, keep the original.
   return str;
+}
+
+function configurePlotType() {
+  // Configure the simulation to plot the solution as requested.
+  if (options.plotType == "line") {
+    options.typeOfBrush = "vline";
+    setBrushType();
+    refreshGUI(rightGUI);
+  }
+  configureCameraAndClicks();
+  configureGUI();
+}
+
+function configureDimension() {
+  // Configure the dimension of the equations.
+  if ((options.dimension != 1) & (options.plotType == "line")) {
+    options.plotType = "plane";
+    configurePlotType();
+  }
+  if ((options.dimension == 1) & (options.plotType != "line")) {
+    options.plotType = "line";
+    configurePlotType();
+  }
+  resize();
+  setRDEquations();
+  configureGUI();
+  configureIntegralDisplay();
+}
+
+function setCameraPos() {
+  const pos = new THREE.Vector3().setFromSphericalCoords(
+    1,
+    Math.PI / 2 - (options.cameraTheta * Math.PI) / 180,
+    (options.cameraPhi * Math.PI) / 180
+  );
+  camera.position.set(pos.x, pos.y, pos.z);
+  camera.lookAt(0, 0, 0);
 }
