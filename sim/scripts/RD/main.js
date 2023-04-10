@@ -3168,7 +3168,7 @@ function setEquationDisplayType() {
     // By this point, a single word (with no square brackets) in the divergence must be a single expression.
     // If it's not x,y,u,v,w,q move it outside the brackets.
     regex =
-      /\\vnabla\s*\\cdot\s*\(([a-pr-tzA-PR-TZ_\{\}]*)\s*\\vnabla\s*([uvw])\s*\)/g;
+      /\\vnabla\s*\\cdot\s*\(([a-pr-tzA-PR-TZ_\{\}\*\^]*)\s*\\vnabla\s*([uvw])\s*\)/g;
     str = str.replaceAll(regex, "$1 \\lap $2");
 
     str = parseStringToTEX(str);
