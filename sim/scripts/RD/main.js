@@ -2221,14 +2221,14 @@ function loadPreset(preset) {
       options.dimension = 2;
       options.plotType = "surface";
     }
-    delete options.threeD
+    delete options.threeD;
   }
   if (options.oneDimensional != undefined) {
     if (options.oneDimensional) {
       options.dimension = 1;
       options.plotType = "line";
     }
-    delete options.oneDimensional
+    delete options.oneDimensional;
   }
 
   // Replace the GUI.
@@ -3160,13 +3160,15 @@ function setEquationDisplayType() {
     str = str.replaceAll(regex, "=0$1");
 
     // If we have [-blah] inside a divergence operator, move the minus sign outside.
-    regex = /(\\vnabla\s*\\cdot\s*\()\[-([\w\{\}]*)\]\s*(\\vnabla\s*([uvw])\s*\))/g;
+    regex =
+      /(\\vnabla\s*\\cdot\s*\()\[-([\w\{\}]*)\]\s*(\\vnabla\s*([uvw])\s*\))/g;
     str = str.replaceAll(regex, "-$1$2$3");
 
     // Look for div(const * grad(blah)), and move the constant outside the bracket.
     // By this point, a single word (with no square brackets) in the divergence must be a single expression.
     // If it's not x,y,u,v,w,q move it outside the brackets.
-    regex = /\\vnabla\s*\\cdot\s*\(([a-pr-tzA-PR-TZ_\{\}]*)\s*\\vnabla\s*([uvw])\s*\)/g;
+    regex =
+      /\\vnabla\s*\\cdot\s*\(([a-pr-tzA-PR-TZ_\{\}]*)\s*\\vnabla\s*([uvw])\s*\)/g;
     str = str.replaceAll(regex, "$1 \\lap $2");
 
     str = parseStringToTEX(str);
@@ -3184,11 +3186,10 @@ function parseStringToTEX(str) {
 
   // Look through the string and replace any + + with +.
   while (str != (str = str.replace(/\+\s*\+/g, "+")));
-  
+
   // Replace +- and -+ with simply -
   str = str.replaceAll(/\+\s*-/g, "-");
   str = str.replaceAll(/-\s*\+/g, "-");
-
 
   // Replace common functions with commands.
   str = str.replaceAll(/\bsin/g, "\\sin");
