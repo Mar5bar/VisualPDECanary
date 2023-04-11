@@ -301,7 +301,6 @@ if (!fromExternalLink()) {
   $("#back").hide();
   // Shift up the other buttons on the left.
   $("#equations").css("top", "-=50");
-  $("#help").css("top", "-=50");
 }
 
 // Arbitrarily choose to first read from the "B" texture, noting that we will
