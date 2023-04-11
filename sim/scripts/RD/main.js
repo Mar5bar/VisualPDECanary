@@ -4390,6 +4390,10 @@ function configurePlotType() {
     setBrushType();
     refreshGUI(rightGUI);
   }
+  console.log(options.plotType)
+  options.plotType == "surface"
+    ? $("#simCanvas").css("outline", "2px #000 solid")
+    : $("#simCanvas").css("outline", "");
   configureCameraAndClicks();
   configureGUI();
 }
