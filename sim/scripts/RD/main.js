@@ -13,6 +13,7 @@ let basicMaterial,
   displayMaterial,
   drawMaterial,
   simMaterial,
+  dirichletMaterial,
   clearMaterial,
   copyMaterial,
   postMaterial,
@@ -92,7 +93,7 @@ let leftGUI,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning, isDrawing, hasDrawn, lastBadParam;
+let isRunning, isDrawing, hasDrawn, lastBadParam, anyDirichletBCs;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
 let parametersFolder,
@@ -159,6 +160,7 @@ import {
   RDShaderAlgebraicV,
   RDShaderAlgebraicW,
   RDShaderAlgebraicQ,
+  RDShaderEnforceDirichletTop,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
@@ -533,6 +535,11 @@ function init() {
   });
   // A material for clearing the domain.
   clearMaterial = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: genericVertexShader(),
+  });
+  // A material for enforcing Dirichlet conditions.
+  dirichletMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
   });
@@ -1879,6 +1886,23 @@ function timestep() {
   // textures are already defined above, and their resolution defines the resolution
   // of solution.
 
+  if (anyDirichletBCs) {
+    if (readFromTextureB) {
+      inTex = simTextureB;
+      outTex = simTextureA;
+    } else {
+      inTex = simTextureA;
+      outTex = simTextureB;
+    }
+    readFromTextureB = !readFromTextureB;
+
+    simDomain.material = dirichletMaterial;
+    uniforms.textureSource.value = inTex.texture;
+    renderer.setRenderTarget(outTex);
+    renderer.render(simScene, simCamera);
+    uniforms.textureSource.value = outTex.texture;
+  }
+
   if (readFromTextureB) {
     inTex = simTextureB;
     outTex = simTextureA;
@@ -2459,6 +2483,119 @@ function setRDEquations() {
     RDShaderBot(),
   ].join(" ");
   simMaterial.needsUpdate = true;
+
+  // We will use a shader to enforce Dirichlet BCs before each timestep, but only if some Dirichlet
+  // BCs have been specified.
+  checkForAnyDirichletBCs();
+  if (anyDirichletBCs) {
+    dirichletShader = RDShaderEnforceDirichletTop() + kineticStr;
+    if (options.domainViaIndicatorFun) {
+      let str = RDShaderDirichletIndicatorFun()
+        .replace(/indicatorFun/g, parseShaderString(options.domainIndicatorFun))
+        .replace(/updated/g, "gl_FragColor");
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "u") +
+        parseShaderString(options.dirichletStrU) +
+        ";\n}\n";
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "v") +
+        parseShaderString(options.dirichletStrV) +
+        ";\n}\n";
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "w") +
+        parseShaderString(options.dirichletStrW) +
+        ";\n}\n";
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "q") +
+        parseShaderString(options.dirichletStrQ) +
+        ";\n}\n";
+    } else {
+      if (options.boundaryConditionsU == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "u"
+          ) +
+          parseShaderString(options.dirichletStrU) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "u"
+            ) +
+            parseShaderString(options.dirichletStrU) +
+            ";\n}\n";
+        }
+      }
+      if (options.boundaryConditionsV == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "v"
+          ) +
+          parseShaderString(options.dirichletStrV) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "v"
+            ) +
+            parseShaderString(options.dirichletStrV) +
+            ";\n}\n";
+        }
+      }
+      if (options.boundaryConditionsW == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "w"
+          ) +
+          parseShaderString(options.dirichletStrW) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "w"
+            ) +
+            parseShaderString(options.dirichletStrW) +
+            ";\n}\n";
+        }
+      }
+      if (options.boundaryConditionsQ == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "q"
+          ) +
+          parseShaderString(options.dirichletStrQ) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "q"
+            ) +
+            parseShaderString(options.dirichletStrQ) +
+            ";\n}\n";
+        }
+      }
+    }
+    dirichletShader += "}";
+    dirichletMaterial.fragmentShader = dirichletShader;
+    dirichletMaterial.needsUpdate = true;
+  }
+}
+
+function checkForAnyDirichletBCs() {
+  anyDirichletBCs =
+    options.domainViaIndicatorFun ||
+    options.boundaryConditionsU == "dirichlet" ||
+    options.boundaryConditionsV == "dirichlet" ||
+    options.boundaryConditionsW == "dirichlet" ||
+    options.boundaryConditionsQ == "dirichlet";
 }
 
 function parseRobinRHS(string, species) {
@@ -4174,7 +4311,7 @@ function getReservedStrs() {
   // Load an RD shader and find floats, vecs, and ivecs.
   let regex = /(?:float|vec\d|ivec\d)\b\s+(\w+)\b/g;
   let str = RDShaderTop() + RDShaderUpdateCross();
-  return [...str.matchAll(regex)].map((x) => x[1]).concat(["u","v","w","q"]);
+  return [...str.matchAll(regex)].map((x) => x[1]).concat(["u", "v", "w", "q"]);
 }
 
 function usingReservedNames() {
