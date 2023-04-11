@@ -1080,12 +1080,6 @@ function initGUI(startOpen) {
       .name("Algebraic q")
       .onChange(updateProblem);
   }
-  if (inGUI("typesetCustomEqs")) {
-    root
-      .add(options, "typesetCustomEqs")
-      .name("Typeset")
-      .onChange(setEquationDisplayType);
-  }
 
   // Let's put these in the left GUI.
   // Definitions folder.
@@ -1093,6 +1087,12 @@ function initGUI(startOpen) {
     root = leftGUI.addFolder("Definitions");
   } else {
     root = genericOptionsFolder;
+  }
+  if (inGUI("typesetCustomEqs")) {
+    root
+      .add(options, "typesetCustomEqs")
+      .name("Typeset")
+      .onChange(setEquationDisplayType);
   }
   if (inGUI("diffusionStrUU")) {
     DuuController = root

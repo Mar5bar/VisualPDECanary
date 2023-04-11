@@ -155,7 +155,7 @@ canvas {
 }
 
 #settings {
-    top: 170px;
+    top: 0px;
     right: 3px;
 }
 
@@ -190,7 +190,7 @@ canvas {
 }
 
 #help {
-    top: 0px;
+    top: 170px;
     right: 3px;
 }
 
