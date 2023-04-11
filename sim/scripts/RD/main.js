@@ -803,9 +803,6 @@ function resizeTextures() {
 function initUniforms() {
   // Initialise the uniforms to be passed to the shaders.
   uniforms = {
-    boundaryValues: {
-      type: "v2",
-    },
     brushCoords: {
       type: "v2",
       value: new THREE.Vector2(0.5, 0.5),
