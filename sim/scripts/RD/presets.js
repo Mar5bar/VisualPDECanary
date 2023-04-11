@@ -14,7 +14,7 @@ export function getPreset(id) {
         diffusionStrUV: "-c*u/(1+u^2)",
         diffusionStrVV: "1",
         diffusionStrWW: "0",
-        domainIndicatorFun: "S-0.5",
+        domainIndicatorFun: "S-0.51",
         domainScale: 100,
         dt: 0.005,
         domainViaIndicatorFun: true,
