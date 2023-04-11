@@ -366,6 +366,43 @@ if (
   $("#simCanvas").one("pointerdown touchstart", () => fadeout("#try_clicking"));
 }
 
+/* GUI settings and equations buttons */
+$("#settings").click(function () {
+  $("#rightGUI").toggle();
+});
+$("#equations").click(function () {
+  $("#equation_display").toggle();
+  $("#leftGUI").toggle();
+});
+$("#pause").click(function () {
+  pauseSim();
+});
+$("#play").click(function () {
+  playSim();
+});
+$("#erase").click(function () {
+  resetSim();
+});
+$("#warning_restart").click(function () {
+  $("#oops_hit_nan").hide();
+  resetSim();
+});
+$("#screenshot").click(function () {
+  takeAScreenshot = true;
+  render();
+});
+
+$("#back").click(function () {
+  // If the user arrived by typing in a URL or from an external link, have this button
+  // point to the visualPDE homepage.
+  if (fromExternalLink()) {
+    window.location.href = window.location.origin;
+  } else {
+    // Otherwise, simply take them back a page.
+    history.back();
+  }
+});
+
 // Begin the simulation.
 animate();
 
@@ -3860,43 +3897,6 @@ function setKineticStringFromParams() {
     updateWhatToPlot();
   }
 }
-
-/* GUI settings and equations buttons */
-$("#settings").click(function () {
-  $("#rightGUI").toggle();
-});
-$("#equations").click(function () {
-  $("#equation_display").toggle();
-  $("#leftGUI").toggle();
-});
-$("#pause").click(function () {
-  pauseSim();
-});
-$("#play").click(function () {
-  playSim();
-});
-$("#erase").click(function () {
-  resetSim();
-});
-$("#warning_restart").click(function () {
-  $("#oops_hit_nan").hide();
-  resetSim();
-});
-$("#screenshot").click(function () {
-  takeAScreenshot = true;
-  render();
-});
-
-$("#back").click(function () {
-  // If the user arrived by typing in a URL or from an external link, have this button
-  // point to the visualPDE homepage.
-  if (fromExternalLink()) {
-    window.location.href = window.location.origin;
-  } else {
-    // Otherwise, simply take them back a page.
-    history.back();
-  }
-});
 
 function fromExternalLink() {
   const link = document.createElement("a");
