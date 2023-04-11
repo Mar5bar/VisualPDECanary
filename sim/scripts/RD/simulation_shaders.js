@@ -196,6 +196,8 @@ export function RDShaderEnforceDirichletTop() {
     void main()
     {
         ivec2 texSize = textureSize(textureSource,0);
+        float step_x = 1.0 / float(texSize.x);
+        float step_y = 1.0 / float(texSize.y);
         float x = textureCoords.x * float(texSize.x) * dx;
         float y = textureCoords.y * float(texSize.y) * dy;
 
