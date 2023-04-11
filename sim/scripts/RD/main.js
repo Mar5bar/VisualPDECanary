@@ -1495,9 +1495,9 @@ function initGUI(startOpen) {
   if (inGUI("plotType")) {
     root
       .add(options, "plotType", {
-        "Line": "line",
-        "Plane": "plane",
-        "Surface": "surface",
+        Line: "line",
+        Plane: "plane",
+        Surface: "surface",
       })
       .name("Plot type")
       .onChange(function () {
@@ -4175,6 +4175,9 @@ function configureTimeDisplay() {
   } else {
     $("#timeDisplay").hide();
   }
+  options.integrate & options.timeDisplay
+    ? nudgeUIUp("#timeDisplay", 40)
+    : nudgeUIUp("#timeDisplay", 0);
 }
 
 function updateTimeDisplay() {
@@ -4200,6 +4203,14 @@ function configureIntegralDisplay() {
   } else {
     $("#integralDisplay").hide();
   }
+  options.integrate & options.timeDisplay
+    ? nudgeUIUp("#timeDisplay", 40)
+    : nudgeUIUp("#timeDisplay", 0);
+}
+
+function nudgeUIUp(id, num) {
+  $(id).css("bottom", "");
+  $(id).css("bottom", "+=" + num.toString());
 }
 
 function updateIntegralDisplay() {
@@ -4241,22 +4252,27 @@ function fillBuffer() {
 
 function checkColorbarPosition() {
   if (options.colourbar) {
+    let amountToNudge = 0;
     let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
     if (options.integrate) {
       let integralDims = $("#integralDisplay")[0].getBoundingClientRect();
-      if (colourbarDims.left <= integralDims.left + integralDims.width) {
-        $("#colourbar").addClass("secondRowUI");
-        return;
+      if (
+        (colourbarDims.top <= integralDims.bottom) &
+        (colourbarDims.right >= integralDims.left)
+      ) {
+        amountToNudge += 40;
       }
     }
     if (options.timeDisplay) {
       let timeDims = $("#timeDisplay")[0].getBoundingClientRect();
-      if (colourbarDims.left + colourbarDims.width >= timeDims.left) {
-        $("#colourbar").addClass("secondRowUI");
-        return;
+      if (
+        (colourbarDims.top <= timeDims.bottom) &
+        (colourbarDims.right >= timeDims.left)
+      ) {
+        amountToNudge += 40;
       }
     }
-    $("#colourbar").removeClass("secondRowUI");
+    nudgeUIUp("#colourbar", amountToNudge);
   }
 }
 
@@ -4390,7 +4406,6 @@ function configurePlotType() {
     setBrushType();
     refreshGUI(rightGUI);
   }
-  console.log(options.plotType)
   options.plotType == "surface"
     ? $("#simCanvas").css("outline", "2px #000 solid")
     : $("#simCanvas").css("outline", "");
