@@ -1000,6 +1000,7 @@ function initGUI(startOpen) {
         configureOptions();
         configureGUI();
         setRDEquations();
+        setPostFunFragShader();
       });
   }
   if (inGUI("domainIndicatorFun")) {
@@ -2987,13 +2988,14 @@ function setPostFunFragShader() {
   );
   shaderStr += kineticStr;
   shaderStr += computeDisplayFunShaderMid();
-  postMaterial.fragmentShader =
-    setDisplayFunInShader(shaderStr) +
-    postShaderDomainIndicator().replace(
+  shaderStr = setDisplayFunInShader(shaderStr);
+  if (options.domainViaIndicatorFun) {
+    shaderStr += postShaderDomainIndicator().replace(
       /indicatorFun/g,
       parseShaderString(options.domainIndicatorFun)
-    ) +
-    postGenericShaderBot();
+    );
+  }
+  postMaterial.fragmentShader = shaderStr + postGenericShaderBot();
   postMaterial.needsUpdate = true;
 }
 
