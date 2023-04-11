@@ -23,7 +23,8 @@ export function getPreset(id) {
         reactionStrU: "u^2*v - (a+b)*u",
         reactionStrV: "-u^2*v + a*(1 - v)",
         reactionStrW: "0",
-        spatialStep: 3,
+        renderSize: 1024,
+        spatialStep: 2,
         whatToDraw: "u",
         whatToPlot: "u",
       };
