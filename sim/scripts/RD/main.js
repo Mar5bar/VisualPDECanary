@@ -1763,7 +1763,6 @@ function setBrushType() {
   shaderStr += drawShaderBot();
   // Substitute in the correct colour code.
   shaderStr = selectColourspecInShaderStr(shaderStr);
-  console.log(shaderStr)
   drawMaterial.fragmentShader = shaderStr;
   drawMaterial.needsUpdate = true;
 }
