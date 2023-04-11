@@ -62,19 +62,6 @@ canvas {
     /* Standard */
 }
 
-.dg li:not(.folder) {
-    height: 32px;
-    line-height: 32px;
-}
-
-.dg .c input[type=text] {
-    margin-top: 7px;
-}
-
-.dg .slider {
-    margin-top: 7px;
-}
-
 /* Simulation GUI */
 
 #rightGUI {
