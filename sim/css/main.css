@@ -23,6 +23,7 @@ canvas {
     width: 100vw;
     height: 100vh;
     height: 100dvh;
+    outline: 2px black solid;
 }
 
 .prevent-select {
@@ -357,7 +358,7 @@ p, .label  {
     position: absolute;
     bottom: 20px;
     width: 60%;
-    height: 20px;
+    height: 24px;
     left: 50%;
     transform: translateX(-50%);
     border: 2px solid #000;
