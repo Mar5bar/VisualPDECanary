@@ -1495,9 +1495,9 @@ function initGUI(startOpen) {
   if (inGUI("plotType")) {
     root
       .add(options, "plotType", {
-        "1D (Line)": "line",
-        "2D (Plane)": "plane",
-        "2D (Surface)": "surface",
+        "Line": "line",
+        "Plane": "plane",
+        "Surface": "surface",
       })
       .name("Plot type")
       .onChange(function () {
