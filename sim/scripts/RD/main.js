@@ -3723,7 +3723,7 @@ function setEquationDisplayType() {
     while (str != (str = str.replace(regex, ")")));
 
     // Look through the string for any empty divergence operators, and remove them if so.
-    regex = /\\vnabla \\cdot\(\s*\)/g;
+    regex = /\\vnabla\s*\\cdot\s*\(\s*\)/g;
     str = str.replaceAll(regex, "");
 
     // Look through the string for any = +, and remove the +.
