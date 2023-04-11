@@ -1027,19 +1027,19 @@ function initGUI(startOpen) {
   if (inGUI("algebraicV")) {
     algebraicVController = root
       .add(options, "algebraicV")
-      .name("Algebraic v?")
+      .name("Algebraic v")
       .onChange(updateProblem);
   }
   if (inGUI("algebraicW")) {
     algebraicWController = root
       .add(options, "algebraicW")
-      .name("Algebraic w?")
+      .name("Algebraic w")
       .onChange(updateProblem);
   }
   if (inGUI("algebraicQ")) {
     algebraicQController = root
       .add(options, "algebraicQ")
-      .name("Algebraic q?")
+      .name("Algebraic q")
       .onChange(updateProblem);
   }
   if (inGUI("typesetCustomEqs")) {
