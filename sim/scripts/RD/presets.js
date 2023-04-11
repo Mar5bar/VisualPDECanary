@@ -3,6 +3,31 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "maze":
+      options = {
+        boundaryConditionsU: "dirichlet",
+        boundaryConditionsV: "dirichlet",
+        clearValueU: "0",
+        clearValueV: "1",
+        diffusionStrUU: "0.5",
+        diffusionStrVV: "1",
+        diffusionStrWW: "0",
+        domainIndicatorFun: "S-0.5",
+        domainScale: 1000,
+        domainViaIndicatorFun: true,
+        imagePathOne: "./images/maze.png",
+        kineticParams: "a=0.037;b=0.06;",
+        maxColourValue: 0.5,
+        minColourValue: 0,
+        preset: "maze",
+        reactionStrU: "u^2*v - (a+b)*u",
+        reactionStrV: "-u^2*v + a*(1 - v)",
+        reactionStrW: "0",
+        spatialStep: 3,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
     case "QR":
       options = {
         boundaryConditionsU: "periodic",
