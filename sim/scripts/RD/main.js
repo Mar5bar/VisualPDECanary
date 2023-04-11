@@ -907,7 +907,7 @@ function initGUI(startOpen) {
   }
   if (inGUI("whatToDraw")) {
     whatToDrawController = root
-      .add(options, "whatToDraw", { u: "u", v: "v", w: "w", q: "q"})
+      .add(options, "whatToDraw", { u: "u", v: "v", w: "w", q: "q" })
       .name("Species")
       .onChange(setBrushType);
   }
@@ -3730,10 +3730,10 @@ function setEquationDisplayType() {
       $("#leftGUI").css("top", "+=10");
       $("#equation_display_box").css("height", "+=10");
       break;
-  case 4:
-    $("#leftGUI").css("top", "+=40");
-    $("#equation_display_box").css("height", "+=40");
-    break;
+    case 4:
+      $("#leftGUI").css("top", "+=40");
+      $("#equation_display_box").css("height", "+=40");
+      break;
   }
 }
 
