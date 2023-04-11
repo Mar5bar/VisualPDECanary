@@ -4175,7 +4175,7 @@ function getReservedStrs() {
   // Load an RD shader and find floats, vecs, and ivecs.
   let regex = /(?:float|vec\d|ivec\d)\b\s+(\w+)\b/g;
   let str = RDShaderTop() + RDShaderUpdateCross();
-  return [...str.matchAll(regex)].map((x) => x[1]);
+  return [...str.matchAll(regex)].map((x) => x[1]).concat(["u","v","w","q"]);
 }
 
 function usingReservedNames() {
