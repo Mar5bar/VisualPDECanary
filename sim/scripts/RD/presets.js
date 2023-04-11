@@ -143,7 +143,6 @@ export function getPreset(id) {
         brushRadius: 5.5,
         clearValueU: "0.001",
         diffusionStrUU: "1",
-        diffusionStrUV: "-c*u/(1+u^2)",
         diffusionStrVV: "10",
         diffusionStrWW: "0",
         dirichletStrU: "-1",
