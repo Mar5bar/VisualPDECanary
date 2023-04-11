@@ -30,19 +30,28 @@ let leftGUI,
   fController,
   gController,
   hController,
+  jController,
   algebraicVController,
   algebraicWController,
+  algebraicQController,
   crossDiffusionController,
   domainIndicatorFunController,
   DuuController,
   DuvController,
   DuwController,
+  DuqController,
   DvuController,
   DvvController,
   DvwController,
+  DvqController,
   DwuController,
   DwvController,
   DwwController,
+  DwqController,
+  DquController,
+  DqvController,
+  DqwController,
+  DqqController,
   dtController,
   whatToDrawController,
   threeDHeightScaleController,
@@ -59,18 +68,23 @@ let leftGUI,
   clearValueUController,
   clearValueVController,
   clearValueWController,
+  clearValueQController,
   uBCsController,
   vBCsController,
   wBCsController,
+  qBCsController,
   dirichletUController,
   dirichletVController,
   dirichletWController,
+  dirichletQController,
   neumannUController,
   neumannVController,
   neumannWController,
+  neumannQController,
   robinUController,
   robinVController,
   robinWController,
+  robinQController,
   fIm,
   fMisc,
   imControllerOne,
@@ -93,6 +107,11 @@ const listOfTypes = [
   "3Species", // 4
   "3SpeciesCrossDiffusion", // 5
   "3SpeciesCrossDiffusionAlgebraicW", // 6
+  "4Species", // 7
+  "4SpeciesCrossDiffusion", // 8
+  "4SpeciesCrossDiffusionAlgebraicW", // 9
+  "4SpeciesCrossDiffusionAlgebraicQ", // 10
+  "4SpeciesCrossDiffusionAlgebraicWQ", // 11
 ];
 let equationType, savedHTML;
 let takeAScreenshot = false;
@@ -139,6 +158,7 @@ import {
   RDShaderUpdateCross,
   RDShaderAlgebraicV,
   RDShaderAlgebraicW,
+  RDShaderAlgebraicQ,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
@@ -888,7 +908,7 @@ function initGUI(startOpen) {
   }
   if (inGUI("whatToDraw")) {
     whatToDrawController = root
-      .add(options, "whatToDraw", { u: "u", v: "v", w: "w" })
+      .add(options, "whatToDraw", { u: "u", v: "v", w: "w", q: "q"})
       .name("Species")
       .onChange(setBrushType);
   }
@@ -994,7 +1014,7 @@ function initGUI(startOpen) {
   // Number of species.
   if (inGUI("numSpecies")) {
     root
-      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3 })
+      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
       .name("No. species")
       .onChange(updateProblem);
   }
@@ -1017,6 +1037,12 @@ function initGUI(startOpen) {
       .name("Algebraic w?")
       .onChange(updateProblem);
   }
+  if (inGUI("algebraicQ")) {
+    algebraicQController = root
+      .add(options, "algebraicQ")
+      .name("Algebraic q?")
+      .onChange(updateProblem);
+  }
   if (inGUI("typesetCustomEqs")) {
     root
       .add(options, "typesetCustomEqs")
@@ -1035,7 +1061,7 @@ function initGUI(startOpen) {
     DuuController = root
       .add(options, "diffusionStrUU")
       .name("$D_{uu}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1045,7 +1071,7 @@ function initGUI(startOpen) {
     DuvController = root
       .add(options, "diffusionStrUV")
       .name("$D_{uv}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1055,7 +1081,17 @@ function initGUI(startOpen) {
     DuwController = root
       .add(options, "diffusionStrUW")
       .name("$D_{uw}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrUQ")) {
+    DuqController = root
+      .add(options, "diffusionStrUQ")
+      .name("$D_{uq}$")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1065,7 +1101,7 @@ function initGUI(startOpen) {
     DvuController = root
       .add(options, "diffusionStrVU")
       .name("$D_{vu}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1075,7 +1111,7 @@ function initGUI(startOpen) {
     DvvController = root
       .add(options, "diffusionStrVV")
       .name("$D_{vv}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1085,7 +1121,17 @@ function initGUI(startOpen) {
     DvwController = root
       .add(options, "diffusionStrVW")
       .name("$D_{vw}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrVQ")) {
+    DvqController = root
+      .add(options, "diffusionStrVQ")
+      .name("$D_{vq}$")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1104,7 +1150,7 @@ function initGUI(startOpen) {
     DwvController = root
       .add(options, "diffusionStrWV")
       .name("$D_{wv}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1114,7 +1160,56 @@ function initGUI(startOpen) {
     DwwController = root
       .add(options, "diffusionStrWW")
       .name("$D_{ww}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrWQ")) {
+    DwqController = root
+      .add(options, "diffusionStrWQ")
+      .name("$D_{wq}$")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrQU")) {
+    DquController = root
+      .add(options, "diffusionStrQU")
+      .name("$D_{qu}$")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrQV")) {
+    DqvController = root
+      .add(options, "diffusionStrQV")
+      .name("$D_{qv}$")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrQW")) {
+    DqwController = root
+      .add(options, "diffusionStrQW")
+      .name("$D_{qw}$")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrQQ")) {
+    DqqController = root
+      .add(options, "diffusionStrQQ")
+      .name("$D_{qq}$")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1125,7 +1220,7 @@ function initGUI(startOpen) {
     fController = root
       .add(options, "reactionStrU")
       .name("$f$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1135,7 +1230,7 @@ function initGUI(startOpen) {
     gController = root
       .add(options, "reactionStrV")
       .name("$g$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1145,7 +1240,17 @@ function initGUI(startOpen) {
     hController = root
       .add(options, "reactionStrW")
       .name("$h$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("reactionStrQ")) {
+    jController = root
+      .add(options, "reactionStrQ")
+      .name("$j$")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1256,6 +1361,38 @@ function initGUI(startOpen) {
       .name("$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
+  if (inGUI("boundaryConditionsQ")) {
+    qBCsController = root
+      .add(options, "boundaryConditionsQ", {
+        Periodic: "periodic",
+        Dirichlet: "dirichlet",
+        Neumann: "neumann",
+        Robin: "robin",
+      })
+      .name("$q$")
+      .onChange(function () {
+        setRDEquations();
+        setBCsGUI();
+      });
+  }
+  if (inGUI("dirichletQ")) {
+    dirichletQController = root
+      .add(options, "dirichletStrQ")
+      .name("$\\left.q\\right\\rvert_{\\boundary}$")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("neumannStrQ")) {
+    neumannQController = root
+      .add(options, "neumannStrQ")
+      .name("$\\left.\\pd{q}{n}\\right\\rvert_{\\boundary}$")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("robinStrQ")) {
+    robinQController = root
+      .add(options, "robinStrQ")
+      .name("$\\left.\\pd{q}{n}\\right\\rvert_{\\boundary}$")
+      .onFinishChange(setRDEquations);
+  }
 
   // Initial conditions folder.
   if (inGUI("initFolder")) {
@@ -1279,6 +1416,12 @@ function initGUI(startOpen) {
     clearValueWController = root
       .add(options, "clearValueW")
       .name("$\\left.w\\right\\rvert_{t=0}$")
+      .onFinishChange(setClearShader);
+  }
+  if (inGUI("clearValueQ")) {
+    clearValueQController = root
+      .add(options, "clearValueQ")
+      .name("$\\left.q\\right\\rvert_{t=0}$")
       .onFinishChange(setClearShader);
   }
 
@@ -1620,6 +1763,7 @@ function setBrushType() {
   shaderStr += drawShaderBot();
   // Substitute in the correct colour code.
   shaderStr = selectColourspecInShaderStr(shaderStr);
+  console.log(shaderStr)
   drawMaterial.fragmentShader = shaderStr;
   drawMaterial.needsUpdate = true;
 }
@@ -1876,6 +2020,8 @@ function parseReactionStrings() {
   out += "float g = " + parseShaderString(options.reactionStrV) + ";\n";
   // Prepare the w string.
   out += "float h = " + parseShaderString(options.reactionStrW) + ";\n";
+  // Prepare the q string.
+  out += "float j = " + parseShaderString(options.reactionStrQ) + ";\n";
 
   return out;
 }
@@ -1902,6 +2048,12 @@ function parseNormalDiffusionStrings() {
     "ww"
   );
 
+  // Prepare Dqq, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrQQ) + ";\n",
+    "qq"
+  );
+
   return out;
 }
 
@@ -1921,6 +2073,12 @@ function parseCrossDiffusionStrings() {
     "uw"
   );
 
+  // Prepare Duq, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrUQ) + ";\n",
+    "uq"
+  );
+
   // Prepare Dvu, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
     parseShaderString(options.diffusionStrVU) + ";\n",
@@ -1931,6 +2089,12 @@ function parseCrossDiffusionStrings() {
   out += nonConstantDiffusionEvaluateInSpaceStr(
     parseShaderString(options.diffusionStrVW) + ";\n",
     "vw"
+  );
+
+  // Prepare Dvq, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrVQ) + ";\n",
+    "vq"
   );
 
   // Prepare Dwu, evaluating it at five points.
@@ -1945,6 +2109,30 @@ function parseCrossDiffusionStrings() {
     "wv"
   );
 
+  // Prepare Dwq, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrWQ) + ";\n",
+    "wq"
+  );
+
+  // Prepare Dqu, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrQU) + ";\n",
+    "qu"
+  );
+
+  // Prepare Dqv, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrQV) + ";\n",
+    "qv"
+  );
+
+  // Prepare Dqw, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrQW) + ";\n",
+    "qw"
+  );
+
   return out;
 }
 
@@ -1952,29 +2140,29 @@ function nonConstantDiffusionEvaluateInSpaceStr(str, label) {
   let out = "";
   let xRegex = /\bx\b/g;
   let yRegex = /\by\b/g;
-  let uvwRegex = /\buvw\.\b/g;
+  let uvwqRegex = /\buvwq\.\b/g;
 
   out += "float D" + label + " = " + str;
   out +=
     "float D" +
     label +
     "L = " +
-    str.replaceAll(xRegex, "(x-dx)").replaceAll(uvwRegex, "uvwL.");
+    str.replaceAll(xRegex, "(x-dx)").replaceAll(uvwqRegex, "uvwqL.");
   out +=
     "float D" +
     label +
     "R = " +
-    str.replaceAll(xRegex, "(x+dx)").replaceAll(uvwRegex, "uvwR.");
+    str.replaceAll(xRegex, "(x+dx)").replaceAll(uvwqRegex, "uvwqR.");
   out +=
     "float D" +
     label +
     "T = " +
-    str.replaceAll(yRegex, "(y+dy)").replaceAll(uvwRegex, "uvwT.");
+    str.replaceAll(yRegex, "(y+dy)").replaceAll(uvwqRegex, "uvwqT.");
   out +=
     "float D" +
     label +
     "B = " +
-    str.replaceAll(yRegex, "(y-dy)").replaceAll(uvwRegex, "uvwB.");
+    str.replaceAll(yRegex, "(y-dy)").replaceAll(uvwqRegex, "uvwqB.");
   return out;
 }
 
@@ -2005,10 +2193,11 @@ function parseShaderString(str) {
     }
   });
 
-  // Replace u, v, and w with uvw.r, uvw.g, and uvw.b via placeholders.
-  str = str.replace(/\bu\b/g, "uvw." + speciesToChannelChar("u"));
-  str = str.replace(/\bv\b/g, "uvw." + speciesToChannelChar("v"));
-  str = str.replace(/\bw\b/g, "uvw." + speciesToChannelChar("w"));
+  // Replace u, v, w, and q with uvwq.r, uvwq.g, uvwq.b, and uwvq.a via placeholders.
+  str = str.replace(/\bu\b/g, "uvwq." + speciesToChannelChar("u"));
+  str = str.replace(/\bv\b/g, "uvwq." + speciesToChannelChar("v"));
+  str = str.replace(/\bw\b/g, "uvwq." + speciesToChannelChar("w"));
+  str = str.replace(/\bq\b/g, "uvwq." + speciesToChannelChar("q"));
 
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
   let regex;
@@ -2082,6 +2271,13 @@ function setRDEquations() {
       neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "w");
     }
   }
+  if (options.boundaryConditionsQ == "neumann") {
+    neumannShader += parseRobinRHS(options.neumannStrQ, "q");
+    neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), "q");
+    if (options.dimension > 1) {
+      neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "q");
+    }
+  }
 
   // Create Dirichlet shaders.
   if (options.domainViaIndicatorFun) {
@@ -2101,6 +2297,10 @@ function setRDEquations() {
     dirichletShader +=
       selectSpeciesInShaderStr(str, "w") +
       parseShaderString(options.dirichletStrW) +
+      ";\n}\n";
+    dirichletShader +=
+      selectSpeciesInShaderStr(str, "q") +
+      parseShaderString(options.dirichletStrQ) +
       ";\n}\n";
   } else {
     if (options.boundaryConditionsU == "dirichlet") {
@@ -2139,6 +2339,18 @@ function setRDEquations() {
           ";\n}\n";
       }
     }
+    if (options.boundaryConditionsQ == "dirichlet") {
+      dirichletShader +=
+        selectSpeciesInShaderStr(RDShaderDirichletX(), "q") +
+        parseShaderString(options.dirichletStrQ) +
+        ";\n}\n";
+      if (options.dimension > 1) {
+        dirichletShader +=
+          selectSpeciesInShaderStr(RDShaderDirichletY(), "q") +
+          parseShaderString(options.dirichletStrQ) +
+          ";\n}\n";
+      }
+    }
   }
 
   // Create a Robin shader block for each species separately.
@@ -2161,6 +2373,13 @@ function setRDEquations() {
     robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "w");
     if (options.dimension > 1) {
       robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "w");
+    }
+  }
+  if (options.boundaryConditionsQ == "robin") {
+    robinShader += parseRobinRHS(options.robinStrQ, "q");
+    robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "q");
+    if (options.dimension > 1) {
+      robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "q");
     }
   }
 
@@ -2189,6 +2408,11 @@ function setRDEquations() {
   // If w should be algebraic, append this to the normal update shader.
   if (options.algebraicW && options.crossDiffusion) {
     updateShader += selectSpeciesInShaderStr(RDShaderAlgebraicW(), "w");
+  }
+
+  // If q should be algebraic, append this to the normal update shader.
+  if (options.algebraicQ && options.crossDiffusion) {
+    updateShader += selectSpeciesInShaderStr(RDShaderAlgebraicQ(), "q");
   }
 
   simMaterial.fragmentShader = [
@@ -2399,6 +2623,9 @@ function speciesToChannelInd(speciesStr) {
   if (speciesStr.includes("w")) {
     channel = 2;
   }
+  if (speciesStr.includes("q")) {
+    channel = 3;
+  }
   return channel;
 }
 
@@ -2419,6 +2646,11 @@ function setBCsGUI() {
   } else {
     hideGUIController(dirichletWController);
   }
+  if (options.boundaryConditionsQ == "dirichlet") {
+    showGUIController(dirichletQController);
+  } else {
+    hideGUIController(dirichletQController);
+  }
 
   if (options.boundaryConditionsU == "neumann") {
     showGUIController(neumannUController);
@@ -2434,6 +2666,11 @@ function setBCsGUI() {
     showGUIController(neumannWController);
   } else {
     hideGUIController(neumannWController);
+  }
+  if (options.boundaryConditionsQ == "neumann") {
+    showGUIController(neumannQController);
+  } else {
+    hideGUIController(neumannQController);
   }
 
   if (options.boundaryConditionsU == "robin") {
@@ -2451,11 +2688,17 @@ function setBCsGUI() {
   } else {
     hideGUIController(robinWController);
   }
+  if (options.boundaryConditionsQ == "robin") {
+    showGUIController(robinQController);
+  } else {
+    hideGUIController(robinQController);
+  }
 
   if (options.domainViaIndicatorFun) {
     hideGUIController(uBCsController);
     hideGUIController(vBCsController);
     hideGUIController(wBCsController);
+    hideGUIController(qBCsController);
   } else {
     showGUIController(uBCsController);
   }
@@ -2486,6 +2729,7 @@ function setClearShader() {
   shaderStr += "float u = " + parseShaderString(options.clearValueU) + ";\n";
   shaderStr += "float v = " + parseShaderString(options.clearValueV) + ";\n";
   shaderStr += "float w = " + parseShaderString(options.clearValueW) + ";\n";
+  shaderStr += "float q = " + parseShaderString(options.clearValueQ) + ";\n";
   shaderStr += clearShaderBot();
   clearMaterial.fragmentShader = shaderStr;
   clearMaterial.needsUpdate = true;
@@ -2615,6 +2859,28 @@ function showWGUIPanels() {
   showGUIController(wBCsController);
 }
 
+function showQGUIPanels() {
+  if (options.crossDiffusion) {
+    showGUIController(DuqController);
+    showGUIController(DvqController);
+    showGUIController(DwqController);
+    showGUIController(DquController);
+    showGUIController(DqvController);
+    showGUIController(DqwController);
+  } else {
+    hideGUIController(DwqController);
+    hideGUIController(DquController);
+    hideGUIController(DvqController);
+    hideGUIController(DuqController);
+    hideGUIController(DqvController);
+    hideGUIController(DqwController);
+  }
+  showGUIController(DqqController);
+  showGUIController(jController);
+  showGUIController(clearValueQController);
+  showGUIController(qBCsController);
+}
+
 function hideVGUIPanels() {
   hideGUIController(DuvController);
   hideGUIController(DvuController);
@@ -2633,6 +2899,19 @@ function hideWGUIPanels() {
   hideGUIController(hController);
   hideGUIController(clearValueWController);
   hideGUIController(wBCsController);
+}
+
+function hideQGUIPanels() {
+  hideGUIController(DuqController);
+  hideGUIController(DvqController);
+  hideGUIController(DwqController);
+  hideGUIController(DquController);
+  hideGUIController(DqvController);
+  hideGUIController(DqwController);
+  hideGUIController(DqqController);
+  hideGUIController(jController);
+  hideGUIController(clearValueQController);
+  hideGUIController(qBCsController);
 }
 
 function diffObjects(o1, o2) {
@@ -2732,24 +3011,49 @@ function problemTypeFromOptions() {
         equationType = 4;
       }
       break;
+    case 4:
+      if (options.crossDiffusion) {
+        if (options.algebraicW) {
+          if (options.algebraicQ) {
+            // 4SpeciesCrossDiffusionAlgebraicWQ
+            equationType = 11;
+          } else {
+            // 4SpeciesCrossDiffusionAlgebraicW
+            equationType = 9;
+          }
+        } else {
+          if (options.algebraicQ) {
+            // 4SpeciesCrossDiffusionAlgebraicQ
+            equationType = 10;
+          } else {
+            // 4SpeciesCrossDiffusion
+            equationType = 8;
+          }
+        }
+      } else {
+        // 4Species
+        equationType = 7;
+      }
+      break;
   }
 }
 
 function configureGUI() {
   // Set up the GUI based on the the current options: numSpecies, crossDiffusion, and algebraicV.
   // We need a separate block for each of the six cases.
-
   switch (equationType) {
     case 0:
       // 1Species
-      // Hide everything to do with v and w.
+      // Hide everything to do with v, w, and q.
       hideVGUIPanels();
       hideWGUIPanels();
+      hideQGUIPanels();
 
-      // Hide the cross diffusion controller, the algebraicV controller, and the algebraicW controller.
+      // Hide the cross diffusion, algebraicV, algebraicW, and algebraicQ controllers.
       hideGUIController(crossDiffusionController);
       hideGUIController(algebraicVController);
       hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "$D$", "function of u, t");
@@ -2761,14 +3065,16 @@ function configureGUI() {
       // 2Species
       // Show v panels.
       showVGUIPanels();
-      // Hide w panels.
+      // Hide w and q panels.
       hideWGUIPanels();
+      hideQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
       // Hide the algebraicV and algebraicW controllers.
       hideGUIController(algebraicVController);
       hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "$D_u$", "function of u, v, t");
@@ -2782,14 +3088,16 @@ function configureGUI() {
       // 2SpeciesCrossDiffusion
       // Show v panels.
       showVGUIPanels();
-      // Hide w panels.
+      // Hide w and q panels.
       hideWGUIPanels();
+      hideQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
-      // Hide the algebraicV and algebraicW controllers.
+      // Hide the algebraicV, algebraicW, and algebraicQ controllers.
       showGUIController(algebraicVController);
       hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, t");
@@ -2803,15 +3111,17 @@ function configureGUI() {
       // Show v panels.
       showVGUIPanels();
       hideGUIController(DvvController);
-      // Hide w panels.
+      // Hide w and q panels.
       hideWGUIPanels();
+      hideQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
       // Show the algebraicV controller.
       showGUIController(algebraicVController);
-      // Hide the algebraicW controller.
+      // Hide the algebraicW and algebraicQ controllers.
       hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, t");
@@ -2825,20 +3135,23 @@ function configureGUI() {
       showVGUIPanels();
       // Show w panels.
       showWGUIPanels();
+      // Hide q panels.
+      hideQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
-      // Hide the algebraicV and algebraicW controllers.
+      // Hide the algebraicV, algebraicW, and algebraicQ controllers.
       hideGUIController(algebraicVController);
       hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_u$", "function of u, v, w, t");
-      setGUIControllerName(DvvController, "$D_v$", "function of u, v, w, t");
-      setGUIControllerName(DwwController, "$D_w$", "function of u, v, w, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, w, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, w, t");
+      setGUIControllerName(DuuController, "$D_u$", "function of u, v, w, q, t");
+      setGUIControllerName(DvvController, "$D_v$", "function of u, v, w, q, t");
+      setGUIControllerName(DwwController, "$D_w$", "function of u, v, w, q, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, w, q, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, q, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, w, q, t");
       break;
 
     case 5:
@@ -2847,21 +3160,36 @@ function configureGUI() {
       showVGUIPanels();
       // Show w panels.
       showWGUIPanels();
+      // Hide q panels.
+      hideQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
-      // Hide the algebraicV controller.
+      // Hide the algebraicV and algebraic Q controller.
       hideGUIController(algebraicVController);
+      hideGUIController(algebraicQController);
       // Show the algebraicW controller.
       showGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, w, t");
-      setGUIControllerName(DvvController, "$D_{vv}$", "function of u, v, w, t");
-      setGUIControllerName(DwwController, "$D_{ww}$", "function of u, v, w, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, w, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, w, t");
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, w, q, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, q, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, w, q, t");
       break;
 
     case 6:
@@ -2871,20 +3199,115 @@ function configureGUI() {
       // Show w panels.
       showWGUIPanels();
       hideGUIController(DwwController);
+      // Hide q panels.
+      hideQGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV and algebraicQ controller.
+      hideGUIController(algebraicVController);
+      hideGUIController(algebraicQController);
+      // Show the algebraicW controller.
+      showGUIController(algebraicWController);
+
+      // Configure the controller names.
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, w, q, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, q, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, t");
+      break;
+    case 7:
+      // 4Species
+      // Show v,w,q panels.
+      showVGUIPanels();
+      showWGUIPanels();
+      showQGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV, algebraicQ, and algebraicW controllers.
+      hideGUIController(algebraicVController);
+      hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
+
+      // Configure the controller names.
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(
+        DqqController,
+        "$D_{qq}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, w, q, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, q, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, t");
+      setGUIControllerName(jController, "$j$", "function of u, v, t");
+      break;
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+      // 4Species w/ cross diffusion.
+      // Show v,w,q panels.
+      showVGUIPanels();
+      showWGUIPanels();
+      showQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
       // Hide the algebraicV controller.
       hideGUIController(algebraicVController);
-      // Show the algebraicW controller.
+      // Show the algebraicW and algebriacQ controllers.
       showGUIController(algebraicWController);
+      showGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, w, t");
-      setGUIControllerName(DvvController, "$D_{vv}$", "function of u, v, w, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, w, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, t");
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(
+        DqqController,
+        "$D_{qq}$",
+        "function of u, v, w, q, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, w, q, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, q, t");
       setGUIControllerName(hController, "$h$", "function of u, v, t");
+      setGUIControllerName(jController, "$j$", "function of u, v, t");
       break;
   }
   if (options.domainViaIndicatorFun) {
@@ -2941,6 +3364,7 @@ function configureOptions() {
     options.boundaryConditionsU = "dirichlet";
     options.boundaryConditionsV = "dirichlet";
     options.boundaryConditionsW = "dirichlet";
+    options.boundaryConditionsQ = "dirichlet";
   }
 
   // Set options that only depend on the number of species.
@@ -2949,6 +3373,7 @@ function configureOptions() {
       options.crossDiffusion = false;
       options.algebraicV = false;
       options.algebraicW = false;
+      options.algebraicQ = false;
 
       // Ensure that u is being displayed on the screen (and the brush target).
       options.whatToDraw = "u";
@@ -2957,57 +3382,114 @@ function configureOptions() {
       // Set the diffusion of v and w to zero to prevent them from causing numerical instability.
       options.diffusionStrUV = "0";
       options.diffusionStrUW = "0";
+      options.diffusionStrUQ = "0";
       options.diffusionStrVU = "0";
       options.diffusionStrVV = "0";
       options.diffusionStrVW = "0";
+      options.diffusionStrVQ = "0";
       options.diffusionStrWU = "0";
       options.diffusionStrWV = "0";
       options.diffusionStrWW = "0";
+      options.diffusionStrWQ = "0";
+      options.diffusionStrQU = "0";
+      options.diffusionStrQV = "0";
+      options.diffusionStrQW = "0";
+      options.diffusionStrQQ = "0";
 
-      // Set v and w to be periodic to reduce computational overhead.
+      // Set v,w, and q to be periodic to reduce computational overhead.
       options.boundaryConditionsV = "periodic";
       options.clearValueV = "0";
       options.reactionStrV = "0";
       options.boundaryConditionsW = "periodic";
       options.clearValueW = "0";
       options.reactionStrW = "0";
+      options.boundaryConditionsQ = "periodic";
+      options.clearValueQ = "0";
+      options.reactionStrQ = "0";
 
-      // If the f string contains any v or w references, clear it.
-      if (/\b[vw]\b/.test(options.reactionStrU)) {
+      // If the f string contains any v,w, or q references, clear it.
+      if (/\b[vwq]\b/.test(options.reactionStrU)) {
         options.reactionStrU = "0";
       }
       break;
     case 2:
       // Ensure that u or v is being displayed on the screen (and the brush target).
-      if (options.whatToDraw == "w") {
+      if ((options.whatToDraw == "w") | (options.whatToDraw == "q")) {
         options.whatToDraw = "u";
       }
-      if (options.whatToPlot == "w") {
+      if ((options.whatToPlot == "w") | (options.whatToPlot == "q")) {
         options.whatToPlot = "u";
       }
       options.algebraicW = false;
+      options.algebraicQ = false;
 
-      // Set the diffusion of w to zero to prevent it from causing numerical instability.
+      // Set the diffusion of w and q to zero to prevent them from causing numerical instability.
       options.diffusionStrUW = "0";
+      options.diffusionStrUQ = "0";
       options.diffusionStrVW = "0";
+      options.diffusionStrVQ = "0";
       options.diffusionStrWU = "0";
       options.diffusionStrWV = "0";
       options.diffusionStrWW = "0";
+      options.diffusionStrWQ = "0";
+      options.diffusionStrQU = "0";
+      options.diffusionStrQV = "0";
+      options.diffusionStrQW = "0";
+      options.diffusionStrQQ = "0";
 
-      // Set w to be periodic to reduce computational overhead.
+      // Set w and q to be periodic to reduce computational overhead.
       options.boundaryConditionsW = "periodic";
       options.clearValueW = "0";
       options.reactionStrW = "0";
 
-      // If the f or g strings contains any w references, clear them.
-      if (/\bw\b/.test(options.reactionStrU)) {
+      options.boundaryConditionsQ = "periodic";
+      options.clearValueQ = "0";
+      options.reactionStrQ = "0";
+
+      // If the f or g strings contains any w or q references, clear them.
+      if (/\b[wq]\b/.test(options.reactionStrU)) {
         options.reactionStrU = "0";
       }
-      if (/\bw\b/.test(options.reactionStrV)) {
+      if (/\b[wq]\b/.test(options.reactionStrV)) {
         options.reactionStrV = "0";
       }
       break;
     case 3:
+      // Ensure that u, v, or w is being displayed on the screen (and the brush target).
+      if (options.whatToDraw == "q") {
+        options.whatToDraw = "u";
+      }
+      if (options.whatToPlot == "q") {
+        options.whatToPlot = "u";
+      }
+      options.algebraicV = false;
+
+      // Set the diffusion of q to zero to prevent it from causing numerical instability.
+      options.diffusionStrUQ = "0";
+      options.diffusionStrVQ = "0";
+      options.diffusionStrWQ = "0";
+      options.diffusionStrQU = "0";
+      options.diffusionStrQV = "0";
+      options.diffusionStrQW = "0";
+      options.diffusionStrQQ = "0";
+
+      // Set q to be periodic to reduce computational overhead.
+      options.boundaryConditionsQ = "periodic";
+      options.clearValueQ = "0";
+      options.reactionStrQ = "0";
+
+      // If the f, g, or h strings contains any q references, clear them.
+      if (/\bq\b/.test(options.reactionStrU)) {
+        options.reactionStrU = "0";
+      }
+      if (/\bq\b/.test(options.reactionStrV)) {
+        options.reactionStrV = "0";
+      }
+      if (/\bq\b/.test(options.reactionStrW)) {
+        options.reactionStrW = "0";
+      }
+      break;
+    case 4:
       options.algebraicV = false;
       break;
   }
@@ -3021,6 +3503,16 @@ function configureOptions() {
     case 6:
       // 3SpeciesCrossDiffusionAlgebraicW
       options.diffusionStrWW = "0";
+    case 9:
+      // 4SpeciesCrossDiffusionAlgebraicW
+      options.diffusionStrWW = "0";
+    case 10:
+      // 4SpeciesCrossDiffusionAlgebraicQ
+      options.diffusionStrQQ = "0";
+    case 11:
+      // 4SpeciesCrossDiffusionAlgebraicWQ
+      options.diffusionStrWW = "0";
+      options.diffusionStrQQ = "0";
   }
 
   // Refresh the GUI displays.
@@ -3051,6 +3543,7 @@ function setEquationDisplayType() {
     str = replaceUserDefReac(str, /\bf\b/g, options.reactionStrU);
     str = replaceUserDefReac(str, /\bg\b/g, options.reactionStrV);
     str = replaceUserDefReac(str, /\bh\b/g, options.reactionStrW);
+    str = replaceUserDefReac(str, /\bj\b/g, options.reactionStrQ);
 
     str = replaceUserDefDiff(
       str,
@@ -3099,6 +3592,19 @@ function setEquationDisplayType() {
 
     str = replaceUserDefDiff(
       str,
+      /\b(D_q) (\\vnabla q)/g,
+      options.diffusionStrQQ,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{qq}) (\\vnabla q)/g,
+      options.diffusionStrQQ,
+      "[]"
+    );
+
+    str = replaceUserDefDiff(
+      str,
       /\b(D_{uv}) (\\vnabla v)/g,
       options.diffusionStrUV,
       "[]"
@@ -3107,6 +3613,12 @@ function setEquationDisplayType() {
       str,
       /\b(D_{uw}) (\\vnabla w)/g,
       options.diffusionStrUW,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{uq}) (\\vnabla q)/g,
+      options.diffusionStrUQ,
       "[]"
     );
     str = replaceUserDefDiff(
@@ -3123,6 +3635,12 @@ function setEquationDisplayType() {
     );
     str = replaceUserDefDiff(
       str,
+      /\b(D_{vq}) (\\vnabla q)/g,
+      options.diffusionStrVQ,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
       /\b(D_{wu}) (\\vnabla u)/g,
       options.diffusionStrWU,
       "[]"
@@ -3131,6 +3649,30 @@ function setEquationDisplayType() {
       str,
       /\b(D_{wv}) (\\vnabla v)/g,
       options.diffusionStrWV,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{wq}) (\\vnabla q)/g,
+      options.diffusionStrWQ,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{qu}) (\\vnabla u)/g,
+      options.diffusionStrQU,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{qv}) (\\vnabla v)/g,
+      options.diffusionStrQV,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{qw}) (\\vnabla w)/g,
+      options.diffusionStrQW,
       "[]"
     );
 
@@ -3161,27 +3703,39 @@ function setEquationDisplayType() {
 
     // If we have [-blah] inside a divergence operator, move the minus sign outside.
     regex =
-      /(\\vnabla\s*\\cdot\s*\()\[-([\w\{\}]*)\]\s*(\\vnabla\s*([uvw])\s*\))/g;
+      /(\\vnabla\s*\\cdot\s*\()\[-([\w\{\}]*)\]\s*(\\vnabla\s*([uvwq])\s*\))/g;
     str = str.replaceAll(regex, "-$1$2$3");
 
     // Look for div(const * grad(blah)), and move the constant outside the bracket.
     // By this point, a single word (with no square brackets) in the divergence must be a single expression.
     // If it's not x,y,u,v,w,q move it outside the brackets.
-    regex =
-      /\\vnabla\s*\\cdot\s*\(([\w\{\}\*\^]*)\s*\\vnabla\s*([uvw])\s*\)/g;
-    str = str.replaceAll(regex, function(match, g1, g2) {
+    regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}\*\^]*)\s*\\vnabla\s*([uvwq])\s*\)/g;
+    str = str.replaceAll(regex, function (match, g1, g2) {
       if (!/\b[xyuvwq]\b/g.test(g1)) {
         return g1 + " \\lap " + g2;
       } else {
         return match;
       }
-      });
+    });
 
     str = parseStringToTEX(str);
   }
   $("#typeset_equation").html(str);
   if (MathJax.typesetPromise != undefined) {
     MathJax.typesetPromise();
+  }
+  // Set the height of the equation display.
+  $("#leftGUI").css("top", "");
+  $("#equation_display_box").css("height", "");
+  switch (parseInt(options.numSpecies)) {
+    case 3:
+      $("#leftGUI").css("top", "+=10");
+      $("#equation_display_box").css("height", "+=10");
+      break;
+  case 4:
+    $("#leftGUI").css("top", "+=40");
+    $("#equation_display_box").css("height", "+=40");
+    break;
   }
 }
 

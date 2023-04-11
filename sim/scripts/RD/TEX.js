@@ -30,6 +30,36 @@ export function equationTEXFun() {
     \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{vu} \\vnabla u+D_{vv} \\vnabla v+D_{vw} \\vnabla w) + g\\\\
     w &= \\vnabla \\cdot(D_{wu} \\vnabla u+D_{wv} \\vnabla v) + h
     \\end{aligned}$`;
+  out[7] = `$\\begin{aligned}
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_u \\vnabla u) + f\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_v \\vnabla v) + g\\\\
+    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_w \\vnabla w) + h\\\\
+    \\textstyle \\pd{q}{t} &= \\vnabla \\cdot(D_q \\vnabla q) + j
+    \\end{aligned}$`;
+  out[8] = `$\\begin{aligned}
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{uu} \\vnabla u+D_{uv} \\vnabla v+D_{uw} \\vnabla w+D_{uq} \\vnabla q) + f\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{vu} \\vnabla u+D_{vv} \\vnabla v+D_{vw} \\vnabla w+D_{vq} \\vnabla q) + g\\\\
+    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{wu} \\vnabla u+D_{wv} \\vnabla v+D_{ww} \\vnabla w+D_{wq} \\vnabla q) + h\\\\
+    \\textstyle \\pd{q}{t} &= \\vnabla \\cdot(D_{qu} \\vnabla u+D_{qv} \\vnabla v+D_{qw} \\vnabla w+D_{qq} \\vnabla q) + j
+    \\end{aligned}$`;
+  out[9] = `$\\begin{aligned}
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{uu} \\vnabla u+D_{uv} \\vnabla v+D_{uw} \\vnabla w+D_{uq} \\vnabla q) + f\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{vu} \\vnabla u+D_{vv} \\vnabla v+D_{vw} \\vnabla w+D_{vq} \\vnabla q) + g\\\\
+    w &= \\vnabla \\cdot(D_{wu} \\vnabla u+D_{wv} \\vnabla v+D_{wq} \\vnabla q) + h\\\\
+    \\textstyle \\pd{q}{t} &= \\vnabla \\cdot(D_{qu} \\vnabla u+D_{qv} \\vnabla v+D_{qw} \\vnabla w+D_{qq} \\vnabla q) + j
+    \\end{aligned}$`;
+  out[10] = `$\\begin{aligned}
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{uu} \\vnabla u+D_{uv} \\vnabla v+D_{uw} \\vnabla w+D_{uq} \\vnabla q) + f\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{vu} \\vnabla u+D_{vv} \\vnabla v+D_{vw} \\vnabla w+D_{vq} \\vnabla q) + g\\\\
+    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{wu} \\vnabla u+D_{wv} \\vnabla v+D_{ww} \\vnabla w+D_{wq} \\vnabla q) + h\\\\
+    q &= \\vnabla \\cdot(D_{qu} \\vnabla u+D_{qv} \\vnabla v+D_{qw} \\vnabla w) + j
+    \\end{aligned}$`;
+  out[11] = `$\\begin{aligned}
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{uu} \\vnabla u+D_{uv} \\vnabla v+D_{uw} \\vnabla w+D_{uq} \\vnabla q) + f\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{vu} \\vnabla u+D_{vv} \\vnabla v+D_{vw} \\vnabla w+D_{vq} \\vnabla q) + g\\\\
+    w &= \\vnabla \\cdot(D_{wu} \\vnabla u+D_{wv} \\vnabla v+D_{wq} \\vnabla q) + h\\\\
+    q &= \\vnabla \\cdot(D_{qu} \\vnabla u+D_{qv} \\vnabla v+D_{qw} \\vnabla w) + j
+    \\end{aligned}$`;
   return out;
 }
 
