@@ -3513,6 +3513,7 @@ function configureGUI() {
   configureColourbar();
   configureTimeDisplay();
   configureIntegralDisplay();
+  configureDataContainer();
   // Show/hide/modify GUI elements that depend on dimension.
   options.plotType == "line"
     ? hideGUIController(typeOfBrushController)
@@ -4210,6 +4211,12 @@ function configureIntegralDisplay() {
     $("#integralDisplay").hide();
   }
   orderTimeIntegralDisplays();
+}
+
+function configureDataContainer() {
+  // Show the dataContainer element, ready for showing any data. Doing it this way prevents
+  // it flashing on load.
+  $("#dataContainer").show();
 }
 
 function nudgeUIUp(id, num) {
