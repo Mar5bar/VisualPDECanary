@@ -1752,6 +1752,8 @@ function animate() {
 
   // Only timestep if the simulation is running.
   if (isRunning) {
+    // Ensure that any Dirichlet BCs are satisfied before timestepping (required due to brushes/init condition).
+    anyDirichletBCs ? enforceDirichlet() : {};
     // Perform a number of timesteps per frame.
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
       timestep();
@@ -1886,23 +1888,6 @@ function timestep() {
   // textures are already defined above, and their resolution defines the resolution
   // of solution.
 
-  if (anyDirichletBCs) {
-    if (readFromTextureB) {
-      inTex = simTextureB;
-      outTex = simTextureA;
-    } else {
-      inTex = simTextureA;
-      outTex = simTextureB;
-    }
-    readFromTextureB = !readFromTextureB;
-
-    simDomain.material = dirichletMaterial;
-    uniforms.textureSource.value = inTex.texture;
-    renderer.setRenderTarget(outTex);
-    renderer.render(simScene, simCamera);
-    uniforms.textureSource.value = outTex.texture;
-  }
-
   if (readFromTextureB) {
     inTex = simTextureB;
     outTex = simTextureA;
@@ -1913,6 +1898,24 @@ function timestep() {
   readFromTextureB = !readFromTextureB;
 
   simDomain.material = simMaterial;
+  uniforms.textureSource.value = inTex.texture;
+  renderer.setRenderTarget(outTex);
+  renderer.render(simScene, simCamera);
+  uniforms.textureSource.value = outTex.texture;
+}
+
+function enforceDirichlet() {
+  // Enforce any Dirichlet boundary conditions.
+  if (readFromTextureB) {
+    inTex = simTextureB;
+    outTex = simTextureA;
+  } else {
+    inTex = simTextureA;
+    outTex = simTextureB;
+  }
+  readFromTextureB = !readFromTextureB;
+
+  simDomain.material = dirichletMaterial;
   uniforms.textureSource.value = inTex.texture;
   renderer.setRenderTarget(outTex);
   renderer.render(simScene, simCamera);
