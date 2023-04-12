@@ -93,7 +93,12 @@ let leftGUI,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning, isDrawing, hasDrawn, lastBadParam, anyDirichletBCs;
+let isRunning,
+  isDrawing,
+  hasDrawn,
+  lastBadParam,
+  anyDirichletBCs,
+  nudgedUp = false;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
 let parametersFolder,
@@ -4178,9 +4183,7 @@ function configureTimeDisplay() {
   } else {
     $("#timeDisplay").hide();
   }
-  options.integrate & options.timeDisplay
-    ? nudgeUIUp("#timeDisplay", 40)
-    : nudgeUIUp("#timeDisplay", 0);
+  orderTimeIntegralDisplays();
 }
 
 function updateTimeDisplay() {
@@ -4206,14 +4209,18 @@ function configureIntegralDisplay() {
   } else {
     $("#integralDisplay").hide();
   }
-  options.integrate & options.timeDisplay
-    ? nudgeUIUp("#timeDisplay", 40)
-    : nudgeUIUp("#timeDisplay", 0);
+  orderTimeIntegralDisplays();
 }
 
 function nudgeUIUp(id, num) {
   $(id).css("bottom", "");
   $(id).css("bottom", "+=" + num.toString());
+}
+
+function orderTimeIntegralDisplays() {
+  options.integrate & options.timeDisplay
+    ? nudgeUIUp("#timeDisplay", 10)
+    : nudgeUIUp("#timeDisplay", 0);
 }
 
 function updateIntegralDisplay() {
@@ -4254,28 +4261,26 @@ function fillBuffer() {
 }
 
 function checkColorbarPosition() {
-  if (options.colourbar) {
-    let amountToNudge = 0;
+  // If there's a potential overlap of the data display and the colourbar, move the former up.
+  if (options.colourbar & (options.integrate | options.time)) {
     let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
-    if (options.integrate) {
-      let integralDims = $("#integralDisplay")[0].getBoundingClientRect();
-      if (
-        (colourbarDims.top <= integralDims.bottom) &
-        (colourbarDims.right >= integralDims.left)
-      ) {
-        amountToNudge += 40;
+    let bottomElm;
+    options.integrate
+      ? (bottomElm = $("#integralDisplay")[0])
+      : (bottomElm = $("#timeDisplay")[0]);
+    let bottomDims = bottomElm.getBoundingClientRect();
+    // If the colour overlaps the bottom element (or is above it and would otherwise overlap).
+    if (colourbarDims.right >= bottomDims.left) {
+      if (colourbarDims.top <= bottomDims.bottom) {
+        nudgeUIUp("#dataContainer", 40);
+        nudgedUp = true;
+      }
+    } else {
+      if (nudgedUp) {
+        nudgeUIUp("#dataContainer", 0);
+        nudgedUp = false;
       }
     }
-    if (options.timeDisplay) {
-      let timeDims = $("#timeDisplay")[0].getBoundingClientRect();
-      if (
-        (colourbarDims.top <= timeDims.bottom) &
-        (colourbarDims.right >= timeDims.left)
-      ) {
-        amountToNudge += 40;
-      }
-    }
-    nudgeUIUp("#colourbar", amountToNudge);
   }
 }
 

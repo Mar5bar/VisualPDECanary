@@ -390,16 +390,24 @@ p, .label  {
     text-align: center;
 }
 
-.time {
-    display: none;
+.dataContainer {
+    display: inline-block;
     position: absolute;
     bottom: 20px;
-    height: 20px;
     right: 20px;
+    text-align: right;
+}
+
+.dataItem {
+    position: relative;
+    margin-left: auto;
+    margin-right: 0;
+    display: block;
+    height: 20px;
+    width: fit-content;
     border: 4px solid #000;
     border-radius: 5px;
     background-color: #000;
-    vertical-align: middle;
 }
 
 .timeLabel {
@@ -410,18 +418,6 @@ p, .label  {
     font-size: 1rem;
     font-variant-numeric: tabular-nums;
     color: #fff;
-}
-
-.integral {
-    display: none;
-    position: absolute;
-    bottom: 20px;
-    height: 20px;
-    right: 20px;
-    border: 4px solid #000;
-    border-radius: 5px;
-    background-color: #000;
-    vertical-align: middle;
 }
 
 .integralLabel {
