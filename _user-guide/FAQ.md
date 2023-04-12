@@ -3,7 +3,7 @@ layout: page
 title: FAQs
 lesson_number: 15
 thumbnail: /assets/images/question-marks.png
-extract: Unsure what to do? Help is at hand
+extract: Unsure about something? Help is at hand
 ---
 
 ## Sharing and citing
