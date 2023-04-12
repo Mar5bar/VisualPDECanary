@@ -3,7 +3,7 @@ layout: page
 title: What can VisualPDE solve?
 lesson_number: 20
 thumbnail: /assets/images/squirrel-question.png
-extract: A brief intro to the systems we simulate here
+extract: A brief intro to the systems we simulate
 ---
 
 VisualPDE solves systems of PDEs that look like generalised reaction--diffusion equations. It can do this in 1D or 2D.
