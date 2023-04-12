@@ -3266,10 +3266,10 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, t");
-      setGUIControllerName(DvvController, "$D_{vv}$", "function of u, v, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, t");
+      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, x, y, t");
+      setGUIControllerName(DvvController, "$D_{vv}$", "function of u, v, x, y, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, x, y, t");
       break;
 
     case 3:
@@ -3290,9 +3290,9 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, t");
-      setGUIControllerName(gController, "$g$", "function of u, t");
+      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, x, y, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, x, y, t");
       break;
 
     case 4:
@@ -3312,12 +3312,12 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_u$", "function of u, v, w, q, t");
-      setGUIControllerName(DvvController, "$D_v$", "function of u, v, w, q, t");
-      setGUIControllerName(DwwController, "$D_w$", "function of u, v, w, q, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, w, q, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, q, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, w, q, t");
+      setGUIControllerName(DuuController, "$D_u$", "function of u, v, w, x, y, t");
+      setGUIControllerName(DvvController, "$D_v$", "function of u, v, w, x, y, t");
+      setGUIControllerName(DwwController, "$D_w$", "function of u, v, w, x, y, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, w, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, x, y, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, w, x, y, t");
       break;
 
     case 5:
@@ -3341,21 +3341,21 @@ function configureGUI() {
       setGUIControllerName(
         DuuController,
         "$D_{uu}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, x, y, t"
       );
       setGUIControllerName(
         DvvController,
         "$D_{vv}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, x, y, t"
       );
       setGUIControllerName(
         DwwController,
         "$D_{ww}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, x, y, t"
       );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, q, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, q, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, w, q, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, w, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, x, y, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, w, x, y, t");
       break;
 
     case 6:
@@ -3380,16 +3380,16 @@ function configureGUI() {
       setGUIControllerName(
         DuuController,
         "$D_{uu}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, x, y, t"
       );
       setGUIControllerName(
         DvvController,
         "$D_{vv}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, x, y, t"
       );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, q, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, q, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, w, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, x, y, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, x, y, t");
       break;
     case 7:
       // 4Species
@@ -3409,33 +3409,30 @@ function configureGUI() {
       setGUIControllerName(
         DuuController,
         "$D_{uu}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, q, x, y, t"
       );
       setGUIControllerName(
         DvvController,
         "$D_{vv}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, q, x, y, t"
       );
       setGUIControllerName(
         DwwController,
         "$D_{ww}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, q, x, y, t"
       );
       setGUIControllerName(
         DqqController,
         "$D_{qq}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, q, x, y, t"
       );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, q, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, q, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, t");
-      setGUIControllerName(jController, "$j$", "function of u, v, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(jController, "$j$", "function of u, v, w, q, x, y, t");
       break;
     case 8:
-    case 9:
-    case 10:
-    case 11:
-      // 4Species w/ cross diffusion.
+      // 4SpeciesCrossDiffusion.
       // Show v,w,q panels.
       showVGUIPanels();
       showWGUIPanels();
@@ -3448,32 +3445,155 @@ function configureGUI() {
       // Show the algebraicW and algebriacQ controllers.
       showGUIController(algebraicWController);
       showGUIController(algebraicQController);
-
+      
       // Configure the controller names.
       setGUIControllerName(
         DuuController,
         "$D_{uu}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, q, x, y, t"
       );
       setGUIControllerName(
         DvvController,
         "$D_{vv}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, q, x, y, t"
       );
       setGUIControllerName(
         DwwController,
         "$D_{ww}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, q, x, y, t"
       );
       setGUIControllerName(
         DqqController,
         "$D_{qq}$",
-        "function of u, v, w, q, t"
+        "function of u, v, w, q, x, y, t"
       );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, q, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, q, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, t");
-      setGUIControllerName(jController, "$j$", "function of u, v, t");
+      setGUIControllerName(fController, "$f$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(jController, "$j$", "function of u, v, w, q, x, y, t");
+      break;
+    case 9:
+      // 4SpeciesCrossDiffusionAlgebraicW.
+      // Show v,w,q panels.
+      showVGUIPanels();
+      showWGUIPanels();
+      showQGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV controller.
+      hideGUIController(algebraicVController);
+      // Show the algebraicW and algebriacQ controllers.
+      showGUIController(algebraicWController);
+      showGUIController(algebraicQController);
+      
+      // Configure the controller names.
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, q, x, y, t"
+      );
+      setGUIControllerName(
+        DqqController,
+        "$D_{qq}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, q, x, y, t");
+      setGUIControllerName(jController, "$j$", "function of u, v, w, q, x, y, t");
+      break;
+    case 10:
+      // 4SpeciesCrossDiffusionAlgebraicQ.
+      // Show v,w,q panels.
+      showVGUIPanels();
+      showWGUIPanels();
+      showQGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV controller.
+      hideGUIController(algebraicVController);
+      // Show the algebraicW and algebriacQ controllers.
+      showGUIController(algebraicWController);
+      showGUIController(algebraicQController);
+      
+      // Configure the controller names.
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DqqController,
+        "$D_{qq}$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(jController, "$j$", "function of u, v, w, x, y, t");
+      break;
+    case 11:
+      // 4SpeciesCrossDiffusionAlgebraicWQ.
+      // Show v,w,q panels.
+      showVGUIPanels();
+      showWGUIPanels();
+      showQGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV controller.
+      hideGUIController(algebraicVController);
+      // Show the algebraicW and algebriacQ controllers.
+      showGUIController(algebraicWController);
+      showGUIController(algebraicQController);
+      
+      // Configure the controller names.
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, q, x, y, t"
+      );
+      setGUIControllerName(
+        DqqController,
+        "$D_{qq}$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, q, x, y, t");
+      setGUIControllerName(jController, "$j$", "function of u, v, w, x, y, t");
       break;
   }
   if (options.domainViaIndicatorFun) {
