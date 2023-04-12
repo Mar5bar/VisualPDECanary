@@ -178,13 +178,8 @@ canvas {
     right: 3px;
 }
 
-#back {
-    top: 0px;
-    left: 3px;
-}
-
 #equations {
-    top: 50px;
+    top: 0px;
     left: 3px;
 }
 

@@ -303,11 +303,9 @@ console.error = function (error) {
   $("#error").one("click", () => fadeout("#error"));
 };
 
-// Remove the back button if we're from an internal link.
+// Remove the logo if we're from an internal link.
 if (!fromExternalLink()) {
-  $("#back").hide();
-  // Shift up the other buttons on the left.
-  $("#equations").css("top", "-=50");
+  $("#logo").hide();
 }
 
 // Arbitrarily choose to first read from the "B" texture, noting that we will
@@ -397,17 +395,6 @@ $("#warning_restart").click(function () {
 $("#screenshot").click(function () {
   takeAScreenshot = true;
   render();
-});
-
-$("#back").click(function () {
-  // If the user arrived by typing in a URL or from an external link, have this button
-  // point to the visualPDE homepage.
-  if (fromExternalLink()) {
-    window.location.href = window.location.origin;
-  } else {
-    // Otherwise, simply take them back a page.
-    history.back();
-  }
 });
 
 // Begin the simulation.
