@@ -10,7 +10,7 @@ A reaction–diffusion system heavily studied for its complex dynamics is the Gr
 
 $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+u^2v - (a+b)u,\\ \pd{v}{t}&=D_v\nabla^2v-u^2v + a(1 - v),\end{aligned}$$
 
-where we take $D_v=2$ and only vary $a,b>0$. This model has a wide range of behaviours, as described in detail [here](http://www.mrob.com/pub/comp/xmorphia/index.html), or shown [in a WebGL simulator](https://pmneila.github.io/jsexp/grayscott/).
+where we take $D_v=2$ and only vary $a,b>0$. This model has a [wide range of behaviours](http://www.mrob.com/pub/comp/xmorphia/index.html), or shown [in a WebGL simulator](https://pmneila.github.io/jsexp/grayscott/) which partially inspired VisualPDE.
 
 * Load the [interactive simulation](/sim/?preset=GrayScott) to explore the system.
 
