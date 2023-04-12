@@ -21,7 +21,7 @@ Soon, we'll be adding a readily accessible **Share Sheet** that makes sharing ev
 ### How do I take a pretty screenshot without all the user interface showing up?
 Screenshots are simple in VisualPDE. Simply press {{ layout.screenshot }} to download a screenshot to your device (you might have to approve downloads from VisualPDE.com to do this).
 
-### How do I cite VisualPDE in my article?!
+### How do I cite VisualPDE in my article?
 We're currently preparing a manuscript that you'll be able to cite - watch this space!
 
 ## Dealing with errors
@@ -48,7 +48,7 @@ If the issue is persistent and you're confident that you've followed all the ste
 ### How do I report an issue? <a id='error'>
 VisualPDE is unlikely to be perfect. Sometimes, you might encounter one of these imperfections (e.g. a part of the user interface doing something strange, or the simulations not working on your device). If you encounter an issue that can't be resolved using the [User Guide](/user-guide), we'd love to hear from you at [bugs@visualpde.com](mailto:bugs@visualpde.com).
 
-If you can, it will help us a lot if you could click <span class='click_sequence'>{{ layout.settings }} → **Misc.** → **Debug** → **Copy debug**</span>, and paste the contents into the email. This will contain information about your current configuration that will help us improve VisualPDE.
+If you can, it will help us a lot if you could click <span class='click_sequence'>{{ layout.settings }} → **Misc.** → **Debug** → **Copy debug**</span> and paste the contents into the email. This will contain information about your current configuration that will help us improve VisualPDE.
 
 ## Extending
 
