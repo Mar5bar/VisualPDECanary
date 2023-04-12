@@ -23,7 +23,6 @@ canvas {
     width: 100vw;
     height: 100vh;
     height: 100dvh;
-    outline: 2px black solid;
 }
 
 .prevent-select {
@@ -155,7 +154,7 @@ canvas {
 }
 
 #settings {
-    top: 170px;
+    top: 0px;
     right: 3px;
 }
 
@@ -190,7 +189,7 @@ canvas {
 }
 
 #help {
-    top: 0px;
+    top: 170px;
     right: 3px;
 }
 
@@ -391,16 +390,24 @@ p, .label  {
     text-align: center;
 }
 
-.time {
+.dataContainer {
     display: none;
     position: absolute;
     bottom: 20px;
-    height: 20px;
     right: 20px;
+    text-align: right;
+}
+
+.dataItem {
+    position: relative;
+    margin-left: auto;
+    margin-right: 0;
+    display: block;
+    height: 20px;
+    width: fit-content;
     border: 4px solid #000;
     border-radius: 5px;
     background-color: #000;
-    vertical-align: middle;
 }
 
 .timeLabel {
@@ -411,18 +418,6 @@ p, .label  {
     font-size: 1rem;
     font-variant-numeric: tabular-nums;
     color: #fff;
-}
-
-.integral {
-    display: none;
-    position: absolute;
-    bottom: 20px;
-    height: 20px;
-    left: 20px;
-    border: 4px solid #000;
-    border-radius: 5px;
-    background-color: #000;
-    vertical-align: middle;
 }
 
 .integralLabel {
@@ -437,10 +432,6 @@ p, .label  {
 
 sup {
     line-height: 0;
-}
-
-.secondRowUI {
-    bottom: 50px !important;
 }
 
 #logo{

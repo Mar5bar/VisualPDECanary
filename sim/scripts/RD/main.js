@@ -13,6 +13,7 @@ let basicMaterial,
   displayMaterial,
   drawMaterial,
   simMaterial,
+  dirichletMaterial,
   clearMaterial,
   copyMaterial,
   postMaterial,
@@ -92,7 +93,12 @@ let leftGUI,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning, isDrawing, hasDrawn, lastBadParam;
+let isRunning,
+  isDrawing,
+  hasDrawn,
+  lastBadParam,
+  anyDirichletBCs,
+  nudgedUp = false;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
 let parametersFolder,
@@ -159,6 +165,7 @@ import {
   RDShaderAlgebraicV,
   RDShaderAlgebraicW,
   RDShaderAlgebraicQ,
+  RDShaderEnforceDirichletTop,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
@@ -536,6 +543,11 @@ function init() {
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
   });
+  // A material for enforcing Dirichlet conditions.
+  dirichletMaterial = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: genericVertexShader(),
+  });
 
   createDisplayDomains();
 
@@ -803,9 +815,6 @@ function resizeTextures() {
 function initUniforms() {
   // Initialise the uniforms to be passed to the shaders.
   uniforms = {
-    boundaryValues: {
-      type: "v2",
-    },
     brushCoords: {
       type: "v2",
       value: new THREE.Vector2(0.5, 0.5),
@@ -1000,6 +1009,7 @@ function initGUI(startOpen) {
         configureOptions();
         configureGUI();
         setRDEquations();
+        setPostFunFragShader();
       });
   }
   if (inGUI("domainIndicatorFun")) {
@@ -1079,12 +1089,6 @@ function initGUI(startOpen) {
       .name("Algebraic q")
       .onChange(updateProblem);
   }
-  if (inGUI("typesetCustomEqs")) {
-    root
-      .add(options, "typesetCustomEqs")
-      .name("Typeset")
-      .onChange(setEquationDisplayType);
-  }
 
   // Let's put these in the left GUI.
   // Definitions folder.
@@ -1092,6 +1096,12 @@ function initGUI(startOpen) {
     root = leftGUI.addFolder("Definitions");
   } else {
     root = genericOptionsFolder;
+  }
+  if (inGUI("typesetCustomEqs")) {
+    root
+      .add(options, "typesetCustomEqs")
+      .name("Typeset")
+      .onChange(setEquationDisplayType);
   }
   if (inGUI("diffusionStrUU")) {
     DuuController = root
@@ -1490,9 +1500,9 @@ function initGUI(startOpen) {
   if (inGUI("plotType")) {
     root
       .add(options, "plotType", {
-        "1D (Line)": "line",
-        "2D (Plane)": "plane",
-        "2D (Surface)": "surface",
+        Line: "line",
+        Plane: "plane",
+        Surface: "surface",
       })
       .name("Plot type")
       .onChange(function () {
@@ -1747,6 +1757,8 @@ function animate() {
 
   // Only timestep if the simulation is running.
   if (isRunning) {
+    // Ensure that any Dirichlet BCs are satisfied before timestepping (required due to brushes/init condition).
+    anyDirichletBCs ? enforceDirichlet() : {};
     // Perform a number of timesteps per frame.
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
       timestep();
@@ -1891,6 +1903,24 @@ function timestep() {
   readFromTextureB = !readFromTextureB;
 
   simDomain.material = simMaterial;
+  uniforms.textureSource.value = inTex.texture;
+  renderer.setRenderTarget(outTex);
+  renderer.render(simScene, simCamera);
+  uniforms.textureSource.value = outTex.texture;
+}
+
+function enforceDirichlet() {
+  // Enforce any Dirichlet boundary conditions.
+  if (readFromTextureB) {
+    inTex = simTextureB;
+    outTex = simTextureA;
+  } else {
+    inTex = simTextureA;
+    outTex = simTextureB;
+  }
+  readFromTextureB = !readFromTextureB;
+
+  simDomain.material = dirichletMaterial;
   uniforms.textureSource.value = inTex.texture;
   renderer.setRenderTarget(outTex);
   renderer.render(simScene, simCamera);
@@ -2461,6 +2491,119 @@ function setRDEquations() {
     RDShaderBot(),
   ].join(" ");
   simMaterial.needsUpdate = true;
+
+  // We will use a shader to enforce Dirichlet BCs before each timestep, but only if some Dirichlet
+  // BCs have been specified.
+  checkForAnyDirichletBCs();
+  if (anyDirichletBCs) {
+    dirichletShader = RDShaderEnforceDirichletTop() + kineticStr;
+    if (options.domainViaIndicatorFun) {
+      let str = RDShaderDirichletIndicatorFun()
+        .replace(/indicatorFun/g, parseShaderString(options.domainIndicatorFun))
+        .replace(/updated/g, "gl_FragColor");
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "u") +
+        parseShaderString(options.dirichletStrU) +
+        ";\n}\n";
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "v") +
+        parseShaderString(options.dirichletStrV) +
+        ";\n}\n";
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "w") +
+        parseShaderString(options.dirichletStrW) +
+        ";\n}\n";
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "q") +
+        parseShaderString(options.dirichletStrQ) +
+        ";\n}\n";
+    } else {
+      if (options.boundaryConditionsU == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "u"
+          ) +
+          parseShaderString(options.dirichletStrU) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "u"
+            ) +
+            parseShaderString(options.dirichletStrU) +
+            ";\n}\n";
+        }
+      }
+      if (options.boundaryConditionsV == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "v"
+          ) +
+          parseShaderString(options.dirichletStrV) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "v"
+            ) +
+            parseShaderString(options.dirichletStrV) +
+            ";\n}\n";
+        }
+      }
+      if (options.boundaryConditionsW == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "w"
+          ) +
+          parseShaderString(options.dirichletStrW) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "w"
+            ) +
+            parseShaderString(options.dirichletStrW) +
+            ";\n}\n";
+        }
+      }
+      if (options.boundaryConditionsQ == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "q"
+          ) +
+          parseShaderString(options.dirichletStrQ) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "q"
+            ) +
+            parseShaderString(options.dirichletStrQ) +
+            ";\n}\n";
+        }
+      }
+    }
+    dirichletShader += "}";
+    dirichletMaterial.fragmentShader = dirichletShader;
+    dirichletMaterial.needsUpdate = true;
+  }
+}
+
+function checkForAnyDirichletBCs() {
+  anyDirichletBCs =
+    options.domainViaIndicatorFun ||
+    options.boundaryConditionsU == "dirichlet" ||
+    options.boundaryConditionsV == "dirichlet" ||
+    options.boundaryConditionsW == "dirichlet" ||
+    options.boundaryConditionsQ == "dirichlet";
 }
 
 function parseRobinRHS(string, species) {
@@ -2987,13 +3130,14 @@ function setPostFunFragShader() {
   );
   shaderStr += kineticStr;
   shaderStr += computeDisplayFunShaderMid();
-  postMaterial.fragmentShader =
-    setDisplayFunInShader(shaderStr) +
-    postShaderDomainIndicator().replace(
+  shaderStr = setDisplayFunInShader(shaderStr);
+  if (options.domainViaIndicatorFun) {
+    shaderStr += postShaderDomainIndicator().replace(
       /indicatorFun/g,
       parseShaderString(options.domainIndicatorFun)
-    ) +
-    postGenericShaderBot();
+    );
+  }
+  postMaterial.fragmentShader = shaderStr + postGenericShaderBot();
   postMaterial.needsUpdate = true;
 }
 
@@ -3369,6 +3513,7 @@ function configureGUI() {
   configureColourbar();
   configureTimeDisplay();
   configureIntegralDisplay();
+  configureDataContainer();
   // Show/hide/modify GUI elements that depend on dimension.
   options.plotType == "line"
     ? hideGUIController(typeOfBrushController)
@@ -3721,7 +3866,7 @@ function setEquationDisplayType() {
     while (str != (str = str.replace(regex, ")")));
 
     // Look through the string for any empty divergence operators, and remove them if so.
-    regex = /\\vnabla \\cdot\(\s*\)/g;
+    regex = /\\vnabla\s*\\cdot\s*\(\s*\)/g;
     str = str.replaceAll(regex, "");
 
     // Look through the string for any = +, and remove the +.
@@ -4039,6 +4184,7 @@ function configureTimeDisplay() {
   } else {
     $("#timeDisplay").hide();
   }
+  orderTimeIntegralDisplays();
 }
 
 function updateTimeDisplay() {
@@ -4064,6 +4210,24 @@ function configureIntegralDisplay() {
   } else {
     $("#integralDisplay").hide();
   }
+  orderTimeIntegralDisplays();
+}
+
+function configureDataContainer() {
+  // Show the dataContainer element, ready for showing any data. Doing it this way prevents
+  // it flashing on load.
+  $("#dataContainer").show();
+}
+
+function nudgeUIUp(id, num) {
+  $(id).css("bottom", "");
+  $(id).css("bottom", "+=" + num.toString());
+}
+
+function orderTimeIntegralDisplays() {
+  options.integrate & options.timeDisplay
+    ? nudgeUIUp("#timeDisplay", 10)
+    : nudgeUIUp("#timeDisplay", 0);
 }
 
 function updateIntegralDisplay() {
@@ -4104,23 +4268,26 @@ function fillBuffer() {
 }
 
 function checkColorbarPosition() {
-  if (options.colourbar) {
+  // If there's a potential overlap of the data display and the colourbar, move the former up.
+  if (options.colourbar & (options.integrate | options.time)) {
     let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
-    if (options.integrate) {
-      let integralDims = $("#integralDisplay")[0].getBoundingClientRect();
-      if (colourbarDims.left <= integralDims.left + integralDims.width) {
-        $("#colourbar").addClass("secondRowUI");
-        return;
+    let bottomElm;
+    options.integrate
+      ? (bottomElm = $("#integralDisplay")[0])
+      : (bottomElm = $("#timeDisplay")[0]);
+    let bottomDims = bottomElm.getBoundingClientRect();
+    // If the colour overlaps the bottom element (or is above it and would otherwise overlap).
+    if (colourbarDims.right >= bottomDims.left) {
+      if (colourbarDims.top <= bottomDims.bottom) {
+        nudgeUIUp("#dataContainer", 40);
+        nudgedUp = true;
+      }
+    } else {
+      if (nudgedUp) {
+        nudgeUIUp("#dataContainer", 0);
+        nudgedUp = false;
       }
     }
-    if (options.timeDisplay) {
-      let timeDims = $("#timeDisplay")[0].getBoundingClientRect();
-      if (colourbarDims.left + colourbarDims.width >= timeDims.left) {
-        $("#colourbar").addClass("secondRowUI");
-        return;
-      }
-    }
-    $("#colourbar").removeClass("secondRowUI");
   }
 }
 
@@ -4175,7 +4342,7 @@ function getReservedStrs() {
   // Load an RD shader and find floats, vecs, and ivecs.
   let regex = /(?:float|vec\d|ivec\d)\b\s+(\w+)\b/g;
   let str = RDShaderTop() + RDShaderUpdateCross();
-  return [...str.matchAll(regex)].map((x) => x[1]).concat(["u","v","w","q"]);
+  return [...str.matchAll(regex)].map((x) => x[1]).concat(["u", "v", "w", "q"]);
 }
 
 function usingReservedNames() {
@@ -4254,6 +4421,9 @@ function configurePlotType() {
     setBrushType();
     refreshGUI(rightGUI);
   }
+  options.plotType == "surface"
+    ? $("#simCanvas").css("outline", "2px #000 solid")
+    : $("#simCanvas").css("outline", "");
   configureCameraAndClicks();
   configureGUI();
 }

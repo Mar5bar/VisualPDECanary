@@ -9,7 +9,6 @@ export function RDShaderTop() {
     uniform float dy;
     uniform float L;
     uniform float t;
-    uniform vec2 boundaryValues;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
     const float pi = 3.141592653589793;
@@ -164,4 +163,58 @@ export function RDShaderBot() {
     return ` 
     gl_FragColor = updated;
 }`;
+}
+
+export function RDShaderEnforceDirichletTop() {
+    return `precision highp float;
+    varying vec2 textureCoords;
+    uniform sampler2D textureSource;
+    uniform float dx;
+    uniform float dy;
+    uniform float L;
+    uniform float t;
+    uniform sampler2D imageSourceOne;
+    uniform sampler2D imageSourceTwo;
+    const float pi = 3.141592653589793;
+
+    float H(float val, float edge) 
+    {
+        float res = smoothstep(-0.01, 0.01, val - edge);
+        return res;
+    }
+
+    float safepow(float x, float y) {
+        if (x >= 0.0) {
+            return pow(x,y);
+        }
+        if (mod(round(y),2.0) == 0.0) {
+            return pow(-x,y);
+        }
+        return -pow(-x,y);
+    }
+
+    void main()
+    {
+        ivec2 texSize = textureSize(textureSource,0);
+        float step_x = 1.0 / float(texSize.x);
+        float step_y = 1.0 / float(texSize.y);
+        float x = textureCoords.x * float(texSize.x) * dx;
+        float y = textureCoords.y * float(texSize.y) * dy;
+
+        vec4 uvwq = texture2D(textureSource, textureCoords);
+        gl_FragColor = uvwq;
+
+        vec4 Svec = texture2D(imageSourceOne, textureCoords);
+        float S = (Svec.x + Svec.y + Svec.z) / 3.0;
+        float SR = Svec.r;
+        float SG = Svec.g;
+        float SB = Svec.b;
+        float SA = Svec.a;
+        vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
+        float T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
+        float TR = Tvec.r;
+        float TG = Tvec.g;
+        float TB = Tvec.b;
+        float TA = Tvec.a;
+    `
 }
