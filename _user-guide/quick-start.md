@@ -33,7 +33,7 @@ The following **boundary conditions** are available to allow you to set the valu
 * Periodic
 * [Dirichlet](https://en.wikipedia.org/wiki/Dirichlet_boundary_condition) (e.g. $u\onboundary = 0$)
 * [Neumann](https://en.wikipedia.org/wiki/Neumann_boundary_condition) (e.g. $\pd{u}{n}\onboundary = 0$)
-* [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition) (e.g. $(u + \pd{u}{n})\|\onboundary = 0$)
+* [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition) (e.g. $(u + \pd{u}{n})\onboundary = 0$)
 
 You can swap between boundary conditions by choosing <span class='click_sequence'>{{ layout.equations }} → **Boundary conditions**</span> and selecting from the list for each variable.
 
