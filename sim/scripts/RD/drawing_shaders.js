@@ -7,8 +7,8 @@ export function drawShaderTop() {
 	  uniform sampler2D imageSourceTwo;
     uniform vec2 brushCoords;
     uniform float brushRadius;
-    uniform float domainWidth;
-    uniform float domainHeight;
+    uniform float Lx;
+    uniform float Ly;
     uniform float seed;
     uniform float t;
     uniform float dx;
@@ -49,15 +49,15 @@ export function drawShaderTop() {
 }
 
 export function discShader() {
-  return `if (length(diff * vec2(domainWidth, domainHeight)) <= brushRadius) {`;
+  return `if (length(diff * vec2(Lx, Ly)) <= brushRadius) {`;
 }
 
 export function vLineShader() {
-  return `if (domainWidth * length(diff.x) <= brushRadius) {`;
+  return `if (Lx * length(diff.x) <= brushRadius) {`;
 }
 
 export function hLineShader() {
-  return `if (domainHeight * length(diff.y) <= brushRadius) {`;
+  return `if (Ly * length(diff.y) <= brushRadius) {`;
 }
 
 export function drawShaderBot() {

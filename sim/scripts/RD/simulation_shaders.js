@@ -7,7 +7,8 @@ export function RDShaderTop() {
     uniform float dt;
     uniform float dx;
     uniform float dy;
-    uniform float L;
+    uniform float Lx;
+    uniform float Ly;
     uniform float t;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
@@ -171,7 +172,8 @@ export function RDShaderEnforceDirichletTop() {
     uniform sampler2D textureSource;
     uniform float dx;
     uniform float dy;
-    uniform float L;
+    uniform float Lx;
+    uniform float Ly;
     uniform float t;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;

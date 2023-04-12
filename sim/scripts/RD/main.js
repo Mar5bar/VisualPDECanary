@@ -661,8 +661,8 @@ function roundBrushSizeToPix() {
 
 function updateUniforms() {
   uniforms.brushRadius.value = options.brushRadius;
-  uniforms.domainHeight.value = domainHeight;
-  uniforms.domainWidth.value = domainWidth;
+  uniforms.Ly.value = domainHeight;
+  uniforms.Lx.value = domainWidth;
   uniforms.dt.value = options.dt;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
@@ -687,8 +687,8 @@ function computeCanvasSizesAndAspect() {
     domainWidth = options.domainScale;
     domainHeight = domainWidth * aspectRatio;
   }
-  uniforms.domainHeight.value = domainHeight;
-  uniforms.domainWidth.value = domainWidth;
+  uniforms.Lx.value = domainWidth;
+  uniforms.Ly.value = domainHeight;
   maxDim = Math.max(domainWidth, domainHeight);
 }
 
@@ -830,10 +830,10 @@ function initUniforms() {
       type: "v4",
       value: new THREE.Vector4(1, 1, 1, 0.6),
     },
-    domainHeight: {
+    Lx: {
       type: "f",
     },
-    domainWidth: {
+    Ly: {
       type: "f",
     },
     dt: {

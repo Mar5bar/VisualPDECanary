@@ -7,6 +7,8 @@ export function clearShaderTop() {
     uniform sampler2D imageSourceTwo;
     uniform float dx;
     uniform float dy;
+    uniform float Lx;
+    uniform float Ly;
     uniform int nXDisc;
     uniform int nYDisc;
     uniform float seed;

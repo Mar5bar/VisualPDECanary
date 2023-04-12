@@ -6,6 +6,8 @@ export function computeDisplayFunShaderTop() {
     const float pi = 3.141592653589793;
     uniform float dx;
     uniform float dy;
+    uniform float Lx;
+    uniform float Ly;
     uniform float t;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
