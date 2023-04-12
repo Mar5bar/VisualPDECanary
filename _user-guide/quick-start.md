@@ -57,7 +57,7 @@ $$\begin{aligned}
 \begin{aligned}
     &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w+D_{wq}\vnabla q) + h \vphantom{\displaystyle\pd{w}{t}}, \\
     &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{wq}\vnabla q) + h,
-\end{aligned}
+\end{aligned}\\
 \text{or}\left\{\begin{matrix}\displaystyle\pd{q}{t} \\ q\end{matrix}\right. & 
 \begin{aligned}
     &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w+D_{qq}\vnabla q) + j \vphantom{\displaystyle\pd{q}{t}}, \\
