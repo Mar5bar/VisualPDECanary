@@ -586,26 +586,26 @@ export function getPreset(id) {
         preset: "GrayScott",
       };
       break;
-   case "GrayScottGliders":
-	options = {
-	"clearValueU": "0",
-	"clearValueV": "1",
-	"diffusionStrUU": "1",
-	"diffusionStrVV": "2",
-	"diffusionStrWW": "0",
-	"domainScale": 1000,
-	"kineticParams": "a=0.014;b=0.054;",
-	"maxColourValue": 0.5,
-	"minColourValue": 0,
-	"preset": "GrayScottGliders",
-	"reactionStrU": "u^2*v - (a+b)*u",
-	"reactionStrV": "-u^2*v + a*(1 - v)",
-	"reactionStrW": "0",
-	"spatialStep": 3,
-	"whatToDraw": "u",
-	"whatToPlot": "u",
-};
-break;
+    case "GrayScottGliders":
+      options = {
+        clearValueU: "0",
+        clearValueV: "1",
+        diffusionStrUU: "1",
+        diffusionStrVV: "2",
+        diffusionStrWW: "0",
+        domainScale: 1000,
+        kineticParams: "a=0.014;b=0.054;",
+        maxColourValue: 0.5,
+        minColourValue: 0,
+        preset: "GrayScottGliders",
+        reactionStrU: "u^2*v - (a+b)*u",
+        reactionStrV: "-u^2*v + a*(1 - v)",
+        reactionStrW: "0",
+        spatialStep: 3,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
     case "ImmunotherapyModel":
       options = {
         brushValue: "2",
@@ -971,6 +971,28 @@ break;
         whatToPlot: "u",
       };
       break;
+    case "Sofya":
+      options = {
+        brushRadius: "2",
+        diffusionStrUU: "0.042",
+        diffusionStrVV: "0.5",
+        diffusionStrWW: "0",
+        dt: 0.001,
+        maxColourValue: 2.3,
+        numTimestepsPerFrame: 200,
+        preset: "Sofya",
+        renderSize: 652,
+        reactionStrU: "(1-S) - u + u^2*v",
+        reactionStrV: "1 - u^2*v",
+        reactionStrW: "0",
+        showAllOptionsOverride: true,
+        spatialStep: 0.2,
+        squareCanvas: true,
+        suppressTryClickingPopup: true,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
     case "Alan":
       options = {
         boundaryConditionsU: "periodic",
@@ -980,12 +1002,11 @@ break;
         diffusionStrVV: "2",
         domainScale: 100,
         dt: 0.001,
-        imagePathOne: "./images/Alan.png",
         maxColourValue: 2.3,
         numTimestepsPerFrame: 200,
         preset: "Alan",
         renderSize: 652,
-        reactionStrU: "(1-S) - u + u^2*v",
+        reactionStrU: "(1-T) - u + u^2*v",
         reactionStrV: "1 - u^2*v",
         showAllOptionsOverride: true,
         spatialStep: 0.2,
@@ -1476,7 +1497,7 @@ break;
         dt: 0.1,
         fixRandSeed: false,
         forceManualInterpolation: false,
-        imagePathOne: "./images/Alan.png",
+        imagePathOne: "./images/Sofya.png",
         imagePathTwo: "./images/Alan.png",
         integrate: false,
         kineticParams: "",

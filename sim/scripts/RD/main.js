@@ -1512,6 +1512,12 @@ function initGUI(startOpen) {
       .name("Zoom")
       .onChange(configureCameraAndClicks);
   }
+  if (inGUI("forceManualInterpolation")) {
+    forceManualInterpolationController = root
+      .add(options, "forceManualInterpolation")
+      .name("Man. smooth")
+      .onChange(configureManualInterpolation);
+  }
   if (inGUI("Smoothing scale")) {
     smoothingScaleController = root
       .add(options, "smoothingScale", 0, 16, 1)
@@ -1520,12 +1526,6 @@ function initGUI(startOpen) {
         resizeTextures();
         render();
       });
-  }
-  if (inGUI("forceManualInterpolation")) {
-    forceManualInterpolationController = root
-      .add(options, "forceManualInterpolation")
-      .name("Man. smooth")
-      .onChange(configureManualInterpolation);
   }
 
   // Colour folder.
