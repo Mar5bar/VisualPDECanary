@@ -252,41 +252,6 @@ funsObj = {
     });
     navigator.clipboard.writeText(str);
   },
-  debugSmallSquare: function () {
-    $("#simCanvas").css("width", "200px");
-    $("#simCanvas").css("height", "200px");
-    resize();
-  },
-  debugSmallRect: function () {
-    $("#simCanvas").css("width", "200px");
-    $("#simCanvas").css("height", "400px");
-    resize();
-  },
-  debugTallRect: function () {
-    $("#simCanvas").css("width", "200px");
-    $("#simCanvas").css("height", "600px");
-    resize();
-  },
-  debugTallerRect: function () {
-    $("#simCanvas").css("width", "200px");
-    $("#simCanvas").css("height", "800px");
-    resize();
-  },
-  debugWideRect: function () {
-    $("#simCanvas").css("width", "400px");
-    $("#simCanvas").css("height", "600px");
-    resize();
-  },
-  debugHundredTall: function () {
-    $("#simCanvas").css("width", "400px");
-    $("#simCanvas").css("height", "100%");
-    resize();
-  },
-  debugHundredVHTall: function () {
-    $("#simCanvas").css("width", "400px");
-    $("#simCanvas").css("height", "100vh");
-    resize();
-  },
 };
 
 // Get the canvas to draw on, as specified by the html.
@@ -1669,29 +1634,6 @@ function initGUI(startOpen) {
   }
   let debugFolder = root.addFolder("Debug");
   root = debugFolder;
-  root.add(funsObj, "debugSmallSquare").name("SmallSquare");
-  root.add(funsObj, "debugSmallRect").name("SmallRect");
-  root.add(funsObj, "debugTallRect").name("TallRect");
-  root.add(funsObj, "debugTallerRect").name("TallerRect");
-  root.add(funsObj, "debugWideRect").name("WideRect");
-  root.add(funsObj, "debugHundredTall").name("HundredTall");
-  root.add(funsObj, "debugHundredVHTall").name("HundredVHTall");
-  let test = { height: "100px", width: "100px" };
-  root
-    .add(test, "height")
-    .name("Height: ")
-    .onChange(function () {
-      $("#simCanvas").css("height", test.height);
-      resize();
-    });
-  root
-    .add(test, "width")
-    .name("Width: ")
-    .onChange(function () {
-      $("#simCanvas").css("width", test.width);
-      resize();
-    });
-
   if (inGUI("debug")) {
     // Debug.
     root.add(funsObj, "debug").name("Copy debug info");

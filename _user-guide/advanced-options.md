@@ -127,6 +127,9 @@ Copy a verbose description of your simulation in JSON form, which is especially 
 **Preset**\
 Select a preset from a long list of examples included in VisualPDE. This list is a subset of all the examples and will likely only be useful if you are wanting to quickly switch between many different examples.
 
+**Debug**\
+Select from a frequently updated list of available debugging tools. A permanent fixture is **Copy debug info**, which copies a selection of configuration information to your clipboard (handy when reporting bugs).
+
 ### Share your simulation <a id='copy-url'>
 **Copy URL**\
-Share a link to the simulation you have created. This copies the URL to your clipboard and includes all the settings, but not the current solution.
+Share a link to the simulation you have created. This copies the URL to your clipboard and includes all the settings, but not the current solution or any uploaded images.
