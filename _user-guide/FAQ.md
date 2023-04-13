@@ -9,7 +9,7 @@ extract: Unsure about something? Help is at hand
 ## Sharing and citing
 
 ### Am I allowed to make and share content using VisualPDE.com?
-Yes! We would love to see you making and sharing content using VisualPDE. We ask that any content you create somehow points back to [visualpde.com](https://visualpde.com) - a great way to do this is to share a link directly to your simulation! Feel free to use VisualPDE in articles, images, videos, scientific works, social media posts, etc. etc.
+Yes! We would love to see you making and sharing content using VisualPDE. We ask that any content you create somehow points back to [VisualPDE.com](https://visualpde.com) - a great way to do this is to share a link directly to your simulation! Feel free to use VisualPDE in articles, images, videos, scientific works, social media posts, etc. etc.
 
 ### I want to share my cool simulation - how do I do this? <a id="linkSharing">
 VisualPDE is designed for sharing. Whether you've fallen in love with one of our examples or you've crafted your own using the VisualPDE interface, you can share the current simulation using a link. Simply open the **Settings** menu using {{ layout.settings }} and click **Copy URL** at the bottom of the menu. This puts a URL on your clipboard that you can share anywhere by pasting! It's that easy!
