@@ -7,8 +7,9 @@ export function RDShaderTop() {
     uniform float dt;
     uniform float dx;
     uniform float dy;
-    uniform float Lx;
-    uniform float Ly;
+    uniform float L;
+    uniform float L_x;
+    uniform float L_y;
     uniform float t;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;

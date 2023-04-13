@@ -653,23 +653,14 @@ function configureCameraAndClicks() {
   setDomainOrientation();
 }
 
-function roundBrushSizeToPix() {
-  options.brushRadius =
-    Math.round(uniforms.brushRadius.value / options.spatialStep) *
-    options.spatialStep;
-  uniforms.brushRadius.value = options.brushRadius;
-  brushRadiusController.updateDisplay();
-}
-
 function updateUniforms() {
-  uniforms.brushRadius.value = options.brushRadius;
-  uniforms.Ly.value = domainHeight;
-  uniforms.Lx.value = domainWidth;
+  uniforms.L.value = options.domainScale;
+  uniforms.L_y.value = domainHeight;
+  uniforms.L_x.value = domainWidth;
   uniforms.dt.value = options.dt;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
   uniforms.heightScale.value = options.threeDHeightScale;
-  uniforms.L.value = options.domainScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
   if (!options.fixRandSeed) {
@@ -689,8 +680,8 @@ function computeCanvasSizesAndAspect() {
     domainWidth = options.domainScale;
     domainHeight = domainWidth * aspectRatio;
   }
-  uniforms.Lx.value = domainWidth;
-  uniforms.Ly.value = domainHeight;
+  uniforms.L_x.value = domainWidth;
+  uniforms.L_y.value = domainHeight;
   maxDim = Math.max(domainWidth, domainHeight);
 }
 
@@ -808,10 +799,6 @@ function initUniforms() {
       type: "v2",
       value: new THREE.Vector2(0.5, 0.5),
     },
-    brushRadius: {
-      type: "f",
-      value: options.domainScale / 100,
-    },
     colour1: {
       type: "v4",
       value: new THREE.Vector4(0, 0, 0.0, 0),
@@ -832,10 +819,13 @@ function initUniforms() {
       type: "v4",
       value: new THREE.Vector4(1, 1, 1, 0.6),
     },
-    Lx: {
+    L: {
       type: "f",
     },
-    Ly: {
+    L_x: {
+      type: "f",
+    },
+    L_y: {
       type: "f",
     },
     dt: {
@@ -937,8 +927,7 @@ function initGUI(startOpen) {
     brushRadiusController = root
       .add(options, "brushRadius")
       .name("Radius")
-      .onChange(updateUniforms);
-    brushRadiusController.min(0);
+      .onChange(setBrushType);
   }
   if (inGUI("whatToDraw")) {
     whatToDrawController = root
@@ -974,8 +963,7 @@ function initGUI(startOpen) {
       .name("Space step")
       .onChange(function () {
         resize();
-      })
-      .onFinishChange(roundBrushSizeToPix);
+      });
     dxController.__precision = 12;
     dxController.min(0);
     dxController.updateDisplay();
@@ -1784,6 +1772,10 @@ function setBrushType() {
     options.kineticParams.replace(regex, "float $1;\n")
   );
   let shaderStr = drawShaderTop() + kineticStr;
+  shaderStr +=
+    "float brushRadius = " +
+    parseShaderString(options.brushRadius.toString()) +
+    ";\n";
   if (options.typeOfBrush == "circle") {
     shaderStr += discShader();
   } else if (options.typeOfBrush == "hline") {
@@ -2690,6 +2682,9 @@ function loadOptions(preset) {
 
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
+
+  // Enable backwards compatibility.
+  options.brushRadius = options.brushRadius.toString();
 }
 
 function refreshGUI(folder) {
@@ -4226,6 +4221,7 @@ function setParamsFromKineticString() {
     options.kineticParams = "";
     setRDEquations();
     setClearShader();
+    setBrushType();
     updateWhatToPlot();
   }
 }
@@ -4236,6 +4232,7 @@ function setKineticStringFromParams() {
   if (!checkForReservedNames()) {
     setRDEquations();
     setClearShader();
+    setBrushType();
     updateWhatToPlot();
   }
 }
@@ -4655,7 +4652,10 @@ function setCameraPos() {
 function checkColourbarLogoCollision() {
   // If the logo and the colourbar overlap, remove the logo.
   if ($("#logo").is(":visible") & $("#colourbar").is(":visible")) {
-    if ($("#logo")[0].getBoundingClientRect().right >= $("#colourbar")[0].getBoundingClientRect().left) {
+    if (
+      $("#logo")[0].getBoundingClientRect().right >=
+      $("#colourbar")[0].getBoundingClientRect().left
+    ) {
       $("#logo").hide();
     }
   }

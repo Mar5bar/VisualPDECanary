@@ -6,9 +6,9 @@ export function drawShaderTop() {
 	  uniform sampler2D imageSourceOne;
 	  uniform sampler2D imageSourceTwo;
     uniform vec2 brushCoords;
-    uniform float brushRadius;
-    uniform float Lx;
-    uniform float Ly;
+    uniform float L;
+    uniform float L_x;
+    uniform float L_y;
     uniform float seed;
     uniform float t;
     uniform float dx;
@@ -49,7 +49,7 @@ export function drawShaderTop() {
 }
 
 export function discShader() {
-  return `if (length(diff * vec2(Lx, Ly)) <= brushRadius) {`;
+  return `if (length(diff * vec2(L_x, L_y)) <= brushRadius) {`;
 }
 
 export function vLineShader() {
