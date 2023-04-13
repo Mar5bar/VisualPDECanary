@@ -607,6 +607,8 @@ function resize() {
   replaceDisplayDomains();
   // Configure the camera.
   configureCameraAndClicks();
+  // Check if the colourbar lies on top of the logo. If so, remove the logo.
+  checkColourbarLogoCollision();
   render();
 }
 
@@ -3266,8 +3268,16 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, x, y, t");
-      setGUIControllerName(DvvController, "$D_{vv}$", "function of u, v, x, y, t");
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, x, y, t"
+      );
       setGUIControllerName(fController, "$f$", "function of u, v, x, y, t");
       setGUIControllerName(gController, "$g$", "function of u, v, x, y, t");
       break;
@@ -3290,7 +3300,11 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, x, y, t");
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, x, y, t"
+      );
       setGUIControllerName(fController, "$f$", "function of u, v, x, y, t");
       setGUIControllerName(gController, "$g$", "function of u, x, y, t");
       break;
@@ -3312,9 +3326,21 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_u$", "function of u, v, w, x, y, t");
-      setGUIControllerName(DvvController, "$D_v$", "function of u, v, w, x, y, t");
-      setGUIControllerName(DwwController, "$D_w$", "function of u, v, w, x, y, t");
+      setGUIControllerName(
+        DuuController,
+        "$D_u$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_v$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_w$",
+        "function of u, v, w, x, y, t"
+      );
       setGUIControllerName(fController, "$f$", "function of u, v, w, x, y, t");
       setGUIControllerName(gController, "$g$", "function of u, v, w, x, y, t");
       setGUIControllerName(hController, "$h$", "function of u, v, w, x, y, t");
@@ -3426,10 +3452,26 @@ function configureGUI() {
         "$D_{qq}$",
         "function of u, v, w, q, x, y, t"
       );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, q, x, y, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, q, x, y, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, w, q, x, y, t");
-      setGUIControllerName(jController, "$j$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(
+        fController,
+        "$f$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        gController,
+        "$g$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        hController,
+        "$h$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        jController,
+        "$j$",
+        "function of u, v, w, q, x, y, t"
+      );
       break;
     case 8:
       // 4SpeciesCrossDiffusion.
@@ -3445,7 +3487,7 @@ function configureGUI() {
       // Show the algebraicW and algebriacQ controllers.
       showGUIController(algebraicWController);
       showGUIController(algebraicQController);
-      
+
       // Configure the controller names.
       setGUIControllerName(
         DuuController,
@@ -3467,10 +3509,26 @@ function configureGUI() {
         "$D_{qq}$",
         "function of u, v, w, q, x, y, t"
       );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, q, x, y, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, q, x, y, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, w, q, x, y, t");
-      setGUIControllerName(jController, "$j$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(
+        fController,
+        "$f$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        gController,
+        "$g$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        hController,
+        "$h$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        jController,
+        "$j$",
+        "function of u, v, w, q, x, y, t"
+      );
       break;
     case 9:
       // 4SpeciesCrossDiffusionAlgebraicW.
@@ -3486,7 +3544,7 @@ function configureGUI() {
       // Show the algebraicW and algebriacQ controllers.
       showGUIController(algebraicWController);
       showGUIController(algebraicQController);
-      
+
       // Configure the controller names.
       setGUIControllerName(
         DuuController,
@@ -3508,10 +3566,22 @@ function configureGUI() {
         "$D_{qq}$",
         "function of u, v, w, q, x, y, t"
       );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, q, x, y, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(
+        fController,
+        "$f$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        gController,
+        "$g$",
+        "function of u, v, w, q, x, y, t"
+      );
       setGUIControllerName(hController, "$h$", "function of u, v, q, x, y, t");
-      setGUIControllerName(jController, "$j$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(
+        jController,
+        "$j$",
+        "function of u, v, w, q, x, y, t"
+      );
       break;
     case 10:
       // 4SpeciesCrossDiffusionAlgebraicQ.
@@ -3527,7 +3597,7 @@ function configureGUI() {
       // Show the algebraicW and algebriacQ controllers.
       showGUIController(algebraicWController);
       showGUIController(algebraicQController);
-      
+
       // Configure the controller names.
       setGUIControllerName(
         DuuController,
@@ -3549,9 +3619,21 @@ function configureGUI() {
         "$D_{qq}$",
         "function of u, v, w, x, y, t"
       );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, q, x, y, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, q, x, y, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(
+        fController,
+        "$f$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        gController,
+        "$g$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        hController,
+        "$h$",
+        "function of u, v, w, q, x, y, t"
+      );
       setGUIControllerName(jController, "$j$", "function of u, v, w, x, y, t");
       break;
     case 11:
@@ -3568,7 +3650,7 @@ function configureGUI() {
       // Show the algebraicW and algebriacQ controllers.
       showGUIController(algebraicWController);
       showGUIController(algebraicQController);
-      
+
       // Configure the controller names.
       setGUIControllerName(
         DuuController,
@@ -3590,8 +3672,16 @@ function configureGUI() {
         "$D_{qq}$",
         "function of u, v, w, x, y, t"
       );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, q, x, y, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, q, x, y, t");
+      setGUIControllerName(
+        fController,
+        "$f$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        gController,
+        "$g$",
+        "function of u, v, w, q, x, y, t"
+      );
       setGUIControllerName(hController, "$h$", "function of u, v, q, x, y, t");
       setGUIControllerName(jController, "$j$", "function of u, v, w, x, y, t");
       break;
@@ -4232,6 +4322,7 @@ function configureColourbar() {
     if (MathJax.typesetPromise != undefined) {
       MathJax.typesetPromise($("#midLabel"));
     }
+    checkColourbarLogoCollision();
     updateColourbarLims();
   } else {
     $("#colourbar").hide();
@@ -4559,4 +4650,13 @@ function setCameraPos() {
   );
   camera.position.set(pos.x, pos.y, pos.z);
   camera.lookAt(0, 0, 0);
+}
+
+function checkColourbarLogoCollision() {
+  // If the logo and the colourbar overlap, remove the logo.
+  if ($("#logo").is(":visible") & $("#colourbar").is(":visible")) {
+    if ($("#logo")[0].getBoundingClientRect().right >= $("#colourbar")[0].getBoundingClientRect().left) {
+      $("#logo").hide();
+    }
+  }
 }
