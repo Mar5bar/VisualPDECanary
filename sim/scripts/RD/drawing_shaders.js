@@ -28,6 +28,7 @@ export function drawShaderTop() {
     void main()
     {   
         vec4 uvwq = texture2D(textureSource, textureCoords);
+        vec4 uvwqBrush = texture2D(textureSource, brushCoords);
         gl_FragColor = uvwq;
         vec4 Svec = texture2D(imageSourceOne, textureCoords);
         float S = (Svec.x + Svec.y + Svec.z) / 3.0;

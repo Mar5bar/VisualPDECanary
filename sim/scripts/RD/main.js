@@ -1772,10 +1772,19 @@ function setBrushType() {
     options.kineticParams.replace(regex, "float $1;\n")
   );
   let shaderStr = drawShaderTop() + kineticStr;
-  shaderStr +=
+  let radiusStr =
     "float brushRadius = " +
     parseShaderString(options.brushRadius.toString()) +
     ";\n";
+
+  // If the radius string contains any references to u,v,w,q, replace them with references to the species at the
+  // brush centre, not the current pixel.
+  radiusStr = radiusStr.replace(/\buvwq\.\b/g, "uvwqBrush.");
+  radiusStr = radiusStr.replace(/\buvwq\.\b/g, "uvwqBrush.");
+  radiusStr = radiusStr.replace(/\buvwq\.\b/g, "uvwqBrush.");
+  radiusStr = radiusStr.replace(/\buvwq\.\b/g, "uvwqBrush.");
+
+  shaderStr += radiusStr;
   if (options.typeOfBrush == "circle") {
     shaderStr += discShader();
   } else if (options.typeOfBrush == "hline") {
