@@ -4385,6 +4385,7 @@ function formatLabelNum(num, depth) {
 function configureTimeDisplay() {
   if (options.timeDisplay) {
     $("#timeDisplay").show();
+    updateTimeDisplay();
   } else {
     $("#timeDisplay").hide();
   }
