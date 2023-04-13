@@ -43,6 +43,19 @@ export function drawShaderTop() {
         float TB = Tvec.b;
         float TA = Tvec.a;
 
+        vec4 SBrushvec = texture2D(imageSourceOne, brushCoords);
+        float SBrush = (SBrushvec.x + SBrushvec.y + SBrushvec.z) / 3.0;
+        float SBrushR = SBrushvec.r;
+        float SBrushG = SBrushvec.g;
+        float SBrushB = SBrushvec.b;
+        float SBrushA = SBrushvec.a;
+        vec4 TBrushvec = texture2D(imageSourceTwo, brushCoords);
+        float TBrush = (TBrushvec.x + TBrushvec.y + TBrushvec.z) / 3.0;
+        float TBrushR = TBrushvec.r;
+        float TBrushG = TBrushvec.g;
+        float TBrushB = TBrushvec.b;
+        float TBrushA = TBrushvec.a;
+
         ivec2 texSize = textureSize(textureSource,0);
         float x = textureCoords.x * float(texSize.x) * dx;
         float y = textureCoords.y * float(texSize.y) * dy;

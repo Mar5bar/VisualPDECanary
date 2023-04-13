@@ -1779,10 +1779,10 @@ function setBrushType() {
 
   // If the radius string contains any references to u,v,w,q, replace them with references to the species at the
   // brush centre, not the current pixel.
-  radiusStr = radiusStr.replace(/\buvwq\.\b/g, "uvwqBrush.");
-  radiusStr = radiusStr.replace(/\buvwq\.\b/g, "uvwqBrush.");
-  radiusStr = radiusStr.replace(/\buvwq\.\b/g, "uvwqBrush.");
-  radiusStr = radiusStr.replace(/\buvwq\.\b/g, "uvwqBrush.");
+  radiusStr = radiusStr.replace(/\buvwq\./g, "uvwqBrush.");
+  // If the radius string contains any references to S or T, replace them with references to the value at the
+  // brush centre, not the current pixel.
+  radiusStr = radiusStr.replace(/\b([ST])([RGBA]?)\b/g, "$1Brush$2");
 
   shaderStr += radiusStr;
   if (options.typeOfBrush == "circle") {
