@@ -4696,9 +4696,9 @@ function checkColourbarLogoCollision() {
 }
 
 function setLeftGUITop() {
-  document.getElementById("leftGUI").style.top =
-    document
-      .getElementById("equation_display_box")
-      .getBoundingClientRect()
-      .bottom.toString() + "px";
+  $("#leftGUI").css(
+    "top",
+    $("#equation_display_box")[0].getBoundingClientRect().bottom.toString() +
+      "px"
+  );
 }
