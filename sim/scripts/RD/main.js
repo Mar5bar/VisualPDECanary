@@ -4094,6 +4094,9 @@ function parseStringToTEX(str) {
   // Prepend \\ to any Greek character.
   str = substituteGreek(str);
 
+  // Alternate nested brackets between () and [].
+  str = alternateBrackets(str);
+
   return str;
 }
 
@@ -4103,7 +4106,14 @@ function replaceFunctionInTeX(str, func, withBrackets) {
   var newStr = str;
   var addedChars = 0;
   const matches = str.matchAll(new RegExp("\\b" + func + "\\b", "g"));
-  let funcInd, startInd, endInd, subStr, depth, foundBracket, ind, offset = 0;
+  let funcInd,
+    startInd,
+    endInd,
+    subStr,
+    depth,
+    foundBracket,
+    ind,
+    offset = 0;
   for (const match of matches) {
     funcInd = match.index;
     startInd = funcInd + func.length;
@@ -4135,7 +4145,7 @@ function replaceFunctionInTeX(str, func, withBrackets) {
         offset += 1;
       } else {
         newStr = replaceStrAtIndex(newStr, "{", startInd + offset);
-        console.log(endInd)
+        console.log(endInd);
         newStr = replaceStrAtIndex(newStr, "}", endInd + offset);
       }
     }
@@ -4143,8 +4153,33 @@ function replaceFunctionInTeX(str, func, withBrackets) {
   return newStr;
 }
 
+function alternateBrackets(str) {
+  // Given a string with balanced bracketing, loop nested brackets through (, [, {.
+  const openBrackets = ["(", "["];
+  const closeBrackets = [")", "]"];
+  let bracketInd = 0;
+  for (var ind = 0; ind < str.length; ind++) {
+    if (openBrackets.includes(str[ind])) {
+      str = replaceStrAtIndex(str, openBrackets[bracketInd], ind);
+      bracketInd += 1;
+      // Ensure that bracketInd is a valid index that loops through listToSub.
+      bracketInd = modulo(bracketInd, openBrackets.length);
+    } else if (closeBrackets.includes(str[ind])) {
+      bracketInd -= 1;
+      // Ensure that bracketInd is a valid index that loops through listToSub.
+      bracketInd = modulo(bracketInd, openBrackets.length);
+      str = replaceStrAtIndex(str, closeBrackets[bracketInd], ind);
+    }
+  }
+  return str;
+}
+
+function modulo(num, quot) {
+  return ((num % quot) + quot) % quot;
+}
+
 function replaceStrAtIndex(str, toSub, ind) {
-  return str.slice(0, ind) + toSub + str.slice(ind+1, str.length);
+  return str.slice(0, ind) + toSub + str.slice(ind + 1, str.length);
 }
 
 function insertStrAtIndex(str, toAdd, ind) {
