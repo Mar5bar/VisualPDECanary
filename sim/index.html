@@ -32,7 +32,11 @@
             },
             startup: {
                 pageReady() {
-                return MathJax.startup.defaultPageReady().then(setLeftGUITop);
+                return MathJax.startup.defaultPageReady().then(function() {
+                    $("#leftGUI").css("top",
+                    $("#equation_display_box")[0].getBoundingClientRect().bottom.toString() +
+                    "px");
+                });
                 }
             }
         };    

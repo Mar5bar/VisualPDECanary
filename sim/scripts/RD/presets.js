@@ -880,7 +880,7 @@ export function getPreset(id) {
         clearValueV: "0",
         crossDiffusion: true,
         diffusionStrUU: "C*D",
-        diffusionStrVU: "D*(1+E*sin(pi*m*x/100))*(1+E*sin(n*pi*y/100))",
+        diffusionStrVU: "D*(1+E*sin(pi*m*x/L_x))*(1+E*sin(n*pi*y/L_y))",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         domainScale: 100,
@@ -890,8 +890,7 @@ export function getPreset(id) {
         reactionStrU: "v",
         reactionStrV: "0",
         reactionStrW: "0",
-        spatialStep: 0.5,
-        squareCanvas: true,
+        spatialStep: 0.3,
         whatToPlot: "u",
       };
       break;
