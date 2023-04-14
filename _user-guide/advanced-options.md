@@ -64,7 +64,7 @@ Enable cross diffusion in systems with 2 or more species.
 Convert certain equations to algebraic form in systems with cross diffusion enabled.
 
 **Typeset**\
-VisualPDE will try to typeset your governing equations using the custom diffusion coefficients, parameters and interaction/kinetic terms. Terms will not be substituted if they are just constants that are not 0 or 1.
+VisualPDE will try to nicely typeset your governing equations using the custom diffusion coefficients, parameters and interaction/kinetic terms. Terms will not be substituted in if they are just constants that are not 0 or 1.
 
 ### Rendering <a id='rendering'>
 **Expression**\
