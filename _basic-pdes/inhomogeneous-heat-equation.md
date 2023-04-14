@@ -34,8 +34,8 @@ $$
 \pd{u}{t}= \vnabla\cdot(g(x,y)\vnabla u),
 $$
 
-where we need $g(x,y)>0$ for all $x,y$ in the domain. As a simple (though complicated-looking) example, we take,
+where we need $g(x,y)>0$ for all $x,y$ in the domain, which we now take to be a rectangle with side lengths $L_x$ and $L_y$. As a simple (though complicated-looking) example, we take,
 
-$$g(x,y) = D\left[1+E\cos\left(n \pi \sqrt{(x/L-0.5)^2+(y/L-0.5)^2}\right)\right],$$
+$$g(x,y) = D\left[1+E\cos\left(n \pi \sqrt{(x/L_x-0.5)^2+(y/L_y-0.5)^2}\right)\right],$$
 
 where $D>0$, $n>0$, and $\lvert E\rvert <1$ are constants. This represents radially-oscillating regions of high and low diffusion. Setting an initial condition of $$u(x,y,0)=1$$ and Dirichlet boundary conditions, we can observe an immediate partitioning of the initial heat into regions bounded by the maxima of the cosine function. Click [here](/sim/?preset=inhomogDiffusionHeatEquation) to see this, and play around with the values of $n$, $E$ and $D$.
