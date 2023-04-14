@@ -366,9 +366,6 @@ $("#screenshot").click(function () {
 // Begin the simulation.
 animate();
 
-// Set a timer that runs setLeftGUITop after 0.5s.
-setTimeout(setLeftGUITop,500);
-
 //---------------
 
 // Initialise all aspects of the site, including both the simulation and the GUI.
