@@ -4075,11 +4075,12 @@ function parseStringToTEX(str) {
   str = str.replaceAll(/-\s*\+/g, "-");
 
   // Replace common functions with commands.
-  str = str.replaceAll(/\bsin/g, "\\sin");
-  str = str.replaceAll(/\bcos/g, "\\cos");
-  str = str.replaceAll(/\btan/g, "\\tan");
-  str = str.replaceAll(/\bexp/g, "\\exp");
-  str = str.replaceAll(/\blog/g, "\\log");
+  str = replaceFunctionInTeX(str, "sin", true);
+  str = replaceFunctionInTeX(str, "cos", true);
+  str = replaceFunctionInTeX(str, "tan", true);
+  str = replaceFunctionInTeX(str, "exp", true);
+  str = replaceFunctionInTeX(str, "log", true);
+  str = replaceFunctionInTeX(str, "sqrt", false);
 
   // Remove *.
   str = str.replaceAll(/\*/g, " ");
@@ -4094,6 +4095,60 @@ function parseStringToTEX(str) {
   str = substituteGreek(str);
 
   return str;
+}
+
+function replaceFunctionInTeX(str, func, withBrackets) {
+  // Replace a function, like sqrt(expression), with \sqrt{expression} in str.
+  // withBrackets specifies whether or not we should include brackets in between {}.
+  var newStr = str;
+  var addedChars = 0;
+  const matches = str.matchAll(new RegExp("\\b" + func + "\\b", "g"));
+  let funcInd, startInd, endInd, subStr, depth, foundBracket, ind, offset = 0;
+  for (const match of matches) {
+    funcInd = match.index;
+    startInd = funcInd + func.length;
+    subStr = str.slice(startInd);
+    ind = 0;
+    depth = 0;
+    foundBracket = false;
+    // Try to find paired brackets.
+    while (
+      (ind <= subStr.length) &
+      (!foundBracket | !(foundBracket & (depth == 0)))
+    ) {
+      depth += ["(", "["].includes(subStr[ind]);
+      depth -= [")", "]"].includes(subStr[ind]);
+      foundBracket |= depth;
+      ind += 1;
+    }
+    // If we found correctly paired brackets, replace them. Otherwise, do nothing.
+    if (foundBracket && depth == 0) {
+      endInd = ind - 1 + startInd;
+      // Insert a backslash and record that we've added a character, which will shift all indices in newStr.
+      newStr = insertStrAtIndex(newStr, "\\", funcInd + offset);
+      offset += 1;
+      if (withBrackets) {
+        // Insert braces before and after brackets.
+        newStr = insertStrAtIndex(newStr, "{", startInd + offset);
+        offset += 1;
+        newStr = insertStrAtIndex(newStr, "}", endInd + 1 + offset);
+        offset += 1;
+      } else {
+        newStr = replaceStrAtIndex(newStr, "{", startInd + offset);
+        console.log(endInd)
+        newStr = replaceStrAtIndex(newStr, "}", endInd + offset);
+      }
+    }
+  }
+  return newStr;
+}
+
+function replaceStrAtIndex(str, toSub, ind) {
+  return str.slice(0, ind) + toSub + str.slice(ind+1, str.length);
+}
+
+function insertStrAtIndex(str, toAdd, ind) {
+  return str.slice(0, ind) + toAdd + str.slice(ind, str.length);
 }
 
 function removeWhitespace(str) {

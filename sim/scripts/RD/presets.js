@@ -853,7 +853,7 @@ export function getPreset(id) {
         boundaryConditionsU: "dirichlet",
         brushRadius: 5,
         clearValueU: "1",
-        diffusionStrUU: "D*(1+E*cos(n*pi*(sqrt((x/L_x-0.5)^2+(y/L_y-0.5)^2))))",
+        diffusionStrUU: "D*(1+E*cos(n*pi*sqrt((x/L_x-0.5)^2+(y/L_y-0.5)^2)))",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         domainScale: 100,
