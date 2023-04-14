@@ -343,6 +343,7 @@ $("#settings").click(function () {
 $("#equations").click(function () {
   $("#equation_display").toggle();
   $("#leftGUI").toggle();
+  setLeftGUITop();
 });
 $("#pause").click(function () {
   pauseSim();
@@ -4045,20 +4046,7 @@ function setEquationDisplayType() {
   }
   $("#typeset_equation").html(str);
   if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise();
-  }
-  // Set the height of the equation display.
-  $("#leftGUI").css("top", "");
-  $("#equation_display_box").css("height", "");
-  switch (parseInt(options.numSpecies)) {
-    case 3:
-      $("#leftGUI").css("top", "+=10");
-      $("#equation_display_box").css("height", "+=10");
-      break;
-    case 4:
-      $("#leftGUI").css("top", "+=40");
-      $("#equation_display_box").css("height", "+=40");
-      break;
+    MathJax.typesetPromise().then(setLeftGUITop);
   }
 }
 
@@ -4096,6 +4084,10 @@ function parseStringToTEX(str) {
 
   // Alternate nested brackets between () and [].
   str = alternateBrackets(str);
+
+  // Add \left and \right to brackets.
+  str = str.replaceAll(/[\(\[]/g, "\\left$&");
+  str = str.replaceAll(/[\)\]]/g, "\\right$&");
 
   return str;
 }
@@ -4701,4 +4693,12 @@ function checkColourbarLogoCollision() {
       $("#logo").hide();
     }
   }
+}
+
+function setLeftGUITop() {
+  $("#leftGUI").css(
+    "top",
+    $("#equation_display_box")[0].getBoundingClientRect().bottom.toString() +
+      "px"
+  );
 }

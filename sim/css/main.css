@@ -96,11 +96,13 @@ canvas {
     align-items: center;
     background-color: #ededed;
     color: black;
-    height: 85px;
+    height: fit-content;
     min-width: 238px;
     border-radius: 2px;
     padding-right:5px;
     padding-left:2px;
+    padding-top: 12px;
+    padding-bottom: 12px;
 }
 
 #equation_display.flexbox {
