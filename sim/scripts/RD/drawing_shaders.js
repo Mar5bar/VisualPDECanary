@@ -67,11 +67,11 @@ export function discShader() {
 }
 
 export function vLineShader() {
-  return `if (Lx * length(diff.x) <= brushRadius) {`;
+  return `if (L_x * length(diff.x) <= brushRadius) {`;
 }
 
 export function hLineShader() {
-  return `if (Ly * length(diff.y) <= brushRadius) {`;
+  return `if (L_y * length(diff.y) <= brushRadius) {`;
 }
 
 export function drawShaderBot() {
