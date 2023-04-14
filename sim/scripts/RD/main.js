@@ -341,9 +341,7 @@ $("#settings").click(function () {
   $("#rightGUI").toggle();
 });
 $("#equations").click(function () {
-  $("#equation_display").toggle();
-  $("#leftGUI").toggle();
-  setLeftGUITop();
+  $("#left_ui").toggle();
 });
 $("#pause").click(function () {
   pauseSim();
@@ -847,23 +845,22 @@ function initUniforms() {
 
 function initGUI(startOpen) {
   // Initialise the left GUI.
-  leftGUI = new dat.GUI({ closeOnTop: true });
+  leftGUI = new dat.GUI({ closeOnTop: true , autoPlace: false});
   leftGUI.domElement.id = "leftGUI";
-
+  document.getElementById('left_ui').appendChild(leftGUI.domElement);
+  
   // Initialise the right GUI.
   rightGUI = new dat.GUI({ closeOnTop: true });
   rightGUI.domElement.id = "rightGUI";
-
+  
   leftGUI.open();
   rightGUI.open();
   if (startOpen != undefined && startOpen) {
-    $("#leftGUI").show();
     $("#rightGUI").show();
-    $("#equation_display").show();
+    $("#left_ui").show();
   } else {
-    $("#leftGUI").hide();
+    $("#left_ui").hide();
     $("#rightGUI").hide();
-    $("#equation_display").hide();
   }
 
   // Create a generic options folder for folderless controllers, which we'll hide later if it's empty.
@@ -2678,6 +2675,7 @@ function deleteGUI(folder) {
     if (folder == rightGUI) {
       rightGUI.destroy();
     } else if (folder == leftGUI) {
+      leftGUI.domElement.remove();
       leftGUI.destroy();
     }
   }
@@ -4046,7 +4044,7 @@ function setEquationDisplayType() {
   }
   $("#typeset_equation").html(str);
   if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise().then(setLeftGUITop);
+    MathJax.typesetPromise();
   }
 }
 
@@ -4693,12 +4691,4 @@ function checkColourbarLogoCollision() {
       $("#logo").hide();
     }
   }
-}
-
-function setLeftGUITop() {
-  $("#leftGUI").css(
-    "top",
-    $("#equation_display_box")[0].getBoundingClientRect().bottom.toString() +
-      "px"
-  );
 }

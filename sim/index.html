@@ -29,14 +29,6 @@
                     boundary: "\\partial\\Omega",
                 },
                 inlineMath: [['$', '$'], ['\\(', '\\)']]
-            },
-            startup: {
-                pageReady() {
-                return MathJax.startup.defaultPageReady().then(function() {
-                    $("#leftGUI").css("top",
-                    $("#equation_display_box")[0].getBoundingClientRect().bottom.toString() + "px");
-                });
-                }
             }
         };    
     </script>
@@ -107,9 +99,11 @@
     <button id="warning_no" class="btn-primary"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
 
-<div id="equation_display">
-    <div id="equation_display_box">
-        <div id="typeset_equation"></div>
+<div id="left_ui">
+    <div id="equation_display">
+        <div id="equation_display_box">
+            <div id="typeset_equation"></div>
+        </div>
     </div>
 </div>
 

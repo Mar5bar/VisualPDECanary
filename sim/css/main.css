@@ -73,18 +73,20 @@ canvas {
 }
 
 #leftGUI {
-    position: absolute;
-    top: 90px;
-    left: 55px;
-    margin-left: 0;
+    margin-top: -5px;
     direction: ltr;
+    border: 5px black solid;
+    background-color: black;
 }
 
-#equation_display {
+#left_ui {
     display: none;
     position: absolute;
     top: 0px;
     left: 55px;
+}
+
+#equation_display {
     border: 5px black solid;
     border-radius: 5px;
     background-color: black;
