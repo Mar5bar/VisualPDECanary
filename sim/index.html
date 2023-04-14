@@ -29,6 +29,11 @@
                     boundary: "\\partial\\Omega",
                 },
                 inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            startup: {
+                pageReady() {
+                return MathJax.startup.defaultPageReady().then(setLeftGUITop);
+                }
             }
         };    
     </script>
