@@ -15,6 +15,12 @@ export function RDShaderTop() {
     uniform sampler2D imageSourceTwo;
     const float pi = 3.141592653589793;
 
+    float H(float val) 
+    {
+        float res = smoothstep(-0.01, 0.01, val);
+        return res;
+    }
+
     float H(float val, float edge) 
     {
         float res = smoothstep(-0.01, 0.01, val - edge);
@@ -179,6 +185,12 @@ export function RDShaderEnforceDirichletTop() {
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
     const float pi = 3.141592653589793;
+
+    float H(float val) 
+    {
+        float res = smoothstep(-0.01, 0.01, val);
+        return res;
+    }
 
     float H(float val, float edge) 
     {
