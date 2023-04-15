@@ -845,14 +845,14 @@ function initUniforms() {
 
 function initGUI(startOpen) {
   // Initialise the left GUI.
-  leftGUI = new dat.GUI({ closeOnTop: true , autoPlace: false});
+  leftGUI = new dat.GUI({ closeOnTop: true, autoPlace: false });
   leftGUI.domElement.id = "leftGUI";
-  document.getElementById('left_ui').appendChild(leftGUI.domElement);
-  
+  document.getElementById("left_ui").appendChild(leftGUI.domElement);
+
   // Initialise the right GUI.
   rightGUI = new dat.GUI({ closeOnTop: true });
   rightGUI.domElement.id = "rightGUI";
-  
+
   leftGUI.open();
   rightGUI.open();
   if (startOpen != undefined && startOpen) {
@@ -1709,7 +1709,7 @@ function setBrushType() {
   // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
   let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
   let kineticStr = parseShaderString(
-    options.kineticParams.replace(regex, "float $1;\n")
+    sanitisedKineticParams().replace(regex, "float $1;\n")
   );
   let shaderStr = drawShaderTop() + kineticStr;
   let radiusStr =
@@ -2384,7 +2384,7 @@ function setRDEquations() {
   // are also available in BCs.
   let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
   let kineticStr = parseShaderString(
-    options.kineticParams.replace(regex, "float $1;\n")
+    sanitisedKineticParams().replace(regex, "float $1;\n")
   );
 
   // Choose what sort of update we are doing: normal, or cross-diffusion enabled?
@@ -2835,7 +2835,7 @@ function setClearShader() {
   // are also available in BCs.
   let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
   let kineticStr = parseShaderString(
-    options.kineticParams.replace(regex, "float $1;\n")
+    sanitisedKineticParams().replace(regex, "float $1;\n")
   );
   shaderStr += kineticStr;
   shaderStr += "float u = " + parseShaderString(options.clearValueU) + ";\n";
@@ -3060,7 +3060,7 @@ function setPostFunFragShader() {
   let shaderStr = computeDisplayFunShaderTop();
   let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
   let kineticStr = parseShaderString(
-    options.kineticParams.replace(regex, "float $1;\n")
+    sanitisedKineticParams().replace(regex, "float $1;\n")
   );
   shaderStr += kineticStr;
   shaderStr += computeDisplayFunShaderMid();
@@ -4182,10 +4182,67 @@ function removeWhitespace(str) {
 }
 
 function createParameterController(label, isNextParam) {
+  let controller;
+  // Define a function that we can use to concisely add in a slider depending on the string.
+  function createSlider() {
+    if (controller.hasOwnProperty("associatedControllers")) {
+      // Remove any existing associated controllers.
+      for (const child of controller.associatedControllers) {
+        child.remove();
+      }
+    }
+    controller.associatedControllers = [];
+    // If the string is of the form "name = val in [a,b]", create a slider underneath this one with
+    // label "name" and limits a,b with initial value val.
+    let regex =
+      /\s*(\w+)\s*=\s*(.*)\s*in\s*[\[\(]([0-9\.\-]+)\s*,\s*([0-9\.\-]+)[\]\)]/;
+    let match = kineticParamsStrs[label].match(regex);
+    if (match) {
+      // Initialise an object for the slider to reference, initially taking the value val.
+      controller.valueObj = {};
+      controller.valueObj[match[1]] = parseFloat(match[2]);
+      controller.associatedControllers.push(
+        parametersFolder
+          .add(
+            controller.valueObj,
+            match[1],
+            parseFloat(match[3]),
+            parseFloat(match[4])
+          )
+          .name("$" + match[1] + "$")
+          .onFinishChange(function () {
+            // Use the value stored in valueObj to update the string in the original controller.
+            kineticParamsStrs[label] = kineticParamsStrs[label].replace(
+              regex,
+              match[1] +
+                " = " +
+                formatLabelNum(controller.valueObj[match[1]], 5) +
+                " in [" +
+                match[3] +
+                ", " +
+                match[4] +
+                "]"
+            );
+            refreshGUI(parametersFolder);
+            setKineticStringFromParams();
+          })
+      );
+      // Move any child elements to be after the original controller in the list, in the order
+      // given in associatedControllers.
+      for (const child of controller.associatedControllers.slice().reverse()) {
+        controller.domElement.parentElement.parentElement.after(
+          child.domElement.parentElement.parentElement
+        );
+      }
+      if (MathJax.typesetPromise != undefined) {
+        MathJax.typesetPromise();
+      }
+    }
+  }
   if (isNextParam) {
     kineticParamsLabels.push(label);
     kineticParamsStrs[label] = "";
-    let controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller = parametersFolder.add(kineticParamsStrs, label).name("");
     controller.onFinishChange(function () {
       const index = kineticParamsLabels.indexOf(label);
       // Remove excess whitespace.
@@ -4207,21 +4264,32 @@ function createParameterController(label, isNextParam) {
       }
     });
   } else {
-    let controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller = parametersFolder.add(kineticParamsStrs, label).name("");
     controller.onFinishChange(function () {
       // Remove excess whitespace.
       let str = removeWhitespace(kineticParamsStrs[label]);
       if (str == "") {
-        // If the string is empty, delete this controller.
+        // If the string is empty, delete this controller and any associated controllers.
+        for (const child of this.associatedControllers) {
+          child.remove();
+        }
+        this.associatedControllers = [];
         this.remove();
         // Remove the associated label and the (empty) kinetic parameters string.
         const index = kineticParamsLabels.indexOf(label);
         kineticParamsLabels.splice(index, 1);
         delete kineticParamsStrs[label];
+      } else {
+        // Otherwise, check if we need to create/modify a slider.
+        createSlider();
       }
+      // Set the kinetic parameters.
       setKineticStringFromParams();
     });
   }
+  // Now that we've made the required controller, check the current string to see if
+  // the user has requested that we make other types of controller (e.g. a slider).
+  createSlider();
 }
 
 function setParamsFromKineticString() {
@@ -4576,7 +4644,7 @@ function usingReservedNames() {
   // Check if the user is trying to use any reserved names as kinetic parameters.
   // If so, return the name of a reserved parameter. Otherwise, return false.
   let regex = /(\w+)\s*=/g;
-  let names = [...options.kineticParams.matchAll(regex)]
+  let names = [...sanitisedKineticParams().matchAll(regex)]
     .map((x) => x[1])
     .join(" ");
   let lastTest = false;
@@ -4691,4 +4759,12 @@ function checkColourbarLogoCollision() {
       $("#logo").hide();
     }
   }
+}
+
+function sanitisedKineticParams() {
+  // options.kineticParams could contain additional directives, like "in [0,1]", used
+  // to create additional controllers. We want to save these in options.kineticParams, but
+  // can't pass them to the shader like this. Here, we strip these directives from the string.
+  // If a kineticParam is of the form "name = val in [a,b]", remove the in [a,b] part.
+  return options.kineticParams.replaceAll(/\bin[^;]*;/g, ";");
 }
