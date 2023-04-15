@@ -2238,9 +2238,9 @@ function replaceBinOperator(str, op, form) {
     str = joker + (tab.length - 1);
     let regex;
     if (needsEscaping) {
-      regex = new RegExp("([\\w.]*)\\" + op + "([\\w.]*)", "g");
+      regex = new RegExp("([\\w.]*)\\s*\\" + op + "\\s*([\\w.]*)", "g");
     } else {
-      regex = new RegExp("([\\w.]*)" + op + "([\\w.]*)", "g");
+      regex = new RegExp("([\\w.]*)\\s*" + op + "\\s*([\\w.]*)", "g");
     }
     while (str.indexOf(joker) > -1) {
       str = str.replace(new RegExp(joker + "(\\w+)", "g"), function (m, d) {
