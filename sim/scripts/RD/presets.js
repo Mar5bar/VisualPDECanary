@@ -286,7 +286,7 @@ export function getPreset(id) {
       options = {
         brushValue: "2",
         brushRadius: 1,
-        clearValueU: "sin(2*pi*x/100)*sin(2*pi*y/100)",
+        clearValueU: "sin(2*pi*x/L_x)*sin(2*pi*y/L_y)",
         diffusionStrUU: "0.2",
         diffusionStrVV: "1",
         diffusionStrWW: "0",
