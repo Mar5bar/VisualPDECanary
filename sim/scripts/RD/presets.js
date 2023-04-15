@@ -1083,7 +1083,6 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 0.5,
-        squareCanvas: true,
       };
       break;
 
@@ -1092,7 +1091,7 @@ export function getPreset(id) {
         boundaryConditionsU: "neumann",
         boundaryConditionsV: "neumann",
         brushRadius: 5,
-        clearValueU: "cos(n*pi*x/100)*cos(m*pi*y/100)",
+        clearValueU: "cos(n*pi*x/L_x)*cos(m*pi*y/L_y)",
         crossDiffusion: true,
         diffusionStrUU: "C*D",
         diffusionStrVU: "D",
@@ -1107,7 +1106,6 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 0.5,
-        squareCanvas: true,
         suppressTryClickingPopup: true,
         whatToPlot: "u",
       };
