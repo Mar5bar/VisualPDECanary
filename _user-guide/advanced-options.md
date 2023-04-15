@@ -6,18 +6,18 @@ thumbnail: /assets/images/Brusselator.PNG
 extract: A glossary of all the features you can play with
 ---
 
-The basic functionality of every option that can be found in {{ layout.equations }} and {{ layout.settings }}.
+The basic functionality of every option that can be found in the menus of VisualPDE, accessible via {{ layout.equations }} and {{ layout.settings }}.
 
 ### Definitions <a id='definitions'>
-**Typeset**
+**Typeset**\
 Check this box to have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters.
 
-**$D_u$, $D_v$, ...**
+**$D_u$, $D_v$, ...**\
 Set the diffusion coefficients of all the species in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are denoted $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**. 
 
 You can also use the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt' and 'H', where the latter is the [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'. VisualPDE also supports using '^' for exponentiation and parentheses '()' for bracketing of terms.
 
-**$f$, $g$, ...**
+**$f$, $g$, ...**\
 Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**.
 
 You can also use the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt' and 'H', where the latter is the [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'. VisualPDE also supports using '^' for exponentiation and parentheses '()' for bracketing of terms.
@@ -25,7 +25,7 @@ You can also use the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt'
 ### Parameters <a id='parameters'>
 This menu contains a list of all the user-specified values that can be used throughout VisualPDE. New parameters can be defined using the empty input field at the bottom of the list of parameters. Parameters must be specified as numerical values and cannot depend on other quantities (including each other).
 
-**Basics**
+**Basics**\
 The basic syntax for defining a parameter is
 
 ```
@@ -34,7 +34,7 @@ name = value
 
 which will make the quantity 'name' available to the simulation. You can then freely change 'value', which will instantly propagate throughout VisualPDE. If you try to use a name that clashes with an internal variable (some of which are only found under the hood of VisualPDE), a warning will appear to inform you of this. Parameters can be removed by deleting the text that defines them.
 
-**Sliders**
+**Sliders**\
 The more advanced syntax 
 
 ```
