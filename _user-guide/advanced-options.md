@@ -6,7 +6,68 @@ thumbnail: /assets/images/Brusselator.PNG
 extract: A glossary of all the features you can play with
 ---
 
-The basic functionality of every option that can be found in {{ layout.settings }}
+The basic functionality of every option that can be found in {{ layout.equations }} and {{ layout.settings }}.
+
+{{ layout.equations }}
+
+### Definitions <a id='definitions'>
+**Typeset**
+Check this box to have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters.
+
+**$D_u$, $D_v$, ...**
+Set the diffusion coefficients of all the species in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are denoted $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**. 
+
+You can also use the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt' and 'H', where the latter is the [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'. VisualPDE also supports using '^' for exponentiation and parentheses '()' for bracketing of terms.
+
+**$f$, $g$, ...**
+Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**.
+
+You can also use the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt' and 'H', where the latter is the [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'. VisualPDE also supports using '^' for exponentiation and parentheses '()' for bracketing of terms.
+
+### Parameters <a id='parameters'>
+This menu contains a list of all the user-specified values that can be used throughout VisualPDE. New parameters can be defined using the empty input field at the bottom of the list of parameters. Parameters must be specified as numerical values and cannot depend on other quantities (including each other).
+
+**Basics**
+The basic syntax for defining a parameter is
+
+```
+name = value
+```
+
+which will make the quantity 'name' available to the simulation. You can then freely change 'value', which will instantly propagate throughout VisualPDE. If you try to use a name that clashes with an internal variable (some of which are only found under the hood of VisualPDE), a warning will appear to inform you of this. Parameters can be removed by deleting the text that defines them.
+
+**Sliders**
+The more advanced syntax 
+
+```
+name = value in [start,step,stop]
+```
+
+creates a slider for your variable, ranging between 'start' and 'stop' values in increments of 'step'. The 'step' parameter can be omitted and VisualPDE will choose a step automatically. For example,
+
+```
+a = 0.5 in [0,1]
+```
+
+creates a slider that ranges between 0 and 1, with initial value 0.5 and an automatically determined step size.
+
+The configuration of a slider (value, start, step, stop) can be updated by modifying the relevant parts of the expression that defines it. Sliders can be removed simply by using the basic parameter syntax described above, and will be removed automatically when the associated parameter is removed.
+
+### Boundary conditions <a id='boundary_conditions'>
+Boundary conditions can be specified for any species in the simulation. The following boundary conditions are available:
+
+* Periodic
+* [Dirichlet](https://en.wikipedia.org/wiki/Dirichlet_boundary_condition) (e.g. $u\onboundary = 0$)
+* [Neumann](https://en.wikipedia.org/wiki/Neumann_boundary_condition) (e.g. $\pd{u}{n}\onboundary = 0$)
+* [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition) (e.g. $(u + \pd{u}{n})\onboundary = 0$)
+
+Boundary conditions that allow you to specify values can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**. Robin boundary conditions are the only type supported that allow you to use an unknown in the specification of its own boundary condition.
+
+### Initial conditions <a id='initial_conditions'>
+Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**.
+
+
+{{ layout.settings }}
 
 ### Brush <a id='brush'>
 **Type**\
