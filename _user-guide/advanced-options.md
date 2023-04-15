@@ -184,9 +184,9 @@ Select from a frequently updated list of available debugging tools. A permanent 
 **Copy URL**\
 Share a link to the simulation you have created. This copies the URL to your clipboard and includes all the settings, but not the current solution or any uploaded images.
 
-### Writing valid expressions <a id='valid-expressions'>\
-**Standard syntax** <a id='standard-syntax'>\
+### Writing valid expressions <a id='valid-expressions'>
+**Standard syntax**\ <a id='standard-syntax'>
 VisualPDE aims to support standard mathematical syntax (+,-,*,/), along with the carat notation '^' for exponentiation. Parentheses '()' are also supported for bracketing terms together, and must be used when calling any [special functions](#special-functions). In general, whitespace around binary operators will be ignored, so that '2 * 2' is valid syntax for multiplication, for example.
 
-**Special functions** <a id='special-functions'>\
+**Special functions**\ <a id='special-functions'>
 Throughout VisualPDE, you can make use of the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt' and 'H', where the latter is the [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'.
