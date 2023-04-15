@@ -256,17 +256,16 @@ funsObj = {
 
 // Define a handy countDecimals function.
 Number.prototype.countDecimals = function () {
-
   if (Math.floor(this.valueOf()) === this.valueOf()) return 0;
 
   var str = this.toString();
   if (str.indexOf(".") !== -1 && str.indexOf("-") !== -1) {
-      return str.split("-")[1] || 0;
+    return str.split("-")[1] || 0;
   } else if (str.indexOf(".") !== -1) {
-      return str.split(".")[1].length || 0;
+    return str.split(".")[1].length || 0;
   }
   return str.split("-")[1] || 0;
-}
+};
 
 // Get the canvas to draw on, as specified by the html.
 canvas = document.getElementById("simCanvas");
@@ -4218,7 +4217,10 @@ function createParameterController(label, isNextParam) {
       let step;
       if (match[4] == undefined) {
         match[4] = "";
-        step = Math.min((parseFloat(match[5]) - parseFloat(match[3]))/20,10**(-(parseFloat(match[2]).countDecimals())));
+        step = Math.min(
+          (parseFloat(match[5]) - parseFloat(match[3])) / 20,
+          10 ** -parseFloat(match[2]).countDecimals()
+        );
       } else {
         step = parseFloat(match[4]);
         match[4] += ",";
@@ -4239,7 +4241,13 @@ function createParameterController(label, isNextParam) {
               regex,
               match[1] +
                 " = " +
-                formatLabelNum(controller.valueObj[match[1]], Math.max(parseFloat(match[2]).countDecimals(),step.countDecimals())) +
+                formatLabelNum(
+                  controller.valueObj[match[1]],
+                  Math.max(
+                    parseFloat(match[2]).countDecimals(),
+                    step.countDecimals()
+                  )
+                ) +
                 " in [" +
                 match[3] +
                 "," +
