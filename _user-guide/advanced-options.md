@@ -8,8 +8,6 @@ extract: A glossary of all the features you can play with
 
 The basic functionality of every option that can be found in {{ layout.equations }} and {{ layout.settings }}.
 
-{{ layout.equations }}
-
 ### Definitions <a id='definitions'>
 **Typeset**
 Check this box to have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters.
@@ -66,8 +64,6 @@ Boundary conditions that allow you to specify values can be functions of space (
 ### Initial conditions <a id='initial_conditions'>
 Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**.
 
-
-{{ layout.settings }}
 
 ### Brush <a id='brush'>
 **Type**\
