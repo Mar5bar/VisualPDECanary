@@ -12,7 +12,7 @@ $$\pd{u}{t}=D \nabla^2 u+f(x,y),$$
 
 $$f(x,y) = D\pi^2\left(\frac{n^2}{L_x^2} + \frac{m^2}{L_y^2}\right)\cos \left(\frac{n\pi x}{L_x} \right)\cos \left(\frac{m\pi y}{L_y} \right)$$
 
-with homogeneous Neumann (aka no-flux) boundary conditions on a rectangular domain with side lengths $L_x$, $L_y. You can use [separation of variables](https://en.wikipedia.org/wiki/Separation_of_variables#Partial_differential_equations) to show that the solution at steady state looks like
+with homogeneous Neumann (aka no-flux) boundary conditions on a rectangular domain with side lengths $L_x$, $L_y$. You can use [separation of variables](https://en.wikipedia.org/wiki/Separation_of_variables#Partial_differential_equations) to show that the solution at steady state looks like
 
 $$u(x,y) = -\cos \left(\frac{n\pi x}{L_x} \right)\cos \left(\frac{m\pi y}{L_y} \right).$$
 
