@@ -847,7 +847,7 @@ function initGUI(startOpen) {
   // Initialise the left GUI.
   leftGUI = new dat.GUI({ closeOnTop: true, autoPlace: false });
   leftGUI.domElement.id = "leftGUI";
-  document.getElementById("left_ui").appendChild(leftGUI.domElement);
+  document.getElementById("leftGUIContainer").appendChild(leftGUI.domElement);
 
   // Initialise the right GUI.
   rightGUI = new dat.GUI({ closeOnTop: true });
