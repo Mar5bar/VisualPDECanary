@@ -188,5 +188,13 @@ Share a link to the simulation you have created. This copies the URL to your cli
 **Standard syntax**\
 VisualPDE aims to support standard mathematical syntax (+,-,*,/), along with the carat notation '^' for exponentiation. Parentheses '()' are also supported for bracketing terms together, and must be used when calling any special functions. In general, whitespace around binary operators will be ignored, so that '2 * 2' is valid syntax for multiplication, for example.
 
+Examples of valid syntax using include
+
+```
+sin(x) * cos(y)
+exp( -(x-L_x)^2 / 10)
+1 + (x^2 + x + 1) / (y^2 + y + 1)
+```
+
 **Special functions**\
 Throughout VisualPDE, you can make use of the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt' and 'H', where the latter is the [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'.
