@@ -86,7 +86,7 @@ export function getPreset(id) {
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         dt: 0.005,
-        kineticParams: "a=0.5",
+        kineticParams: "a=0.5 in [0,0.01,1]",
         numSpecies: 1,
         preset: "bistableTravellingWave",
         reactionStrU: "u*(u-a)*(1-u)",
