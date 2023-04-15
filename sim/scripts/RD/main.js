@@ -4195,32 +4195,42 @@ function createParameterController(label, isNextParam) {
     // If the string is of the form "name = val in [a,b]", create a slider underneath this one with
     // label "name" and limits a,b with initial value val.
     let regex =
-      /\s*(\w+)\s*=\s*(.*)\s*in\s*[\[\(]([0-9\.\-]+)\s*,\s*([0-9\.\-]+)[\]\)]/;
+      /\s*(\w+)\s*=\s*(\S*)\s*in\s*[\[\(]([0-9\.\-]+)\s*,\s*(?:([0-9\.]*)\s*,)?\s*([0-9\.\-]+)[\]\)]/;
     let match = kineticParamsStrs[label].match(regex);
     if (match) {
       // Initialise an object for the slider to reference, initially taking the value val.
       controller.valueObj = {};
       controller.valueObj[match[1]] = parseFloat(match[2]);
+      let step;
+      if (match[4] == undefined) {
+        match[4] = "";
+        step = 10**(-parseFloat(match[2]).countDecimals);
+      } else {
+        step = parseFloat(match[4]);
+        match[4] += ",";
+      }
       controller.associatedControllers.push(
         parametersFolder
           .add(
             controller.valueObj,
             match[1],
             parseFloat(match[3]),
-            parseFloat(match[4])
+            parseFloat(match[5]),
+            step
           )
           .name("$" + match[1] + "$")
-          .onFinishChange(function () {
+          .onChange(function () {
             // Use the value stored in valueObj to update the string in the original controller.
             kineticParamsStrs[label] = kineticParamsStrs[label].replace(
               regex,
               match[1] +
                 " = " +
-                formatLabelNum(controller.valueObj[match[1]], 5) +
+                formatLabelNum(controller.valueObj[match[1]], parseFloat(match[2]).countDecimals()) +
                 " in [" +
                 match[3] +
-                ", " +
+                "," +
                 match[4] +
+                match[5] +
                 "]"
             );
             refreshGUI(parametersFolder);
@@ -4767,4 +4777,17 @@ function sanitisedKineticParams() {
   // can't pass them to the shader like this. Here, we strip these directives from the string.
   // If a kineticParam is of the form "name = val in [a,b]", remove the in [a,b] part.
   return options.kineticParams.replaceAll(/\bin[^;]*;/g, ";");
+}
+
+Number.prototype.countDecimals = function () {
+
+  if (Math.floor(this.valueOf()) === this.valueOf()) return 0;
+
+  var str = this.toString();
+  if (str.indexOf(".") !== -1 && str.indexOf("-") !== -1) {
+      return str.split("-")[1] || 0;
+  } else if (str.indexOf(".") !== -1) {
+      return str.split(".")[1].length || 0;
+  }
+  return str.split("-")[1] || 0;
 }
