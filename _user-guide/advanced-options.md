@@ -10,7 +10,7 @@ The basic functionality of every option that can be found in the menus of Visual
 
 ### Definitions <a id='definitions'>
 **Typeset**\
-Check this box to have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters.
+Check this box to have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters. Terms will not be substituted in if they are constants that are not 0 or 1.
 
 **$D_u$, $D_v$, ...**\
 Set the diffusion coefficients of all the species in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are denoted $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**. 
