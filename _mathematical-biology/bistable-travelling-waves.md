@@ -31,7 +31,7 @@ and hence we expect the waves to change their direction of travel when $a$ cross
 
 # Spatial Allee effects
 
-In the above simulations, we considered $a$ near the boundary, and initial waves which had sufficient size. Biologically we are often interested in the question of small invading populations, which becomes complex when both extinction ($u=0$) and persistence ($u=1$) are possible. We'll set $a=0.4$ so that in principle a wave of population can invade the domain, but consider only small initial regions where $u=1$.
+In the above simulations, we considered $a$ near the boundary, and initial waves that had sufficient size. Biologically we are often interested in the question of small invading populations, which becomes complex when both extinction ($u=0$) and persistence ($u=1$) are possible. We'll set $a=0.4$ so that in principle a wave of population can invade the domain, but consider only small initial regions where $u=1$.
 
 1. Load the [interactive simulation](/sim/?preset=bistableSurvival). 
 
