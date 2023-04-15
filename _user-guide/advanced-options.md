@@ -112,16 +112,13 @@ Show/hide the current simulation time in the simulation window.
 
 ### Equations <a id='equations'>
 **No. species**\
-Specify the number of unknowns (1, 2, 3, or 4) in the system.
+Specify the number of unknowns (1, 2, 3, or 4) in the simulatino.
 
 **Cross (diffusion)**\
-Enable cross diffusion in systems with 2 or more species.
+Enable cross diffusion in systems with 2 or more species, enabling simulation of a wide range of systems.
 
 **Algebraic**\
-Convert certain equations to algebraic form in systems with cross diffusion enabled.
-
-**Typeset**\
-VisualPDE will try to nicely typeset your governing equations using the custom diffusion coefficients, parameters and interaction/kinetic terms. Terms will not be substituted in if they are just constants that are not 0 or 1.
+Convert the specified equations to algebraic form in systems with cross diffusion enabled.
 
 ### Rendering <a id='rendering'>
 **Expression**\
