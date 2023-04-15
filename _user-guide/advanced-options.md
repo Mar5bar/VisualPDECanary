@@ -41,7 +41,7 @@ The more advanced syntax
 name = value in [start,step,stop]
 ```
 
-creates a slider for your variable, ranging between 'start' and 'stop' values in increments of 'step'. The 'step' parameter can be omitted and VisualPDE will choose a step automatically. For example,
+creates a slider for your variable, ranging between the 'start' and 'stop' values in increments of 'step'. The 'step' parameter can be omitted and VisualPDE will choose a step automatically. For example,
 
 ```
 a = 0.5 in [0,1]
