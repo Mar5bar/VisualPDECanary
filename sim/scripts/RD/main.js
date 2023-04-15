@@ -4148,7 +4148,6 @@ function replaceFunctionInTeX(str, func, withBrackets) {
         offset += 1;
       } else {
         newStr = replaceStrAtIndex(newStr, "{", startInd + offset);
-        console.log(endInd);
         newStr = replaceStrAtIndex(newStr, "}", endInd + offset);
       }
     }
@@ -4798,5 +4797,5 @@ function sanitisedKineticParams() {
   // to create additional controllers. We want to save these in options.kineticParams, but
   // can't pass them to the shader like this. Here, we strip these directives from the string.
   // If a kineticParam is of the form "name = val in [a,b]", remove the in [a,b] part.
-  return options.kineticParams.replaceAll(/\bin[^;]*;/g, ";");
+  return options.kineticParams.replaceAll(/\bin[^;]*;?/g, ";");
 }
