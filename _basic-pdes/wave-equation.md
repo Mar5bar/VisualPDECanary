@@ -10,9 +10,9 @@ Let's next look at the [wave equation](https://en.wikipedia.org/wiki/Wave_equati
 
 $$\pdd{u}{t}=D \nabla^2 u,$$
 
-on a square 2D domain with homogeneous Neumann (aka no-flux) boundary conditions,
+on a rectangular 2D domain with homogeneous Neumann (aka no-flux) boundary conditions,
 
-$$\pd{u}{x}(0) = \pd{u}{x}(L) = \pd{u}{y}(0) = \pd{u}{y}(L) = 0.$$
+$$\pd{u}{x}(0,y,t) = \pd{u}{x}(L_x,y,t) = \pd{u}{y}(x,0,t) = \pd{u}{y}(x,L_y,t) = 0.$$
 
 1. Load the [interactive simulation](/sim/?preset=waveEquation), which has been set up for this tutorial.
 
@@ -34,7 +34,7 @@ Explore how the speed depends on the diffusion coefficient.
 
 ## Numerical notes
 
-Our solver only works for systems of first-order equations. So in fact what is being simulated is the system
+The VisualPDE solver only works for systems of first-order equations. So in fact what is being simulated is the system
 
 $$\begin{aligned}\pd{u}{t}&=v+CD\nabla^2 u,\\
  \pd{v}{t} &= D \nabla^2 u,
@@ -48,13 +48,13 @@ The parameter $C$ is used to prevent spurious oscillations due to the equation b
 
 If we take initial conditions of 
 
-$$\begin{aligned}u(x,y,0) &= \cos\left(\frac{n \pi x}{L}\right)\cos\left(\frac{m \pi y}{L}\right),\\ 
+$$\begin{aligned}u(x,y,0) &= \cos\left(\frac{n \pi x}{L_x}\right)\cos\left(\frac{m \pi y}{L_y}\right),\\ 
 \pd{u}{t}(x,y,0)&=0,\end{aligned}$$ 
 
 with Neumann boundary conditions, we can find a standing wave solution of the form
 
 $$
-u(x,y,t) = \cos\left(\frac{D\pi\sqrt{n^2+m^2}}{L}\,t\right)\cos\left(\frac{n \pi x}{L}\right)\cos\left(\frac{m \pi y}{L}\right),
+u(x,y,t) = \cos\left(D\pi\sqrt{\frac{n^2}{L_x^2}+\frac{m^2}{L_y^2}}\,t\right)\cos\left(\frac{n \pi x}{L_x}\right)\cos\left(\frac{m \pi y}{L_y}\right),
 $$
 
 which oscillates in time and space. 
