@@ -49,7 +49,7 @@ a = 0.5 in [0,1]
 
 creates a slider that ranges between 0 and 1, with initial value 0.5 and an automatically determined step size.
 
-The configuration of a slider (value, start, step, stop) can be updated by modifying the relevant parts of the expression that defines it. Sliders can be removed simply by using the basic parameter syntax described above, and will be removed automatically when the associated parameter is removed.
+The configuration of a slider (value, start, step, stop) can be updated by modifying the relevant parts of the expression that defines it. Sliders can be removed by deleting 'in ...' from the parameter definition, and will be removed automatically when the associated parameter is removed.
 
 ### Boundary conditions <a id='boundary_conditions'>
 Boundary conditions can be specified for any species in the simulation. The following boundary conditions are available:
