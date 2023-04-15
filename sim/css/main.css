@@ -77,6 +77,7 @@ canvas {
     direction: ltr;
     border: 5px black solid;
     background-color: black;
+    pointer-events: all;
 }
 
 #left_ui {
@@ -84,12 +85,14 @@ canvas {
     position: absolute;
     top: 0px;
     left: 55px;
+    pointer-events: none;
 }
 
 #equation_display {
     border: 5px black solid;
     border-radius: 5px;
     background-color: black;
+    pointer-events: all;
 }
 
 #equation_display_box {
