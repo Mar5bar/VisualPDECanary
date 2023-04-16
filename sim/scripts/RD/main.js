@@ -4513,7 +4513,7 @@ function updateTimeDisplay() {
     let str = formatLabelNum(uniforms.t.value, 3);
     str = str.replace(/e(\+)*(\-)*([0-9]*)/, " x 10<sup>$2$3<sup>");
     $("#timeValue").html(str);
-    checkColorbarPosition();
+    checkColourbarPosition();
   }
 }
 
@@ -4566,7 +4566,7 @@ function updateIntegralDisplay() {
     }
     total *= dA;
     $("#integralValue").html(formatLabelNum(total, 4));
-    checkColorbarPosition();
+    checkColourbarPosition();
   }
 }
 
@@ -4588,7 +4588,7 @@ function fillBuffer() {
   }
 }
 
-function checkColorbarPosition() {
+function checkColourbarPosition() {
   // If there's a potential overlap of the data display and the colourbar, move the former up.
   if (options.colourbar & (options.integrate | options.time)) {
     let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
