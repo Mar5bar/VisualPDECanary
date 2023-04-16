@@ -169,6 +169,7 @@ import {
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
+import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
@@ -1754,35 +1755,13 @@ function setBrushType() {
 }
 
 function setDisplayColourAndType() {
-  if (options.colourmap == "greyscale") {
-    uniforms.colour1.value = new THREE.Vector4(0, 0, 0, 0);
-    uniforms.colour2.value = new THREE.Vector4(0.25, 0.25, 0.25, 0.25);
-    uniforms.colour3.value = new THREE.Vector4(0.5, 0.5, 0.5, 0.5);
-    uniforms.colour4.value = new THREE.Vector4(0.75, 0.75, 0.75, 0.75);
-    uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 1);
-    displayMaterial.fragmentShader = fiveColourDisplay();
-  } else if (options.colourmap == "BlackGreenYellowRedWhite") {
-    uniforms.colour1.value = new THREE.Vector4(0, 0, 0.0, 0);
-    uniforms.colour2.value = new THREE.Vector4(0, 1, 0, 0.25);
-    uniforms.colour3.value = new THREE.Vector4(1, 1, 0, 0.5);
-    uniforms.colour4.value = new THREE.Vector4(1, 0, 0, 0.75);
-    uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 1.0);
-    displayMaterial.fragmentShader = fiveColourDisplay();
-  } else if (options.colourmap == "viridis") {
-    uniforms.colour1.value = new THREE.Vector4(0.267, 0.0049, 0.3294, 0.0);
-    uniforms.colour2.value = new THREE.Vector4(0.2302, 0.3213, 0.5455, 0.25);
-    uniforms.colour3.value = new THREE.Vector4(0.1282, 0.5651, 0.5509, 0.5);
-    uniforms.colour4.value = new THREE.Vector4(0.3629, 0.7867, 0.3866, 0.75);
-    uniforms.colour5.value = new THREE.Vector4(0.9932, 0.9062, 0.1439, 1.0);
-    displayMaterial.fragmentShader = fiveColourDisplay();
-  } else if (options.colourmap == "turbo") {
-    uniforms.colour1.value = new THREE.Vector4(0.19, 0.0718, 0.2322, 0.0);
-    uniforms.colour2.value = new THREE.Vector4(0.1602, 0.7332, 0.9252, 0.25);
-    uniforms.colour3.value = new THREE.Vector4(0.6384, 0.991, 0.2365, 0.5);
-    uniforms.colour4.value = new THREE.Vector4(0.9853, 0.5018, 0.1324, 0.75);
-    uniforms.colour5.value = new THREE.Vector4(0.4796, 0.01583, 0.01055, 1.0);
-    displayMaterial.fragmentShader = fiveColourDisplay();
-  }
+  const colours = getColours(options.colourmap);
+  uniforms.colour1.value = new THREE.Vector4(...colours[0]);
+  uniforms.colour2.value = new THREE.Vector4(...colours[1]);
+  uniforms.colour3.value = new THREE.Vector4(...colours[2]);
+  uniforms.colour4.value = new THREE.Vector4(...colours[3]);
+  uniforms.colour5.value = new THREE.Vector4(...colours[4]);
+  displayMaterial.fragmentShader = fiveColourDisplay();
   displayMaterial.needsUpdate = true;
   postMaterial.needsUpdate = true;
   render();
