@@ -207,13 +207,8 @@ funsObj = {
     // Encode the current simulation configuration as raw JSON and put it on the clipboard.
     let objDiff = diffObjects(options, getPreset("default"));
     objDiff.preset = "PRESETNAME";
-    if (objDiff.hasOwnProperty("kineticParams")) {
-      // If kinetic params have been specified, replace any commas with semicolons
-      // to allow for pretty formatting of the JSON.
-      objDiff.kineticParams = objDiff.kineticParams.replaceAll(",", ";");
-    }
     let str = JSON.stringify(objDiff)
-      .replaceAll(",", ",\n\t")
+      .replaceAll(/\s*,\s*([^0-9-\.])/g, ",\n\t$1")
       .replaceAll(":", ": ")
       .replace("{", "{\n\t")
       .replace("}", ",\n}");
