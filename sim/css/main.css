@@ -199,18 +199,6 @@ canvas {
     font-size: 113.1% !important;
 }
 
-#hideEquations {
-    position: absolute;
-    height: 15px;
-    width: 15px;
-    right: 5px;
-    top: 5px;
-    font-size: 0.7rem;
-    box-shadow: none;
-    border: none;
-    display: flex;
-}
-
 .close-button {
     display: none;
 }

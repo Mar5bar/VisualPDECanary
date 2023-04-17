@@ -351,7 +351,6 @@ $("#settings").click(function () {
 });
 $("#equations").click(function () {
   $("#left_ui").toggle();
-  $("#equation_display").show();
   resizeEquationDisplay();
 });
 $("#pause").click(function () {
@@ -370,16 +369,6 @@ $("#warning_restart").click(function () {
 $("#screenshot").click(function () {
   takeAScreenshot = true;
   render();
-});
-$("#equation_display").mouseenter(function () {
-  $("#hideEquations").show();
-});
-$("#equation_display").mouseleave(function () {
-  $("#hideEquations").hide();
-});
-$("#hideEquations").hide();
-$("#hideEquations").click(function () {
-  $("#equation_display").hide();
 });
 
 // Begin the simulation.
