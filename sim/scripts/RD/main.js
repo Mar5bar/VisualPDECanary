@@ -4149,100 +4149,113 @@ function removeWhitespace(str) {
 
 function createParameterController(label, isNextParam) {
   let controller;
+
   // Define a function that we can use to concisely add in a slider depending on the string.
   function createSlider() {
-    if (controller.hasOwnProperty("associatedControllers")) {
-      // Remove any existing associated controllers.
-      for (const child of controller.associatedControllers) {
-        child.remove();
-      }
-    }
-    controller.associatedControllers = [];
-    // If the string is of the form "name = val in [a,b]", create a slider underneath this one with
-    // label "name" and limits a,b with initial value val.
+    // If the string is of the form "name = val in [a,b]", create a slider underneath this controller with
+    // limits a,b.
     let regex =
       /\s*(\w+)\s*=\s*(\S*)\s*in\s*[\[\(]([0-9\.\-]+)\s*,\s*(?:([0-9\.]*)\s*,)?\s*([0-9\.\-]+)[\]\)]/;
     let match = kineticParamsStrs[label].match(regex);
     if (match) {
-      // Initialise an object for the slider to reference, initially taking the value val.
-      controller.valueObj = {};
-      controller.valueObj[match[1]] = parseFloat(match[2]);
+      if (controller.hasOwnProperty("slider")) {
+        // Remove any existing sliders.
+        controller.slider.remove();
+        // Remove the parameterSlider class from the controller.
+        controller.domElement.closest("li").classList.remove("parameterSlider");
+      }
+      // Add a CSS class highlighting that this controller now contains a slider too.
+      controller.domElement.parentElement.parentElement.classList.add("parameterSlider");
+      // Create a range input object and tie it to the controller.
+      controller.slider = document.createElement("input");
+      controller.slider.classList.add("styled-slider");
+      controller.slider.classList.add("slider-progress");
+      controller.slider.type = "range";
+      controller.slider.min = match[3];
+      controller.slider.max = match[5];
+
       let step;
+      // Define the step of the slider, which may or may not have been given.
       if (match[4] == undefined) {
         match[4] = "";
         // If all the quantities are integers, set the default step to be integers.
-        if (!kineticParamsStrs[label].includes(".") & parseFloat(match[5]) - parseFloat(match[3]) > 1) {
+        if (
+          !kineticParamsStrs[label].includes(".") &
+          (parseFloat(match[5]) - parseFloat(match[3]) > 1)
+        ) {
           step = 1;
         } else {
-          // Otherwise, choose a step that either matches the max precision of the inputs, or 
+          // Otherwise, choose a step that either matches the max precision of the inputs, or
           // splits the interval into 20, whichever is more precise.
           step = Math.min(
             (parseFloat(match[5]) - parseFloat(match[3])) / 20,
-            10 ** (-parseFloat(match[2]).countDecimals()),
-            10 ** (-parseFloat(match[3]).countDecimals()),
-            10 ** (-parseFloat(match[5]).countDecimals())
+            10 ** -parseFloat(match[2]).countDecimals(),
+            10 ** -parseFloat(match[3]).countDecimals(),
+            10 ** -parseFloat(match[5]).countDecimals()
           );
         }
       } else {
-        step = parseFloat(match[4]);
+        step = match[4];
         match[4] += ",";
       }
-      controller.associatedControllers.push(
-        parametersFolder
-          .add(
-            controller.valueObj,
-            match[1],
-            parseFloat(match[3]),
-            parseFloat(match[5]),
-            step
-          )
-          .name(parseStringToTEX("$" + match[1] + "$"))
-          .onChange(function () {
-            // Use the value stored in valueObj to update the string in the original controller.
-            kineticParamsStrs[label] = kineticParamsStrs[label].replace(
-              regex,
-              match[1] +
-                " = " +
-                controller.valueObj[match[1]]
-                  .toFixed(
-                    Math.max(
-                      parseFloat(match[2]).countDecimals(),
-                      step.countDecimals()
-                    )
-                  )
-                  .toString() +
-                " in [" +
-                match[3] +
-                "," +
-                match[4] +
-                match[5] +
-                "]"
-            );
-            refreshGUI(parametersFolder);
-            setKineticStringFromParams();
-            // Update the uniforms with this new value.
-            if (setKineticUniformFromString(kineticParamsStrs[label])) {
-              // If we added a new uniform, we need to remake all the shaders.
-              updateShaders();
-            }
-          })
-      );
-      // Move any child elements to be after the original controller in the list, in the order
-      // given in associatedControllers.
-      for (const child of controller.associatedControllers.slice().reverse()) {
-        controller.domElement.parentElement.parentElement.after(
-          child.domElement.parentElement.parentElement
+      controller.slider.step = step.toString();
+
+      // Assign the initial value, which should happen after step has been defined.
+      controller.slider.value = match[2];
+
+      // Use the input event of the slider to update the controller and the simulation.
+      controller.slider.addEventListener("input", function () {
+        controller.slider.style.setProperty('--value', controller.slider.value)
+        kineticParamsStrs[label] = kineticParamsStrs[label].replace(
+          regex,
+          match[1] +
+            " = " +
+            parseFloat(controller.slider.value)
+              .toFixed(
+                Math.max(
+                  parseFloat(match[2]).countDecimals(),
+                  step.countDecimals()
+                )
+              )
+              .toString() +
+            " in [" +
+            match[3] +
+            "," +
+            match[4] +
+            match[5] +
+            "]"
         );
-      }
-      if (MathJax.typesetPromise != undefined) {
-        MathJax.typesetPromise();
-      }
+        refreshGUI(parametersFolder);
+        setKineticStringFromParams();
+        // Update the uniforms with this new value.
+        if (setKineticUniformFromString(kineticParamsStrs[label])) {
+          // If we added a new uniform, we need to remake all the shaders.
+          updateShaders();
+        }
+      });
+
+      // Augment the onChange function of the controller to also update the slider.
+      controller.__oldOnFinishChange = controller.onFinishChange;
+      controller.onFinishChange = function () {
+        controller.__oldOnFinishChange();
+        controller.slider.value = match[2];
+      };
+
+      // Configure the slider's style so that it can be nicely formatted.
+      controller.slider.style.setProperty('--value', controller.slider.value);
+      controller.slider.style.setProperty('--min', controller.slider.min);
+      controller.slider.style.setProperty('--max', controller.slider.max);
+
+      // Add the slider to the DOM.
+      controller.domElement.appendChild(controller.slider);
+
     }
   }
   if (isNextParam) {
     kineticParamsLabels.push(label);
     kineticParamsStrs[label] = "";
     controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller.domElement.classList.add("params");
     controller.onFinishChange(function () {
       const index = kineticParamsLabels.indexOf(label);
       // Remove excess whitespace.
@@ -4268,15 +4281,18 @@ function createParameterController(label, isNextParam) {
     });
   } else {
     controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller.domElement.classList.add("params");
     controller.onFinishChange(function () {
       // Remove excess whitespace.
       let str = removeWhitespace(kineticParamsStrs[label]);
       if (str == "") {
-        // If the string is empty, delete this controller and any associated controllers.
-        for (const child of this.associatedControllers) {
-          child.remove();
+        // If the string is empty, delete this controller and any associated slider.
+        if (controller.domElement.closest("li").hasOwnProperty("parameterSlider")) {
+          // Remove any existing sliders.
+          controller.slider.remove();
+          // Remove the parameterSlider class from the controller.
+          controller.domElement.closest("li").classList.remove("parameterSlider");
         }
-        this.associatedControllers = [];
         this.remove();
         // Remove the associated label and the (empty) kinetic parameters string.
         const index = kineticParamsLabels.indexOf(label);
