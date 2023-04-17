@@ -4187,7 +4187,7 @@ function createParameterController(label, isNextParam) {
             parseFloat(match[5]),
             step
           )
-          .name("$" + match[1] + "$")
+          .name(parseStringToTEX("$" + match[1] + "$"))
           .onChange(function () {
             // Use the value stored in valueObj to update the string in the original controller.
             kineticParamsStrs[label] = kineticParamsStrs[label].replace(
