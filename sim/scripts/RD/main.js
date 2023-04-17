@@ -4227,6 +4227,7 @@ function createParameterController(label, isNextParam) {
         );
         refreshGUI(parametersFolder);
         setKineticStringFromParams();
+        render();
         // Update the uniforms with this new value.
         if (setKineticUniformFromString(kineticParamsStrs[label])) {
           // If we added a new uniform, we need to remake all the shaders.
