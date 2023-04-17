@@ -1716,11 +1716,7 @@ function setBrushType() {
   // Construct a drawing shader based on the selected type and the value string.
   // Insert any user-defined kinetic parameters, given as a string that needs parsing.
   // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
-  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
-  let kineticStr = parseShaderString(
-    sanitisedKineticParams().replace(regex, "float $1;\n")
-  );
-  let shaderStr = drawShaderTop() + kineticStr;
+  let shaderStr = kineticUniformsForShader() + drawShaderTop();
   let radiusStr =
     "float brushRadius = " +
     parseShaderString(options.brushRadius.toString()) +
@@ -2182,11 +2178,7 @@ function parseShaderString(str) {
   str = str.replace(/\bq\b/g, "uvwq." + speciesToChannelChar("q"));
 
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
-  let regex;
-  for (let num = 0; num < 10; num++) {
-    regex = new RegExp("([a-zA-Z]+[0-9]*)(" + num.toString() + ")", "g");
-    while (str != (str = str.replace(regex, "$1" + numsAsWords[num])));
-  }
+  str = replaceDigitsWithWords(str);
 
   // Replace integers with floats.
   while (str != (str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3")));
@@ -2369,10 +2361,7 @@ function setRDEquations() {
   // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
   // We'll inject this shader string before any boundary conditions etc, so that these params
   // are also available in BCs.
-  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
-  let kineticStr = parseShaderString(
-    sanitisedKineticParams().replace(regex, "float $1;\n")
-  );
+  let kineticStr = kineticUniformsForShader();
 
   // Choose what sort of update we are doing: normal, or cross-diffusion enabled?
   updateShader = parseNormalDiffusionStrings() + "\n";
@@ -2398,8 +2387,8 @@ function setRDEquations() {
   }
 
   simMaterial.fragmentShader = [
-    RDShaderTop(),
     kineticStr,
+    RDShaderTop(),
     neumannShader,
     robinShader,
     parseReactionStrings(),
@@ -2413,7 +2402,7 @@ function setRDEquations() {
   // BCs have been specified.
   checkForAnyDirichletBCs();
   if (anyDirichletBCs) {
-    dirichletShader = RDShaderEnforceDirichletTop() + kineticStr;
+    dirichletShader = kineticStr + RDShaderEnforceDirichletTop();
     if (options.domainViaIndicatorFun) {
       let str = RDShaderDirichletIndicatorFun()
         .replace(/indicatorFun/g, parseShaderString(options.domainIndicatorFun))
@@ -2809,22 +2798,14 @@ function updateRandomSeed() {
 }
 
 function setClearShader() {
-  let shaderStr = clearShaderTop();
+  // Insert any user-defined kinetic parameters, as uniforms.
+  let shaderStr = kineticUniformsForShader() + clearShaderTop();
   if (
     options.clearValueU.includes("RAND") ||
     options.clearValueV.includes("RAND")
   ) {
     shaderStr += randShader();
   }
-  // Insert any user-defined kinetic parameters, given as a string that needs parsing.
-  // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
-  // We'll inject this shader string before any boundary conditions etc, so that these params
-  // are also available in BCs.
-  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
-  let kineticStr = parseShaderString(
-    sanitisedKineticParams().replace(regex, "float $1;\n")
-  );
-  shaderStr += kineticStr;
   shaderStr += "float u = " + parseShaderString(options.clearValueU) + ";\n";
   shaderStr += "float v = " + parseShaderString(options.clearValueV) + ";\n";
   shaderStr += "float w = " + parseShaderString(options.clearValueW) + ";\n";
@@ -3044,12 +3025,7 @@ function getMeanVal() {
 }
 
 function setPostFunFragShader() {
-  let shaderStr = computeDisplayFunShaderTop();
-  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
-  let kineticStr = parseShaderString(
-    sanitisedKineticParams().replace(regex, "float $1;\n")
-  );
-  shaderStr += kineticStr;
+  let shaderStr = kineticUniformsForShader() + computeDisplayFunShaderTop();
   shaderStr += computeDisplayFunShaderMid();
   shaderStr = setDisplayFunInShader(shaderStr);
   if (options.domainViaIndicatorFun) {
@@ -3830,12 +3806,13 @@ function configureOptions() {
 }
 
 function updateProblem() {
-  // Update the problem based on the current options.
+  // Update the problem and any dependencies based on the current options.
   problemTypeFromOptions();
   configurePlotType();
   configureDimension();
   configureOptions();
   configureGUI();
+  setKineticUniforms();
   updateWhatToPlot();
   setBrushType();
   setRDEquations();
@@ -4074,6 +4051,9 @@ function parseStringToTEX(str) {
   str = str.replaceAll(/[\(\[]/g, "\\left$&");
   str = str.replaceAll(/[\)\]]/g, "\\right$&");
 
+  // If there's an underscore, put {} around the word that follows it.
+  str = str.replaceAll(/_(\w*\b)/g, "_{$1}");
+
   return str;
 }
 
@@ -4192,7 +4172,7 @@ function createParameterController(label, isNextParam) {
         match[4] = "";
         step = Math.min(
           (parseFloat(match[5]) - parseFloat(match[3])) / 20,
-          10 ** -parseFloat(match[2]).countDecimals()
+          10 ** (-parseFloat(match[2]).countDecimals())
         );
       } else {
         step = parseFloat(match[4]);
@@ -4214,13 +4194,14 @@ function createParameterController(label, isNextParam) {
               regex,
               match[1] +
                 " = " +
-                formatLabelNum(
-                  controller.valueObj[match[1]],
-                  Math.max(
-                    parseFloat(match[2]).countDecimals(),
-                    step.countDecimals()
+                controller.valueObj[match[1]]
+                  .toFixed(
+                    Math.max(
+                      parseFloat(match[2]).countDecimals(),
+                      step.countDecimals()
+                    )
                   )
-                ) +
+                  .toString() +
                 " in [" +
                 match[3] +
                 "," +
@@ -4230,6 +4211,11 @@ function createParameterController(label, isNextParam) {
             );
             refreshGUI(parametersFolder);
             setKineticStringFromParams();
+            // Update the uniforms with this new value.
+            if (setKineticUniformFromString(kineticParamsStrs[label])) {
+              // If we added a new uniform, we need to remake all the shaders.
+              updateShaders();
+            }
           })
       );
       // Move any child elements to be after the original controller in the list, in the order
@@ -4264,8 +4250,11 @@ function createParameterController(label, isNextParam) {
         let newLabel = "params" + kineticParamsCounter;
         this.remove();
         createParameterController(newLabel, true);
-        // If it's non-empty, update any dependencies.
+        // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
+        if (setKineticUniformFromString(str)) {
+          updateShaders();
+        }
       }
     });
   } else {
@@ -4288,8 +4277,11 @@ function createParameterController(label, isNextParam) {
         // Otherwise, check if we need to create/modify a slider.
         createSlider();
       }
-      // Set the kinetic parameters.
+      // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
       setKineticStringFromParams();
+      if (setKineticUniformFromString(str)) {
+        updateShaders();
+      }
     });
   }
   // Now that we've made the required controller, check the current string to see if
@@ -4320,25 +4312,11 @@ function setParamsFromKineticString() {
   kineticParamsLabels.push(label);
   kineticParamsStrs[label] = str;
   createParameterController(label, true);
-  // Check if any reserved names are being used.
-  if (checkForReservedNames()) {
-    options.kineticParams = "";
-    setRDEquations();
-    setClearShader();
-    setBrushType();
-    updateWhatToPlot();
-  }
 }
 
 function setKineticStringFromParams() {
   // Combine the custom parameters into a single string for storage, so long as no reserved names are used.
   options.kineticParams = Object.values(kineticParamsStrs).join(";");
-  if (!checkForReservedNames()) {
-    setRDEquations();
-    setClearShader();
-    setBrushType();
-    updateWhatToPlot();
-  }
 }
 
 function fromExternalLink() {
@@ -4645,37 +4623,11 @@ function getReservedStrs() {
   return [...str.matchAll(regex)].map((x) => x[1]).concat(["u", "v", "w", "q"]);
 }
 
-function usingReservedNames() {
-  // Check if the user is trying to use any reserved names as kinetic parameters.
-  // If so, return the name of a reserved parameter. Otherwise, return false.
-  let regex = /(\w+)\s*=/g;
-  let names = [...sanitisedKineticParams().matchAll(regex)]
-    .map((x) => x[1])
-    .join(" ");
-  let lastTest = false;
-  // Check all of the names, saving at least one reserved name if any are found.
-  const flag = getReservedStrs().some(function (name) {
-    let regex = new RegExp("\\b" + name + "\\b", "g");
-    lastTest = name;
-    return regex.test(names);
+function isReservedName(name) {
+  return getReservedStrs().some(function (badName) {
+    let regex = new RegExp("\\b" + badName + "\\b", "g");
+    return regex.test(name);
   });
-  return flag ? lastTest : false;
-}
-
-function checkForReservedNames() {
-  let badName = usingReservedNames();
-  // If there's a bad parameter name, and we've not just alerted the user to it, show an alert.
-  if (badName && badName != lastBadParam) {
-    lastBadParam = badName;
-    alert(
-      'The name "' +
-        badName +
-        "\" is used under the hood, so can't be used as a parameter. Please use a different name for " +
-        badName +
-        "."
-    );
-  }
-  return badName;
 }
 
 function replaceUserDefReac(str, regex, input) {
@@ -4771,5 +4723,79 @@ function sanitisedKineticParams() {
   // to create additional controllers. We want to save these in options.kineticParams, but
   // can't pass them to the shader like this. Here, we strip these directives from the string.
   // If a kineticParam is of the form "name = val in [a,b]", remove the in [a,b] part.
-  return options.kineticParams.replaceAll(/\bin[^;]*;?/g, ";");
+  let out = options.kineticParams.replaceAll(/\bin[^;]*;?/g, ";");
+
+  // A user may have used numbers when defining variable names. Replace them with the word form.
+  out = replaceDigitsWithWords(out);
+
+  return out;
+}
+
+function setKineticUniforms() {
+  // Set uniforms based on the parameters defined in kineticParams.
+  // Return true if we're adding a new uniform, which signifies that all shaders must be
+  // updated to reference this new uniform.
+  const paramStrs = sanitisedKineticParams().split(";");
+  let addingNewUniform = false;
+  for (const paramStr of paramStrs) {
+    addingNewUniform |= setKineticUniformFromString(paramStr);
+  }
+  return addingNewUniform;
+}
+
+function setKineticUniformFromString(str) {
+  // Set a uniform based on the parameter defined in str/
+  // Return true if we're adding a new uniform, which signifies that all shaders must be
+  // updated to reference this new uniform.
+  const regex = /(\w+)\s*=\s*[\+\-]?\s*([0-9\.]+)/;
+  // Parse the name from the string.
+  const match = str.match(regex);
+  let addingNewUniform = false;
+  if (match) {
+    if (isReservedName(match[1])) {
+      alert(
+        'The name "' +
+          match[1] +
+          "\" is used under the hood, so can't be used as a parameter. Please use a different name for " +
+          match[1] +
+          "."
+      );
+    } else {
+      // If no such uniform exists, make a note of this.
+      addingNewUniform = !uniforms.hasOwnProperty(match[1]);
+      // Define the required uniform.
+      uniforms[match[1]] = {
+        type: "float",
+        value: parseFloat(match[2]),
+      };
+    }
+  }
+  return addingNewUniform;
+}
+
+function kineticUniformsForShader() {
+  // Given the kinetic parameters in options.kineticParams, return GLSL defining uniforms with
+  // these names.
+  const regex = /;?\s*(\w+)\s*=\s*[\+\-]?\s*([0-9\.]+)\s*;?/g;
+  return replaceDigitsWithWords(
+    sanitisedKineticParams().replaceAll(regex, "uniform float $1;\n")
+  );
+}
+
+function updateShaders() {
+  // Update all the shaders that are constructed using user input.
+  setRDEquations();
+  setClearShader();
+  setBrushType();
+  updateWhatToPlot();
+}
+
+function replaceDigitsWithWords(strIn) {
+  let regex;
+  let strOut = strIn;
+  for (let num = 0; num < 10; num++) {
+    regex = new RegExp("([a-zA-Z_]+)(" + num.toString() + ")", "g");
+    while (strOut != (strOut = strOut.replace(regex, "$1" + numsAsWords[num])));
+  }
+  return strOut;
 }
