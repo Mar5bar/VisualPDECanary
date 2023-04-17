@@ -352,6 +352,7 @@ $("#settings").click(function () {
 $("#equations").click(function () {
   $("#left_ui").toggle();
   $("#equation_display").show();
+  resizeEquationDisplay();
 });
 $("#pause").click(function () {
   pauseSim();
@@ -593,6 +594,7 @@ function resize() {
   configureCameraAndClicks();
   // Check if the colourbar lies on top of the logo. If so, remove the logo.
   checkColourbarLogoCollision();
+  resizeEquationDisplay();
   render();
 }
 
@@ -2638,7 +2640,7 @@ function refreshGUI(folder) {
   // No need to do this on page load (and indeed will throw an error) so check
   // MathJax is defined first.
   if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise();
+    MathJax.typesetPromise().then(resizeEquationDisplay);
   }
 }
 
@@ -2874,7 +2876,7 @@ function createImageControllers() {
     .name("$T(x,y)$")
     .onChange(loadImageSourceTwo);
   if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise();
+    MathJax.typesetPromise().then(resizeEquationDisplay);
   }
   if (inGUI("imageOne")) {
     showGUIController(imControllerOne);
@@ -4019,7 +4021,7 @@ function setEquationDisplayType() {
   }
   $("#typeset_equation").html(str);
   if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise();
+    MathJax.typesetPromise().then(resizeEquationDisplay);
   }
 }
 
@@ -4176,7 +4178,9 @@ function createParameterController(label, isNextParam) {
         controller.domElement.closest("li").classList.remove("parameterSlider");
       }
       // Add a CSS class highlighting that this controller now contains a slider too.
-      controller.domElement.parentElement.parentElement.classList.add("parameterSlider");
+      controller.domElement.parentElement.parentElement.classList.add(
+        "parameterSlider"
+      );
       // Create a range input object and tie it to the controller.
       controller.slider = document.createElement("input");
       controller.slider.classList.add("styled-slider");
@@ -4216,7 +4220,7 @@ function createParameterController(label, isNextParam) {
 
       // Use the input event of the slider to update the controller and the simulation.
       controller.slider.addEventListener("input", function () {
-        controller.slider.style.setProperty('--value', controller.slider.value)
+        controller.slider.style.setProperty("--value", controller.slider.value);
         kineticParamsStrs[label] = kineticParamsStrs[label].replace(
           regex,
           match[1] +
@@ -4254,13 +4258,12 @@ function createParameterController(label, isNextParam) {
       };
 
       // Configure the slider's style so that it can be nicely formatted.
-      controller.slider.style.setProperty('--value', controller.slider.value);
-      controller.slider.style.setProperty('--min', controller.slider.min);
-      controller.slider.style.setProperty('--max', controller.slider.max);
+      controller.slider.style.setProperty("--value", controller.slider.value);
+      controller.slider.style.setProperty("--min", controller.slider.min);
+      controller.slider.style.setProperty("--max", controller.slider.max);
 
       // Add the slider to the DOM.
       controller.domElement.appendChild(controller.slider);
-
     }
   }
   if (isNextParam) {
@@ -4299,11 +4302,15 @@ function createParameterController(label, isNextParam) {
       let str = removeWhitespace(kineticParamsStrs[label]);
       if (str == "") {
         // If the string is empty, delete this controller and any associated slider.
-        if (controller.domElement.closest("li").hasOwnProperty("parameterSlider")) {
+        if (
+          controller.domElement.closest("li").hasOwnProperty("parameterSlider")
+        ) {
           // Remove any existing sliders.
           controller.slider.remove();
           // Remove the parameterSlider class from the controller.
-          controller.domElement.closest("li").classList.remove("parameterSlider");
+          controller.domElement
+            .closest("li")
+            .classList.remove("parameterSlider");
         }
         this.remove();
         // Remove the associated label and the (empty) kinetic parameters string.
@@ -4835,4 +4842,19 @@ function replaceDigitsWithWords(strIn) {
     while (strOut != (strOut = strOut.replace(regex, "$1" + numsAsWords[num])));
   }
   return strOut;
+}
+
+function resizeEquationDisplay() {
+  const el = $("#equation_display div mjx-container").children("mjx-math");
+  var fz;
+  el.css("font-size","");
+  while (
+    ($("#equation_display")[0].getBoundingClientRect().right >=
+      window.innerWidth - 50) &
+    ($("#equation_display")[0].getBoundingClientRect().right >
+      parseFloat($("#equation_display_box").css("min-width")))
+  ) {
+    fz = (parseFloat(el.css("font-size")) * 0.9).toString() + "px";
+    el.css("font-size", fz);
+  }
 }
