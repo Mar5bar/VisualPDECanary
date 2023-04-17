@@ -4214,7 +4214,7 @@ function createParameterController(label, isNextParam) {
               .toFixed(
                 Math.max(
                   parseFloat(match[2]).countDecimals(),
-                  step.countDecimals()
+                  parseFloat(step).countDecimals()
                 )
               )
               .toString() +
