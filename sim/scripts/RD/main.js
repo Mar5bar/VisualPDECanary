@@ -4171,7 +4171,7 @@ function createParameterController(label, isNextParam) {
       if (match[4] == undefined) {
         match[4] = "";
         // If all the quantities are integers, set the default step to be integers.
-        if (!kineticParamsStrs[label].includes(".")) {
+        if (!kineticParamsStrs[label].includes(".") & parseFloat(match[5]) - parseFloat(match[3]) > 1) {
           step = 1;
         } else {
           // Otherwise, choose a step that either matches the max precision of the inputs, or 
