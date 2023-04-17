@@ -4848,7 +4848,8 @@ function resizeEquationDisplay() {
   const el = $("#equation_display div mjx-container").children("mjx-math");
   var fz;
   el.css("font-size","");
-  while (
+  var count = 0;
+  while (count < 20 & 
     ($("#equation_display")[0].getBoundingClientRect().right >=
       window.innerWidth - 50) &
     ($("#equation_display")[0].getBoundingClientRect().right >
@@ -4856,5 +4857,6 @@ function resizeEquationDisplay() {
   ) {
     fz = (parseFloat(el.css("font-size")) * 0.9).toString() + "px";
     el.css("font-size", fz);
+    count += 1;
   }
 }
