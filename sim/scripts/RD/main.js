@@ -4170,10 +4170,19 @@ function createParameterController(label, isNextParam) {
       let step;
       if (match[4] == undefined) {
         match[4] = "";
-        step = Math.min(
-          (parseFloat(match[5]) - parseFloat(match[3])) / 20,
-          10 ** (-parseFloat(match[2]).countDecimals())
-        );
+        // If all the quantities are integers, set the default step to be integers.
+        if (!kineticParamsStrs[label].includes(".")) {
+          step = 1;
+        } else {
+          // Otherwise, choose a step that either matches the max precision of the inputs, or 
+          // splits the interval into 20, whichever is more precise.
+          step = Math.min(
+            (parseFloat(match[5]) - parseFloat(match[3])) / 20,
+            10 ** (-parseFloat(match[2]).countDecimals()),
+            10 ** (-parseFloat(match[3]).countDecimals()),
+            10 ** (-parseFloat(match[5]).countDecimals())
+          );
+        }
       } else {
         step = parseFloat(match[4]);
         match[4] += ",";
