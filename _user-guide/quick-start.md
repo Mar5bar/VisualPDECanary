@@ -33,12 +33,12 @@ The following **boundary conditions** are available to allow you to set the valu
 * Periodic
 * [Dirichlet](https://en.wikipedia.org/wiki/Dirichlet_boundary_condition) (e.g. $u\onboundary = 0$)
 * [Neumann](https://en.wikipedia.org/wiki/Neumann_boundary_condition) (e.g. $\pd{u}{n}\onboundary = 0$)
-* [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition) (e.g. $(u + \pd{u}{n})\|\onboundary = 0$)
+* [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition) (e.g. $(u + \pd{u}{n})\onboundary = 0$)
 
 You can swap between boundary conditions by choosing <span class='click_sequence'>{{ layout.equations }} → **Boundary conditions**</span> and selecting from the list for each variable.
 
 ### Initial conditions <a id='initial-conditions'>
-You can specify the values to which the unknowns ($u$, $v$, $w$) are initialised when resetting the simulation. These expressions can be functions of $x$, $y$, the special string 'RAND' that assigns a random number in [0,1] to each point in the domain, along with any user-defined parameters and the images $S$ and $T$ (see the [advanced documentation](/user-guide/advanced-options) for more details).
+You can specify the values to which the unknowns ($u$, $v$, $w$) are initialised when resetting the simulation. These expressions can be functions of $x$, $y$, the special string 'RAND' that assigns a random number in [0,1] to each point in the domain, along with any user-defined parameters and the images $S$ and $T$ (see the [advanced documentation](/user-guide/advanced-options) for more details). You can also use $L$, $L_x$ and $L_y$.
 
 ### Changing the equations <a id='equations'>
 
@@ -48,21 +48,26 @@ $$\pd{u}{t} = \vnabla \cdot (D \vnabla u) + f,$$
 
 where $D$ and $f$ are functions of $u$, $x$, $y$, and $t$ that you can specify.
 
-The most complicated type is a system of PDEs in three unknowns, $u$, $v$ and $w$:
+The most complicated type is a system of PDEs in four unknowns, $u$, $v$, $w$ and $q$:
 
 $$\begin{aligned}
-\pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w) + f,\\
-\pd{v}{t} &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w) + g,\\
+\pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_{uq}\vnabla q) + f,\\
+\pd{v}{t} &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + g,\\
 \text{or}\left\{\begin{matrix}\displaystyle\pd{w}{t} \\ w\end{matrix}\right. & 
 \begin{aligned}
-    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w) + h \vphantom{\displaystyle\pd{w}{t}}, \\
-    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v) + h,
+    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w+D_{wq}\vnabla q) + h \vphantom{\displaystyle\pd{w}{t}}, \\
+    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{wq}\vnabla q) + h,
+\end{aligned}\\
+\text{or}\left\{\begin{matrix}\displaystyle\pd{q}{t} \\ q\end{matrix}\right. & 
+\begin{aligned}
+    &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w+D_{qq}\vnabla q) + j \vphantom{\displaystyle\pd{q}{t}}, \\
+    &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w) + j,
 \end{aligned}
 \end{aligned}$$
 
-where $D_{uu}, \dots,  D_{ww}$ and $f$, $g$ and $h$ are functions of $u$, $v$, $w$, $x$, $y$, and $t$ that you can specify.
+where $D_{uu}, \dots,  D_{qq}$ and $f$, $g$, $h$ and $j$ are functions of $u$, $v$, $w$, $q$, $x$, $y$ and $t$ that you can specify.
 
 * You can change the number of unknowns by choosing <span class='click_sequence'>{{ layout.settings }} → **Equations** → **No. species**</span>
 * In systems of multiple unknowns, you can include terms representing cross-diffusion (e.g. $D_{uv}$, $D_{vu}$) by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Cross**</span>
-* In systems of multiple unknowns, you can choose between a differential or algebraic equation for the final component (e.g. '$\partial w/\partial t=$' or '$w=$') by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Algebraic w?** (or **v?**)</span>
+* In systems of multiple unknowns, you can choose between a differential or algebraic equation for some of the species (e.g. '$\partial w/\partial t=$' or '$w=$') by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Algebraic w** (or **v** or **q**)</span>
 

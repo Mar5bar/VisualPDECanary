@@ -2,8 +2,8 @@
 layout: page
 title: Reaction–cross-diffusion systems
 lesson_number: 100
-thumbnail: /assets/images/KellerSegel.PNG
-extract: Extended Turing spaces
+thumbnail: /assets/images/dark-soliton.png
+extract: Dark solitons and extended Turing spaces
 equation: $\pd{u}{t}=\vnabla\cdot(D_{uu}\vnabla u+D_{uv}\vnabla v)+a-u+u^2v,$ $\pd{v}{t}=\vnabla\cdot(D_{vu}\vnabla u+D_{vv}\vnabla v)+b-u^2v$
 ---
 

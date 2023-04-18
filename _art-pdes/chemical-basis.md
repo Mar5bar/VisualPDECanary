@@ -16,4 +16,4 @@ but we have taken an initial condition from an image of the first page of Turing
 
 * Press {{ layout.play }} to see this evolve! You can pause the simulation and press {{ layout.erase }} to reset the text. 
 
-* Modifying different parameters (particularly $b$) can lead to qualitatively different solutions. Try $b=0.6$ for example.
+* Modifying different parameters (particularly $b$) can lead to qualitatively different solutions. Try $b=0.6$ for example. Try decreasing $b$ very slowly with the slider to see the pattern change.

@@ -23,8 +23,9 @@
                     pd: ["\\frac{\\partial #1}{\\partial #2}", 2],
                     pdd: ["\\frac{\\partial^2 #1}{\\partial #2^2}", 2],
                     vnabla: "\\boldsymbol{\\nabla}",
-                    lap: "\\vnabla^2",
+                    lap: "\\nabla^2",
                     d: "\\mathrm{d}",
+                    i: "\\mathrm{i}",
                     domain: "\\mathit{\\Omega}",
                     boundary: "\\partial\\Omega",
                 },
@@ -78,10 +79,13 @@
 <div class="ui_button" id="pause" title="Pause (space)"><i class="fa-solid fa-pause"></i></div>
 <div class="ui_button" id="erase" title="Restart (R)"><i class="fa-solid fa-arrow-rotate-left"></i></div>
 <div class="ui_button" id="screenshot" title="Screenshot (S)"><i class="fa-solid fa-camera"></i></div>
-<div class="ui_button" id="back" title="To VisualPDE"><i class="fa-solid fa-arrow-left"></i></div>
-<div class="ui_button" id="help" title="Help"><i class="fa-solid fa-question"></i></div>
+<div class="ui_button" id="link" title="Copy link"><i class="fa-solid fa-link"></i></div>
+<div class="message" id="link_copied"><p>Link copied to clipboard</p></div>
+<a href="../user-guide" target="_blank"><div class="ui_button" id="help" title="Help"><i class="fa-solid fa-question"></i></div></a>
 
-<div class="ui_button" id="equations" title="Edit equations"><i class="fa-solid fa-pencil"></i></div>
+<div class="ui_button" id="equations" title="Edit equations"><span id='function_button_f'>ƒ</span><span id='function_button_open_bracket'>(</span><span id='function_button_x'>x</span><span id='function_button_close_bracket'>)</span></div>
+
+<a href='/'><div id="logo">VisualPDE</div></a>
 
 <div class="message" id="try_clicking" title="Try clicking!"><p>Try clicking!</p></div>
 <div class="message" id="oops_hit_nan">
@@ -98,10 +102,13 @@
     <button id="warning_no" class="btn-primary"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
 
-<div id="equation_display">
-    <div id="equation_display_box">
-        <div id="typeset_equation"></div>
+<div id="left_ui">
+    <div id="equation_display">
+        <div id="equation_display_box">
+            <div id="typeset_equation"></div>
+        </div>
     </div>
+    <div class="dg ac" id="leftGUIContainer" style="position: relative;"></div>
 </div>
 
 <div class="colourbarMain prevent-select" id="colourbar">
@@ -110,14 +117,15 @@
     <div class="label colourbarLabel" id="maxLabel">1</div>
 </div>
 
-<div class="time prevent-select" id="timeDisplay">
-    <div class="label timeLabel" id="timeLabel">$t=$</div>
-    <div class="label timeLabel" id="timeValue"></div>
-</div>
-
-<div class="integral prevent-select" id="integralDisplay">
-    <div class="label integralLabel" id="integralLabel"></div>
-    <div class="label integralLabel" id="integralValue"></div>
+<div class="dataContainer" id="dataContainer">
+    <div class="dataItem prevent-select" id="timeDisplay">
+        <div class="label timeLabel" id="timeLabel">$t=$</div>
+        <div class="label timeLabel" id="timeValue"></div>
+    </div>
+    <div class="dataItem prevent-select" id="integralDisplay">
+        <div class="label integralLabel" id="integralLabel"></div>
+        <div class="label integralLabel" id="integralValue"></div>
+    </div>
 </div>
 
 <body>

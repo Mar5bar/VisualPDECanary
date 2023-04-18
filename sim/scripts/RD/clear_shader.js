@@ -7,15 +7,29 @@ export function clearShaderTop() {
     uniform sampler2D imageSourceTwo;
     uniform float dx;
     uniform float dy;
+    uniform float L;
+    uniform float L_x;
+    uniform float L_y;
     uniform int nXDisc;
     uniform int nYDisc;
     uniform float seed;
     const float pi = 3.141592653589793;
 
+    float H(float val) 
+    {
+        float res = smoothstep(-0.01, 0.01, val);
+        return res;
+    }
+
     float H(float val, float edge) 
     {
         float res = smoothstep(-0.01, 0.01, val - edge);
         return res;
+    }
+
+    float safetanh(float val)
+    {
+        return 1.0 - 2.0/(1.0+exp(2.0*val));
     }
 
     float safepow(float x, float y) {
@@ -49,6 +63,6 @@ export function clearShaderTop() {
 
 export function clearShaderBot() {
     return `
-        gl_FragColor = vec4(u, v, w, 1.0);
+        gl_FragColor = vec4(u, v, w, q);
     }`;
 }

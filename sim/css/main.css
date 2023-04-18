@@ -22,6 +22,7 @@ canvas {
     touch-action: none;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
 }
 
 .prevent-select {
@@ -31,16 +32,7 @@ canvas {
     user-select: none; /* Standard syntax */
   }
 
-.fullCanvas {
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-}
-
 .squareCanvas {
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
     max-width: 100vh;
     max-width: 100dvh;
     max-height: 100vw;
@@ -76,26 +68,34 @@ canvas {
     position: absolute;
     top: 0px;
     right: 40px;
-    /* margin-right: 0; */
     direction: rtl;
 }
 
 #leftGUI {
-    position: absolute;
-    top: 90px;
-    left: 55px;
-    margin-left: 0;
+    margin-top: -5px;
     direction: ltr;
+    border: 5px black solid;
+    background-color: black;
+    pointer-events: all;
 }
 
-#equation_display {
+#leftGUIContainer {
+    top: 1px;
+}
+
+#left_ui {
     display: none;
     position: absolute;
     top: 0px;
     left: 55px;
+    pointer-events: none;
+}
+
+#equation_display {
     border: 5px black solid;
     border-radius: 5px;
     background-color: black;
+    pointer-events: all;
 }
 
 #equation_display_box {
@@ -104,11 +104,13 @@ canvas {
     align-items: center;
     background-color: #ededed;
     color: black;
-    height: 85px;
+    height: fit-content;
     min-width: 238px;
     border-radius: 2px;
     padding-right:5px;
     padding-left:2px;
+    padding-top: 12px;
+    padding-bottom: 12px;
 }
 
 #equation_display.flexbox {
@@ -169,13 +171,11 @@ canvas {
 #pause {
     top: 50px;
     right: 3px;
-    z-index: 1;
 }
 
 #play {
     top: 50px;
     right: 3px;
-    z-index: 0;
 }
 
 #erase {
@@ -188,19 +188,32 @@ canvas {
     right: 3px;
 }
 
-#back {
+#equations {
     top: 0px;
     left: 3px;
 }
 
-#equations {
-    top: 50px;
-    left: 3px;
+#help {
+    top: 210px;
+    right: 3px;
 }
 
-#help {
-    top: 90px;
-    left: 3px;
+#link {
+    top: 170px;
+    right: 3px;
+}
+
+#link_copied {
+    position: absolute;
+    top: 192.5px;
+    right: 50px;
+    transform: translateY(-50%);
+    opacity: 100;
+    display: none;
+}
+
+#link_copied p {
+    font-size: 0.8rem;
 }
 
 #equation_display div mjx-container {
@@ -216,9 +229,6 @@ canvas {
     left: 50%;
     position: absolute;
     transform: translateX(-50%);
-    opacity: 0;
-    transition-property: opacity;
-    pointer-events: none;
 }
 
 .message {
@@ -291,6 +301,7 @@ canvas {
     color: #1756a9 !important;
 } */
 #warning_no, #warning_restart{
+    background-color:#e9e9ed;
     color: #111;
 }
 #warning_no:hover, #warning_restart:hover{
@@ -333,14 +344,6 @@ i.icon_on_text_button{
     font-feature-settings: "kern" 1;
 }
 
-/* #oops_hit_nan {
-    top: 50%;
-    width: 80%;
-    max-width: 90vh;
-    left: 50%;
-    position: absolute;
-} */
-
 .fading_in {
     opacity: 100% !important;
     transition-duration: 3s;
@@ -367,7 +370,7 @@ p, .label  {
     position: absolute;
     bottom: 20px;
     width: 60%;
-    height: 20px;
+    height: 24px;
     left: 50%;
     transform: translateX(-50%);
     border: 2px solid #000;
@@ -400,16 +403,24 @@ p, .label  {
     text-align: center;
 }
 
-.time {
+.dataContainer {
     display: none;
     position: absolute;
     bottom: 20px;
-    height: 20px;
     right: 20px;
-    border: 2px solid #000;
+    text-align: right;
+}
+
+.dataItem {
+    position: relative;
+    margin-left: auto;
+    margin-right: 0;
+    display: block;
+    height: 20px;
+    width: fit-content;
+    border: 4px solid #000;
     border-radius: 5px;
     background-color: #000;
-    vertical-align: middle;
 }
 
 .timeLabel {
@@ -420,18 +431,6 @@ p, .label  {
     font-size: 1rem;
     font-variant-numeric: tabular-nums;
     color: #fff;
-}
-
-.integral {
-    display: none;
-    position: absolute;
-    bottom: 20px;
-    height: 20px;
-    left: 20px;
-    border: 2px solid #000;
-    border-radius: 5px;
-    background-color: #000;
-    vertical-align: middle;
 }
 
 .integralLabel {
@@ -448,6 +447,177 @@ sup {
     line-height: 0;
 }
 
-.secondRowUI {
-    bottom: 50px !important;
+#logo{
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color:white;
+    position: absolute;
+    bottom: 1ex;
+    left: 1ex;
+    font-size: 26px;
+    font-weight: 200;
+    letter-spacing: -1px;
+    text-shadow: 0px 0px 6px black, 0px 0px 25px black;
 }
+
+.params {
+    margin: auto !important;
+    width: 100% !important;
+}
+
+input[type="range"] {
+    width: 100%;
+    background: none;
+    }
+
+.dg .parameterSlider:not(.closed){height: 55px}
+
+/* Slider */
+input[type=range].styled-slider {
+    height: 2.2em;
+    -webkit-appearance: none;
+  }
+  
+  /*progress support*/
+  input[type=range].styled-slider.slider-progress {
+    --range: calc(var(--max) - var(--min));
+    --ratio: calc((var(--value) - var(--min)) / var(--range));
+    --sx: calc(0.5 * 2em + var(--ratio) * (100% - 2em));
+  }
+  
+  input[type=range].styled-slider:focus {
+    outline: none;
+  }
+  
+  /*webkit*/
+  input[type=range].styled-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 1em;
+    background: #FFFFFF;
+    border: none;
+    box-shadow: 0 0 2px #000000;
+    margin-top: calc(max((0.25em - 1px - 1px) * 0.5,0px) - 1.2em * 0.5);
+  }
+  
+  input[type=range].styled-slider::-webkit-slider-runnable-track {
+    height: 0.5em;
+    border: 1px solid #b2b2b2;
+    border-radius: 0.5em;
+    background: #efefef;
+    box-shadow: none;
+  }
+  
+  input[type=range].styled-slider:hover::-webkit-slider-runnable-track {
+    border-color: #9A9A9A;
+  }
+  
+  input[type=range].styled-slider::-webkit-slider-thumb:active {
+    background: #2FA1D6;
+  }
+  
+  input[type=range].styled-slider.slider-progress::-webkit-slider-runnable-track {
+    background: linear-gradient(#2FA1D6,#2FA1D6) 0/var(--sx) 100% no-repeat, #efefef;
+  }
+  
+  /*mozilla*/
+  input[type=range].styled-slider::-moz-range-thumb {
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 1em;
+    background: #FFFFFF;
+    border: none;
+    box-shadow: 0 0 2px #000000;
+  }
+  
+  input[type=range].styled-slider::-moz-range-track {
+    height: max(calc(0.5em - 1px - 1px),0px);
+    border: 1px solid #b2b2b2;
+    border-radius: 0.5em;
+    background: #efefef;
+    box-shadow: none;
+  }
+  
+  input[type=range].styled-slider:hover::-moz-range-track {
+    border-color: #9A9A9A;
+  }
+  
+  input[type=range].styled-slider::-moz-range-thumb:active {
+    background: #2FA1D6;
+  }
+  
+  input[type=range].styled-slider.slider-progress::-moz-range-track {
+    background: linear-gradient(#2FA1D6,#2FA1D6) 0/var(--sx) 100% no-repeat, #efefef;
+  }
+  
+  /*ms*/
+  input[type=range].styled-slider::-ms-fill-upper {
+    background: transparent;
+    border-color: transparent;
+  }
+  
+  input[type=range].styled-slider::-ms-fill-lower {
+    background: transparent;
+    border-color: transparent;
+  }
+  
+  input[type=range].styled-slider::-ms-thumb {
+    width: 2em;
+    height: 2em;
+    border-radius: 1em;
+    background: #FFFFFF;
+    border: none;
+    box-shadow: 0 0 2px #000000;
+    margin-top: 0;
+    box-sizing: border-box;
+  }
+  
+  input[type=range].styled-slider::-ms-track {
+    height: 0.5em;
+    border-radius: 0.5em;
+    background: #efefef;
+    border: 1px solid #b2b2b2;
+    box-shadow: none;
+    box-sizing: border-box;
+  }
+  
+  input[type=range].styled-slider:hover::-ms-track {
+    border-color: #9A9A9A;
+  }
+  
+  input[type=range].styled-slider::-ms-thumb:active {
+    background: #2FA1D6;
+  }
+  
+  input[type=range].styled-slider.slider-progress::-ms-fill-lower {
+    height: max(calc(1em - 1px - 1px),0px);
+    border-radius: 0.5em 0 0 0.5em;
+    margin: -1px 0 -1px -1px;
+    background: #2FA1D6;
+    border: 1px solid #b2b2b2;
+    border-right-width: 0;
+  }
+
+  #function_button_f{
+    font-size:1.3rem;
+    font-family: "Comic Sans", "Comic Sans MS", Arial, Times, serif;
+    font-weight:600;
+    margin-right:-1px;
+    margin-top:-3px;
+    margin-left:1px;
+  }
+
+#function_button_open_bracket,
+#function_button_close_bracket{
+    font-size: 0.8rem;
+    font-family: "Comic Sans", "Comic Sans MS", Arial, Helvetica, sans-serif;
+    margin-top:0px;
+}
+  #function_button_x{
+    font-weight:600;
+    font-size: 0.85rem;
+    font-family: "Comic Sans", "Comic Sans MS", Arial, Helvetica, serif;
+    margin-left:-1px;
+    margin-right:-1px;
+  }
+  

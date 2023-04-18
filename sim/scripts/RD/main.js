@@ -13,35 +13,46 @@ let basicMaterial,
   displayMaterial,
   drawMaterial,
   simMaterial,
+  dirichletMaterial,
   clearMaterial,
   copyMaterial,
   postMaterial,
   interpolationMaterial;
-let domain, simDomain, simpleDomain;
+let domain, simDomain, clickDomain;
 let options, uniforms, funsObj;
 let leftGUI,
   rightGUI,
   root,
   pauseButton,
   resetButton,
+  typeOfBrushController,
   brushRadiusController,
   drawIn3DController,
   fController,
   gController,
   hController,
+  jController,
   algebraicVController,
   algebraicWController,
+  algebraicQController,
   crossDiffusionController,
   domainIndicatorFunController,
   DuuController,
   DuvController,
   DuwController,
+  DuqController,
   DvuController,
   DvvController,
   DvwController,
+  DvqController,
   DwuController,
   DwvController,
   DwwController,
+  DwqController,
+  DquController,
+  DqvController,
+  DqwController,
+  DqqController,
   dtController,
   whatToDrawController,
   threeDHeightScaleController,
@@ -58,18 +69,23 @@ let leftGUI,
   clearValueUController,
   clearValueVController,
   clearValueWController,
+  clearValueQController,
   uBCsController,
   vBCsController,
   wBCsController,
+  qBCsController,
   dirichletUController,
   dirichletVController,
   dirichletWController,
+  dirichletQController,
   neumannUController,
   neumannVController,
   neumannWController,
+  neumannQController,
   robinUController,
   robinVController,
   robinWController,
+  robinQController,
   fIm,
   fMisc,
   imControllerOne,
@@ -77,7 +93,12 @@ let leftGUI,
   genericOptionsFolder,
   showAllStandardTools,
   showAll;
-let isRunning, isDrawing, hasDrawn, lastBadParam;
+let isRunning,
+  isDrawing,
+  hasDrawn,
+  lastBadParam,
+  anyDirichletBCs,
+  nudgedUp = false;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
 let parametersFolder,
@@ -92,6 +113,11 @@ const listOfTypes = [
   "3Species", // 4
   "3SpeciesCrossDiffusion", // 5
   "3SpeciesCrossDiffusionAlgebraicW", // 6
+  "4Species", // 7
+  "4SpeciesCrossDiffusion", // 8
+  "4SpeciesCrossDiffusionAlgebraicW", // 9
+  "4SpeciesCrossDiffusionAlgebraicQ", // 10
+  "4SpeciesCrossDiffusionAlgebraicWQ", // 11
 ];
 let equationType, savedHTML;
 let takeAScreenshot = false;
@@ -138,9 +164,12 @@ import {
   RDShaderUpdateCross,
   RDShaderAlgebraicV,
   RDShaderAlgebraicW,
+  RDShaderAlgebraicQ,
+  RDShaderEnforceDirichletTop,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
+import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
@@ -173,19 +202,23 @@ funsObj = {
       "?options=",
       LZString.compressToEncodedURIComponent(JSON.stringify(objDiff)),
     ].join("");
-    navigator.clipboard.writeText(str);
+    navigator.clipboard.writeText(str).then(
+      () => {
+        // Success.
+        $("#link_copied").fadeIn(1000);
+        setTimeout(() => $("#link_copied").fadeOut(1000), 2000);
+      },
+      () => {
+        // Failure.
+      }
+    );
   },
   copyConfigAsJSON: function () {
     // Encode the current simulation configuration as raw JSON and put it on the clipboard.
     let objDiff = diffObjects(options, getPreset("default"));
     objDiff.preset = "PRESETNAME";
-    if (objDiff.hasOwnProperty("kineticParams")) {
-      // If kinetic params have been specified, replace any commas with semicolons
-      // to allow for pretty formatting of the JSON.
-      objDiff.kineticParams = objDiff.kineticParams.replaceAll(",", ";");
-    }
     let str = JSON.stringify(objDiff)
-      .replaceAll(",", ",\n\t")
+      .replaceAll(/\s*,\s*([^0-9-\.])/g, ",\n\t$1")
       .replaceAll(":", ": ")
       .replace("{", "{\n\t")
       .replace("}", ",\n}");
@@ -209,17 +242,6 @@ funsObj = {
     minColourValueController.updateDisplay();
     updateColourbarLims();
   },
-  linePlot: function () {
-    // View the output as a line plot, which is really a surface viewed almost directly from the side.
-    options.oneDimensional = true;
-    options.cameraTheta = 0.5;
-    options.cameraPhi = 0;
-    options.threeD = true;
-    resize();
-    setRDEquations();
-    configureGUI();
-    configureCamera();
-  },
   debug: function () {
     // Write lots of data to the clipboard for debugging.
     let str = "";
@@ -235,41 +257,19 @@ funsObj = {
     });
     navigator.clipboard.writeText(str);
   },
-  debugSmallSquare: function () {
-    $("#simCanvas").css("width", "200px");
-    $("#simCanvas").css("height", "200px");
-    resize();
-  },
-  debugSmallRect: function () {
-    $("#simCanvas").css("width", "200px");
-    $("#simCanvas").css("height", "400px");
-    resize();
-  },
-  debugTallRect: function () {
-    $("#simCanvas").css("width", "200px");
-    $("#simCanvas").css("height", "600px");
-    resize();
-  },
-  debugTallerRect: function () {
-    $("#simCanvas").css("width", "200px");
-    $("#simCanvas").css("height", "800px");
-    resize();
-  },
-  debugWideRect: function () {
-    $("#simCanvas").css("width", "400px");
-    $("#simCanvas").css("height", "600px");
-    resize();
-  },
-  debugHundredTall: function () {
-    $("#simCanvas").css("width", "400px");
-    $("#simCanvas").css("height", "100%");
-    resize();
-  },
-  debugHundredVHTall: function () {
-    $("#simCanvas").css("width", "400px");
-    $("#simCanvas").css("height", "100vh");
-    resize();
-  },
+};
+
+// Define a handy countDecimals function.
+Number.prototype.countDecimals = function () {
+  if (Math.floor(this.valueOf()) === this.valueOf()) return 0;
+
+  var str = this.toString();
+  if (str.indexOf(".") !== -1 && str.indexOf("-") !== -1) {
+    return str.split("-")[1] || 0;
+  } else if (str.indexOf(".") !== -1) {
+    return str.split(".")[1].length || 0;
+  }
+  return str.split("-")[1] || 0;
 };
 
 // Get the canvas to draw on, as specified by the html.
@@ -286,12 +286,9 @@ console.error = function (error) {
   $("#error").one("click", () => fadeout("#error"));
 };
 
-// Remove the back button if we're from an internal link.
+// Remove the logo if we're from an internal link.
 if (!fromExternalLink()) {
-  $("#back").hide();
-  // Shift up the other buttons on the left.
-  $("#equations").css("top", "-=50");
-  $("#help").css("top", "-=50");
+  $("#logo").hide();
 }
 
 // Arbitrarily choose to first read from the "B" texture, noting that we will
@@ -344,10 +341,10 @@ if (shouldLoadDefault) {
   loadPreset("GrayScott");
 }
 
-// If the "Try clicking!" popup is allowed, show it iff we're from an external link 
+// If the "Try clicking!" popup is allowed, show it iff we're from an external link
 // or have loaded the default simulation.
 if (
-  (fromExternalLink() || shouldLoadDefault) &&
+  (fromExternalLink() || shouldLoadDefault || options.forceTryClickingPopup) &&
   !options.suppressTryClickingPopup
 ) {
   $("#try_clicking").html("<p>" + options.tryClickingText + "</p>");
@@ -356,6 +353,35 @@ if (
   setTimeout(() => fadeout("#try_clicking"), 5000);
   $("#simCanvas").one("pointerdown touchstart", () => fadeout("#try_clicking"));
 }
+
+/* GUI settings and equations buttons */
+$("#settings").click(function () {
+  $("#rightGUI").toggle();
+});
+$("#equations").click(function () {
+  $("#left_ui").toggle();
+  resizeEquationDisplay();
+});
+$("#pause").click(function () {
+  pauseSim();
+});
+$("#play").click(function () {
+  playSim();
+});
+$("#erase").click(function () {
+  resetSim();
+});
+$("#warning_restart").click(function () {
+  $("#oops_hit_nan").hide();
+  resetSim();
+});
+$("#screenshot").click(function () {
+  takeAScreenshot = true;
+  render();
+});
+$("#link").click(function () {
+  funsObj.copyConfigAsURL();
+});
 
 // Begin the simulation.
 animate();
@@ -392,7 +418,7 @@ function init() {
     gl.getExtension("EXT_float_blend")
   );
 
-  // Configure textures with placeholder sizes. We'll need two textures for simulation (A,B), one for 
+  // Configure textures with placeholder sizes. We'll need two textures for simulation (A,B), one for
   // post processing, and another for (optional) manual interpolation.
   simTextureOpts = {
     format: THREE.RGBAFormat,
@@ -430,7 +456,7 @@ function init() {
   controls = new OrbitControls(camera, canvas);
   controls.listenToKeyEvents(document);
   controls.addEventListener("change", function () {
-    if (options.threeD) {
+    if (options.dimension == 3) {
       options.cameraTheta =
         90 - (180 * Math.atan2(camera.position.z, camera.position.y)) / Math.PI;
       options.cameraPhi =
@@ -490,6 +516,11 @@ function init() {
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
   });
+  // A material for enforcing Dirichlet conditions.
+  dirichletMaterial = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: genericVertexShader(),
+  });
 
   createDisplayDomains();
 
@@ -499,7 +530,7 @@ function init() {
   simScene.add(simDomain);
 
   // Configure the camera.
-  configureCamera();
+  configureCameraAndClicks();
 
   // Set the size of the domain and related parameters.
   setCanvasShape();
@@ -561,38 +592,46 @@ function resize() {
   // Create new display domains with the correct sizes.
   replaceDisplayDomains();
   // Configure the camera.
-  configureCamera();
+  configureCameraAndClicks();
+  // Check if the colourbar lies on top of the logo. If so, remove the logo.
+  checkColourbarLogoCollision();
+  resizeEquationDisplay();
   render();
 }
 
 function replaceDisplayDomains() {
   domain.geometry.dispose();
   scene.remove(domain);
-  simpleDomain.geometry.dispose();
-  scene.remove(simpleDomain);
+  clickDomain.geometry.dispose();
+  scene.remove(clickDomain);
   createDisplayDomains();
 }
 
-function configureCamera() {
+function configureCameraAndClicks() {
+  // Setup the camera position, orientation, and the invisible surface used for click detection.
   computeCanvasSizesAndAspect();
-  if (options.threeD) {
-    controls.enabled = true;
-    camera.zoom = options.cameraZoom;
-    const pos = new THREE.Vector3().setFromSphericalCoords(
-      1,
-      Math.PI / 2 - (options.cameraTheta * Math.PI) / 180,
-      (options.cameraPhi * Math.PI) / 180
-    );
-    camera.position.set(pos.x, pos.y, pos.z);
-    camera.lookAt(0, 0, 0);
-    displayMaterial.vertexShader = surfaceVertexShader();
-    displayMaterial.needsUpdate = true;
-  } else {
-    controls.enabled = false;
-    controls.reset();
-    displayMaterial.vertexShader = genericVertexShader();
-    displayMaterial.needsUpdate = true;
+  switch (options.plotType) {
+    case "line":
+      options.cameraTheta = 0.5;
+      options.cameraPhi = 0;
+      controls.enabled = false;
+      camera.zoom = 0.8;
+      setCameraPos();
+      displayMaterial.vertexShader = surfaceVertexShader();
+      break;
+    case "plane":
+      controls.enabled = false;
+      controls.reset();
+      displayMaterial.vertexShader = genericVertexShader();
+      break;
+    case "surface":
+      controls.enabled = true;
+      camera.zoom = options.cameraZoom;
+      setCameraPos();
+      displayMaterial.vertexShader = surfaceVertexShader();
+      break;
   }
+  displayMaterial.needsUpdate = true;
   camera.left = -domainWidth / (2 * maxDim);
   camera.right = domainWidth / (2 * maxDim);
   camera.top = domainHeight / (2 * maxDim);
@@ -601,23 +640,14 @@ function configureCamera() {
   setDomainOrientation();
 }
 
-function roundBrushSizeToPix() {
-  options.brushRadius =
-    Math.round(uniforms.brushRadius.value / options.spatialStep) *
-    options.spatialStep;
-  uniforms.brushRadius.value = options.brushRadius;
-  brushRadiusController.updateDisplay();
-}
-
 function updateUniforms() {
-  uniforms.brushRadius.value = options.brushRadius;
-  uniforms.domainHeight.value = domainHeight;
-  uniforms.domainWidth.value = domainWidth;
+  uniforms.L.value = options.domainScale;
+  uniforms.L_y.value = domainHeight;
+  uniforms.L_x.value = domainWidth;
   uniforms.dt.value = options.dt;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
   uniforms.heightScale.value = options.threeDHeightScale;
-  uniforms.L.value = options.domainScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
   if (!options.fixRandSeed) {
@@ -637,8 +667,8 @@ function computeCanvasSizesAndAspect() {
     domainWidth = options.domainScale;
     domainHeight = domainWidth * aspectRatio;
   }
-  uniforms.domainHeight.value = domainHeight;
-  uniforms.domainWidth.value = domainWidth;
+  uniforms.L_x.value = domainWidth;
+  uniforms.L_y.value = domainHeight;
   maxDim = Math.max(domainWidth, domainHeight);
 }
 
@@ -656,7 +686,7 @@ function setSizes() {
   nXDisc = Math.floor(domainWidth / options.spatialStep);
   nYDisc = Math.floor(domainHeight / options.spatialStep);
   // If the user has specified that this is a 1D problem, set nYDisc = 1.
-  if (options.oneDimensional) {
+  if (options.dimension == 1) {
     nYDisc = 1;
   }
   // Update these values in the uniforms.
@@ -687,31 +717,36 @@ function createDisplayDomains() {
     1,
     1
   );
-  simpleDomain = new THREE.Mesh(simplePlane, basicMaterial);
-  simpleDomain.position.z = 0;
-  simpleDomain.visible = false;
-  scene.add(simpleDomain);
+  clickDomain = new THREE.Mesh(simplePlane, basicMaterial);
+  clickDomain.position.z = 0;
+  clickDomain.visible = false;
+  scene.add(clickDomain);
   setDomainOrientation();
 }
 
 function setDomainOrientation() {
-  // Configure the orientation of the simulation domain, which we modify for 3D to make
+  // Configure the orientation of the simulation domain and the click domain, which we modify for 3D to make
   // convenient use of Euler angles for the camera controls.
-  if (options.threeD) {
-    domain.rotation.x = -Math.PI / 2;
-    simpleDomain.rotation.x = -Math.PI / 2;
-  } else {
-    domain.rotation.x = 0;
-    simpleDomain.rotation.x = 0;
+  switch (options.plotType) {
+    case "line":
+      domain.rotation.x = -Math.PI / 2;
+      clickDomain.rotation.x = -Math.PI / 2;
+      break;
+    case "plane":
+      domain.rotation.x = 0;
+      clickDomain.rotation.x = 0;
+      break;
+    case "surface":
+      domain.rotation.x = -Math.PI / 2;
+      clickDomain.rotation.x = -Math.PI / 2;
+      break;
   }
 }
 
 function setCanvasShape() {
-  if (options.squareCanvas) {
-    document.getElementById("simCanvas").className = "squareCanvas";
-  } else {
-    document.getElementById("simCanvas").className = "fullCanvas";
-  }
+  options.squareCanvas
+    ? $("#simCanvas").addClass("squareCanvas")
+    : $("#simCanvas").removeClass("squareCanvas");
 }
 
 function resizeTextures() {
@@ -747,16 +782,9 @@ function resizeTextures() {
 function initUniforms() {
   // Initialise the uniforms to be passed to the shaders.
   uniforms = {
-    boundaryValues: {
-      type: "v2",
-    },
     brushCoords: {
       type: "v2",
       value: new THREE.Vector2(0.5, 0.5),
-    },
-    brushRadius: {
-      type: "f",
-      value: options.domainScale / 100,
     },
     colour1: {
       type: "v4",
@@ -778,10 +806,13 @@ function initUniforms() {
       type: "v4",
       value: new THREE.Vector4(1, 1, 1, 0.6),
     },
-    domainHeight: {
+    L: {
       type: "f",
     },
-    domainWidth: {
+    L_x: {
+      type: "f",
+    },
+    L_y: {
       type: "f",
     },
     dt: {
@@ -837,8 +868,9 @@ function initUniforms() {
 
 function initGUI(startOpen) {
   // Initialise the left GUI.
-  leftGUI = new dat.GUI({ closeOnTop: true });
+  leftGUI = new dat.GUI({ closeOnTop: true, autoPlace: false });
   leftGUI.domElement.id = "leftGUI";
+  document.getElementById("leftGUIContainer").appendChild(leftGUI.domElement);
 
   // Initialise the right GUI.
   rightGUI = new dat.GUI({ closeOnTop: true });
@@ -847,13 +879,11 @@ function initGUI(startOpen) {
   leftGUI.open();
   rightGUI.open();
   if (startOpen != undefined && startOpen) {
-    $("#leftGUI").show();
     $("#rightGUI").show();
-    $("#equation_display").show();
+    $("#left_ui").show();
   } else {
-    $("#leftGUI").hide();
+    $("#left_ui").hide();
     $("#rightGUI").hide();
-    $("#equation_display").hide();
   }
 
   // Create a generic options folder for folderless controllers, which we'll hide later if it's empty.
@@ -867,7 +897,7 @@ function initGUI(startOpen) {
   }
 
   if (inGUI("typeOfBrush")) {
-    root
+    typeOfBrushController = root
       .add(options, "typeOfBrush", {
         Disk: "circle",
         "Horizontal line": "hline",
@@ -883,12 +913,11 @@ function initGUI(startOpen) {
     brushRadiusController = root
       .add(options, "brushRadius")
       .name("Radius")
-      .onChange(updateUniforms);
-    brushRadiusController.min(0);
+      .onChange(setBrushType);
   }
   if (inGUI("whatToDraw")) {
     whatToDrawController = root
-      .add(options, "whatToDraw", { u: "u", v: "v", w: "w" })
+      .add(options, "whatToDraw", { u: "u", v: "v", w: "w", q: "q" })
       .name("Species")
       .onChange(setBrushType);
   }
@@ -902,6 +931,15 @@ function initGUI(startOpen) {
   } else {
     root = genericOptionsFolder;
   }
+  if (inGUI("dimension")) {
+    root
+      .add(options, "dimension", { 1: 1, 2: 2 })
+      .name("Dimension")
+      .onChange(function () {
+        configureDimension();
+        render();
+      });
+  }
   if (inGUI("domainScale")) {
     root.add(options, "domainScale").name("Largest side").onChange(resize);
   }
@@ -911,8 +949,7 @@ function initGUI(startOpen) {
       .name("Space step")
       .onChange(function () {
         resize();
-      })
-      .onFinishChange(roundBrushSizeToPix);
+      });
     dxController.__precision = 12;
     dxController.min(0);
     dxController.updateDisplay();
@@ -924,17 +961,7 @@ function initGUI(startOpen) {
       .onFinishChange(function () {
         setCanvasShape();
         resize();
-        configureCamera();
-      });
-  }
-  if (inGUI("oneDimensional")) {
-    const oneDimensionalController = root
-      .add(options, "oneDimensional")
-      .name("1D")
-      .onFinishChange(function () {
-        resize();
-        setRDEquations();
-        configureIntegralDisplay();
+        configureCameraAndClicks();
       });
   }
   if (inGUI("domainViaIndicatorFun")) {
@@ -945,6 +972,7 @@ function initGUI(startOpen) {
         configureOptions();
         configureGUI();
         setRDEquations();
+        setPostFunFragShader();
       });
   }
   if (inGUI("domainIndicatorFun")) {
@@ -995,7 +1023,7 @@ function initGUI(startOpen) {
   // Number of species.
   if (inGUI("numSpecies")) {
     root
-      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3 })
+      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
       .name("No. species")
       .onChange(updateProblem);
   }
@@ -1009,20 +1037,20 @@ function initGUI(startOpen) {
   if (inGUI("algebraicV")) {
     algebraicVController = root
       .add(options, "algebraicV")
-      .name("Algebraic v?")
+      .name("Algebraic v")
       .onChange(updateProblem);
   }
   if (inGUI("algebraicW")) {
     algebraicWController = root
       .add(options, "algebraicW")
-      .name("Algebraic w?")
+      .name("Algebraic w")
       .onChange(updateProblem);
   }
-  if (inGUI("typesetCustomEqs")) {
-    root
-      .add(options, "typesetCustomEqs")
-      .name("Typeset")
-      .onChange(setEquationDisplayType);
+  if (inGUI("algebraicQ")) {
+    algebraicQController = root
+      .add(options, "algebraicQ")
+      .name("Algebraic q")
+      .onChange(updateProblem);
   }
 
   // Let's put these in the left GUI.
@@ -1032,11 +1060,17 @@ function initGUI(startOpen) {
   } else {
     root = genericOptionsFolder;
   }
+  if (inGUI("typesetCustomEqs")) {
+    root
+      .add(options, "typesetCustomEqs")
+      .name("Typeset")
+      .onChange(setEquationDisplayType);
+  }
   if (inGUI("diffusionStrUU")) {
     DuuController = root
       .add(options, "diffusionStrUU")
       .name("$D_{uu}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1046,7 +1080,7 @@ function initGUI(startOpen) {
     DuvController = root
       .add(options, "diffusionStrUV")
       .name("$D_{uv}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1056,7 +1090,17 @@ function initGUI(startOpen) {
     DuwController = root
       .add(options, "diffusionStrUW")
       .name("$D_{uw}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrUQ")) {
+    DuqController = root
+      .add(options, "diffusionStrUQ")
+      .name("$D_{uq}$")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1066,7 +1110,7 @@ function initGUI(startOpen) {
     DvuController = root
       .add(options, "diffusionStrVU")
       .name("$D_{vu}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1076,7 +1120,7 @@ function initGUI(startOpen) {
     DvvController = root
       .add(options, "diffusionStrVV")
       .name("$D_{vv}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1086,7 +1130,17 @@ function initGUI(startOpen) {
     DvwController = root
       .add(options, "diffusionStrVW")
       .name("$D_{vw}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrVQ")) {
+    DvqController = root
+      .add(options, "diffusionStrVQ")
+      .name("$D_{vq}$")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1105,7 +1159,7 @@ function initGUI(startOpen) {
     DwvController = root
       .add(options, "diffusionStrWV")
       .name("$D_{wv}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1115,7 +1169,56 @@ function initGUI(startOpen) {
     DwwController = root
       .add(options, "diffusionStrWW")
       .name("$D_{ww}$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrWQ")) {
+    DwqController = root
+      .add(options, "diffusionStrWQ")
+      .name("$D_{wq}$")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrQU")) {
+    DquController = root
+      .add(options, "diffusionStrQU")
+      .name("$D_{qu}$")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrQV")) {
+    DqvController = root
+      .add(options, "diffusionStrQV")
+      .name("$D_{qv}$")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrQW")) {
+    DqwController = root
+      .add(options, "diffusionStrQW")
+      .name("$D_{qw}$")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("diffusionStrQQ")) {
+    DqqController = root
+      .add(options, "diffusionStrQQ")
+      .name("$D_{qq}$")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1126,7 +1229,7 @@ function initGUI(startOpen) {
     fController = root
       .add(options, "reactionStrU")
       .name("$f$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1136,7 +1239,7 @@ function initGUI(startOpen) {
     gController = root
       .add(options, "reactionStrV")
       .name("$g$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1146,7 +1249,17 @@ function initGUI(startOpen) {
     hController = root
       .add(options, "reactionStrW")
       .name("$h$")
-      .title("function of u, v, w, t")
+      .title("function of u, v, w, q, t")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+  }
+  if (inGUI("reactionStrQ")) {
+    jController = root
+      .add(options, "reactionStrQ")
+      .name("$j$")
+      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1257,6 +1370,38 @@ function initGUI(startOpen) {
       .name("$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
+  if (inGUI("boundaryConditionsQ")) {
+    qBCsController = root
+      .add(options, "boundaryConditionsQ", {
+        Periodic: "periodic",
+        Dirichlet: "dirichlet",
+        Neumann: "neumann",
+        Robin: "robin",
+      })
+      .name("$q$")
+      .onChange(function () {
+        setRDEquations();
+        setBCsGUI();
+      });
+  }
+  if (inGUI("dirichletQ")) {
+    dirichletQController = root
+      .add(options, "dirichletStrQ")
+      .name("$\\left.q\\right\\rvert_{\\boundary}$")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("neumannStrQ")) {
+    neumannQController = root
+      .add(options, "neumannStrQ")
+      .name("$\\left.\\pd{q}{n}\\right\\rvert_{\\boundary}$")
+      .onFinishChange(setRDEquations);
+  }
+  if (inGUI("robinStrQ")) {
+    robinQController = root
+      .add(options, "robinStrQ")
+      .name("$\\left.\\pd{q}{n}\\right\\rvert_{\\boundary}$")
+      .onFinishChange(setRDEquations);
+  }
 
   // Initial conditions folder.
   if (inGUI("initFolder")) {
@@ -1280,6 +1425,12 @@ function initGUI(startOpen) {
     clearValueWController = root
       .add(options, "clearValueW")
       .name("$\\left.w\\right\\rvert_{t=0}$")
+      .onFinishChange(setClearShader);
+  }
+  if (inGUI("clearValueQ")) {
+    clearValueQController = root
+      .add(options, "clearValueQ")
+      .name("$\\left.q\\right\\rvert_{t=0}$")
       .onFinishChange(setClearShader);
   }
 
@@ -1309,16 +1460,17 @@ function initGUI(startOpen) {
         setSizes();
       });
   }
-  if (inGUI("linePlot")) {
-    root.add(funsObj, "linePlot").name("Line plot");
-  }
-  if (inGUI("threeD")) {
+  if (inGUI("plotType")) {
     root
-      .add(options, "threeD")
-      .name("Surface plot")
+      .add(options, "plotType", {
+        Line: "line",
+        Plane: "plane",
+        Surface: "surface",
+      })
+      .name("Plot type")
       .onChange(function () {
-        configureGUI();
-        configureCamera();
+        configurePlotType();
+        document.activeElement.blur();
         render();
       });
   }
@@ -1332,19 +1484,25 @@ function initGUI(startOpen) {
     cameraThetaController = root
       .add(options, "cameraTheta")
       .name("View $\\theta$")
-      .onChange(configureCamera);
+      .onChange(configureCameraAndClicks);
   }
   if (inGUI("cameraPhi")) {
     cameraPhiController = root
       .add(options, "cameraPhi")
       .name("View $\\phi$")
-      .onChange(configureCamera);
+      .onChange(configureCameraAndClicks);
   }
   if (inGUI("cameraZoom")) {
     cameraZoomController = root
       .add(options, "cameraZoom")
       .name("Zoom")
-      .onChange(configureCamera);
+      .onChange(configureCameraAndClicks);
+  }
+  if (inGUI("forceManualInterpolation")) {
+    forceManualInterpolationController = root
+      .add(options, "forceManualInterpolation")
+      .name("Man. smooth")
+      .onChange(configureManualInterpolation);
   }
   if (inGUI("Smoothing scale")) {
     smoothingScaleController = root
@@ -1354,12 +1512,6 @@ function initGUI(startOpen) {
         resizeTextures();
         render();
       });
-  }
-  if (inGUI("forceManualInterpolation")) {
-    forceManualInterpolationController = root
-      .add(options, "forceManualInterpolation")
-      .name("Man. smooth")
-      .onChange(configureManualInterpolation);
   }
 
   // Colour folder.
@@ -1371,10 +1523,12 @@ function initGUI(startOpen) {
   if (inGUI("colourmap")) {
     root
       .add(options, "colourmap", {
-        Greyscale: "greyscale",
-        Viridis: "viridis",
-        Turbo: "turbo",
         BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
+        "Blue-Magenta": "blue-magenta",
+        Diverging: "diverging",
+        Greyscale: "greyscale",
+        Turbo: "turbo",
+        Viridis: "viridis",
       })
       .onChange(function () {
         setDisplayColourAndType();
@@ -1503,37 +1657,9 @@ function initGUI(startOpen) {
   }
   let debugFolder = root.addFolder("Debug");
   root = debugFolder;
-  root.add(funsObj, "debugSmallSquare").name("SmallSquare");
-  root.add(funsObj, "debugSmallRect").name("SmallRect");
-  root.add(funsObj, "debugTallRect").name("TallRect");
-  root.add(funsObj, "debugTallerRect").name("TallerRect");
-  root.add(funsObj, "debugWideRect").name("WideRect");
-  root.add(funsObj, "debugHundredTall").name("HundredTall");
-  root.add(funsObj, "debugHundredVHTall").name("HundredVHTall");
-  let test = { height: "100px", width: "100px" };
-  root
-    .add(test, "height")
-    .name("Height: ")
-    .onChange(function () {
-      $("#simCanvas").css("height", test.height);
-      resize();
-    });
-  root
-    .add(test, "width")
-    .name("Width: ")
-    .onChange(function () {
-      $("#simCanvas").css("width", test.width);
-      resize();
-    });
-
   if (inGUI("debug")) {
     // Debug.
     root.add(funsObj, "debug").name("Copy debug info");
-  }
-
-  if (inGUI("copyConfigAsURL")) {
-    // Copy configuration as URL.
-    rightGUI.add(funsObj, "copyConfigAsURL").name("Copy URL");
   }
 
   // Add a toggle for showing all options.
@@ -1562,12 +1688,14 @@ function animate() {
 
   hasDrawn = isDrawing;
   // Draw on any input from the user, which can happen even if timestepping is not running.
-  if (isDrawing & (!options.threeD | options.drawIn3D)) {
+  if (isDrawing && (options.drawIn3D | (options.plotType != "surface"))) {
     draw();
   }
 
   // Only timestep if the simulation is running.
   if (isRunning) {
+    // Ensure that any Dirichlet BCs are satisfied before timestepping (required due to brushes/init condition).
+    anyDirichletBCs ? enforceDirichlet() : {};
     // Perform a number of timesteps per frame.
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
       timestep();
@@ -1599,11 +1727,20 @@ function setBrushType() {
   // Construct a drawing shader based on the selected type and the value string.
   // Insert any user-defined kinetic parameters, given as a string that needs parsing.
   // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
-  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
-  let kineticStr = parseShaderString(
-    options.kineticParams.replace(regex, "float $1;\n")
-  );
-  let shaderStr = drawShaderTop() + kineticStr;
+  let shaderStr = kineticUniformsForShader() + drawShaderTop();
+  let radiusStr =
+    "float brushRadius = " +
+    parseShaderString(options.brushRadius.toString()) +
+    ";\n";
+
+  // If the radius string contains any references to u,v,w,q, replace them with references to the species at the
+  // brush centre, not the current pixel.
+  radiusStr = radiusStr.replace(/\buvwq\./g, "uvwqBrush.");
+  // If the radius string contains any references to S or T, replace them with references to the value at the
+  // brush centre, not the current pixel.
+  radiusStr = radiusStr.replace(/\b([ST])([RGBA]?)\b/g, "$1Brush$2");
+
+  shaderStr += radiusStr;
   if (options.typeOfBrush == "circle") {
     shaderStr += discShader();
   } else if (options.typeOfBrush == "hline") {
@@ -1625,35 +1762,13 @@ function setBrushType() {
 }
 
 function setDisplayColourAndType() {
-  if (options.colourmap == "greyscale") {
-    uniforms.colour1.value = new THREE.Vector4(0, 0, 0, 0);
-    uniforms.colour2.value = new THREE.Vector4(0.25, 0.25, 0.25, 0.25);
-    uniforms.colour3.value = new THREE.Vector4(0.5, 0.5, 0.5, 0.5);
-    uniforms.colour4.value = new THREE.Vector4(0.75, 0.75, 0.75, 0.75);
-    uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 1);
-    displayMaterial.fragmentShader = fiveColourDisplay();
-  } else if (options.colourmap == "BlackGreenYellowRedWhite") {
-    uniforms.colour1.value = new THREE.Vector4(0, 0, 0.0, 0);
-    uniforms.colour2.value = new THREE.Vector4(0, 1, 0, 0.25);
-    uniforms.colour3.value = new THREE.Vector4(1, 1, 0, 0.5);
-    uniforms.colour4.value = new THREE.Vector4(1, 0, 0, 0.75);
-    uniforms.colour5.value = new THREE.Vector4(1, 1, 1, 1.0);
-    displayMaterial.fragmentShader = fiveColourDisplay();
-  } else if (options.colourmap == "viridis") {
-    uniforms.colour1.value = new THREE.Vector4(0.267, 0.0049, 0.3294, 0.0);
-    uniforms.colour2.value = new THREE.Vector4(0.2302, 0.3213, 0.5455, 0.25);
-    uniforms.colour3.value = new THREE.Vector4(0.1282, 0.5651, 0.5509, 0.5);
-    uniforms.colour4.value = new THREE.Vector4(0.3629, 0.7867, 0.3866, 0.75);
-    uniforms.colour5.value = new THREE.Vector4(0.9932, 0.9062, 0.1439, 1.0);
-    displayMaterial.fragmentShader = fiveColourDisplay();
-  } else if (options.colourmap == "turbo") {
-    uniforms.colour1.value = new THREE.Vector4(0.19, 0.0718, 0.2322, 0.0);
-    uniforms.colour2.value = new THREE.Vector4(0.1602, 0.7332, 0.9252, 0.25);
-    uniforms.colour3.value = new THREE.Vector4(0.6384, 0.991, 0.2365, 0.5);
-    uniforms.colour4.value = new THREE.Vector4(0.9853, 0.5018, 0.1324, 0.75);
-    uniforms.colour5.value = new THREE.Vector4(0.4796, 0.01583, 0.01055, 1.0);
-    displayMaterial.fragmentShader = fiveColourDisplay();
-  }
+  const colours = getColours(options.colourmap);
+  uniforms.colour1.value = new THREE.Vector4(...colours[0]);
+  uniforms.colour2.value = new THREE.Vector4(...colours[1]);
+  uniforms.colour3.value = new THREE.Vector4(...colours[2]);
+  uniforms.colour4.value = new THREE.Vector4(...colours[3]);
+  uniforms.colour5.value = new THREE.Vector4(...colours[4]);
+  displayMaterial.fragmentShader = fiveColourDisplay();
   displayMaterial.needsUpdate = true;
   postMaterial.needsUpdate = true;
   render();
@@ -1718,20 +1833,38 @@ function timestep() {
   uniforms.textureSource.value = outTex.texture;
 }
 
+function enforceDirichlet() {
+  // Enforce any Dirichlet boundary conditions.
+  if (readFromTextureB) {
+    inTex = simTextureB;
+    outTex = simTextureA;
+  } else {
+    inTex = simTextureA;
+    outTex = simTextureB;
+  }
+  readFromTextureB = !readFromTextureB;
+
+  simDomain.material = dirichletMaterial;
+  uniforms.textureSource.value = inTex.texture;
+  renderer.setRenderTarget(outTex);
+  renderer.render(simScene, simCamera);
+  uniforms.textureSource.value = outTex.texture;
+}
+
 function render() {
   // If selected, set the colour range.
   if (options.autoSetColourRange) {
     funsObj.setColourRange();
   }
 
-  if (options.threeD & options.drawIn3D) {
+  if (options.drawIn3D && (options.plotType == "surface")) {
     let val =
       (getMeanVal() - options.minColourValue) /
         (options.maxColourValue - options.minColourValue) -
       0.5;
-    simpleDomain.position.y =
+    clickDomain.position.y =
       options.threeDHeightScale * Math.min(Math.max(val, -0.5), 0.5);
-    simpleDomain.updateWorldMatrix();
+    clickDomain.updateWorldMatrix();
   }
 
   // Perform any postprocessing.
@@ -1789,14 +1922,14 @@ function render() {
 
 function onDocumentPointerDown(event) {
   isDrawing = setBrushCoords(event, canvas);
-  if (options.threeD & isDrawing & options.drawIn3D) {
+  if (isDrawing && options.drawIn3D && (options.plotType == "surface")) {
     controls.enabled = false;
   }
 }
 
 function onDocumentPointerUp(event) {
   isDrawing = false;
-  if (options.threeD) {
+  if (options.plotType == "surface") {
     controls.enabled = true;
   }
 }
@@ -1809,13 +1942,13 @@ function setBrushCoords(event, container) {
   var cRect = container.getBoundingClientRect();
   let x = (event.clientX - cRect.x) / cRect.width;
   let y = 1 - (event.clientY - cRect.y) / cRect.height;
-  if (options.threeD & options.drawIn3D) {
+  if (options.drawIn3D && (options.plotType == "surface")) {
     // If we're in 3D, we have to project onto the simulation domain.
     // We need x,y between -1 and 1.
     clampedCoords.x = 2 * x - 1;
     clampedCoords.y = 2 * y - 1;
     raycaster.setFromCamera(clampedCoords, camera);
-    var intersects = raycaster.intersectObject(simpleDomain, false);
+    var intersects = raycaster.intersectObject(clickDomain, false);
     if (intersects.length > 0) {
       x = intersects[0].uv.x;
       y = intersects[0].uv.y;
@@ -1823,12 +1956,15 @@ function setBrushCoords(event, container) {
       x = -1;
       y = -1;
     }
+  } else if (options.plotType == "line") {
+    x = (x - 0.5) / camera.zoom + 0.5;
+    y = 0.5;
   }
   // Round to near-pixel coordinates.
   x = Math.round(x * nXDisc) / nXDisc;
   y = Math.round(y * nYDisc) / nYDisc;
   uniforms.brushCoords.value = new THREE.Vector2(x, y);
-  return (0 <= x) & (x <= 1) & (0 <= y) & (y <= 1);
+  return (0 <= x) && (x <= 1) && (0 <= y) && (y <= 1);
 }
 
 function clearTextures() {
@@ -1873,6 +2009,8 @@ function parseReactionStrings() {
   out += "float g = " + parseShaderString(options.reactionStrV) + ";\n";
   // Prepare the w string.
   out += "float h = " + parseShaderString(options.reactionStrW) + ";\n";
+  // Prepare the q string.
+  out += "float j = " + parseShaderString(options.reactionStrQ) + ";\n";
 
   return out;
 }
@@ -1899,6 +2037,12 @@ function parseNormalDiffusionStrings() {
     "ww"
   );
 
+  // Prepare Dqq, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrQQ) + ";\n",
+    "qq"
+  );
+
   return out;
 }
 
@@ -1918,6 +2062,12 @@ function parseCrossDiffusionStrings() {
     "uw"
   );
 
+  // Prepare Duq, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrUQ) + ";\n",
+    "uq"
+  );
+
   // Prepare Dvu, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
     parseShaderString(options.diffusionStrVU) + ";\n",
@@ -1928,6 +2078,12 @@ function parseCrossDiffusionStrings() {
   out += nonConstantDiffusionEvaluateInSpaceStr(
     parseShaderString(options.diffusionStrVW) + ";\n",
     "vw"
+  );
+
+  // Prepare Dvq, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrVQ) + ";\n",
+    "vq"
   );
 
   // Prepare Dwu, evaluating it at five points.
@@ -1942,6 +2098,30 @@ function parseCrossDiffusionStrings() {
     "wv"
   );
 
+  // Prepare Dwq, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrWQ) + ";\n",
+    "wq"
+  );
+
+  // Prepare Dqu, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrQU) + ";\n",
+    "qu"
+  );
+
+  // Prepare Dqv, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrQV) + ";\n",
+    "qv"
+  );
+
+  // Prepare Dqw, evaluating it at five points.
+  out += nonConstantDiffusionEvaluateInSpaceStr(
+    parseShaderString(options.diffusionStrQW) + ";\n",
+    "qw"
+  );
+
   return out;
 }
 
@@ -1949,29 +2129,29 @@ function nonConstantDiffusionEvaluateInSpaceStr(str, label) {
   let out = "";
   let xRegex = /\bx\b/g;
   let yRegex = /\by\b/g;
-  let uvwRegex = /\buvw\.\b/g;
+  let uvwqRegex = /\buvwq\.\b/g;
 
   out += "float D" + label + " = " + str;
   out +=
     "float D" +
     label +
     "L = " +
-    str.replaceAll(xRegex, "(x-dx)").replaceAll(uvwRegex, "uvwL.");
+    str.replaceAll(xRegex, "(x-dx)").replaceAll(uvwqRegex, "uvwqL.");
   out +=
     "float D" +
     label +
     "R = " +
-    str.replaceAll(xRegex, "(x+dx)").replaceAll(uvwRegex, "uvwR.");
+    str.replaceAll(xRegex, "(x+dx)").replaceAll(uvwqRegex, "uvwqR.");
   out +=
     "float D" +
     label +
     "T = " +
-    str.replaceAll(yRegex, "(y+dy)").replaceAll(uvwRegex, "uvwT.");
+    str.replaceAll(yRegex, "(y+dy)").replaceAll(uvwqRegex, "uvwqT.");
   out +=
     "float D" +
     label +
     "B = " +
-    str.replaceAll(yRegex, "(y-dy)").replaceAll(uvwRegex, "uvwB.");
+    str.replaceAll(yRegex, "(y-dy)").replaceAll(uvwqRegex, "uvwqB.");
   return out;
 }
 
@@ -1979,6 +2159,9 @@ function parseShaderString(str) {
   // Parse a string into valid GLSL by replacing u,v,^, and integers.
   // Pad the string.
   str = " " + str + " ";
+
+  // Replace tanh with safetanh.
+  str = str.replaceAll(/\btanh\b/g, "safetanh");
 
   // Replace powers with safepow, including nested powers.
   str = replaceBinOperator(str, "^", function (m, p1, p2) {
@@ -2002,17 +2185,14 @@ function parseShaderString(str) {
     }
   });
 
-  // Replace u, v, and w with uvw.r, uvw.g, and uvw.b via placeholders.
-  str = str.replace(/\bu\b/g, "uvw." + speciesToChannelChar("u"));
-  str = str.replace(/\bv\b/g, "uvw." + speciesToChannelChar("v"));
-  str = str.replace(/\bw\b/g, "uvw." + speciesToChannelChar("w"));
+  // Replace u, v, w, and q with uvwq.r, uvwq.g, uvwq.b, and uwvq.a via placeholders.
+  str = str.replace(/\bu\b/g, "uvwq." + speciesToChannelChar("u"));
+  str = str.replace(/\bv\b/g, "uvwq." + speciesToChannelChar("v"));
+  str = str.replace(/\bw\b/g, "uvwq." + speciesToChannelChar("w"));
+  str = str.replace(/\bq\b/g, "uvwq." + speciesToChannelChar("q"));
 
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
-  let regex;
-  for (let num = 0; num < 10; num++) {
-    regex = new RegExp("([a-zA-Z]+[0-9]*)(" + num.toString() + ")", "g");
-    while (str != (str = str.replace(regex, "$1" + numsAsWords[num])));
-  }
+  str = replaceDigitsWithWords(str);
 
   // Replace integers with floats.
   while (str != (str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3")));
@@ -2038,9 +2218,9 @@ function replaceBinOperator(str, op, form) {
     str = joker + (tab.length - 1);
     let regex;
     if (needsEscaping) {
-      regex = new RegExp("([\\w.]*)\\" + op + "([\\w.]*)", "g");
+      regex = new RegExp("([\\w.]*)\\s*\\" + op + "\\s*([\\w.]*)", "g");
     } else {
-      regex = new RegExp("([\\w.]*)" + op + "([\\w.]*)", "g");
+      regex = new RegExp("([\\w.]*)\\s*" + op + "\\s*([\\w.]*)", "g");
     }
     while (str.indexOf(joker) > -1) {
       str = str.replace(new RegExp(joker + "(\\w+)", "g"), function (m, d) {
@@ -2061,22 +2241,29 @@ function setRDEquations() {
   if (options.boundaryConditionsU == "neumann") {
     neumannShader += parseRobinRHS(options.neumannStrU, "u");
     neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), "u");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "u");
     }
   }
   if (options.boundaryConditionsV == "neumann") {
     neumannShader += parseRobinRHS(options.neumannStrV, "v");
     neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), "v");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "v");
     }
   }
   if (options.boundaryConditionsW == "neumann") {
     neumannShader += parseRobinRHS(options.neumannStrW, "w");
     neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), "w");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "w");
+    }
+  }
+  if (options.boundaryConditionsQ == "neumann") {
+    neumannShader += parseRobinRHS(options.neumannStrQ, "q");
+    neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), "q");
+    if (options.dimension > 1) {
+      neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), "q");
     }
   }
 
@@ -2099,13 +2286,17 @@ function setRDEquations() {
       selectSpeciesInShaderStr(str, "w") +
       parseShaderString(options.dirichletStrW) +
       ";\n}\n";
+    dirichletShader +=
+      selectSpeciesInShaderStr(str, "q") +
+      parseShaderString(options.dirichletStrQ) +
+      ";\n}\n";
   } else {
     if (options.boundaryConditionsU == "dirichlet") {
       dirichletShader +=
         selectSpeciesInShaderStr(RDShaderDirichletX(), "u") +
         parseShaderString(options.dirichletStrU) +
         ";\n}\n";
-      if (!options.oneDimensional) {
+      if (options.dimension > 1) {
         dirichletShader +=
           selectSpeciesInShaderStr(RDShaderDirichletY(), "u") +
           parseShaderString(options.dirichletStrU) +
@@ -2117,7 +2308,7 @@ function setRDEquations() {
         selectSpeciesInShaderStr(RDShaderDirichletX(), "v") +
         parseShaderString(options.dirichletStrV) +
         ";\n}\n";
-      if (!options.oneDimensional) {
+      if (options.dimension > 1) {
         dirichletShader +=
           selectSpeciesInShaderStr(RDShaderDirichletY(), "v") +
           parseShaderString(options.dirichletStrV) +
@@ -2129,10 +2320,22 @@ function setRDEquations() {
         selectSpeciesInShaderStr(RDShaderDirichletX(), "w") +
         parseShaderString(options.dirichletStrW) +
         ";\n}\n";
-      if (!options.oneDimensional) {
+      if (options.dimension > 1) {
         dirichletShader +=
           selectSpeciesInShaderStr(RDShaderDirichletY(), "w") +
           parseShaderString(options.dirichletStrW) +
+          ";\n}\n";
+      }
+    }
+    if (options.boundaryConditionsQ == "dirichlet") {
+      dirichletShader +=
+        selectSpeciesInShaderStr(RDShaderDirichletX(), "q") +
+        parseShaderString(options.dirichletStrQ) +
+        ";\n}\n";
+      if (options.dimension > 1) {
+        dirichletShader +=
+          selectSpeciesInShaderStr(RDShaderDirichletY(), "q") +
+          parseShaderString(options.dirichletStrQ) +
           ";\n}\n";
       }
     }
@@ -2142,22 +2345,29 @@ function setRDEquations() {
   if (options.boundaryConditionsU == "robin") {
     robinShader += parseRobinRHS(options.robinStrU, "u");
     robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "u");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "u");
     }
   }
   if (options.boundaryConditionsV == "robin") {
     robinShader += parseRobinRHS(options.robinStrV, "v");
     robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "v");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "v");
     }
   }
   if (options.boundaryConditionsW == "robin") {
     robinShader += parseRobinRHS(options.robinStrW, "w");
     robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "w");
-    if (!options.oneDimensional) {
+    if (options.dimension > 1) {
       robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "w");
+    }
+  }
+  if (options.boundaryConditionsQ == "robin") {
+    robinShader += parseRobinRHS(options.robinStrQ, "q");
+    robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), "q");
+    if (options.dimension > 1) {
+      robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), "q");
     }
   }
 
@@ -2165,10 +2375,7 @@ function setRDEquations() {
   // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
   // We'll inject this shader string before any boundary conditions etc, so that these params
   // are also available in BCs.
-  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
-  let kineticStr = parseShaderString(
-    options.kineticParams.replace(regex, "float $1;\n")
-  );
+  let kineticStr = kineticUniformsForShader();
 
   // Choose what sort of update we are doing: normal, or cross-diffusion enabled?
   updateShader = parseNormalDiffusionStrings() + "\n";
@@ -2188,9 +2395,14 @@ function setRDEquations() {
     updateShader += selectSpeciesInShaderStr(RDShaderAlgebraicW(), "w");
   }
 
+  // If q should be algebraic, append this to the normal update shader.
+  if (options.algebraicQ && options.crossDiffusion) {
+    updateShader += selectSpeciesInShaderStr(RDShaderAlgebraicQ(), "q");
+  }
+
   simMaterial.fragmentShader = [
-    RDShaderTop(),
     kineticStr,
+    RDShaderTop(),
     neumannShader,
     robinShader,
     parseReactionStrings(),
@@ -2199,6 +2411,119 @@ function setRDEquations() {
     RDShaderBot(),
   ].join(" ");
   simMaterial.needsUpdate = true;
+
+  // We will use a shader to enforce Dirichlet BCs before each timestep, but only if some Dirichlet
+  // BCs have been specified.
+  checkForAnyDirichletBCs();
+  if (anyDirichletBCs) {
+    dirichletShader = kineticStr + RDShaderEnforceDirichletTop();
+    if (options.domainViaIndicatorFun) {
+      let str = RDShaderDirichletIndicatorFun()
+        .replace(/indicatorFun/g, parseShaderString(options.domainIndicatorFun))
+        .replace(/updated/g, "gl_FragColor");
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "u") +
+        parseShaderString(options.dirichletStrU) +
+        ";\n}\n";
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "v") +
+        parseShaderString(options.dirichletStrV) +
+        ";\n}\n";
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "w") +
+        parseShaderString(options.dirichletStrW) +
+        ";\n}\n";
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, "q") +
+        parseShaderString(options.dirichletStrQ) +
+        ";\n}\n";
+    } else {
+      if (options.boundaryConditionsU == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "u"
+          ) +
+          parseShaderString(options.dirichletStrU) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "u"
+            ) +
+            parseShaderString(options.dirichletStrU) +
+            ";\n}\n";
+        }
+      }
+      if (options.boundaryConditionsV == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "v"
+          ) +
+          parseShaderString(options.dirichletStrV) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "v"
+            ) +
+            parseShaderString(options.dirichletStrV) +
+            ";\n}\n";
+        }
+      }
+      if (options.boundaryConditionsW == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "w"
+          ) +
+          parseShaderString(options.dirichletStrW) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "w"
+            ) +
+            parseShaderString(options.dirichletStrW) +
+            ";\n}\n";
+        }
+      }
+      if (options.boundaryConditionsQ == "dirichlet") {
+        dirichletShader +=
+          selectSpeciesInShaderStr(
+            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+            "q"
+          ) +
+          parseShaderString(options.dirichletStrQ) +
+          ";\n}\n";
+        if (options.dimension > 1) {
+          dirichletShader +=
+            selectSpeciesInShaderStr(
+              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+              "q"
+            ) +
+            parseShaderString(options.dirichletStrQ) +
+            ";\n}\n";
+        }
+      }
+    }
+    dirichletShader += "}";
+    dirichletMaterial.fragmentShader = dirichletShader;
+    dirichletMaterial.needsUpdate = true;
+  }
+}
+
+function checkForAnyDirichletBCs() {
+  anyDirichletBCs =
+    options.domainViaIndicatorFun ||
+    options.boundaryConditionsU == "dirichlet" ||
+    options.boundaryConditionsV == "dirichlet" ||
+    options.boundaryConditionsW == "dirichlet" ||
+    options.boundaryConditionsQ == "dirichlet";
 }
 
 function parseRobinRHS(string, species) {
@@ -2211,6 +2536,22 @@ function loadPreset(preset) {
 
   // Updates the values stored in options.
   loadOptions(preset);
+
+  // Maintain compatibility with links/presets that set the deprecated threeD or oneDimensional options.
+  if (options.threeD != undefined) {
+    if (options.threeD) {
+      options.dimension = 2;
+      options.plotType = "surface";
+    }
+    delete options.threeD;
+  }
+  if (options.oneDimensional != undefined) {
+    if (options.oneDimensional) {
+      options.dimension = 1;
+      options.plotType = "line";
+    }
+    delete options.oneDimensional;
+  }
 
   // Replace the GUI.
   deleteGUIs();
@@ -2237,7 +2578,7 @@ function loadPreset(preset) {
   resetSim();
 
   // Set the camera.
-  configureCamera();
+  configureCameraAndClicks();
 
   // To get around an annoying bug in dat.GUI.image, in which the
   // controller doesn't update the value of the underlying property,
@@ -2280,6 +2621,9 @@ function loadOptions(preset) {
 
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
+
+  // Enable backwards compatibility.
+  options.brushRadius = options.brushRadius.toString();
 }
 
 function refreshGUI(folder) {
@@ -2297,7 +2641,7 @@ function refreshGUI(folder) {
   // No need to do this on page load (and indeed will throw an error) so check
   // MathJax is defined first.
   if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise();
+    MathJax.typesetPromise().then(resizeEquationDisplay);
   }
 }
 
@@ -2321,6 +2665,7 @@ function deleteGUI(folder) {
     if (folder == rightGUI) {
       rightGUI.destroy();
     } else if (folder == leftGUI) {
+      leftGUI.domElement.remove();
       leftGUI.destroy();
     }
   }
@@ -2380,6 +2725,9 @@ function speciesToChannelInd(speciesStr) {
   if (speciesStr.includes("w")) {
     channel = 2;
   }
+  if (speciesStr.includes("q")) {
+    channel = 3;
+  }
   return channel;
 }
 
@@ -2400,6 +2748,11 @@ function setBCsGUI() {
   } else {
     hideGUIController(dirichletWController);
   }
+  if (options.boundaryConditionsQ == "dirichlet") {
+    showGUIController(dirichletQController);
+  } else {
+    hideGUIController(dirichletQController);
+  }
 
   if (options.boundaryConditionsU == "neumann") {
     showGUIController(neumannUController);
@@ -2415,6 +2768,11 @@ function setBCsGUI() {
     showGUIController(neumannWController);
   } else {
     hideGUIController(neumannWController);
+  }
+  if (options.boundaryConditionsQ == "neumann") {
+    showGUIController(neumannQController);
+  } else {
+    hideGUIController(neumannQController);
   }
 
   if (options.boundaryConditionsU == "robin") {
@@ -2432,11 +2790,17 @@ function setBCsGUI() {
   } else {
     hideGUIController(robinWController);
   }
+  if (options.boundaryConditionsQ == "robin") {
+    showGUIController(robinQController);
+  } else {
+    hideGUIController(robinQController);
+  }
 
   if (options.domainViaIndicatorFun) {
     hideGUIController(uBCsController);
     hideGUIController(vBCsController);
     hideGUIController(wBCsController);
+    hideGUIController(qBCsController);
   } else {
     showGUIController(uBCsController);
   }
@@ -2448,25 +2812,18 @@ function updateRandomSeed() {
 }
 
 function setClearShader() {
-  let shaderStr = clearShaderTop();
+  // Insert any user-defined kinetic parameters, as uniforms.
+  let shaderStr = kineticUniformsForShader() + clearShaderTop();
   if (
     options.clearValueU.includes("RAND") ||
     options.clearValueV.includes("RAND")
   ) {
     shaderStr += randShader();
   }
-  // Insert any user-defined kinetic parameters, given as a string that needs parsing.
-  // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
-  // We'll inject this shader string before any boundary conditions etc, so that these params
-  // are also available in BCs.
-  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
-  let kineticStr = parseShaderString(
-    options.kineticParams.replace(regex, "float $1;\n")
-  );
-  shaderStr += kineticStr;
   shaderStr += "float u = " + parseShaderString(options.clearValueU) + ";\n";
   shaderStr += "float v = " + parseShaderString(options.clearValueV) + ";\n";
   shaderStr += "float w = " + parseShaderString(options.clearValueW) + ";\n";
+  shaderStr += "float q = " + parseShaderString(options.clearValueQ) + ";\n";
   shaderStr += clearShaderBot();
   clearMaterial.fragmentShader = shaderStr;
   clearMaterial.needsUpdate = true;
@@ -2520,7 +2877,7 @@ function createImageControllers() {
     .name("$T(x,y)$")
     .onChange(loadImageSourceTwo);
   if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise();
+    MathJax.typesetPromise().then(resizeEquationDisplay);
   }
   if (inGUI("imageOne")) {
     showGUIController(imControllerOne);
@@ -2596,6 +2953,28 @@ function showWGUIPanels() {
   showGUIController(wBCsController);
 }
 
+function showQGUIPanels() {
+  if (options.crossDiffusion) {
+    showGUIController(DuqController);
+    showGUIController(DvqController);
+    showGUIController(DwqController);
+    showGUIController(DquController);
+    showGUIController(DqvController);
+    showGUIController(DqwController);
+  } else {
+    hideGUIController(DwqController);
+    hideGUIController(DquController);
+    hideGUIController(DvqController);
+    hideGUIController(DuqController);
+    hideGUIController(DqvController);
+    hideGUIController(DqwController);
+  }
+  showGUIController(DqqController);
+  showGUIController(jController);
+  showGUIController(clearValueQController);
+  showGUIController(qBCsController);
+}
+
 function hideVGUIPanels() {
   hideGUIController(DuvController);
   hideGUIController(DvuController);
@@ -2614,6 +2993,19 @@ function hideWGUIPanels() {
   hideGUIController(hController);
   hideGUIController(clearValueWController);
   hideGUIController(wBCsController);
+}
+
+function hideQGUIPanels() {
+  hideGUIController(DuqController);
+  hideGUIController(DvqController);
+  hideGUIController(DwqController);
+  hideGUIController(DquController);
+  hideGUIController(DqvController);
+  hideGUIController(DqwController);
+  hideGUIController(DqqController);
+  hideGUIController(jController);
+  hideGUIController(clearValueQController);
+  hideGUIController(qBCsController);
 }
 
 function diffObjects(o1, o2) {
@@ -2647,20 +3039,16 @@ function getMeanVal() {
 }
 
 function setPostFunFragShader() {
-  let shaderStr = computeDisplayFunShaderTop();
-  let regex = /[;,\s]*(.+?)(?:$|[;,])+/g;
-  let kineticStr = parseShaderString(
-    options.kineticParams.replace(regex, "float $1;\n")
-  );
-  shaderStr += kineticStr;
+  let shaderStr = kineticUniformsForShader() + computeDisplayFunShaderTop();
   shaderStr += computeDisplayFunShaderMid();
-  postMaterial.fragmentShader =
-    setDisplayFunInShader(shaderStr) +
-    postShaderDomainIndicator().replace(
+  shaderStr = setDisplayFunInShader(shaderStr);
+  if (options.domainViaIndicatorFun) {
+    shaderStr += postShaderDomainIndicator().replace(
       /indicatorFun/g,
       parseShaderString(options.domainIndicatorFun)
-    ) +
-    postGenericShaderBot();
+    );
+  }
+  postMaterial.fragmentShader = shaderStr + postGenericShaderBot();
   postMaterial.needsUpdate = true;
 }
 
@@ -2713,24 +3101,49 @@ function problemTypeFromOptions() {
         equationType = 4;
       }
       break;
+    case 4:
+      if (options.crossDiffusion) {
+        if (options.algebraicW) {
+          if (options.algebraicQ) {
+            // 4SpeciesCrossDiffusionAlgebraicWQ
+            equationType = 11;
+          } else {
+            // 4SpeciesCrossDiffusionAlgebraicW
+            equationType = 9;
+          }
+        } else {
+          if (options.algebraicQ) {
+            // 4SpeciesCrossDiffusionAlgebraicQ
+            equationType = 10;
+          } else {
+            // 4SpeciesCrossDiffusion
+            equationType = 8;
+          }
+        }
+      } else {
+        // 4Species
+        equationType = 7;
+      }
+      break;
   }
 }
 
 function configureGUI() {
   // Set up the GUI based on the the current options: numSpecies, crossDiffusion, and algebraicV.
   // We need a separate block for each of the six cases.
-
   switch (equationType) {
     case 0:
       // 1Species
-      // Hide everything to do with v and w.
+      // Hide everything to do with v, w, and q.
       hideVGUIPanels();
       hideWGUIPanels();
+      hideQGUIPanels();
 
-      // Hide the cross diffusion controller, the algebraicV controller, and the algebraicW controller.
+      // Hide the cross diffusion, algebraicV, algebraicW, and algebraicQ controllers.
       hideGUIController(crossDiffusionController);
       hideGUIController(algebraicVController);
       hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "$D$", "function of u, t");
@@ -2742,14 +3155,16 @@ function configureGUI() {
       // 2Species
       // Show v panels.
       showVGUIPanels();
-      // Hide w panels.
+      // Hide w and q panels.
       hideWGUIPanels();
+      hideQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
       // Hide the algebraicV and algebraicW controllers.
       hideGUIController(algebraicVController);
       hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, "$D_u$", "function of u, v, t");
@@ -2763,20 +3178,30 @@ function configureGUI() {
       // 2SpeciesCrossDiffusion
       // Show v panels.
       showVGUIPanels();
-      // Hide w panels.
+      // Hide w and q panels.
       hideWGUIPanels();
+      hideQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
-      // Hide the algebraicV and algebraicW controllers.
+      // Hide the algebraicV, algebraicW, and algebraicQ controllers.
       showGUIController(algebraicVController);
       hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, t");
-      setGUIControllerName(DvvController, "$D_{vv}$", "function of u, v, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, t");
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, x, y, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, x, y, t");
       break;
 
     case 3:
@@ -2784,20 +3209,26 @@ function configureGUI() {
       // Show v panels.
       showVGUIPanels();
       hideGUIController(DvvController);
-      // Hide w panels.
+      // Hide w and q panels.
       hideWGUIPanels();
+      hideQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
       // Show the algebraicV controller.
       showGUIController(algebraicVController);
-      // Hide the algebraicW controller.
+      // Hide the algebraicW and algebraicQ controllers.
       hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, t");
-      setGUIControllerName(gController, "$g$", "function of u, t");
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, x, y, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, x, y, t");
       break;
 
     case 4:
@@ -2806,20 +3237,35 @@ function configureGUI() {
       showVGUIPanels();
       // Show w panels.
       showWGUIPanels();
+      // Hide q panels.
+      hideQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
-      // Hide the algebraicV and algebraicW controllers.
+      // Hide the algebraicV, algebraicW, and algebraicQ controllers.
       hideGUIController(algebraicVController);
       hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_u$", "function of u, v, w, t");
-      setGUIControllerName(DvvController, "$D_v$", "function of u, v, w, t");
-      setGUIControllerName(DwwController, "$D_w$", "function of u, v, w, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, w, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, w, t");
+      setGUIControllerName(
+        DuuController,
+        "$D_u$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_v$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_w$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, w, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, x, y, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, w, x, y, t");
       break;
 
     case 5:
@@ -2828,21 +3274,36 @@ function configureGUI() {
       showVGUIPanels();
       // Show w panels.
       showWGUIPanels();
+      // Hide q panels.
+      hideQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
-      // Hide the algebraicV controller.
+      // Hide the algebraicV and algebraic Q controller.
       hideGUIController(algebraicVController);
+      hideGUIController(algebraicQController);
       // Show the algebraicW controller.
       showGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, w, t");
-      setGUIControllerName(DvvController, "$D_{vv}$", "function of u, v, w, t");
-      setGUIControllerName(DwwController, "$D_{ww}$", "function of u, v, w, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, w, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, w, t");
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, w, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, x, y, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, w, x, y, t");
       break;
 
     case 6:
@@ -2852,20 +3313,299 @@ function configureGUI() {
       // Show w panels.
       showWGUIPanels();
       hideGUIController(DwwController);
+      // Hide q panels.
+      hideQGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV and algebraicQ controller.
+      hideGUIController(algebraicVController);
+      hideGUIController(algebraicQController);
+      // Show the algebraicW controller.
+      showGUIController(algebraicWController);
+
+      // Configure the controller names.
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(fController, "$f$", "function of u, v, w, x, y, t");
+      setGUIControllerName(gController, "$g$", "function of u, v, w, x, y, t");
+      setGUIControllerName(hController, "$h$", "function of u, v, x, y, t");
+      break;
+    case 7:
+      // 4Species
+      // Show v,w,q panels.
+      showVGUIPanels();
+      showWGUIPanels();
+      showQGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV, algebraicQ, and algebraicW controllers.
+      hideGUIController(algebraicVController);
+      hideGUIController(algebraicWController);
+      hideGUIController(algebraicQController);
+
+      // Configure the controller names.
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DqqController,
+        "$D_{qq}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        fController,
+        "$f$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        gController,
+        "$g$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        hController,
+        "$h$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        jController,
+        "$j$",
+        "function of u, v, w, q, x, y, t"
+      );
+      break;
+    case 8:
+      // 4SpeciesCrossDiffusion.
+      // Show v,w,q panels.
+      showVGUIPanels();
+      showWGUIPanels();
+      showQGUIPanels();
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
       // Hide the algebraicV controller.
       hideGUIController(algebraicVController);
-      // Show the algebraicW controller.
+      // Show the algebraicW and algebriacQ controllers.
       showGUIController(algebraicWController);
+      showGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_{uu}$", "function of u, v, w, t");
-      setGUIControllerName(DvvController, "$D_{vv}$", "function of u, v, w, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, w, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, t");
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DqqController,
+        "$D_{qq}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        fController,
+        "$f$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        gController,
+        "$g$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        hController,
+        "$h$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        jController,
+        "$j$",
+        "function of u, v, w, q, x, y, t"
+      );
+      break;
+    case 9:
+      // 4SpeciesCrossDiffusionAlgebraicW.
+      // Show v,w,q panels.
+      showVGUIPanels();
+      showWGUIPanels();
+      showQGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV controller.
+      hideGUIController(algebraicVController);
+      // Show the algebraicW and algebriacQ controllers.
+      showGUIController(algebraicWController);
+      showGUIController(algebraicQController);
+
+      // Configure the controller names.
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, q, x, y, t"
+      );
+      setGUIControllerName(
+        DqqController,
+        "$D_{qq}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        fController,
+        "$f$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        gController,
+        "$g$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(hController, "$h$", "function of u, v, q, x, y, t");
+      setGUIControllerName(
+        jController,
+        "$j$",
+        "function of u, v, w, q, x, y, t"
+      );
+      break;
+    case 10:
+      // 4SpeciesCrossDiffusionAlgebraicQ.
+      // Show v,w,q panels.
+      showVGUIPanels();
+      showWGUIPanels();
+      showQGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV controller.
+      hideGUIController(algebraicVController);
+      // Show the algebraicW and algebriacQ controllers.
+      showGUIController(algebraicWController);
+      showGUIController(algebraicQController);
+
+      // Configure the controller names.
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DqqController,
+        "$D_{qq}$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(
+        fController,
+        "$f$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        gController,
+        "$g$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        hController,
+        "$h$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(jController, "$j$", "function of u, v, w, x, y, t");
+      break;
+    case 11:
+      // 4SpeciesCrossDiffusionAlgebraicWQ.
+      // Show v,w,q panels.
+      showVGUIPanels();
+      showWGUIPanels();
+      showQGUIPanels();
+
+      // Show the cross diffusion controller.
+      showGUIController(crossDiffusionController);
+      // Hide the algebraicV controller.
+      hideGUIController(algebraicVController);
+      // Show the algebraicW and algebriacQ controllers.
+      showGUIController(algebraicWController);
+      showGUIController(algebraicQController);
+
+      // Configure the controller names.
+      setGUIControllerName(
+        DuuController,
+        "$D_{uu}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DvvController,
+        "$D_{vv}$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        DwwController,
+        "$D_{ww}$",
+        "function of u, v, q, x, y, t"
+      );
+      setGUIControllerName(
+        DqqController,
+        "$D_{qq}$",
+        "function of u, v, w, x, y, t"
+      );
+      setGUIControllerName(
+        fController,
+        "$f$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(
+        gController,
+        "$g$",
+        "function of u, v, w, q, x, y, t"
+      );
+      setGUIControllerName(hController, "$h$", "function of u, v, q, x, y, t");
+      setGUIControllerName(jController, "$j$", "function of u, v, w, x, y, t");
       break;
   }
   if (options.domainViaIndicatorFun) {
@@ -2876,7 +3616,7 @@ function configureGUI() {
   // Hide or show GUI elements that depend on the BCs.
   setBCsGUI();
   // Hide or show GUI elements to do with surface plotting.
-  if (options.threeD) {
+  if (options.plotType == "surface") {
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
     showGUIController(cameraPhiController);
@@ -2892,6 +3632,11 @@ function configureGUI() {
   configureColourbar();
   configureTimeDisplay();
   configureIntegralDisplay();
+  configureDataContainer();
+  // Show/hide/modify GUI elements that depend on dimension.
+  options.plotType == "line"
+    ? hideGUIController(typeOfBrushController)
+    : showGUIController(typeOfBrushController);
   // Refresh the GUI displays.
   refreshGUI(leftGUI);
   refreshGUI(rightGUI);
@@ -2918,6 +3663,7 @@ function configureOptions() {
     options.boundaryConditionsU = "dirichlet";
     options.boundaryConditionsV = "dirichlet";
     options.boundaryConditionsW = "dirichlet";
+    options.boundaryConditionsQ = "dirichlet";
   }
 
   // Set options that only depend on the number of species.
@@ -2926,6 +3672,7 @@ function configureOptions() {
       options.crossDiffusion = false;
       options.algebraicV = false;
       options.algebraicW = false;
+      options.algebraicQ = false;
 
       // Ensure that u is being displayed on the screen (and the brush target).
       options.whatToDraw = "u";
@@ -2934,57 +3681,114 @@ function configureOptions() {
       // Set the diffusion of v and w to zero to prevent them from causing numerical instability.
       options.diffusionStrUV = "0";
       options.diffusionStrUW = "0";
+      options.diffusionStrUQ = "0";
       options.diffusionStrVU = "0";
       options.diffusionStrVV = "0";
       options.diffusionStrVW = "0";
+      options.diffusionStrVQ = "0";
       options.diffusionStrWU = "0";
       options.diffusionStrWV = "0";
       options.diffusionStrWW = "0";
+      options.diffusionStrWQ = "0";
+      options.diffusionStrQU = "0";
+      options.diffusionStrQV = "0";
+      options.diffusionStrQW = "0";
+      options.diffusionStrQQ = "0";
 
-      // Set v and w to be periodic to reduce computational overhead.
+      // Set v,w, and q to be periodic to reduce computational overhead.
       options.boundaryConditionsV = "periodic";
       options.clearValueV = "0";
       options.reactionStrV = "0";
       options.boundaryConditionsW = "periodic";
       options.clearValueW = "0";
       options.reactionStrW = "0";
+      options.boundaryConditionsQ = "periodic";
+      options.clearValueQ = "0";
+      options.reactionStrQ = "0";
 
-      // If the f string contains any v or w references, clear it.
-      if (/\b[vw]\b/.test(options.reactionStrU)) {
+      // If the f string contains any v,w, or q references, clear it.
+      if (/\b[vwq]\b/.test(options.reactionStrU)) {
         options.reactionStrU = "0";
       }
       break;
     case 2:
       // Ensure that u or v is being displayed on the screen (and the brush target).
-      if (options.whatToDraw == "w") {
+      if ((options.whatToDraw == "w") | (options.whatToDraw == "q")) {
         options.whatToDraw = "u";
       }
-      if (options.whatToPlot == "w") {
+      if ((options.whatToPlot == "w") | (options.whatToPlot == "q")) {
         options.whatToPlot = "u";
       }
       options.algebraicW = false;
+      options.algebraicQ = false;
 
-      // Set the diffusion of w to zero to prevent it from causing numerical instability.
+      // Set the diffusion of w and q to zero to prevent them from causing numerical instability.
       options.diffusionStrUW = "0";
+      options.diffusionStrUQ = "0";
       options.diffusionStrVW = "0";
+      options.diffusionStrVQ = "0";
       options.diffusionStrWU = "0";
       options.diffusionStrWV = "0";
       options.diffusionStrWW = "0";
+      options.diffusionStrWQ = "0";
+      options.diffusionStrQU = "0";
+      options.diffusionStrQV = "0";
+      options.diffusionStrQW = "0";
+      options.diffusionStrQQ = "0";
 
-      // Set w to be periodic to reduce computational overhead.
+      // Set w and q to be periodic to reduce computational overhead.
       options.boundaryConditionsW = "periodic";
       options.clearValueW = "0";
       options.reactionStrW = "0";
 
-      // If the f or g strings contains any w references, clear them.
-      if (/\bw\b/.test(options.reactionStrU)) {
+      options.boundaryConditionsQ = "periodic";
+      options.clearValueQ = "0";
+      options.reactionStrQ = "0";
+
+      // If the f or g strings contains any w or q references, clear them.
+      if (/\b[wq]\b/.test(options.reactionStrU)) {
         options.reactionStrU = "0";
       }
-      if (/\bw\b/.test(options.reactionStrV)) {
+      if (/\b[wq]\b/.test(options.reactionStrV)) {
         options.reactionStrV = "0";
       }
       break;
     case 3:
+      // Ensure that u, v, or w is being displayed on the screen (and the brush target).
+      if (options.whatToDraw == "q") {
+        options.whatToDraw = "u";
+      }
+      if (options.whatToPlot == "q") {
+        options.whatToPlot = "u";
+      }
+      options.algebraicV = false;
+
+      // Set the diffusion of q to zero to prevent it from causing numerical instability.
+      options.diffusionStrUQ = "0";
+      options.diffusionStrVQ = "0";
+      options.diffusionStrWQ = "0";
+      options.diffusionStrQU = "0";
+      options.diffusionStrQV = "0";
+      options.diffusionStrQW = "0";
+      options.diffusionStrQQ = "0";
+
+      // Set q to be periodic to reduce computational overhead.
+      options.boundaryConditionsQ = "periodic";
+      options.clearValueQ = "0";
+      options.reactionStrQ = "0";
+
+      // If the f, g, or h strings contains any q references, clear them.
+      if (/\bq\b/.test(options.reactionStrU)) {
+        options.reactionStrU = "0";
+      }
+      if (/\bq\b/.test(options.reactionStrV)) {
+        options.reactionStrV = "0";
+      }
+      if (/\bq\b/.test(options.reactionStrW)) {
+        options.reactionStrW = "0";
+      }
+      break;
+    case 4:
       options.algebraicV = false;
       break;
   }
@@ -2998,6 +3802,16 @@ function configureOptions() {
     case 6:
       // 3SpeciesCrossDiffusionAlgebraicW
       options.diffusionStrWW = "0";
+    case 9:
+      // 4SpeciesCrossDiffusionAlgebraicW
+      options.diffusionStrWW = "0";
+    case 10:
+      // 4SpeciesCrossDiffusionAlgebraicQ
+      options.diffusionStrQQ = "0";
+    case 11:
+      // 4SpeciesCrossDiffusionAlgebraicWQ
+      options.diffusionStrWW = "0";
+      options.diffusionStrQQ = "0";
   }
 
   // Refresh the GUI displays.
@@ -3006,10 +3820,13 @@ function configureOptions() {
 }
 
 function updateProblem() {
-  // Update the problem based on the current options.
+  // Update the problem and any dependencies based on the current options.
   problemTypeFromOptions();
+  configurePlotType();
+  configureDimension();
   configureOptions();
   configureGUI();
+  setKineticUniforms();
   updateWhatToPlot();
   setBrushType();
   setRDEquations();
@@ -3026,6 +3843,7 @@ function setEquationDisplayType() {
     str = replaceUserDefReac(str, /\bf\b/g, options.reactionStrU);
     str = replaceUserDefReac(str, /\bg\b/g, options.reactionStrV);
     str = replaceUserDefReac(str, /\bh\b/g, options.reactionStrW);
+    str = replaceUserDefReac(str, /\bj\b/g, options.reactionStrQ);
 
     str = replaceUserDefDiff(
       str,
@@ -3074,6 +3892,19 @@ function setEquationDisplayType() {
 
     str = replaceUserDefDiff(
       str,
+      /\b(D_q) (\\vnabla q)/g,
+      options.diffusionStrQQ,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{qq}) (\\vnabla q)/g,
+      options.diffusionStrQQ,
+      "[]"
+    );
+
+    str = replaceUserDefDiff(
+      str,
       /\b(D_{uv}) (\\vnabla v)/g,
       options.diffusionStrUV,
       "[]"
@@ -3082,6 +3913,12 @@ function setEquationDisplayType() {
       str,
       /\b(D_{uw}) (\\vnabla w)/g,
       options.diffusionStrUW,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{uq}) (\\vnabla q)/g,
+      options.diffusionStrUQ,
       "[]"
     );
     str = replaceUserDefDiff(
@@ -3098,6 +3935,12 @@ function setEquationDisplayType() {
     );
     str = replaceUserDefDiff(
       str,
+      /\b(D_{vq}) (\\vnabla q)/g,
+      options.diffusionStrVQ,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
       /\b(D_{wu}) (\\vnabla u)/g,
       options.diffusionStrWU,
       "[]"
@@ -3108,16 +3951,42 @@ function setEquationDisplayType() {
       options.diffusionStrWV,
       "[]"
     );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{wq}) (\\vnabla q)/g,
+      options.diffusionStrWQ,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{qu}) (\\vnabla u)/g,
+      options.diffusionStrQU,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{qv}) (\\vnabla v)/g,
+      options.diffusionStrQV,
+      "[]"
+    );
+    str = replaceUserDefDiff(
+      str,
+      /\b(D_{qw}) (\\vnabla w)/g,
+      options.diffusionStrQW,
+      "[]"
+    );
 
-    // Look through the string for any open brackets followed by a +.
+    // Look through the string for any open brackets ( or [ followed by a + or -.
     let regex = /\(\s*\+/g;
     while (str != (str = str.replace(regex, "(")));
+    regex = /\[\s*\+/g;
+    while (str != (str = str.replace(regex, "[")));
     // Look through the string for any + followed by a ).
     regex = /\+\s*\)/g;
     while (str != (str = str.replace(regex, ")")));
 
     // Look through the string for any empty divergence operators, and remove them if so.
-    regex = /\\vnabla \\cdot\(\s*\)/g;
+    regex = /\\vnabla\s*\\cdot\s*\(\s*\)/g;
     str = str.replaceAll(regex, "");
 
     // Look through the string for any = +, and remove the +.
@@ -3132,32 +4001,55 @@ function setEquationDisplayType() {
     regex = /=\s*(\\\\|\n)/g;
     str = str.replaceAll(regex, "=0$1");
 
+    // If we have [-blah] inside a divergence operator, move the minus sign outside.
+    regex =
+      /(\\vnabla\s*\\cdot\s*\()\[-([\w\{\}]*)\]\s*(\\vnabla\s*([uvwq])\s*\))/g;
+    str = str.replaceAll(regex, "-$1$2$3");
+
     // Look for div(const * grad(blah)), and move the constant outside the bracket.
-    // By this point, a single word (with no square brackets) in the divergence must be a constant.
-    regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}]*)\s*\\vnabla\s*([uvw])\s*\)/g;
-    str = str.replaceAll(regex, "$1 \\lap $2");
+    // By this point, a single word (with no square brackets) in the divergence must be a single expression.
+    // If it's not x,y,u,v,w,q move it outside the brackets.
+    regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}\*\^]*)\s*\\vnabla\s*([uvwq])\s*\)/g;
+    str = str.replaceAll(regex, function (match, g1, g2) {
+      if (!/\b[xyuvwq]\b/g.test(g1)) {
+        return g1 + " \\lap " + g2;
+      } else {
+        return match;
+      }
+    });
 
     str = parseStringToTEX(str);
   }
   $("#typeset_equation").html(str);
   if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise();
+    MathJax.typesetPromise().then(resizeEquationDisplay);
   }
 }
 
 function parseStringToTEX(str) {
-
   // Parse a string into valid TEX by replacing * and ^.
+  // Look through the string for any [+-blah] and replace it with +- blah.
+  str = str.replaceAll(/\[([\+-]?[\w\{\}]*)\]/g, "$1");
+
+  // Look through the string and replace any + + with +.
+  while (str != (str = str.replace(/\+\s*\+/g, "+")));
+
   // Replace +- and -+ with simply -
   str = str.replaceAll(/\+\s*-/g, "-");
   str = str.replaceAll(/-\s*\+/g, "-");
 
   // Replace common functions with commands.
-  str = str.replaceAll(/\bsin/g, "\\sin");
-  str = str.replaceAll(/\bcos/g, "\\cos");
-  str = str.replaceAll(/\btan/g, "\\tan");
-  str = str.replaceAll(/\bexp/g, "\\exp");
-  str = str.replaceAll(/\blog/g, "\\log");
+  str = replaceFunctionInTeX(str, "sin", true);
+  str = replaceFunctionInTeX(str, "cos", true);
+  str = replaceFunctionInTeX(str, "tan", true);
+  str = replaceFunctionInTeX(str, "exp", true);
+  str = replaceFunctionInTeX(str, "log", true);
+  str = replaceFunctionInTeX(str, "sqrt", false);
+  str = replaceFunctionInTeX(str, "sinh", true);
+  str = replaceFunctionInTeX(str, "cosh", true);
+  str = replaceFunctionInTeX(str, "tanh", true);
+  str = replaceFunctionInTeX(str, "max", true);
+  str = replaceFunctionInTeX(str, "min", true);
 
   // Remove *.
   str = str.replaceAll(/\*/g, " ");
@@ -3171,7 +4063,102 @@ function parseStringToTEX(str) {
   // Prepend \\ to any Greek character.
   str = substituteGreek(str);
 
+  // Alternate nested brackets between () and [].
+  str = alternateBrackets(str);
+
+  // Add \left and \right to brackets.
+  str = str.replaceAll(/[\(\[]/g, "\\left$&");
+  str = str.replaceAll(/[\)\]]/g, "\\right$&");
+
+  // If there's an underscore, put {} around the word that follows it.
+  str = str.replaceAll(/_(\w+\b)/g, "_{$1}");
+
   return str;
+}
+
+function replaceFunctionInTeX(str, func, withBrackets) {
+  // Replace a function, like sqrt(expression), with \sqrt{expression} in str.
+  // withBrackets specifies whether or not we should include brackets in between {}.
+  var newStr = str;
+  var addedChars = 0;
+  const matches = str.matchAll(new RegExp("\\b" + func + "\\b", "g"));
+  let funcInd,
+    startInd,
+    endInd,
+    subStr,
+    depth,
+    foundBracket,
+    ind,
+    offset = 0;
+  for (const match of matches) {
+    funcInd = match.index;
+    startInd = funcInd + func.length;
+    subStr = str.slice(startInd);
+    ind = 0;
+    depth = 0;
+    foundBracket = false;
+    // Try to find paired brackets.
+    while (
+      (ind <= subStr.length) &
+      (!foundBracket | !(foundBracket && (depth == 0)))
+    ) {
+      depth += ["(", "["].includes(subStr[ind]);
+      depth -= [")", "]"].includes(subStr[ind]);
+      foundBracket |= depth;
+      ind += 1;
+    }
+    // If we found correctly paired brackets, replace them. Otherwise, do nothing.
+    if (foundBracket && depth == 0) {
+      endInd = ind - 1 + startInd;
+      // Insert a backslash and record that we've added a character, which will shift all indices in newStr.
+      newStr = insertStrAtIndex(newStr, "\\", funcInd + offset);
+      offset += 1;
+      if (withBrackets) {
+        // Insert braces before and after brackets.
+        newStr = insertStrAtIndex(newStr, "{", startInd + offset);
+        offset += 1;
+        newStr = insertStrAtIndex(newStr, "}", endInd + 1 + offset);
+        offset += 1;
+      } else {
+        newStr = replaceStrAtIndex(newStr, "{", startInd + offset);
+        newStr = replaceStrAtIndex(newStr, "}", endInd + offset);
+      }
+    }
+  }
+  return newStr;
+}
+
+function alternateBrackets(str) {
+  // Given a string with balanced bracketing, loop nested brackets through (, [, {.
+  const openBrackets = ["(", "["];
+  const closeBrackets = [")", "]"];
+  let bracketInd = 0;
+  for (var ind = 0; ind < str.length; ind++) {
+    if (openBrackets.includes(str[ind])) {
+      str = replaceStrAtIndex(str, openBrackets[bracketInd], ind);
+      bracketInd += 1;
+      // Ensure that bracketInd is a valid index that loops through listToSub.
+      bracketInd = modulo(bracketInd, openBrackets.length);
+    } else if (closeBrackets.includes(str[ind])) {
+      bracketInd -= 1;
+      // Ensure that bracketInd is a valid index that loops through listToSub.
+      bracketInd = modulo(bracketInd, openBrackets.length);
+      str = replaceStrAtIndex(str, closeBrackets[bracketInd], ind);
+    }
+  }
+  return str;
+}
+
+function modulo(num, quot) {
+  return ((num % quot) + quot) % quot;
+}
+
+function replaceStrAtIndex(str, toSub, ind) {
+  return str.slice(0, ind) + toSub + str.slice(ind + 1, str.length);
+}
+
+function insertStrAtIndex(str, toAdd, ind) {
+  return str.slice(0, ind) + toAdd + str.slice(ind, str.length);
 }
 
 function removeWhitespace(str) {
@@ -3180,10 +4167,117 @@ function removeWhitespace(str) {
 }
 
 function createParameterController(label, isNextParam) {
+  let controller;
+
+  // Define a function that we can use to concisely add in a slider depending on the string.
+  function createSlider() {
+    // Remove any existing sliders.
+    if (controller.hasOwnProperty("slider")) {
+      // Remove any existing sliders.
+      controller.slider.remove();
+      // Remove the parameterSlider class from the controller.
+      controller.domElement.closest("li").classList.remove("parameterSlider");
+    }
+    // If the string is of the form "name = val in [a,b]", create a slider underneath this controller with
+    // limits a,b.
+    let regex =
+      /\s*(\w+)\s*=\s*(\S*)\s*in\s*[\[\(]([0-9\.\-]+)\s*,\s*(?:([0-9\.]*)\s*,)?\s*([0-9\.\-]+)[\]\)]/;
+    let match = kineticParamsStrs[label].match(regex);
+    if (match) {
+      // Add a CSS class highlighting that this controller now contains a slider too.
+      controller.domElement.parentElement.parentElement.classList.add(
+        "parameterSlider"
+      );
+      // Create a range input object and tie it to the controller.
+      controller.slider = document.createElement("input");
+      controller.slider.classList.add("styled-slider");
+      controller.slider.classList.add("slider-progress");
+      controller.slider.type = "range";
+      controller.slider.min = match[3];
+      controller.slider.max = match[5];
+
+      let step;
+      // Define the step of the slider, which may or may not have been given.
+      if (match[4] == undefined) {
+        match[4] = "";
+        // If all the quantities are integers, set the default step to be integers.
+        if (
+          !kineticParamsStrs[label].includes(".") &
+          (parseFloat(match[5]) - parseFloat(match[3]) > 1)
+        ) {
+          step = 1;
+        } else {
+          // Otherwise, choose a step that either matches the max precision of the inputs, or
+          // splits the interval into 20, whichever is more precise.
+          step = Math.min(
+            (parseFloat(match[5]) - parseFloat(match[3])) / 20,
+            10 ** -parseFloat(match[2]).countDecimals(),
+            10 ** -parseFloat(match[3]).countDecimals(),
+            10 ** -parseFloat(match[5]).countDecimals()
+          );
+        }
+      } else {
+        step = match[4];
+        match[4] += ", ";
+      }
+      controller.slider.step = step.toString();
+
+      // Assign the initial value, which should happen after step has been defined.
+      controller.slider.value = match[2];
+
+      // Use the input event of the slider to update the controller and the simulation.
+      controller.slider.addEventListener("input", function () {
+        controller.slider.style.setProperty("--value", controller.slider.value);
+        kineticParamsStrs[label] = kineticParamsStrs[label].replace(
+          regex,
+          match[1] +
+            " = " +
+            parseFloat(controller.slider.value)
+              .toFixed(
+                Math.max(
+                  parseFloat(match[2]).countDecimals(),
+                  parseFloat(step).countDecimals()
+                )
+              )
+              .toString() +
+            " in [" +
+            match[3] +
+            ", " +
+            match[4] +
+            match[5] +
+            "]"
+        );
+        refreshGUI(parametersFolder);
+        setKineticStringFromParams();
+        render();
+        // Update the uniforms with this new value.
+        if (setKineticUniformFromString(kineticParamsStrs[label])) {
+          // If we added a new uniform, we need to remake all the shaders.
+          updateShaders();
+        }
+      });
+
+      // Augment the onChange function of the controller to also update the slider.
+      controller.__oldOnFinishChange = controller.onFinishChange;
+      controller.onFinishChange = function () {
+        controller.__oldOnFinishChange();
+        controller.slider.value = match[2];
+      };
+
+      // Configure the slider's style so that it can be nicely formatted.
+      controller.slider.style.setProperty("--value", controller.slider.value);
+      controller.slider.style.setProperty("--min", controller.slider.min);
+      controller.slider.style.setProperty("--max", controller.slider.max);
+
+      // Add the slider to the DOM.
+      controller.domElement.appendChild(controller.slider);
+    }
+  }
   if (isNextParam) {
     kineticParamsLabels.push(label);
     kineticParamsStrs[label] = "";
-    let controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller.domElement.classList.add("params");
     controller.onFinishChange(function () {
       const index = kineticParamsLabels.indexOf(label);
       // Remove excess whitespace.
@@ -3195,31 +4289,79 @@ function createParameterController(label, isNextParam) {
       } else {
         // A parameter has been added! So, we create a new controller and assign it to this parameter,
         // delete this controller, and make a new blank controller.
-        createParameterController(kineticParamsLabels.at(index), false);
+        let newController = createParameterController(
+          kineticParamsLabels.at(index),
+          false
+        );
+        // We record the name of the parameter in the controller.
+        const match = str.match(/\s*(\w+)\s*=/);
+        if (match) {
+          newController.lastName = match[1];
+        }
         kineticParamsCounter += 1;
         let newLabel = "params" + kineticParamsCounter;
         this.remove();
         createParameterController(newLabel, true);
-        // If it's non-empty, update any dependencies.
+        // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
+        if (setKineticUniformFromString(str)) {
+          updateShaders();
+        }
       }
     });
   } else {
-    let controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    controller.domElement.classList.add("params");
     controller.onFinishChange(function () {
       // Remove excess whitespace.
       let str = removeWhitespace(kineticParamsStrs[label]);
       if (str == "") {
-        // If the string is empty, delete this controller.
+        // If the string is empty, delete this controller and any associated slider.
+        if (
+          controller.domElement.closest("li").hasOwnProperty("parameterSlider")
+        ) {
+          // Remove any existing sliders.
+          controller.slider.remove();
+          // Remove the parameterSlider class from the controller.
+          controller.domElement
+            .closest("li")
+            .classList.remove("parameterSlider");
+        }
         this.remove();
         // Remove the associated label and the (empty) kinetic parameters string.
         const index = kineticParamsLabels.indexOf(label);
         kineticParamsLabels.splice(index, 1);
         delete kineticParamsStrs[label];
+        // Remove any uniform created with this parameter name.
+        if (controller.hasOwnProperty("lastName")) {
+          delete uniforms[controller.lastName];
+        }
+      } else {
+        // Otherwise, check if we need to create/modify a slider.
+        createSlider();
+        // Check if we need to update the parameter name and remove a redundant uniform.
+        const match = replaceDigitsWithWords(str).match(/\s*(\w+)\s*=/);
+        if (
+          match &&
+          controller.hasOwnProperty("lastName") &&
+          (controller.lastName != match[1])
+        ) {
+          delete uniforms[controller.lastName];
+          controller.lastName = match[1];
+        }
       }
+      // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
       setKineticStringFromParams();
+      if (setKineticUniformFromString(str)) {
+        updateShaders();
+      }
     });
   }
+  // Now that we've made the required controller, check the current string to see if
+  // the user has requested that we make other types of controller (e.g. a slider).
+  createSlider();
+  // Return the controller in case it is needed.
+  return controller;
 }
 
 function setParamsFromKineticString() {
@@ -3233,6 +4375,11 @@ function setParamsFromKineticString() {
     if (str == "") {
       // If the string is empty, do nothing.
     } else {
+      // Add whitespace to the string around "=".
+      str = str.replace(/(\S)=/, "$1 =");
+      str = str.replace(/=(\S)/, "= $1");
+      // Add whitespace after commas.
+      str = str.replaceAll(/,(\S)/g, ", $1");
       label = "param" + kineticParamsCounter;
       kineticParamsCounter += 1;
       kineticParamsLabels.push(label);
@@ -3245,64 +4392,12 @@ function setParamsFromKineticString() {
   kineticParamsLabels.push(label);
   kineticParamsStrs[label] = str;
   createParameterController(label, true);
-  // Check if any reserved names are being used.
-  if (checkForReservedNames()) {
-    options.kineticParams = "";
-    setRDEquations();
-    setClearShader();
-    updateWhatToPlot();
-  }
 }
 
 function setKineticStringFromParams() {
   // Combine the custom parameters into a single string for storage, so long as no reserved names are used.
   options.kineticParams = Object.values(kineticParamsStrs).join(";");
-  if (!checkForReservedNames()) {
-    setRDEquations();
-    setClearShader();
-    updateWhatToPlot();
-  }
 }
-
-/* GUI settings and equations buttons */
-$("#settings").click(function () {
-  $("#rightGUI").toggle();
-});
-$("#equations").click(function () {
-  $("#equation_display").toggle();
-  $("#leftGUI").toggle();
-});
-$("#pause").click(function () {
-  pauseSim();
-});
-$("#play").click(function () {
-  playSim();
-});
-$("#erase").click(function () {
-  resetSim();
-});
-$("#warning_restart").click(function () {
-  $("#oops_hit_nan").hide();
-  resetSim();
-});
-$("#screenshot").click(function () {
-  takeAScreenshot = true;
-  render();
-});
-$("#help").click(function () {
-  window.open(window.location.origin + "/user-guide", "_blank");
-});
-
-$("#back").click(function () {
-  // If the user arrived by typing in a URL or from an external link, have this button
-  // point to the visualPDE homepage.
-  if (fromExternalLink()) {
-    window.location.href = window.location.origin;
-  } else {
-    // Otherwise, simply take them back a page.
-    history.back();
-  }
-});
 
 function fromExternalLink() {
   const link = document.createElement("a");
@@ -3386,6 +4481,7 @@ function configureColourbar() {
     if (MathJax.typesetPromise != undefined) {
       MathJax.typesetPromise($("#midLabel"));
     }
+    checkColourbarLogoCollision();
     updateColourbarLims();
   } else {
     $("#colourbar").hide();
@@ -3442,9 +4538,11 @@ function formatLabelNum(num, depth) {
 function configureTimeDisplay() {
   if (options.timeDisplay) {
     $("#timeDisplay").show();
+    updateTimeDisplay();
   } else {
     $("#timeDisplay").hide();
   }
+  orderTimeIntegralDisplays();
 }
 
 function updateTimeDisplay() {
@@ -3452,7 +4550,7 @@ function updateTimeDisplay() {
     let str = formatLabelNum(uniforms.t.value, 3);
     str = str.replace(/e(\+)*(\-)*([0-9]*)/, " x 10<sup>$2$3<sup>");
     $("#timeValue").html(str);
-    checkColorbarPosition();
+    checkColourbarPosition();
   }
 }
 
@@ -3460,9 +4558,9 @@ function configureIntegralDisplay() {
   if (options.integrate) {
     $("#integralDisplay").show();
     let str = "";
-    options.oneDimensional ? (str += "$\\int") : (str += "$\\iint");
+    options.dimension == 1 ? (str += "$\\int") : (str += "$\\iint");
     str += "_{\\domain}" + parseStringToTEX(options.whatToPlot) + "\\,\\d x";
-    options.oneDimensional ? {} : (str += "\\d y");
+    options.dimension == 1 ? {} : (str += "\\d y");
     $("#integralLabel").html(str + " = $");
     if (MathJax.typesetPromise != undefined) {
       MathJax.typesetPromise($("#integralLabel"));
@@ -3470,14 +4568,34 @@ function configureIntegralDisplay() {
   } else {
     $("#integralDisplay").hide();
   }
+  orderTimeIntegralDisplays();
+}
+
+function configureDataContainer() {
+  // Show the dataContainer element, ready for showing any data. Doing it this way prevents
+  // it flashing on load.
+  $("#dataContainer").show();
+}
+
+function nudgeUIUp(id, num) {
+  $(id).css("bottom", "");
+  $(id).css("bottom", "+=" + num.toString());
+}
+
+function orderTimeIntegralDisplays() {
+  options.integrate && options.timeDisplay
+    ? nudgeUIUp("#timeDisplay", 10)
+    : nudgeUIUp("#timeDisplay", 0);
 }
 
 function updateIntegralDisplay() {
   if (options.integrate) {
     fillBuffer();
-    let dA = uniforms.dx.value;
-    if (!options.oneDimensional) {
-      dA = dA * uniforms.dy.value;
+    let dA;
+    if (options.dimension == 1) {
+      dA = uniforms.dx.value;
+    } else if (options.dimension == 2) {
+      dA = uniforms.dx.value * uniforms.dy.value;
     }
     let total = 0;
     for (let i = 0; i < buffer.length; i += 4) {
@@ -3485,7 +4603,7 @@ function updateIntegralDisplay() {
     }
     total *= dA;
     $("#integralValue").html(formatLabelNum(total, 4));
-    checkColorbarPosition();
+    checkColourbarPosition();
   }
 }
 
@@ -3507,24 +4625,27 @@ function fillBuffer() {
   }
 }
 
-function checkColorbarPosition() {
-  if (options.colourbar) {
+function checkColourbarPosition() {
+  // If there's a potential overlap of the data display and the colourbar, move the former up.
+  if (options.colourbar && (options.integrate | options.timeDisplay)) {
     let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
-    if (options.integrate) {
-      let integralDims = $("#integralDisplay")[0].getBoundingClientRect();
-      if (colourbarDims.left <= integralDims.left + integralDims.width) {
-        $("#colourbar").addClass("secondRowUI");
-        return;
+    let bottomElm;
+    options.integrate
+      ? (bottomElm = $("#integralDisplay")[0])
+      : (bottomElm = $("#timeDisplay")[0]);
+    let bottomDims = bottomElm.getBoundingClientRect();
+    // If the colour overlaps the bottom element (or is above it and would otherwise overlap).
+    if (colourbarDims.right >= bottomDims.left) {
+      if (colourbarDims.top <= bottomDims.bottom) {
+        nudgeUIUp("#dataContainer", 40);
+        nudgedUp = true;
+      }
+    } else {
+      if (nudgedUp) {
+        nudgeUIUp("#dataContainer", 0);
+        nudgedUp = false;
       }
     }
-    if (options.timeDisplay) {
-      let timeDims = $("#timeDisplay")[0].getBoundingClientRect();
-      if (colourbarDims.left + colourbarDims.width >= timeDims.left) {
-        $("#colourbar").addClass("secondRowUI");
-        return;
-      }
-    }
-    $("#colourbar").removeClass("secondRowUI");
   }
 }
 
@@ -3579,40 +4700,14 @@ function getReservedStrs() {
   // Load an RD shader and find floats, vecs, and ivecs.
   let regex = /(?:float|vec\d|ivec\d)\b\s+(\w+)\b/g;
   let str = RDShaderTop() + RDShaderUpdateCross();
-  return [...str.matchAll(regex)].map((x) => x[1]);
+  return [...str.matchAll(regex)].map((x) => x[1]).concat(["u", "v", "w", "q"]);
 }
 
-function usingReservedNames() {
-  // Check if the user is trying to use any reserved names as kinetic parameters.
-  // If so, return the name of a reserved parameter. Otherwise, return false.
-  let regex = /(\w+)\s*=/g;
-  let names = [...options.kineticParams.matchAll(regex)]
-    .map((x) => x[1])
-    .join(" ");
-  let lastTest = false;
-  // Check all of the names, saving at least one reserved name if any are found.
-  const flag = getReservedStrs().some(function (name) {
-    let regex = new RegExp("\\b" + name + "\\b", "g");
-    lastTest = name;
-    return regex.test(names);
+function isReservedName(name) {
+  return getReservedStrs().some(function (badName) {
+    let regex = new RegExp("\\b" + badName + "\\b", "g");
+    return regex.test(name);
   });
-  return flag ? lastTest : false;
-}
-
-function checkForReservedNames() {
-  let badName = usingReservedNames();
-  // If there's a bad parameter name, and we've not just alerted the user to it, show an alert.
-  if (badName && badName != lastBadParam) {
-    lastBadParam = badName;
-    alert(
-      'The name "' +
-        badName +
-        "\" is used under the hood, so can't be used as a parameter. Please use a different name for " +
-        badName +
-        "."
-    );
-  }
-  return badName;
 }
 
 function replaceUserDefReac(str, regex, input) {
@@ -3634,6 +4729,7 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
   let trimmed = input.replace(/\s+/g, "  ").trim();
   if (trimmed == "0" || trimmed == "0.0") return str.replaceAll(regex, "");
   if (trimmed == "1" || trimmed == "1.0") return str.replaceAll(regex, "$2");
+  if (trimmed == "-1" || trimmed == "-1.0") return str.replaceAll(regex, "-$2");
   // If the input contains letters (like parameters), insert it with delimiters.
   if (input.match(/[a-zA-Z]/)) {
     if (input.match(/[\+-]/) && delimiters != undefined) {
@@ -3649,4 +4745,158 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
   }
   // If it's just a scalar, keep the original.
   return str;
+}
+
+function configurePlotType() {
+  // Configure the simulation to plot the solution as requested.
+  if (options.plotType == "line") {
+    options.typeOfBrush = "vline";
+    setBrushType();
+    refreshGUI(rightGUI);
+  }
+  options.plotType == "surface"
+    ? $("#simCanvas").css("outline", "2px #000 solid")
+    : $("#simCanvas").css("outline", "");
+  configureCameraAndClicks();
+  configureGUI();
+}
+
+function configureDimension() {
+  // Configure the dimension of the equations.
+  if ((options.dimension != 1) && (options.plotType == "line")) {
+    options.plotType = "plane";
+    configurePlotType();
+  }
+  if ((options.dimension == 1) && (options.plotType != "line")) {
+    options.plotType = "line";
+    configurePlotType();
+  }
+  resize();
+  setRDEquations();
+  configureGUI();
+  configureIntegralDisplay();
+}
+
+function setCameraPos() {
+  const pos = new THREE.Vector3().setFromSphericalCoords(
+    1,
+    Math.PI / 2 - (options.cameraTheta * Math.PI) / 180,
+    (options.cameraPhi * Math.PI) / 180
+  );
+  camera.position.set(pos.x, pos.y, pos.z);
+  camera.lookAt(0, 0, 0);
+}
+
+function checkColourbarLogoCollision() {
+  // If the logo and the colourbar overlap, remove the logo.
+  if ($("#logo").is(":visible") && $("#colourbar").is(":visible")) {
+    if (
+      $("#logo")[0].getBoundingClientRect().right >=
+      $("#colourbar")[0].getBoundingClientRect().left
+    ) {
+      $("#logo").hide();
+    }
+  }
+}
+
+function sanitisedKineticParams() {
+  // options.kineticParams could contain additional directives, like "in [0,1]", used
+  // to create additional controllers. We want to save these in options.kineticParams, but
+  // can't pass them to the shader like this. Here, we strip these directives from the string.
+  // If a kineticParam is of the form "name = val in [a,b]", remove the in [a,b] part.
+  let out = options.kineticParams.replaceAll(/\bin[^;]*;?/g, ";");
+
+  // A user may have used numbers when defining variable names. Replace them with the word form.
+  out = replaceDigitsWithWords(out);
+
+  return out;
+}
+
+function setKineticUniforms() {
+  // Set uniforms based on the parameters defined in kineticParams.
+  // Return true if we're adding a new uniform, which signifies that all shaders must be
+  // updated to reference this new uniform.
+  const paramStrs = sanitisedKineticParams().split(";");
+  let addingNewUniform = false;
+  for (const paramStr of paramStrs) {
+    addingNewUniform |= setKineticUniformFromString(paramStr);
+  }
+  return addingNewUniform;
+}
+
+function setKineticUniformFromString(str) {
+  // Set a uniform based on the parameter defined in str/
+  // Return true if we're adding a new uniform, which signifies that all shaders must be
+  // updated to reference this new uniform.
+  const regex = /(\w+)\s*=\s*([\+\-]?)\s*([0-9\.]+)/;
+  // Parse the name from the string.
+  const match = str.match(regex);
+  let addingNewUniform = false;
+  if (match) {
+    // Replace any numbers in the name with the word equivalents.
+    match[1] = replaceDigitsWithWords(match[1]);
+    if (isReservedName(match[1])) {
+      alert(
+        'The name "' +
+          match[1] +
+          "\" is used under the hood, so can't be used as a parameter. Please use a different name for " +
+          match[1] +
+          "."
+      );
+    } else {
+      // If no such uniform exists, make a note of this.
+      addingNewUniform = !uniforms.hasOwnProperty(match[1]);
+      // Define the required uniform.
+      uniforms[match[1]] = {
+        type: "float",
+        value: parseFloat(match[2] + match[3]),
+      };
+    }
+  }
+  return addingNewUniform;
+}
+
+function kineticUniformsForShader() {
+  // Given the kinetic parameters in options.kineticParams, return GLSL defining uniforms with
+  // these names.
+  const regex = /;?\s*(\w+)\s*=\s*[\+\-]?\s*([0-9\.]+)\s*;?/g;
+  return replaceDigitsWithWords(
+    sanitisedKineticParams().replaceAll(regex, "uniform float $1;\n")
+  );
+}
+
+function updateShaders() {
+  // Update all the shaders that are constructed using user input.
+  setRDEquations();
+  setClearShader();
+  setBrushType();
+  updateWhatToPlot();
+}
+
+function replaceDigitsWithWords(strIn) {
+  let regex;
+  let strOut = strIn;
+  for (let num = 0; num < 10; num++) {
+    regex = new RegExp("([a-zA-Z_]+)(" + num.toString() + ")", "g");
+    while (strOut != (strOut = strOut.replace(regex, "$1" + numsAsWords[num])));
+  }
+  return strOut;
+}
+
+function resizeEquationDisplay() {
+  const el = $("#equation_display div mjx-container").children("mjx-math");
+  var fz;
+  el.css("font-size", "");
+  var count = 0;
+  while (
+    (count < 20) &
+    ($("#equation_display")[0].getBoundingClientRect().right >=
+      window.innerWidth - 50) &
+    ($("#equation_display")[0].getBoundingClientRect().right >
+      parseFloat($("#equation_display_box").css("min-width")))
+  ) {
+    fz = (parseFloat(el.css("font-size")) * 0.9).toString() + "px";
+    el.css("font-size", fz);
+    count += 1;
+  }
 }

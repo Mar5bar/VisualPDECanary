@@ -10,6 +10,8 @@ Functions of space can allow us to change how a PDE solution varies in space and
 
 * Load the [interactive simulation](/sim/?preset=Alan). 
 
-* You can upload your own image by clicking on {{ layout.settings }}→**Images** and then clicking on the image of Turing's face next to $T(x,y)$. The image will be effectively treated as a greyscale function $T(x,y)$, which will be approximately 1 when the image is close to white and approximately 0 when the image is close to black.
+* You can upload your own image by clicking on {{ layout.settings }}→**Images** and then clicking on the image of [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing)'s face next to $T(x,y)$. The image will be effectively treated as a greyscale function $T(x,y)$, which will be approximately 1 when the image is close to white and approximately 0 when the image is close to black.
 
-* You can upload a second image under {{ layout.settings }}→**Images** called $S(x,y)$ to use as a second heterogeneity, or as an initial condition. 
+* Change $T$ to $S$ in {{ layout.equations }}→**Definitions** to see another famous mathematical face. [Sofya Kovalevskaya](https://en.wikipedia.org/wiki/Sofya_Kovalevskaya) also has her own [interactive simulation](/sim/?preset=Sofya).
+
+* You can upload a replacement for either of these images under {{ layout.settings }}→**Images**. They can each be used as heterogeneities in many parts of VisualPDE.
