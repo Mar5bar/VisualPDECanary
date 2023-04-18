@@ -28,7 +28,7 @@ The basic syntax for defining a parameter is
 name = value
 ```
 
-which will make the quantity 'name' available to the simulation. You can then freely change 'value', which will instantly propagate throughout VisualPDE. If you try to use a name that clashes with an internal variable (some of which are only found under the hood of VisualPDE), a warning will appear to inform you of this. Parameters can be removed by deleting the text that defines them.
+which will make the quantity 'name' available to the simulation. You can then freely change 'value', which will instantly propagate throughout VisualPDE. If you try to use a name that clashes with an internal variable (some of which are only found under the hood of VisualPDE), a warning will appear to inform you of this. Parameters can be removed by deleting the text that defines them. You can even choose a 'name' that includes subscripts, such as 'k_1u'. This will be interpreted as $k_{1u}$ automatically by VisualPDE.
 
 **Sliders**\
 The more advanced syntax 
@@ -186,7 +186,7 @@ Share a link to the simulation you have created. This copies the URL to your cli
 
 ### Writing valid expressions <a id='valid-expressions'>
 **Standard syntax**\
-VisualPDE aims to support standard mathematical syntax (+,-,*,/), along with the carat notation '^' for exponentiation. Parentheses '()' are also supported for bracketing terms together, and must be used when calling any special functions. In general, whitespace around binary operators will be ignored, so that '2 * 2' is valid syntax for multiplication, for example.
+VisualPDE aims to support standard mathematical syntax (+,-,*,/), along with the carat notation '^' for exponentiation. Parentheses '()' are also supported for bracketing terms together, and must be used when calling any special functions. In general, whitespace around binary operators will be ignored, so that '2 * 2' is valid syntax for multiplication, for example. Quantities with subscripts, such as $L_x$ and $L_y$, are written with an underscore, e.g. 'L_x' and 'L_y'.
 
 Examples of valid syntax include
 

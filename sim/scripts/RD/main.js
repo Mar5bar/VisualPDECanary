@@ -4796,6 +4796,8 @@ function setKineticUniformFromString(str) {
   const match = str.match(regex);
   let addingNewUniform = false;
   if (match) {
+    // Replace any numbers in the name with the word equivalents.
+    match[1] = replaceDigitsWithWords(match[1]);
     if (isReservedName(match[1])) {
       alert(
         'The name "' +
