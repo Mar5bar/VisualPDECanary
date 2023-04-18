@@ -4036,6 +4036,9 @@ function parseStringToTEX(str) {
   str = replaceFunctionInTeX(str, "exp", true);
   str = replaceFunctionInTeX(str, "log", true);
   str = replaceFunctionInTeX(str, "sqrt", false);
+  str = replaceFunctionInTeX(str, "sinh", true);
+  str = replaceFunctionInTeX(str, "cosh", true);
+  str = replaceFunctionInTeX(str, "tanh", true);
 
   // Remove *.
   str = str.replaceAll(/\*/g, " ");
