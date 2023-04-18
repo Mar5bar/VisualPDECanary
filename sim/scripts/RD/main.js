@@ -202,7 +202,16 @@ funsObj = {
       "?options=",
       LZString.compressToEncodedURIComponent(JSON.stringify(objDiff)),
     ].join("");
-    navigator.clipboard.writeText(str);
+    navigator.clipboard.writeText(str).then(
+      () => {
+        // Success.
+        $("#link_copied").fadeIn(1000);
+        setTimeout(() => $("#link_copied").fadeOut(1000), 2000);
+      },
+      () => {
+        // Failure.
+      }
+    );
   },
   copyConfigAsJSON: function () {
     // Encode the current simulation configuration as raw JSON and put it on the clipboard.
@@ -369,6 +378,9 @@ $("#warning_restart").click(function () {
 $("#screenshot").click(function () {
   takeAScreenshot = true;
   render();
+});
+$("#link").click(function () {
+  funsObj.copyConfigAsURL();
 });
 
 // Begin the simulation.
@@ -1646,11 +1658,6 @@ function initGUI(startOpen) {
   if (inGUI("debug")) {
     // Debug.
     root.add(funsObj, "debug").name("Copy debug info");
-  }
-
-  if (inGUI("copyConfigAsURL")) {
-    // Copy configuration as URL.
-    rightGUI.add(funsObj, "copyConfigAsURL").name("Copy URL");
   }
 
   // Add a toggle for showing all options.

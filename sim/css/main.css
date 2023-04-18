@@ -194,8 +194,26 @@ canvas {
 }
 
 #help {
+    top: 210px;
+    right: 3px;
+}
+
+#link {
     top: 170px;
     right: 3px;
+}
+
+#link_copied {
+    position: absolute;
+    top: 192.5px;
+    right: 50px;
+    transform: translateY(-50%);
+    opacity: 100;
+    display: none;
+}
+
+#link_copied p {
+    font-size: 0.8rem;
 }
 
 #equation_display div mjx-container {
@@ -211,9 +229,6 @@ canvas {
     left: 50%;
     position: absolute;
     transform: translateX(-50%);
-    opacity: 0;
-    transition-property: opacity;
-    pointer-events: none;
 }
 
 .message {
