@@ -68,7 +68,6 @@ canvas {
     position: absolute;
     top: 0px;
     right: 40px;
-    /* margin-right: 0; */
     direction: rtl;
 }
 
@@ -78,6 +77,10 @@ canvas {
     border: 5px black solid;
     background-color: black;
     pointer-events: all;
+}
+
+#leftGUIContainer {
+    top: 1px;
 }
 
 #left_ui {
@@ -324,14 +327,6 @@ i.icon_on_text_button{
     -o-font-feature-settings: "kern" 1;
     font-feature-settings: "kern" 1;
 }
-
-/* #oops_hit_nan {
-    top: 50%;
-    width: 80%;
-    max-width: 90vh;
-    left: 50%;
-    position: absolute;
-} */
 
 .fading_in {
     opacity: 100% !important;
