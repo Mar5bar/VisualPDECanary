@@ -14,7 +14,7 @@ where, typically, we need $b_r,D_r \geq 0$ for solutions to exist.
 
 * Load the [interactive simulation](/sim/?preset=complexGinzburgLandau) 
 
-* Change the parameters $b_i$ to see a wide range of interesting behaviours. The values $b_i=-5, -1, 0, 1, 2$ for example all give distinct dynamical regimes.
+* Change the parameter $b_i$ to see a wide range of interesting behaviours. The values $b_i=-5, -1, 0, 1, 2$ for example all give distinct dynamical regimes.
 
 # Numerical notes
 

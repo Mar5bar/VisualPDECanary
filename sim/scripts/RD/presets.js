@@ -324,7 +324,7 @@ export function getPreset(id) {
         diffusionStrVV: "D_r",
         diffusionStrWW: "0",
         dt: 0.001,
-        kineticParams: "D_r=0.1;D_i=1;a_r=1;a_i=1;b_r=-1;b_i=0;n=10;m=10;",
+        kineticParams: "b_i=0 in [-5,5];D_r=0.1;D_i=1;a_r=1;a_i=1;b_r=-1;n=10;m=10;",
         maxColourValue: 1.6760534048080444,
         minColourValue: 0.00015078618889674544,
         reactionStrU: "a_r*u-a_i*v+(b_r*u-b_i*v)*(u^2+v^2)",
