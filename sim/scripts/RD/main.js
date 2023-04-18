@@ -4060,7 +4060,7 @@ function parseStringToTEX(str) {
   str = str.replaceAll(/[\)\]]/g, "\\right$&");
 
   // If there's an underscore, put {} around the word that follows it.
-  str = str.replaceAll(/_(\w*\b)/g, "_{$1}");
+  str = str.replaceAll(/_(\w+\b)/g, "_{$1}");
 
   return str;
 }
