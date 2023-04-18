@@ -4798,7 +4798,7 @@ function setKineticUniformFromString(str) {
   // Set a uniform based on the parameter defined in str/
   // Return true if we're adding a new uniform, which signifies that all shaders must be
   // updated to reference this new uniform.
-  const regex = /(\w+)\s*=\s*[\+\-]?\s*([0-9\.]+)/;
+  const regex = /(\w+)\s*=\s*([\+\-]?)\s*([0-9\.]+)/;
   // Parse the name from the string.
   const match = str.match(regex);
   let addingNewUniform = false;
@@ -4819,7 +4819,7 @@ function setKineticUniformFromString(str) {
       // Define the required uniform.
       uniforms[match[1]] = {
         type: "float",
-        value: parseFloat(match[2]),
+        value: parseFloat(match[2]+match[3]),
       };
     }
   }
