@@ -4,13 +4,11 @@ title: A-maze-ing PDEs
 lesson_number: 50
 thumbnail: /assets/images/maze.png
 extract: Searching for love in all the wrong places
-equation: $\pd{🐀}{t}=D_🐀\vnabla\cdot (\vnabla 🐀-g(🧀)\vnabla🧀),$ $\pd{🧀 }{t}=D_🧀 \nabla^2🧀 -a🐀$
+equation: $\pd{🐀}{t}=D_🐀\vnabla\cdot (\vnabla 🐀-g(🐀)\vnabla🧀)+f(🐀,🧀),$ $\pd{🧀}{t}=D_🧀 \nabla^2🧀+g(🐀,🧀)$
 ---
 
-This is a simulation of a chemotaxis-like system which tries to solve a maze by gobbling up all the food as it goes. There is a source of food at the edge of the maze.
+This is a simulation of a chemotaxis-like system which tries to solve a maze by gobbling up all the food as it goes. There is a source of food at the edge of the maze, and some initial (but slowly decaying) food spread throughout the maze. Will the population make it to the end? find out in the [interactive simulation](/sim/?preset=maze)!
 
 $$
-\begin{aligned}\pd{🐀}{t}&=D_🐀\vnabla\cdot (\vnabla 🐀-g(🧀)\vnabla🧀),\\ \pd{🧀 }{t}&=D_🧀 \nabla^2🧀 -a🐀\end{aligned}
+\begin{aligned}\pd{🐀}{t}&=D_🐀\vnabla\cdot (\vnabla 🐀-g(🐀)\vnabla🧀)+f(🐀,🧀),\\ \pd{🧀 }{t}&=D_🧀 \nabla^2🧀 +g(🐀,🧀)\end{aligned}
 $$
-
-* Load the [interactive simulation](/sim/?preset=maze). 
