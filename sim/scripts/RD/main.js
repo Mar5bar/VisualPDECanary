@@ -4729,6 +4729,7 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
   let trimmed = input.replace(/\s+/g, "  ").trim();
   if (trimmed == "0" || trimmed == "0.0") return str.replaceAll(regex, "");
   if (trimmed == "1" || trimmed == "1.0") return str.replaceAll(regex, "$2");
+  if (trimmed == "-1" || trimmed == "-1.0") return str.replaceAll(regex, "-$2");
   // If the input contains letters (like parameters), insert it with delimiters.
   if (input.match(/[a-zA-Z]/)) {
     if (input.match(/[\+-]/) && delimiters != undefined) {
