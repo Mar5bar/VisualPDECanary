@@ -4048,6 +4048,8 @@ function parseStringToTEX(str) {
   str = replaceFunctionInTeX(str, "sinh", true);
   str = replaceFunctionInTeX(str, "cosh", true);
   str = replaceFunctionInTeX(str, "tanh", true);
+  str = replaceFunctionInTeX(str, "max", true);
+  str = replaceFunctionInTeX(str, "min", true);
 
   // Remove *.
   str = str.replaceAll(/\*/g, " ");
