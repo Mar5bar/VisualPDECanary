@@ -197,4 +197,4 @@ exp( -(x-L_x)^2 / 10)
 ```
 
 **Special functions**\
-Throughout VisualPDE, you can make use of the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt' and 'H', where the latter is the [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'.
+Throughout VisualPDE, you can make use of the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt', 'sinh', 'cosh', 'tanh' and 'H', where the latter is a [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function) smoothed over the interval $[-1,1]$ (see the [GLSL reference](https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml) for details). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'.
