@@ -212,7 +212,7 @@ export function getPreset(id) {
         domainScale: 100,
         dt: 0.0005,
         fixRandSeed: true,
-        kineticParams: "a=1;r=0.01;D=1;",
+        kineticParams: "r=0.01 in [0, 0.01, 1];a=1;D=1;",
         minColourValue: -1,
         preset: "CahnHilliard",
         reactionStrU: "r*u*(1-u^2)",
