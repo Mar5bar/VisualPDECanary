@@ -1523,10 +1523,12 @@ function initGUI(startOpen) {
   if (inGUI("colourmap")) {
     root
       .add(options, "colourmap", {
-        Greyscale: "greyscale",
-        Viridis: "viridis",
-        Turbo: "turbo",
         BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
+        "Blue-Magenta": "blue-magenta",
+        Diverging: "diverging",
+        Greyscale: "greyscale",
+        Turbo: "turbo",
+        Viridis: "viridis",
       })
       .onChange(function () {
         setDisplayColourAndType();
