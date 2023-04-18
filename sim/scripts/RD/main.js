@@ -1686,7 +1686,7 @@ function animate() {
 
   hasDrawn = isDrawing;
   // Draw on any input from the user, which can happen even if timestepping is not running.
-  if (isDrawing & (options.drawIn3D | (options.plotType != "surface"))) {
+  if (isDrawing && (options.drawIn3D | (options.plotType != "surface"))) {
     draw();
   }
 
@@ -1855,7 +1855,7 @@ function render() {
     funsObj.setColourRange();
   }
 
-  if (options.drawIn3D & (options.plotType == "surface")) {
+  if (options.drawIn3D && (options.plotType == "surface")) {
     let val =
       (getMeanVal() - options.minColourValue) /
         (options.maxColourValue - options.minColourValue) -
@@ -1920,7 +1920,7 @@ function render() {
 
 function onDocumentPointerDown(event) {
   isDrawing = setBrushCoords(event, canvas);
-  if (isDrawing & options.drawIn3D & (options.plotType == "surface")) {
+  if (isDrawing && options.drawIn3D && (options.plotType == "surface")) {
     controls.enabled = false;
   }
 }
@@ -1940,7 +1940,7 @@ function setBrushCoords(event, container) {
   var cRect = container.getBoundingClientRect();
   let x = (event.clientX - cRect.x) / cRect.width;
   let y = 1 - (event.clientY - cRect.y) / cRect.height;
-  if (options.drawIn3D & (options.plotType == "surface")) {
+  if (options.drawIn3D && (options.plotType == "surface")) {
     // If we're in 3D, we have to project onto the simulation domain.
     // We need x,y between -1 and 1.
     clampedCoords.x = 2 * x - 1;
@@ -1962,7 +1962,7 @@ function setBrushCoords(event, container) {
   x = Math.round(x * nXDisc) / nXDisc;
   y = Math.round(y * nYDisc) / nYDisc;
   uniforms.brushCoords.value = new THREE.Vector2(x, y);
-  return (0 <= x) & (x <= 1) & (0 <= y) & (y <= 1);
+  return (0 <= x) && (x <= 1) && (0 <= y) && (y <= 1);
 }
 
 function clearTextures() {
@@ -4096,7 +4096,7 @@ function replaceFunctionInTeX(str, func, withBrackets) {
     // Try to find paired brackets.
     while (
       (ind <= subStr.length) &
-      (!foundBracket | !(foundBracket & (depth == 0)))
+      (!foundBracket | !(foundBracket && (depth == 0)))
     ) {
       depth += ["(", "["].includes(subStr[ind]);
       depth -= [")", "]"].includes(subStr[ind]);
@@ -4284,7 +4284,15 @@ function createParameterController(label, isNextParam) {
       } else {
         // A parameter has been added! So, we create a new controller and assign it to this parameter,
         // delete this controller, and make a new blank controller.
-        createParameterController(kineticParamsLabels.at(index), false);
+        let newController = createParameterController(
+          kineticParamsLabels.at(index),
+          false
+        );
+        // We record the name of the parameter in the controller.
+        const match = str.match(/\s*(\w+)\s*=/);
+        if (match) {
+          newController.lastName = match[1];
+        }
         kineticParamsCounter += 1;
         let newLabel = "params" + kineticParamsCounter;
         this.remove();
@@ -4319,9 +4327,23 @@ function createParameterController(label, isNextParam) {
         const index = kineticParamsLabels.indexOf(label);
         kineticParamsLabels.splice(index, 1);
         delete kineticParamsStrs[label];
+        // Remove any uniform created with this parameter name.
+        if (controller.hasOwnProperty("lastName")) {
+          delete uniforms[controller.lastName];
+        }
       } else {
         // Otherwise, check if we need to create/modify a slider.
         createSlider();
+        // Check if we need to update the parameter name and remove a redundant uniform.
+        const match = replaceDigitsWithWords(str).match(/\s*(\w+)\s*=/);
+        if (
+          match &&
+          controller.hasOwnProperty("lastName") &&
+          (controller.lastName != match[1])
+        ) {
+          delete uniforms[controller.lastName];
+          controller.lastName = match[1];
+        }
       }
       // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
       setKineticStringFromParams();
@@ -4333,6 +4355,8 @@ function createParameterController(label, isNextParam) {
   // Now that we've made the required controller, check the current string to see if
   // the user has requested that we make other types of controller (e.g. a slider).
   createSlider();
+  // Return the controller in case it is needed.
+  return controller;
 }
 
 function setParamsFromKineticString() {
@@ -4554,7 +4578,7 @@ function nudgeUIUp(id, num) {
 }
 
 function orderTimeIntegralDisplays() {
-  options.integrate & options.timeDisplay
+  options.integrate && options.timeDisplay
     ? nudgeUIUp("#timeDisplay", 10)
     : nudgeUIUp("#timeDisplay", 0);
 }
@@ -4598,7 +4622,7 @@ function fillBuffer() {
 
 function checkColourbarPosition() {
   // If there's a potential overlap of the data display and the colourbar, move the former up.
-  if (options.colourbar & (options.integrate | options.time)) {
+  if (options.colourbar && (options.integrate | options.timeDisplay)) {
     let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
     let bottomElm;
     options.integrate
@@ -4733,11 +4757,11 @@ function configurePlotType() {
 
 function configureDimension() {
   // Configure the dimension of the equations.
-  if ((options.dimension != 1) & (options.plotType == "line")) {
+  if ((options.dimension != 1) && (options.plotType == "line")) {
     options.plotType = "plane";
     configurePlotType();
   }
-  if ((options.dimension == 1) & (options.plotType != "line")) {
+  if ((options.dimension == 1) && (options.plotType != "line")) {
     options.plotType = "line";
     configurePlotType();
   }
@@ -4759,7 +4783,7 @@ function setCameraPos() {
 
 function checkColourbarLogoCollision() {
   // If the logo and the colourbar overlap, remove the logo.
-  if ($("#logo").is(":visible") & $("#colourbar").is(":visible")) {
+  if ($("#logo").is(":visible") && $("#colourbar").is(":visible")) {
     if (
       $("#logo")[0].getBoundingClientRect().right >=
       $("#colourbar")[0].getBoundingClientRect().left
@@ -4819,7 +4843,7 @@ function setKineticUniformFromString(str) {
       // Define the required uniform.
       uniforms[match[1]] = {
         type: "float",
-        value: parseFloat(match[2]+match[3]),
+        value: parseFloat(match[2] + match[3]),
       };
     }
   }
