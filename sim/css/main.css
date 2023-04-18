@@ -596,4 +596,27 @@ input[type=range].styled-slider {
     border: 1px solid #b2b2b2;
     border-right-width: 0;
   }
+
+  #function_button_f{
+    font-size:1.3rem;
+    font-family: "Comic Sans MS", Arial, Times, serif;
+    font-weight:600;
+    margin-right:-1px;
+    margin-top:-3px;
+    margin-left:1px;
+  }
+
+#function_button_open_bracket,
+#function_button_close_bracket{
+    font-size: 0.8rem;
+    font-family: "Comic Sans MS", Arial, Helvetica, sans-serif;
+    margin-top:0px;
+}
+  #function_button_x{
+    font-weight:600;
+    font-size: 0.85rem;
+    font-family: "Comic Sans MS", Arial, Helvetica, serif;
+    margin-left:-1px;
+    margin-right:-1px;
+  }
   
