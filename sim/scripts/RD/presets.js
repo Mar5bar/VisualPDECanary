@@ -153,7 +153,7 @@ export function getPreset(id) {
         dt: 0.001,
         kineticParams: "a  =  0.01;b=2.5 in [0,3];D=100;",
         maxColourValue: 3,
-        minColourValue: 2,
+        minColourValue: -1,
         numTimestepsPerFrame: 200,
         preset: "crossDiffusionSchnakenberg",
         reactionStrU: "a - u +u^2*v",
