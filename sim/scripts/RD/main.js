@@ -4339,6 +4339,9 @@ function setParamsFromKineticString() {
     if (str == "") {
       // If the string is empty, do nothing.
     } else {
+      // Add whitespace to the string around "=".
+      str = str.replace(/(\w)=/,"$1 =");
+      str = str.replace(/=(\w)/,"= $1");
       label = "param" + kineticParamsCounter;
       kineticParamsCounter += 1;
       kineticParamsLabels.push(label);
