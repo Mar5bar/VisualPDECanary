@@ -344,7 +344,7 @@ if (shouldLoadDefault) {
 // If the "Try clicking!" popup is allowed, show it iff we're from an external link
 // or have loaded the default simulation.
 if (
-  (fromExternalLink() || shouldLoadDefault) &&
+  (fromExternalLink() || shouldLoadDefault || options.forceTryClickingPopup) &&
   !options.suppressTryClickingPopup
 ) {
   $("#try_clicking").html("<p>" + options.tryClickingText + "</p>");
