@@ -2152,7 +2152,7 @@ function parseShaderString(str) {
   str = " " + str + " ";
 
   // Replace tanh with safetanh.
-  str = str.replaceAll(/\btanh\b/g,"safetanh");
+  str = str.replaceAll(/\btanh\b/g, "safetanh");
 
   // Replace powers with safepow, including nested powers.
   str = replaceBinOperator(str, "^", function (m, p1, p2) {
@@ -4206,7 +4206,7 @@ function createParameterController(label, isNextParam) {
         }
       } else {
         step = match[4];
-        match[4] += ",";
+        match[4] += ", ";
       }
       controller.slider.step = step.toString();
 
@@ -4230,7 +4230,7 @@ function createParameterController(label, isNextParam) {
               .toString() +
             " in [" +
             match[3] +
-            "," +
+            ", " +
             match[4] +
             match[5] +
             "]"
@@ -4340,8 +4340,10 @@ function setParamsFromKineticString() {
       // If the string is empty, do nothing.
     } else {
       // Add whitespace to the string around "=".
-      str = str.replace(/(\w)=/,"$1 =");
-      str = str.replace(/=(\w)/,"= $1");
+      str = str.replace(/(\w)=/, "$1 =");
+      str = str.replace(/=(\w)/, "= $1");
+      // Add whitespace after commas.
+      str = str.replaceAll(/,(\S)/g, ", $1");
       label = "param" + kineticParamsCounter;
       kineticParamsCounter += 1;
       kineticParamsLabels.push(label);
@@ -4845,9 +4847,10 @@ function replaceDigitsWithWords(strIn) {
 function resizeEquationDisplay() {
   const el = $("#equation_display div mjx-container").children("mjx-math");
   var fz;
-  el.css("font-size","");
+  el.css("font-size", "");
   var count = 0;
-  while (count < 20 & 
+  while (
+    (count < 20) &
     ($("#equation_display")[0].getBoundingClientRect().right >=
       window.innerWidth - 50) &
     ($("#equation_display")[0].getBoundingClientRect().right >
