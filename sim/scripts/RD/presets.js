@@ -411,7 +411,7 @@ export function getPreset(id) {
         diffusionStrWW: "0",
         domainScale: 100,
         dt: 0.0005,
-        kineticParams: "a=1;b=1.5;c=6.1;B=0;A=0;",
+        kineticParams: "A=0 in [-1,0.1,1];B=0 in [0, 0.1, 5];a=1;b=1.5;c=6.1;",
         maxColourValue: 12.804131507873535,
         numTimestepsPerFrame: 200,
         preset: "GMHeterogeneous2D",
