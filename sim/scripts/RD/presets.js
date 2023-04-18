@@ -364,7 +364,7 @@ export function getPreset(id) {
         diffusionStrWW: "0",
         domainScale: 100,
         dt: 0.0005,
-        kineticParams: "a=0.5;b=1;c=6.1;n=6;",
+        kineticParams: "n=6 in [1, 20];a=0.5;b=1;c=6.1;",
         maxColourValue: 24,
         minColourValue: 0.6,
         numTimestepsPerFrame: 200,
