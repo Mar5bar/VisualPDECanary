@@ -34,13 +34,13 @@ Explore how the speed depends on the diffusion coefficient.
 
 ## Numerical notes
 
-The VisualPDE solver only works for systems of first-order equations. So in fact what is being simulated is the system
+The VisualPDE solver only works for systems of first-order (in time) equations. So in fact what is being simulated is the system
 
 $$\begin{aligned}\pd{u}{t}&=v+CD\nabla^2 u,\\
  \pd{v}{t} &= D \nabla^2 u,
  \end{aligned}$$
 
-which becomes the wave equation when $C=0$. 
+which becomes the wave equation when $C=0$. Note that the term in the second equation is a kind of *cross-diffusion*, with $u$ diffusing into $v$.
 
 The parameter $C$ is used to prevent spurious oscillations due to the equation being [hyperbolic](https://en.wikipedia.org/wiki/Hyperbolic_partial_differential_equation). Try varying the value of $C$ to observe how it changes the solution structure.
 
