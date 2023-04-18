@@ -20,6 +20,4 @@ where we need $D>1$ to form patterns, and typically take $a,b>0$.
 
 * With $D=100$, the system forms spot-like patterns. If you reduce to $D=30$, instead stripe-like patterns will be formed. 
 
-    **Note:** In this simulation, the colour scale is automatically changed to match the highest/lowest value of the function $u$. You can disable this under <span class='click_sequence'>{{ layout.settings }} → **Colour** → **Auto snap?**</span> if you'd like to quantitatively compare solutions. Note as well that this will be badly behaved when $u$ is approximately constant.
-
 * The homogeneous equilibrium can undergo Hopf bifurcations for small values of $1 > b > a \geq 0$. In this regime, one can find Turing patterns, homogeneous oscillations, and complex spatiotemporal interactions of Turing and Hopf instabilities. One example is [this simulation](/sim/?preset=SchnakenbergHopf), but you can find others by tweaking the parameters.
