@@ -27,6 +27,11 @@ export function RDShaderTop() {
         return res;
     }
 
+    float mytanh(float val)
+    {
+        return 1.0 - 2.0/(1.0+exp(2.0*val));
+    }
+
     float safepow(float x, float y) {
         if (x >= 0.0) {
             return pow(x,y);
