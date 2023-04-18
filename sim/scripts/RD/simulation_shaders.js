@@ -27,7 +27,7 @@ export function RDShaderTop() {
         return res;
     }
 
-    float mytanh(float val)
+    float safetanh(float val)
     {
         return 1.0 - 2.0/(1.0+exp(2.0*val));
     }

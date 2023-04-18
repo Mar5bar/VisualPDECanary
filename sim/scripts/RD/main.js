@@ -2151,8 +2151,8 @@ function parseShaderString(str) {
   // Pad the string.
   str = " " + str + " ";
 
-  // Replace tanh with mytanh.
-  str = str.replaceAll(/\btanh\b/g,"mytanh");
+  // Replace tanh with safetanh.
+  str = str.replaceAll(/\btanh\b/g,"safetanh");
 
   // Replace powers with safepow, including nested powers.
   str = replaceBinOperator(str, "^", function (m, p1, p2) {
