@@ -1,7 +1,7 @@
 ---
 layout: page
 title: A-maze-ing PDEs
-lesson_number: 40
+lesson_number: 50
 thumbnail: /assets/images/maze.png
 extract: Searching for love in all the wrong places
 equation: $\pd{🐀}{t}=D_🐀\vnabla\cdot (\vnabla 🐀-g(🧀)\vnabla🧀),$ $\pd{🧀 }{t}=D_🧀 \nabla^2🧀 -a🐀$
