@@ -1202,7 +1202,7 @@ export function getPreset(id) {
         diffusionStrWW: "0",
         domainScale: 100,
         dt: 0.001,
-        kineticParams: "a = 0.05; b = 0.4;",
+        kineticParams: "a = 0.05 in [0, 0.005, 0.1]; b = 0.5 in [0, 0.1, 1];",
         maxColourValue: 3.5,
         numTimestepsPerFrame: 200,
         preset: "SchnakenbergHopf",
