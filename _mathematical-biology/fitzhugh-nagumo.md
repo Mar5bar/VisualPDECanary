@@ -44,4 +44,4 @@ $$\begin{aligned}\pd{u}{t}&=\nabla^2 u +u-u^3-v,\\ \pd{v}{t}&=D_v\nabla^2v+ \var
 
 * The simulation demonstrates the dynamics of this system in a regime which has both homogeneous limit cycles and pattern formation competing against one another.
 
-* The initial pattern formed in this simulation will eventually be destroyed by the oscillations. You can increase the value of $a_v$ to stabilise the pattern for longer, and if $a_v=0.1$, the pattern will eventually overtake the oscillations and fill the entire domain.
+* The initial pattern formed in this simulation will eventually be destroyed by the oscillations. You can increase the value of $a_v$ to stabilise the pattern for longer, and if $a_v=0.2$, the pattern will eventually overtake the oscillations and fill the entire domain.
