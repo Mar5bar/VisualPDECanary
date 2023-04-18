@@ -603,7 +603,7 @@ input[type=range].styled-slider {
     font-weight:600;
     margin-right:-1px;
     margin-top:-3px;
-    margin-left:3px;
+    margin-left:1px;
   }
 
 #function_button_open_bracket,
