@@ -98,7 +98,8 @@ let isRunning,
   hasDrawn,
   lastBadParam,
   anyDirichletBCs,
-  nudgedUp = false;
+  nudgedUp = false,
+  errorOccurred = false;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
 let parametersFolder,
@@ -277,6 +278,8 @@ canvas = document.getElementById("simCanvas");
 
 // Warn the user if any errors occur.
 console.error = function (error) {
+  // Record the fact that an error has occurred and we need to recompile shaders.
+  errorOccurred = true;
   let errorStr = error.toString();
   console.log(errorStr);
   let regex = /ERROR.*/;
@@ -4250,7 +4253,9 @@ function createParameterController(label, isNextParam) {
         setKineticStringFromParams();
         render();
         // Update the uniforms with this new value.
-        if (setKineticUniformFromString(kineticParamsStrs[label])) {
+        if (setKineticUniformFromString(kineticParamsStrs[label]) || errorOccurred) {
+          // Reset the error flag.
+          errorOccurred = false;
           // If we added a new uniform, we need to remake all the shaders.
           updateShaders();
         }
@@ -4303,7 +4308,9 @@ function createParameterController(label, isNextParam) {
         createParameterController(newLabel, true);
         // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
-        if (setKineticUniformFromString(str)) {
+        if (setKineticUniformFromString(str) || errorOccurred) {
+          // Reset the error flag.
+          errorOccurred = false;
           updateShaders();
         }
       }
