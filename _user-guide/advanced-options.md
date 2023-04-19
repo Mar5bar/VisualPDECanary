@@ -145,14 +145,17 @@ Control the degree of smoothing applied to the simulation output before display.
 **Colour map**\
 Set the current colour map being used to convert **Expression** into a colour value. Use the dropdown to select from the available options. We have tried to cater for everyone in these options but, if you find that no colour map is available that allows you to easily distinguish between values, please let us know at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can add a more appropriate map.
 
+**Flip map**\
+Swap the direction of the current colour map.
+
 **Min/Max value**\
-Set the limits of the colourmap that transforms  **Expression** into colour. If viewing a surface plot, this also impacts the height of the surface. Must be a numerical value.
+Set the limits of the colour map that transforms  **Expression** into colour. If viewing a surface plot, this also impacts the height of the surface. Must be a numerical value.
 
 **Snap range**\
 Click to instantly snap **Min value** and **Max value** to the current minimum and maximum of **Expression** in the domain. If these values are within a small tolerance (0.005), VisualPDE will center the range on the average of the two and fix a width of 0.005.
 
 **Auto snap**\
-Toggle the automatic snapping of the colourmap limits. This can be very useful if you don't know the range in which **Expression** will fall, especially if it is changing frequently.
+Toggle the automatic snapping of the colour map limits. This can be very useful if you don't know the range in which **Expression** will fall, especially if it is changing frequently.
 
 **Colour bar**\
 Toggle the display of the current colour bar and limits.
