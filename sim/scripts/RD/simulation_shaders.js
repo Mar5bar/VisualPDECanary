@@ -184,6 +184,7 @@ export function RDShaderEnforceDirichletTop() {
     uniform sampler2D textureSource;
     uniform float dx;
     uniform float dy;
+    uniform float L;
     uniform float L_x;
     uniform float L_y;
     uniform float t;
@@ -201,6 +202,11 @@ export function RDShaderEnforceDirichletTop() {
     {
         float res = smoothstep(-0.01, 0.01, val - edge);
         return res;
+    }
+
+    float safetanh(float val)
+    {
+        return 1.0 - 2.0/(1.0+exp(2.0*val));
     }
 
     float safepow(float x, float y) {
