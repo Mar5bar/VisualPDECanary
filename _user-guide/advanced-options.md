@@ -145,8 +145,8 @@ Control the degree of smoothing applied to the simulation output before display.
 **Colour map**\
 Set the current colour map being used to convert **Expression** into a colour value. Use the dropdown to select from the available options. We have tried to cater for everyone in these options but, if you find that no colour map is available that allows you to easily distinguish between values, please let us know at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can add a more appropriate map.
 
-**Flip map**\
-Swap the direction of the current colour map.
+**Reverse map**\
+Reverse the direction of the current colour map.
 
 **Min/Max value**\
 Set the limits of the colour map that transforms  **Expression** into colour. If viewing a surface plot, this also impacts the height of the surface. Must be a numerical value.
