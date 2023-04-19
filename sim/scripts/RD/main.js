@@ -4175,6 +4175,7 @@ function createParameterController(label, isNextParam) {
     if (controller.hasOwnProperty("slider")) {
       // Remove any existing sliders.
       controller.slider.remove();
+      delete controller.slider;
       // Remove the parameterSlider class from the controller.
       controller.domElement.closest("li").classList.remove("parameterSlider");
     }
