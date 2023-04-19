@@ -1550,7 +1550,7 @@ function initGUI(startOpen) {
       .name("Colour map");
   }
   if (inGUI("flipColourmap")) {
-    root.add(funsObj, "flipColourmap").name("Flip map");
+    root.add(funsObj, "flipColourmap").name("Reverse map");
   }
   if (inGUI("minColourValue")) {
     minColourValueController = root
