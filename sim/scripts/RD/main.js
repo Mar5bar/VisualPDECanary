@@ -4536,7 +4536,7 @@ function updateColourbarLims() {
     [leftColour, rightColour] = [rightColour, leftColour];
   }
 
-  const threshold = 0.3;
+  const threshold = 0.51;
   if (leftColour < threshold) {
     // If the background colour is closer to black than white, set
     // the label to be white.
