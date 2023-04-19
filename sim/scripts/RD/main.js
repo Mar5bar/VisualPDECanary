@@ -98,7 +98,8 @@ let isRunning,
   hasDrawn,
   lastBadParam,
   anyDirichletBCs,
-  nudgedUp = false;
+  nudgedUp = false,
+  errorOccurred = false;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
 let parametersFolder,
@@ -225,6 +226,12 @@ funsObj = {
     str = 'case "PRESETNAME":\n\toptions = ' + str + ";\nbreak;";
     navigator.clipboard.writeText(str);
   },
+  flipColourmap: function () {
+    options.flippedColourmap = !options.flippedColourmap;
+    updateUniforms();
+    configureColourbar();
+    render();
+  },
   setColourRange: function () {
     // Set the range of the colour axis based on the extremes of the computed values.
     let valRange = getMinMaxVal();
@@ -277,6 +284,8 @@ canvas = document.getElementById("simCanvas");
 
 // Warn the user if any errors occur.
 console.error = function (error) {
+  // Record the fact that an error has occurred and we need to recompile shaders.
+  errorOccurred = true;
   let errorStr = error.toString();
   console.log(errorStr);
   let regex = /ERROR.*/;
@@ -650,6 +659,7 @@ function updateUniforms() {
   uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
+  uniforms.flippedColourmap.value = options.flippedColourmap;
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
@@ -834,6 +844,9 @@ function initUniforms() {
     },
     imageSourceTwo: {
       type: "t",
+    },
+    flippedColourmap: {
+      type: "b",
     },
     L: {
       type: "f",
@@ -1536,6 +1549,9 @@ function initGUI(startOpen) {
       })
       .name("Colour map");
   }
+  if (inGUI("flipColourmap")) {
+    root.add(funsObj, "flipColourmap").name("Flip map");
+  }
   if (inGUI("minColourValue")) {
     minColourValueController = root
       .add(options, "minColourValue")
@@ -1688,7 +1704,7 @@ function animate() {
 
   hasDrawn = isDrawing;
   // Draw on any input from the user, which can happen even if timestepping is not running.
-  if (isDrawing && (options.drawIn3D | (options.plotType != "surface"))) {
+  if (isDrawing && options.drawIn3D | (options.plotType != "surface")) {
     draw();
   }
 
@@ -1857,7 +1873,7 @@ function render() {
     funsObj.setColourRange();
   }
 
-  if (options.drawIn3D && (options.plotType == "surface")) {
+  if (options.drawIn3D && options.plotType == "surface") {
     let val =
       (getMeanVal() - options.minColourValue) /
         (options.maxColourValue - options.minColourValue) -
@@ -1922,7 +1938,7 @@ function render() {
 
 function onDocumentPointerDown(event) {
   isDrawing = setBrushCoords(event, canvas);
-  if (isDrawing && options.drawIn3D && (options.plotType == "surface")) {
+  if (isDrawing && options.drawIn3D && options.plotType == "surface") {
     controls.enabled = false;
   }
 }
@@ -1942,7 +1958,7 @@ function setBrushCoords(event, container) {
   var cRect = container.getBoundingClientRect();
   let x = (event.clientX - cRect.x) / cRect.width;
   let y = 1 - (event.clientY - cRect.y) / cRect.height;
-  if (options.drawIn3D && (options.plotType == "surface")) {
+  if (options.drawIn3D && options.plotType == "surface") {
     // If we're in 3D, we have to project onto the simulation domain.
     // We need x,y between -1 and 1.
     clampedCoords.x = 2 * x - 1;
@@ -1964,7 +1980,7 @@ function setBrushCoords(event, container) {
   x = Math.round(x * nXDisc) / nXDisc;
   y = Math.round(y * nYDisc) / nYDisc;
   uniforms.brushCoords.value = new THREE.Vector2(x, y);
-  return (0 <= x) && (x <= 1) && (0 <= y) && (y <= 1);
+  return 0 <= x && x <= 1 && 0 <= y && y <= 1;
 }
 
 function clearTextures() {
@@ -4100,7 +4116,7 @@ function replaceFunctionInTeX(str, func, withBrackets) {
     // Try to find paired brackets.
     while (
       (ind <= subStr.length) &
-      (!foundBracket | !(foundBracket && (depth == 0)))
+      (!foundBracket | !(foundBracket && depth == 0))
     ) {
       depth += ["(", "["].includes(subStr[ind]);
       depth -= [")", "]"].includes(subStr[ind]);
@@ -4252,7 +4268,12 @@ function createParameterController(label, isNextParam) {
         setKineticStringFromParams();
         render();
         // Update the uniforms with this new value.
-        if (setKineticUniformFromString(kineticParamsStrs[label])) {
+        if (
+          setKineticUniformFromString(kineticParamsStrs[label]) ||
+          errorOccurred
+        ) {
+          // Reset the error flag.
+          errorOccurred = false;
           // If we added a new uniform, we need to remake all the shaders.
           updateShaders();
         }
@@ -4305,7 +4326,9 @@ function createParameterController(label, isNextParam) {
         createParameterController(newLabel, true);
         // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
-        if (setKineticUniformFromString(str)) {
+        if (setKineticUniformFromString(str) || errorOccurred) {
+          // Reset the error flag.
+          errorOccurred = false;
           updateShaders();
         }
       }
@@ -4345,7 +4368,7 @@ function createParameterController(label, isNextParam) {
         if (
           match &&
           controller.hasOwnProperty("lastName") &&
-          (controller.lastName != match[1])
+          controller.lastName != match[1]
         ) {
           delete uniforms[controller.lastName];
           controller.lastName = match[1];
@@ -4429,10 +4452,20 @@ function fadeout(id) {
 function configureColourbar() {
   if (options.colourbar) {
     $("#colourbar").show();
+    let colours = [
+      uniforms.colour1,
+      uniforms.colour2,
+      uniforms.colour3,
+      uniforms.colour4,
+      uniforms.colour5,
+    ];
+    if (options.flippedColourmap) {
+      colours.reverse();
+    }
     let cString = "linear-gradient(90deg, ";
     cString +=
       "rgb(" +
-      uniforms.colour1.value
+      colours[0].value
         .toArray()
         .slice(0, -1)
         .map((x) => x * 255)
@@ -4440,7 +4473,7 @@ function configureColourbar() {
       ") 0%,";
     cString +=
       "rgb(" +
-      uniforms.colour2.value
+      colours[1].value
         .toArray()
         .slice(0, -1)
         .map((x) => x * 255)
@@ -4448,7 +4481,7 @@ function configureColourbar() {
       ") 25%,";
     cString +=
       "rgb(" +
-      uniforms.colour3.value
+      colours[2].value
         .toArray()
         .slice(0, -1)
         .map((x) => x * 255)
@@ -4456,7 +4489,7 @@ function configureColourbar() {
       ") 50%,";
     cString +=
       "rgb(" +
-      uniforms.colour4.value
+      colours[3].value
         .toArray()
         .slice(0, -1)
         .map((x) => x * 255)
@@ -4464,7 +4497,7 @@ function configureColourbar() {
       ") 75%,";
     cString +=
       "rgb(" +
-      uniforms.colour5.value
+      colours[4].value
         .toArray()
         .slice(0, -1)
         .map((x) => x * 255)
@@ -4494,36 +4527,31 @@ function updateColourbarLims() {
     $("#minLabel").html(formatLabelNum(options.minColourValue, 2));
     $("#maxLabel").html(formatLabelNum(options.maxColourValue, 2));
   }
-  if (
-    uniforms.colour1.value
-      .toArray()
-      .slice(0, -1)
-      .reduce((a, b) => a + b, 0) < 0.7
-  ) {
+  // Get the leftmost and rightmost colour values from the map.
+  let leftColour = computeColourBrightness(uniforms.colour1.value);
+  let midColour = computeColourBrightness(uniforms.colour3.value);
+  let rightColour = computeColourBrightness(uniforms.colour5.value);
+  // If we've flipped the map, swap leftColour and rightColour.
+  if (options.flippedColourmap) {
+    [leftColour, rightColour] = [rightColour, leftColour];
+  }
+
+  const threshold = 0.51;
+  if (leftColour < threshold) {
     // If the background colour is closer to black than white, set
     // the label to be white.
     $("#minLabel").css("color", "#fff");
   } else {
     $("#minLabel").css("color", "#000");
   }
-  if (
-    uniforms.colour3.value
-      .toArray()
-      .slice(0, -1)
-      .reduce((a, b) => a + b, 0) < 0.7
-  ) {
+  if (midColour < threshold) {
     // If the background colour is closer to black than white, set
     // the label to be white.
     $("#midLabel").css("color", "#fff");
   } else {
     $("#midLabel").css("color", "#000");
   }
-  if (
-    uniforms.colour5.value
-      .toArray()
-      .slice(0, -1)
-      .reduce((a, b) => a + b, 0) < 0.7
-  ) {
+  if (rightColour < threshold) {
     // If the background colour is closer to black than white, set
     // the label to be white.
     $("#maxLabel").css("color", "#fff");
@@ -4628,7 +4656,7 @@ function fillBuffer() {
 
 function checkColourbarPosition() {
   // If there's a potential overlap of the data display and the colourbar, move the former up.
-  if (options.colourbar && (options.integrate | options.timeDisplay)) {
+  if (options.colourbar && options.integrate | options.timeDisplay) {
     let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
     let bottomElm;
     options.integrate
@@ -4764,11 +4792,11 @@ function configurePlotType() {
 
 function configureDimension() {
   // Configure the dimension of the equations.
-  if ((options.dimension != 1) && (options.plotType == "line")) {
+  if (options.dimension != 1 && options.plotType == "line") {
     options.plotType = "plane";
     configurePlotType();
   }
-  if ((options.dimension == 1) && (options.plotType != "line")) {
+  if (options.dimension == 1 && options.plotType != "line") {
     options.plotType = "line";
     configurePlotType();
   }
@@ -4900,4 +4928,13 @@ function resizeEquationDisplay() {
     el.css("font-size", fz);
     count += 1;
   }
+}
+
+function computeColourBrightness(col) {
+  return (
+    col
+      .toArray()
+      .slice(0, -1)
+      .reduce((a, b) => a + b, 0) / 3
+  );
 }

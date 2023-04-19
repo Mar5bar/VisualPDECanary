@@ -1505,6 +1505,7 @@ export function getPreset(id) {
         drawIn3D: false,
         dt: 0.1,
         fixRandSeed: false,
+        flippedColourmap: false,
         forceManualInterpolation: false,
         forceTryClickingPopup: false,
         imagePathOne: "./images/Sofya.png",
