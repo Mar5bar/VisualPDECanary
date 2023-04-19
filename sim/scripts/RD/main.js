@@ -4174,18 +4174,20 @@ function createParameterController(label, isNextParam) {
 
   // Define a function that we can use to concisely add in a slider depending on the string.
   function createSlider() {
+    // Remove any existing sliders.
+    if (controller.hasOwnProperty("slider")) {
+      // Remove any existing sliders.
+      controller.slider.remove();
+      delete controller.slider;
+      // Remove the parameterSlider class from the controller.
+      controller.domElement.closest("li").classList.remove("parameterSlider");
+    }
     // If the string is of the form "name = val in [a,b]", create a slider underneath this controller with
     // limits a,b.
     let regex =
       /\s*(\w+)\s*=\s*(\S*)\s*in\s*[\[\(]([0-9\.\-]+)\s*,\s*(?:([0-9\.]*)\s*,)?\s*([0-9\.\-]+)[\]\)]/;
     let match = kineticParamsStrs[label].match(regex);
     if (match) {
-      if (controller.hasOwnProperty("slider")) {
-        // Remove any existing sliders.
-        controller.slider.remove();
-        // Remove the parameterSlider class from the controller.
-        controller.domElement.closest("li").classList.remove("parameterSlider");
-      }
       // Add a CSS class highlighting that this controller now contains a slider too.
       controller.domElement.parentElement.parentElement.classList.add(
         "parameterSlider"
@@ -4735,6 +4737,7 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
   let trimmed = input.replace(/\s+/g, "  ").trim();
   if (trimmed == "0" || trimmed == "0.0") return str.replaceAll(regex, "");
   if (trimmed == "1" || trimmed == "1.0") return str.replaceAll(regex, "$2");
+  if (trimmed == "-1" || trimmed == "-1.0") return str.replaceAll(regex, "-$2");
   // If the input contains letters (like parameters), insert it with delimiters.
   if (input.match(/[a-zA-Z]/)) {
     if (input.match(/[\+-]/) && delimiters != undefined) {
