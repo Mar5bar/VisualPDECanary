@@ -4036,9 +4036,9 @@ function setEquationDisplayType() {
 
     // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
     if (options.dimension == 1) {
-      str = str.replaceAll(/\\vnabla\s*\\cdot/g,"\\textstyle \\pd{}{x}");
-      str = str.replaceAll(/\\vnabla\s*([uvwq])/g,"\\textstyle \\pd{$1}{x}");
-      str = str.replaceAll(/\\lap\s*([uvwq])/g,"\\textstyle \\pdd{$1}{x}");
+      str = str.replaceAll(/\\vnabla\s*\\cdot/g, "\\textstyle \\pd{}{x}");
+      str = str.replaceAll(/\\vnabla\s*([uvwq])/g, "\\textstyle \\pd{$1}{x}");
+      str = str.replaceAll(/\\lap\s*([uvwq])/g, "\\textstyle \\pdd{$1}{x}");
     }
 
     str = parseStringToTEX(str);
@@ -4465,51 +4465,22 @@ function configureColourbar() {
       uniforms.colour3,
       uniforms.colour4,
       uniforms.colour5,
-    ];
+    ].map((x) =>
+      x.value
+        .toArray()
+        .slice(0, -1)
+        .map((x) => x * 255)
+        .toString()
+    );
     if (options.flippedColourmap) {
       colours.reverse();
     }
     let cString = "linear-gradient(90deg, ";
-    cString +=
-      "rgb(" +
-      colours[0].value
-        .toArray()
-        .slice(0, -1)
-        .map((x) => x * 255)
-        .toString() +
-      ") 0%,";
-    cString +=
-      "rgb(" +
-      colours[1].value
-        .toArray()
-        .slice(0, -1)
-        .map((x) => x * 255)
-        .toString() +
-      ") 25%,";
-    cString +=
-      "rgb(" +
-      colours[2].value
-        .toArray()
-        .slice(0, -1)
-        .map((x) => x * 255)
-        .toString() +
-      ") 50%,";
-    cString +=
-      "rgb(" +
-      colours[3].value
-        .toArray()
-        .slice(0, -1)
-        .map((x) => x * 255)
-        .toString() +
-      ") 75%,";
-    cString +=
-      "rgb(" +
-      colours[4].value
-        .toArray()
-        .slice(0, -1)
-        .map((x) => x * 255)
-        .toString() +
-      ") 100%";
+    cString += "rgb(" + colours[0] + ") 0%,";
+    cString += "rgb(" + colours[1] + ") 25%,";
+    cString += "rgb(" + colours[2] + ") 50%,";
+    cString += "rgb(" + colours[3] + ") 75%,";
+    cString += "rgb(" + colours[4] + ") 100%";
     cString += ")";
     $("#colourbar").css("background", cString);
     if (options.whatToPlot == "MAX") {
