@@ -4034,6 +4034,13 @@ function setEquationDisplayType() {
       }
     });
 
+    // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
+    if (options.dimension == 1) {
+      str = str.replaceAll(/\\vnabla\s*\\cdot/g,"\\textstyle \\pd{}{x}");
+      str = str.replaceAll(/\\vnabla\s*([uvwq])/g,"\\textstyle \\pd{$1}{x}");
+      str = str.replaceAll(/\\lap\s*([uvwq])/g,"\\textstyle \\pdd{$1}{x}");
+    }
+
     str = parseStringToTEX(str);
   }
   $("#typeset_equation").html(str);
@@ -4802,6 +4809,7 @@ function configureDimension() {
   }
   resize();
   setRDEquations();
+  setEquationDisplayType();
   configureGUI();
   configureIntegralDisplay();
 }
