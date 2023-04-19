@@ -4627,7 +4627,20 @@ function checkForNaN() {
 
 function fillBuffer() {
   if (!bufferFilled) {
-    renderer.readRenderTargetPixels(postTexture, 0, 0, nXDisc, nYDisc, buffer);
+    try {
+      renderer.readRenderTargetPixels(
+        postTexture,
+        0,
+        0,
+        nXDisc,
+        nYDisc,
+        buffer
+      );
+    } catch {
+      alert(
+        "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!"
+      );
+    }
     bufferFilled = true;
   }
 }
