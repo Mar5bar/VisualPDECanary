@@ -4242,17 +4242,25 @@ function createParameterController(label, isNextParam) {
         } else {
           // Otherwise, choose a step that either matches the max precision of the inputs, or
           // splits the interval into 20, whichever is more precise.
-          controller.slider.precision = Math.max(
-            parseFloat(match[2]).countDecimals(),
-            parseFloat(match[3]).countDecimals(),
-            parseFloat(match[5]).countDecimals()
-          ) + 1;
+          controller.slider.precision =
+            Math.max(
+              parseFloat(match[2]).countDecimals(),
+              parseFloat(match[3]).countDecimals(),
+              parseFloat(match[5]).countDecimals()
+            ) + 1;
           step = Math.min(
             (parseFloat(match[5]) - parseFloat(match[3])) / 20,
             10 ** -controller.slider.precision
           );
         }
       } else {
+        controller.slider.precision =
+            Math.max(
+              parseFloat(match[2]).countDecimals(),
+              parseFloat(match[3]).countDecimals(),
+              parseFloat(match[4]).countDecimals(),
+              parseFloat(match[5]).countDecimals()
+            ) + 1;
         step = match[4];
         match[4] += ", ";
       }
@@ -4264,19 +4272,15 @@ function createParameterController(label, isNextParam) {
       // Use the input event of the slider to update the controller and the simulation.
       controller.slider.addEventListener("input", function () {
         controller.slider.style.setProperty("--value", controller.slider.value);
+        let valueRegex = /\s*(\w+)\s*=\s*(\S*)\s*/g;
         kineticParamsStrs[label] = kineticParamsStrs[label].replace(
-          regex,
+          valueRegex,
           match[1] +
             " = " +
             parseFloat(controller.slider.value)
               .toFixed(controller.slider.precision)
               .toString() +
-            " in [" +
-            match[3] +
-            ", " +
-            match[4] +
-            match[5] +
-            "]"
+            " "
         );
         refreshGUI(parametersFolder);
         setKineticStringFromParams();
