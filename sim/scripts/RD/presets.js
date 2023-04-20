@@ -1397,8 +1397,8 @@ export function getPreset(id) {
       options = {
         algebraicV: true,
         autoSetColourRange: true,
-        boundaryConditionsU: "neumann",
-        boundaryConditionsV: "neumann",
+        boundaryConditionsU: "periodic",
+        boundaryConditionsV: "periodic",
         clearValueU: "0",
         crossDiffusion: true,
         diffusionStrUU: "0",
@@ -1426,8 +1426,8 @@ export function getPreset(id) {
       options = {
         algebraicV: true,
         autoSetColourRange: true,
-        boundaryConditionsU: "neumann",
-        boundaryConditionsV: "neumann",
+        boundaryConditionsU: "periodic",
+        boundaryConditionsV: "periodic",
         brushRadius: 1,
         clearValueU:
           "(cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)",
