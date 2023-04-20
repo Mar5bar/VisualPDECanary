@@ -56,6 +56,9 @@ export function RDShaderTop() {
         vec4 uvwqT = texture2D(textureSource, textureCoords + vec2(0.0, +step_y));
         vec4 uvwqB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y));
 
+        vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
+        vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
+
         vec4 Svec = texture2D(imageSourceOne, textureCoords);
         float S = (Svec.x + Svec.y + Svec.z) / 3.0;
         float SR = Svec.r;

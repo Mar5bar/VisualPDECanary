@@ -2202,10 +2202,18 @@ function parseShaderString(str) {
   });
 
   // Replace u, v, w, and q with uvwq.r, uvwq.g, uvwq.b, and uwvq.a via placeholders.
-  str = str.replace(/\bu\b/g, "uvwq." + speciesToChannelChar("u"));
-  str = str.replace(/\bv\b/g, "uvwq." + speciesToChannelChar("v"));
-  str = str.replace(/\bw\b/g, "uvwq." + speciesToChannelChar("w"));
-  str = str.replace(/\bq\b/g, "uvwq." + speciesToChannelChar("q"));
+  // str = str.replace(/\bu\b/g, "uvwq." + speciesToChannelChar("u"));
+  // str = str.replace(/\bv\b/g, "uvwq." + speciesToChannelChar("v"));
+  // str = str.replace(/\bw\b/g, "uvwq." + speciesToChannelChar("w"));
+  // str = str.replace(/\bq\b/g, "uvwq." + speciesToChannelChar("q"));
+  str = str.replaceAll(/\b([uvwq])\b/g, function (m, d) {
+    return "uvwq." + speciesToChannelChar(d);
+  });
+  
+  // Replace u_x, u_y etc with uvwqX.r and uvwqY.r, etc.
+  str = str.replaceAll(/\b([uvwq])_([xy])\b/g, function (m, d1, d2) {
+    return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
+  });
 
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
   str = replaceDigitsWithWords(str);
