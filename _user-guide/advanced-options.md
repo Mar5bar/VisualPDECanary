@@ -62,7 +62,7 @@ Initial conditions can be specified for any species in the simulation. They can 
 
 
 ### Brush <a id='brush'>
-VisualPDE allows you to interact directly with simulations via a brush by simply clicking/pressing on the domain. The brush paints values onto the discrete representation of the domain in a way that can be customised.
+VisualPDE allows you to interact directly with simulations via a brush by simply clicking/pressing on the domain. The brush paints values onto the discrete representation of the domain, which act like initial conditions for the rest of the simulation.
 
 **Type**\
 Change the shape of the brush, choosing between **Disk**, **Horizontal line** and **Vertical line**.
