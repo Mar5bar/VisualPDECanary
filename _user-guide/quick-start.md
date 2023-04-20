@@ -6,6 +6,11 @@ thumbnail: /assets/images/start.png
 extract: Two-minute top tips
 ---
 
+VisualPDE is a web-based set of tools for solving partial differential equations (PDEs) via an interactive, easy-to-use simulation. To get started, try playing with some of the examples in [Basic PDEs](/basic-pdes), or read on for some quick tips for using the solver.
+
+### Interacting with the simulation <a id='interacting'>
+Clicking/pressing on the simulation draws values right onto the domain. You can customise exactly what this does under <span class='click_sequence'>{{ layout.settings }} → **Brush** </span> For example, the default settings in the [heat equation example](/basic-pdes/heat-equation) allow you to paint 'heat' of value 1 onto the domain, which acts like an initial condition for the rest of the simulation.
+
 ### The equations panel <a id='equations-panel'>
 Pressing {{ layout.equations }} opens up the **equations panel**.
 
@@ -71,3 +76,5 @@ where $D_{uu}, \dots,  D_{qq}$ and $f$, $g$, $h$ and $j$ are functions of $u$, $
 * In systems of multiple unknowns, you can include terms representing cross-diffusion (e.g. $D_{uv}$, $D_{vu}$) by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Cross**</span>
 * In systems of multiple unknowns, you can choose between a differential or algebraic equation for some of the species (e.g. '$\partial w/\partial t=$' or '$w=$') by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Algebraic w** (or **v** or **q**)</span>
 
+### More VisualPDE
+For a comprehensive list of all the options that you can set in VisualPDE, check out the [Advanced documentation](/user-guide/advanced-options), or discover what VisualPDE can solve in our brief [summary](/user-guide/what-can-visualpde-solve).
