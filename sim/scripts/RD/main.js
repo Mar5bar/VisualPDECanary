@@ -2202,14 +2202,10 @@ function parseShaderString(str) {
   });
 
   // Replace u, v, w, and q with uvwq.r, uvwq.g, uvwq.b, and uwvq.a via placeholders.
-  // str = str.replace(/\bu\b/g, "uvwq." + speciesToChannelChar("u"));
-  // str = str.replace(/\bv\b/g, "uvwq." + speciesToChannelChar("v"));
-  // str = str.replace(/\bw\b/g, "uvwq." + speciesToChannelChar("w"));
-  // str = str.replace(/\bq\b/g, "uvwq." + speciesToChannelChar("q"));
   str = str.replaceAll(/\b([uvwq])\b/g, function (m, d) {
     return "uvwq." + speciesToChannelChar(d);
   });
-  
+
   // Replace u_x, u_y etc with uvwqX.r and uvwqY.r, etc.
   str = str.replaceAll(/\b([uvwq])_([xy])\b/g, function (m, d1, d2) {
     return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
@@ -4041,6 +4037,9 @@ function setEquationDisplayType() {
         return match;
       }
     });
+
+    // Replace u_x, u_y etc with \pd{u}{x} etc.
+    str = str.replaceAll(/\b([uvwq])_([xy])\b/g, "\\textstyle \\pd{$1}{$2}");
 
     // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
     if (options.dimension == 1) {
