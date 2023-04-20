@@ -1,7 +1,7 @@
 export function equationTEXFun() {
   let out = [];
   out[0] = `$\\begin{aligned}
-    \\pd{u}{t} &= \\vnabla \\cdot(D \\vnabla u) + f
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D \\vnabla u) + f
     \\end{aligned}$`;
   out[1] = `$\\begin{aligned}
     \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_u \\vnabla u) + f\\\\
