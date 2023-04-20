@@ -2421,6 +2421,16 @@ function setRDEquations() {
     updateShader += selectSpeciesInShaderStr(RDShaderAlgebraicQ(), "q");
   }
 
+  // Iff the user has entered u_x, u_y etc in a diffusion coefficient, it will be present in
+  // the update shader as uvwxy[XY].[rgba]. If they've done this, warn them and don't update the shader.
+  let match = updateShader.match(/\buvwq[XY]\.[rgba]\b/);
+  if (match) {
+    alert(
+      "Including derivatives in the diffusion coefficients is not supported. Try casting your PDE in another form."
+    );
+    return;
+  }
+
   simMaterial.fragmentShader = [
     kineticStr,
     RDShaderTop(),
@@ -4255,12 +4265,12 @@ function createParameterController(label, isNextParam) {
         }
       } else {
         controller.slider.precision =
-            Math.max(
-              parseFloat(match[2]).countDecimals(),
-              parseFloat(match[3]).countDecimals(),
-              parseFloat(match[4]).countDecimals(),
-              parseFloat(match[5]).countDecimals()
-            ) + 1;
+          Math.max(
+            parseFloat(match[2]).countDecimals(),
+            parseFloat(match[3]).countDecimals(),
+            parseFloat(match[4]).countDecimals(),
+            parseFloat(match[5]).countDecimals()
+          ) + 1;
         step = match[4];
         match[4] += ", ";
       }
