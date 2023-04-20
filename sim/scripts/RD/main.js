@@ -4921,7 +4921,7 @@ function resizeEquationDisplay() {
     (count < 20) &
     ($("#equation_display")[0].getBoundingClientRect().right >=
       window.innerWidth - 50) &
-    ($("#equation_display")[0].getBoundingClientRect().right >
+    ($("#equation_display")[0].getBoundingClientRect().width >
       parseFloat($("#equation_display_box").css("min-width")))
   ) {
     fz = (parseFloat(el.css("font-size")) * 0.9).toString() + "px";
