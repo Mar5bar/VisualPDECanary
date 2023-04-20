@@ -4240,11 +4240,14 @@ function createParameterController(label, isNextParam) {
         } else {
           // Otherwise, choose a step that either matches the max precision of the inputs, or
           // splits the interval into 20, whichever is more precise.
+          controller.slider.precision = Math.max(
+            parseFloat(match[2]).countDecimals(),
+            parseFloat(match[3]).countDecimals(),
+            parseFloat(match[5]).countDecimals()
+          ) + 1;
           step = Math.min(
             (parseFloat(match[5]) - parseFloat(match[3])) / 20,
-            10 ** -parseFloat(match[2]).countDecimals(),
-            10 ** -parseFloat(match[3]).countDecimals(),
-            10 ** -parseFloat(match[5]).countDecimals()
+            10 ** -controller.slider.precision
           );
         }
       } else {
@@ -4264,12 +4267,7 @@ function createParameterController(label, isNextParam) {
           match[1] +
             " = " +
             parseFloat(controller.slider.value)
-              .toFixed(
-                Math.max(
-                  parseFloat(match[2]).countDecimals(),
-                  parseFloat(step).countDecimals()
-                )
-              )
+              .toFixed(controller.slider.precision)
               .toString() +
             " in [" +
             match[3] +
