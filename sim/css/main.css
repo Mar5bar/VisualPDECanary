@@ -69,6 +69,7 @@ canvas {
     top: 0px;
     right: 40px;
     direction: rtl;
+    max-height: 90dvh;
 }
 
 #leftGUI {
