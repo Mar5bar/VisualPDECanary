@@ -4907,6 +4907,13 @@ function resizeEquationDisplay() {
     el.css("font-size", fz);
     count += 1;
   }
+  // Set the left gui max height based on the height of the equation container.
+  $("#leftGUI").css(
+    "max-height",
+    "calc(90dvh - " +
+      $("#equation_display")[0].getBoundingClientRect().bottom +
+      "px)"
+  );
 }
 
 function computeColourBrightness(col) {
