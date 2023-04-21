@@ -368,10 +368,12 @@ if (
 /* GUI settings and equations buttons */
 $("#settings").click(function () {
   $("#rightGUI").toggle();
+  $("#right_ui_arrow").toggle();
 });
 $("#equations").click(function () {
   $("#left_ui").toggle();
   resizeEquationDisplay();
+  $("#left_ui_arrow").toggle();
 });
 $("#pause").click(function () {
   pauseSim();

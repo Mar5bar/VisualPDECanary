@@ -668,7 +668,9 @@ input[type=range].styled-slider {
     border-radius: 6px;
     box-shadow: 0 5px 10px #1113;
 }
-#share_panel_arrow, #share_panel_arrow::after{
+#share_panel_arrow, #share_panel_arrow::after,
+#right_ui_arrow, #right_ui_arrow::after,
+#left_ui_arrow, #left_ui_arrow::after{
     position:absolute;
     border-color: transparent;
     border-style: solid;
@@ -716,4 +718,37 @@ input[type=range].styled-slider {
 }
 #share_panel .button:hover .share-icon{
     background-color:#1756a930;
+}
+
+#right_ui_arrow {
+    display: none;
+    right: 48px;
+    top: 10px;
+    border-width: 14px 0px 14px 14px;
+    border-left-color: #000;
+}
+
+#right_ui_arrow::after {
+    border-width: 14px 0px 14px 14px;
+    border-left-color: #ccc;
+    top: -14px;
+    right: -1px;
+    content: "";
+    z-index: -1;
+}
+#left_ui_arrow {
+    display: none;
+    left: 48px;
+    top: 10px;
+    border-width: 14px 14px 14px 0px;
+    border-right-color: #000;
+}
+
+#left_ui_arrow::after {
+    border-width: 14px 14px 14px 0px;
+    border-right-color: #ccc;
+    top: -14px;
+    left: -1px;
+    content: "";
+    z-index: -1;
 }
