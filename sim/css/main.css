@@ -53,6 +53,7 @@ canvas {
 
 .dg ul {
     direction: ltr;
+    overflow: hidden;
 }
 
 .dg {
