@@ -99,7 +99,8 @@ let isRunning,
   lastBadParam,
   anyDirichletBCs,
   nudgedUp = false,
-  errorOccurred = false;
+  errorOccurred = false,
+  NaNTimer;
 let inTex, outTex;
 let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
 let parametersFolder,
@@ -2013,6 +2014,7 @@ function resetSim() {
   uniforms.t.value = 0.0;
   updateTimeDisplay();
   // Start a timer that checks for NaNs every second.
+  window.clearTimeout(NaNTimer);
   checkForNaN();
 }
 
@@ -2912,7 +2914,7 @@ function createImageControllers() {
     .name("$T(x,y)$")
     .onChange(loadImageSourceTwo);
   if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise().then(resizeEquationDisplay);
+    MathJax.typesetPromise();
   }
   if (inGUI("imageOne")) {
     showGUIController(imControllerOne);
@@ -4645,7 +4647,7 @@ function checkForNaN() {
     fadein("#oops_hit_nan");
     $("#erase").one("click", () => fadeout("#oops_hit_nan"));
   } else {
-    setTimeout(checkForNaN, 1000);
+    NaNTimer = setTimeout(checkForNaN, 1000);
   }
 }
 
