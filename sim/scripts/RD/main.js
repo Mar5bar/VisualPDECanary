@@ -4652,22 +4652,22 @@ function checkForNaN() {
 function fillBuffer() {
   if (!bufferFilled) {
     try {
-       renderer.readRenderTargetPixels(
-         postTexture,
-         0,
-         0,
-         nXDisc,
-         nYDisc,
-         buffer
-       );
-     } catch {
-       alert(
-         "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!"
-       );
-     }
-     bufferFilled = true;
-   }
- }
+      renderer.readRenderTargetPixels(
+        postTexture,
+        0,
+        0,
+        nXDisc,
+        nYDisc,
+        buffer
+      );
+    } catch {
+      alert(
+        "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!"
+      );
+    }
+    bufferFilled = true;
+  }
+}
 
 function checkColourbarPosition() {
   // If there's a potential overlap of the data display and the colourbar, move the former up.
@@ -4933,12 +4933,13 @@ function resizeEquationDisplay() {
   var fz;
   el.css("font-size", "");
   var count = 0;
+  if ($("#leftGUI")[0] == undefined) return;
   while (
     (count < 20) &
     ($("#equation_display")[0].getBoundingClientRect().right >=
-      window.innerWidth - 50) &
-    ($("#equation_display_box")[0].getBoundingClientRect().width >
-      parseFloat($("#equation_display_box").css("min-width")) + 1)
+      window.innerWidth - 65) &
+    ($("#equation_display")[0].getBoundingClientRect().width >
+      $("#leftGUI")[0].getBoundingClientRect().width)
   ) {
     fz = (parseFloat(el.css("font-size")) * 0.9).toString() + "px";
     el.css("font-size", fz);

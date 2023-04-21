@@ -110,7 +110,6 @@ canvas {
     background-color: #ededed;
     color: black;
     height: fit-content;
-    min-width: 238px;
     border-radius: 2px;
     padding-right:5px;
     padding-left:2px;
