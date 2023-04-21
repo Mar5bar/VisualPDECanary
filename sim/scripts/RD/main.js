@@ -2658,11 +2658,14 @@ function loadOptions(preset) {
   options.brushRadius = options.brushRadius.toString();
 }
 
-function refreshGUI(folder) {
+function refreshGUI(folder, typeset) {
+  if (typeset == undefined) {
+    typeset = true;
+  }
   if (folder != undefined) {
     // Traverse through all the subfolders and recurse.
     for (let subfolderName in folder.__folders) {
-      refreshGUI(folder.__folders[subfolderName]);
+      refreshGUI(folder.__folders[subfolderName], false);
     }
     // Update all the controllers at this level.
     for (let i = 0; i < folder.__controllers.length; i++) {
@@ -2672,8 +2675,8 @@ function refreshGUI(folder) {
   // Run MathJax to texify the parameter names (e.g. D_uu) which appear dynamically.
   // No need to do this on page load (and indeed will throw an error) so check
   // MathJax is defined first.
-  if (MathJax.typesetPromise != undefined) {
-    MathJax.typesetPromise().then(resizeEquationDisplay);
+  if (typeset && MathJax.typesetPromise != undefined) {
+    MathJax.typesetPromise();
   }
 }
 
