@@ -386,12 +386,20 @@ $("#warning_restart").click(function () {
   $("#oops_hit_nan").hide();
   resetSim();
 });
+$("#share").click(function() {
+  $("#share_panel").toggle();
+  $("#share_panel_arrow").toggle();
+})
 $("#screenshot").click(function () {
   takeAScreenshot = true;
   render();
+  $("#share_panel").toggle();
+  $("#share_panel_arrow").toggle();  
 });
 $("#link").click(function () {
   funsObj.copyConfigAsURL();
+  $("#share_panel").toggle();
+  $("#share_panel_arrow").toggle();
 });
 
 // Begin the simulation.
