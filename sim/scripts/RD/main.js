@@ -3898,125 +3898,125 @@ function setEquationDisplayType() {
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_u) (\\vnabla u)/g,
+      /\b(D_{u}) (\\vnabla u)/g,
       options.diffusionStrUU,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{uu}) (\\vnabla u)/g,
+      /\b(D_{u u}) (\\vnabla u)/g,
       options.diffusionStrUU,
       "[]"
     );
 
     str = replaceUserDefDiff(
       str,
-      /\b(D_v) (\\vnabla v)/g,
+      /\b(D_{v}) (\\vnabla v)/g,
       options.diffusionStrVV,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{vv}) (\\vnabla v)/g,
+      /\b(D_{v v}) (\\vnabla v)/g,
       options.diffusionStrVV,
       "[]"
     );
 
     str = replaceUserDefDiff(
       str,
-      /\b(D_w) (\\vnabla w)/g,
+      /\b(D_{w}) (\\vnabla w)/g,
       options.diffusionStrWW,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{ww}) (\\vnabla w)/g,
+      /\b(D_{w w}) (\\vnabla w)/g,
       options.diffusionStrWW,
       "[]"
     );
 
     str = replaceUserDefDiff(
       str,
-      /\b(D_q) (\\vnabla q)/g,
+      /\b(D_{q}) (\\vnabla q)/g,
       options.diffusionStrQQ,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{qq}) (\\vnabla q)/g,
+      /\b(D_{q q}) (\\vnabla q)/g,
       options.diffusionStrQQ,
       "[]"
     );
 
     str = replaceUserDefDiff(
       str,
-      /\b(D_{uv}) (\\vnabla v)/g,
+      /\b(D_{u v}) (\\vnabla v)/g,
       options.diffusionStrUV,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{uw}) (\\vnabla w)/g,
+      /\b(D_{u w}) (\\vnabla w)/g,
       options.diffusionStrUW,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{uq}) (\\vnabla q)/g,
+      /\b(D_{u q}) (\\vnabla q)/g,
       options.diffusionStrUQ,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{vu}) (\\vnabla u)/g,
+      /\b(D_{v u}) (\\vnabla u)/g,
       options.diffusionStrVU,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{vw}) (\\vnabla w)/g,
+      /\b(D_{v w}) (\\vnabla w)/g,
       options.diffusionStrVW,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{vq}) (\\vnabla q)/g,
+      /\b(D_{v q}) (\\vnabla q)/g,
       options.diffusionStrVQ,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{wu}) (\\vnabla u)/g,
+      /\b(D_{w u}) (\\vnabla u)/g,
       options.diffusionStrWU,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{wv}) (\\vnabla v)/g,
+      /\b(D_{w v}) (\\vnabla v)/g,
       options.diffusionStrWV,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{wq}) (\\vnabla q)/g,
+      /\b(D_{w q}) (\\vnabla q)/g,
       options.diffusionStrWQ,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{qu}) (\\vnabla u)/g,
+      /\b(D_{q u}) (\\vnabla u)/g,
       options.diffusionStrQU,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{qv}) (\\vnabla v)/g,
+      /\b(D_{q v}) (\\vnabla v)/g,
       options.diffusionStrQV,
       "[]"
     );
     str = replaceUserDefDiff(
       str,
-      /\b(D_{qw}) (\\vnabla w)/g,
+      /\b(D_{q w}) (\\vnabla w)/g,
       options.diffusionStrQW,
       "[]"
     );
