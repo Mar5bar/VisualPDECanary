@@ -54,7 +54,10 @@ canvas {
 
 .dg ul {
     direction: ltr;
-    overflow: hidden;
+}
+
+.dg li.title {
+    overflow-x: auto;
 }
 
 .dg {
@@ -129,7 +132,7 @@ canvas {
     padding: 5px;
     background-color: black;
     resize: horizontal;
-    overflow-x: auto;
+    overflow-y: auto
 }
 
 #leftGUI{
