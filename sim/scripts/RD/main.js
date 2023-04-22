@@ -190,12 +190,14 @@ import {
   equationTEXFun,
   getDefaultTeXLabelsDiffusion,
   getDefaultTeXLabelsReaction,
+  getDefaultTeXLabelsBCsICs,
   substituteGreek,
 } from "./TEX.js";
 let equationTEX = equationTEXFun();
 let TeXStrings = {
   ...getDefaultTeXLabelsDiffusion(),
   ...getDefaultTeXLabelsReaction(),
+  ...getDefaultTeXLabelsBCsICs(),
 };
 let listOfSpecies = defaultSpecies;
 let listOfReactions = defaultReactions;
@@ -1129,8 +1131,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrUU")) {
     DuuController = root
       .add(options, "diffusionStrUU")
-      .name("$D_{" + listOfSpecies[0] + " " + listOfSpecies[0] + "}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1139,8 +1139,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrUV")) {
     DuvController = root
       .add(options, "diffusionStrUV")
-      .name("$D_{uv}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1149,8 +1147,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrUW")) {
     DuwController = root
       .add(options, "diffusionStrUW")
-      .name("$D_{uw}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1159,8 +1155,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrUQ")) {
     DuqController = root
       .add(options, "diffusionStrUQ")
-      .name("$D_{uq}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1169,8 +1163,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrVU")) {
     DvuController = root
       .add(options, "diffusionStrVU")
-      .name("$D_{vu}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1179,8 +1171,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrVV")) {
     DvvController = root
       .add(options, "diffusionStrVV")
-      .name("$D_{vv}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1189,8 +1179,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrVW")) {
     DvwController = root
       .add(options, "diffusionStrVW")
-      .name("$D_{vw}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1199,8 +1187,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrVQ")) {
     DvqController = root
       .add(options, "diffusionStrVQ")
-      .name("$D_{vq}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1209,7 +1195,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrWU")) {
     DwuController = root
       .add(options, "diffusionStrWU")
-      .name("$D_{wu}$")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1218,8 +1203,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrWV")) {
     DwvController = root
       .add(options, "diffusionStrWV")
-      .name("$D_{wv}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1228,8 +1211,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrWW")) {
     DwwController = root
       .add(options, "diffusionStrWW")
-      .name("$D_{ww}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1238,8 +1219,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrWQ")) {
     DwqController = root
       .add(options, "diffusionStrWQ")
-      .name("$D_{wq}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1248,7 +1227,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrQU")) {
     DquController = root
       .add(options, "diffusionStrQU")
-      .name("$D_{qu}$")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1257,8 +1235,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrQV")) {
     DqvController = root
       .add(options, "diffusionStrQV")
-      .name("$D_{qv}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1267,8 +1243,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrQW")) {
     DqwController = root
       .add(options, "diffusionStrQW")
-      .name("$D_{qw}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1277,8 +1251,6 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrQQ")) {
     DqqController = root
       .add(options, "diffusionStrQQ")
-      .name("$D_{qq}$")
-      .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
         setEquationDisplayType();
@@ -1286,44 +1258,28 @@ function initGUI(startOpen) {
   }
   if (inGUI("reactionStrU")) {
     // Custom f(u,v) and g(u,v).
-    fController = root
-      .add(options, "reactionStrU")
-      .name("$" + listOfReactions[0] + "$")
-      .title("function of u, v, w, q, t")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
+    fController = root.add(options, "reactionStrU").onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
   }
   if (inGUI("reactionStrV")) {
-    gController = root
-      .add(options, "reactionStrV")
-      .name("$" + listOfReactions[1] + "$")
-      .title("function of u, v, w, q, t")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
+    gController = root.add(options, "reactionStrV").onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
   }
   if (inGUI("reactionStrW")) {
-    hController = root
-      .add(options, "reactionStrW")
-      .name("$h$")
-      .title("function of u, v, w, q, t")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
+    hController = root.add(options, "reactionStrW").onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
   }
   if (inGUI("reactionStrQ")) {
-    jController = root
-      .add(options, "reactionStrQ")
-      .name("$j$")
-      .title("function of u, v, w, q, t")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
+    jController = root.add(options, "reactionStrQ").onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
   }
   parametersFolder = leftGUI.addFolder("Parameters");
   setParamsFromKineticString();
@@ -1342,7 +1298,6 @@ function initGUI(startOpen) {
         Neumann: "neumann",
         Robin: "robin",
       })
-      .name("$u$")
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
@@ -1351,19 +1306,16 @@ function initGUI(startOpen) {
   if (inGUI("dirichletU")) {
     dirichletUController = root
       .add(options, "dirichletStrU")
-      .name("$\\left.u\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrU")) {
     neumannUController = root
       .add(options, "neumannStrU")
-      .name("$\\left.\\pd{u}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrU")) {
     robinUController = root
       .add(options, "robinStrU")
-      .name("$\\left.\\pd{u}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("boundaryConditionsV")) {
@@ -1374,7 +1326,6 @@ function initGUI(startOpen) {
         Neumann: "neumann",
         Robin: "robin",
       })
-      .name("$v$")
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
@@ -1383,19 +1334,16 @@ function initGUI(startOpen) {
   if (inGUI("dirichletV")) {
     dirichletVController = root
       .add(options, "dirichletStrV")
-      .name("$\\left.v\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrV")) {
     neumannVController = root
       .add(options, "neumannStrV")
-      .name("$\\left.\\pd{v}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrV")) {
     robinVController = root
       .add(options, "robinStrV")
-      .name("$\\left.\\pd{v}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("boundaryConditionsW")) {
@@ -1406,7 +1354,6 @@ function initGUI(startOpen) {
         Neumann: "neumann",
         Robin: "robin",
       })
-      .name("$w$")
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
@@ -1415,19 +1362,16 @@ function initGUI(startOpen) {
   if (inGUI("dirichletW")) {
     dirichletWController = root
       .add(options, "dirichletStrW")
-      .name("$\\left.w\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrW")) {
     neumannWController = root
       .add(options, "neumannStrW")
-      .name("$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrW")) {
     robinWController = root
       .add(options, "robinStrW")
-      .name("$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("boundaryConditionsQ")) {
@@ -1447,19 +1391,16 @@ function initGUI(startOpen) {
   if (inGUI("dirichletQ")) {
     dirichletQController = root
       .add(options, "dirichletStrQ")
-      .name("$\\left.q\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("neumannStrQ")) {
     neumannQController = root
       .add(options, "neumannStrQ")
-      .name("$\\left.\\pd{q}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
   if (inGUI("robinStrQ")) {
     robinQController = root
       .add(options, "robinStrQ")
-      .name("$\\left.\\pd{q}{n}\\right\\rvert_{\\boundary}$")
       .onFinishChange(setRDEquations);
   }
 
@@ -1472,25 +1413,21 @@ function initGUI(startOpen) {
   if (inGUI("clearValueU")) {
     clearValueUController = root
       .add(options, "clearValueU")
-      .name("$\\left.u\\right\\rvert_{t=0}$")
       .onFinishChange(setClearShader);
   }
   if (inGUI("clearValueV")) {
     clearValueVController = root
       .add(options, "clearValueV")
-      .name("$\\left.v\\right\\rvert_{t=0}$")
       .onFinishChange(setClearShader);
   }
   if (inGUI("clearValueW")) {
     clearValueWController = root
       .add(options, "clearValueW")
-      .name("$\\left.w\\right\\rvert_{t=0}$")
       .onFinishChange(setClearShader);
   }
   if (inGUI("clearValueQ")) {
     clearValueQController = root
       .add(options, "clearValueQ")
-      .name("$\\left.q\\right\\rvert_{t=0}$")
       .onFinishChange(setClearShader);
   }
 
@@ -3680,6 +3617,29 @@ function configureGUI() {
       setGUIControllerName(jController, TeXStrings["j"], Qtooltip);
       break;
   }
+  // Set the names of the BCs and ICs controllers.
+  setGUIControllerName(uBCsController, TeXStrings["u"]);
+  setGUIControllerName(vBCsController, TeXStrings["v"]);
+  setGUIControllerName(wBCsController, TeXStrings["w"]);
+  setGUIControllerName(qBCsController, TeXStrings["q"]);
+  setGUIControllerName(dirichletUController, TeXStrings["uD"]);
+  setGUIControllerName(dirichletVController, TeXStrings["vD"]);
+  setGUIControllerName(dirichletWController, TeXStrings["wD"]);
+  setGUIControllerName(dirichletQController, TeXStrings["qD"]);
+  setGUIControllerName(neumannUController, TeXStrings["uN"]);
+  setGUIControllerName(neumannVController, TeXStrings["vN"]);
+  setGUIControllerName(neumannWController, TeXStrings["wN"]);
+  setGUIControllerName(neumannQController, TeXStrings["qN"]);
+  setGUIControllerName(robinUController, TeXStrings["uN"]);
+  setGUIControllerName(robinVController, TeXStrings["vN"]);
+  setGUIControllerName(robinWController, TeXStrings["wN"]);
+  setGUIControllerName(robinQController, TeXStrings["qN"]);
+  setGUIControllerName(clearValueUController, TeXStrings["uInit"]);
+  setGUIControllerName(clearValueVController, TeXStrings["vInit"]);
+  setGUIControllerName(clearValueWController, TeXStrings["wInit"]);
+  setGUIControllerName(clearValueQController, TeXStrings["qInit"]);
+
+  // Show/hide the indicator function controller.
   if (options.domainViaIndicatorFun) {
     showGUIController(domainIndicatorFunController);
   } else {
@@ -4554,9 +4514,9 @@ function configureColourbar() {
     cString += ")";
     $("#colourbar").css("background", cString);
     if (options.whatToPlot == "MAX") {
-      $("#minLabel").html("$u$");
-      $("#midLabel").html("$v$");
-      $("#maxLabel").html("$w$");
+      $("#minLabel").html("$" + listOfSpecies[0] + "$");
+      $("#midLabel").html("$" + listOfSpecies[1] + "$");
+      $("#maxLabel").html("$" + listOfSpecies[2] + "$");
     } else {
       $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
     }
@@ -5099,7 +5059,10 @@ function setSpeciesNames(onLoading) {
   });
 
   // Configuring the GUI requires strings for D_{u u} etc, so we'll modify the strings here for later use.
-  const defaultStrings = getDefaultTeXLabelsDiffusion();
+  const defaultStrings = {
+    ...getDefaultTeXLabelsDiffusion(),
+    ...getDefaultTeXLabelsBCsICs(),
+  };
   Object.keys(defaultStrings).forEach(function (key) {
     TeXStrings[key] = defaultStrings[key];
     for (var ind = 0; ind < newSpecies.length; ind++) {

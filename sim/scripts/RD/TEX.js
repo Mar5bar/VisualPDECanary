@@ -102,6 +102,29 @@ export function getDefaultTeXLabelsReaction() {
   return TeXStrings;
 }
 
+export function getDefaultTeXLabelsBCsICs() {
+  let TeXStrings = {};
+  // Strings for BCs and ICs controllers.
+  TeXStrings["u"] = "$u$";
+  TeXStrings["v"] = "$v$";
+  TeXStrings["w"] = "$w$";
+  TeXStrings["q"] = "$q$";
+  TeXStrings["uInit"] = "$\\left. u \\right\\rvert_{t=0}$";
+  TeXStrings["vInit"] = "$\\left. v \\right\\rvert_{t=0}$";
+  TeXStrings["wInit"] = "$\\left. w \\right\\rvert_{t=0}$";
+  TeXStrings["qInit"] = "$\\left. q \\right\\rvert_{t=0}$";
+  TeXStrings["uD"] = "$\\left. u \\right\\rvert_{\\boundary}$";
+  TeXStrings["vD"] = "$\\left. v \\right\\rvert_{\\boundary}$";
+  TeXStrings["wD"] = "$\\left. w \\right\\rvert_{\\boundary}$";
+  TeXStrings["qD"] = "$\\left. q \\right\\rvert_{\\boundary}$";
+  TeXStrings["uN"] = "$\\left.\\pd{u}{n}\\right\\rvert_{\\boundary}$";
+  TeXStrings["vN"] = "$\\left.\\pd{v}{n}\\right\\rvert_{\\boundary}$";
+  TeXStrings["wN"] = "$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$";
+  TeXStrings["qN"] = "$\\left.\\pd{q}{n}\\right\\rvert_{\\boundary}$";
+
+  return TeXStrings;
+}
+
 export function substituteGreek(str) {
   let listOfGreek = [
     "alpha",
