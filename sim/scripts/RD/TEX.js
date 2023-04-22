@@ -63,6 +63,45 @@ export function equationTEXFun() {
   return out;
 }
 
+export function getDefaultTeXLabelsDiffusion() {
+  let TeXStrings = {};
+  // Strings for diffusion coefficients.
+  TeXStrings["D"] = "$D$";
+  TeXStrings["Du"] = "$D_{u}$";
+  TeXStrings["Dv"] = "$D_{v}$";
+  TeXStrings["Dw"] = "$D_{w}$";
+  TeXStrings["Dq"] = "$D_{q}$";
+  TeXStrings["Duu"] = "$D_{u u}$";
+  TeXStrings["Duv"] = "$D_{u v}$";
+  TeXStrings["Duw"] = "$D_{u w}$";
+  TeXStrings["Duq"] = "$D_{u q}$";
+  TeXStrings["Dvu"] = "$D_{v u}$";
+  TeXStrings["Dvv"] = "$D_{v v}$";
+  TeXStrings["Dvw"] = "$D_{v w}$";
+  TeXStrings["Dvq"] = "$D_{v q}$";
+  TeXStrings["Dwu"] = "$D_{w u}$";
+  TeXStrings["Dwv"] = "$D_{w v}$";
+  TeXStrings["Dww"] = "$D_{w w}$";
+  TeXStrings["Dwq"] = "$D_{w q}$";
+  TeXStrings["Dqu"] = "$D_{q u}$";
+  TeXStrings["Dqv"] = "$D_{q v}$";
+  TeXStrings["Dqw"] = "$D_{q w}$";
+  TeXStrings["Dqq"] = "$D_{q q}$";
+
+  return TeXStrings;
+}
+
+export function getDefaultTeXLabelsReaction() {
+  let TeXStrings = {};
+  // Strings for reactions.
+  TeXStrings["f"] = "$f$";
+  TeXStrings["g"] = "$g$";
+  TeXStrings["h"] = "$h$";
+  TeXStrings["j"] = "$j$";
+
+  return TeXStrings;
+}
+
 export function substituteGreek(str) {
   let listOfGreek = [
     "alpha",

@@ -107,10 +107,8 @@ let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
   kineticParamsCounter = 0;
-let listOfSpecies = ["u", "v", "w", "q"];
-let listOfReactions = ["f", "g", "h", "j"];
-let anySpeciesRegexStr =
-  "(?:" + listOfSpecies.map((x) => "(?:" + x + ")").join("|") + ")";
+const defaultSpecies = ["u", "v", "w", "q"];
+const defaultReactions = ["f", "g", "h", "j"];
 const listOfTypes = [
   "1Species", // 0
   "2Species", // 1
@@ -188,8 +186,21 @@ import * as THREE from "../three.module.js";
 import { OrbitControls } from "../OrbitControls.js";
 import { minifyPreset, maxifyPreset } from "./minify_preset.js";
 import { LZString } from "../lz-string.min.js";
-import { equationTEXFun, substituteGreek } from "./TEX.js";
+import {
+  equationTEXFun,
+  getDefaultTeXLabelsDiffusion,
+  getDefaultTeXLabelsReaction,
+  substituteGreek,
+} from "./TEX.js";
 let equationTEX = equationTEXFun();
+let TeXStrings = {
+  ...getDefaultTeXLabelsDiffusion(),
+  ...getDefaultTeXLabelsReaction(),
+};
+let listOfSpecies = defaultSpecies;
+let listOfReactions = defaultReactions;
+let anySpeciesRegexStr =
+  "(?:" + listOfSpecies.map((x) => "(?:" + x + ")").join("|") + ")";
 
 // Setup some configurable options.
 options = {};
@@ -1118,7 +1129,7 @@ function initGUI(startOpen) {
   if (inGUI("diffusionStrUU")) {
     DuuController = root
       .add(options, "diffusionStrUU")
-      .name("$D_{uu}$")
+      .name("$D_{" + listOfSpecies[0] + " " + listOfSpecies[0] + "}$")
       .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
@@ -1277,7 +1288,7 @@ function initGUI(startOpen) {
     // Custom f(u,v) and g(u,v).
     fController = root
       .add(options, "reactionStrU")
-      .name("$f$")
+      .name("$" + listOfReactions[0] + "$")
       .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
@@ -1287,7 +1298,7 @@ function initGUI(startOpen) {
   if (inGUI("reactionStrV")) {
     gController = root
       .add(options, "reactionStrV")
-      .name("$g$")
+      .name("$" + listOfReactions[1] + "$")
       .title("function of u, v, w, q, t")
       .onFinishChange(function () {
         setRDEquations();
@@ -3306,6 +3317,15 @@ function problemTypeFromOptions() {
 function configureGUI() {
   // Set up the GUI based on the the current options: numSpecies, crossDiffusion, and algebraicV.
   // We need a separate block for each of the six cases.
+  let tooltip =
+    "function of " +
+    listOfSpecies.slice(0, options.numSpecies).join(", ") +
+    ", x, y, t";
+  let Vtooltip = tooltip.replace(" " + listOfSpecies[1] + ",", "");
+  let Qtooltip = tooltip.replace(" " + listOfSpecies[2] + ",", "");
+  let Wtooltip = tooltip.replace(" " + listOfSpecies[3] + ",", "");
+
+  if (options.dimension == 1) tooltip = tooltip.replace(" y,", "");
   switch (equationType) {
     case 0:
       // 1Species
@@ -3321,8 +3341,8 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D$", "function of u, t");
-      setGUIControllerName(fController, "$f$", "function of u, t");
+      setGUIControllerName(DuuController, TeXStrings["D"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
 
       break;
 
@@ -3342,10 +3362,10 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(DuuController, "$D_u$", "function of u, v, t");
-      setGUIControllerName(DvvController, "$D_v$", "function of u, v, t");
-      setGUIControllerName(fController, "$f$", "function of u, v, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, t");
+      setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
+      setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(gController, TeXStrings["g"], tooltip);
 
       break;
 
@@ -3365,18 +3385,12 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(
-        DuuController,
-        "$D_{uu}$",
-        "function of u, v, x, y, t"
-      );
-      setGUIControllerName(
-        DvvController,
-        "$D_{vv}$",
-        "function of u, v, x, y, t"
-      );
-      setGUIControllerName(fController, "$f$", "function of u, v, x, y, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, x, y, t");
+      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
+      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
+      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
+      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(gController, TeXStrings["g"], tooltip);
       break;
 
     case 3:
@@ -3397,13 +3411,12 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(
-        DuuController,
-        "$D_{uu}$",
-        "function of u, v, x, y, t"
-      );
-      setGUIControllerName(fController, "$f$", "function of u, v, x, y, t");
-      setGUIControllerName(gController, "$g$", "function of u, x, y, t");
+      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
+      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      // Controllers for algebraic species have a different tooltip.
+      setGUIControllerName(DvuController, TeXStrings["Dvu"], Vtooltip);
+      setGUIControllerName(gController, TeXStrings["g"], Vtooltip);
       break;
 
     case 4:
@@ -3423,24 +3436,12 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(
-        DuuController,
-        "$D_u$",
-        "function of u, v, w, x, y, t"
-      );
-      setGUIControllerName(
-        DvvController,
-        "$D_v$",
-        "function of u, v, w, x, y, t"
-      );
-      setGUIControllerName(
-        DwwController,
-        "$D_w$",
-        "function of u, v, w, x, y, t"
-      );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, x, y, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, x, y, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, w, x, y, t");
+      setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
+      setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
+      setGUIControllerName(DwwController, TeXStrings["Dw"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      setGUIControllerName(hController, TeXStrings["h"], tooltip);
       break;
 
     case 5:
@@ -3461,24 +3462,18 @@ function configureGUI() {
       showGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(
-        DuuController,
-        "$D_{uu}$",
-        "function of u, v, w, x, y, t"
-      );
-      setGUIControllerName(
-        DvvController,
-        "$D_{vv}$",
-        "function of u, v, w, x, y, t"
-      );
-      setGUIControllerName(
-        DwwController,
-        "$D_{ww}$",
-        "function of u, v, w, x, y, t"
-      );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, x, y, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, x, y, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, w, x, y, t");
+      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
+      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
+      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
+      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
+      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
+      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
+      setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
+      setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
+      setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      setGUIControllerName(hController, TeXStrings["h"], tooltip);
       break;
 
     case 6:
@@ -3500,19 +3495,18 @@ function configureGUI() {
       showGUIController(algebraicWController);
 
       // Configure the controller names.
-      setGUIControllerName(
-        DuuController,
-        "$D_{uu}$",
-        "function of u, v, w, x, y, t"
-      );
-      setGUIControllerName(
-        DvvController,
-        "$D_{vv}$",
-        "function of u, v, w, x, y, t"
-      );
-      setGUIControllerName(fController, "$f$", "function of u, v, w, x, y, t");
-      setGUIControllerName(gController, "$g$", "function of u, v, w, x, y, t");
-      setGUIControllerName(hController, "$h$", "function of u, v, x, y, t");
+      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
+      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
+      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
+      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
+      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
+      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      // Controllers for algebraic species have a different tooltip.
+      setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
+      setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
+      setGUIControllerName(hController, TeXStrings["h"], Wtooltip);
       break;
     case 7:
       // 4Species
@@ -3529,46 +3523,14 @@ function configureGUI() {
       hideGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(
-        DuuController,
-        "$D_{uu}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DvvController,
-        "$D_{vv}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DwwController,
-        "$D_{ww}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DqqController,
-        "$D_{qq}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        fController,
-        "$f$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        gController,
-        "$g$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        hController,
-        "$h$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        jController,
-        "$j$",
-        "function of u, v, w, q, x, y, t"
-      );
+      setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
+      setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
+      setGUIControllerName(DwwController, TeXStrings["Dw"], tooltip);
+      setGUIControllerName(DqqController, TeXStrings["Dq"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      setGUIControllerName(hController, TeXStrings["h"], tooltip);
+      setGUIControllerName(jController, TeXStrings["j"], tooltip);
       break;
     case 8:
       // 4SpeciesCrossDiffusion.
@@ -3586,46 +3548,26 @@ function configureGUI() {
       showGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(
-        DuuController,
-        "$D_{uu}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DvvController,
-        "$D_{vv}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DwwController,
-        "$D_{ww}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DqqController,
-        "$D_{qq}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        fController,
-        "$f$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        gController,
-        "$g$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        hController,
-        "$h$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        jController,
-        "$j$",
-        "function of u, v, w, q, x, y, t"
-      );
+      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
+      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
+      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
+      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
+      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
+      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
+      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
+      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
+      setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
+      setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
+      setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
+      setGUIControllerName(DwqController, TeXStrings["Dwq"], tooltip);
+      setGUIControllerName(DquController, TeXStrings["Dqu"], tooltip);
+      setGUIControllerName(DqvController, TeXStrings["Dqv"], tooltip);
+      setGUIControllerName(DqwController, TeXStrings["Dqw"], tooltip);
+      setGUIControllerName(DqqController, TeXStrings["Dqq"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      setGUIControllerName(hController, TeXStrings["h"], tooltip);
+      setGUIControllerName(jController, TeXStrings["j"], tooltip);
       break;
     case 9:
       // 4SpeciesCrossDiffusionAlgebraicW.
@@ -3643,42 +3585,26 @@ function configureGUI() {
       showGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(
-        DuuController,
-        "$D_{uu}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DvvController,
-        "$D_{vv}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DwwController,
-        "$D_{ww}$",
-        "function of u, v, q, x, y, t"
-      );
-      setGUIControllerName(
-        DqqController,
-        "$D_{qq}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        fController,
-        "$f$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        gController,
-        "$g$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(hController, "$h$", "function of u, v, q, x, y, t");
-      setGUIControllerName(
-        jController,
-        "$j$",
-        "function of u, v, w, q, x, y, t"
-      );
+      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
+      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
+      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
+      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
+      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
+      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
+      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
+      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
+      setGUIControllerName(DquController, TeXStrings["Dqu"], tooltip);
+      setGUIControllerName(DqvController, TeXStrings["Dqv"], tooltip);
+      setGUIControllerName(DqwController, TeXStrings["Dqw"], tooltip);
+      setGUIControllerName(DqqController, TeXStrings["Dqq"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      setGUIControllerName(jController, TeXStrings["j"], tooltip);
+      // Controllers for algebraic species have a different tooltip.
+      setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
+      setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
+      setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
+      setGUIControllerName(hController, TeXStrings["h"], Wtooltip);
       break;
     case 10:
       // 4SpeciesCrossDiffusionAlgebraicQ.
@@ -3696,42 +3622,26 @@ function configureGUI() {
       showGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(
-        DuuController,
-        "$D_{uu}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DvvController,
-        "$D_{vv}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DwwController,
-        "$D_{ww}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DqqController,
-        "$D_{qq}$",
-        "function of u, v, w, x, y, t"
-      );
-      setGUIControllerName(
-        fController,
-        "$f$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        gController,
-        "$g$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        hController,
-        "$h$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(jController, "$j$", "function of u, v, w, x, y, t");
+      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
+      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
+      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
+      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
+      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
+      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
+      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
+      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
+      setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
+      setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
+      setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
+      setGUIControllerName(DwqController, TeXStrings["Dwq"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      setGUIControllerName(hController, TeXStrings["h"], tooltip);
+      // Controllers for algebraic species have a different tooltip.
+      setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
+      setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
+      setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
+      setGUIControllerName(jController, TeXStrings["j"], Qtooltip);
       break;
     case 11:
       // 4SpeciesCrossDiffusionAlgebraicWQ.
@@ -3749,38 +3659,25 @@ function configureGUI() {
       showGUIController(algebraicQController);
 
       // Configure the controller names.
-      setGUIControllerName(
-        DuuController,
-        "$D_{uu}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DvvController,
-        "$D_{vv}$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        DwwController,
-        "$D_{ww}$",
-        "function of u, v, q, x, y, t"
-      );
-      setGUIControllerName(
-        DqqController,
-        "$D_{qq}$",
-        "function of u, v, w, x, y, t"
-      );
-      setGUIControllerName(
-        fController,
-        "$f$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(
-        gController,
-        "$g$",
-        "function of u, v, w, q, x, y, t"
-      );
-      setGUIControllerName(hController, "$h$", "function of u, v, q, x, y, t");
-      setGUIControllerName(jController, "$j$", "function of u, v, w, x, y, t");
+      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
+      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
+      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
+      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
+      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
+      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
+      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
+      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
+      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      // Controllers for algebraic species have a different tooltip.
+      setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
+      setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
+      setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
+      setGUIControllerName(hController, TeXStrings["h"], Wtooltip);
+      setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
+      setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
+      setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
+      setGUIControllerName(jController, TeXStrings["j"], Qtooltip);
       break;
   }
   if (options.domainViaIndicatorFun) {
@@ -5201,6 +5098,16 @@ function setSpeciesNames(onLoading) {
     }
   });
 
+  // Configuring the GUI requires strings for D_{u u} etc, so we'll modify the strings here for later use.
+  const defaultStrings = getDefaultTeXLabelsDiffusion();
+  Object.keys(defaultStrings).forEach(function (key) {
+    TeXStrings[key] = defaultStrings[key];
+    for (var ind = 0; ind < newSpecies.length; ind++) {
+      regex = new RegExp("\\b(" + defaultSpecies[ind] + ")\\b", "g");
+      TeXStrings[key] = TeXStrings[key].replaceAll(regex, newSpecies[ind]);
+    }
+  });
+
   // Don't update the problem if we're just loading in, as this will be done as part of loading.
   if (onLoading) return;
   updateProblem();
@@ -5223,11 +5130,22 @@ function setReactionNames(onLoading) {
   // If nothing has changed, just return without doing anything else.
   if (arrayEquals(oldListOfReactions, listOfReactions)) return;
 
+  // Configuring the GUI requires strings for f, g etc, so we'll modify the default strings for use here.
+  let regex;
+  const defaultStrings = getDefaultTeXLabelsReaction();
+  Object.keys(defaultStrings).forEach(function (key) {
+    TeXStrings[key] = defaultStrings[key];
+    for (var ind = 0; ind < newReactions.length; ind++) {
+      regex = new RegExp("\\b(" + defaultReactions[ind] + ")\\b", "g");
+      TeXStrings[key] = TeXStrings[key].replaceAll(regex, newReactions[ind]);
+    }
+  });
+
   // Don't update the GUI if we're just loading in, as this will be done as part of loading.
   if (onLoading) return;
   configureGUI();
 }
 
-function arrayEquals(a,b) {
+function arrayEquals(a, b) {
   return a.every((val, index) => val === b[index]);
 }
