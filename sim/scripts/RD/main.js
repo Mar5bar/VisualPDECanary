@@ -107,6 +107,7 @@ let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
   kineticParamsCounter = 0;
+const listOfSpecies = ["u", "v", "w", "q"];
 const listOfTypes = [
   "1Species", // 0
   "2Species", // 1
@@ -3770,6 +3771,11 @@ function configureGUI() {
   isManuallyInterpolating()
     ? showGUIController(smoothingScaleController)
     : hideGUIController(smoothingScaleController);
+  // Update the options available in whatToDraw based on the number of species.
+  updateGUIDropdown(
+    whatToDrawController,
+    listOfSpecies.slice(0, options.numSpecies)
+  );
 }
 
 function configureOptions() {
@@ -4826,7 +4832,7 @@ function getReservedStrs() {
   // Load an RD shader and find floats, vecs, and ivecs.
   let regex = /(?:float|vec\d|ivec\d)\b\s+(\w+)\b/g;
   let str = RDShaderTop() + RDShaderUpdateCross();
-  return [...str.matchAll(regex)].map((x) => x[1]).concat(["u", "v", "w", "q"]);
+  return [...str.matchAll(regex)].map((x) => x[1]).concat(listOfSpecies);
 }
 
 function isReservedName(name) {
@@ -5061,4 +5067,16 @@ function setColourRange() {
   maxColourValueController.updateDisplay();
   minColourValueController.updateDisplay();
   updateColourbarLims();
+}
+
+function updateGUIDropdown(controller, labels, values) {
+  if (values == undefined) {
+    values = labels;
+  }
+  let innerHTMLStr = "";
+  for (var i = 0; i < labels.length; i++) {
+    var str = "<option value='" + values[i] + "'>" + labels[i] + "</option>";
+    innerHTMLStr += str;
+  }
+  controller.domElement.children[0].innerHTML = innerHTMLStr;
 }
