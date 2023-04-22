@@ -237,22 +237,9 @@ funsObj = {
     configureColourbar();
     render();
   },
-  setColourRange: function () {
-    // Set the range of the colour axis based on the extremes of the computed values.
-    let valRange = getMinMaxVal();
-    if (Math.abs(valRange[0] - valRange[1]) < 0.005) {
-      // If the range is just one value, make the range width equal to 0.005 centered on the given value.
-      const meanVal = (valRange[0] + valRange[1]) / 2;
-      valRange[0] = meanVal - 0.0025;
-      valRange[1] = meanVal + 0.0025;
-    }
-    options.minColourValue = valRange[0];
-    options.maxColourValue = valRange[1];
-    uniforms.maxColourValue.value = options.maxColourValue;
-    uniforms.minColourValue.value = options.minColourValue;
-    maxColourValueController.updateDisplay();
-    minColourValueController.updateDisplay();
-    updateColourbarLims();
+  setColourRangeButton: function () {
+    setColourRange();
+    render();
   },
   debug: function () {
     // Write lots of data to the clipboard for debugging.
@@ -927,7 +914,7 @@ function initGUI(startOpen) {
     root
       .add(options, "brushAction", {
         Replace: "replace",
-        "Add": "add",
+        Add: "add",
         "Replace (smooth)": "smoothreplace",
         "Add (smooth)": "smoothadd",
       })
@@ -1601,7 +1588,7 @@ function initGUI(startOpen) {
   }
   if (inGUI("setColourRange")) {
     setColourRangeController = root
-      .add(funsObj, "setColourRange")
+      .add(funsObj, "setColourRangeButton")
       .name("Snap range");
   }
   if (inGUI("autoColourRangeButton")) {
@@ -1610,7 +1597,7 @@ function initGUI(startOpen) {
       .name("Auto snap")
       .onChange(function () {
         if (options.autoSetColourRange) {
-          funsObj.setColourRange();
+          setColourRange();
           render();
         }
       });
@@ -1919,7 +1906,7 @@ function enforceDirichlet() {
 function render() {
   // If selected, set the colour range.
   if (options.autoSetColourRange) {
-    funsObj.setColourRange();
+    setColourRange();
   }
 
   if (options.drawIn3D && options.plotType == "surface") {
@@ -5010,4 +4997,22 @@ function computeColourBrightness(col) {
       .slice(0, -1)
       .reduce((a, b) => a + b, 0) / 3
   );
+}
+
+function setColourRange() {
+  // Set the range of the colour axis based on the extremes of the computed values.
+  let valRange = getMinMaxVal();
+  if (Math.abs(valRange[0] - valRange[1]) < 0.005) {
+    // If the range is just one value, make the range width equal to 0.005 centered on the given value.
+    const meanVal = (valRange[0] + valRange[1]) / 2;
+    valRange[0] = meanVal - 0.0025;
+    valRange[1] = meanVal + 0.0025;
+  }
+  options.minColourValue = valRange[0];
+  options.maxColourValue = valRange[1];
+  uniforms.maxColourValue.value = options.maxColourValue;
+  uniforms.minColourValue.value = options.minColourValue;
+  maxColourValueController.updateDisplay();
+  minColourValueController.updateDisplay();
+  updateColourbarLims();
 }
