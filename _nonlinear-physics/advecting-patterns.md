@@ -1,10 +1,10 @@
 ---
 layout: page
-title: The Gray–Scott model
+title: Pattern Formation & Advection
 lesson_number: 70
-thumbnail: /assets/images/GrayScott.png
-extract: Complex reaction–diffusion 
-equation: $\pd{u}{t}=\nabla^2 u+u^2v - (a+b)u$, $\pd{v}{t}=D\nabla^2v -u^2v + a(1 - v)$
+thumbnail: /assets/images/GrayScottAdvection.PNG
+extract: Moving patterns
+equation: 
 ---
 Each of the examples on this page will be a variation of a previous example incorporating one or more linear advection terms. This will introduce a velocity parameter $V$ and, in the unidrectional case, a direction $\theta$.
 
@@ -21,3 +21,5 @@ Each of the examples on this page will be a variation of a previous example inco
 * We next consider the localised solutions from the [Swift-Hohenberg equation](/nonlinear-physics), and add a parameter $Q$ for unidrectional and rotational advection to get [moving localised patterns](/sim/?preset=swiftHohenbergLocalisedAdvection).
 
 * Setting $Q=1$ gives unidirectional advection, and the localised structure moves along a direction given by the parameter $\theta$. Setting $Q=2$ instead rotates the pattern around the centre of the screen. Changing $V$ impacts the velocity of this movement. Note that if $V$ becomes too large, the pattern can generate structures which misbehave at the boundaries (as these will interact with advection in odd ways).
+
+* Changing $P$ and restarting the simulation allows you to explore how these different localised solutions change their structure under advection.
