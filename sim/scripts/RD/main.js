@@ -4614,8 +4614,18 @@ function configureColourbar() {
 
 function updateColourbarLims() {
   if (options.whatToPlot != "MAX") {
-    $("#minLabel").html(formatLabelNum(options.minColourValue, 2));
-    $("#maxLabel").html(formatLabelNum(options.maxColourValue, 2));
+    // We want to display a string that is the shorter of 3 sig. fig. and 3 dec. places.
+    let minStr, maxStr;
+    [minStr, maxStr] = formatColourbarLabels(
+      options.minColourValue,
+      options.maxColourValue
+    );
+    // If either strings are just zeros, simply write 0.
+    const regex = /[1-9]/;
+    if (!regex.test(minStr)) minStr = "0";
+    if (!regex.test(maxStr)) maxStr = "0";
+    $("#minLabel").html(minStr);
+    $("#maxLabel").html(maxStr);
   }
   // Get the leftmost and rightmost colour values from the map.
   let leftColour = computeColourBrightness(uniforms.colour1.value);
@@ -4652,6 +4662,22 @@ function updateColourbarLims() {
 
 function formatLabelNum(num, depth) {
   return num.toPrecision(depth);
+}
+
+function shortestStringNum(num, depth) {
+  const dec = num.toFixed(depth);
+  const sig = num.toPrecision(depth);
+  return dec.length < sig.length ? dec : sig;
+}
+
+function formatColourbarLabels(min, max) {
+  const depth = 3;
+  // Check if both numbers are close to zero, in which case use exponential notation.
+  if (Math.abs(min) < 0.001 && Math.abs(max) < 0.001) {
+    return [min.toExponential(depth-1), max.toExponential(depth-1)];
+  }
+  // Otherwise, use the shorter of dp or sig fig for each.
+  return [shortestStringNum(min, depth), shortestStringNum(max, depth)];
 }
 
 function configureTimeDisplay() {
