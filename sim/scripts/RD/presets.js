@@ -1466,6 +1466,7 @@ export function getPreset(id) {
         boundaryConditionsV: "periodic",
         boundaryConditionsW: "periodic",
         boundaryConditionsQ: "periodic",
+        brushAction: "replace",
         brushValue: "1",
         brushRadius: 5,
         cameraTheta: 30,

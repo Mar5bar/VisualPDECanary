@@ -139,11 +139,14 @@ const numsAsWords = [
 ];
 
 import {
-  discShader,
-  vLineShader,
-  hLineShader,
-  drawShaderBot,
   drawShaderTop,
+  drawShaderBotReplace,
+  drawShaderBotAdd,
+  drawShaderShapeDisc,
+  drawShaderShapeVLine,
+  drawShaderShapeHLine,
+  drawShaderFactorSharp,
+  drawShaderFactorSmooth,
 } from "./drawing_shaders.js";
 import {
   computeDisplayFunShaderTop,
@@ -388,15 +391,15 @@ $("#warning_restart").click(function () {
   $("#oops_hit_nan").hide();
   resetSim();
 });
-$("#share").click(function() {
+$("#share").click(function () {
   $("#share_panel").toggle();
   $("#share_panel_arrow").toggle();
-})
+});
 $("#screenshot").click(function () {
   takeAScreenshot = true;
   render();
   $("#share_panel").toggle();
-  $("#share_panel_arrow").toggle();  
+  $("#share_panel_arrow").toggle();
 });
 $("#link").click(function () {
   funsObj.copyConfigAsURL();
@@ -920,7 +923,17 @@ function initGUI(startOpen) {
   } else {
     root = genericOptionsFolder;
   }
-
+  if (inGUI("brushAction")) {
+    root
+      .add(options, "brushAction", {
+        Replace: "replace",
+        "Add": "add",
+        "Replace (smooth)": "smoothreplace",
+        "Add (smooth)": "smoothadd",
+      })
+      .name("Action")
+      .onChange(setBrushType);
+  }
   if (inGUI("typeOfBrush")) {
     typeOfBrushController = root
       .add(options, "typeOfBrush", {
@@ -928,7 +941,7 @@ function initGUI(startOpen) {
         "Horizontal line": "hline",
         "Vertical line": "vline",
       })
-      .name("Type")
+      .name("Shape")
       .onChange(setBrushType);
   }
   if (inGUI("brushValue")) {
@@ -1768,21 +1781,45 @@ function setBrushType() {
   // brush centre, not the current pixel.
   radiusStr = radiusStr.replace(/\b([ST])([RGBA]?)\b/g, "$1Brush$2");
 
-  shaderStr += radiusStr;
-  if (options.typeOfBrush == "circle") {
-    shaderStr += discShader();
-  } else if (options.typeOfBrush == "hline") {
-    shaderStr += hLineShader();
-  } else if (options.typeOfBrush == "vline") {
-    shaderStr += vLineShader();
-  }
   // If a random number has been requested, insert calculation of a random number.
   if (options.brushValue.includes("RAND")) {
     shaderStr += randShader();
   }
   shaderStr +=
-    "float brushValue = " + parseShaderString(options.brushValue) + "\n;";
-  shaderStr += drawShaderBot();
+    "float brushValue = " + parseShaderString(options.brushValue) + ";\n";
+
+  // Configure the shape of the brush.
+  shaderStr += radiusStr;
+  switch (options.typeOfBrush) {
+    case "circle":
+      shaderStr += drawShaderShapeDisc();
+      break;
+    case "hline":
+      shaderStr += drawShaderShapeHLine();
+      break;
+    case "vline":
+      shaderStr += drawShaderShapeVLine();
+      break;
+  }
+  // Configure the action of the brush.
+  switch (options.brushAction) {
+    case "replace":
+      shaderStr += drawShaderFactorSharp();
+      shaderStr += drawShaderBotReplace();
+      break;
+    case "add":
+      shaderStr += drawShaderFactorSharp();
+      shaderStr += drawShaderBotAdd();
+      break;
+    case "smoothreplace":
+      shaderStr += drawShaderFactorSmooth();
+      shaderStr += drawShaderBotReplace();
+      break;
+    case "smoothadd":
+      shaderStr += drawShaderFactorSmooth();
+      shaderStr += drawShaderBotAdd();
+      break;
+  }
   // Substitute in the correct colour code.
   shaderStr = selectColourspecInShaderStr(shaderStr);
   drawMaterial.fragmentShader = shaderStr;

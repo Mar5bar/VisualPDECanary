@@ -79,21 +79,39 @@ export function drawShaderTop() {
         vec2 diff = textureCoords - brushCoords;\n`;
 }
 
-export function discShader() {
-  return `if (length(diff * vec2(L_x, L_y)) <= brushRadius) {`;
+export function drawShaderShapeDisc() {
+  return `float distance = length(diff * vec2(L_x, L_y));\n`;
 }
 
-export function vLineShader() {
-  return `if (L_x * length(diff.x) <= brushRadius) {`;
+export function drawShaderShapeVLine() {
+  return `float distance = L_x * length(diff.x);\n`;
 }
 
-export function hLineShader() {
-  return `if (L_y * length(diff.y) <= brushRadius) {`;
+export function drawShaderShapeHLine() {
+  return `float distance = L_y * length(diff.y);\n`;
 }
 
-export function drawShaderBot() {
-  return ` gl_FragColor.COLOURSPEC = brushValue;
-        }
+export function drawShaderFactorSharp() {
+  return `float factor = float(distance <= brushRadius);\n`
+}
 
-    }`;
+export function drawShaderFactorSmooth() {
+  return `float factor = 0.0;
+    if (distance < brushRadius) {
+        factor = exp(1.0-1.0/(1.0-pow(distance / brushRadius, 2.0)));
+    } else {
+          factor = 0.0;
+    }\n;`;
+}
+
+export function drawShaderBotReplace() {
+  return ` if (factor > 0.0) {
+              gl_FragColor.COLOURSPEC = brushValue * factor;
+          }
+        }`;
+}
+
+export function drawShaderBotAdd() {
+  return `gl_FragColor.COLOURSPEC = uvwq.COLOURSPEC + brushValue * factor;
+        }`;
 }
