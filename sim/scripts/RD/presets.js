@@ -1491,6 +1491,7 @@ export function getPreset(id) {
       };
       break;
       
+      
     case "swiftHohenbergLocalised":
       options = {
         algebraicV: true,
@@ -1508,7 +1509,7 @@ export function getPreset(id) {
         domainScale: 150,
         dt: 0.0005,
         kineticParams:
-          "r=-0.28 in [-2,2];a=1.6 in [-2,2];b=-1 in [-2,0.1,2];c=-1;D=1;",
+          "r=-0.28 in [-2,2];a=1.6 in [-2,2];b=-1 in [-2,0.1,2];c=-1;D=1;P=3 in [1,1,3];",
         maxColourValue: 1.325366735458374,
         minColourValue: -0.4033077657222748,
         numTimestepsPerFrame: 200,
