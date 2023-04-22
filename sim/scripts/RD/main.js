@@ -2693,13 +2693,48 @@ function loadOptions(preset) {
   // Enable backwards compatibility.
   options.brushRadius = options.brushRadius.toString();
 
-  // If either of the images are used in the initial conditions, ensure that the simulation resets when the images are
+  // If either of the images are used in the simulation, ensure that the simulation resets when the images are
   // actually loaded in.
   let str = [
     options.clearValueU,
     options.clearValueV,
     options.clearValueW,
     options.clearValueQ,
+    options.domainIndicatorFun,
+    options.reactionStrU,
+    options.reactionStrV,
+    options.reactionStrW,
+    options.reactionStrQ,
+    options.diffusionStrUU,
+    options.diffusionStrUV,
+    options.diffusionStrUW,
+    options.diffusionStrUQ,
+    options.diffusionStrVU,
+    options.diffusionStrVV,
+    options.diffusionStrVW,
+    options.diffusionStrVQ,
+    options.diffusionStrWU,
+    options.diffusionStrWV,
+    options.diffusionStrWW,
+    options.diffusionStrWQ,
+    options.diffusionStrQU,
+    options.diffusionStrQV,
+    options.diffusionStrQW,
+    options.diffusionStrQQ,
+    options.dirichletStrU,
+    options.dirichletStrV,
+    options.dirichletStrW,
+    options.dirichletStrQ,
+    options.robinStrU,
+    options.robinStrV,
+    options.robinStrW,
+    options.robinStrQ,
+    options.neumannStrU,
+    options.neumannStrV,
+    options.neumannStrW,
+    options.neumannStrQ,
+    options.brushValue,
+    options.whatToPlot,
   ].join(" ");
   options.resetOnImageLoad = /\b[ST][RGBA]?\b/.test(str);
 }
