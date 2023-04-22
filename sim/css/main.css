@@ -219,7 +219,7 @@ canvas {
 
 #link_copied {
     position: absolute;
-    top: 152.5px;
+    top: 112.5px;
     right: 50px;
     transform: translateY(-50%);
     opacity: 100;
@@ -670,6 +670,7 @@ input[type=range].styled-slider {
     border: 1px solid #ccc;
     border-radius: 6px;
     box-shadow: 0 5px 10px #1113;
+    z-index: 3;
 }
 #share_panel_arrow, #share_panel_arrow::after,
 #right_ui_arrow, #right_ui_arrow::after,
