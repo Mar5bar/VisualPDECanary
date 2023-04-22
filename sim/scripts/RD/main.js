@@ -108,6 +108,7 @@ let parametersFolder,
   kineticParamsLabels = [],
   kineticParamsCounter = 0;
 let listOfSpecies = ["u", "v", "w", "q"];
+let listOfReactions = ["f", "g", "h", "j"];
 let anySpeciesRegexStr =
   "(?:" + listOfSpecies.map((x) => "(?:" + x + ")").join("|") + ")";
 const listOfTypes = [
@@ -1083,6 +1084,22 @@ function initGUI(startOpen) {
       .add(options, "algebraicQ")
       .name("Algebraic q")
       .onChange(updateProblem);
+  }
+  if (inGUI("speciesNames")) {
+    root
+      .add(options, "speciesNames")
+      .name("Species names")
+      .onFinishChange(function () {
+        setSpeciesNames();
+      });
+  }
+  if (inGUI("reactionNames")) {
+    root
+      .add(options, "reactionNames")
+      .name("Reaction names")
+      .onFinishChange(function () {
+        setReactionNames();
+      });
   }
 
   // Let's put these in the left GUI.
@@ -2064,14 +2081,14 @@ function parseReactionStrings() {
   // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
   let out = "";
 
-  // Prepare the f string.
-  out += "float f = " + parseShaderString(options.reactionStrU) + ";\n";
-  // Prepare the g string.
-  out += "float g = " + parseShaderString(options.reactionStrV) + ";\n";
-  // Prepare the w string.
-  out += "float h = " + parseShaderString(options.reactionStrW) + ";\n";
-  // Prepare the q string.
-  out += "float j = " + parseShaderString(options.reactionStrQ) + ";\n";
+  // Prepare the UFUN string.
+  out += "float UFUN = " + parseShaderString(options.reactionStrU) + ";\n";
+  // Prepare the VFUN string.
+  out += "float VFUN = " + parseShaderString(options.reactionStrV) + ";\n";
+  // Prepare the WFUN string.
+  out += "float WFUN = " + parseShaderString(options.reactionStrW) + ";\n";
+  // Prepare the QFUN string.
+  out += "float QFUN = " + parseShaderString(options.reactionStrQ) + ";\n";
 
   return out;
 }
@@ -2739,8 +2756,9 @@ function loadOptions(preset) {
   // Loop through newOptions and overwrite anything already present.
   Object.assign(options, newOptions);
 
-  // Set custom species names.
+  // Set custom species names and reaction names.
   setSpeciesNames(true);
+  setReactionNames(true);
 
   // Set a flag if we will be showing all tools.
   setShowAllToolsFlag();
@@ -5152,21 +5170,20 @@ function updateGUIDropdown(controller, labels, values) {
   controller.domElement.children[0].innerHTML = innerHTMLStr;
 }
 
-function setSpeciesNames(initFlag) {
+function setSpeciesNames(onLoading) {
   const oldListOfSpecies = listOfSpecies;
   const newSpecies = options.speciesNames
     .replaceAll(/\W+/g, " ")
     .trim()
-    .split(" ");
-  
-  // If more than four species have been entered, return and alert the user.
-  if (oldListOfSpecies.length < newSpecies.length) {
-    alert("VisualPDE currently only supports four species names.");
-    return;
-  }
+    .split(" ")
+    .slice(0, oldListOfSpecies.length);
 
   // If not enough species have been provided, just update those that have been.
+  // The length of listOfSpecies is unchanged, preserving the total number of species.
   listOfSpecies = newSpecies.concat(oldListOfSpecies.slice(newSpecies.length));
+
+  // If nothing has changed, just return without doing anything else.
+  if (arrayEquals(oldListOfSpecies, listOfSpecies)) return;
 
   // Define a non-capturing string that is equivalent to the old [uvwq] in regexes.
   anySpeciesRegexStr =
@@ -5176,7 +5193,7 @@ function setSpeciesNames(initFlag) {
   let regex;
   Object.keys(options).forEach(function (key) {
     for (var ind = 0; ind < newSpecies.length; ind++) {
-      regex = new RegExp("\\b(" + oldListOfSpecies[ind] + ")\\b","g");
+      regex = new RegExp("\\b(" + oldListOfSpecies[ind] + ")\\b", "g");
       // If the property is a user-editable text field that isn't speciesNames, do the substitution.
       if (key != "speciesNames" && userTextFields.includes(key)) {
         options[key] = options[key].replaceAll(regex, newSpecies[ind]);
@@ -5184,11 +5201,33 @@ function setSpeciesNames(initFlag) {
     }
   });
 
-  // If this is an initialisation step, return here to avoid duplicating updates.
-  if (initFlag) return;
+  // Don't update the problem if we're just loading in, as this will be done as part of loading.
+  if (onLoading) return;
+  updateProblem();
+}
 
-  // Update the UI with the new species names.
+function setReactionNames(onLoading) {
+  const oldListOfReactions = listOfReactions;
+  const newReactions = options.reactionNames
+    .replaceAll(/\W+/g, " ")
+    .trim()
+    .split(" ")
+    .slice(0, oldListOfReactions.length);
 
-  // Refresh the shaders.
-  updateShaders();
+  // If not enough reactions have been provided, just update those that have been.
+  // The length of listOfReactions is unchanged, preserving the total number of species.
+  listOfReactions = newReactions.concat(
+    oldListOfReactions.slice(newReactions.length)
+  );
+
+  // If nothing has changed, just return without doing anything else.
+  if (arrayEquals(oldListOfReactions, listOfReactions)) return;
+
+  // Don't update the GUI if we're just loading in, as this will be done as part of loading.
+  if (onLoading) return;
+  configureGUI();
+}
+
+function arrayEquals(a,b) {
+  return a.every((val, index) => val === b[index]);
 }

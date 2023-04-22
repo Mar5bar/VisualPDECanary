@@ -3,6 +3,9 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "test":
+      options = {speciesNames: "Aa Bb Cc Dd"};
+      break;
     case "BeamEquation":
       options = {
         algebraicW: true,
@@ -1595,6 +1598,7 @@ export function getPreset(id) {
         preset: "default",
         resetOnImageLoad: false,
         renderSize: 512,
+        reactionNames: "f g h j",
         reactionStrU: "-u*v^2 + 0.037*(1.0 - u)",
         reactionStrV: "u*v^2 - (0.037+0.06)*v",
         reactionStrW: "u*v^2 - (0.037+0.06)*v",
