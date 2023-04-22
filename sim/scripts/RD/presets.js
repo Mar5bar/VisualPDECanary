@@ -3,20 +3,20 @@
 export function getPreset(id) {
   let options;
   switch (id) {
-		  case "BurgersEquation":
+	case "BurgersEquation":
 	options = {
 	"boundaryConditionsU": "neumann",
 	"brushRadius": "5",
 	"cameraTheta": 0.5,
 	"cameraPhi": 0,
 	"clearValueU": "0.1*exp(-0.00005*(x-L_x/5)^2)",
-	"diffusionStrUU": "0.05",
+	"diffusionStrUU": "epsilon",
 	"diffusionStrVV": "0",
 	"diffusionStrWW": "0",
 	"dimension": "1",
 	"domainScale": 1000,
 	"dt": 0.04,
-	"kineticParams": "a=0.037 in [0,0.1];b=0.06 in [0.04,0.1];",
+	"kineticParams": "epsilon=0.05;",
 	"maxColourValue": 0.1,
 	"numSpecies": "1",
 	"numTimestepsPerFrame": 400,
