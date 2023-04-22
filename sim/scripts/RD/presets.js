@@ -17,7 +17,7 @@ export function getPreset(id) {
 	"diffusionStrWW": "0",
 	"domainScale": 150,
 	"dt": 0.001,
-	"kineticParams": "r = -0.28  in  [-2,2];a = 1.6  in  [-2, 2];b = -1  in  [-2, 0.1, 2];c = -1;D = 1;P = 3.0 in  [1, 1, 3];Q = 2.0 in [1,1,2];V = 0.100 in [0,0.01,5];theta = -3.1500000 in  [-6.4,0.01,6.4];",
+	"kineticParams": "r = -0.28  in  [-2,2];a = 1.6  in  [-2, 2];b = -1  in  [-2, 0.1, 2];c = -1;D = 1;P = 3.0 in  [1, 1, 3];Q = 1.0 in [1,1,2];V = 0.300 in [0,0.01,5];theta = -3.1500000 in  [-6.4,0.01,6.4];",
 	"maxColourValue": 1.4022035598754883,
 	"minColourValue": -0.3871280550956726,
 	"numTimestepsPerFrame": 200,
