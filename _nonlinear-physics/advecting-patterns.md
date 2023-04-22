@@ -2,9 +2,9 @@
 layout: page
 title: Pattern Formation & Advection
 lesson_number: 70
-thumbnail: /assets/images/GrayScottAdvection.PNG
+thumbnail: /assets/images/GrayScottAdvection.png
 extract: Moving patterns
-equation: $\pd{u}{t} = A$
+equation: 
 ---
 Each of the examples on this page will be a variation of a previous example incorporating one or more linear advection terms. This will introduce a velocity parameter $V$ and, in the unidrectional case, a direction $\theta$.
 
