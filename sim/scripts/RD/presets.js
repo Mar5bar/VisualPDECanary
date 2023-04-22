@@ -30,8 +30,9 @@ export function getPreset(id) {
         reactionStrV:
           "0.02*H(u-0.5)*exp(-0.1*((x-L_x/20)^2+(y-L_y/20)^2))-a*u-b*v",
         reactionStrW: "0",
+        runningOnLoad: false,
         spatialStep: 0.2,
-        tryClickingText: "Press restart!",
+        tryClickingText: "Press play!",
         whatToDraw: "u",
         whatToPlot: "u",
       };
