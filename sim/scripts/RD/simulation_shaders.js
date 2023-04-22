@@ -119,10 +119,10 @@ export function RDShaderUpdateNormal() {
     float LDwwW = 0.5*((Dww*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DwwR*(uvwqR.b - uvwq.b) + DwwL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dww*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DwwT*(uvwqT.b - uvwq.b) + DwwB*(uvwqB.b - uvwq.b)) / dy) / dy;
     float LDqqQ = 0.5*((Dqq*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DqqR*(uvwqR.b - uvwq.b) + DqqL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dqq*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DqqT*(uvwqT.b - uvwq.b) + DqqB*(uvwqB.b - uvwq.b)) / dy) / dy;
 
-    float du = LDuuU + f;
-    float dv = LDvvV + g;
-    float dw = LDwwW + h;
-    float dq = LDqqQ + j;
+    float du = LDuuU + UFUN;
+    float dv = LDvvV + VFUN;
+    float dw = LDwwW + WFUN;
+    float dq = LDqqQ + QFUN;
     vec4 updated = uvwq + dt * vec4(du, dv, dw, dq);
     `;
 }
@@ -146,27 +146,27 @@ export function RDShaderUpdateCross() {
     float LDqwW = 0.5*((Dqw*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DqwR*(uvwqR.b - uvwq.b) + DqwL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dqw*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DqwT*(uvwqT.b - uvwq.b) + DqwB*(uvwqB.b - uvwq.b)) / dy) / dy;
     float LDqqQ = 0.5*((Dqq*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DqqR*(uvwqR.a - uvwq.a) + DqqL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Dqq*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DqqT*(uvwqT.a - uvwq.a) + DqqB*(uvwqB.a - uvwq.a)) / dy) / dy;
 
-    float du = LDuuU + LDuvV + LDuwW + LDuqQ + f;
-    float dv = LDvuU + LDvvV + LDvwW + LDvqQ + g;
-    float dw = LDwuU + LDwvV + LDwwW + LDwqQ + h;
-    float dq = LDquU + LDqvV + LDqwW + LDqqQ + j;
+    float du = LDuuU + LDuvV + LDuwW + LDuqQ + UFUN;
+    float dv = LDvuU + LDvvV + LDvwW + LDvqQ + VFUN;
+    float dw = LDwuU + LDwvV + LDwwW + LDwqQ + WFUN;
+    float dq = LDquU + LDqvV + LDqwW + LDqqQ + QFUN;
     vec4 updated = uvwq + dt * vec4(du, dv, dw, dq);
     `;
 }
 
 export function RDShaderAlgebraicV() {
     return `
-    updated.SPECIES = LDvuU + g;`;
+    updated.SPECIES = LDvuU + VFUN;`;
 }
 
 export function RDShaderAlgebraicW() {
     return `
-    updated.SPECIES = LDwuU + LDwvV + h;`;
+    updated.SPECIES = LDwuU + LDwvV + WFUN;`;
 }
 
 export function RDShaderAlgebraicQ() {
     return `
-    updated.SPECIES = LDquU + LDqvV + LDqwW + j;`;
+    updated.SPECIES = LDquU + LDqvV + LDqwW + QFUN;`;
 }
 
 export function RDShaderDirichletX() {
