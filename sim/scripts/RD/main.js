@@ -4787,15 +4787,20 @@ function waitListener(element, listenerName, val) {
   });
 }
 
-function getReservedStrs() {
+function getReservedStrs(allowSpecies) {
   // Load an RD shader and find floats, vecs, and ivecs.
   let regex = /(?:float|vec\d|ivec\d)\b\s+(\w+)\b/g;
   let str = RDShaderTop() + RDShaderUpdateCross();
-  return [...str.matchAll(regex)].map((x) => x[1]).concat(listOfSpecies);
+  if (allowSpecies) {
+    return [...str.matchAll(regex)].map((x) => x[1]);
+  } else {
+    return [...str.matchAll(regex)].map((x) => x[1]).concat(listOfSpecies);
+  }
 }
 
-function isReservedName(name) {
-  return getReservedStrs().some(function (badName) {
+function isReservedName(name, allowSpecies) {
+  if (allowSpecies == undefined) allowSpecies = false;
+  return getReservedStrs(allowSpecies).some(function (badName) {
     let regex = new RegExp("\\b" + badName + "\\b", "g");
     return regex.test(name);
   });
@@ -4929,9 +4934,9 @@ function setKineticUniformFromString(str) {
     match[1] = replaceDigitsWithWords(match[1]);
     if (isReservedName(match[1])) {
       alert(
-        'The name "' +
+        "The name '" +
           match[1] +
-          "\" is used under the hood, so can't be used as a parameter. Please use a different name for " +
+          "' is used under the hood, so can't be used as a species name. Please , so can't be used as a parameter. Please use a different name for " +
           match[1] +
           "."
       );
@@ -5050,6 +5055,20 @@ function setSpeciesNames(onLoading) {
     .split(" ")
     .slice(0, oldListOfSpecies.length);
 
+  // Check if any reserved names have been used, and stop if so.
+  for (var ind = 0; ind < newSpecies.length; ind++) {
+    if (isReservedName(newSpecies[ind], true)) {
+      alert(
+        "The name '" +
+          newSpecies[ind] +
+          "' is used under the hood, so can't be used as a species name. Please use a different name for " +
+          newSpecies[ind] +
+          "."
+      );
+      return;
+    }
+  }
+
   // If not enough species have been provided, just update those that have been.
   // The length of listOfSpecies is unchanged, preserving the total number of species.
   listOfSpecies = newSpecies.concat(oldListOfSpecies.slice(newSpecies.length));
@@ -5098,6 +5117,20 @@ function setReactionNames(onLoading) {
     .trim()
     .split(" ")
     .slice(0, oldListOfReactions.length);
+
+  // Check if any reserved names have been used, and stop if so.
+  for (var ind = 0; ind < newReactions.length; ind++) {
+    if (isReservedName(newReactions[ind])) {
+      alert(
+        "The name '" +
+          newReactions[ind] +
+          "' is used under the hood, so can't be used as a function name. Please use a different name for " +
+          newReactions[ind] +
+          "."
+      );
+      return;
+    }
+  }
 
   // If not enough reactions have been provided, just update those that have been.
   // The length of listOfReactions is unchanged, preserving the total number of species.
