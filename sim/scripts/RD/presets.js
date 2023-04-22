@@ -3,9 +3,6 @@
 export function getPreset(id) {
   let options;
   switch (id) {
-    case "test":
-      options = {speciesNames: "Aa Bb Cc Dd"};
-      break;
     case "BeamEquation":
       options = {
         algebraicW: true,
