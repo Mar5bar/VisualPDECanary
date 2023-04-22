@@ -86,12 +86,6 @@ export function RDShaderRobinX() {
     `;
 }
 
-export function RDShaderAdvection() {
-    return `
-    vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
-    vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
-    `;
-}
 
 export function RDShaderRobinY() {
     return `
@@ -101,6 +95,20 @@ export function RDShaderRobinY() {
     if (textureCoords.y - step_y < 0.0) {
         uvwqB.SPECIES = uvwqT.SPECIES + 2.0 * dy * robinRHSSPECIES;
     }
+    `;
+}
+
+export function RDShaderAdvectionPreBC() {
+    return `
+    vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
+    vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
+    `;
+}
+
+export function RDShaderAdvectionPostBC() {
+    return `
+    uvwqX = (uvwqR - uvwqL) / (2.0*dx);
+    uvwqY = (uvwqT - uvwqB) / (2.0*dy);
     `;
 }
 

@@ -172,7 +172,8 @@ import {
   RDShaderAlgebraicW,
   RDShaderAlgebraicQ,
   RDShaderEnforceDirichletTop,
-  RDShaderAdvection,
+  RDShaderAdvectionPreBC,
+  RDShaderAdvectionPostBC,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
@@ -2472,9 +2473,10 @@ function setRDEquations() {
   simMaterial.fragmentShader = [
     kineticStr,
     RDShaderTop(),
+    RDShaderAdvectionPreBC(),
     neumannShader,
     robinShader,
-    RDShaderAdvection(),
+    RDShaderAdvectionPostBC(),
     parseReactionStrings(),
     updateShader,
     dirichletShader,
