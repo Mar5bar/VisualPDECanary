@@ -3638,6 +3638,10 @@ function configureGUI() {
   setGUIControllerName(clearValueVController, TeXStrings["vInit"]);
   setGUIControllerName(clearValueWController, TeXStrings["wInit"]);
   setGUIControllerName(clearValueQController, TeXStrings["qInit"]);
+  // Set the names of the algebraic controllers.
+  setGUIControllerName(algebraicVController, "Algebraic " + TeXStrings["v"]);
+  setGUIControllerName(algebraicWController, "Algebraic " + TeXStrings["w"]);
+  setGUIControllerName(algebraicQController, "Algebraic " + TeXStrings["q"]);
 
   // Show/hide the indicator function controller.
   if (options.domainViaIndicatorFun) {
@@ -4071,6 +4075,17 @@ function setEquationDisplayType() {
 
     str = parseStringToTEX(str);
   }
+  // Substitute in customised species names and reactions. Note that we have separated quantities with spaces in the default TEX,
+  // so that these regexes will pick up the species.
+  str = str.replaceAll(/\bu\b/g, listOfSpecies[0]);
+  str = str.replaceAll(/\bv\b/g, listOfSpecies[1]);
+  str = str.replaceAll(/\bw\b/g, listOfSpecies[2]);
+  str = str.replaceAll(/\bq\b/g, listOfSpecies[3]);
+  str = str.replaceAll(/\bf\b/g, listOfReactions[0]);
+  str = str.replaceAll(/\bg\b/g, listOfReactions[1]);
+  str = str.replaceAll(/\bh\b/g, listOfReactions[2]);
+  str = str.replaceAll(/\bj\b/g, listOfReactions[3]);
+
   $("#typeset_equation").html(str);
   if (MathJax.typesetPromise != undefined) {
     MathJax.typesetPromise().then(resizeEquationDisplay);
