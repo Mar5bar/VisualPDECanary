@@ -8,7 +8,7 @@ equation: $\pdd{u}{t}=-D^2 \nabla^4 u-Q$
 ---
 We next consider a (damped) [beam equation](https://en.wikipedia.org/wiki/Euler%E2%80%93Bernoulli_beam_theory):
 
-$$\pdd{u}{t}+ C\pd{u}{t}=-D^2 \pdn{4}{u}{x} u-Q,$$
+$$\pdd{u}{t}+ C\pd{u}{t}=-D^2 \frac{\partial^4 u}{\partial x^4} u-Q,$$
 
 initially with fixed boundary conditions given by
 
@@ -23,7 +23,7 @@ along the boundary. The constant $D$ represents the relative size of the domain 
 * Now go to <span class='click_sequence'>{{ layout.equations }} → **Boundary conditions**</span> and select **Neumann** for $u$, $v$, and $w$. This will use the following 'free end' boundary conditions:
 
 $$
-$$\pdd{u}{x}=0 \quad \text{and} \quad \pdn{3}{u}{x} = 0. $$
+$$\pdd{u}{x}=0 \quad \text{and} \quad \frac{\partial^3 u}{\partial x^3}  = 0. $$
 $$
 
 ## Deformable plates
