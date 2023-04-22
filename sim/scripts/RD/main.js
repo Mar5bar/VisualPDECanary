@@ -2692,6 +2692,16 @@ function loadOptions(preset) {
 
   // Enable backwards compatibility.
   options.brushRadius = options.brushRadius.toString();
+
+  // If either of the images are used in the initial conditions, ensure that the simulation resets when the images are
+  // actually loaded in.
+  let str = [
+    options.clearValueU,
+    options.clearValueV,
+    options.clearValueW,
+    options.clearValueQ,
+  ].join(" ");
+  options.resetOnImageLoad = /\b[ST][RGBA]?\b/.test(str);
 }
 
 function refreshGUI(folder, typeset) {
