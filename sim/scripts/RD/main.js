@@ -1969,6 +1969,7 @@ function render() {
     link.click();
     document.body.removeChild(link);
     setSizes();
+    render();
   }
 }
 
