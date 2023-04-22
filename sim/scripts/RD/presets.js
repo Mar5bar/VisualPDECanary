@@ -3,6 +3,36 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+	case "swiftHohenbergLocalisedAdvection":
+	options = {
+	"algebraicV": true,
+	"autoSetColourRange": true,
+	"brushRadius": "1",
+	"clearValueU": "H(1.5-P)*((cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))+H(P-2.5)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) + cos((y-75+sqrt(3)*(x-75))/2) + cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))",
+	"crossDiffusion": true,
+	"diffusionStrUU": "0",
+	"diffusionStrUV": "-D",
+	"diffusionStrVU": "D",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 150,
+	"dt": 0.001,
+	"kineticParams": "r = -0.28  in  [-2,2];a = 1.6  in  [-2, 2];b = -1  in  [-2, 0.1, 2];c = -1;D = 1;P = 3.0 in  [1, 1, 3];Q = 2.0 in [1,1,2];V = 0.100 in [0,0.01,5];theta = -3.1500000 in  [-6.4,0.01,6.4];",
+	"maxColourValue": 1.4022035598754883,
+	"minColourValue": -0.3871280550956726,
+	"numTimestepsPerFrame": 200,
+	"preset": "swiftHohenbergLocalisedAdvection",
+	"reactionStrU": "(r-1)*u-2*v+a*u^2+b*u^3+H(1.5-Q)*(+ V*(cos(theta)*u_x + sin(theta)*u_y))-H(Q-1.5)*(-V*sqrt((x-L_x/2)^2+(y-L_y/2)^2)*(sin(atan(y-L_y/2,
+	x-L_x/2))*u_x-cos(atan(y-L_y/2,
+	x-L_x/2))*u_y))",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"typesetCustomEqs": false,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
       case "GrayScottGlidersAdvecting":
 	options = {
 	"boundaryConditionsU": "neumann",
