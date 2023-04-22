@@ -3,6 +3,32 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+      case "GrayScottGlidersAdvecting":
+	options = {
+	"boundaryConditionsU": "neumann",
+	"boundaryConditionsV": "neumann",
+	"brushRadius": "5",
+	"clearValueU": "0",
+	"clearValueV": "1",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "2",
+	"diffusionStrWW": "0",
+	"domainScale": 1000,
+	"kineticParams": "a  =  0.014  in  [0,
+	 0.1];b  =  0.054  in  [0.04,
+	 0.1];theta = -3.1500000 in  [-6.4,
+	 0.01,
+	 6.4];V=0.02;",
+	"maxColourValue": 0.5,
+	"preset": "GrayScottGlidersAdvecting",
+	"reactionStrU": "u^2*v - (a+b)*u + V*(cos(theta)*u_x + sin(theta)*u_y)",
+	"reactionStrV": "-u^2*v + a*(1 - v)",
+	"reactionStrW": "0",
+	"spatialStep": 3,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
     case "BeamEquation":
       options = {
         algebraicW: true,
