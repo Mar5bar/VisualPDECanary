@@ -14,5 +14,4 @@ Each of the examples on this page will be a variation of a previous example inco
 
 * The boundaries here will destroy the patterns as mass will be lost at boundaries orthogonal to the flow. Decreasing $V$ will allow the moving spots to survive longer, whereas increasing it will lead to wave-selection.
 
-
-
+## Localized Swift-Hohenberg Swiftly Moving
