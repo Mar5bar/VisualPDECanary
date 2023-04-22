@@ -23,7 +23,7 @@ along the boundary. The constant $D$ represents the relative size of the domain 
 * Now go to <span class='click_sequence'>{{ layout.equations }} → **Boundary conditions**</span> and select **Neumann** for $u$, $v$, and $w$. This will use the following 'free end' boundary conditions:
 
 $$
-$$\pdd{u}{x}=0 \quad \text{and} \quad \frac{\partial^3 u}{\partial x^3}  = 0. $$
+\pdd{u}{x}=0 \quad \text{and} \quad \frac{\partial^3 u}{\partial x^3}  = 0. 
 $$
 
 ## Deformable plates
