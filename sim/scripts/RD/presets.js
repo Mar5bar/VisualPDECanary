@@ -3,6 +3,44 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+      
+      
+      case "BeamEquation":
+	options = {
+	"algebraicW": true,
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
+	"boundaryConditionsW": "dirichlet",
+	"brushValue": "-8",
+	"brushRadius": "0.5",
+	"cameraTheta": 0.5,
+	"cameraPhi": 0,
+	"clearValueU": "0",
+	"crossDiffusion": true,
+	"diffusionStrUU": "D_c*D",
+	"diffusionStrVV": "0",
+	"diffusionStrVW": "-D",
+	"diffusionStrWU": "D",
+	"diffusionStrWW": "0",
+	"dimension": "1",
+	"drawIn3D": true,
+	"dt": 0.0001,
+	"kineticParams": "D  =  10;Q  =  0.000;C  =  0;D_c  =  0.1;",
+	"maxColourValue": 2.5,
+	"minColourValue": -8,
+	"numSpecies": "3",
+	"plotType": "line",
+	"preset": "BeamEquation",
+	"reactionStrU": "v",
+	"reactionStrV": "-Q-C*v",
+	"reactionStrW": "0",
+	"squareCanvas": true,
+	"typeOfBrush": "vline",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	"undefined": true,
+};
+break;
     case "maze":
       options = {
         boundaryConditionsU: "dirichlet",
