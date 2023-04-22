@@ -57,4 +57,4 @@ which is the plate equation for $D_c=0$. The parameter $D_c$ is used to prevent 
 ## 3D deformations
 
 
-* Load the [interactive simulation](/sim/?preset=plateEquation3D). 
+* Load the [interactive simulation](/sim/?preset=plateEquation3D) and click! This is the same simulation as in the 2D plate equation above, but shown in 3D with a view that can be rotated.
