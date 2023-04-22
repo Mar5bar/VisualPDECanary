@@ -107,7 +107,7 @@ let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
   kineticParamsCounter = 0;
-const listOfSpecies = ["u", "v", "w", "q"];
+let listOfSpecies = ["u", "v", "w", "q"];
 const listOfTypes = [
   "1Species", // 0
   "2Species", // 1
@@ -2835,20 +2835,7 @@ function speciesToChannelChar(speciesStr) {
 }
 
 function speciesToChannelInd(speciesStr) {
-  let channel;
-  if (speciesStr.includes("u")) {
-    channel = 0;
-  }
-  if (speciesStr.includes("v")) {
-    channel = 1;
-  }
-  if (speciesStr.includes("w")) {
-    channel = 2;
-  }
-  if (speciesStr.includes("q")) {
-    channel = 3;
-  }
-  return channel;
+  return listOfSpecies.indexOf(speciesStr);
 }
 
 function setBCsGUI() {
