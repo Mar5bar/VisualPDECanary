@@ -108,6 +108,8 @@ let parametersFolder,
   kineticParamsLabels = [],
   kineticParamsCounter = 0;
 let listOfSpecies = ["u", "v", "w", "q"];
+let anySpeciesRegexStr =
+  "(?:" + listOfSpecies.map((x) => "(?:" + x + ")").join("|") + ")";
 const listOfTypes = [
   "1Species", // 0
   "2Species", // 1
@@ -179,7 +181,7 @@ import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
-import { getPreset } from "./presets.js";
+import { getPreset, getUserTextFields } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import * as THREE from "../three.module.js";
 import { OrbitControls } from "../OrbitControls.js";
@@ -190,6 +192,9 @@ let equationTEX = equationTEXFun();
 
 // Setup some configurable options.
 options = {};
+
+// List of fields that the user can type into.
+const userTextFields = getUserTextFields();
 
 // An object with functions as fields that the GUI controllers can call.
 funsObj = {
@@ -2240,16 +2245,21 @@ function parseShaderString(str) {
         return "safepow(" + p1 + "," + p2 + ")";
     }
   });
-
-  // Replace u, v, w, and q with uvwq.r, uvwq.g, uvwq.b, and uwvq.a via placeholders.
-  str = str.replaceAll(/\b([uvwq])\b/g, function (m, d) {
-    return "uvwq." + speciesToChannelChar(d);
-  });
+  // Replace u, v, w, and q with uvwq.r, uvwq.g, uvwq.b, and uwvq.a.
+  str = str.replaceAll(
+    RegExp("\\b(" + anySpeciesRegexStr + ")\\b", "g"),
+    function (m, d) {
+      return "uvwq." + speciesToChannelChar(d);
+    }
+  );
 
   // Replace u_x, u_y etc with uvwqX.r and uvwqY.r, etc.
-  str = str.replaceAll(/\b([uvwq])_([xy])\b/g, function (m, d1, d2) {
-    return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
-  });
+  str = str.replaceAll(
+    RegExp("\\b(" + anySpeciesRegexStr + ")_([xy])\\b", "g"),
+    function (m, d1, d2) {
+      return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
+    }
+  );
 
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
   str = replaceDigitsWithWords(str);
@@ -2300,30 +2310,54 @@ function setRDEquations() {
   // Create a Neumann shader block for each species separately, which is just a special case of Robin.
   if (options.boundaryConditionsU == "neumann") {
     neumannShader += parseRobinRHS(options.neumannStrU, listOfSpecies[0]);
-    neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[0]);
+    neumannShader += selectSpeciesInShaderStr(
+      RDShaderRobinX(),
+      listOfSpecies[0]
+    );
     if (options.dimension > 1) {
-      neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), listOfSpecies[0]);
+      neumannShader += selectSpeciesInShaderStr(
+        RDShaderRobinY(),
+        listOfSpecies[0]
+      );
     }
   }
   if (options.boundaryConditionsV == "neumann") {
     neumannShader += parseRobinRHS(options.neumannStrV, listOfSpecies[1]);
-    neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[1]);
+    neumannShader += selectSpeciesInShaderStr(
+      RDShaderRobinX(),
+      listOfSpecies[1]
+    );
     if (options.dimension > 1) {
-      neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), listOfSpecies[1]);
+      neumannShader += selectSpeciesInShaderStr(
+        RDShaderRobinY(),
+        listOfSpecies[1]
+      );
     }
   }
   if (options.boundaryConditionsW == "neumann") {
     neumannShader += parseRobinRHS(options.neumannStrW, listOfSpecies[2]);
-    neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[2]);
+    neumannShader += selectSpeciesInShaderStr(
+      RDShaderRobinX(),
+      listOfSpecies[2]
+    );
     if (options.dimension > 1) {
-      neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), listOfSpecies[2]);
+      neumannShader += selectSpeciesInShaderStr(
+        RDShaderRobinY(),
+        listOfSpecies[2]
+      );
     }
   }
   if (options.boundaryConditionsQ == "neumann") {
     neumannShader += parseRobinRHS(options.neumannStrQ, listOfSpecies[3]);
-    neumannShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[3]);
+    neumannShader += selectSpeciesInShaderStr(
+      RDShaderRobinX(),
+      listOfSpecies[3]
+    );
     if (options.dimension > 1) {
-      neumannShader += selectSpeciesInShaderStr(RDShaderRobinY(), listOfSpecies[3]);
+      neumannShader += selectSpeciesInShaderStr(
+        RDShaderRobinY(),
+        listOfSpecies[3]
+      );
     }
   }
 
@@ -2406,28 +2440,40 @@ function setRDEquations() {
     robinShader += parseRobinRHS(options.robinStrU, listOfSpecies[0]);
     robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[0]);
     if (options.dimension > 1) {
-      robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), listOfSpecies[0]);
+      robinShader += selectSpeciesInShaderStr(
+        RDShaderRobinY(),
+        listOfSpecies[0]
+      );
     }
   }
   if (options.boundaryConditionsV == "robin") {
     robinShader += parseRobinRHS(options.robinStrV, listOfSpecies[1]);
     robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[1]);
     if (options.dimension > 1) {
-      robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), listOfSpecies[1]);
+      robinShader += selectSpeciesInShaderStr(
+        RDShaderRobinY(),
+        listOfSpecies[1]
+      );
     }
   }
   if (options.boundaryConditionsW == "robin") {
     robinShader += parseRobinRHS(options.robinStrW, listOfSpecies[2]);
     robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[2]);
     if (options.dimension > 1) {
-      robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), listOfSpecies[2]);
+      robinShader += selectSpeciesInShaderStr(
+        RDShaderRobinY(),
+        listOfSpecies[2]
+      );
     }
   }
   if (options.boundaryConditionsQ == "robin") {
     robinShader += parseRobinRHS(options.robinStrQ, listOfSpecies[3]);
     robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[3]);
     if (options.dimension > 1) {
-      robinShader += selectSpeciesInShaderStr(RDShaderRobinY(), listOfSpecies[3]);
+      robinShader += selectSpeciesInShaderStr(
+        RDShaderRobinY(),
+        listOfSpecies[3]
+      );
     }
   }
 
@@ -2447,17 +2493,26 @@ function setRDEquations() {
 
   // If v should be algebraic, append this to the normal update shader.
   if (options.algebraicV && options.crossDiffusion) {
-    updateShader += selectSpeciesInShaderStr(RDShaderAlgebraicV(), listOfSpecies[1]);
+    updateShader += selectSpeciesInShaderStr(
+      RDShaderAlgebraicV(),
+      listOfSpecies[1]
+    );
   }
 
   // If w should be algebraic, append this to the normal update shader.
   if (options.algebraicW && options.crossDiffusion) {
-    updateShader += selectSpeciesInShaderStr(RDShaderAlgebraicW(), listOfSpecies[2]);
+    updateShader += selectSpeciesInShaderStr(
+      RDShaderAlgebraicW(),
+      listOfSpecies[2]
+    );
   }
 
   // If q should be algebraic, append this to the normal update shader.
   if (options.algebraicQ && options.crossDiffusion) {
-    updateShader += selectSpeciesInShaderStr(RDShaderAlgebraicQ(), listOfSpecies[3]);
+    updateShader += selectSpeciesInShaderStr(
+      RDShaderAlgebraicQ(),
+      listOfSpecies[3]
+    );
   }
 
   // Iff the user has entered u_x, u_y etc in a diffusion coefficient, it will be present in
@@ -2636,10 +2691,6 @@ function loadPreset(preset) {
   setCanvasShape();
   resize();
 
-  // Set the draw, display, and clear shaders.
-  setDrawAndDisplayShaders();
-  setClearShader();
-
   // Update any uniforms.
   updateUniforms();
 
@@ -2687,6 +2738,9 @@ function loadOptions(preset) {
 
   // Loop through newOptions and overwrite anything already present.
   Object.assign(options, newOptions);
+
+  // Set custom species names.
+  setSpeciesNames(true);
 
   // Set a flag if we will be showing all tools.
   setShowAllToolsFlag();
@@ -2826,12 +2880,8 @@ function selectSpeciesInShaderStr(shaderStr, species) {
 }
 
 function speciesToChannelChar(speciesStr) {
-  let channel = "";
   let listOfChannels = "rgba";
-  for (let i = 0; i < speciesStr.length; i++) {
-    channel += listOfChannels[speciesToChannelInd(speciesStr[i])];
-  }
-  return channel;
+  return listOfChannels[speciesToChannelInd(speciesStr)];
 }
 
 function speciesToChannelInd(speciesStr) {
@@ -3825,10 +3875,16 @@ function configureOptions() {
       break;
     case 2:
       // Ensure that species 1 or 2 is being displayed on the screen (and the brush target).
-      if ((options.whatToDraw == listOfSpecies[2]) | (options.whatToDraw == listOfSpecies[3])) {
+      if (
+        (options.whatToDraw == listOfSpecies[2]) |
+        (options.whatToDraw == listOfSpecies[3])
+      ) {
         options.whatToDraw = listOfSpecies[0];
       }
-      if ((options.whatToPlot == listOfSpecies[2]) | (options.whatToPlot == listOfSpecies[3])) {
+      if (
+        (options.whatToPlot == listOfSpecies[2]) |
+        (options.whatToPlot == listOfSpecies[3])
+      ) {
         options.whatToPlot = listOfSpecies[0];
       }
       options.algebraicW = false;
@@ -3939,9 +3995,7 @@ function updateProblem() {
   configureOptions();
   configureGUI();
   setKineticUniforms();
-  updateWhatToPlot();
-  setBrushType();
-  setRDEquations();
+  updateShaders();
   setEquationDisplayType();
   resetSim();
 }
@@ -4663,7 +4717,7 @@ function formatColourbarLabels(min, max) {
   const depth = 3;
   // Check if both numbers are close to zero, in which case use exponential notation.
   if (Math.abs(min) < 0.001 && Math.abs(max) < 0.001) {
-    return [min.toExponential(depth-1), max.toExponential(depth-1)];
+    return [min.toExponential(depth - 1), max.toExponential(depth - 1)];
   }
   // Otherwise, use the shorter of dp or sig fig for each.
   return [shortestStringNum(min, depth), shortestStringNum(max, depth)];
@@ -5019,6 +5073,8 @@ function updateShaders() {
   setClearShader();
   setBrushType();
   updateWhatToPlot();
+  setDrawAndDisplayShaders();
+  setPostFunFragShader();
 }
 
 function replaceDigitsWithWords(strIn) {
@@ -5094,4 +5150,45 @@ function updateGUIDropdown(controller, labels, values) {
     innerHTMLStr += str;
   }
   controller.domElement.children[0].innerHTML = innerHTMLStr;
+}
+
+function setSpeciesNames(initFlag) {
+  const oldListOfSpecies = listOfSpecies;
+  const newSpecies = options.speciesNames
+    .replaceAll(/\W+/g, " ")
+    .trim()
+    .split(" ");
+  
+  // If more than four species have been entered, return and alert the user.
+  if (oldListOfSpecies.length < newSpecies.length) {
+    alert("VisualPDE currently only supports four species names.");
+    return;
+  }
+
+  // If not enough species have been provided, just update those that have been.
+  listOfSpecies = newSpecies.concat(oldListOfSpecies.slice(newSpecies.length));
+
+  // Define a non-capturing string that is equivalent to the old [uvwq] in regexes.
+  anySpeciesRegexStr =
+    "(?:" + listOfSpecies.map((x) => "(?:" + x + ")").join("|") + ")";
+
+  // Go through every single field in options and swap out the old species for the new ones.
+  let regex;
+  Object.keys(options).forEach(function (key) {
+    for (var ind = 0; ind < newSpecies.length; ind++) {
+      regex = new RegExp("\\b(" + oldListOfSpecies[ind] + ")\\b","g");
+      // If the property is a user-editable text field that isn't speciesNames, do the substitution.
+      if (key != "speciesNames" && userTextFields.includes(key)) {
+        options[key] = options[key].replaceAll(regex, newSpecies[ind]);
+      }
+    }
+  });
+
+  // If this is an initialisation step, return here to avoid duplicating updates.
+  if (initFlag) return;
+
+  // Update the UI with the new species names.
+
+  // Refresh the shaders.
+  updateShaders();
 }
