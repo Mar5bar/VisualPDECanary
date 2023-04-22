@@ -5065,10 +5065,10 @@ function setSpeciesNames(onLoading) {
   let regex;
   Object.keys(options).forEach(function (key) {
     for (var ind = 0; ind < newSpecies.length; ind++) {
-      regex = new RegExp("\\b(" + oldListOfSpecies[ind] + ")\\b", "g");
+      regex = new RegExp("\\b" + oldListOfSpecies[ind] + "(_[xy])?\\b", "g");
       // If the property is a user-editable text field that isn't speciesNames, do the substitution.
       if (key != "speciesNames" && userTextFields.includes(key)) {
-        options[key] = options[key].replaceAll(regex, newSpecies[ind]);
+        options[key] = options[key].replaceAll(regex, newSpecies[ind] + "$1");
       }
     }
   });
