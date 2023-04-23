@@ -3,6 +3,30 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+	case "KlausmeierModel":
+	options = {
+	"brushAction": "smoothadd",
+	"brushValue": "5",
+	"brushRadius": "2",
+	"clearValueU": "RAND",
+	"clearValueV": "1",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "1",
+	"diffusionStrWW": "0",
+	"dt": 0.001,
+	"kineticParams": "a = 2 in [0.01, 0.01, 10];m = 0.540 in [0.2,0.01,1];V=50;",
+	"maxColourValue": 16,
+	"minColourValue": 0.000002911286856033257,
+	"preset": "KlausmeierModel",
+	"reactionNames": "f g",
+	"reactionStrU": "w*n^2-m*n",
+	"reactionStrV": "a-w-w*n^2+V*w_x",
+	"reactionStrW": "0",
+	"speciesNames": "n w",
+	"whatToDraw": "n",
+	"whatToPlot": "n",
+};
+break;
 	case "BistableAdvection":
 	options = {
 	"brushRadius": "1",
