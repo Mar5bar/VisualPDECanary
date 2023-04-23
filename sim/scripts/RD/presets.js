@@ -3,74 +3,78 @@
 export function getPreset(id) {
   let options;
   switch (id) {
-	case "KlausmeierModel":
-	options = {
-	"brushAction": "smoothadd",
-	"brushValue": "5",
-	"brushRadius": "2",
-	"clearValueU": "RAND",
-	"clearValueV": "1",
-	"diffusionStrUU": "1",
-	"diffusionStrVV": "1",
-	"diffusionStrWW": "0",
-	"dt": 0.001,
-	"kineticParams": "a = 2 in [0.01, 0.01, 10];m = 0.540 in [0.2,0.01,1];V=50;",
-	"maxColourValue": 16,
-	"minColourValue": 0.000002911286856033257,
-	"preset": "KlausmeierModel",
-	"reactionNames": "f g h j",
-	"reactionStrU": "w*n^2-m*n",
-	"reactionStrV": "a-w-w*n^2+V*w_x",
-	"reactionStrW": "0",
-	"speciesNames": "n w q r",
-	"whatToDraw": "n",
-	"whatToPlot": "n",
-};
-break;
-	case "BistableAdvection":
-	options = {
-	"brushRadius": "1",
-	"clearValueU": "0",
-	"diffusionStrUU": "0.02",
-	"diffusionStrVV": "0",
-	"diffusionStrWW": "0",
-	"dt": 0.005,
-	"kineticParams": "a = 0.48  in  [0, 0.01, 1];theta = -2.0100000 in  [-6.4, 0.01, 6.4];V = 1.570 in  [0, 0.01, 5];",
-	"numSpecies": 1,
-	"preset": "BistableAdvection",
-	"reactionStrU": "u*(u-a)*(1-u)+V*(cos(theta)*u_x + sin(theta)*u_y)",
-	"reactionStrV": "0",
-	"reactionStrW": "0",
-	"spatialStep": 0.3,
-	"whatToDraw": "u",
-	"whatToPlot": "u",
-};
-break;
-  case "AdvectionEquation":
-	options = {
-	"boundaryConditionsU": "neumann",
-	"brushAction": "smoothreplace",
-	"brushValue": "2",
-	"brushRadius": "4",
-	"clearValueU": "0",
-	"diffusionStrUU": "1",
-	"diffusionStrVV": "0",
-	"diffusionStrWW": "0",
-	"domainScale": 320,
-	"dt": 0.002,
-	"kineticParams": "Q = 2.0 in  [1, 1, 2];V = 0.140 in  [0, 0.01, 5];theta  =  -3.1500000  in  [-6.4, 0.01, 6.4];",
-	"numSpecies": 1,
-	"preset": "AdvectionEquation",
-	"reactionStrU": "V*(H(1.5-Q)*(cos(theta)*u_x + sin(theta)*u_y)-H(Q-1.5)*(-(y-L_y/2)*u_x+(x-L_x/2)*u_y))",
-	"reactionStrV": "0",
-	"reactionStrW": "0",
-	"spatialStep": 1.25,
-	"squareCanvas": true,
-	"typesetCustomEqs": false,
-	"whatToDraw": "u",
-	"whatToPlot": "u",
-};
-break;
+    case "KlausmeierModel":
+      options = {
+        brushAction: "smoothadd",
+        brushValue: "5",
+        brushRadius: "2",
+        clearValueU: "RAND",
+        clearValueV: "1",
+        diffusionStrUU: "1",
+        diffusionStrVV: "1",
+        diffusionStrWW: "0",
+        dt: 0.001,
+        kineticParams:
+          "a = 2 in [0.01, 0.01, 10];m = 0.540 in [0.2,0.01,1];V=50;",
+        maxColourValue: 16,
+        minColourValue: 0.000002911286856033257,
+        preset: "KlausmeierModel",
+        reactionNames: "f g h j",
+        reactionStrU: "w*n^2-m*n",
+        reactionStrV: "a-w-w*n^2+V*w_x",
+        reactionStrW: "0",
+        speciesNames: "n w q r",
+        whatToDraw: "n",
+        whatToPlot: "n",
+      };
+      break;
+    case "BistableAdvection":
+      options = {
+        brushRadius: "1",
+        clearValueU: "0",
+        diffusionStrUU: "0.02",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        dt: 0.005,
+        kineticParams:
+          "a = 0.48  in  [0, 0.01, 1];theta = -2.0100000 in  [-6.4, 0.01, 6.4];V = 1.570 in  [0, 0.01, 5];",
+        numSpecies: 1,
+        preset: "BistableAdvection",
+        reactionStrU: "u*(u-a)*(1-u)+V*(cos(theta)*u_x + sin(theta)*u_y)",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        spatialStep: 0.3,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
+    case "AdvectionEquation":
+      options = {
+        boundaryConditionsU: "neumann",
+        brushAction: "smoothreplace",
+        brushValue: "2",
+        brushRadius: "4",
+        clearValueU: "0",
+        diffusionStrUU: "1",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        domainScale: 320,
+        dt: 0.002,
+        kineticParams:
+          "Q = 2.0 in  [1, 1, 2];V = 0.140 in  [0, 0.01, 5];theta  =  -3.1500000  in  [-6.4, 0.01, 6.4];",
+        numSpecies: 1,
+        preset: "AdvectionEquation",
+        reactionStrU:
+          "V*(H(1.5-Q)*(cos(theta)*u_x + sin(theta)*u_y)-H(Q-1.5)*(-(y-L_y/2)*u_x+(x-L_x/2)*u_y))",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        spatialStep: 1.25,
+        squareCanvas: true,
+        typesetCustomEqs: false,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
     case "BurgersEquation":
       options = {
         boundaryConditionsU: "neumann",
@@ -95,7 +99,7 @@ break;
         reactionStrW: "0",
         spatialStep: 2,
         squareCanvas: true,
-	suppressTryClickingPopup: true,
+        suppressTryClickingPopup: true,
         timeDisplay: true,
         typeOfBrush: "vline",
         whatToDraw: "u",

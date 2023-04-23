@@ -109,6 +109,8 @@ let parametersFolder,
   kineticParamsCounter = 0;
 const defaultSpecies = ["u", "v", "w", "q"];
 const defaultReactions = ["f", "g", "h", "j"];
+const placeholderSp = ["SPECIES1", "SPECIES2", "SPECIES3", "SPECIES4"];
+const placeholderRe = ["REACTION1", "REACTION2", "REACTION3", "REACTION4"];
 const listOfTypes = [
   "1Species", // 0
   "2Species", // 1
@@ -201,8 +203,8 @@ let TeXStrings = {
 };
 let listOfSpecies = defaultSpecies;
 let listOfReactions = defaultReactions;
-let anySpeciesRegexStr =
-  "(?:" + listOfSpecies.map((x) => "(?:" + x + ")").join("|") + ")";
+let anySpeciesRegexStrs;
+genAnySpeciesRegexStrs();
 
 // Setup some configurable options.
 options = {};
@@ -2028,7 +2030,7 @@ function resetSim() {
 function parseReactionStrings() {
   // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
   let out = "";
-
+  console.log(parseShaderString(options.reactionStrU));
   // Prepare the UFUN string.
   out += "float UFUN = " + parseShaderString(options.reactionStrU) + ";\n";
   // Prepare the VFUN string.
@@ -2212,7 +2214,7 @@ function parseShaderString(str) {
   });
   // Replace u, v, w, and q with uvwq.r, uvwq.g, uvwq.b, and uwvq.a.
   str = str.replaceAll(
-    RegExp("\\b(" + anySpeciesRegexStr + ")\\b", "g"),
+    RegExp("\\b(" + anySpeciesRegexStrs[0] + ")\\b", "g"),
     function (m, d) {
       return "uvwq." + speciesToChannelChar(d);
     }
@@ -2220,7 +2222,7 @@ function parseShaderString(str) {
 
   // Replace u_x, u_y etc with uvwqX.r and uvwqY.r, etc.
   str = str.replaceAll(
-    RegExp("\\b(" + anySpeciesRegexStr + ")_([xy])\\b", "g"),
+    RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_([xy])\\b", "g"),
     function (m, d1, d2) {
       return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
     }
@@ -3698,6 +3700,7 @@ function configureGUI() {
 
 function configureOptions() {
   // Configure any options that depend on the equation type.
+  let regex;
 
   if (options.domainViaIndicatorFun) {
     // Only allow Dirichlet conditions.
@@ -3748,7 +3751,8 @@ function configureOptions() {
       options.reactionStrQ = "0";
 
       // If the f string contains any v,w, or q references, clear it.
-      if (/\b[vwq]\b/.test(options.reactionStrU)) {
+      regex = new RegExp("\\b(" + anySpeciesRegexStrs[1] + ")\\b");
+      if (regex.test(options.reactionStrU)) {
         options.reactionStrU = "0";
       }
       break;
@@ -3793,10 +3797,11 @@ function configureOptions() {
       options.reactionStrQ = "0";
 
       // If the f or g strings contains any w or q references, clear them.
-      if (/\b[wq]\b/.test(options.reactionStrU)) {
+      regex = new RegExp("\\b(" + anySpeciesRegexStrs[2] + ")\\b");
+      if (regex.test(options.reactionStrU)) {
         options.reactionStrU = "0";
       }
-      if (/\b[wq]\b/.test(options.reactionStrV)) {
+      if (regex.test(options.reactionStrV)) {
         options.reactionStrV = "0";
       }
       break;
@@ -3825,13 +3830,14 @@ function configureOptions() {
       options.reactionStrQ = "0";
 
       // If the f, g, or h strings contains any q references, clear them.
-      if (/\bq\b/.test(options.reactionStrU)) {
+      regex = new RegExp("\\b(" + anySpeciesRegexStrs[3] + ")\\b");
+      if (regex.test(options.reactionStrU)) {
         options.reactionStrU = "0";
       }
-      if (/\bq\b/.test(options.reactionStrV)) {
+      if (regex.test(options.reactionStrV)) {
         options.reactionStrV = "0";
       }
-      if (/\bq\b/.test(options.reactionStrW)) {
+      if (regex.test(options.reactionStrW)) {
         options.reactionStrW = "0";
       }
       break;
@@ -5069,24 +5075,28 @@ function setSpeciesNames(onLoading) {
     }
   }
 
-  // If not enough species have been provided, just update those that have been.
+  // If not enough species have been provided, add placeholders for those remaining.
   // The length of listOfSpecies is unchanged, preserving the total number of species.
-  listOfSpecies = newSpecies.concat(oldListOfSpecies.slice(newSpecies.length));
+  listOfSpecies = newSpecies.concat(placeholderSp.slice(newSpecies.length));
 
   // If nothing has changed, just return without doing anything else.
   if (arrayEquals(oldListOfSpecies, listOfSpecies)) return;
 
-  // Define a non-capturing string that is equivalent to the old [uvwq] in regexes.
-  anySpeciesRegexStr =
-    "(?:" + listOfSpecies.map((x) => "(?:" + x + ")").join("|") + ")";
+  // Define a non-capturing strings that are equivalent to the old [uvwq], [vwq] etc in regexes.
+  genAnySpeciesRegexStrs();
 
-  // Go through every single field in options and swap out the old species for the new ones.
+  // Go through every single field in options and swap out the old species for the new ones,
+  // via a placeholder.
   let regex;
   Object.keys(options).forEach(function (key) {
-    for (var ind = 0; ind < newSpecies.length; ind++) {
-      regex = new RegExp("\\b" + oldListOfSpecies[ind] + "(_[xy])?\\b", "g");
-      // If the property is a user-editable text field that isn't speciesNames, do the substitution.
-      if (key != "speciesNames" && userTextFields.includes(key)) {
+    if (key != "speciesNames" && userTextFields.includes(key)) {
+      // Substitute in placeholders first.
+      for (var ind = 0; ind < listOfSpecies.length; ind++) {
+        regex = new RegExp("\\b" + oldListOfSpecies[ind] + "(_[xy])?\\b", "g");
+      }
+      // Now swap the placeholders for the new species.
+      for (var ind = 0; ind < listOfSpecies.length; ind++) {
+        regex = new RegExp("\\b" + placeholderSp[ind] + "(_[xy])?\\b", "g");
         options[key] = options[key].replaceAll(regex, newSpecies[ind] + "$1");
       }
     }
@@ -5099,8 +5109,14 @@ function setSpeciesNames(onLoading) {
   };
   Object.keys(defaultStrings).forEach(function (key) {
     TeXStrings[key] = defaultStrings[key];
-    for (var ind = 0; ind < newSpecies.length; ind++) {
+    // Substitute in placeholders first.
+    for (var ind = 0; ind < listOfSpecies.length; ind++) {
       regex = new RegExp("\\b(" + defaultSpecies[ind] + ")\\b", "g");
+      TeXStrings[key] = TeXStrings[key].replaceAll(regex, placeholderSp[ind]);
+    }
+    // Now swap the placeholders for the new species.
+    for (var ind = 0; ind < listOfSpecies.length; ind++) {
+      regex = new RegExp("\\b(" + placeholderSp[ind] + ")\\b", "g");
       TeXStrings[key] = TeXStrings[key].replaceAll(regex, newSpecies[ind]);
     }
   });
@@ -5132,22 +5148,29 @@ function setReactionNames(onLoading) {
     }
   }
 
-  // If not enough reactions have been provided, just update those that have been.
+  // If not enough reactions have been provided, add placeholders for those remaining.
   // The length of listOfReactions is unchanged, preserving the total number of species.
   listOfReactions = newReactions.concat(
-    oldListOfReactions.slice(newReactions.length)
+    placeholderRe.slice(newReactions.length)
   );
 
   // If nothing has changed, just return without doing anything else.
   if (arrayEquals(oldListOfReactions, listOfReactions)) return;
 
-  // Configuring the GUI requires strings for f, g etc, so we'll modify the default strings for use here.
+  // Configuring the GUI requires strings for f, g etc, so we'll modify the default strings for use here
+  // via placeholders.
   let regex;
   const defaultStrings = getDefaultTeXLabelsReaction();
   Object.keys(defaultStrings).forEach(function (key) {
     TeXStrings[key] = defaultStrings[key];
-    for (var ind = 0; ind < newReactions.length; ind++) {
+    // Substitute in placeholders first.
+    for (var ind = 0; ind < listOfReactions.length; ind++) {
       regex = new RegExp("\\b(" + defaultReactions[ind] + ")\\b", "g");
+      TeXStrings[key] = TeXStrings[key].replaceAll(regex, placeholderRe[ind]);
+    }
+    // Now swap the placeholders for the new reactions.
+    for (var ind = 0; ind < listOfReactions.length; ind++) {
+      regex = new RegExp("\\b(" + placeholderRe[ind] + ")\\b", "g");
       TeXStrings[key] = TeXStrings[key].replaceAll(regex, newReactions[ind]);
     }
   });
@@ -5159,4 +5182,18 @@ function setReactionNames(onLoading) {
 
 function arrayEquals(a, b) {
   return a.every((val, index) => val === b[index]);
+}
+
+function genAnySpeciesRegexStrs() {
+  anySpeciesRegexStrs = [];
+  for (let i = 0; i < listOfReactions.length; i++) {
+    anySpeciesRegexStrs.push(
+      "(?:" +
+        listOfSpecies
+          .slice(i)
+          .map((x) => "(?:" + x + ")")
+          .join("|") +
+        ")"
+    );
+  }
 }
