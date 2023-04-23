@@ -109,18 +109,8 @@ let parametersFolder,
   kineticParamsCounter = 0;
 const defaultSpecies = ["u", "v", "w", "q"];
 const defaultReactions = ["f", "g", "h", "j"];
-const placeholderSp = [
-  "__SPECIES1__",
-  "__SPECIES2__",
-  "__SPECIES3__",
-  "__SPECIES4__",
-];
-const placeholderRe = [
-  "__REACTS1__",
-  "__REACTS2__",
-  "__REACTS3__",
-  "__REACTS4__",
-];
+const placeholderSp = ["SPECIES1", "SPECIES2", "SPECIES3", "SPECIES4"];
+const placeholderRe = ["REACT1", "REACT2", "REACT3", "REACT4"];
 const listOfTypes = [
   "1Species", // 0
   "2Species", // 1
@@ -3898,6 +3888,7 @@ function setEquationDisplayType() {
 
   // Swap out default symbols for new.
   str = replaceSymbolsInStr(str, defaultSpecies, listOfSpecies);
+  str = replaceSymbolsInStr(str, defaultReactions, listOfReactions);
 
   if (options.typesetCustomEqs) {
     // Define a list of strings that will be used to make regexes, and replace default species
@@ -3968,10 +3959,26 @@ function setEquationDisplayType() {
     });
 
     // Replace the reaction strings.
-    str = replaceUserDefReac(str, /\bf\b/g, options.reactionStrU);
-    str = replaceUserDefReac(str, /\bg\b/g, options.reactionStrV);
-    str = replaceUserDefReac(str, /\bh\b/g, options.reactionStrW);
-    str = replaceUserDefReac(str, /\bj\b/g, options.reactionStrQ);
+    str = replaceUserDefReac(
+      str,
+      RegExp("\\b" + listOfReactions[0] + "\\b", "g"),
+      options.reactionStrU
+    );
+    str = replaceUserDefReac(
+      str,
+      RegExp("\\b" + listOfReactions[1] + "\\b", "g"),
+      options.reactionStrV
+    );
+    str = replaceUserDefReac(
+      str,
+      RegExp("\\b" + listOfReactions[2] + "\\b", "g"),
+      options.reactionStrW
+    );
+    str = replaceUserDefReac(
+      str,
+      RegExp("\\b" + listOfReactions[3] + "\\b", "g"),
+      options.reactionStrQ
+    );
 
     // Look through the string for any open brackets ( or [ followed by a + or -.
     let regex = /\(\s*\+/g;
@@ -5069,10 +5076,6 @@ function setSpeciesNames(onLoading) {
 }
 
 function setReactionNames(onLoading) {
-  let oldListOfReactions;
-  if (listOfReactions != undefined) {
-    oldListOfReactions = listOfReactions;
-  }
   const newReactions = options.reactionNames
     .replaceAll(/\W+/g, " ")
     .trim()
@@ -5113,6 +5116,7 @@ function setReactionNames(onLoading) {
   // Don't update the GUI if we're just loading in, as this will be done as part of loading.
   if (onLoading) return;
   configureGUI();
+  setEquationDisplayType();
 }
 
 function genAnySpeciesRegexStrs() {
