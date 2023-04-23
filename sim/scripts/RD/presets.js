@@ -19,11 +19,10 @@ export function getPreset(id) {
         maxColourValue: 16,
         minColourValue: 0.000002911286856033257,
         preset: "KlausmeierModel",
-        reactionNames: "f g h j",
         reactionStrU: "w*n^2-m*n",
         reactionStrV: "a-w-w*n^2+V*w_x",
         reactionStrW: "0",
-        speciesNames: "n w q r",
+        speciesNames: "n w",
         whatToDraw: "n",
         whatToPlot: "n",
       };
@@ -1822,7 +1821,6 @@ export function getUserTextFields() {
     "robinStrV",
     "robinStrW",
     "robinStrQ",
-    "speciesNames",
     "whatToDraw",
     "whatToPlot",
   ];

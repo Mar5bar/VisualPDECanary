@@ -5061,7 +5061,7 @@ function setSpeciesNames(onLoading) {
 
   // If we're not loading in, go through options and replace the old species with the new ones.
   Object.keys(options).forEach(function (key) {
-    if (key != "speciesNames" && userTextFields.includes(key)) {
+    if (userTextFields.includes(key)) {
       options[key] = replaceSymbolsInStr(
         options[key],
         oldListOfSpecies,
