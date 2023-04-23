@@ -3,86 +3,90 @@
 export function getPreset(id) {
   let options;
   switch (id) {
-	case "BurgersEquation":
-	options = {
-	"boundaryConditionsU": "neumann",
-	"brushRadius": "5",
-	"cameraTheta": 0.5,
-	"cameraPhi": 0,
-	"clearValueU": "0.1*exp(-0.00005*(x-L_x/5)^2)",
-	"diffusionStrUU": "epsilon",
-	"diffusionStrVV": "0",
-	"diffusionStrWW": "0",
-	"dimension": "1",
-	"domainScale": 1000,
-	"dt": 0.04,
-	"kineticParams": "epsilon=0.05;",
-	"maxColourValue": 0.1,
-	"numSpecies": "1",
-	"numTimestepsPerFrame": 400,
-	"plotType": "line",
-	"preset": "BurgersEquation",
-	"reactionStrU": "- u * u_x",
-	"reactionStrV": "0",
-	"reactionStrW": "0",
-	"spatialStep": 2,
-	"squareCanvas": true,
-	"timeDisplay": true,
-	"typeOfBrush": "vline",
-	"whatToDraw": "u",
-	"whatToPlot": "u",
-};
-break;
-	case "swiftHohenbergLocalisedAdvection":
-	options = {
-	"algebraicV": true,
-	"autoSetColourRange": true,
-	"brushRadius": "1",
-	"clearValueU": "H(1.5-P)*((cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))+H(P-2.5)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) + cos((y-75+sqrt(3)*(x-75))/2) + cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))",
-	"crossDiffusion": true,
-	"diffusionStrUU": "0",
-	"diffusionStrUV": "-D",
-	"diffusionStrVU": "D",
-	"diffusionStrVV": "0",
-	"diffusionStrWW": "0",
-	"domainScale": 150,
-	"dt": 0.001,
-	"kineticParams": "r = -0.28  in  [-2,2];a = 1.6  in  [-2, 2];b = -1  in  [-2, 0.1, 2];c = -1;D = 1;P = 3.0 in  [1, 1, 3];Q = 1.0 in [1,1,2];V = 0.300 in [0,0.01,5];theta = -3.1500000 in  [-6.4,0.01,6.4];",
-	"maxColourValue": 1.4022035598754883,
-	"minColourValue": -0.3871280550956726,
-	"numTimestepsPerFrame": 200,
-	"preset": "swiftHohenbergLocalisedAdvection",
-	"reactionStrU": "(r-1)*u-2*v+a*u^2+b*u^3+H(1.5-Q)*(V*(cos(theta)*u_x + sin(theta)*u_y))-H(Q-1.5)*(-V*sqrt((x-L_x/2)^2+(y-L_y/2)^2)*(sin(atan(y-L_y/2,x-L_x/2))*u_x-cos(atan(y-L_y/2,x-L_x/2))*u_y))",
-	"reactionStrV": "0",
-	"reactionStrW": "0",
-	"squareCanvas": true,
-	"typesetCustomEqs": false,
-	"whatToDraw": "u",
-	"whatToPlot": "u",
-};
-break;
-      case "GrayScottGlidersAdvecting":
-	options = {
-	"boundaryConditionsU": "neumann",
-	"boundaryConditionsV": "neumann",
-	"brushRadius": "5",
-	"clearValueU": "0",
-	"clearValueV": "1",
-	"diffusionStrUU": "1",
-	"diffusionStrVV": "2",
-	"diffusionStrWW": "0",
-	"domainScale": 1000,
-	"kineticParams": "a=0.014 in [0,0.1];b=0.054  in  [0.04, 0.1];theta=-3.1500000 in [-6.4,0.01,6.4];V=0.02;",
-	"maxColourValue": 0.5,
-	"preset": "GrayScottGlidersAdvecting",
-	"reactionStrU": "u^2*v - (a+b)*u + V*(cos(theta)*u_x + sin(theta)*u_y)",
-	"reactionStrV": "-u^2*v + a*(1 - v)",
-	"reactionStrW": "0",
-	"spatialStep": 3,
-	"whatToDraw": "u",
-	"whatToPlot": "u",
-};
-break;
+    case "BurgersEquation":
+      options = {
+        boundaryConditionsU: "neumann",
+        brushRadius: "5",
+        cameraTheta: 0.5,
+        cameraPhi: 0,
+        clearValueU: "0.1*exp(-0.00005*(x-L_x/5)^2)",
+        diffusionStrUU: "epsilon",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        dimension: "1",
+        domainScale: 1000,
+        dt: 0.04,
+        kineticParams: "epsilon=0.05;",
+        maxColourValue: 0.1,
+        numSpecies: "1",
+        numTimestepsPerFrame: 400,
+        plotType: "line",
+        preset: "BurgersEquation",
+        reactionStrU: "- u * u_x",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        spatialStep: 2,
+        squareCanvas: true,
+        timeDisplay: true,
+        typeOfBrush: "vline",
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
+    case "swiftHohenbergLocalisedAdvection":
+      options = {
+        algebraicV: true,
+        autoSetColourRange: true,
+        brushRadius: "1",
+        clearValueU:
+          "H(1.5-P)*((cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))+H(P-2.5)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) + cos((y-75+sqrt(3)*(x-75))/2) + cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))",
+        crossDiffusion: true,
+        diffusionStrUU: "0",
+        diffusionStrUV: "-D",
+        diffusionStrVU: "D",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        domainScale: 150,
+        dt: 0.001,
+        kineticParams:
+          "r = -0.28  in  [-2,2];a = 1.6  in  [-2, 2];b = -1  in  [-2, 0.1, 2];c = -1;D = 1;P = 3.0 in  [1, 1, 3];Q = 1.0 in [1,1,2];V = 0.300 in [0,0.01,5];theta = -3.1500000 in  [-6.4,0.01,6.4];",
+        maxColourValue: 1.4022035598754883,
+        minColourValue: -0.3871280550956726,
+        numTimestepsPerFrame: 200,
+        preset: "swiftHohenbergLocalisedAdvection",
+        reactionStrU:
+          "(r-1)*u-2*v+a*u^2+b*u^3+H(1.5-Q)*(V*(cos(theta)*u_x + sin(theta)*u_y))-H(Q-1.5)*(-V*sqrt((x-L_x/2)^2+(y-L_y/2)^2)*(sin(atan(y-L_y/2,x-L_x/2))*u_x-cos(atan(y-L_y/2,x-L_x/2))*u_y))",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        squareCanvas: true,
+        typesetCustomEqs: false,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
+    case "GrayScottGlidersAdvecting":
+      options = {
+        boundaryConditionsU: "neumann",
+        boundaryConditionsV: "neumann",
+        brushRadius: "5",
+        clearValueU: "0",
+        clearValueV: "1",
+        diffusionStrUU: "1",
+        diffusionStrVV: "2",
+        diffusionStrWW: "0",
+        domainScale: 1000,
+        kineticParams:
+          "a=0.014 in [0,0.1];b=0.054  in  [0.04, 0.1];theta=-3.1500000 in [-6.4,0.01,6.4];V=0.02;",
+        maxColourValue: 0.5,
+        preset: "GrayScottGlidersAdvecting",
+        reactionStrU: "u^2*v - (a+b)*u + V*(cos(theta)*u_x + sin(theta)*u_y)",
+        reactionStrV: "-u^2*v + a*(1 - v)",
+        reactionStrW: "0",
+        spatialStep: 3,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
     case "BeamEquation":
       options = {
         algebraicW: true,
@@ -1570,8 +1574,7 @@ break;
         whatToPlot: "u",
       };
       break;
-      
-      
+
     case "swiftHohenbergLocalised":
       options = {
         algebraicV: true,
@@ -1579,7 +1582,8 @@ break;
         boundaryConditionsU: "periodic",
         boundaryConditionsV: "periodic",
         brushRadius: 1,
-        clearValueU: "H(1.5-P)*((cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))+H(P-2.5)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) + cos((y-75+sqrt(3)*(x-75))/2) + cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))",
+        clearValueU:
+          "H(1.5-P)*((cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))+H(P-2.5)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) + cos((y-75+sqrt(3)*(x-75))/2) + cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))",
         crossDiffusion: true,
         diffusionStrUU: "0",
         diffusionStrUV: "-D",
