@@ -51,6 +51,7 @@ break;
         reactionStrW: "0",
         spatialStep: 2,
         squareCanvas: true,
+	suppressTryClickingPopup: true,
         timeDisplay: true,
         typeOfBrush: "vline",
         whatToDraw: "u",
