@@ -13,6 +13,6 @@ This is a brief example of messy boundary conditions and spatial heterogeneity i
 
 $$\begin{aligned}\pd{w}{t} &= a-w -wn^2+v\pd{w}{x} + \nabla^2w,\\ \pd{n}{t} &= wn^2 - mn + \nabla^2n\end{aligned}$$
 
-* Load the [interactive simulation](/sim/?preset=KlausmeierModel)
+* Load the [interactive simulation](/sim/?preset=KlausmeierModel). Note that this model always has a plant-extinction state being stable.
 
-* The simulation starts by DESCRIBER PARAMETER REGIMES FOR REGULAR AND IRREGULAR
+* The simulation starts in a parameter regime where pure stripes (regular patterns) are favored over time. If you instead set $a=0.35$, $m=0.4$, the environment will be much harsher, leading to less regular patterns. However, this also makes the extinction state more stable, so you may have to brush sufficient initial data to overcome this Allee-like effect.
