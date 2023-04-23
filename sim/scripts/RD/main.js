@@ -1112,8 +1112,6 @@ function initGUI(startOpen) {
       .add(options, "speciesNames")
       .name("Species names")
       .onFinishChange(function () {
-        console.log(options);
-        console.log(kineticParamsStrs);
         setSpeciesNames();
       });
   }
@@ -2220,7 +2218,7 @@ function parseShaderString(str) {
         return "safepow(" + p1 + "," + p2 + ")";
     }
   });
-  // Replace u, v, w, and q with uvwq.r, uvwq.g, uvwq.b, and uwvq.a.
+  // Replace species with uvwq.[rgba].
   str = str.replaceAll(
     RegExp("\\b(" + anySpeciesRegexStrs[0] + ")\\b", "g"),
     function (m, d) {
@@ -2228,7 +2226,7 @@ function parseShaderString(str) {
     }
   );
 
-  // Replace u_x, u_y etc with uvwqX.r and uvwqY.r, etc.
+  // Replace species_x, species_y etc with uvwqX.r and uvwqY.r, etc.
   str = str.replaceAll(
     RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_([xy])\\b", "g"),
     function (m, d1, d2) {
@@ -3897,143 +3895,83 @@ function setEquationDisplayType() {
   // Given an equation type (specified as an integer selector), set the type of
   // equation in the UI element that displays the equations.
   let str = equationTEX[equationType];
+
+  // Swap out default symbols for new.
+  str = replaceSymbolsInStr(str, defaultSpecies, listOfSpecies);
+
   if (options.typesetCustomEqs) {
-    // Replace any customisable parts of the TEX with the user input.
+    // Define a list of strings that will be used to make regexes, and replace default species
+    // with new species.
+    let regexStrs = {};
+    regexStrs["D"] = "\\b(D) (\\\\vnabla u)";
+    regexStrs["U"] = "\\b(D_{u}) (\\\\vnabla u)";
+    regexStrs["UU"] = "\\b(D_{u u}) (\\\\vnabla u)";
+    regexStrs["V"] = "\\b(D_{v}) (\\\\vnabla v)";
+    regexStrs["VV"] = "\\b(D_{v v}) (\\\\vnabla v)";
+    regexStrs["W"] = "\\b(D_{w}) (\\\\vnabla w)";
+    regexStrs["WW"] = "\\b(D_{w w}) (\\\\vnabla w)";
+    regexStrs["Q"] = "\\b(D_{q}) (\\\\vnabla q)";
+    regexStrs["QQ"] = "\\b(D_{q q}) (\\\\vnabla q)";
+    regexStrs["UV"] = "\\b(D_{u v}) (\\\\vnabla v)";
+    regexStrs["UW"] = "\\b(D_{u w}) (\\\\vnabla w)";
+    regexStrs["UQ"] = "\\b(D_{u q}) (\\\\vnabla q)";
+    regexStrs["VU"] = "\\b(D_{v u}) (\\\\vnabla u)";
+    regexStrs["VW"] = "\\b(D_{v w}) (\\\\vnabla w)";
+    regexStrs["VQ"] = "\\b(D_{v q}) (\\\\vnabla q)";
+    regexStrs["WU"] = "\\b(D_{w u}) (\\\\vnabla u)";
+    regexStrs["WV"] = "\\b(D_{w v}) (\\\\vnabla v)";
+    regexStrs["WQ"] = "\\b(D_{w q}) (\\\\vnabla q)";
+    regexStrs["QU"] = "\\b(D_{q u}) (\\\\vnabla u)";
+    regexStrs["QV"] = "\\b(D_{q v}) (\\\\vnabla v)";
+    regexStrs["QW"] = "\\b(D_{q w}) (\\\\vnabla w)";
+
+    let associatedStrs = {};
+    associatedStrs["D"] = options.diffusionStrUU;
+    associatedStrs["U"] = options.diffusionStrUU;
+    associatedStrs["UU"] = options.diffusionStrUU;
+    associatedStrs["V"] = options.diffusionStrVV;
+    associatedStrs["VV"] = options.diffusionStrVV;
+    associatedStrs["W"] = options.diffusionStrWW;
+    associatedStrs["WW"] = options.diffusionStrWW;
+    associatedStrs["Q"] = options.diffusionStrQQ;
+    associatedStrs["QQ"] = options.diffusionStrQQ;
+    associatedStrs["UV"] = options.diffusionStrUV;
+    associatedStrs["UW"] = options.diffusionStrUW;
+    associatedStrs["UQ"] = options.diffusionStrUQ;
+    associatedStrs["VU"] = options.diffusionStrVU;
+    associatedStrs["VW"] = options.diffusionStrVW;
+    associatedStrs["VQ"] = options.diffusionStrVQ;
+    associatedStrs["WU"] = options.diffusionStrWU;
+    associatedStrs["WV"] = options.diffusionStrWV;
+    associatedStrs["WQ"] = options.diffusionStrWQ;
+    associatedStrs["QU"] = options.diffusionStrQU;
+    associatedStrs["QV"] = options.diffusionStrQV;
+    associatedStrs["QW"] = options.diffusionStrQW;
+
+    // Replace species in the default strings.
+    Object.keys(regexStrs).forEach(function (key) {
+      regexStrs[key] = replaceSymbolsInStr(
+        regexStrs[key],
+        defaultSpecies,
+        listOfSpecies
+      );
+    });
+
+    // For each diffusion string, replace it with the value in associatedStrs.
+    Object.keys(regexStrs).forEach(function (key) {
+      str = replaceUserDefDiff(
+        str,
+        RegExp(regexStrs[key], "g"),
+        associatedStrs[key],
+        "[]"
+      );
+    });
+
+    // Replace the reaction strings.
     str = replaceUserDefReac(str, /\bf\b/g, options.reactionStrU);
     str = replaceUserDefReac(str, /\bg\b/g, options.reactionStrV);
     str = replaceUserDefReac(str, /\bh\b/g, options.reactionStrW);
     str = replaceUserDefReac(str, /\bj\b/g, options.reactionStrQ);
-
-    str = replaceUserDefDiff(
-      str,
-      /\b(D) (\\vnabla u)/g,
-      options.diffusionStrUU,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{u}) (\\vnabla u)/g,
-      options.diffusionStrUU,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{u u}) (\\vnabla u)/g,
-      options.diffusionStrUU,
-      "[]"
-    );
-
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{v}) (\\vnabla v)/g,
-      options.diffusionStrVV,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{v v}) (\\vnabla v)/g,
-      options.diffusionStrVV,
-      "[]"
-    );
-
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{w}) (\\vnabla w)/g,
-      options.diffusionStrWW,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{w w}) (\\vnabla w)/g,
-      options.diffusionStrWW,
-      "[]"
-    );
-
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{q}) (\\vnabla q)/g,
-      options.diffusionStrQQ,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{q q}) (\\vnabla q)/g,
-      options.diffusionStrQQ,
-      "[]"
-    );
-
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{u v}) (\\vnabla v)/g,
-      options.diffusionStrUV,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{u w}) (\\vnabla w)/g,
-      options.diffusionStrUW,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{u q}) (\\vnabla q)/g,
-      options.diffusionStrUQ,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{v u}) (\\vnabla u)/g,
-      options.diffusionStrVU,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{v w}) (\\vnabla w)/g,
-      options.diffusionStrVW,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{v q}) (\\vnabla q)/g,
-      options.diffusionStrVQ,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{w u}) (\\vnabla u)/g,
-      options.diffusionStrWU,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{w v}) (\\vnabla v)/g,
-      options.diffusionStrWV,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{w q}) (\\vnabla q)/g,
-      options.diffusionStrWQ,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{q u}) (\\vnabla u)/g,
-      options.diffusionStrQU,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{q v}) (\\vnabla v)/g,
-      options.diffusionStrQV,
-      "[]"
-    );
-    str = replaceUserDefDiff(
-      str,
-      /\b(D_{q w}) (\\vnabla w)/g,
-      options.diffusionStrQW,
-      "[]"
-    );
 
     // Look through the string for any open brackets ( or [ followed by a + or -.
     let regex = /\(\s*\+/g;
@@ -4061,16 +3999,28 @@ function setEquationDisplayType() {
     str = str.replaceAll(regex, "=0$1");
 
     // If we have [-blah] inside a divergence operator, move the minus sign outside.
-    regex =
-      /(\\vnabla\s*\\cdot\s*\()\[-([\w\{\}]*)\]\s*(\\vnabla\s*([uvwq])\s*\))/g;
+    regex = new RegExp(
+      "(\\\\vnabla\\s*\\\\cdot\\s*\\()\\[-([\\w\\{\\}]*)\\]\\s*(\\\\vnabla\\s*(" +
+        anySpeciesRegexStrs[0] +
+        ")\\s*\\))",
+      "g"
+    );
     str = str.replaceAll(regex, "-$1$2$3");
 
     // Look for div(const * grad(blah)), and move the constant outside the bracket.
     // By this point, a single word (with no square brackets) in the divergence must be a single expression.
     // If it's not x,y,u,v,w,q move it outside the brackets.
-    regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}\*\^]*)\s*\\vnabla\s*([uvwq])\s*\)/g;
+    regex = new RegExp(
+      "\\\\vnabla\\s*\\\\cdot\\s*\\(([\\w\\{\\}\\*\\^]*)\\s*\\\\vnabla\\s*(" +
+        anySpeciesRegexStrs[0] +
+        ")\\s*\\)",
+      "g"
+    );
     str = str.replaceAll(regex, function (match, g1, g2) {
-      if (!/\b[xyuvwq]\b/g.test(g1)) {
+      const innerRegex = new RegExp(
+        "\\b[xy]|" + anySpeciesRegexStrs[0] + "\\b"
+      );
+      if (!innerRegex.test(g1)) {
         return g1 + " \\lap " + g2;
       } else {
         return match;
@@ -4089,9 +4039,9 @@ function setEquationDisplayType() {
       regex = new RegExp("\\\\lap\\s*(" + anySpeciesRegexStrs[0] + ")", "g");
       str = str.replaceAll(regex, "\\textstyle \\pdd{$1}{x}");
     }
-
-    str = parseStringToTEX(str);
   }
+
+  str = parseStringToTEX(str);
 
   $("#typeset_equation").html(str);
   if (MathJax.typesetPromise != undefined) {
@@ -4821,8 +4771,8 @@ function replaceUserDefReac(str, regex, input) {
     return str.replaceAll(regex, "");
   // If the input contains letters (like parameters), insert it with delimiters.
   if (input.match(/[a-zA-Z]/)) return str.replaceAll(regex, input);
-  // If it's just a scalar, keep the original but converted to user-specified variables.
-  return str;
+  // If it's just a scalar, keep the original, but replace old species with new.
+  return replaceSymbolsInStr(str, defaultSpecies, listOfSpecies);
 }
 
 function replaceUserDefDiff(str, regex, input, delimiters) {
@@ -4846,8 +4796,8 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
       return str.replaceAll(regex, input + "$2");
     }
   }
-  // If it's just a scalar, keep the original.
-  return str;
+  // If it's just a scalar, keep the original, but replace old species with new.
+  return replaceSymbolsInStr(str, defaultSpecies, listOfSpecies);
 }
 
 function configurePlotType() {
@@ -5089,7 +5039,11 @@ function setSpeciesNames(onLoading) {
     ...getDefaultTeXLabelsBCsICs(),
   };
   Object.keys(defaultStrings).forEach(function (key) {
-    replaceSymbolsInStr(defaultStrings[key], defaultSpecies, listOfSpecies);
+    TeXStrings[key] = replaceSymbolsInStr(
+      defaultStrings[key],
+      defaultSpecies,
+      listOfSpecies
+    );
   });
 
   // Define a non-capturing strings that are equivalent to the old [uvwq], [vwq] etc in regexes.
@@ -5112,7 +5066,6 @@ function setSpeciesNames(onLoading) {
   configureGUI();
   updateShaders();
   setEquationDisplayType();
-  resetSim();
 }
 
 function setReactionNames(onLoading) {
@@ -5162,10 +5115,6 @@ function setReactionNames(onLoading) {
   configureGUI();
 }
 
-function arrayEquals(a, b) {
-  return a.every((val, index) => val === b[index]);
-}
-
 function genAnySpeciesRegexStrs() {
   anySpeciesRegexStrs = [];
   for (let i = 0; i < listOfSpecies.length; i++) {
@@ -5182,8 +5131,6 @@ function genAnySpeciesRegexStrs() {
 
 function replaceSymbolsInStr(str, originals, replacements) {
   // We'll also pick up originals_[xy] to capture derivatives.
-  console.log(originals)
-  console.log(replacements)
   const placeholders = new Array(originals.length)
     .fill(0)
     .map((x, i) => "PLACE" + i.toString());
