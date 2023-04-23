@@ -109,8 +109,18 @@ let parametersFolder,
   kineticParamsCounter = 0;
 const defaultSpecies = ["u", "v", "w", "q"];
 const defaultReactions = ["f", "g", "h", "j"];
-const placeholderSp = ["SPECIES1", "SPECIES2", "SPECIES3", "SPECIES4"];
-const placeholderRe = ["REACTION1", "REACTION2", "REACTION3", "REACTION4"];
+const placeholderSp = [
+  "__SPECIES1__",
+  "__SPECIES2__",
+  "__SPECIES3__",
+  "__SPECIES4__",
+];
+const placeholderRe = [
+  "__REACTS1__",
+  "__REACTS2__",
+  "__REACTS3__",
+  "__REACTS4__",
+];
 const listOfTypes = [
   "1Species", // 0
   "2Species", // 1
@@ -201,10 +211,7 @@ let TeXStrings = {
   ...getDefaultTeXLabelsReaction(),
   ...getDefaultTeXLabelsBCsICs(),
 };
-let listOfSpecies = defaultSpecies;
-let listOfReactions = defaultReactions;
-let anySpeciesRegexStrs;
-genAnySpeciesRegexStrs();
+let listOfSpecies, listOfReactions, anySpeciesRegexStrs;
 
 // Setup some configurable options.
 options = {};
@@ -1105,6 +1112,8 @@ function initGUI(startOpen) {
       .add(options, "speciesNames")
       .name("Species names")
       .onFinishChange(function () {
+        console.log(options);
+        console.log(kineticParamsStrs);
         setSpeciesNames();
       });
   }
@@ -2030,7 +2039,6 @@ function resetSim() {
 function parseReactionStrings() {
   // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
   let out = "";
-  console.log(parseShaderString(options.reactionStrU));
   // Prepare the UFUN string.
   out += "float UFUN = " + parseShaderString(options.reactionStrU) + ";\n";
   // Prepare the VFUN string.
@@ -4070,27 +4078,20 @@ function setEquationDisplayType() {
     });
 
     // Replace u_x, u_y etc with \pd{u}{x} etc.
-    str = str.replaceAll(/\b([uvwq])_([xy])\b/g, "\\textstyle \\pd{$1}{$2}");
+    regex = new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_([xy])\\b", "g");
+    str = str.replaceAll(regex, "\\textstyle \\pd{$1}{$2}");
 
     // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
     if (options.dimension == 1) {
       str = str.replaceAll(/\\vnabla\s*\\cdot/g, "\\textstyle \\pd{}{x}");
-      str = str.replaceAll(/\\vnabla\s*([uvwq])/g, "\\textstyle \\pd{$1}{x}");
-      str = str.replaceAll(/\\lap\s*([uvwq])/g, "\\textstyle \\pdd{$1}{x}");
+      regex = new RegExp("\\\\vnabla\\s*(" + anySpeciesRegexStrs[0] + ")", "g");
+      str = str.replaceAll(regex, "\\textstyle \\pd{$1}{x}");
+      regex = new RegExp("\\\\lap\\s*(" + anySpeciesRegexStrs[0] + ")", "g");
+      str = str.replaceAll(regex, "\\textstyle \\pdd{$1}{x}");
     }
 
     str = parseStringToTEX(str);
   }
-  // Substitute in customised species names and reactions. Note that we have separated quantities with spaces in the default TEX,
-  // so that these regexes will pick up the species.
-  str = str.replaceAll(/\bu\b/g, listOfSpecies[0]);
-  str = str.replaceAll(/\bv\b/g, listOfSpecies[1]);
-  str = str.replaceAll(/\bw\b/g, listOfSpecies[2]);
-  str = str.replaceAll(/\bq\b/g, listOfSpecies[3]);
-  str = str.replaceAll(/\bf\b/g, listOfReactions[0]);
-  str = str.replaceAll(/\bg\b/g, listOfReactions[1]);
-  str = str.replaceAll(/\bh\b/g, listOfReactions[2]);
-  str = str.replaceAll(/\bj\b/g, listOfReactions[3]);
 
   $("#typeset_equation").html(str);
   if (MathJax.typesetPromise != undefined) {
@@ -4820,7 +4821,7 @@ function replaceUserDefReac(str, regex, input) {
     return str.replaceAll(regex, "");
   // If the input contains letters (like parameters), insert it with delimiters.
   if (input.match(/[a-zA-Z]/)) return str.replaceAll(regex, input);
-  // If it's just a scalar, keep the original.
+  // If it's just a scalar, keep the original but converted to user-specified variables.
   return str;
 }
 
@@ -5054,12 +5055,15 @@ function updateGUIDropdown(controller, labels, values) {
 }
 
 function setSpeciesNames(onLoading) {
-  const oldListOfSpecies = listOfSpecies;
+  let oldListOfSpecies;
+  if (listOfSpecies != undefined) {
+    oldListOfSpecies = listOfSpecies;
+  }
   const newSpecies = options.speciesNames
     .replaceAll(/\W+/g, " ")
     .trim()
     .split(" ")
-    .slice(0, oldListOfSpecies.length);
+    .slice(0, defaultSpecies.length);
 
   // Check if any reserved names have been used, and stop if so.
   for (var ind = 0; ind < newSpecies.length; ind++) {
@@ -5079,61 +5083,48 @@ function setSpeciesNames(onLoading) {
   // The length of listOfSpecies is unchanged, preserving the total number of species.
   listOfSpecies = newSpecies.concat(placeholderSp.slice(newSpecies.length));
 
-  // If nothing has changed, just return without doing anything else.
-  if (arrayEquals(oldListOfSpecies, listOfSpecies)) return;
-
-  // Define a non-capturing strings that are equivalent to the old [uvwq], [vwq] etc in regexes.
-  genAnySpeciesRegexStrs();
-
-  // Go through every single field in options and swap out the old species for the new ones,
-  // via a placeholder.
-  let regex;
-  Object.keys(options).forEach(function (key) {
-    if (key != "speciesNames" && userTextFields.includes(key)) {
-      // Substitute in placeholders first.
-      for (var ind = 0; ind < listOfSpecies.length; ind++) {
-        regex = new RegExp("\\b" + oldListOfSpecies[ind] + "(_[xy])?\\b", "g");
-      }
-      // Now swap the placeholders for the new species.
-      for (var ind = 0; ind < listOfSpecies.length; ind++) {
-        regex = new RegExp("\\b" + placeholderSp[ind] + "(_[xy])?\\b", "g");
-        options[key] = options[key].replaceAll(regex, newSpecies[ind] + "$1");
-      }
-    }
-  });
-
   // Configuring the GUI requires strings for D_{u u} etc, so we'll modify the strings here for later use.
   const defaultStrings = {
     ...getDefaultTeXLabelsDiffusion(),
     ...getDefaultTeXLabelsBCsICs(),
   };
   Object.keys(defaultStrings).forEach(function (key) {
-    TeXStrings[key] = defaultStrings[key];
-    // Substitute in placeholders first.
-    for (var ind = 0; ind < listOfSpecies.length; ind++) {
-      regex = new RegExp("\\b(" + defaultSpecies[ind] + ")\\b", "g");
-      TeXStrings[key] = TeXStrings[key].replaceAll(regex, placeholderSp[ind]);
-    }
-    // Now swap the placeholders for the new species.
-    for (var ind = 0; ind < listOfSpecies.length; ind++) {
-      regex = new RegExp("\\b(" + placeholderSp[ind] + ")\\b", "g");
-      TeXStrings[key] = TeXStrings[key].replaceAll(regex, newSpecies[ind]);
-    }
+    replaceSymbolsInStr(defaultStrings[key], defaultSpecies, listOfSpecies);
   });
+
+  // Define a non-capturing strings that are equivalent to the old [uvwq], [vwq] etc in regexes.
+  genAnySpeciesRegexStrs();
 
   // Don't update the problem if we're just loading in, as this will be done as part of loading.
   if (onLoading) return;
-  updateProblem();
+
+  // If we're not loading in, go through options and replace the old species with the new ones.
+  Object.keys(options).forEach(function (key) {
+    if (key != "speciesNames" && userTextFields.includes(key)) {
+      options[key] = replaceSymbolsInStr(
+        options[key],
+        oldListOfSpecies,
+        listOfSpecies
+      );
+    }
+  });
+  configureOptions();
+  configureGUI();
+  updateShaders();
+  setEquationDisplayType();
+  resetSim();
 }
 
 function setReactionNames(onLoading) {
-  const oldListOfReactions = listOfReactions;
+  let oldListOfReactions;
+  if (listOfReactions != undefined) {
+    oldListOfReactions = listOfReactions;
+  }
   const newReactions = options.reactionNames
     .replaceAll(/\W+/g, " ")
     .trim()
     .split(" ")
-    .slice(0, oldListOfReactions.length);
-
+    .slice(0, defaultReactions.length);
   // Check if any reserved names have been used, and stop if so.
   for (var ind = 0; ind < newReactions.length; ind++) {
     if (isReservedName(newReactions[ind])) {
@@ -5154,25 +5145,16 @@ function setReactionNames(onLoading) {
     placeholderRe.slice(newReactions.length)
   );
 
-  // If nothing has changed, just return without doing anything else.
-  if (arrayEquals(oldListOfReactions, listOfReactions)) return;
-
   // Configuring the GUI requires strings for f, g etc, so we'll modify the default strings for use here
   // via placeholders.
   let regex;
   const defaultStrings = getDefaultTeXLabelsReaction();
   Object.keys(defaultStrings).forEach(function (key) {
-    TeXStrings[key] = defaultStrings[key];
-    // Substitute in placeholders first.
-    for (var ind = 0; ind < listOfReactions.length; ind++) {
-      regex = new RegExp("\\b(" + defaultReactions[ind] + ")\\b", "g");
-      TeXStrings[key] = TeXStrings[key].replaceAll(regex, placeholderRe[ind]);
-    }
-    // Now swap the placeholders for the new reactions.
-    for (var ind = 0; ind < listOfReactions.length; ind++) {
-      regex = new RegExp("\\b(" + placeholderRe[ind] + ")\\b", "g");
-      TeXStrings[key] = TeXStrings[key].replaceAll(regex, newReactions[ind]);
-    }
+    TeXStrings[key] = replaceSymbolsInStr(
+      defaultStrings[key],
+      defaultReactions,
+      listOfReactions
+    );
   });
 
   // Don't update the GUI if we're just loading in, as this will be done as part of loading.
@@ -5186,7 +5168,7 @@ function arrayEquals(a, b) {
 
 function genAnySpeciesRegexStrs() {
   anySpeciesRegexStrs = [];
-  for (let i = 0; i < listOfReactions.length; i++) {
+  for (let i = 0; i < listOfSpecies.length; i++) {
     anySpeciesRegexStrs.push(
       "(?:" +
         listOfSpecies
@@ -5196,4 +5178,25 @@ function genAnySpeciesRegexStrs() {
         ")"
     );
   }
+}
+
+function replaceSymbolsInStr(str, originals, replacements) {
+  // We'll also pick up originals_[xy] to capture derivatives.
+  console.log(originals)
+  console.log(replacements)
+  const placeholders = new Array(originals.length)
+    .fill(0)
+    .map((x, i) => "PLACE" + i.toString());
+  let regex;
+  // Substitute in placeholders first.
+  for (var ind = 0; ind < originals.length; ind++) {
+    regex = new RegExp("\\b(" + originals[ind] + ")(_[xy])?\\b", "g");
+    str = str.replaceAll(regex, placeholders[ind] + "$2");
+  }
+  // Now swap the placeholders for the new reactions.
+  for (var ind = 0; ind < placeholders.length; ind++) {
+    regex = new RegExp("\\b(" + placeholders[ind] + ")(_[xy])?\\b", "g");
+    str = str.replaceAll(regex, replacements[ind] + "$2");
+  }
+  return str;
 }

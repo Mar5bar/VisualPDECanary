@@ -1810,7 +1810,6 @@ export function getUserTextFields() {
     "dirichletStrW",
     "dirichletStrQ",
     "domainIndicatorFun",
-    "kineticParams",
     "neumannStrU",
     "neumannStrV",
     "neumannStrW",
