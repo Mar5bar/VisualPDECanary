@@ -3,6 +3,25 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+	case "BistableAdvection":
+	options = {
+	"brushRadius": "1",
+	"clearValueU": "0",
+	"diffusionStrUU": "0.02",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dt": 0.005,
+	"kineticParams": "a = 0.48  in  [0, 0.01, 1];theta = -2.0100000 in  [-6.4, 0.01, 6.4];V = 1.570 in  [0, 0.01, 5];",
+	"numSpecies": 1,
+	"preset": "BistableAdvection",
+	"reactionStrU": "u*(u-a)*(1-u)+V*(cos(theta)*u_x + sin(theta)*u_y)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 0.3,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
   case "AdvectionEquation":
 	options = {
 	"boundaryConditionsU": "neumann",
