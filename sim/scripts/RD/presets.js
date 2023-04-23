@@ -6,6 +6,7 @@ export function getPreset(id) {
   case "AdvectionEquation":
 	options = {
 	"boundaryConditionsU": "neumann",
+	"brushAction": "smoothreplace",
 	"brushValue": "2",
 	"brushRadius": "4",
 	"clearValueU": "0",
