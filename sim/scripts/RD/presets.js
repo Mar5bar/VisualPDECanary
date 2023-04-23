@@ -17,7 +17,7 @@ export function getPreset(id) {
 	"kineticParams": "Q = 2.0 in  [1, 1, 2];V = 0.140 in  [0, 0.01, 5];theta  =  -3.1500000  in  [-6.4, 0.01, 6.4];",
 	"numSpecies": 1,
 	"preset": "AdvectionEquation",
-	"reactionStrU": "H(1.5-Q)*(V*(cos(theta)*u_x + sin(theta)*u_y))-H(Q-1.5)*(-V*sqrt((x-L_x/2)^2+(y-L_y/2)^2)*(sin(atan(y-L_y/2,x-L_x/2))*u_x-cos(atan(y-L_y/2,x-L_x/2))*u_y))",
+	"reactionStrU": "V*(H(1.5-Q)*(cos(theta)*u_x + sin(theta)*u_y)-H(Q-1.5)*(-(y-L_y/2)*u_x+(x-L_x/2)*u_y))",
 	"reactionStrV": "0",
 	"reactionStrW": "0",
 	"spatialStep": 1.25,
@@ -80,7 +80,7 @@ break;
         numTimestepsPerFrame: 200,
         preset: "swiftHohenbergLocalisedAdvection",
         reactionStrU:
-          "(r-1)*u-2*v+a*u^2+b*u^3+H(1.5-Q)*(V*(cos(theta)*u_x + sin(theta)*u_y))-H(Q-1.5)*(-V*sqrt((x-L_x/2)^2+(y-L_y/2)^2)*(sin(atan(y-L_y/2,x-L_x/2))*u_x-cos(atan(y-L_y/2,x-L_x/2))*u_y))",
+          "(r-1)*u-2*v+a*u^2+b*u^3+V*(H(1.5-Q)*(cos(theta)*u_x + sin(theta)*u_y)-H(Q-1.5)*(-(y-L_y/2)*u_x+(x-L_x/2)*u_y))",
         reactionStrV: "0",
         reactionStrW: "0",
         squareCanvas: true,
