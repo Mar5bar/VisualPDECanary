@@ -1472,9 +1472,9 @@ function initGUI(startOpen) {
       .onFinishChange(setClearShader);
   }
 
-  // Rendering folder.
+  // Plotting folder.
   if (inGUI("renderingFolder")) {
-    root = rightGUI.addFolder("Rendering");
+    root = rightGUI.addFolder("Plotting");
   } else {
     root = genericOptionsFolder;
   }

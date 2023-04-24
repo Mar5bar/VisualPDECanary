@@ -118,12 +118,9 @@ Enable cross diffusion in systems with 2 or more species, enabling simulation of
 **Algebraic**\
 Convert the specified equations to algebraic form in systems with cross diffusion enabled.
 
-### Rendering <a id='rendering'>
+### Plotting <a id='plotting'>
 **Expression**\
 Choose the expression that you want to be used to colour the domain, which can be any function of the species solved for, as well as space, time, and user-defined parameters. Often, this is either $u$, $v$, $w$ or $q$. Alternatively, setting this to 'MAX' will colour the domain by the maximum of the species. Explicitly, this can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
-
-**Resolution**\
-Set the resolution at which your browser renders the simulation. This only impacts on displaying the solution and is completely independent of the spatial discretisation. In surface plots, increase the resolution to render the surface more smoothly. Must be a natural number.
 
 **Plot type**\
 Choose from three types of plot: **line**, **plane** or **surface**. Any simulation can be viewed as any plot type, though line plots are best suited to 1D simulations. Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Max height** parameter. The limits of the colour axis specify the values at which the height of the surface is capped.

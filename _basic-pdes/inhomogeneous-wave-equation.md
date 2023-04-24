@@ -20,7 +20,7 @@ with homogeneous Neumann (aka no-flux) boundary conditions. This equation can be
 
 * You can change the values of $m$ and $n$ to observe different patterns of regions where waves propagate at different speeds. In particular, using the the function $f(x,y)$ above will lead to corners inside of the domain with very slow wave speeds, and these will become visually apparent quickly.
 
-* Unlike in the [homogeneous case](/basic-pdes/wave-equation), we by default plot $u$ here, but you can change this to $v$ using the menu at the right side labelled **Rendering**.
+* Unlike in the [homogeneous case](/basic-pdes/wave-equation), we by default plot $u$ here, but you can change this to $v$ using the menu at the right side labelled **Plotting**.
 
 ### Damped waves and inhomogeneous boundaries
 
