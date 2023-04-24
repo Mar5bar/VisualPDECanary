@@ -416,19 +416,16 @@ $("#warning_restart").click(function () {
   resetSim();
 });
 $("#share").click(function () {
-  $("#share_panel").toggle();
-  $("#share_panel_arrow").toggle();
+  $("#share_container").toggle();
 });
 $("#screenshot").click(function () {
   takeAScreenshot = true;
   render();
-  $("#share_panel").toggle();
-  $("#share_panel_arrow").toggle();
+  $("#share_container").toggle();
 });
 $("#link").click(function () {
   funsObj.copyConfigAsURL();
-  $("#share_panel").toggle();
-  $("#share_panel_arrow").toggle();
+  $("#share_container").toggle();
 });
 
 // Begin the simulation.
