@@ -17,8 +17,11 @@ let basicMaterial,
   clearMaterial,
   copyMaterial,
   postMaterial,
+  lineMaterial,
   interpolationMaterial;
-let domain, simDomain, clickDomain;
+let domain, simDomain, clickDomain, line;
+let xDisplayDomainCoords, yDisplayDomainCoords, xLineCoords;
+let colourmap, colourmapEndpoints;
 let options, uniforms, funsObj;
 let leftGUI,
   rightGUI,
@@ -253,9 +256,8 @@ funsObj = {
   },
   flipColourmap: function () {
     options.flippedColourmap = !options.flippedColourmap;
-    updateUniforms();
+    setDisplayColourAndType();
     configureColourbar();
-    render();
   },
   setColourRangeButton: function () {
     setColourRange();
@@ -289,6 +291,11 @@ Number.prototype.countDecimals = function () {
     return str.split(".")[1].length || 0;
   }
   return str.split("-")[1] || 0;
+};
+
+// Define a handy clamp function.
+Number.prototype.clamp = function (min, max) {
+  return Math.min(Math.max(this, min), max);
 };
 
 // Get the canvas to draw on, as specified by the html.
@@ -552,13 +559,18 @@ function init() {
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
   });
-
-  createDisplayDomains();
+  lineMaterial = new THREE.LineBasicMaterial({
+    vertexColors: true,
+  });
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
   simDomain = new THREE.Mesh(simPlane, simMaterial);
   simDomain.position.z = 0;
   simScene.add(simDomain);
+
+  // Set sizes and create the display domains.
+  setSizes();
+  createDisplayDomains();
 
   // Configure the camera.
   configureCameraAndClicks();
@@ -635,6 +647,8 @@ function replaceDisplayDomains() {
   scene.remove(domain);
   clickDomain.geometry.dispose();
   scene.remove(clickDomain);
+  line.geometry.dispose();
+  scene.remove(line);
   createDisplayDomains();
 }
 
@@ -681,7 +695,6 @@ function updateUniforms() {
   uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
-  uniforms.flippedColourmap.value = options.flippedColourmap;
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
@@ -724,6 +737,16 @@ function setSizes() {
   // Update these values in the uniforms.
   uniforms.nXDisc.value = nXDisc;
   uniforms.nYDisc.value = nYDisc;
+  // Set an array of XDisplayDomainCoords for plotting lines. Note that these simply go between -0.5 and 0.5,
+  // and do not correspond to x in the simulation.
+  xDisplayDomainCoords = new Array(nXDisc);
+  yDisplayDomainCoords = new Array(nXDisc);
+  let val = -0.5,
+    step = 1 / nXDisc;
+  for (let i = 0; i < xDisplayDomainCoords.length; i++) {
+    xDisplayDomainCoords[i] = val;
+    val += step;
+  }
   // Set the size of the renderer, which will interpolate from the textures.
   renderer.setSize(options.renderSize, options.renderSize, false);
   buffer = new Float32Array(nXDisc * nYDisc * 4);
@@ -740,6 +763,7 @@ function createDisplayDomains() {
   );
   domain = new THREE.Mesh(plane, displayMaterial);
   domain.position.z = 0;
+  domain.visible = options.plotType != "line";
   scene.add(domain);
 
   // Create an invisible, low-poly plane used for raycasting.
@@ -754,16 +778,33 @@ function createDisplayDomains() {
   clickDomain.visible = false;
   scene.add(clickDomain);
   setDomainOrientation();
+
+  // Create a straight line object whose coordinates we can perturb when plotting lines.
+  const lineGeom = new THREE.BufferGeometry();
+  const lineColours = new Array(3 * options.renderSize).fill(0);
+  xLineCoords = new Array(options.renderSize);
+  for (let i = 0; i < options.renderSize; i++) {
+    xLineCoords[i] = i / options.renderSize - 0.5;
+  }
+  const positions = new Array(3 * options.renderSize).fill(0);
+  lineGeom.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(positions, 3)
+  );
+  lineGeom.setAttribute(
+    "color",
+    new THREE.Float32BufferAttribute(lineColours, 3)
+  );
+  line = new THREE.Line(lineGeom, lineMaterial);
+  line.visible = options.plotType == "line";
+  line.visible = true;
+  scene.add(line);
 }
 
 function setDomainOrientation() {
   // Configure the orientation of the simulation domain and the click domain, which we modify for 3D to make
   // convenient use of Euler angles for the camera controls.
   switch (options.plotType) {
-    case "line":
-      domain.rotation.x = -Math.PI / 2;
-      clickDomain.rotation.x = -Math.PI / 2;
-      break;
     case "plane":
       domain.rotation.x = 0;
       clickDomain.rotation.x = 0;
@@ -866,9 +907,6 @@ function initUniforms() {
     },
     imageSourceTwo: {
       type: "t",
-    },
-    flippedColourmap: {
-      type: "b",
     },
     L: {
       type: "f",
@@ -1449,12 +1487,7 @@ function initGUI(startOpen) {
     root
       .add(options, "renderSize", 1, 2048, 1)
       .name("Resolution")
-      .onChange(function () {
-        domain.geometry.dispose();
-        scene.remove(domain);
-        createDisplayDomains();
-        setSizes();
-      });
+      .onFinishChange(updateRenderSize);
   }
   if (inGUI("plotType")) {
     root
@@ -1785,12 +1818,19 @@ function setBrushType() {
 }
 
 function setDisplayColourAndType() {
-  const colours = getColours(options.colourmap);
-  uniforms.colour1.value = new THREE.Vector4(...colours[0]);
-  uniforms.colour2.value = new THREE.Vector4(...colours[1]);
-  uniforms.colour3.value = new THREE.Vector4(...colours[2]);
-  uniforms.colour4.value = new THREE.Vector4(...colours[3]);
-  uniforms.colour5.value = new THREE.Vector4(...colours[4]);
+  colourmap = getColours(options.colourmap);
+  if (options.flippedColourmap) {
+    colourmap.reverse();
+    colourmap = colourmap.map((x) => x.slice(0, -1).concat([1 - x.slice(-1)]));
+  }
+  colourmapEndpoints = colourmap.map((x) => x[3]);
+  colourmap = colourmap.map((x) => x.slice(0, -1));
+
+  uniforms.colour1.value = new THREE.Vector4(...colourmap[0]);
+  uniforms.colour2.value = new THREE.Vector4(...colourmap[1]);
+  uniforms.colour3.value = new THREE.Vector4(...colourmap[2]);
+  uniforms.colour4.value = new THREE.Vector4(...colourmap[3]);
+  uniforms.colour5.value = new THREE.Vector4(...colourmap[4]);
   displayMaterial.fragmentShader = fiveColourDisplay();
   displayMaterial.needsUpdate = true;
   postMaterial.needsUpdate = true;
@@ -1880,13 +1920,13 @@ function render() {
     setColourRange();
   }
 
+  // Update the position of the click domain for easy clicking.
   if (options.drawIn3D && options.plotType == "surface") {
     let val =
       (getMeanVal() - options.minColourValue) /
         (options.maxColourValue - options.minColourValue) -
       0.5;
-    clickDomain.position.y =
-      options.threeDHeightScale * Math.min(Math.max(val, -0.5), 0.5);
+    clickDomain.position.y = options.threeDHeightScale * val.clamp(-0.5, 0.5);
     clickDomain.updateWorldMatrix();
   }
 
@@ -1903,6 +1943,33 @@ function render() {
   renderer.render(simScene, simCamera);
   uniforms.textureSource.value = postTexture.texture;
   bufferFilled = false;
+
+  // If this is a line plot, modify the line positions and colours before rendering.
+  if (options.plotType == "line") {
+    // Get the output from the buffer, in the form of (value,0,0,1).
+    fillBuffer();
+    let ind = 0,
+      scaledValue,
+      colourInd = 0,
+      colour;
+    for (let i = 0; i < buffer.length; i += 4) {
+      scaledValue =
+        (buffer[i] - options.minColourValue) /
+          (options.maxColourValue - options.minColourValue) -
+        0.5;
+      // Set the height.
+      yDisplayDomainCoords[ind++] = scaledValue.clamp(-0.5, 0.5);
+    }
+    // Use spline-smoothed points to use for plotting.
+    const curve = new THREE.SplineCurve(
+      xDisplayDomainCoords.map(
+        (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
+      )
+    );
+    const points = curve.getSpacedPoints(options.renderSize);
+    setLineXY(points);
+    setLineColour(points);
+  }
 
   // If selected, update the time display.
   if (options.timeDisplay) {
@@ -2718,14 +2785,24 @@ function loadOptions(preset) {
   if (!listOfSpecies.includes("T")) {
     Object.keys(options).forEach(function (key) {
       if (userTextFields.includes(key)) {
-        options[key] = replaceSymbolsInStr(options[key], ["T"], ["I_T"], "[RGBA]");
+        options[key] = replaceSymbolsInStr(
+          options[key],
+          ["T"],
+          ["I_T"],
+          "[RGBA]"
+        );
       }
     });
   }
   if (!listOfSpecies.includes("S")) {
     Object.keys(options).forEach(function (key) {
       if (userTextFields.includes(key)) {
-        options[key] = replaceSymbolsInStr(options[key], ["S"], ["I_S"], "[RGBA]");
+        options[key] = replaceSymbolsInStr(
+          options[key],
+          ["S"],
+          ["I_S"],
+          "[RGBA]"
+        );
       }
     });
   }
@@ -4484,22 +4561,7 @@ function fadeout(id) {
 function configureColourbar() {
   if (options.colourbar) {
     $("#colourbar").show();
-    let colours = [
-      uniforms.colour1,
-      uniforms.colour2,
-      uniforms.colour3,
-      uniforms.colour4,
-      uniforms.colour5,
-    ].map((x) =>
-      x.value
-        .toArray()
-        .slice(0, -1)
-        .map((x) => x * 255)
-        .toString()
-    );
-    if (options.flippedColourmap) {
-      colours.reverse();
-    }
+    let colours = colourmap.map((x) => x.map((y) => 255 * y).toString());
     let cString = "linear-gradient(90deg, ";
     cString += "rgb(" + colours[0] + ") 0%,";
     cString += "rgb(" + colours[1] + ") 25%,";
@@ -4541,13 +4603,9 @@ function updateColourbarLims() {
     $("#maxLabel").html(maxStr);
   }
   // Get the leftmost and rightmost colour values from the map.
-  let leftColour = computeColourBrightness(uniforms.colour1.value);
-  let midColour = computeColourBrightness(uniforms.colour3.value);
-  let rightColour = computeColourBrightness(uniforms.colour5.value);
-  // If we've flipped the map, swap leftColour and rightColour.
-  if (options.flippedColourmap) {
-    [leftColour, rightColour] = [rightColour, leftColour];
-  }
+  let leftColour = computeColourBrightness(colourmap[0]);
+  let midColour = computeColourBrightness(colourmap[2]);
+  let rightColour = computeColourBrightness(colourmap[4]);
 
   const threshold = 0.51;
   if (leftColour < threshold) {
@@ -4829,10 +4887,18 @@ function configurePlotType() {
     options.typeOfBrush = "vline";
     setBrushType();
     refreshGUI(rightGUI);
+    domain.visible = false;
+    line.visible = true;
+    // Up the render size to the screen size.
+    options.renderSize = window.innerWidth;
+    updateRenderSize();
+  } else {
+    domain.visible = true;
+    line.visible = false;
+    options.plotType == "surface"
+      ? $("#simCanvas").css("outline", "2px #000 solid")
+      : $("#simCanvas").css("outline", "");
   }
-  options.plotType == "surface"
-    ? $("#simCanvas").css("outline", "2px #000 solid")
-    : $("#simCanvas").css("outline", "");
   configureCameraAndClicks();
   configureGUI();
 }
@@ -4989,12 +5055,7 @@ function resizeEquationDisplay() {
 }
 
 function computeColourBrightness(col) {
-  return (
-    col
-      .toArray()
-      .slice(0, -1)
-      .reduce((a, b) => a + b, 0) / 3
-  );
+  return col.reduce((a, b) => a + b, 0) / 3;
 }
 
 function setColourRange() {
@@ -5138,7 +5199,7 @@ function setReactionNames(onLoading) {
 }
 
 function genAnySpeciesRegexStrs() {
-  // Generate RegExp that is equivalent to [uvwq], [vwq], [wq], [q] but with 
+  // Generate RegExp that is equivalent to [uvwq], [vwq], [wq], [q] but with
   // the new species inserted.
   anySpeciesRegexStrs = [];
   for (let i = 0; i < listOfSpecies.length; i++) {
@@ -5178,4 +5239,70 @@ function replaceSymbolsInStr(str, originals, replacements, optional) {
     str = str.replaceAll(regex, replacements[ind] + "$2");
   }
   return str;
+}
+
+function setLineXY(xy) {
+  // Set just the XY coordinates of the line coordinates, scaling Y by options.threeDHeightScale.
+  let coords = line.geometry.attributes.position.array;
+  let ind = 0,
+    coord;
+  for (let i = 0; i < coords.length; i += 3) {
+    coord = xy[ind++].toArray();
+    coords[i] = coord[0];
+    coords[i + 1] = coord[1] * options.threeDHeightScale;
+  }
+  line.geometry.attributes.position.needsUpdate = true;
+}
+
+function setLineColour(xy) {
+  // Set the colour of XY coordinates of the line coordinates, noting that Y in [-0.5,0.5].
+  let colours = line.geometry.attributes.color.array;
+  let ind = 0;
+  for (let i = 0; i < colours.length; i += 3) {
+    [colours[i], colours[i + 1], colours[i + 2]] = colourFromValue(
+      xy[ind++].toArray()[1] + 0.5
+    );
+  }
+  line.geometry.attributes.color.needsUpdate = true;
+}
+
+function updateRenderSize() {
+  domain.geometry.dispose();
+  scene.remove(domain);
+  line.geometry.dispose();
+  scene.remove(line);
+  createDisplayDomains();
+  setSizes();
+  render();
+}
+
+function colourFromValue(val) {
+  // For val in [0,1] assign a colour using uniforms.
+  if (val <= 0) return colourmap[0];
+  if (val >= 1) return colourmap[colourmap.length - 1];
+  let ind = 0;
+  while (val > colourmapEndpoints[ind] && ind < colourmap.length - 1) {
+    ind += 1;
+  }
+  ind -=1;
+
+  // Interpolate between the colours on the required segment. Note ind 0 <= ind < 4.
+  return lerpArrays(
+    colourmap[ind],
+    colourmap[ind + 1],
+    (val - colourmapEndpoints[ind]) /
+      (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind])
+  );
+}
+
+function lerpArrays(v1, v2, t) {
+  let res = new Array(v1.length);
+  for (let i = 0; i < res.length; i++) {
+    res[i] = lerp(v1[i], v2[i], t);
+  }
+  return res;
+}
+
+function lerp(a, b, t) {
+  return (1 - t) * a + t * b;
 }

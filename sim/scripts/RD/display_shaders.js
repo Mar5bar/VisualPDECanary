@@ -7,7 +7,6 @@ export function fiveColourDisplay() {
     uniform float maxColourValue;
     const float pi = 3.141592653589793;
 
-    uniform bool flippedColourmap;
     uniform vec4 colour1;
     uniform vec4 colour2;
     uniform vec4 colour3;
@@ -24,9 +23,6 @@ export function fiveColourDisplay() {
         }
         float value = values.r;
         float scaledValue = (value - minColourValue) / (maxColourValue - minColourValue);
-        if (flippedColourmap) {
-            scaledValue = 1.0 - scaledValue;
-        }
         vec3 col = vec3(0.0, 0.0, 0.0);
         float a = 0.0;
         if (scaledValue <= colour1.a)
