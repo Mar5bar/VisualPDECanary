@@ -123,10 +123,17 @@ Convert the specified equations to algebraic form in systems with cross diffusio
 Choose the expression that you want to be used to colour the domain, which can be any function of the species solved for, as well as space, time, and user-defined parameters. Often, this is either $u$, $v$, $w$ or $q$. Alternatively, setting this to 'MAX' will colour the domain by the maximum of the species. Explicitly, this can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
 
 **Plot type**\
-Choose from three types of plot: **line**, **plane** or **surface**. Any simulation can be viewed as any plot type, though line plots are best suited to 1D simulations. Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Max height** parameter. The limits of the colour axis specify the values at which the height of the surface is capped.
+Choose from three types of plot: **line**, **plane** or **surface**. Any simulation can be viewed as any plot type.
+
+Line plots are the default plot type for 1D domains. Cubic splines are used to interpolate between nodes of the computational domain for smooth plotting. This may lead to transient oscillations appearing near discontinuities in the solution.
+
+Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Max height** parameter. The limits of the colour axis specify the values at which the height of the surface is capped.
 
 **Max height**\
-The maximum height of a plotted surface, measured in the same units as the domain size. Changing this parameter effectively makes the surface variation more/less prominent. Must be a numerical value.
+The maximum height of a plotted line or surface, measured in the same units as the domain size. Changing this parameter effectively makes the variation more/less prominent. Must be a numerical value.
+
+**Thickness**\
+The thickness of the plotted line relative to the default. Must be a numerical value.
 
 **View $\theta$/$\phi$**\
 [Euler angles](https://en.wikipedia.org/wiki/Euler_angles) specifying the current 3D viewpoint, with $\theta\in[0,\pi]$ and $\phi\in[0,2\pi]$. As Euler angles [don't do a perfect job](https://en.wikipedia.org/wiki/Gimbal_lock) of describing orientations, you may find that a viewpoint loaded in from a URL isn't quite what you expected, but only if you were looking at the surface from far behind and underneath the default view. You can manipulate these values either by inputting new values, or see them update as you rotate the viewpoint with your pointer (click and drag).

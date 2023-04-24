@@ -58,6 +58,7 @@ let leftGUI,
   DqqController,
   dtController,
   whatToDrawController,
+  lineWidthMulController,
   threeDHeightScaleController,
   cameraThetaController,
   cameraPhiController,
@@ -671,7 +672,7 @@ function configureCameraAndClicks() {
       options.cameraTheta = 0.5;
       options.cameraPhi = 0;
       controls.enabled = false;
-      camera.zoom = 0.8;
+      camera.zoom = 1;
       setCameraPos();
       displayMaterial.vertexShader = surfaceVertexShader();
       break;
@@ -806,6 +807,7 @@ function createDisplayDomains() {
   lineGeom.setPositions(positions);
   lineGeom.setColors(lineColours);
   line = new Line2(lineGeom, lineMaterial);
+  line.scale.set(1, 1, 1);
   line.visible = options.plotType == "line";
   scene.add(line);
 }
@@ -1505,6 +1507,12 @@ function initGUI(startOpen) {
         document.activeElement.blur();
         render();
       });
+  }
+  if (inGUI("lineWidthMul")) {
+    lineWidthMulController = root
+      .add(options, "lineWidthMul", 0.1, 2)
+      .name("Thickness")
+      .onChange(setLineWidth);
   }
   if (inGUI("threeDHeightScale")) {
     threeDHeightScaleController = root
@@ -3739,12 +3747,21 @@ function configureGUI() {
   setBCsGUI();
   // Hide or show GUI elements to do with surface plotting.
   if (options.plotType == "surface") {
+    hideGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
     showGUIController(cameraPhiController);
     showGUIController(cameraZoomController);
     showGUIController(drawIn3DController);
+  } else if (options.plotType == "line") {
+    showGUIController(lineWidthMulController);
+    showGUIController(threeDHeightScaleController);
+    hideGUIController(cameraThetaController);
+    hideGUIController(cameraPhiController);
+    hideGUIController(cameraZoomController);
+    hideGUIController(drawIn3DController);
   } else {
+    hideGUIController(lineWidthMulController);
     hideGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
     hideGUIController(cameraPhiController);
@@ -4880,6 +4897,7 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
 function configurePlotType() {
   // Configure the simulation to plot the solution as requested.
   if (options.plotType == "line") {
+    setLineWidth();
     options.typeOfBrush = "vline";
     setBrushType();
     refreshGUI(rightGUI);
@@ -5297,4 +5315,9 @@ function lerpArrays(v1, v2, t) {
 
 function lerp(a, b, t) {
   return (1 - t) * a + t * b;
+}
+
+function setLineWidth() {
+  lineMaterial.linewidth = 0.01 * options.lineWidthMul;
+  lineMaterial.needsUpdate = true;
 }
