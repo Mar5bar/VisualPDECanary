@@ -118,6 +118,9 @@ Enable cross diffusion in systems with 2 or more species, enabling simulation of
 **Algebraic**\
 Convert the specified equations to algebraic form in systems with cross diffusion enabled.
 
+**Species/Reactions (names)**\
+Specify custom names for the species and reaction terms in VisualPDE, which often default to $u$, $v$, $w$, $q$ and $f$, $g$, $h$, $j$. Names can be multi-character and can include letters, numbers, and underscores, but must be a single 'word'. For example, 'T_01' is a valid name (rendered as $T_{01}$) whilst 'T 01' is not. Certain names are reserved under the hood, such as 'H' for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old species and reaction terms everywhere in the simulation and interface.
+
 ### Plotting <a id='plotting'>
 **Expression**\
 Choose the expression that you want to be used to colour the domain, which can be any function of the species solved for, as well as space, time, and user-defined parameters. Often, this is either $u$, $v$, $w$ or $q$. Alternatively, setting this to 'MAX' will colour the domain by the maximum of the species. Explicitly, this can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).

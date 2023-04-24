@@ -1154,7 +1154,7 @@ function initGUI(startOpen) {
   if (inGUI("reactionNames")) {
     root
       .add(options, "reactionNames")
-      .name("Reaction names")
+      .name("Reactions")
       .onFinishChange(function () {
         setReactionNames();
       });
@@ -4838,20 +4838,19 @@ function waitListener(element, listenerName, val) {
   });
 }
 
-function getReservedStrs(allowSpecies) {
+function getReservedStrs(allowSpecies, exclusions) {
   // Load an RD shader and find floats, vecs, and ivecs.
-  let regex = /(?:float|vec\d|ivec\d)\b\s+(\w+)\b/g;
+  let regex = /(?:float|vec\d|ivec\d|function|void)\b\s+(\w+)\b/g;
   let str = RDShaderTop() + RDShaderUpdateCross();
-  if (allowSpecies) {
-    return [...str.matchAll(regex)].map((x) => x[1]);
-  } else {
-    return [...str.matchAll(regex)].map((x) => x[1]).concat(listOfSpecies);
-  }
+  let reserved = [...str.matchAll(regex)].map((x) => x[1]).concat(exclusions);
+  if (!allowSpecies) reserved = reserved.concat(listOfSpecies);
+  return reserved;
 }
 
-function isReservedName(name, allowSpecies) {
+function isReservedName(name, allowSpecies, exclusions) {
   if (allowSpecies == undefined) allowSpecies = false;
-  return getReservedStrs(allowSpecies).some(function (badName) {
+  if (exclusions == undefined) exclusions = [];
+  return getReservedStrs(allowSpecies, exclusions).some(function (badName) {
     let regex = new RegExp("\\b" + badName + "\\b", "g");
     return regex.test(name);
   });
@@ -4970,6 +4969,14 @@ function sanitisedKineticParams() {
   out = replaceDigitsWithWords(out);
 
   return out;
+}
+
+function getKineticParamNames() {
+  const regex = /(\w+)\s*=\s*([\+\-]?)\s*([0-9\.]+)/;
+  return sanitisedKineticParams()
+    .split(";")
+    .filter((x) => x.length > 0)
+    .map((x) => x.replace(regex, "$1").trim());
 }
 
 function setKineticUniforms() {
@@ -5117,12 +5124,21 @@ function setSpeciesNames(onLoading) {
     .slice(0, defaultSpecies.length);
 
   // Check if any reserved names have been used, and stop if so.
+  const kinParamNames = getKineticParamNames();
+  let message;
   for (var ind = 0; ind < newSpecies.length; ind++) {
-    if (isReservedName(newSpecies[ind], true)) {
+    if (isReservedName(newSpecies[ind], true, kinParamNames)) {
+      if (kinParamNames.includes(newSpecies[ind])) {
+        message = "as a parameter";
+      } else {
+        message = "under the hood";
+      }
       alert(
         "The name '" +
           newSpecies[ind] +
-          "' is used under the hood, so can't be used as a species name. Please use a different name for " +
+          "' is used " +
+          message +
+          ", so can't be used as a species name. Please use a different name for " +
           newSpecies[ind] +
           "."
       );
@@ -5178,12 +5194,23 @@ function setReactionNames(onLoading) {
     .split(" ")
     .slice(0, defaultReactions.length);
   // Check if any reserved names have been used, and stop if so.
+  const kinParamNames = getKineticParamNames();
+  let message;
   for (var ind = 0; ind < newReactions.length; ind++) {
-    if (isReservedName(newReactions[ind])) {
+    if (isReservedName(newReactions[ind], false, kinParamNames)) {
+      if (kinParamNames.includes(newReactions[ind])) {
+        message = "as a parameter";
+      } else if (listOfSpecies.includes(newReactions[ind])) {
+        message = "as a species name";
+      } else {
+        message = "under the hood";
+      }
       alert(
         "The name '" +
           newReactions[ind] +
-          "' is used under the hood, so can't be used as a function name. Please use a different name for " +
+          "' is used " +
+          message +
+          ", so can't be used as a function name. Please use a different name for " +
           newReactions[ind] +
           "."
       );
