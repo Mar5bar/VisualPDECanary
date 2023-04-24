@@ -727,6 +727,9 @@ function computeCanvasSizesAndAspect() {
     domainWidth = options.domainScale;
     domainHeight = domainWidth * aspectRatio;
   }
+  if (options.dimension == 1) {
+    domainWidth = options.domainScale;
+  }
   uniforms.L_x.value = domainWidth;
   uniforms.L_y.value = domainHeight;
   maxDim = Math.max(domainWidth, domainHeight);
@@ -2096,6 +2099,7 @@ function resetSim() {
   clearTextures();
   uniforms.t.value = 0.0;
   updateTimeDisplay();
+  render();
   // Start a timer that checks for NaNs every second.
   window.clearTimeout(NaNTimer);
   checkForNaN();
@@ -4129,6 +4133,16 @@ function setEquationDisplayType() {
     // Look for div(const * grad(blah)), and move the constant outside the bracket.
     // By this point, a single word (with no square brackets) in the divergence must be a single expression.
     // If it's not x,y,u,v,w,q move it outside the brackets.
+    // First, if it's just a diffusion coefficient, move it outside, as they have already been checked for
+    // constancy.
+    regex = new RegExp(
+      "\\\\vnabla\\s*\\\\cdot\\s*\\((D_\\{\\w+(?: \\w+)?\\})\\s*\\\\vnabla\\s*(" +
+        anySpeciesRegexStrs[0] +
+        ")\\s*\\)",
+      "g"
+    );
+    str = str.replaceAll(regex, "$1 \\lap $2");
+
     regex = new RegExp(
       "\\\\vnabla\\s*\\\\cdot\\s*\\(([\\w\\{\\}\\*\\^]*)\\s*\\\\vnabla\\s*(" +
       anySpeciesRegexStrs[0] +
