@@ -4661,7 +4661,7 @@ function configureTimeDisplay() {
 function updateTimeDisplay() {
   if (options.timeDisplay) {
     let str = formatLabelNum(uniforms.t.value, 3);
-    str = str.replace(/e(\+)*(\-)*([0-9]*)/, " x 10<sup>$2$3<sup>");
+    str = str.replace(/e(\+)*(\-)*([0-9]*)/, " × 10<sup>$2$3<sup>");
     $("#timeValue").html(str);
     checkColourbarPosition();
   }

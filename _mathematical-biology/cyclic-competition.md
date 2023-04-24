@@ -2,7 +2,7 @@
 layout: page
 title: Cyclic competition models
 lesson_number: 110
-thumbnail: /assets/images/squirrel.png
+thumbnail: /assets/images/rock-paper-scissors.png
 extract: Rock, paper, scissors – spiral waves!
 equation: $\pd{u}{t}=D_u\nabla^2 u+u(1-u-av-bw)$ $\pd{v}{t}=D_v\nabla^2 v+v(1-bu-v-aw)$ $\pd{w}{t}=D_w\nabla^2 w+w(1-au-bv-w)$
 ---

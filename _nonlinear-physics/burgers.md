@@ -1,10 +1,10 @@
 ---
 layout: page
-title: Viscous Burgers' Equation
+title: Viscous Burgers' equation
 lesson_number: 60
 thumbnail: /assets/images/BurgersEquation.png
 extract: Nonlinear waves
-equation: $\pd{u}{t} =-u\pd{u}{x}+\varepsilon \pdd{u}{x},$
+equation: $\pd{u}{t} =-u\pd{u}{x}+\varepsilon \pdd{u}{x}$
 ---
 
 (Viscous) [Burgers' equation](https://en.wikipedia.org/wiki/Burgers%27_equation):

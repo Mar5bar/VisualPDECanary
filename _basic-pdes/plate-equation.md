@@ -18,7 +18,7 @@ along the boundary. The constant $D$ represents the relative size of the domain 
 
 * Load the [interactive simulation](/sim/?preset=BeamEquation). 
 
-* Click to push down on the beam, creating a localized depression which creates ripples in the beam nearby. 
+* Click to push down on the beam, creating a localised depression which creates ripples in the beam nearby. 
 
 * Now go to <span class='click_sequence'>{{ layout.equations }} → **Boundary conditions**</span> and select **Neumann** for $u$, $v$, and $w$. This will use the following 'free end' boundary conditions:
 
