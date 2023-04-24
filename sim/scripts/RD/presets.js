@@ -127,6 +127,8 @@ break;
       options = {
         algebraicV: true,
         autoSetColourRange: true,
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
         brushRadius: "1",
         clearValueU:
           "H(1.5-P)*((cos(x-L_x/2) - cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) - cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) - cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) - cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))+H(P-2.5)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) + cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) + cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))",
