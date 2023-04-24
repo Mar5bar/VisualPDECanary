@@ -293,7 +293,7 @@ export function getPreset(id) {
         diffusionStrVV: "2",
         domainScale: 100,
         dt: 0.001,
-        imagePathOne: "./images/qr-code.png",
+        imagePathOne: "./images/qr-code-home.png",
         maxColourValue: 0,
         minColourValue: -2.3,
         numTimestepsPerFrame: 100,
