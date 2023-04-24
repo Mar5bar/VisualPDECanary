@@ -727,6 +727,9 @@ function computeCanvasSizesAndAspect() {
     domainWidth = options.domainScale;
     domainHeight = domainWidth * aspectRatio;
   }
+  if (options.dimension == 1) {
+    domainWidth = options.domainScale;
+  }
   uniforms.L_x.value = domainWidth;
   uniforms.L_y.value = domainHeight;
   maxDim = Math.max(domainWidth, domainHeight);
