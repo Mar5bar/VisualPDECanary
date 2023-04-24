@@ -20,7 +20,7 @@ let basicMaterial,
   lineMaterial,
   interpolationMaterial;
 let domain, simDomain, clickDomain, line;
-let xDisplayDomainCoords, yDisplayDomainCoords, xLineCoords;
+let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine;
 let colourmap, colourmapEndpoints;
 let options, uniforms, funsObj;
 let leftGUI,
@@ -111,7 +111,8 @@ let nXDisc,
   domainHeight,
   maxDim,
   canvasWidth,
-  canvasHeight;
+  canvasHeight,
+  usingLowResDomain = true;
 let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
@@ -769,11 +770,15 @@ function setSizes() {
 
 function createDisplayDomains() {
   computeCanvasSizesAndAspect();
+  let displayDomainSize = [1, 1];
+  // If we're not using a low res domain (eg because of surface plotting),
+  // create a domain with as much resolution of the finite difference mesh.
+  if (!usingLowResDomain) displayDomainSize = [nXDisc, nYDisc];
   const plane = new THREE.PlaneGeometry(
     domainWidth / maxDim,
     domainHeight / maxDim,
-    Math.round(devicePixelRatio * canvas.getBoundingClientRect().width),
-    Math.round(devicePixelRatio * canvas.getBoundingClientRect().height)
+    displayDomainSize[0],
+    displayDomainSize[1]
   );
   domain = new THREE.Mesh(plane, displayMaterial);
   domain.position.z = 0;
@@ -795,14 +800,8 @@ function createDisplayDomains() {
 
   // Create a line object whose coordinates we can set when plotting lines.
   const lineGeom = new LineGeometry();
-  xLineCoords = new Array(canvasWidth);
-  let val = -0.5,
-    step = 1 / canvasWidth;
-  for (let i = 0; i < canvasWidth; i++) {
-    xLineCoords[i] = val;
-    val += step;
-  }
-  const positions = new Array(3 * devicePixelRatio * canvasWidth).fill(0);
+  numPointsInLine = devicePixelRatio * canvasWidth;
+  const positions = new Array(3 * numPointsInLine).fill(0);
   const lineColours = new Array(positions.length).fill(0);
   lineGeom.setPositions(positions);
   lineGeom.setColors(lineColours);
@@ -1968,7 +1967,7 @@ function render() {
         (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
       )
     );
-    const points = curve.getSpacedPoints(devicePixelRatio * canvasWidth);
+    const points = curve.getSpacedPoints(numPointsInLine);
     setLineXY(points);
     setLineColour(points);
   }
@@ -4889,9 +4888,15 @@ function configurePlotType() {
   } else {
     domain.visible = true;
     line.visible = false;
-    options.plotType == "surface"
-      ? $("#simCanvas").css("outline", "2px #000 solid")
-      : $("#simCanvas").css("outline", "");
+    if (options.plotType == "surface") {
+      $("#simCanvas").css("outline", "2px #000 solid");
+      if (usingLowResDomain) {
+        usingLowResDomain = false;
+        replaceDisplayDomains();
+      }
+    } else {
+      $("#simCanvas").css("outline", "");
+    }
   }
   configureCameraAndClicks();
   configureGUI();
