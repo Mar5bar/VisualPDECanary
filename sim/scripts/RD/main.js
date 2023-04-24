@@ -5284,7 +5284,7 @@ function colourFromValue(val) {
   while (val > colourmapEndpoints[ind] && ind < colourmap.length - 1) {
     ind += 1;
   }
-  ind -=1;
+  ind -= 1;
 
   // Interpolate between the colours on the required segment. Note ind 0 <= ind < 4.
   return lerpArrays(
