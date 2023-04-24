@@ -82,7 +82,8 @@
 <div class="ui_button" id="erase" title="Restart (R)"><i class="fa-solid fa-arrow-rotate-left"></i></div>
 <div class="ui_button" id="share" title="Share"><i class="fa-solid fa-share-from-square"></i></div>
 <div class="message" id="link_copied"><p>Link copied to clipboard</p></div>
-<a href="../user-guide" target="_blank"><div class="ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div></a>
+<!-- <a href="../user-guide" target="_blank"><div class="ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div></a> -->
+<div class="ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div>
 
 <div class="ui_button" id="equations" title="Edit equations"></div>
 <div id="left_ui_arrow"></div>
@@ -113,13 +114,24 @@
     <div class="dg ac" id="leftGUIContainer" style="position: relative;"></div>
 </div>
 
-<div id="share_container">
-    <div id="share_panel">
+<div id="share_panel" class="popout_panel">
+    <div class="container">
         <div id='title'>Share your simulation</div>
-        <div id='link' class='button'><i class="share-icon fa-solid fa-link"></i>Copy link<br /></div>
+        <div id='link' class='button'><i class="share-icon fa-solid fa-link"></i>Copy link</div>
         <div id='screenshot' class='button'><i class="share-icon fa-solid fa-camera"></i>Save image</div>
     </div>
-    <div id="share_panel_arrow"></div>
+    <div class="arrow"></div>
+</div>
+
+<div id="help_panel" class="popout_panel">
+    <div class="container">
+        <div id='title'>Help</div>
+        <a href='/user-guide/quick-start' target="_blank"><div id='quick_start' class='button'><i class="share-icon fa-solid fa-question"></i>Quick start</div></a>
+        <a href='/user-guide/faq' target="_blank"><div id='faqs' class='button'><i class="share-icon fa-solid fa-question"></i>FAQs</div></a>
+        <a href='/user-guide/advanced-options' target="_blank"><div id='advanced' class='button'><i class="share-icon fa-solid fa-question"></i>Advanced options</div></a>
+        <a href='/user-guide/' target="_blank"><div id='more' class='button'><i class="share-icon fa-solid fa-question"></i>More...</div></a>
+    </div>
+    <div class="arrow"></div>
 </div>
 
 <div class="colourbarMain prevent-select" id="colourbar">
