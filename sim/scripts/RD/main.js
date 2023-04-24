@@ -1823,8 +1823,6 @@ function setDisplayColourAndType() {
     colourmap.reverse();
     colourmap = colourmap.map((x) => x.slice(0, -1).concat([1 - x.slice(-1)]));
   }
-  colourmapEndpoints = colourmap.map((x) => x[3]);
-  colourmap = colourmap.map((x) => x.slice(0, -1));
 
   uniforms.colour1.value = new THREE.Vector4(...colourmap[0]);
   uniforms.colour2.value = new THREE.Vector4(...colourmap[1]);
@@ -1834,6 +1832,8 @@ function setDisplayColourAndType() {
   displayMaterial.fragmentShader = fiveColourDisplay();
   displayMaterial.needsUpdate = true;
   postMaterial.needsUpdate = true;
+  colourmapEndpoints = colourmap.map((x) => x[3]);
+  colourmap = colourmap.map((x) => x.slice(0, -1));
   render();
 }
 
