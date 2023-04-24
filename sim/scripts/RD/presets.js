@@ -299,7 +299,7 @@ export function getPreset(id) {
         numTimestepsPerFrame: 100,
         preset: "QR",
         renderSize: 652,
-        reactionStrU: "(1-I_S) - u + u^2*v",
+        reactionStrU: "(1-4*I_S) - u + u^2*v",
         reactionStrV: "1 - u^2*v",
         showAllOptionsOverride: true,
         spatialStep: 0.2,
