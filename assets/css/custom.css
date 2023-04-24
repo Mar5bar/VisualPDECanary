@@ -262,6 +262,12 @@ a.collection::after{
     border-radius: 5px;
     text-shadow: 0 1px #fff;
 }
+.ui_button_documentation#equations {
+    background: url("/assets/images/function-button-grey.png") no-repeat;
+    background-size: 80%;
+    background-position: center;
+    background-color: #ededed;
+}
 
 .post-content h2, .post-content h3{
     margin-top:3rem;
