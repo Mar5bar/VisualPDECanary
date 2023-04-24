@@ -37,7 +37,7 @@ export function getPreset(id) {
         diffusionStrWW: "0",
         dt: 0.005,
         kineticParams:
-          "a = 0.48  in  [0, 0.01, 1];theta = 1.57 in  [-6.4, 0.01, 6.4];V = 0.5 in  [0, 0.01, 5];",
+          "a = 0.48  in  [0, 0.01, 1];theta = 1.8 in  [-6.4, 0.01, 6.4];V = 0.5 in  [0, 0.01, 5];",
         numSpecies: 1,
         preset: "BistableAdvection",
         reactionStrU: "u*(u-a)*(1-u)+V*(cos(theta)*u_x + sin(theta)*u_y)",
