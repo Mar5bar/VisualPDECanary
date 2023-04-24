@@ -23,7 +23,7 @@ a[href*='/sim/']:hover {
 }
 
 a[href*='//']:not([href*='visualpde.com']) {
-    color:#111111;
+    color: #111111;
     text-decoration: underline;
 }
 
@@ -54,7 +54,7 @@ div.home_tiles {
     row-gap: 20px;
 }
 
-div.topic_tiles{
+div.topic_tiles {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
     grid-column-gap: 1.875rem;
@@ -83,7 +83,7 @@ a.topic_tile {
     margin-bottom: 1.5rem;
 }
 
-a.topic_tile div.container{
+a.topic_tile div.container {
     padding: 15px 17px 13px 17px;
 }
 
@@ -97,8 +97,8 @@ a.home_tile {
     }
 }
 
-div.topic_banner{
-    height:6rem;
+div.topic_banner {
+    height: 6rem;
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
@@ -175,13 +175,13 @@ a.topic_tile div.container div.subtitle {
 
 a.topic_tile div.container div.subtitle_equation {
     color: #111111;
-    font-weight:300;
+    font-weight: 300;
     line-height: 1.7;
     /* padding-bottom: 13px; */
 }
 
-div.subtitle_equation mjx-container mjx-math{
-    font-size:110%;
+div.subtitle_equation mjx-container mjx-math {
+    font-size: 110%;
 }
 
 a.home_tile div.container div.button {
@@ -229,7 +229,8 @@ a.topic_tile div.container div.button:hover {
 a.collection {
     display: inline-block;
     text-transform: uppercase;
-    color: #111; /*#1756a9;*/
+    color: #111;
+    /*#1756a9;*/
     font-weight: 700;
     font-size: 11px;
     padding: 3px 2px 2px;
@@ -238,8 +239,9 @@ a.collection {
     letter-spacing: 1px;
     margin-bottom: 8px;
 }
-a.collection::after{
-    content:" ⟫";
+
+a.collection::after {
+    content: " ⟫";
     vertical-align: 7%;
 }
 
@@ -262,6 +264,7 @@ a.collection::after{
     border-radius: 5px;
     text-shadow: 0 1px #fff;
 }
+
 .ui_button_documentation#equations {
     background: url("/assets/images/function-button-grey.png") no-repeat;
     background-size: 80%;
@@ -269,39 +272,42 @@ a.collection::after{
     background-color: #ededed;
 }
 
-.post-content h2, .post-content h3{
-    margin-top:3rem;
+.post-content h2,
+.post-content h3 {
+    margin-top: 3rem;
 }
 
 .post-content li {
-    margin-top:0.5rem;
+    margin-top: 0.5rem;
 }
-span.click_sequence{
-    display:block;
-    margin-left:2rem;
-    margin-top:0.5rem;
-    margin-bottom:0.3rem;
+
+span.click_sequence {
+    display: block;
+    margin-left: 2rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.3rem;
 }
-  #function_button_f {
-      font-size: 1.3rem;
-      font-family: "Comic Sans", "Comic Sans MS", Arial, Times, serif;
-      font-weight: 600;
-      margin-right: -1px;
-      margin-top: -3px;
-      margin-left: 1px;
-  }
 
-  #function_button_open_bracket,
-  #function_button_close_bracket {
-      font-size: 0.8rem;
-      font-family: "Comic Sans", "Comic Sans MS", Arial, Helvetica, sans-serif;
-      margin-top: 0px;
-  }
+#function_button_f {
+    font-size: 1.3rem;
+    font-family: "Comic Sans", "Comic Sans MS", Arial, Times, serif;
+    font-weight: 600;
+    margin-right: -1px;
+    margin-top: -3px;
+    margin-left: 1px;
+}
 
-  #function_button_x {
-      font-weight: 600;
-      font-size: 0.85rem;
-      font-family: "Comic Sans", "Comic Sans MS", Arial, Helvetica, serif;
-      margin-left: -1px;
-      margin-right: -1px;
-  }
+#function_button_open_bracket,
+#function_button_close_bracket {
+    font-size: 0.8rem;
+    font-family: "Comic Sans", "Comic Sans MS", Arial, Helvetica, sans-serif;
+    margin-top: 0px;
+}
+
+#function_button_x {
+    font-weight: 600;
+    font-size: 0.85rem;
+    font-family: "Comic Sans", "Comic Sans MS", Arial, Helvetica, serif;
+    margin-left: -1px;
+    margin-right: -1px;
+}
