@@ -189,6 +189,9 @@ import { getPreset, getUserTextFields } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import * as THREE from "../three.module.js";
 import { OrbitControls } from "../OrbitControls.js";
+import { Line2 } from "../lines/Line2.js";
+import { LineMaterial } from "../lines/LineMaterial.js";
+import { LineGeometry } from "../lines/LineGeometry.js";
 import { minifyPreset, maxifyPreset } from "./minify_preset.js";
 import { LZString } from "../lz-string.min.js";
 import {
@@ -559,8 +562,9 @@ function init() {
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
   });
-  lineMaterial = new THREE.LineBasicMaterial({
+  lineMaterial = new LineMaterial({
     vertexColors: true,
+    linewidth: 0.01,
   });
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
@@ -779,25 +783,21 @@ function createDisplayDomains() {
   scene.add(clickDomain);
   setDomainOrientation();
 
-  // Create a straight line object whose coordinates we can perturb when plotting lines.
-  const lineGeom = new THREE.BufferGeometry();
-  const lineColours = new Array(3 * options.renderSize).fill(0);
+  // Create a line object whose coordinates we can set when plotting lines.
+  const lineGeom = new LineGeometry();
   xLineCoords = new Array(options.renderSize);
+  let val = -0.5,
+    step = 1 / options.renderSize;
   for (let i = 0; i < options.renderSize; i++) {
-    xLineCoords[i] = i / options.renderSize - 0.5;
+    xLineCoords[i] = val;
+    val += step;
   }
   const positions = new Array(3 * options.renderSize).fill(0);
-  lineGeom.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(positions, 3)
-  );
-  lineGeom.setAttribute(
-    "color",
-    new THREE.Float32BufferAttribute(lineColours, 3)
-  );
-  line = new THREE.Line(lineGeom, lineMaterial);
+  const lineColours = new Array(positions.length).fill(0);
+  lineGeom.setPositions(positions);
+  lineGeom.setColors(lineColours);
+  line = new Line2(lineGeom, lineMaterial);
   line.visible = options.plotType == "line";
-  line.visible = true;
   scene.add(line);
 }
 
@@ -1948,10 +1948,8 @@ function render() {
   if (options.plotType == "line") {
     // Get the output from the buffer, in the form of (value,0,0,1).
     fillBuffer();
-    let ind = 0,
-      scaledValue,
-      colourInd = 0,
-      colour;
+    let scaledValue,
+      ind = 0;
     for (let i = 0; i < buffer.length; i += 4) {
       scaledValue =
         (buffer[i] - options.minColourValue) /
@@ -5243,27 +5241,30 @@ function replaceSymbolsInStr(str, originals, replacements, optional) {
 
 function setLineXY(xy) {
   // Set just the XY coordinates of the line coordinates, scaling Y by options.threeDHeightScale.
-  let coords = line.geometry.attributes.position.array;
-  let ind = 0,
-    coord;
-  for (let i = 0; i < coords.length; i += 3) {
-    coord = xy[ind++].toArray();
-    coords[i] = coord[0];
-    coords[i + 1] = coord[1] * options.threeDHeightScale;
+  let start = line.geometry.attributes.instanceStart;
+  let end = line.geometry.attributes.instanceEnd;
+  let coord;
+  for (let i = 0; i < xy.length; i++) {
+    coord = xy[i].toArray();
+    coord[1] *= options.threeDHeightScale;
+    if (i < xy.length) start.setXYZ(i, coord[0], coord[1], 0);
+    if (i > 0) end.setXYZ(i - 1, coord[0], coord[1], 0);
   }
-  line.geometry.attributes.position.needsUpdate = true;
+  start.needsUpdate = true;
+  end.needsUpdate = true;
 }
 
 function setLineColour(xy) {
   // Set the colour of XY coordinates of the line coordinates, noting that Y in [-0.5,0.5].
-  let colours = line.geometry.attributes.color.array;
-  let ind = 0;
-  for (let i = 0; i < colours.length; i += 3) {
-    [colours[i], colours[i + 1], colours[i + 2]] = colourFromValue(
-      xy[ind++].toArray()[1] + 0.5
-    );
+  let start = line.geometry.attributes.instanceColorStart;
+  let end = line.geometry.attributes.instanceColorEnd;
+  let colour;
+  for (let i = 0; i < xy.length; i++) {
+    colour = colourFromValue(xy[i].toArray()[1] + 0.5);
+    if (i < xy.length) start.setXYZ(i, colour[0], colour[1], colour[2]);
+    if (i > 0) end.setXYZ(i - 1, colour[0], colour[1], colour[2]);
   }
-  line.geometry.attributes.color.needsUpdate = true;
+  start.needsUpdate = true;
 }
 
 function updateRenderSize() {
