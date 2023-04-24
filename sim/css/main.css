@@ -660,16 +660,20 @@ input[type=range].styled-slider {
     margin-right:-1px;
   } */
 
-#share_container{
+.popout_panel{
     display: none;
-    position:absolute;
+    position: absolute;
     z-index: 5;
     right: 60px;
+}
+
+#share_panel{
     top: 55px;
 }  
-#share_panel{
-    right: 60px;
-    top: 55px;
+#help_panel{
+    top: 15px;
+}  
+.popout_panel .container{
     background-color: white;
     padding: 20px;
     border: 1px solid #ccc;
@@ -677,20 +681,21 @@ input[type=range].styled-slider {
     box-shadow: 0 5px 10px #1113;
     z-index: 0;
 }
-#share_panel_arrow, #share_panel_arrow::after,
+.popout_panel .arrow,
+.popout_panel .arrow::after,
 #right_ui_arrow, #right_ui_arrow::after,
 #left_ui_arrow, #left_ui_arrow::after{
     position:absolute;
     border-color: transparent;
     border-style: solid;
 }
-#share_panel_arrow {
+.popout_panel .arrow {
     right: -11px;
     top: 45px;
     border-width: 14px 0px 14px 14px;
     border-left-color: #fff;
 }
-#share_panel_arrow::after {
+.popout_panel .arrow::after {
     border-width: 14px 0px 14px 14px;
     border-left-color: #ccc;
     top: -14px;
@@ -712,20 +717,27 @@ input[type=range].styled-slider {
 .share-icon.fa-link{
     padding: 6px 5px 4px 5px;
 }
-#share_panel #title{
+.share-icon.fa-question{
+    padding: 6px 1px 4px 9px;
+}
+.popout_panel #title{
     font-weight:500;
     margin-bottom:10px;   
 }
-#share_panel .button{
+.popout_panel .button{
     padding-top:5px;
     font-size:14.4px;
 }
-#share_panel .button:hover{
+.popout_panel .button:hover{
     text-decoration: underline;
     cursor: pointer;
 }
-#share_panel .button:hover .share-icon{
+.popout_panel .button:hover .share-icon{
     background-color:#1756a930;
+}
+.popout_panel a, .popout_panel a:visited{
+    text-decoration: none;
+    color:black;
 }
 
 #right_ui_arrow {
