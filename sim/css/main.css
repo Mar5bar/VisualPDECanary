@@ -670,7 +670,7 @@ input[type=range].styled-slider {
     border: 1px solid #ccc;
     border-radius: 6px;
     box-shadow: 0 5px 10px #1113;
-    z-index: 3;
+    z-index: 0;
 }
 #share_panel_arrow, #share_panel_arrow::after,
 #right_ui_arrow, #right_ui_arrow::after,
