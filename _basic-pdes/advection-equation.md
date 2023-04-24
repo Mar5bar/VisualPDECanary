@@ -23,15 +23,15 @@ where $\theta$ is a parameter
 
 The first of these expressions is a rotational velocity field about the centre of the domain, whereas the second is linear (unidirectional) advection in the direction $\theta$. 
 
-* Load the [interactive simulation](/sim/?preset=AdvectionEquation). By default it uses the rotating velocity case with Neumann boundary conditions.
+* Load the [interactive simulation with rotational advection](/sim/?preset=AdvectionEquationRotational). By default it uses Dirichlet boundary conditions.
 
-* Clicking in the domain introduces some amount of mass which diffuses and advects along the rotating vector field. Importantly, Neumann boundary conditions will not conserve mass, and so you may see odd effects near the edges of the domain.
+* Clicking in the domain introduces some amount of mass which diffuses and advects along the rotating vector field. Importantly, Dirichlet boundary conditions will not conserve mass, and so you may see odd effects near the edges of the domain, such as the concentration being destroyed.
 
-* Changing the value of $V$ will change the speed of the rotation, though $V$ much larger than the initial value may lead to bad solutions (see the Numerical Notes below).
+* Changing the value of $V$ will change the speed of the rotation, though $V$ much larger than the initial value may lead to bad solutions (see the Numerical Notes below). Making $V$ negative will change the direction of the rotation.
 
-* Now, if you change the parameter $Q$ from $Q=2$ to $Q=1$, this will change the form of advection to be the unidirectional one, with movement in a given direction given by the parameter $\theta$. You may need to increase $V$ to see this movement more clearly.
+* Now click the [interactive simulation with unidirectional advection](/sim/?preset=AdvectionEquationDirected). By default it uses Periodic boundary conditions.
 
-* The unidirectional advection is less sensitive to boundary conditions, so these can be changed to Periodic to observe advection over effectively larger regions of space.
+* Changing $\theta$ will change the direction of advection, and $V$ the magnitude. This form of advection is less sensitive to details like boundary conditions, so these can be changed to explore different scenarios. 
 
 ## Numerical Notes
 
