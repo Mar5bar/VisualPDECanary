@@ -30,13 +30,14 @@ export function getPreset(id) {
     case "BistableAdvection":
       options = {
         brushRadius: "1",
+        brushAction: "smoothadd",
         clearValueU: "0",
         diffusionStrUU: "0.02",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         dt: 0.005,
         kineticParams:
-          "a = 0.48  in  [0, 0.01, 1];theta = -2.0100000 in  [-6.4, 0.01, 6.4];V = 1.570 in  [0, 0.01, 5];",
+          "a = 0.48  in  [0, 0.01, 1];theta = 1.57 in  [-6.4, 0.01, 6.4];V = 0.5 in  [0, 0.01, 5];",
         numSpecies: 1,
         preset: "BistableAdvection",
         reactionStrU: "u*(u-a)*(1-u)+V*(cos(theta)*u_x + sin(theta)*u_y)",
