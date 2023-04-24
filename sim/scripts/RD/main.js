@@ -2773,7 +2773,7 @@ function loadOptions(preset) {
     options.brushValue,
     options.whatToPlot,
   ].join(" ");
-  options.resetOnImageLoad = /\b[ST][RGBA]?\b/.test(str);
+  options.resetOnImageLoad = /\bI_[ST][RGBA]?\b/.test(str);
 }
 
 function refreshGUI(folder, typeset) {
@@ -3006,11 +3006,11 @@ function createImageControllers() {
   }
   imControllerOne = root
     .addImage(options, "imagePathOne")
-    .name("$S(x,y)$")
+    .name("$I_S(x,y)$")
     .onChange(loadImageSourceOne);
   imControllerTwo = root
     .addImage(options, "imagePathTwo")
-    .name("$T(x,y)$")
+    .name("$I_T(x,y)$")
     .onChange(loadImageSourceTwo);
   if (MathJax.typesetPromise != undefined) {
     MathJax.typesetPromise();
