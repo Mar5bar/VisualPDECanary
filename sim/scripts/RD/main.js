@@ -1512,7 +1512,10 @@ function initGUI(startOpen) {
     lineWidthMulController = root
       .add(options, "lineWidthMul", 0.1, 2)
       .name("Thickness")
-      .onChange(setLineWidth);
+      .onChange(function () {
+        setLineWidth();
+        render();
+      });
   }
   if (inGUI("threeDHeightScale")) {
     threeDHeightScaleController = root
