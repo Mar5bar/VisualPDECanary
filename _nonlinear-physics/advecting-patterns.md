@@ -18,8 +18,8 @@ Each of the examples on this page will be a variation of a previous example inco
 
 ## Localised Swift–Hohenberg swiftly moving
 
-* We next consider the localised solutions from the [Swift–Hohenberg equation](/nonlinear-physics), and add a parameter $Q$ for unidrectional and rotational advection to get [moving localised patterns](/sim/?preset=swiftHohenbergLocalisedAdvection).
+* We next consider the localised solutions from the [Swift–Hohenberg equation](/nonlinear-physics), and consider two cases of moving patterns under advection. The first is [unidrectional motion](/sim/?preset=swiftHohenbergLocalisedDirectedAdvection) at an angle $\theta$, and the second is [rotational advection](/sim/?preset=swiftHohenbergLocalisedRotationalAdvection).
 
-* Setting $Q=1$ gives unidirectional advection, and the localised structure moves along a direction given by the parameter $\theta$. Setting $Q=2$ instead rotates the pattern around the centre of the screen. Changing $V$ impacts the velocity of this movement. Note that if $V$ becomes too large, the pattern can generate structures which misbehave at the boundaries (as these will interact with advection in odd ways).
+* In both cases, changing $V$ impacts the velocity of this movement. Note that if $V$ becomes too large in the rotational case, the pattern can generate structures which misbehave at the boundaries (as these will interact with advection in odd ways). In particular, the rotating velocity field which is advecting $u$ is itself not periodic.
 
 * Changing $P$ and restarting the simulation allows you to explore how these different localised solutions change their structure under advection.
