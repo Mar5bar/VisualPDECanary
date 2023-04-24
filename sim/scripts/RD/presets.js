@@ -60,7 +60,7 @@ export function getPreset(id) {
 	"diffusionStrWW": "0",
 	"domainScale": 320,
 	"dt": 0.002,
-	"kineticParams": "V  =  0.10  in  [-5,  0.01,  5];theta  =  -3.1500000  in  [-6.4,  0.01,  6.4];",
+	"kineticParams": "V  =  0.10  in  [-5,  0.01,  5];",
 	"numSpecies": 1,
 	"preset": "AdvectionEquationRotational",
 	"reactionStrU": "V*((y-L_y/2)*u_x-(x-L_x/2)*u_y)",
@@ -71,31 +71,28 @@ export function getPreset(id) {
 	"whatToPlot": "u",
 };
 break;
-    case "AdvectionEquation":
-      options = {
-        boundaryConditionsU: "neumann",
-        brushAction: "smoothreplace",
-        brushValue: "2",
-        brushRadius: "4",
-        clearValueU: "0",
-        diffusionStrUU: "1",
-        diffusionStrVV: "0",
-        diffusionStrWW: "0",
-        domainScale: 320,
-        dt: 0.002,
-        kineticParams:
-          "Q = 2.0 in  [1, 1, 2];V = 0.140 in  [0, 0.01, 5];theta  =  -3.1500000  in  [-6.4, 0.01, 6.4];",
-        numSpecies: 1,
-        preset: "AdvectionEquation",
-        reactionStrU:
-          "V*(H(1.5-Q)*(cos(theta)*u_x + sin(theta)*u_y)-H(Q-1.5)*(-(y-L_y/2)*u_x+(x-L_x/2)*u_y))",
-        reactionStrV: "0",
-        reactionStrW: "0",
-        spatialStep: 1.25,
-        whatToDraw: "u",
-        whatToPlot: "u",
-      };
-      break;
+	case "AdvectionEquationDirected":
+	options = {
+	"brushAction": "smoothadd",
+	"brushValue": "0.5",
+	"brushRadius": "3",
+	"clearValueU": "0",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 320,
+	"dt": 0.002,
+	"kineticParams": "V  =  6 in  [0,  0.01,  10];theta = -2 in  [-6.4,  0.01,  6.4];",
+	"numSpecies": 1,
+	"preset": "AdvectionEquationDirected",
+	"reactionStrU": "V*(cos(theta)*u_x + sin(theta)*u_y)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 1.25,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
     case "BurgersEquation":
       options = {
         boundaryConditionsU: "neumann",
