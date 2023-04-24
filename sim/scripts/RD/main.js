@@ -105,7 +105,13 @@ let isRunning,
   errorOccurred = false,
   NaNTimer;
 let inTex, outTex;
-let nXDisc, nYDisc, domainWidth, domainHeight, maxDim, canvasWidth, canvasHeight;
+let nXDisc,
+  nYDisc,
+  domainWidth,
+  domainHeight,
+  maxDim,
+  canvasWidth,
+  canvasHeight;
 let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
@@ -753,8 +759,8 @@ function setSizes() {
   }
   // Set the size of the renderer, which will interpolate from the textures.
   renderer.setSize(
-    canvasWidth,
-    canvasHeight,
+    devicePixelRatio * canvasWidth,
+    devicePixelRatio * canvasHeight,
     false
   );
   buffer = new Float32Array(nXDisc * nYDisc * 4);
@@ -766,8 +772,8 @@ function createDisplayDomains() {
   const plane = new THREE.PlaneGeometry(
     domainWidth / maxDim,
     domainHeight / maxDim,
-    Math.round(canvas.getBoundingClientRect().width),
-    Math.round(canvas.getBoundingClientRect().height),
+    Math.round(devicePixelRatio * canvas.getBoundingClientRect().width),
+    Math.round(devicePixelRatio * canvas.getBoundingClientRect().height)
   );
   domain = new THREE.Mesh(plane, displayMaterial);
   domain.position.z = 0;
@@ -796,7 +802,7 @@ function createDisplayDomains() {
     xLineCoords[i] = val;
     val += step;
   }
-  const positions = new Array(3 * canvasWidth).fill(0);
+  const positions = new Array(3 * devicePixelRatio * canvasWidth).fill(0);
   const lineColours = new Array(positions.length).fill(0);
   lineGeom.setPositions(positions);
   lineGeom.setColors(lineColours);
@@ -1962,7 +1968,7 @@ function render() {
         (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
       )
     );
-    const points = curve.getSpacedPoints(canvasWidth);
+    const points = curve.getSpacedPoints(devicePixelRatio * canvasWidth);
     setLineXY(points);
     setLineColour(points);
   }
