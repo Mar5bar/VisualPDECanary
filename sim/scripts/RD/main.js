@@ -1735,9 +1735,9 @@ function setBrushType() {
   // If the radius string contains any references to u,v,w,q, replace them with references to the species at the
   // brush centre, not the current pixel.
   radiusStr = radiusStr.replace(/\buvwq\./g, "uvwqBrush.");
-  // If the radius string contains any references to S or T, replace them with references to the value at the
+  // If the radius string contains any references to I_S or I_T, replace them with references to the value at the
   // brush centre, not the current pixel.
-  radiusStr = radiusStr.replace(/\b([ST])([RGBA]?)\b/g, "$1Brush$2");
+  radiusStr = radiusStr.replace(/\b(I_[ST])([RGBA]?)\b/g, "$1Brush$2");
 
   // If a random number has been requested, insert calculation of a random number.
   if (options.brushValue.includes("RAND")) {
@@ -2714,6 +2714,21 @@ function loadOptions(preset) {
 
   // Enable backwards compatibility.
   options.brushRadius = options.brushRadius.toString();
+  // Replace T and S with I_T and I_S if T, S are not in the listOfSpecies.
+  if (!listOfSpecies.includes("T")) {
+    Object.keys(options).forEach(function (key) {
+      if (userTextFields.includes(key)) {
+        options[key] = replaceSymbolsInStr(options[key], ["T"], ["I_T"], "[RGBA]");
+      }
+    });
+  }
+  if (!listOfSpecies.includes("S")) {
+    Object.keys(options).forEach(function (key) {
+      if (userTextFields.includes(key)) {
+        options[key] = replaceSymbolsInStr(options[key], ["S"], ["I_S"], "[RGBA]");
+      }
+    });
+  }
 
   // If either of the images are used in the simulation, ensure that the simulation resets when the images are
   // actually loaded in.
@@ -3887,8 +3902,8 @@ function setEquationDisplayType() {
   let str = equationTEX[equationType];
 
   // Swap out default symbols for new.
-  str = replaceSymbolsInStr(str, defaultSpecies, listOfSpecies);
-  str = replaceSymbolsInStr(str, defaultReactions, listOfReactions);
+  str = replaceSymbolsInStr(str, defaultSpecies, listOfSpecies, "_[xy]");
+  str = replaceSymbolsInStr(str, defaultReactions, listOfReactions, "_[xy]");
 
   if (options.typesetCustomEqs) {
     // Define a list of strings that will be used to make regexes, and replace default species
@@ -3944,7 +3959,8 @@ function setEquationDisplayType() {
       regexStrs[key] = replaceSymbolsInStr(
         regexStrs[key],
         defaultSpecies,
-        listOfSpecies
+        listOfSpecies,
+        "_[xy]"
       );
     });
 
@@ -4779,7 +4795,7 @@ function replaceUserDefReac(str, regex, input) {
   // If the input contains letters (like parameters), insert it with delimiters.
   if (input.match(/[a-zA-Z]/)) return str.replaceAll(regex, input);
   // If it's just a scalar, keep the original, but replace old species with new.
-  return replaceSymbolsInStr(str, defaultSpecies, listOfSpecies);
+  return replaceSymbolsInStr(str, defaultSpecies, listOfSpecies, "_[xy]");
 }
 
 function replaceUserDefDiff(str, regex, input, delimiters) {
@@ -4804,7 +4820,7 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
     }
   }
   // If it's just a scalar, keep the original, but replace old species with new.
-  return replaceSymbolsInStr(str, defaultSpecies, listOfSpecies);
+  return replaceSymbolsInStr(str, defaultSpecies, listOfSpecies, "_[xy]");
 }
 
 function configurePlotType() {
@@ -5049,7 +5065,8 @@ function setSpeciesNames(onLoading) {
     TeXStrings[key] = replaceSymbolsInStr(
       defaultStrings[key],
       defaultSpecies,
-      listOfSpecies
+      listOfSpecies,
+      "_[xy]"
     );
   });
 
@@ -5065,7 +5082,8 @@ function setSpeciesNames(onLoading) {
       options[key] = replaceSymbolsInStr(
         options[key],
         oldListOfSpecies,
-        listOfSpecies
+        listOfSpecies,
+        "_[xy]"
       );
     }
   });
@@ -5120,6 +5138,8 @@ function setReactionNames(onLoading) {
 }
 
 function genAnySpeciesRegexStrs() {
+  // Generate RegExp that is equivalent to [uvwq], [vwq], [wq], [q] but with 
+  // the new species inserted.
   anySpeciesRegexStrs = [];
   for (let i = 0; i < listOfSpecies.length; i++) {
     anySpeciesRegexStrs.push(
@@ -5133,20 +5153,28 @@ function genAnySpeciesRegexStrs() {
   }
 }
 
-function replaceSymbolsInStr(str, originals, replacements) {
-  // We'll also pick up originals_[xy] to capture derivatives.
+function replaceSymbolsInStr(str, originals, replacements, optional) {
+  // Replace all the symbols from originals, found as whole words, with those
+  // in replacements, allowing for an optional trailing regex.
+  if (optional == undefined) optional = "";
   const placeholders = new Array(originals.length)
     .fill(0)
     .map((x, i) => "PLACE" + i.toString());
   let regex;
   // Substitute in placeholders first.
   for (var ind = 0; ind < originals.length; ind++) {
-    regex = new RegExp("\\b(" + originals[ind] + ")(_[xy])?\\b", "g");
+    regex = new RegExp(
+      "\\b(" + originals[ind] + ")(" + optional + ")?\\b",
+      "g"
+    );
     str = str.replaceAll(regex, placeholders[ind] + "$2");
   }
   // Now swap the placeholders for the new reactions.
   for (var ind = 0; ind < placeholders.length; ind++) {
-    regex = new RegExp("\\b(" + placeholders[ind] + ")(_[xy])?\\b", "g");
+    regex = new RegExp(
+      "\\b(" + placeholders[ind] + ")(" + optional + ")?\\b",
+      "g"
+    );
     str = str.replaceAll(regex, replacements[ind] + "$2");
   }
   return str;

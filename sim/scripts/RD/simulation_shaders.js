@@ -57,17 +57,17 @@ export function RDShaderTop() {
         vec4 uvwqB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y));
 
         vec4 Svec = texture2D(imageSourceOne, textureCoords);
-        float S = (Svec.x + Svec.y + Svec.z) / 3.0;
-        float SR = Svec.r;
-        float SG = Svec.g;
-        float SB = Svec.b;
-        float SA = Svec.a;
+        float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
+        float I_SR = Svec.r;
+        float I_SG = Svec.g;
+        float I_SB = Svec.b;
+        float I_SA = Svec.a;
         vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
-        float T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
-        float TR = Tvec.r;
-        float TG = Tvec.g;
-        float TB = Tvec.b;
-        float TA = Tvec.a;
+        float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
+        float I_TR = Tvec.r;
+        float I_TG = Tvec.g;
+        float I_TB = Tvec.b;
+        float I_TA = Tvec.a;
     `;
 }
 
@@ -246,16 +246,16 @@ export function RDShaderEnforceDirichletTop() {
         gl_FragColor = uvwq;
 
         vec4 Svec = texture2D(imageSourceOne, textureCoords);
-        float S = (Svec.x + Svec.y + Svec.z) / 3.0;
-        float SR = Svec.r;
-        float SG = Svec.g;
-        float SB = Svec.b;
-        float SA = Svec.a;
+        float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
+        float I_SR = Svec.r;
+        float I_SG = Svec.g;
+        float I_SB = Svec.b;
+        float I_SA = Svec.a;
         vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
-        float T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
-        float TR = Tvec.r;
-        float TG = Tvec.g;
-        float TB = Tvec.b;
-        float TA = Tvec.a;
+        float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
+        float I_TR = Tvec.r;
+        float I_TG = Tvec.g;
+        float I_TB = Tvec.b;
+        float I_TA = Tvec.a;
     `
 }
