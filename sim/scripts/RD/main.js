@@ -105,7 +105,7 @@ let isRunning,
   errorOccurred = false,
   NaNTimer;
 let inTex, outTex;
-let nXDisc, nYDisc, domainWidth, domainHeight, maxDim;
+let nXDisc, nYDisc, domainWidth, domainHeight, maxDim, canvasWidth, canvasHeight;
 let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
@@ -705,9 +705,9 @@ function updateUniforms() {
 }
 
 function computeCanvasSizesAndAspect() {
-  aspectRatio =
-    canvas.getBoundingClientRect().height /
-    canvas.getBoundingClientRect().width;
+  canvasWidth = Math.round(canvas.getBoundingClientRect().width);
+  canvasHeight = Math.round(canvas.getBoundingClientRect().height);
+  aspectRatio = canvasHeight / canvasWidth;
   // Set the domain size, setting the largest side to be of size options.domainScale.
   if (aspectRatio >= 1) {
     domainHeight = options.domainScale;
@@ -752,7 +752,11 @@ function setSizes() {
     val += step;
   }
   // Set the size of the renderer, which will interpolate from the textures.
-  renderer.setSize(options.renderSize, options.renderSize, false);
+  renderer.setSize(
+    canvasWidth,
+    canvasHeight,
+    false
+  );
   buffer = new Float32Array(nXDisc * nYDisc * 4);
   bufferFilled = false;
 }
@@ -762,8 +766,8 @@ function createDisplayDomains() {
   const plane = new THREE.PlaneGeometry(
     domainWidth / maxDim,
     domainHeight / maxDim,
-    options.renderSize,
-    options.renderSize
+    Math.round(canvas.getBoundingClientRect().width),
+    Math.round(canvas.getBoundingClientRect().height),
   );
   domain = new THREE.Mesh(plane, displayMaterial);
   domain.position.z = 0;
@@ -785,14 +789,14 @@ function createDisplayDomains() {
 
   // Create a line object whose coordinates we can set when plotting lines.
   const lineGeom = new LineGeometry();
-  xLineCoords = new Array(options.renderSize);
+  xLineCoords = new Array(canvasWidth);
   let val = -0.5,
-    step = 1 / options.renderSize;
-  for (let i = 0; i < options.renderSize; i++) {
+    step = 1 / canvasWidth;
+  for (let i = 0; i < canvasWidth; i++) {
     xLineCoords[i] = val;
     val += step;
   }
-  const positions = new Array(3 * options.renderSize).fill(0);
+  const positions = new Array(3 * canvasWidth).fill(0);
   const lineColours = new Array(positions.length).fill(0);
   lineGeom.setPositions(positions);
   lineGeom.setColors(lineColours);
@@ -1483,12 +1487,6 @@ function initGUI(startOpen) {
         render();
       });
   }
-  if (inGUI("renderSize")) {
-    root
-      .add(options, "renderSize", 1, 2048, 1)
-      .name("Resolution")
-      .onFinishChange(updateRenderSize);
-  }
   if (inGUI("plotType")) {
     root
       .add(options, "plotType", {
@@ -1964,7 +1962,7 @@ function render() {
         (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
       )
     );
-    const points = curve.getSpacedPoints(options.renderSize);
+    const points = curve.getSpacedPoints(canvasWidth);
     setLineXY(points);
     setLineColour(points);
   }
@@ -1994,11 +1992,6 @@ function render() {
     takeAScreenshot = false;
     var link = document.createElement("a");
     link.download = "VisualPDEScreenshot";
-    renderer.setSize(
-      options.renderSize,
-      Math.round(options.renderSize * aspectRatio),
-      false
-    );
     renderer.render(scene, camera);
     link.href = renderer.domElement.toDataURL();
     document.body.appendChild(link);
@@ -4887,9 +4880,6 @@ function configurePlotType() {
     refreshGUI(rightGUI);
     domain.visible = false;
     line.visible = true;
-    // Up the render size to the screen size.
-    options.renderSize = window.innerWidth;
-    updateRenderSize();
   } else {
     domain.visible = true;
     line.visible = false;
@@ -5265,16 +5255,6 @@ function setLineColour(xy) {
     if (i > 0) end.setXYZ(i - 1, colour[0], colour[1], colour[2]);
   }
   start.needsUpdate = true;
-}
-
-function updateRenderSize() {
-  domain.geometry.dispose();
-  scene.remove(domain);
-  line.geometry.dispose();
-  scene.remove(line);
-  createDisplayDomains();
-  setSizes();
-  render();
 }
 
 function colourFromValue(val) {
