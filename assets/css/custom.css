@@ -41,6 +41,11 @@ div.home-banner {
 
 div.home-banner-content {
     position: absolute;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 }
 
 div.home-banner-subtitle,
