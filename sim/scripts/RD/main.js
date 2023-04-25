@@ -3876,6 +3876,10 @@ function setEquationDisplayType() {
   regexes["QU"] = /\b(D_{q u}) (\\vnabla u)/g;
   regexes["QV"] = /\b(D_{q v}) (\\vnabla v)/g;
   regexes["QW"] = /\b(D_{q w}) (\\vnabla w)/g;
+  regexes["f"] = /\b(f)/g;
+  regexes["g"] = /\b(g)/g;
+  regexes["h"] = /\b(h)/g;
+  regexes["j"] = /\b(j)/g;
 
   if (options.typesetCustomEqs) {
     // We'll work using the default notation, then convert at the end.
@@ -3921,20 +3925,16 @@ function setEquationDisplayType() {
     });
 
     // For each diffusion string, replace it with the value in associatedStrs.
-    Object.keys(regexes).forEach(function (key) {
-      str = replaceUserDefDiff(
-        str,
-        regexes[key],
-        associatedStrs[key],
-        "[]"
-      );
+    Object.keys(associatedStrs).forEach(function (key) {
+      if (!defaultReactions.includes(key))
+        str = replaceUserDefDiff(str, regexes[key], associatedStrs[key], "[]");
     });
 
     // Replace the reaction strings, converting everything back to default notation.
-    str = replaceUserDefReac(str, /\bf\b/g, associatedStrs["f"]);
-    str = replaceUserDefReac(str, /\bg\b/g, associatedStrs["g"]);
-    str = replaceUserDefReac(str, /\bh\b/g, associatedStrs["h"]);
-    str = replaceUserDefReac(str, /\bj\b/g, associatedStrs["j"]);
+    str = replaceUserDefReac(str, regexes["f"], associatedStrs["f"]);
+    str = replaceUserDefReac(str, regexes["g"], associatedStrs["g"]);
+    str = replaceUserDefReac(str, regexes["h"], associatedStrs["h"]);
+    str = replaceUserDefReac(str, regexes["j"], associatedStrs["j"]);
 
     // Look through the string for any open brackets ( or [ followed by a + or -.
     regex = /\(\s*\+/g;
@@ -3987,6 +3987,15 @@ function setEquationDisplayType() {
     // Replace u_x, u_y etc with \pd{u}{x} etc.
     regex = /\b([uvwq])_([xy])\b/g;
     str = str.replaceAll(regex, "\\textstyle \\pd{$1}{$2}");
+  } else {
+    // Even if we're not customising the typesetting, add in \selected{} to any selected entry.
+    selectedEntries.forEach(function (x) {
+      str = str.replaceAll(regexes[x], function (match, g1, g2) {
+        let val = "\\selected{ " + g1 + " ";
+        if (typeof g2 == "string") val += g2;
+        return val + " }";
+      });
+    });
   }
 
   // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
