@@ -28,15 +28,19 @@ a[href*='//']:not([href*='visualpde.com']) {
 }
 
 div.home-banner {
+    position: relative;
     background-color: #ddf1ff;
     height: 150px;
-    background: #def3ff url("/assets/images/banner.png") no-repeat center center;
-    background-size: 100%;
+    width: 100vw;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
+}
+
+div.home-banner-content {
+    position: absolute;
 }
 
 div.home-banner-subtitle,
