@@ -1944,7 +1944,7 @@ function render() {
   if (options.drawIn3D && options.plotType == "surface") {
     let val =
       (getMeanVal() - options.minColourValue) /
-      (options.maxColourValue - options.minColourValue) -
+        (options.maxColourValue - options.minColourValue) -
       0.5;
     clickDomain.position.y = options.threeDHeightScale * val.clamp(-0.5, 0.5);
     clickDomain.updateWorldMatrix();
@@ -1973,7 +1973,7 @@ function render() {
     for (let i = 0; i < buffer.length; i += 4) {
       scaledValue =
         (buffer[i] - options.minColourValue) /
-        (options.maxColourValue - options.minColourValue) -
+          (options.maxColourValue - options.minColourValue) -
         0.5;
       // Set the height.
       yDisplayDomainCoords[ind++] = scaledValue.clamp(-0.5, 0.5);
@@ -4124,8 +4124,8 @@ function setEquationDisplayType() {
     // If we have [-blah] inside a divergence operator, move the minus sign outside.
     regex = new RegExp(
       "(\\\\vnabla\\s*\\\\cdot\\s*\\()\\[-([\\w\\{\\}]*)\\]\\s*(\\\\vnabla\\s*(" +
-      anySpeciesRegexStrs[0] +
-      ")\\s*\\))",
+        anySpeciesRegexStrs[0] +
+        ")\\s*\\))",
       "g"
     );
     str = str.replaceAll(regex, "-$1$2$3");
@@ -4145,8 +4145,8 @@ function setEquationDisplayType() {
 
     regex = new RegExp(
       "\\\\vnabla\\s*\\\\cdot\\s*\\(([\\w\\{\\}\\*\\^]*)\\s*\\\\vnabla\\s*(" +
-      anySpeciesRegexStrs[0] +
-      ")\\s*\\)",
+        anySpeciesRegexStrs[0] +
+        ")\\s*\\)",
       "g"
     );
     str = str.replaceAll(regex, function (match, g1, g2) {
@@ -4428,11 +4428,11 @@ function createParameterController(label, isNextParam) {
         kineticParamsStrs[label] = kineticParamsStrs[label].replace(
           valueRegex,
           match[1] +
-          " = " +
-          parseFloat(controller.slider.value)
-            .toFixed(controller.slider.precision)
-            .toString() +
-          " "
+            " = " +
+            parseFloat(controller.slider.value)
+              .toFixed(controller.slider.precision)
+              .toString() +
+            " "
         );
         refreshGUI(parametersFolder);
         setKineticStringFromParams();
@@ -5053,10 +5053,10 @@ function setKineticUniformFromString(str) {
     if (isReservedName(match[1])) {
       alert(
         "The name '" +
-        match[1] +
-        "' is used under the hood, so can't be used as a species name. Please , so can't be used as a parameter. Please use a different name for " +
-        match[1] +
-        "."
+          match[1] +
+          "' is used under the hood, so can't be used as a species name. Please , so can't be used as a parameter. Please use a different name for " +
+          match[1] +
+          "."
       );
     } else {
       // If no such uniform exists, make a note of this.
@@ -5121,8 +5121,8 @@ function resizeEquationDisplay() {
   $("#leftGUI").css(
     "max-height",
     "calc(90dvh - " +
-    $("#equation_display")[0].getBoundingClientRect().bottom +
-    "px)"
+      $("#equation_display")[0].getBoundingClientRect().bottom +
+      "px)"
   );
 }
 
@@ -5183,12 +5183,12 @@ function setSpeciesNames(onLoading) {
       }
       alert(
         "The name '" +
-        newSpecies[ind] +
-        "' is used " +
-        message +
-        ", so can't be used as a species name. Please use a different name for " +
-        newSpecies[ind] +
-        "."
+          newSpecies[ind] +
+          "' is used " +
+          message +
+          ", so can't be used as a species name. Please use a different name for " +
+          newSpecies[ind] +
+          "."
       );
       return;
     }
@@ -5204,12 +5204,14 @@ function setSpeciesNames(onLoading) {
     ...getDefaultTeXLabelsBCsICs(),
   };
   Object.keys(defaultStrings).forEach(function (key) {
-    TeXStrings[key] = parseStringToTEX(replaceSymbolsInStr(
-      defaultStrings[key],
-      defaultSpecies,
-      listOfSpecies,
-      "_[xy]"
-    ));
+    TeXStrings[key] = parseStringToTEX(
+      replaceSymbolsInStr(
+        defaultStrings[key],
+        defaultSpecies,
+        listOfSpecies,
+        "_[xy]"
+      )
+    );
   });
 
   // Define a non-capturing strings that are equivalent to the old [uvwq], [vwq] etc in regexes.
@@ -5255,12 +5257,12 @@ function setReactionNames(onLoading) {
       }
       alert(
         "The name '" +
-        newReactions[ind] +
-        "' is used " +
-        message +
-        ", so can't be used as a function name. Please use a different name for " +
-        newReactions[ind] +
-        "."
+          newReactions[ind] +
+          "' is used " +
+          message +
+          ", so can't be used as a function name. Please use a different name for " +
+          newReactions[ind] +
+          "."
       );
       return;
     }
@@ -5277,11 +5279,13 @@ function setReactionNames(onLoading) {
   let regex;
   const defaultStrings = getDefaultTeXLabelsReaction();
   Object.keys(defaultStrings).forEach(function (key) {
-    TeXStrings[key] = parseStringToTEX(replaceSymbolsInStr(
-      defaultStrings[key],
-      defaultReactions,
-      listOfReactions
-    ));
+    TeXStrings[key] = parseStringToTEX(
+      replaceSymbolsInStr(
+        defaultStrings[key],
+        defaultReactions,
+        listOfReactions
+      )
+    );
   });
 
   // Don't update the GUI if we're just loading in, as this will be done as part of loading.
@@ -5297,12 +5301,12 @@ function genAnySpeciesRegexStrs() {
   for (let i = 0; i < listOfSpecies.length; i++) {
     anySpeciesRegexStrs.push(
       "(?:" +
-      listOfSpecies
-        .slice(i)
-        .sort((a,b) => b.length - a.length)
-        .map((x) => "(?:" + x + ")")
-        .join("|") +
-      ")"
+        listOfSpecies
+          .slice(i)
+          .sort((a, b) => b.length - a.length)
+          .map((x) => "(?:" + x + ")")
+          .join("|") +
+        ")"
     );
   }
 }
@@ -5377,7 +5381,7 @@ function colourFromValue(val) {
     colourmap[ind],
     colourmap[ind + 1],
     (val - colourmapEndpoints[ind]) /
-    (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind])
+      (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind])
   );
 }
 
