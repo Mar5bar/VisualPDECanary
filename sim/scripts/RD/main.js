@@ -4830,6 +4830,7 @@ function sanitisedKineticParams() {
 }
 
 function getKineticParamNames() {
+  // Return a list of parsed kinetic parameter names.
   const regex = /(\w+)\s*=\s*([\+\-]?)\s*([0-9\.]+)/;
   return sanitisedKineticParams()
     .split(";")
@@ -4901,6 +4902,7 @@ function updateShaders() {
 }
 
 function replaceDigitsWithWords(strIn) {
+  // For any digits [0-9] in strIn, replace them with their word equivalents.
   let regex;
   let strOut = strIn;
   for (let num = 0; num < 10; num++) {
@@ -4911,6 +4913,8 @@ function replaceDigitsWithWords(strIn) {
 }
 
 function resizeEquationDisplay() {
+  // Iteratively reduce the font size of the equation display until the container
+  // doesn't encroach on the RHS of the screen.
   const el = $("#equation_display div mjx-container").children("mjx-math");
   var fz;
   el.css("font-size", "");
@@ -4927,6 +4931,7 @@ function resizeEquationDisplay() {
     el.css("font-size", fz);
     count += 1;
   }
+
   // Set the left gui max height based on the height of the equation container.
   $("#leftGUI").css(
     "max-height",
@@ -4959,6 +4964,7 @@ function setColourRange() {
 }
 
 function updateGUIDropdown(controller, labels, values) {
+  // Update the dropdown of a dat.GUI controller.
   if (values == undefined) {
     values = labels;
   }
@@ -5149,7 +5155,7 @@ function replaceSymbolsInStr(str, originals, replacements, optional) {
 }
 
 function setLineXY(xy) {
-  // Set just the XY coordinates of the line coordinates, scaling Y by options.threeDHeightScale.
+  // Set the xy coordinates of the display line, scaling y by options.threeDHeightScale.
   let start = line.geometry.attributes.instanceStart;
   let end = line.geometry.attributes.instanceEnd;
   let coord;
@@ -5164,7 +5170,8 @@ function setLineXY(xy) {
 }
 
 function setLineColour(xy) {
-  // Set the colour of XY coordinates of the line coordinates, noting that Y in [-0.5,0.5].
+  // Set the display line colour from the xy coordinates, noting that y in [-0.5,0.5].
+  // The colour is given simply by the y coordinate.
   let start = line.geometry.attributes.instanceColorStart;
   let end = line.geometry.attributes.instanceColorEnd;
   let colour;
@@ -5177,7 +5184,7 @@ function setLineColour(xy) {
 }
 
 function colourFromValue(val) {
-  // For val in [0,1] assign a colour using uniforms.
+  // For val in [0,1] assign a colour using the colourmap.
   if (val <= 0) return colourmap[0];
   if (val >= 1) return colourmap[colourmap.length - 1];
   let ind = 0;
