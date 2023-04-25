@@ -3853,33 +3853,32 @@ function setEquationDisplayType() {
   let str = equationTEX[equationType];
 
   let regex;
+  // Define a list of strings that will be used to make regexes.
+  const regexes = {};
+  regexes["D"] = /\b(D) (\\vnabla u)/g;
+  regexes["U"] = /\b(D_{u}) (\\vnabla u)/g;
+  regexes["UU"] = /\b(D_{u u}) (\\vnabla u)/g;
+  regexes["V"] = /\b(D_{v}) (\\vnabla v)/g;
+  regexes["VV"] = /\b(D_{v v}) (\\vnabla v)/g;
+  regexes["W"] = /\b(D_{w}) (\\vnabla w)/g;
+  regexes["WW"] = /\b(D_{w w}) (\\vnabla w)/g;
+  regexes["Q"] = /\b(D_{q}) (\\vnabla q)/g;
+  regexes["QQ"] = /\b(D_{q q}) (\\vnabla q)/g;
+  regexes["UV"] = /\b(D_{u v}) (\\vnabla v)/g;
+  regexes["UW"] = /\b(D_{u w}) (\\vnabla w)/g;
+  regexes["UQ"] = /\b(D_{u q}) (\\vnabla q)/g;
+  regexes["VU"] = /\b(D_{v u}) (\\vnabla u)/g;
+  regexes["VW"] = /\b(D_{v w}) (\\vnabla w)/g;
+  regexes["VQ"] = /\b(D_{v q}) (\\vnabla q)/g;
+  regexes["WU"] = /\b(D_{w u}) (\\vnabla u)/g;
+  regexes["WV"] = /\b(D_{w v}) (\\vnabla v)/g;
+  regexes["WQ"] = /\b(D_{w q}) (\\vnabla q)/g;
+  regexes["QU"] = /\b(D_{q u}) (\\vnabla u)/g;
+  regexes["QV"] = /\b(D_{q v}) (\\vnabla v)/g;
+  regexes["QW"] = /\b(D_{q w}) (\\vnabla w)/g;
 
   if (options.typesetCustomEqs) {
-    // Define a list of strings that will be used to make regexes. We'll work using the default notation,
-    // then convert at the end.
-    let regexStrs = {};
-    regexStrs["D"] = "\\b(D) (\\\\vnabla u)";
-    regexStrs["U"] = "\\b(D_{u}) (\\\\vnabla u)";
-    regexStrs["UU"] = "\\b(D_{u u}) (\\\\vnabla u)";
-    regexStrs["V"] = "\\b(D_{v}) (\\\\vnabla v)";
-    regexStrs["VV"] = "\\b(D_{v v}) (\\\\vnabla v)";
-    regexStrs["W"] = "\\b(D_{w}) (\\\\vnabla w)";
-    regexStrs["WW"] = "\\b(D_{w w}) (\\\\vnabla w)";
-    regexStrs["Q"] = "\\b(D_{q}) (\\\\vnabla q)";
-    regexStrs["QQ"] = "\\b(D_{q q}) (\\\\vnabla q)";
-    regexStrs["UV"] = "\\b(D_{u v}) (\\\\vnabla v)";
-    regexStrs["UW"] = "\\b(D_{u w}) (\\\\vnabla w)";
-    regexStrs["UQ"] = "\\b(D_{u q}) (\\\\vnabla q)";
-    regexStrs["VU"] = "\\b(D_{v u}) (\\\\vnabla u)";
-    regexStrs["VW"] = "\\b(D_{v w}) (\\\\vnabla w)";
-    regexStrs["VQ"] = "\\b(D_{v q}) (\\\\vnabla q)";
-    regexStrs["WU"] = "\\b(D_{w u}) (\\\\vnabla u)";
-    regexStrs["WV"] = "\\b(D_{w v}) (\\\\vnabla v)";
-    regexStrs["WQ"] = "\\b(D_{w q}) (\\\\vnabla q)";
-    regexStrs["QU"] = "\\b(D_{q u}) (\\\\vnabla u)";
-    regexStrs["QV"] = "\\b(D_{q v}) (\\\\vnabla v)";
-    regexStrs["QW"] = "\\b(D_{q w}) (\\\\vnabla w)";
-
+    // We'll work using the default notation, then convert at the end.
     let associatedStrs = {};
     associatedStrs["D"] = options.diffusionStrUU;
     associatedStrs["U"] = options.diffusionStrUU;
@@ -3922,10 +3921,10 @@ function setEquationDisplayType() {
     });
 
     // For each diffusion string, replace it with the value in associatedStrs.
-    Object.keys(regexStrs).forEach(function (key) {
+    Object.keys(regexes).forEach(function (key) {
       str = replaceUserDefDiff(
         str,
-        RegExp(regexStrs[key], "g"),
+        regexes[key],
         associatedStrs[key],
         "[]"
       );
@@ -4006,7 +4005,7 @@ function setEquationDisplayType() {
     listOfSpecies.concat(listOfReactions),
     "_[xy]"
   );
-  
+
   str = parseStringToTEX(str);
 
   $("#typeset_equation").html(str);
