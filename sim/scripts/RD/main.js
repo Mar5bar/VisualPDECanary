@@ -334,6 +334,8 @@ if (params.has("no_ui")) {
   // Hide all the ui, including buttons.
   $(".ui").addClass("hidden");
   uiHidden = true;
+} else {
+  $(".ui").removeClass("hidden");
 }
 
 // Warn the user about flashing images and ask for cookie permission to store this.
