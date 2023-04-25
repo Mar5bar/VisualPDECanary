@@ -3,6 +3,17 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "Banner":
+      options = {
+        brushRadius: "5",
+        clearValueU: "1",
+        clearValueV: "I_SR",
+        diffusionStrWW: "0",
+        imagePathOne: "./images/BannerInitCond.png",
+        preset: "Banner",
+        resetOnImageLoad: true,
+      };
+      break;
     case "KlausmeierModel":
       options = {
         brushAction: "smoothadd",

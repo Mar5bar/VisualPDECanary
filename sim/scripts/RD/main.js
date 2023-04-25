@@ -327,8 +327,19 @@ if (!fromExternalLink()) {
 // flip-flop between two textures, A and B.
 var readFromTextureB = true;
 
+// Check URL for any specified options.
+const params = new URLSearchParams(window.location.search);
+
+if (params.has("no_ui")) {
+  // Hide all the ui, including buttons.
+  $(".ui").addClass("hidden");
+  uiHidden = true;
+} else {
+  $(".ui").removeClass("hidden");
+}
+
 // Warn the user about flashing images and ask for cookie permission to store this.
-if (!warningCookieExists()) {
+if (!warningCookieExists() && !uiHidden) {
   // Display the warning message.
   $("#warning").css("display", "block");
   const permission = await Promise.race([
@@ -347,10 +358,9 @@ loadOptions("default");
 // Initialise simulation and GUI.
 init();
 
+// Load things from the search string, if anything is there
 // Unless this value is set to false later, we will load a default preset.
 let shouldLoadDefault = true;
-// Check URL for any preset or specified options.
-const params = new URLSearchParams(window.location.search);
 if (params.has("preset")) {
   // If a preset is specified, load it.
   loadPreset(params.get("preset"));
@@ -371,11 +381,6 @@ if (params.has("options")) {
 if (shouldLoadDefault) {
   // Load a specific preset as the default.
   loadPreset("GrayScott");
-}
-if (params.has("no_ui")) {
-  // Hide all the ui, including buttons.
-  $(".ui").addClass("hidden");
-  uiHidden = true;
 }
 
 // If the "Try clicking!" popup is allowed, show it iff we're from an external link
@@ -634,11 +639,17 @@ function init() {
       }
       if (event.key === "h") {
         if (uiHidden) {
-          $(".ui").removeClass("hidden");
           uiHidden = false;
+          $(".ui").removeClass("hidden");
+          // Ensure that the correct play/pause button is showing.
+          isRunning ? playSim() : pauseSim();
+          // Check for any positioning that relies on elements being visible.
+          checkColourbarPosition();
+          checkColourbarLogoCollision();
+          resizeEquationDisplay();
         } else {
-          $(".ui").addClass("hidden");
           uiHidden = true;
+          $(".ui").addClass("hidden");
         }
       }
     }
@@ -1946,14 +1957,18 @@ function clearTextures() {
 }
 
 function pauseSim() {
-  $("#pause").hide();
-  $("#play").show();
+  if (!uiHidden) {
+    $("#pause").hide();
+    $("#play").show();
+  }
   isRunning = false;
 }
 
 function playSim() {
-  $("#play").hide();
-  $("#pause").show();
+  if (!uiHidden) {
+    $("#play").hide();
+    $("#pause").show();
+  }
   isRunning = true;
 }
 
@@ -3625,13 +3640,6 @@ function configureGUI() {
   // Refresh the GUI displays.
   refreshGUI(leftGUI);
   refreshGUI(rightGUI);
-  if (isRunning) {
-    $("#play").hide();
-    $("#pause").show();
-  } else {
-    $("#play").show();
-    $("#pause").hide();
-  }
   manualInterpolationNeeded
     ? hideGUIController(forceManualInterpolationController)
     : showGUIController(forceManualInterpolationController);
