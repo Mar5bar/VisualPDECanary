@@ -5292,13 +5292,14 @@ function setReactionNames(onLoading) {
 
 function genAnySpeciesRegexStrs() {
   // Generate RegExp that is equivalent to [uvwq], [vwq], [wq], [q] but with
-  // the new species inserted.
+  // the new species inserted. Sort before forming regex to pick up nested species.
   anySpeciesRegexStrs = [];
   for (let i = 0; i < listOfSpecies.length; i++) {
     anySpeciesRegexStrs.push(
       "(?:" +
       listOfSpecies
         .slice(i)
+        .sort((a,b) => b.length - a.length)
         .map((x) => "(?:" + x + ")")
         .join("|") +
       ")"
