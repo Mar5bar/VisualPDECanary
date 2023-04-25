@@ -2714,7 +2714,7 @@ function refreshGUI(folder, typeset) {
       folder.__controllers[i].updateDisplay();
     }
   }
-  // Run MathJax to texify the parameter names (e.g. D_uu) which appear dynamically.
+  // Run MathJax to texify the parameter names (e.g. D_uu) that appear dynamically.
   // No need to do this on page load (and indeed will throw an error) so check
   // MathJax is defined first.
   if (typeset && MathJax.typesetPromise != undefined) {
@@ -3811,13 +3811,9 @@ function setEquationDisplayType() {
   // equation in the UI element that displays the equations.
   let str = equationTEX[equationType];
 
-  // Swap out default symbols for new.
-  str = replaceSymbolsInStr(str, defaultSpecies, listOfSpecies, "_[xy]");
-  str = replaceSymbolsInStr(str, defaultReactions, listOfReactions, "_[xy]");
-
   if (options.typesetCustomEqs) {
-    // Define a list of strings that will be used to make regexes, and replace default species
-    // with new species.
+    // Define a list of strings that will be used to make regexes. We'll work using the default notation,
+    // then convert at the end.
     let regexStrs = {};
     regexStrs["D"] = "\\b(D) (\\\\vnabla u)";
     regexStrs["U"] = "\\b(D_{u}) (\\\\vnabla u)";
@@ -3864,47 +3860,25 @@ function setEquationDisplayType() {
     associatedStrs["QV"] = options.diffusionStrQV;
     associatedStrs["QW"] = options.diffusionStrQW;
 
-    // Replace species in the default strings.
-    Object.keys(regexStrs).forEach(function (key) {
-      regexStrs[key] = replaceSymbolsInStr(
-        regexStrs[key],
-        defaultSpecies,
-        listOfSpecies,
-        "_[xy]"
-      );
-    });
-
-    // For each diffusion string, replace it with the value in associatedStrs.
+    // For each diffusion string, replace it with the value in associatedStrs, duly converted back
+    // to default notation.
+    function toDefault(s) {
+      return replaceSymbolsInStr(s, listOfSpecies, defaultSpecies, "_[xy]");
+    }
     Object.keys(regexStrs).forEach(function (key) {
       str = replaceUserDefDiff(
         str,
         RegExp(regexStrs[key], "g"),
-        associatedStrs[key],
+        toDefault(associatedStrs[key]),
         "[]"
       );
     });
 
-    // Replace the reaction strings.
-    str = replaceUserDefReac(
-      str,
-      RegExp("\\b" + listOfReactions[0] + "\\b", "g"),
-      options.reactionStrU
-    );
-    str = replaceUserDefReac(
-      str,
-      RegExp("\\b" + listOfReactions[1] + "\\b", "g"),
-      options.reactionStrV
-    );
-    str = replaceUserDefReac(
-      str,
-      RegExp("\\b" + listOfReactions[2] + "\\b", "g"),
-      options.reactionStrW
-    );
-    str = replaceUserDefReac(
-      str,
-      RegExp("\\b" + listOfReactions[3] + "\\b", "g"),
-      options.reactionStrQ
-    );
+    // Replace the reaction strings, converting everything back to default notation.
+    str = replaceUserDefReac(str, /\bf\b/g, toDefault(options.reactionStrU));
+    str = replaceUserDefReac(str, /\bg\b/g, toDefault(options.reactionStrV));
+    str = replaceUserDefReac(str, /\bh\b/g, toDefault(options.reactionStrW));
+    str = replaceUserDefReac(str, /\bj\b/g, toDefault(options.reactionStrQ));
 
     // Look through the string for any open brackets ( or [ followed by a + or -.
     let regex = /\(\s*\+/g;
@@ -3932,12 +3906,8 @@ function setEquationDisplayType() {
     str = str.replaceAll(regex, "=0$1");
 
     // If we have [-blah] inside a divergence operator, move the minus sign outside.
-    regex = new RegExp(
-      "(\\\\vnabla\\s*\\\\cdot\\s*\\()\\[-([\\w\\{\\}]*)\\]\\s*(\\\\vnabla\\s*(" +
-        anySpeciesRegexStrs[0] +
-        ")\\s*\\))",
-      "g"
-    );
+    regex =
+      /(\\vnabla\s*\\cdot\s*\()\[-([\w\{\}]*)\]\s*(\\vnabla\s*([uvwq])\s*\))/g;
     str = str.replaceAll(regex, "-$1$2$3");
 
     // Look for div(const * grad(blah)), and move the constant outside the bracket.
@@ -3945,24 +3915,13 @@ function setEquationDisplayType() {
     // If it's not x,y,u,v,w,q move it outside the brackets.
     // First, if it's just a diffusion coefficient, move it outside, as they have already been checked for
     // constancy.
-    regex = new RegExp(
-      "\\\\vnabla\\s*\\\\cdot\\s*\\((D_\\{\\w+(?: \\w+)?\\})\\s*\\\\vnabla\\s*(" +
-        anySpeciesRegexStrs[0] +
-        ")\\s*\\)",
-      "g"
-    );
+    regex =
+      /\\vnabla\s*\\cdot\s*\((D_\{\w+(?: \w+)?\})\s*\\vnabla\s*([uvwq])\s*\)/g;
     str = str.replaceAll(regex, "$1 \\lap $2");
 
-    regex = new RegExp(
-      "\\\\vnabla\\s*\\\\cdot\\s*\\(([\\w\\{\\}\\*\\^]*)\\s*\\\\vnabla\\s*(" +
-        anySpeciesRegexStrs[0] +
-        ")\\s*\\)",
-      "g"
-    );
+    regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}\*\^]*)\s*\\vnabla\s*()\s*\)/g;
     str = str.replaceAll(regex, function (match, g1, g2) {
-      const innerRegex = new RegExp(
-        "\\b[xy]|" + anySpeciesRegexStrs[0] + "\\b"
-      );
+      const innerRegex = /\b[xy]|[uvwq]\b/g;
       if (!innerRegex.test(g1)) {
         return g1 + " \\lap " + g2;
       } else {
@@ -3971,18 +3930,26 @@ function setEquationDisplayType() {
     });
 
     // Replace u_x, u_y etc with \pd{u}{x} etc.
-    regex = new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_([xy])\\b", "g");
+    regex = /\b([uvwq])_([xy])\b/g;
     str = str.replaceAll(regex, "\\textstyle \\pd{$1}{$2}");
-
-    // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
-    if (options.dimension == 1) {
-      str = str.replaceAll(/\\vnabla\s*\\cdot/g, "\\textstyle \\pd{}{x}");
-      regex = new RegExp("\\\\vnabla\\s*(" + anySpeciesRegexStrs[0] + ")", "g");
-      str = str.replaceAll(regex, "\\textstyle \\pd{$1}{x}");
-      regex = new RegExp("\\\\lap\\s*(" + anySpeciesRegexStrs[0] + ")", "g");
-      str = str.replaceAll(regex, "\\textstyle \\pdd{$1}{x}");
-    }
   }
+
+  // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
+  if (options.dimension == 1) {
+    str = str.replaceAll(/\\vnabla\s*\\cdot/g, "\\textstyle \\pd{}{x}");
+    regex = /\\vnabla\s*([uvwq])/g;
+    str = str.replaceAll(regex, "\\textstyle \\pd{$1}{x}");
+    regex = /\\lap\s*([uvwq])/g;
+    str = str.replaceAll(regex, "\\textstyle \\pdd{$1}{x}");
+  }
+
+  // Swap out all default symbols for new species and reactions.
+  str = replaceSymbolsInStr(
+    str,
+    defaultSpecies.concat(defaultReactions),
+    listOfSpecies.concat(listOfReactions),
+    "_[xy]"
+  );
 
   str = parseStringToTEX(str);
 
@@ -4723,7 +4690,7 @@ function replaceUserDefReac(str, regex, input) {
   // If the input contains letters (like parameters), insert it with delimiters.
   if (input.match(/[a-zA-Z]/)) return str.replaceAll(regex, input);
   // If it's just a scalar, keep the original, but replace old species with new.
-  return replaceSymbolsInStr(str, defaultSpecies, listOfSpecies, "_[xy]");
+  return str;
 }
 
 function replaceUserDefDiff(str, regex, input, delimiters) {
@@ -4747,8 +4714,8 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
       return str.replaceAll(regex, input + "$2");
     }
   }
-  // If it's just a scalar, keep the original, but replace old species with new.
-  return replaceSymbolsInStr(str, defaultSpecies, listOfSpecies, "_[xy]");
+  // If it's just a scalar, keep the original.
+  return str;
 }
 
 function configurePlotType() {
@@ -4991,7 +4958,7 @@ function setSpeciesNames(onLoading) {
   const kinParamNames = getKineticParamNames();
   let message;
   for (var ind = 0; ind < newSpecies.length; ind++) {
-    if (isReservedName(newSpecies[ind], true, kinParamNames)) {
+    if (isReservedName(newSpecies[ind], true, kinParamNames.concat(listOfReactions))) {
       if (kinParamNames.includes(newSpecies[ind])) {
         message = "as a parameter";
       } else {
@@ -5063,7 +5030,7 @@ function setReactionNames(onLoading) {
   const kinParamNames = getKineticParamNames();
   let message;
   for (var ind = 0; ind < newReactions.length; ind++) {
-    if (isReservedName(newReactions[ind], false, kinParamNames)) {
+    if (isReservedName(newReactions[ind], false)) {
       if (kinParamNames.includes(newReactions[ind])) {
         message = "as a parameter";
       } else if (listOfSpecies.includes(newReactions[ind])) {
