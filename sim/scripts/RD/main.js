@@ -26,10 +26,7 @@ let options, uniforms, funsObj;
 let leftGUI,
   rightGUI,
   root,
-  pauseButton,
-  resetButton,
   typeOfBrushController,
-  brushRadiusController,
   drawIn3DController,
   fController,
   gController,
@@ -65,7 +62,6 @@ let leftGUI,
   cameraZoomController,
   forceManualInterpolationController,
   smoothingScaleController,
-  whatToPlotController,
   minColourValueController,
   maxColourValueController,
   setColourRangeController,
@@ -92,14 +88,10 @@ let leftGUI,
   robinQController,
   fIm,
   imControllerOne,
-  imControllerTwo,
-  genericOptionsFolder,
-  showAllStandardTools,
-  showAll;
+  imControllerTwo;
 let isRunning,
   isDrawing,
   hasDrawn,
-  lastBadParam,
   anyDirichletBCs,
   nudgedUp = false,
   errorOccurred = false,
@@ -975,9 +967,6 @@ function initGUI(startOpen) {
     $("#rightGUI").hide();
   }
 
-  // Create a generic options folder for folderless controllers, which we'll hide later if it's empty.
-  genericOptionsFolder = rightGUI.addFolder("Options");
-
   // Brush folder.
   root = rightGUI.addFolder("Brush");
 
@@ -1002,10 +991,7 @@ function initGUI(startOpen) {
 
   root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
 
-  brushRadiusController = root
-    .add(options, "brushRadius")
-    .name("Radius")
-    .onChange(setBrushType);
+  root.add(options, "brushRadius").name("Radius").onChange(setBrushType);
 
   whatToDrawController = root
     .add(options, "whatToDraw", listOfSpecies)
@@ -1398,7 +1384,7 @@ function initGUI(startOpen) {
 
   root = rightGUI.addFolder("Plotting");
 
-  whatToPlotController = root
+  root
     .add(options, "whatToPlot")
     .name("Expression: ")
     .onFinishChange(function () {
