@@ -639,7 +639,12 @@ function init() {
         if (uiHidden) {
           uiHidden = false;
           $(".ui").removeClass("hidden");
+          // Ensure that the correct play/pause button is showing.
           isRunning ? playSim() : pauseSim();
+          // Check for any positioning that relies on elements being visible.
+          checkColourbarPosition();
+          checkColourbarLogoCollision();
+          resizeEquationDisplay();
         } else {
           uiHidden = true;
           $(".ui").addClass("hidden");
@@ -3633,13 +3638,6 @@ function configureGUI() {
   // Refresh the GUI displays.
   refreshGUI(leftGUI);
   refreshGUI(rightGUI);
-  if (isRunning) {
-    $("#play").hide();
-    $("#pause").show();
-  } else {
-    $("#play").show();
-    $("#pause").hide();
-  }
   manualInterpolationNeeded
     ? hideGUIController(forceManualInterpolationController)
     : showGUIController(forceManualInterpolationController);
