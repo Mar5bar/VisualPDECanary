@@ -88,7 +88,8 @@ let leftGUI,
   robinQController,
   fIm,
   imControllerOne,
-  imControllerTwo;
+  imControllerTwo,
+  selectedEntries = new Set();
 let isRunning,
   isDrawing,
   hasDrawn,
@@ -1131,6 +1132,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DuuController, selectTeX, ["D", "U", "UU"]);
+  setOnblur(DuuController, deselectTeX, ["D", "U", "UU"]);
 
   DuvController = root
     .add(options, "diffusionStrUV")
@@ -1138,6 +1141,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DuvController, selectTeX, ["UV"]);
+  setOnblur(DuvController, deselectTeX, ["UV"]);
 
   DuwController = root
     .add(options, "diffusionStrUW")
@@ -1145,6 +1150,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DuwController, selectTeX, ["UW"]);
+  setOnblur(DuwController, deselectTeX, ["UW"]);
 
   DuqController = root
     .add(options, "diffusionStrUQ")
@@ -1152,6 +1159,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DuqController, selectTeX, ["UQ"]);
+  setOnblur(DuqController, deselectTeX, ["UQ"]);
 
   DvuController = root
     .add(options, "diffusionStrVU")
@@ -1159,6 +1168,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DvuController, selectTeX, ["VU"]);
+  setOnblur(DvuController, deselectTeX, ["VU"]);
 
   DvvController = root
     .add(options, "diffusionStrVV")
@@ -1166,6 +1177,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DvvController, selectTeX, ["V", "VV"]);
+  setOnblur(DvvController, deselectTeX, ["V", "VV"]);
 
   DvwController = root
     .add(options, "diffusionStrVW")
@@ -1173,6 +1186,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DvwController, selectTeX, ["VW"]);
+  setOnblur(DvwController, deselectTeX, ["VW"]);
 
   DvqController = root
     .add(options, "diffusionStrVQ")
@@ -1180,6 +1195,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DvqController, selectTeX, ["VQ"]);
+  setOnblur(DvqController, deselectTeX, ["VQ"]);
 
   DwuController = root
     .add(options, "diffusionStrWU")
@@ -1187,6 +1204,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DwuController, selectTeX, ["WU"]);
+  setOnblur(DwuController, deselectTeX, ["WU"]);
 
   DwvController = root
     .add(options, "diffusionStrWV")
@@ -1194,6 +1213,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DwvController, selectTeX, ["WV"]);
+  setOnblur(DwvController, deselectTeX, ["WV"]);
 
   DwwController = root
     .add(options, "diffusionStrWW")
@@ -1201,6 +1222,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DwwController, selectTeX, ["W", "WW"]);
+  setOnblur(DwwController, deselectTeX, ["W", "WW"]);
 
   DwqController = root
     .add(options, "diffusionStrWQ")
@@ -1208,6 +1231,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DwqController, selectTeX, ["WQ"]);
+  setOnblur(DwqController, deselectTeX, ["WQ"]);
 
   DquController = root
     .add(options, "diffusionStrQU")
@@ -1215,6 +1240,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DquController, selectTeX, ["QU"]);
+  setOnblur(DquController, deselectTeX, ["QU"]);
 
   DqvController = root
     .add(options, "diffusionStrQV")
@@ -1222,6 +1249,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DqvController, selectTeX, ["QV"]);
+  setOnblur(DqvController, deselectTeX, ["QV"]);
 
   DqwController = root
     .add(options, "diffusionStrQW")
@@ -1229,6 +1258,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DqwController, selectTeX, ["QW"]);
+  setOnblur(DqwController, deselectTeX, ["QW"]);
 
   DqqController = root
     .add(options, "diffusionStrQQ")
@@ -1236,27 +1267,37 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DqqController, selectTeX, ["Q", "QQ"]);
+  setOnblur(DqqController, deselectTeX, ["Q", "QQ"]);
 
   // Custom f(u,v) and g(u,v).
   fController = root.add(options, "reactionStrU").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
+  setOnfocus(fController, selectTeX, ["f"]);
+  setOnblur(fController, deselectTeX, ["f"]);
 
   gController = root.add(options, "reactionStrV").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
+  setOnfocus(gController, selectTeX, ["g"]);
+  setOnblur(gController, deselectTeX, ["g"]);
 
   hController = root.add(options, "reactionStrW").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
+  setOnfocus(hController, selectTeX, ["h"]);
+  setOnblur(hController, deselectTeX, ["h"]);
 
   jController = root.add(options, "reactionStrQ").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
+  setOnfocus(jController, selectTeX, ["j"]);
+  setOnblur(jController, deselectTeX, ["j"]);
 
   parametersFolder = leftGUI.addFolder("Parameters");
   setParamsFromKineticString();
@@ -3861,26 +3902,40 @@ function setEquationDisplayType() {
     associatedStrs["QU"] = options.diffusionStrQU;
     associatedStrs["QV"] = options.diffusionStrQV;
     associatedStrs["QW"] = options.diffusionStrQW;
+    associatedStrs["f"] = options.reactionStrU;
+    associatedStrs["g"] = options.reactionStrV;
+    associatedStrs["h"] = options.reactionStrW;
+    associatedStrs["j"] = options.reactionStrQ;
 
-    // For each diffusion string, replace it with the value in associatedStrs, duly converted back
-    // to default notation.
+    // Convert all the associated strings back to default notation.
     function toDefault(s) {
       return replaceSymbolsInStr(s, listOfSpecies, defaultSpecies, "_[xy]");
     }
+
+    Object.keys(associatedStrs).forEach(function (key) {
+      associatedStrs[key] = toDefault(associatedStrs[key]);
+    });
+
+    // Add in \selected{} to any selected entry.
+    selectedEntries.forEach(function (x) {
+      associatedStrs[x] = "\\selected{ " + associatedStrs[x] + " }";
+    });
+
+    // For each diffusion string, replace it with the value in associatedStrs.
     Object.keys(regexStrs).forEach(function (key) {
       str = replaceUserDefDiff(
         str,
         RegExp(regexStrs[key], "g"),
-        toDefault(associatedStrs[key]),
+        associatedStrs[key],
         "[]"
       );
     });
 
     // Replace the reaction strings, converting everything back to default notation.
-    str = replaceUserDefReac(str, /\bf\b/g, toDefault(options.reactionStrU));
-    str = replaceUserDefReac(str, /\bg\b/g, toDefault(options.reactionStrV));
-    str = replaceUserDefReac(str, /\bh\b/g, toDefault(options.reactionStrW));
-    str = replaceUserDefReac(str, /\bj\b/g, toDefault(options.reactionStrQ));
+    str = replaceUserDefReac(str, /\bf\b/g, associatedStrs["f"]);
+    str = replaceUserDefReac(str, /\bg\b/g, associatedStrs["g"]);
+    str = replaceUserDefReac(str, /\bh\b/g, associatedStrs["h"]);
+    str = replaceUserDefReac(str, /\bj\b/g, associatedStrs["j"]);
 
     // Look through the string for any open brackets ( or [ followed by a + or -.
     regex = /\(\s*\+/g;
@@ -3951,7 +4006,7 @@ function setEquationDisplayType() {
     listOfSpecies.concat(listOfReactions),
     "_[xy]"
   );
-
+  
   str = parseStringToTEX(str);
 
   $("#typeset_equation").html(str);
@@ -5195,12 +5250,26 @@ function setLineWidth() {
   lineMaterial.needsUpdate = true;
 }
 
-function setOnfocus(cont, fun) {
+function setOnfocus(cont, fun, args) {
   // Set the onfocus handler of a free-text controller.
-  cont.domElement.firstChild.onfocus = fun;
+  cont.domElement.firstChild.onfocus = () => fun(args);
 }
 
-function setOnblur(cont, fun) {
+function setOnblur(cont, fun, args) {
   // Set the onblur handler of a free-text controller.
-  cont.domElement.firstChild.onblur = fun;
+  cont.domElement.firstChild.onblur = () => fun(args);
+}
+
+function selectTeX(ids) {
+  ids.forEach(function (id) {
+    selectedEntries.add(id);
+  });
+  setEquationDisplayType();
+}
+
+function deselectTeX(ids) {
+  ids.forEach(function (id) {
+    selectedEntries.delete(id);
+  });
+  setEquationDisplayType();
 }
