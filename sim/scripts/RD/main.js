@@ -637,11 +637,12 @@ function init() {
       }
       if (event.key === "h") {
         if (uiHidden) {
-          $(".ui").removeClass("hidden");
           uiHidden = false;
+          $(".ui").removeClass("hidden");
+          isRunning ? playSim() : pauseSim();
         } else {
-          $(".ui").addClass("hidden");
           uiHidden = true;
+          $(".ui").addClass("hidden");
         }
       }
     }
@@ -1949,14 +1950,18 @@ function clearTextures() {
 }
 
 function pauseSim() {
-  $("#pause").hide();
-  $("#play").show();
+  if (!uiHidden) {
+    $("#pause").hide();
+    $("#play").show();
+  }
   isRunning = false;
 }
 
 function playSim() {
-  $("#play").hide();
-  $("#pause").show();
+  if (!uiHidden) {
+    $("#play").hide();
+    $("#pause").show();
+  }
   isRunning = true;
 }
 
