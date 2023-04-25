@@ -48,30 +48,30 @@ export function drawShaderTop() {
         vec4 uvwqBrush = texture2D(textureSource, brushCoords);
         gl_FragColor = uvwq;
         vec4 Svec = texture2D(imageSourceOne, textureCoords);
-        float S = (Svec.x + Svec.y + Svec.z) / 3.0;
-        float SR = Svec.r;
-        float SG = Svec.g;
-        float SB = Svec.b;
-        float SA = Svec.a;
+        float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
+        float I_SR = Svec.r;
+        float I_SG = Svec.g;
+        float I_SB = Svec.b;
+        float I_SA = Svec.a;
         vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
-        float T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
-        float TR = Tvec.r;
-        float TG = Tvec.g;
-        float TB = Tvec.b;
-        float TA = Tvec.a;
+        float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
+        float I_TR = Tvec.r;
+        float I_TG = Tvec.g;
+        float I_TB = Tvec.b;
+        float I_TA = Tvec.a;
 
         vec4 SBrushvec = texture2D(imageSourceOne, brushCoords);
-        float SBrush = (SBrushvec.x + SBrushvec.y + SBrushvec.z) / 3.0;
-        float SBrushR = SBrushvec.r;
-        float SBrushG = SBrushvec.g;
-        float SBrushB = SBrushvec.b;
-        float SBrushA = SBrushvec.a;
+        float I_SBrush = (SBrushvec.x + SBrushvec.y + SBrushvec.z) / 3.0;
+        float I_SBrushR = SBrushvec.r;
+        float I_SBrushG = SBrushvec.g;
+        float I_SBrushB = SBrushvec.b;
+        float I_SBrushA = SBrushvec.a;
         vec4 TBrushvec = texture2D(imageSourceTwo, brushCoords);
-        float TBrush = (TBrushvec.x + TBrushvec.y + TBrushvec.z) / 3.0;
-        float TBrushR = TBrushvec.r;
-        float TBrushG = TBrushvec.g;
-        float TBrushB = TBrushvec.b;
-        float TBrushA = TBrushvec.a;
+        float I_TBrush = (TBrushvec.x + TBrushvec.y + TBrushvec.z) / 3.0;
+        float I_TBrushR = TBrushvec.r;
+        float I_TBrushG = TBrushvec.g;
+        float I_TBrushB = TBrushvec.b;
+        float I_TBrushA = TBrushvec.a;
 
         ivec2 texSize = textureSize(textureSource,0);
         float x = textureCoords.x * float(texSize.x) * dx;
@@ -79,21 +79,39 @@ export function drawShaderTop() {
         vec2 diff = textureCoords - brushCoords;\n`;
 }
 
-export function discShader() {
-  return `if (length(diff * vec2(L_x, L_y)) <= brushRadius) {`;
+export function drawShaderShapeDisc() {
+  return `float distance = length(diff * vec2(L_x, L_y));\n`;
 }
 
-export function vLineShader() {
-  return `if (L_x * length(diff.x) <= brushRadius) {`;
+export function drawShaderShapeVLine() {
+  return `float distance = L_x * length(diff.x);\n`;
 }
 
-export function hLineShader() {
-  return `if (L_y * length(diff.y) <= brushRadius) {`;
+export function drawShaderShapeHLine() {
+  return `float distance = L_y * length(diff.y);\n`;
 }
 
-export function drawShaderBot() {
-  return ` gl_FragColor.COLOURSPEC = brushValue;
-        }
+export function drawShaderFactorSharp() {
+  return `float factor = float(distance <= brushRadius);\n`
+}
 
-    }`;
+export function drawShaderFactorSmooth() {
+  return `float factor = 0.0;
+    if (distance < brushRadius) {
+        factor = exp(1.0-1.0/(1.0-pow(distance / brushRadius, 2.0)));
+    } else {
+          factor = 0.0;
+    }\n;`;
+}
+
+export function drawShaderBotReplace() {
+  return ` if (factor > 0.0) {
+              gl_FragColor.COLOURSPEC = brushValue * factor;
+          }
+        }`;
+}
+
+export function drawShaderBotAdd() {
+  return `gl_FragColor.COLOURSPEC = uvwq.COLOURSPEC + brushValue * factor;
+        }`;
 }

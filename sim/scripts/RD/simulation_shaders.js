@@ -57,17 +57,17 @@ export function RDShaderTop() {
         vec4 uvwqB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y));
 
         vec4 Svec = texture2D(imageSourceOne, textureCoords);
-        float S = (Svec.x + Svec.y + Svec.z) / 3.0;
-        float SR = Svec.r;
-        float SG = Svec.g;
-        float SB = Svec.b;
-        float SA = Svec.a;
+        float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
+        float I_SR = Svec.r;
+        float I_SG = Svec.g;
+        float I_SB = Svec.b;
+        float I_SA = Svec.a;
         vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
-        float T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
-        float TR = Tvec.r;
-        float TG = Tvec.g;
-        float TB = Tvec.b;
-        float TA = Tvec.a;
+        float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
+        float I_TR = Tvec.r;
+        float I_TG = Tvec.g;
+        float I_TB = Tvec.b;
+        float I_TA = Tvec.a;
     `;
 }
 
@@ -86,6 +86,7 @@ export function RDShaderRobinX() {
     `;
 }
 
+
 export function RDShaderRobinY() {
     return `
     if (textureCoords.y + step_y > 1.0){
@@ -97,6 +98,20 @@ export function RDShaderRobinY() {
     `;
 }
 
+export function RDShaderAdvectionPreBC() {
+    return `
+    vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
+    vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
+    `;
+}
+
+export function RDShaderAdvectionPostBC() {
+    return `
+    uvwqX = (uvwqR - uvwqL) / (2.0*dx);
+    uvwqY = (uvwqT - uvwqB) / (2.0*dy);
+    `;
+}
+
 export function RDShaderUpdateNormal() {
     return `
     float LDuuU = 0.5*((Duu*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DuuR*(uvwqR.r - uvwq.r) + DuuL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Duu*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DuuT*(uvwqT.r - uvwq.r) + DuuB*(uvwqB.r - uvwq.r)) / dy) / dy;
@@ -104,10 +119,10 @@ export function RDShaderUpdateNormal() {
     float LDwwW = 0.5*((Dww*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DwwR*(uvwqR.b - uvwq.b) + DwwL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dww*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DwwT*(uvwqT.b - uvwq.b) + DwwB*(uvwqB.b - uvwq.b)) / dy) / dy;
     float LDqqQ = 0.5*((Dqq*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DqqR*(uvwqR.b - uvwq.b) + DqqL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dqq*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DqqT*(uvwqT.b - uvwq.b) + DqqB*(uvwqB.b - uvwq.b)) / dy) / dy;
 
-    float du = LDuuU + f;
-    float dv = LDvvV + g;
-    float dw = LDwwW + h;
-    float dq = LDqqQ + j;
+    float du = LDuuU + UFUN;
+    float dv = LDvvV + VFUN;
+    float dw = LDwwW + WFUN;
+    float dq = LDqqQ + QFUN;
     vec4 updated = uvwq + dt * vec4(du, dv, dw, dq);
     `;
 }
@@ -131,27 +146,27 @@ export function RDShaderUpdateCross() {
     float LDqwW = 0.5*((Dqw*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DqwR*(uvwqR.b - uvwq.b) + DqwL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dqw*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DqwT*(uvwqT.b - uvwq.b) + DqwB*(uvwqB.b - uvwq.b)) / dy) / dy;
     float LDqqQ = 0.5*((Dqq*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DqqR*(uvwqR.a - uvwq.a) + DqqL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Dqq*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DqqT*(uvwqT.a - uvwq.a) + DqqB*(uvwqB.a - uvwq.a)) / dy) / dy;
 
-    float du = LDuuU + LDuvV + LDuwW + LDuqQ + f;
-    float dv = LDvuU + LDvvV + LDvwW + LDvqQ + g;
-    float dw = LDwuU + LDwvV + LDwwW + LDwqQ + h;
-    float dq = LDquU + LDqvV + LDqwW + LDqqQ + j;
+    float du = LDuuU + LDuvV + LDuwW + LDuqQ + UFUN;
+    float dv = LDvuU + LDvvV + LDvwW + LDvqQ + VFUN;
+    float dw = LDwuU + LDwvV + LDwwW + LDwqQ + WFUN;
+    float dq = LDquU + LDqvV + LDqwW + LDqqQ + QFUN;
     vec4 updated = uvwq + dt * vec4(du, dv, dw, dq);
     `;
 }
 
 export function RDShaderAlgebraicV() {
     return `
-    updated.SPECIES = LDvuU + g;`;
+    updated.SPECIES = LDvuU + VFUN;`;
 }
 
 export function RDShaderAlgebraicW() {
     return `
-    updated.SPECIES = LDwuU + LDwvV + h;`;
+    updated.SPECIES = LDwuU + LDwvV + WFUN;`;
 }
 
 export function RDShaderAlgebraicQ() {
     return `
-    updated.SPECIES = LDquU + LDqvV + LDqwW + j;`;
+    updated.SPECIES = LDquU + LDqvV + LDqwW + QFUN;`;
 }
 
 export function RDShaderDirichletX() {
@@ -231,16 +246,16 @@ export function RDShaderEnforceDirichletTop() {
         gl_FragColor = uvwq;
 
         vec4 Svec = texture2D(imageSourceOne, textureCoords);
-        float S = (Svec.x + Svec.y + Svec.z) / 3.0;
-        float SR = Svec.r;
-        float SG = Svec.g;
-        float SB = Svec.b;
-        float SA = Svec.a;
+        float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
+        float I_SR = Svec.r;
+        float I_SG = Svec.g;
+        float I_SB = Svec.b;
+        float I_SA = Svec.a;
         vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
-        float T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
-        float TR = Tvec.r;
-        float TG = Tvec.g;
-        float TB = Tvec.b;
-        float TA = Tvec.a;
+        float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
+        float I_TR = Tvec.r;
+        float I_TG = Tvec.g;
+        float I_TB = Tvec.b;
+        float I_TA = Tvec.a;
     `
 }

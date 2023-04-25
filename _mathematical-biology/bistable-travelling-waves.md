@@ -33,10 +33,18 @@ and hence we expect the waves to change their direction of travel when $a$ cross
 
 In the above simulations, we considered $a$ near the boundary, and initial waves that had sufficient size. Biologically we are often interested in the question of small invading populations, which becomes complex when both extinction ($u=0$) and persistence ($u=1$) are possible. We'll set $a=0.4$ so that in principle a wave of population can invade the domain, but consider only small initial regions where $u=1$.
 
-1. Load the [interactive simulation](/sim/?preset=bistableSurvival). 
+* Load the [interactive simulation](/sim/?preset=bistableSurvival). 
 
-1. Click within the domain to set the value of $u$ to 1 in some small region. You should notice that the initial population dies out quickly despite $u=1$ being locally stable. Diffusion is spreading the population too quickly.
+* Click within the domain to set the value of $u$ to 1 in some small region. You should notice that the initial population dies out quickly despite $u=1$ being locally stable. Diffusion is spreading the population too quickly.
 
-1. Try pausing the simulation {{ layout.pause }}, painting a larger initial region of $u=1$, and then pressing {{ layout.play }} to set it in motion. You will notice that, for sufficiently large initial regions, the steady state $u=1$ can invade the steady state $u=0$. 
+* Try pausing the simulation {{ layout.pause }}, painting a larger initial region of $u=1$, and then pressing {{ layout.play }} to set it in motion. You will notice that, for sufficiently large initial regions, the steady state $u=1$ can invade the steady state $u=0$. 
 
-1. It is difficult to analytically determine conditions for when an invasion is successful or not, as it can depend on both the size and shape of the perturbation, as well as the parameters $a$ and $D$. You can explore different values of these parameters and how they influence the success or failure of a population to persist in a new environment. 
+* It is difficult to analytically determine conditions for when an invasion is successful or not, as it can depend on both the size and shape of the perturbation, as well as the parameters $a$ and $D$. You can explore different values of these parameters and how they influence the success or failure of a population to persist in a new environment. 
+
+# Advection & Spatial Allee Effects
+
+We can add an advection term to the equation to model movement due to, e.g., putting our population in a flowing body of water. The equation now looks like:
+
+$$\pd{u}{t}=D\nabla^2u +u(u-a)(u-1)+V(\cos(\theta)u_x + \sin(\theta)u_y),$$
+
+where $V$ is a velocity and $\theta$ is a direction of advection. We implement this in [this advective bistable simulator](/sim/?preset=BistableAdvection), starting near the critical Allee threshold with $a=0.48$. It can be an interesting task to paint an initial condition capable of surviving so close to this boundary to extinction.

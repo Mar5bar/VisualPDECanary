@@ -3,6 +3,274 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "KlausmeierModel":
+      options = {
+        brushAction: "smoothadd",
+        brushValue: "5",
+        brushRadius: "2",
+        clearValueU: "RAND",
+        clearValueV: "1",
+        diffusionStrUU: "1",
+        diffusionStrVV: "1",
+        diffusionStrWW: "0",
+        dt: 0.001,
+        kineticParams:
+          "a = 2 in [0.01, 0.01, 10];m = 0.540 in [0.2,0.01,1];V=50;",
+        maxColourValue: 16,
+        minColourValue: 0.000002911286856033257,
+        preset: "KlausmeierModel",
+        reactionStrU: "w*n^2-m*n",
+        reactionStrV: "a-w-w*n^2+V*w_x",
+        reactionStrW: "0",
+        speciesNames: "n w",
+        whatToDraw: "n",
+        whatToPlot: "n",
+      };
+      break;
+    case "BistableAdvection":
+      options = {
+        brushRadius: "1",
+        brushAction: "smoothadd",
+        clearValueU: "0",
+        diffusionStrUU: "0.02",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        dt: 0.005,
+        kineticParams:
+          "a = 0.48  in  [0, 0.01, 1];theta = 1.8 in  [-6.4, 0.01, 6.4];V = 0.5 in  [0, 0.01, 5];",
+        numSpecies: 1,
+        preset: "BistableAdvection",
+        reactionStrU: "u*(u-a)*(1-u)+V*(cos(theta)*u_x + sin(theta)*u_y)",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        spatialStep: 0.3,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
+      case "AdvectionEquationRotational":
+	options = {
+	"boundaryConditionsU": "dirichlet",
+	"brushAction": "smoothadd",
+	"brushValue": "0.5",
+	"brushRadius": "3",
+	"clearValueU": "0",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 320,
+	"dt": 0.002,
+	"kineticParams": "V  =  0.10  in  [-5,  0.01,  5];",
+	"numSpecies": 1,
+	"preset": "AdvectionEquationRotational",
+	"reactionStrU": "V*((y-L_y/2)*u_x-(x-L_x/2)*u_y)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 1.25,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
+	case "AdvectionEquationDirected":
+	options = {
+	"brushAction": "smoothadd",
+	"brushValue": "0.5",
+	"brushRadius": "3",
+	"clearValueU": "0",
+	"diffusionStrUU": "1",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"domainScale": 320,
+	"dt": 0.002,
+	"kineticParams": "V  =  6 in  [0,  0.01,  10];theta = -2 in  [-6.4,  0.01,  6.4];",
+	"numSpecies": 1,
+	"preset": "AdvectionEquationDirected",
+	"reactionStrU": "V*(cos(theta)*u_x + sin(theta)*u_y)",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": 1.25,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+break;
+    case "BurgersEquation":
+      options = {
+        boundaryConditionsU: "neumann",
+        brushAction: "smoothreplace",
+        brushRadius: "50",
+        brushValue: "0.1",
+        clearValueU: "0.1*exp(-0.00005*(x-L_x/5)^2)",
+        diffusionStrUU: "epsilon",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        dimension: "1",
+        domainScale: 1000,
+        dt: 0.04,
+        kineticParams: "epsilon=0.05;",
+        maxColourValue: 0.1,
+        numSpecies: "1",
+        numTimestepsPerFrame: 400,
+        plotType: "line",
+        preset: "BurgersEquation",
+        reactionStrU: "- u * u_x",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        spatialStep: 2,
+        suppressTryClickingPopup: true,
+        timeDisplay: true,
+        typeOfBrush: "vline",
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;	  
+    case "swiftHohenbergLocalisedDirectedAdvection":
+      options = {
+        algebraicV: true,
+        autoSetColourRange: true,
+        brushRadius: "1",
+        clearValueU:
+          "H(1.5-P)*((cos(x-L_x/2) - cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) - cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) - cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) - cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))+H(P-2.5)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) + cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) + cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))",
+        crossDiffusion: true,
+        diffusionStrUU: "0",
+        diffusionStrUV: "-D",
+        diffusionStrVU: "D",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        domainScale: 150,
+        dt: 0.001,
+        kineticParams:
+          "r  =  -0.28  in  [-2, 2];a  =  1.6  in  [-2,  2];b  =  -1  in  [-2,  0.1,  2];c  =  -1;D  =  1;P  =  3.0  in  [1,  1,  3];V = 2.000 in  [0, 0.01, 10];theta = -2.00000 in  [-6.4, 0.01, 6.4];",
+        maxColourValue: 1.4107916355133057,
+        minColourValue: -0.3903360962867737,
+        numTimestepsPerFrame: 200,
+        preset: "swiftHohenbergLocalisedDirectedAdvection",
+        reactionStrU:
+          "(r-1)*u-2*v+a*u^2+b*u^3+V*(cos(theta)*u_x + sin(theta)*u_y)",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        suppressTryClickingPopup: true,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
+    case "swiftHohenbergLocalisedRotationalAdvection":
+      options = {
+        algebraicV: true,
+	"boundaryConditionsU": "dirichlet",
+	"boundaryConditionsV": "dirichlet",
+        brushRadius: "1",
+        clearValueU:
+          "H(1.5-P)*((cos(x-L_x/2) - cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) - cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) - cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) - cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))+H(P-2.5)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) + cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) + cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))",
+        crossDiffusion: true,
+        diffusionStrUU: "0",
+        diffusionStrUV: "-D",
+        diffusionStrVU: "D",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        domainScale: 150,
+        dt: 0.001,
+        kineticParams:
+          "r = -0.28  in  [-2,2];a = 1.6  in  [-2, 2];b = -1  in  [-2, 0.1, 2];c = -1;D = 1;P = 3.0 in  [1, 1, 3];Q = 1.0 in [1,1,2];V = 0.100 in [0,0.01,1];theta = -3.1500000 in  [-6.4,0.01,6.4];",
+        maxColourValue: 1.2757612466812134,
+        minColourValue: -0.3343241214752197,
+        numTimestepsPerFrame: 200,
+        preset: "swiftHohenbergLocalisedRotationalAdvection",
+        reactionStrU: "(r-1)*u-2*v+a*u^2+b*u^3+V*((y-L_y/2)*u_x-(x-L_x/2)*u_y)",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
+
+    case "GrayScottGlidersAdvecting":
+      options = {
+        boundaryConditionsU: "neumann",
+        boundaryConditionsV: "neumann",
+        brushRadius: "5",
+        clearValueU: "0",
+        clearValueV: "1",
+        diffusionStrUU: "1",
+        diffusionStrVV: "2",
+        diffusionStrWW: "0",
+        domainScale: 1000,
+        kineticParams:
+          "a=0.014 in [0,0.1];b=0.054  in  [0.04, 0.1];theta=-3.1500000 in [-6.4,0.01,6.4];V=0.02 in [0,0.04];",
+        maxColourValue: 0.5,
+        preset: "GrayScottGlidersAdvecting",
+        reactionStrU: "u^2*v - (a+b)*u + V*(cos(theta)*u_x + sin(theta)*u_y)",
+        reactionStrV: "-u^2*v + a*(1 - v)",
+        reactionStrW: "0",
+        spatialStep: 3,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
+    case "BeamEquation":
+      options = {
+        algebraicW: true,
+        boundaryConditionsU: "dirichlet",
+        boundaryConditionsV: "dirichlet",
+        boundaryConditionsW: "dirichlet",
+        brushValue: "-8",
+        brushRadius: "0.5",
+        clearValueU: "0",
+        crossDiffusion: true,
+        diffusionStrUU: "D_c*D",
+        diffusionStrVV: "0",
+        diffusionStrVW: "-D",
+        diffusionStrWU: "D",
+        diffusionStrWW: "0",
+        dimension: "1",
+        dt: 0.0001,
+        kineticParams: "D  =  10;Q  =  0.000;C  =  0;D_c  =  0.1;",
+        maxColourValue: 2.5,
+        minColourValue: -8,
+        numSpecies: "3",
+        plotType: "line",
+        preset: "BeamEquation",
+        reactionStrU: "v",
+        reactionStrV: "-Q-C*v",
+        reactionStrW: "0",
+        typeOfBrush: "vline",
+        whatToDraw: "u",
+        whatToPlot: "u",
+        undefined: true,
+      };
+      break;
+    case "CovidInARoom":
+      options = {
+        algebraicW: true,
+        boundaryConditionsU: "neumann",
+        brushAction: "smoothadd",
+        brushRadius: "20",
+        clearValueU: "0",
+        colourbar: true,
+        crossDiffusion: true,
+        diffusionStrUU: "1",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        domainScale: 250,
+        dt: 0.001,
+        kineticParams:
+          "V  =  20 in [0,40];R  =  10 in [0,20];lambda  =  1;beta  =  0;sigma  =  0;eta_sus  =  0.1 in [0,1];rho_sus  =  0.1 in [0,1];I  =  1;",
+        minColourValue: -5.731946473019889e-9,
+        neumannStrU: "-H((dx-x))*C_x + H((x+dx-L_x))*C_x",
+        numSpecies: "3",
+        numTimestepsPerFrame: 200,
+        preset: "CovidInARoom",
+        reactionStrU:
+          "R*exp(-0.01*((x-L_x/2)^2+(y-L_y/2)^2))-(lambda+beta+sigma)*C-V*C_x",
+        reactionStrV: "(1-eta_sus)*rho_sus*C",
+        reactionStrW: "1 - exp(-I*d)",
+        spatialStep: 1,
+        speciesNames: "C d P",
+        suppressTryClickingPopup: true,
+        timeDisplay: true,
+        whatToDraw: "C",
+        whatToPlot: "P",
+      };
+      break;
     case "maze":
       options = {
         boundaryConditionsU: "dirichlet",
@@ -16,7 +284,7 @@ export function getPreset(id) {
         diffusionStrVV: "0.002",
         diffusionStrWW: "0",
         dirichletStrV: "0.001",
-        domainIndicatorFun: "S-0.51",
+        domainIndicatorFun: "I_S-0.51",
         domainViaIndicatorFun: true,
         dt: 0.005,
         forceTryClickingPopup: true,
@@ -30,8 +298,9 @@ export function getPreset(id) {
         reactionStrV:
           "0.02*H(u-0.5)*exp(-0.1*((x-L_x/20)^2+(y-L_y/20)^2))-a*u-b*v",
         reactionStrW: "0",
+        runningOnLoad: false,
         spatialStep: 0.2,
-        tryClickingText: "Press restart!",
+        tryClickingText: "Press play!",
         whatToDraw: "u",
         whatToPlot: "u",
       };
@@ -52,7 +321,7 @@ export function getPreset(id) {
         numTimestepsPerFrame: 100,
         preset: "QR",
         renderSize: 652,
-        reactionStrU: "(1-S) - u + u^2*v",
+        reactionStrU: "(1-2*I_SB) - u + u^2*v",
         reactionStrV: "1 - u^2*v",
         showAllOptionsOverride: true,
         spatialStep: 0.2,
@@ -261,7 +530,7 @@ export function getPreset(id) {
     case "chemicalBasisOfMorphogenesis":
       options = {
         brushRadius: 5,
-        clearValueU: "3.5*(1-S)",
+        clearValueU: "3.5*(1-I_S)",
         clearValueV: "1",
         colourmap: "viridis",
         diffusionStrUU: "0.1",
@@ -325,7 +594,8 @@ export function getPreset(id) {
         diffusionStrVV: "D_r",
         diffusionStrWW: "0",
         dt: 0.001,
-        kineticParams: "b_i=0 in [-5,5];D_r=0.1;D_i=1;a_r=1;a_i=1;b_r=-1;n=10;m=10;",
+        kineticParams:
+          "b_i=0 in [-5,5];D_r=0.1;D_i=1;a_r=1;a_i=1;b_r=-1;n=10;m=10;",
         maxColourValue: 1.6760534048080444,
         minColourValue: 0.00015078618889674544,
         reactionStrU: "a_r*u-a_i*v+(b_r*u-b_i*v)*(u^2+v^2)",
@@ -992,7 +1262,7 @@ export function getPreset(id) {
         numTimestepsPerFrame: 200,
         preset: "Sofya",
         renderSize: 652,
-        reactionStrU: "(1-S) - u + u^2*v",
+        reactionStrU: "(1-I_S) - u + u^2*v",
         reactionStrV: "1 - u^2*v",
         reactionStrW: "0",
         showAllOptionsOverride: true,
@@ -1016,7 +1286,7 @@ export function getPreset(id) {
         numTimestepsPerFrame: 200,
         preset: "Alan",
         renderSize: 652,
-        reactionStrU: "(1-T) - u + u^2*v",
+        reactionStrU: "(1-I_T) - u + u^2*v",
         reactionStrV: "1 - u^2*v",
         showAllOptionsOverride: true,
         spatialStep: 0.2,
@@ -1042,8 +1312,9 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 1.5,
-        whatToDraw: "u",
-        whatToPlot: "u",
+        speciesNames: "T",
+        whatToDraw: "T",
+        whatToPlot: "T",
       };
       break;
 
@@ -1070,10 +1341,10 @@ export function getPreset(id) {
         reactionStrW: "0",
         renderSize: 1024,
         spatialStep: 1.5,
-        squareCanvas: true,
+        speciesNames: "T",
         threeD: true,
-        whatToDraw: "u",
-        whatToPlot: "u",
+        whatToDraw: "T",
+        whatToPlot: "T",
       };
       break;
 
@@ -1397,8 +1668,8 @@ export function getPreset(id) {
       options = {
         algebraicV: true,
         autoSetColourRange: true,
-        boundaryConditionsU: "neumann",
-        boundaryConditionsV: "neumann",
+        boundaryConditionsU: "periodic",
+        boundaryConditionsV: "periodic",
         clearValueU: "0",
         crossDiffusion: true,
         diffusionStrUU: "0",
@@ -1422,15 +1693,16 @@ export function getPreset(id) {
         whatToPlot: "u",
       };
       break;
+
     case "swiftHohenbergLocalised":
       options = {
         algebraicV: true,
         autoSetColourRange: true,
-        boundaryConditionsU: "neumann",
-        boundaryConditionsV: "neumann",
+        boundaryConditionsU: "periodic",
+        boundaryConditionsV: "periodic",
         brushRadius: 1,
         clearValueU:
-          "(cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)",
+          "H(1.5-P)*((cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))+H(P-2.5)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) + cos((y-75+sqrt(3)*(x-75))/2) + cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))",
         crossDiffusion: true,
         diffusionStrUU: "0",
         diffusionStrUV: "-D",
@@ -1440,7 +1712,7 @@ export function getPreset(id) {
         domainScale: 150,
         dt: 0.0005,
         kineticParams:
-          "r=-0.28 in [-2,2];a=1.6 in [-2,2];b=-1 in [-2,0.1,2];c=-1;D=1;",
+          "r=-0.28 in [-2,2];a=1.6 in [-2,2];b=-1 in [-2,0.1,2];c=-1;D=1;P=1 in [1,1,3];",
         maxColourValue: 1.325366735458374,
         minColourValue: -0.4033077657222748,
         numTimestepsPerFrame: 200,
@@ -1466,6 +1738,7 @@ export function getPreset(id) {
         boundaryConditionsV: "periodic",
         boundaryConditionsW: "periodic",
         boundaryConditionsQ: "periodic",
+        brushAction: "replace",
         brushValue: "1",
         brushRadius: 5,
         cameraTheta: 30,
@@ -1512,6 +1785,7 @@ export function getPreset(id) {
         imagePathTwo: "./images/Alan.png",
         integrate: false,
         kineticParams: "",
+        lineWidthMul: 1,
         maxColourValue: 1.0,
         minColourValue: 0.0,
         neumannStrU: "0",
@@ -1521,11 +1795,11 @@ export function getPreset(id) {
         numSpecies: 2,
         numTimestepsPerFrame: 100,
         oneDimensional: false,
-        onlyExposeOptions: [],
         plotType: "plane",
         preset: "default",
         resetOnImageLoad: false,
         renderSize: 512,
+        reactionNames: "f g h j",
         reactionStrU: "-u*v^2 + 0.037*(1.0 - u)",
         reactionStrV: "u*v^2 - (0.037+0.06)*v",
         reactionStrW: "u*v^2 - (0.037+0.06)*v",
@@ -1535,9 +1809,9 @@ export function getPreset(id) {
         robinStrW: "0",
         robinStrQ: "0",
         runningOnLoad: true,
-        showAllOptionsOverride: false,
         smoothingScale: 4,
         spatialStep: 1 / 2,
+        speciesNames: "u v w q",
         squareCanvas: false,
         suppressTryClickingPopup: false,
         threeD: false,
@@ -1551,4 +1825,49 @@ export function getPreset(id) {
       };
   }
   return options;
+}
+
+export function getUserTextFields() {
+  return [
+    "brushValue",
+    "clearValueU",
+    "clearValueV",
+    "clearValueW",
+    "clearValueQ",
+    "diffusionStrUU",
+    "diffusionStrUV",
+    "diffusionStrUW",
+    "diffusionStrUQ",
+    "diffusionStrVU",
+    "diffusionStrVV",
+    "diffusionStrVW",
+    "diffusionStrVQ",
+    "diffusionStrWU",
+    "diffusionStrWV",
+    "diffusionStrWW",
+    "diffusionStrWQ",
+    "diffusionStrQU",
+    "diffusionStrQV",
+    "diffusionStrQW",
+    "diffusionStrQQ",
+    "dirichletStrU",
+    "dirichletStrV",
+    "dirichletStrW",
+    "dirichletStrQ",
+    "domainIndicatorFun",
+    "neumannStrU",
+    "neumannStrV",
+    "neumannStrW",
+    "neumannStrQ",
+    "reactionStrU",
+    "reactionStrV",
+    "reactionStrW",
+    "reactionStrQ",
+    "robinStrU",
+    "robinStrV",
+    "robinStrW",
+    "robinStrQ",
+    "whatToDraw",
+    "whatToPlot",
+  ];
 }

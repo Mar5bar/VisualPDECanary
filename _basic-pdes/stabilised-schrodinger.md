@@ -24,7 +24,7 @@ as this corresponds to a given energy state of the system.
 
 * You can change the initial eigenfunction frequency by modifying $n$ and $m$, and then pressing 'R' to restart the simulation.
 
-* By default, the solution plotted is the density $$\lvert \psi\rvert^2 = \Re(\psi)^2+\Im(\psi)^2 = u^2+v^2$$, which will be (approximately) stationary for long periods of time. You can plot only the real or imaginary part under the menu item labelled **Rendering**, and see how these solutions now oscillate in both space and time. Increasing the values of $n$ and $m$ will increase the speed at which this oscillation occurs, as such an initial condition will correspond to higher energy states.
+* By default, the solution plotted is the density $$\lvert \psi\rvert^2 = \Re(\psi)^2+\Im(\psi)^2 = u^2+v^2$$, which will be (approximately) stationary for long periods of time. You can plot only the real or imaginary part under the menu item labelled **Plotting**, and see how these solutions now oscillate in both space and time. Increasing the values of $n$ and $m$ will increase the speed at which this oscillation occurs, as such an initial condition will correspond to higher energy states.
 
 ## Heterogeneous potentials
 

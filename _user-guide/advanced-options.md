@@ -13,10 +13,10 @@ The basic functionality of every option that can be found in the menus of Visual
 Check this box to have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters. Terms will not be substituted in if they are constants that are not 0 or 1.
 
 $D_u$, $D_v$, $D_w$, ...\
-Set the diffusion coefficients of all the species in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are written $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
+Set the diffusion coefficients of all the species in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are written $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
 
 $f$, $g$, $h$, ...\
-Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
+Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
 
 ### Parameters <a id='parameters'>
 This menu contains a list of all the user-specified values that can be used throughout VisualPDE. New parameters can be defined using the empty input field at the bottom of the list of parameters. Parameters must be specified as numerical values and cannot depend on other quantities (including each other).
@@ -55,10 +55,10 @@ Boundary conditions can be specified for any species in the simulation. The foll
 * [Neumann](https://en.wikipedia.org/wiki/Neumann_boundary_condition) (e.g. $\pd{u}{n}\onboundary = 0$)
 * [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition) (e.g. $(u + \pd{u}{n})\onboundary = 0$)
 
-Boundary conditions that allow you to specify values can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**. Robin boundary conditions are the only type supported that allow you to use an unknown in the specification of its own boundary condition. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
+Boundary conditions that allow you to specify values can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. Robin boundary conditions are the only type supported that allow you to use an unknown in the specification of its own boundary condition. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
 
 ### Initial conditions <a id='initial-conditions'>
-Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
+Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
 
 
 ### Brush <a id='brush'>
@@ -68,10 +68,10 @@ VisualPDE allows you to interact directly with simulations via a brush by simply
 Change the shape of the brush, choosing between **Disk**, **Horizontal line** and **Vertical line**.
 
 **Value**\
-Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($S$, $T$) and 'RAND', a uniformly random value in $[0,1]$.
+Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and 'RAND', a uniformly random value in $[0,1]$.
 
 **Radius**\
-Change the brush size, measured on the same scale as the domain size. This can even be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($S$, $T$).
+Change the brush size, measured on the same scale as the domain size. This can even be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
 
 **Species**\
 Set the **species** ($u$, $v$, $w$, $q$) you are painting.
@@ -96,7 +96,7 @@ Change the domain from 2D to 1D, which removes the $y$ dimension from the simula
 Toggle the use of a custom domain $\domain$ that is determined implicitly from a user-set expression.
 
 **Ind. fun (indicator function)**\
-Define the domain implicitly by setting a boolean (e.g. $x<0.5$) or a simple expression (e.g. $x-0.5$), where (strict) positivity identifies the interior of the domain. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($S$, $T$).
+Define the domain implicitly by setting a boolean (e.g. $x<0.5$) or a simple expression (e.g. $x-0.5$), where (strict) positivity identifies the interior of the domain. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
 
 ### Timestepping <a id='timestepping'>
 **Steps/frame**\
@@ -118,18 +118,25 @@ Enable cross diffusion in systems with 2 or more species, enabling simulation of
 **Algebraic**\
 Convert the specified equations to algebraic form in systems with cross diffusion enabled.
 
-### Rendering <a id='rendering'>
-**Expression**\
-Choose the expression that you want to be used to colour the domain, which can be any function of the species solved for, as well as space, time, and user-defined parameters. Often, this is either $u$, $v$, $w$ or $q$. Alternatively, setting this to 'MAX' will colour the domain by the maximum of the species. Explicitly, this can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($S$, $T$).
+**Species/Reactions (names)**\
+Specify custom names for the species and reaction terms in VisualPDE, which often default to $u$, $v$, $w$, $q$ and $f$, $g$, $h$, $j$. Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, 'T_01' is a valid name (rendered as $T_{01}$) whilst 'T 01' is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as 'H' for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old species and reaction terms everywhere in the simulation and interface.
 
-**Resolution**\
-Set the resolution at which your browser renders the simulation. This only impacts on displaying the solution and is completely independent of the spatial discretisation. In surface plots, increase the resolution to render the surface more smoothly. Must be a natural number.
+### Plotting <a id='plotting'>
+**Expression**\
+Choose the expression that you want to be used to colour the domain, which can be any function of the species solved for, as well as space, time, and user-defined parameters. Often, this is either $u$, $v$, $w$ or $q$. Alternatively, setting this to 'MAX' will colour the domain by the maximum of the species. Explicitly, this can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
 
 **Plot type**\
-Choose from three types of plot: **line**, **plane** or **surface**. Any simulation can be viewed as any plot type, though line plots are best suited to 1D simulations. Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Max height** parameter. The limits of the colour axis specify the values at which the height of the surface is capped.
+Choose from three types of plot: **line**, **plane** or **surface**. Any simulation can be viewed as any plot type.
+
+Line plots are the default plot type for 1D domains. Cubic splines are used to interpolate between nodes of the computational domain for smooth plotting. This may lead to transient oscillations appearing near discontinuities in the solution.
+
+Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Max height** parameter. The limits of the colour axis specify the values at which the height of the surface is capped.
 
 **Max height**\
-The maximum height of a plotted surface, measured in the same units as the domain size. Changing this parameter effectively makes the surface variation more/less prominent. Must be a numerical value.
+The maximum height of a plotted line or surface, measured in the same units as the domain size. Changing this parameter effectively makes the variation more/less prominent. Must be a numerical value.
+
+**Thickness**\
+The thickness of the plotted line relative to the default. Must be a numerical value.
 
 **View $\theta$/$\phi$**\
 [Euler angles](https://en.wikipedia.org/wiki/Euler_angles) specifying the current 3D viewpoint, with $\theta\in[0,\pi]$ and $\phi\in[0,2\pi]$. As Euler angles [don't do a perfect job](https://en.wikipedia.org/wiki/Gimbal_lock) of describing orientations, you may find that a viewpoint loaded in from a URL isn't quite what you expected, but only if you were looking at the surface from far behind and underneath the default view. You can manipulate these values either by inputting new values, or see them update as you rotate the viewpoint with your pointer (click and drag).
@@ -166,8 +173,8 @@ Toggle the display of the current colour bar and limits.
 Set the background colour of the simulation window, which you will see often when using **Surface Plot** or **Implicit**. In implicit domains, the exterior of the domain adopts this colour.
 
 ### Images <a id='images'>
-**$S(x,y)$, $T(x,y)$**\
-Define the scalar fields $S(x,y)$ and $T(x,y)$, which are derived from images that you can upload by clicking on the current image. Via the symbols 'S' and 'T' throughout VisualPDE, you can access the average RGB value of each image at each point in space, effectively treating them as greyscale. Advanced users can access the individual RGBA channels via 'SR', 'SG', etc. VisualPDE will stretch images so that they cover the domain edge-to-edge. Note that this does not respect **Implicit**. The defaults draw from images of [Sofya Kovalevskaya](https://en.wikipedia.org/wiki/Sofya_Kovalevskaya) and [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing).
+**$I_S$, $I_T$**\
+Define the scalar fields $I_S$ and $I_T$, which are derived from images that you can upload by clicking on the current image. Via the symbols 'I_S' and 'I_T' throughout VisualPDE, you can access the average RGB value of each image at each point in space, effectively treating them as greyscale. Advanced users can access the individual RGBA channels via 'I_SR', 'I_SG', etc. VisualPDE will stretch images so that they cover the domain edge-to-edge. Note that this does not respect **Implicit**. The defaults draw from images of [Sofya Kovalevskaya](https://en.wikipedia.org/wiki/Sofya_Kovalevskaya) and [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing).
 
 ### Misc <a id='misc'>
 **Integrate**\

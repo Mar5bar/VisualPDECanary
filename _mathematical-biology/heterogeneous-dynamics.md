@@ -4,7 +4,7 @@ title: Dynamic bifurcations with heterogeneity
 lesson_number: 120
 thumbnail: /assets/images/heterogeneousGiererMeinhardt.png
 extract: Isolated patterns and moving spikes
-equation: $\pd{u}{t}=\nabla^2 u+a+G(x)+\frac{u^2}{v}-(b+H(x))u,$ $\pd{v}{t}=D\nabla^2v+ u^2-cv$
+equation: $\pd{u}{t}=\nabla^2 u+a+G(x)+\frac{u^2}{v}-[b+H(x)]u,$ $\pd{v}{t}=D\nabla^2v+ u^2-cv$
 ---
 
 This is a brief example of messy boundary conditions and spatial heterogeneity inducing complex dynamical behaviours. We consider a heterogeneous version of the [Gierer–Meinhardt](/mathematical-biology/gierer-meinhardt) model:
