@@ -5204,12 +5204,12 @@ function setSpeciesNames(onLoading) {
     ...getDefaultTeXLabelsBCsICs(),
   };
   Object.keys(defaultStrings).forEach(function (key) {
-    TeXStrings[key] = replaceSymbolsInStr(
+    TeXStrings[key] = parseStringToTEX(replaceSymbolsInStr(
       defaultStrings[key],
       defaultSpecies,
       listOfSpecies,
       "_[xy]"
-    );
+    ));
   });
 
   // Define a non-capturing strings that are equivalent to the old [uvwq], [vwq] etc in regexes.
@@ -5277,11 +5277,11 @@ function setReactionNames(onLoading) {
   let regex;
   const defaultStrings = getDefaultTeXLabelsReaction();
   Object.keys(defaultStrings).forEach(function (key) {
-    TeXStrings[key] = replaceSymbolsInStr(
+    TeXStrings[key] = parseStringToTEX(replaceSymbolsInStr(
       defaultStrings[key],
       defaultReactions,
       listOfReactions
-    );
+    ));
   });
 
   // Don't update the GUI if we're just loading in, as this will be done as part of loading.
