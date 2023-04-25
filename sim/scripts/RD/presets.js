@@ -48,51 +48,52 @@ export function getPreset(id) {
         whatToPlot: "u",
       };
       break;
-      case "AdvectionEquationRotational":
-	options = {
-	"boundaryConditionsU": "dirichlet",
-	"brushAction": "smoothadd",
-	"brushValue": "0.5",
-	"brushRadius": "3",
-	"clearValueU": "0",
-	"diffusionStrUU": "1",
-	"diffusionStrVV": "0",
-	"diffusionStrWW": "0",
-	"domainScale": 320,
-	"dt": 0.002,
-	"kineticParams": "V  =  0.10  in  [-5,  0.01,  5];",
-	"numSpecies": 1,
-	"preset": "AdvectionEquationRotational",
-	"reactionStrU": "V*((y-L_y/2)*u_x-(x-L_x/2)*u_y)",
-	"reactionStrV": "0",
-	"reactionStrW": "0",
-	"spatialStep": 1.25,
-	"whatToDraw": "u",
-	"whatToPlot": "u",
-};
-break;
-	case "AdvectionEquationDirected":
-	options = {
-	"brushAction": "smoothadd",
-	"brushValue": "0.5",
-	"brushRadius": "3",
-	"clearValueU": "0",
-	"diffusionStrUU": "1",
-	"diffusionStrVV": "0",
-	"diffusionStrWW": "0",
-	"domainScale": 320,
-	"dt": 0.002,
-	"kineticParams": "V  =  6 in  [0,  0.01,  10];theta = -2 in  [-6.4,  0.01,  6.4];",
-	"numSpecies": 1,
-	"preset": "AdvectionEquationDirected",
-	"reactionStrU": "V*(cos(theta)*u_x + sin(theta)*u_y)",
-	"reactionStrV": "0",
-	"reactionStrW": "0",
-	"spatialStep": 1.25,
-	"whatToDraw": "u",
-	"whatToPlot": "u",
-};
-break;
+    case "AdvectionEquationRotational":
+      options = {
+        boundaryConditionsU: "dirichlet",
+        brushAction: "smoothadd",
+        brushValue: "0.5",
+        brushRadius: "3",
+        clearValueU: "0",
+        diffusionStrUU: "1",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        domainScale: 320,
+        dt: 0.002,
+        kineticParams: "V  =  0.10  in  [-5,  0.01,  5];",
+        numSpecies: 1,
+        preset: "AdvectionEquationRotational",
+        reactionStrU: "V*((y-L_y/2)*u_x-(x-L_x/2)*u_y)",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        spatialStep: 1.25,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
+    case "AdvectionEquationDirected":
+      options = {
+        brushAction: "smoothadd",
+        brushValue: "0.5",
+        brushRadius: "3",
+        clearValueU: "0",
+        diffusionStrUU: "1",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        domainScale: 320,
+        dt: 0.002,
+        kineticParams:
+          "V  =  6 in  [0,  0.01,  10];theta = -2 in  [-6.4,  0.01,  6.4];",
+        numSpecies: 1,
+        preset: "AdvectionEquationDirected",
+        reactionStrU: "V*(cos(theta)*u_x + sin(theta)*u_y)",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        spatialStep: 1.25,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
     case "BurgersEquation":
       options = {
         boundaryConditionsU: "neumann",
@@ -122,7 +123,7 @@ break;
         whatToDraw: "u",
         whatToPlot: "u",
       };
-      break;	  
+      break;
     case "swiftHohenbergLocalisedDirectedAdvection":
       options = {
         algebraicV: true,
@@ -156,8 +157,8 @@ break;
     case "swiftHohenbergLocalisedRotationalAdvection":
       options = {
         algebraicV: true,
-	"boundaryConditionsU": "dirichlet",
-	"boundaryConditionsV": "dirichlet",
+        boundaryConditionsU: "dirichlet",
+        boundaryConditionsV: "dirichlet",
         brushRadius: "1",
         clearValueU:
           "H(1.5-P)*((cos(x-L_x/2) - cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) - cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) - cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) - cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))+H(P-2.5)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) + cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) + cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))",
@@ -307,26 +308,26 @@ break;
       break;
     case "QR":
       options = {
-        boundaryConditionsU: "periodic",
-        boundaryConditionsV: "periodic",
+        brushRadius: "2",
+        clearValueU: "0",
+        clearValueV: "1",
         colourmap: "greyscale",
-        brushRadius: 2,
         diffusionStrUU: "0.042",
         diffusionStrVV: "2",
-        domainScale: 100,
+        diffusionStrWW: "0",
         dt: 0.001,
         imagePathOne: "./images/qr-code-home.png",
-        maxColourValue: 0,
-        minColourValue: -2.3,
-        numTimestepsPerFrame: 100,
+        maxColourValue: -0.00005137347034178674,
+        minColourValue: -3,
+        numTimestepsPerFrame: 200,
         preset: "QR",
+        resetOnImageLoad: true,
         renderSize: 652,
-        reactionStrU: "(1-2*I_SB) - u + u^2*v",
-        reactionStrV: "1 - u^2*v",
-        showAllOptionsOverride: true,
+        reactionStrU: "- u*(1-0.9*I_S)+ u^2*v",
+        reactionStrV: "0.3 - u^2*v",
+        reactionStrW: "0",
         spatialStep: 0.2,
         squareCanvas: true,
-        suppressTryClickingPopup: true,
         whatToDraw: "u",
         whatToPlot: "-u",
       };
