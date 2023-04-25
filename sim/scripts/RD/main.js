@@ -96,7 +96,8 @@ let isRunning,
   anyDirichletBCs,
   nudgedUp = false,
   errorOccurred = false,
-  NaNTimer;
+  NaNTimer,
+  uiHidden = false;
 let inTex, outTex;
 let nXDisc,
   nYDisc,
@@ -371,14 +372,12 @@ if (shouldLoadDefault) {
   // Load a specific preset as the default.
   loadPreset("GrayScott");
 }
-if (params.has("no_buttons")) {
-  // Hide all the buttons.
-  $(".ui_button").addClass("hidden");
-}
 if (params.has("no_ui")) {
   // Hide all the ui, including buttons.
   $(".ui_button").addClass("hidden");
+  $(".dg").addClass("hidden")
   $("#logo").addClass("hidden");
+  uiHidden = true;
 }
 
 // If the "Try clicking!" popup is allowed, show it iff we're from an external link
@@ -634,6 +633,19 @@ function init() {
       }
       if (event.key === " ") {
         funsObj.toggleRunning();
+      }
+      if (event.key === "h") {
+        if (uiHidden) {
+          $(".ui_button").removeClass("hidden");
+          $(".dg").removeClass("hidden");
+          $("#logo").removeClass("hidden");
+          uiHidden = false;
+        } else {
+          $(".ui_button").addClass("hidden");
+          $(".dg").addClass("hidden");
+          $("#logo").addClass("hidden");
+          uiHidden = true;
+        }
       }
     }
   });
