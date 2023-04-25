@@ -1592,37 +1592,6 @@ function initGUI(startOpen) {
   // Copy configuration as raw JSON.
   root.add(funsObj, "copyConfigAsJSON").name("Copy code");
 
-  root
-    .add(options, "preset", {
-      "A harsh environment": "harshEnvironment",
-      Alan: "Alan",
-      Beginnings: "chemicalBasisOfMorphogenesis",
-      "Bistable travelling waves": "bistableTravellingWave",
-      Brusellator: "brusselator",
-      "Cahn-Hilliard": "CahnHilliard",
-      "Complex Ginzburg-Landau": "complexGinzburgLandau",
-      "Cyclic competition": "cyclicCompetition",
-      "Gierer-Meinhardt": "GiererMeinhardt",
-      "Gierer-Meinhardt: stripes": "GiererMeinhardtStripes",
-      "Gray-Scott": "subcriticalGS",
-      "Heat equation": "heatEquation",
-      "Inhomogeneous heat eqn": "inhomogHeatEquation",
-      "Inhomogeneous wave eqn": "inhomogWaveEquation",
-      "Localised patterns": "localisedPatterns",
-      Schnakenberg: "Schnakenberg",
-      "Schnakenberg-Hopf": "SchnakenbergHopf",
-      "Schrodinger + potential": "stabilizedSchrodingerEquationPotential",
-      Schrodinger: "stabilizedSchrodingerEquation",
-      "Swift-Hohenberg": "swiftHohenberg",
-      Thresholding: "thresholdSimulation",
-      "Travelling waves": "travellingWave",
-      "Variable diff heat eqn": "inhomogDiffusionHeatEquation",
-      "Wave equation w/ ICs": "waveEquationICs",
-      "Wave equation": "waveEquation",
-    })
-    .name("Preset")
-    .onChange(loadPreset);
-
   root = root.addFolder("Debug");
   // Debug.
   root.add(funsObj, "debug").name("Copy debug info");

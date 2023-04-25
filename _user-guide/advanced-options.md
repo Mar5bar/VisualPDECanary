@@ -186,9 +186,6 @@ Fix the seed of the (pseudo)random number generator used to assign values to 'RA
 **Copy code**\
 Copy a verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples.
 
-**Preset**\
-Select a preset from a long list of examples included in VisualPDE. This list is a subset of all the examples and will likely only be useful if you are wanting to quickly switch between many different examples.
-
 **Debug**\
 Select from a frequently updated list of available debugging tools. A permanent fixture is **Copy debug info**, which copies a selection of configuration information to your clipboard (handy when reporting bugs).
 
