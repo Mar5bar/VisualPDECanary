@@ -3918,8 +3918,7 @@ function setEquationDisplayType() {
     regex =
       /\\vnabla\s*\\cdot\s*\((D_\{\w+(?: \w+)?\})\s*\\vnabla\s*([uvwq])\s*\)/g;
     str = str.replaceAll(regex, "$1 \\lap $2");
-
-    regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}\*\^]*)\s*\\vnabla\s*()\s*\)/g;
+    regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}\*\^]*)\s*\\vnabla\s*([uvwq])\s*\)/g;
     str = str.replaceAll(regex, function (match, g1, g2) {
       const innerRegex = /\b[xy]|[uvwq]\b/g;
       if (!innerRegex.test(g1)) {
