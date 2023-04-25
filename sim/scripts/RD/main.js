@@ -337,7 +337,7 @@ if (params.has("no_ui")) {
 }
 
 // Warn the user about flashing images and ask for cookie permission to store this.
-if (!warningCookieExists() || !uiHidden) {
+if (!warningCookieExists() && !uiHidden) {
   // Display the warning message.
   $("#warning").css("display", "block");
   const permission = await Promise.race([
