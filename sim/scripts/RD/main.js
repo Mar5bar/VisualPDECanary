@@ -374,9 +374,7 @@ if (shouldLoadDefault) {
 }
 if (params.has("no_ui")) {
   // Hide all the ui, including buttons.
-  $(".ui_button").addClass("hidden");
-  $(".dg").addClass("hidden")
-  $("#logo").addClass("hidden");
+  $(".ui").addClass("hidden");
   uiHidden = true;
 }
 
@@ -636,14 +634,10 @@ function init() {
       }
       if (event.key === "h") {
         if (uiHidden) {
-          $(".ui_button").removeClass("hidden");
-          $(".dg").removeClass("hidden");
-          $("#logo").removeClass("hidden");
+          $(".ui").removeClass("hidden");
           uiHidden = false;
         } else {
-          $(".ui_button").addClass("hidden");
-          $(".dg").addClass("hidden");
-          $("#logo").addClass("hidden");
+          $(".ui").addClass("hidden");
           uiHidden = true;
         }
       }
@@ -978,6 +972,7 @@ function initGUI(startOpen) {
   // Initialise the right GUI.
   rightGUI = new dat.GUI({ closeOnTop: true });
   rightGUI.domElement.id = "rightGUI";
+  rightGUI.domElement.classList.add("ui");
 
   leftGUI.open();
   rightGUI.open();

@@ -75,21 +75,21 @@
     <p style="font-size: small;">Choosing not to be reminded places a cookie on your device</p>
 </div>
 
-<div class="ui_button" id="settings" title="Settings"><i class="fa-solid fa-wrench"></i></div>
-<div id="right_ui_arrow"></div>
+<div class="ui_button ui" id="settings" title="Settings"><i class="fa-solid fa-wrench"></i></div>
+<div id="right_ui_arrow" class="ui"></div>
 
-<div class="ui_button" id="play" title="Play (space)"><i class="fa-solid fa-play"></i></div>
-<div class="ui_button" id="pause" title="Pause (space)"><i class="fa-solid fa-pause"></i></div>
-<div class="ui_button" id="erase" title="Restart (R)"><i class="fa-solid fa-arrow-rotate-left"></i></div>
-<div class="ui_button" id="share" title="Share"><i class="fa-solid fa-share-from-square"></i></div>
+<div class="ui ui_button" id="play" title="Play (space)"><i class="fa-solid fa-play"></i></div>
+<div class="ui ui_button" id="pause" title="Pause (space)"><i class="fa-solid fa-pause"></i></div>
+<div class="ui ui_button" id="erase" title="Restart (R)"><i class="fa-solid fa-arrow-rotate-left"></i></div>
+<div class="ui ui_button" id="share" title="Share"><i class="fa-solid fa-share-from-square"></i></div>
 <div class="message" id="link_copied"><p>Link copied to clipboard</p></div>
 <!-- <a href="../user-guide" target="_blank"><div class="ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div></a> -->
-<div class="ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div>
+<div class="ui ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div>
 
-<div class="ui_button" id="equations" title="Edit equations"></div>
+<div class="ui ui_button" id="equations" title="Edit equations"></div>
 <div id="left_ui_arrow"></div>
 
-<a href='/'><div id="logo">VisualPDE</div></a>
+<a href='/'><div id="logo" class="ui">VisualPDE</div></a>
 
 <div class="message" id="try_clicking" title="Try clicking!"><p>Try clicking!</p></div>
 <div class="message" id="oops_hit_nan">
@@ -106,7 +106,7 @@
     <button id="warning_no" class="btn-primary"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
 
-<div id="left_ui">
+<div id="left_ui" class="ui">
     <div id="equation_display">
         <div id="equation_display_box">
             <div id="typeset_equation"></div>
@@ -115,7 +115,7 @@
     <div class="dg ac" id="leftGUIContainer" style="position: relative;"></div>
 </div>
 
-<div id="share_panel" class="popout_panel">
+<div id="share_panel" class="ui popout_panel">
     <div class="container">
         <div id='title'>Share your simulation</div>
         <div id='link' class='button'><i class="share-icon fa-solid fa-link"></i>Copy link</div>
@@ -124,7 +124,7 @@
     <div class="arrow"></div>
 </div>
 
-<div id="help_panel" class="popout_panel">
+<div id="help_panel" class="ui popout_panel">
     <div class="container">
         <div id='title'>Help</div>
         <a href='/user-guide/quick-start' target="_blank"><div id='quick_start' class='button'><i class="share-icon fa-solid fa-question"></i>Quick start</div></a>
@@ -135,13 +135,13 @@
     <div class="arrow"></div>
 </div>
 
-<div class="colourbarMain prevent-select" id="colourbar">
+<div class="ui colourbarMain prevent-select" id="colourbar">
     <div class="label colourbarLabel" id="minLabel">0</div>
     <div class="label colourbarLabel" id="midLabel">0.5</div>
     <div class="label colourbarLabel" id="maxLabel">1</div>
 </div>
 
-<div class="dataContainer" id="dataContainer">
+<div class="ui dataContainer" id="dataContainer">
     <div class="dataItem prevent-select" id="timeDisplay">
         <div class="label timeLabel" id="timeLabel">$t=$</div>
         <div class="label timeLabel" id="timeValue"></div>
