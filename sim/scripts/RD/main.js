@@ -3811,6 +3811,8 @@ function setEquationDisplayType() {
   // equation in the UI element that displays the equations.
   let str = equationTEX[equationType];
 
+  let regex;
+
   if (options.typesetCustomEqs) {
     // Define a list of strings that will be used to make regexes. We'll work using the default notation,
     // then convert at the end.
@@ -3881,7 +3883,7 @@ function setEquationDisplayType() {
     str = replaceUserDefReac(str, /\bj\b/g, toDefault(options.reactionStrQ));
 
     // Look through the string for any open brackets ( or [ followed by a + or -.
-    let regex = /\(\s*\+/g;
+    regex = /\(\s*\+/g;
     while (str != (str = str.replace(regex, "(")));
     regex = /\[\s*\+/g;
     while (str != (str = str.replace(regex, "[")));
