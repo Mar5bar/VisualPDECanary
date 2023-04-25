@@ -91,7 +91,6 @@ let leftGUI,
   robinWController,
   robinQController,
   fIm,
-  fMisc,
   imControllerOne,
   imControllerTwo,
   genericOptionsFolder,
@@ -980,759 +979,610 @@ function initGUI(startOpen) {
   genericOptionsFolder = rightGUI.addFolder("Options");
 
   // Brush folder.
-  if (inGUI("brushFolder")) {
-    root = rightGUI.addFolder("Brush");
-  } else {
-    root = genericOptionsFolder;
-  }
-  if (inGUI("brushAction")) {
-    root
-      .add(options, "brushAction", {
-        Replace: "replace",
-        Add: "add",
-        "Replace (smooth)": "smoothreplace",
-        "Add (smooth)": "smoothadd",
-      })
-      .name("Action")
-      .onChange(setBrushType);
-  }
-  if (inGUI("typeOfBrush")) {
-    typeOfBrushController = root
-      .add(options, "typeOfBrush", {
-        Disk: "circle",
-        "Horizontal line": "hline",
-        "Vertical line": "vline",
-      })
-      .name("Shape")
-      .onChange(setBrushType);
-  }
-  if (inGUI("brushValue")) {
-    root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
-  }
-  if (inGUI("brushRadius")) {
-    brushRadiusController = root
-      .add(options, "brushRadius")
-      .name("Radius")
-      .onChange(setBrushType);
-  }
-  if (inGUI("whatToDraw")) {
-    whatToDrawController = root
-      .add(options, "whatToDraw", listOfSpecies)
-      .name("Species")
-      .onChange(setBrushType);
-  }
-  if (inGUI("drawIn3D")) {
-    drawIn3DController = root.add(options, "drawIn3D").name("3D enabled");
-  }
+  root = rightGUI.addFolder("Brush");
+
+  root
+    .add(options, "brushAction", {
+      Replace: "replace",
+      Add: "add",
+      "Replace (smooth)": "smoothreplace",
+      "Add (smooth)": "smoothadd",
+    })
+    .name("Action")
+    .onChange(setBrushType);
+
+  typeOfBrushController = root
+    .add(options, "typeOfBrush", {
+      Disk: "circle",
+      "Horizontal line": "hline",
+      "Vertical line": "vline",
+    })
+    .name("Shape")
+    .onChange(setBrushType);
+
+  root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
+
+  brushRadiusController = root
+    .add(options, "brushRadius")
+    .name("Radius")
+    .onChange(setBrushType);
+
+  whatToDrawController = root
+    .add(options, "whatToDraw", listOfSpecies)
+    .name("Species")
+    .onChange(setBrushType);
+
+  drawIn3DController = root.add(options, "drawIn3D").name("3D enabled");
 
   // Domain folder.
-  if (inGUI("domainFolder")) {
-    root = rightGUI.addFolder("Domain");
-  } else {
-    root = genericOptionsFolder;
-  }
-  if (inGUI("dimension")) {
-    root
-      .add(options, "dimension", { 1: 1, 2: 2 })
-      .name("Dimension")
-      .onChange(function () {
-        configureDimension();
-        render();
-      });
-  }
-  if (inGUI("domainScale")) {
-    root.add(options, "domainScale").name("Largest side").onChange(resize);
-  }
-  if (inGUI("spatialStep")) {
-    const dxController = root
-      .add(options, "spatialStep")
-      .name("Space step")
-      .onChange(function () {
-        resize();
-      });
-    dxController.__precision = 12;
-    dxController.min(0);
-    dxController.updateDisplay();
-  }
-  if (inGUI("squareCanvas")) {
-    root
-      .add(options, "squareCanvas")
-      .name("Square display")
-      .onFinishChange(function () {
-        setCanvasShape();
-        resize();
-        configureCameraAndClicks();
-      });
-  }
-  if (inGUI("domainViaIndicatorFun")) {
-    root
-      .add(options, "domainViaIndicatorFun")
-      .name("Implicit")
-      .onFinishChange(function () {
-        configureOptions();
-        configureGUI();
-        setRDEquations();
-        setPostFunFragShader();
-      });
-  }
-  if (inGUI("domainIndicatorFun")) {
-    domainIndicatorFunController = root
-      .add(options, "domainIndicatorFun")
-      .name("Ind. fun")
-      .onFinishChange(function () {
-        configureOptions();
-        configureGUI();
-        setRDEquations();
-        updateWhatToPlot();
-      });
-  }
+  root = rightGUI.addFolder("Domain");
+
+  root
+    .add(options, "dimension", { 1: 1, 2: 2 })
+    .name("Dimension")
+    .onChange(function () {
+      configureDimension();
+      render();
+    });
+
+  root.add(options, "domainScale").name("Largest side").onChange(resize);
+
+  const dxController = root
+    .add(options, "spatialStep")
+    .name("Space step")
+    .onChange(function () {
+      resize();
+    });
+  dxController.__precision = 12;
+  dxController.min(0);
+  dxController.updateDisplay();
+
+  root
+    .add(options, "squareCanvas")
+    .name("Square display")
+    .onFinishChange(function () {
+      setCanvasShape();
+      resize();
+      configureCameraAndClicks();
+    });
+
+  root
+    .add(options, "domainViaIndicatorFun")
+    .name("Implicit")
+    .onFinishChange(function () {
+      configureOptions();
+      configureGUI();
+      setRDEquations();
+      setPostFunFragShader();
+    });
+
+  domainIndicatorFunController = root
+    .add(options, "domainIndicatorFun")
+    .name("Ind. fun")
+    .onFinishChange(function () {
+      configureOptions();
+      configureGUI();
+      setRDEquations();
+      updateWhatToPlot();
+    });
 
   // Timestepping folder.
-  if (inGUI("timesteppingFolder")) {
-    root = rightGUI.addFolder("Timestepping");
-  } else {
-    root = genericOptionsFolder;
-  }
-  if (inGUI("numTimestepsPerFrame")) {
-    root.add(options, "numTimestepsPerFrame", 1, 400, 1).name("Steps/frame");
-  }
-  if (inGUI("dt")) {
-    dtController = root
-      .add(options, "dt")
-      .name("Timestep")
-      .onChange(function () {
-        updateUniforms();
-      });
-    dtController.__precision = 12;
-    dtController.min(0);
-    dtController.updateDisplay();
-  }
-  if (inGUI("timeDisplay")) {
-    root
-      .add(options, "timeDisplay")
-      .name("Show time")
-      .onChange(configureTimeDisplay);
-  }
+  root = rightGUI.addFolder("Timestepping");
+
+  root.add(options, "numTimestepsPerFrame", 1, 400, 1).name("Steps/frame");
+
+  dtController = root
+    .add(options, "dt")
+    .name("Timestep")
+    .onChange(function () {
+      updateUniforms();
+    });
+  dtController.__precision = 12;
+  dtController.min(0);
+  dtController.updateDisplay();
+
+  root
+    .add(options, "timeDisplay")
+    .name("Show time")
+    .onChange(configureTimeDisplay);
 
   // Equations folder.
-  if (inGUI("equationsFolder")) {
-    root = rightGUI.addFolder("Equations");
-  } else {
-    root = genericOptionsFolder;
-  }
+  root = rightGUI.addFolder("Equations");
+
   // Number of species.
-  if (inGUI("numSpecies")) {
-    root
-      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
-      .name("No. species")
-      .onChange(updateProblem);
-  }
+  root
+    .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
+    .name("No. species")
+    .onChange(updateProblem);
+
   // Cross diffusion.
-  if (inGUI("crossDiffusion")) {
-    crossDiffusionController = root
-      .add(options, "crossDiffusion")
-      .name("Cross diffusion")
-      .onChange(updateProblem);
-  }
-  if (inGUI("algebraicV")) {
-    algebraicVController = root
-      .add(options, "algebraicV")
-      .name("Algebraic v")
-      .onChange(updateProblem);
-  }
-  if (inGUI("algebraicW")) {
-    algebraicWController = root
-      .add(options, "algebraicW")
-      .name("Algebraic w")
-      .onChange(updateProblem);
-  }
-  if (inGUI("algebraicQ")) {
-    algebraicQController = root
-      .add(options, "algebraicQ")
-      .name("Algebraic q")
-      .onChange(updateProblem);
-  }
-  if (inGUI("speciesNames")) {
-    root
-      .add(options, "speciesNames")
-      .name("Species names")
-      .onFinishChange(function () {
-        setSpeciesNames();
-      });
-  }
-  if (inGUI("reactionNames")) {
-    root
-      .add(options, "reactionNames")
-      .name("Reactions")
-      .onFinishChange(function () {
-        setReactionNames();
-      });
-  }
+  crossDiffusionController = root
+    .add(options, "crossDiffusion")
+    .name("Cross diffusion")
+    .onChange(updateProblem);
+
+  algebraicVController = root
+    .add(options, "algebraicV")
+    .name("Algebraic v")
+    .onChange(updateProblem);
+
+  algebraicWController = root
+    .add(options, "algebraicW")
+    .name("Algebraic w")
+    .onChange(updateProblem);
+
+  algebraicQController = root
+    .add(options, "algebraicQ")
+    .name("Algebraic q")
+    .onChange(updateProblem);
+
+  root
+    .add(options, "speciesNames")
+    .name("Species names")
+    .onFinishChange(function () {
+      setSpeciesNames();
+    });
+
+  root
+    .add(options, "reactionNames")
+    .name("Reactions")
+    .onFinishChange(function () {
+      setReactionNames();
+    });
 
   // Let's put these in the left GUI.
   // Definitions folder.
-  if (inGUI("definitionsFolder")) {
-    root = leftGUI.addFolder("Definitions");
-  } else {
-    root = genericOptionsFolder;
-  }
-  if (inGUI("typesetCustomEqs")) {
-    root
-      .add(options, "typesetCustomEqs")
-      .name("Typeset")
-      .onChange(setEquationDisplayType);
-  }
-  if (inGUI("diffusionStrUU")) {
-    DuuController = root
-      .add(options, "diffusionStrUU")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrUV")) {
-    DuvController = root
-      .add(options, "diffusionStrUV")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrUW")) {
-    DuwController = root
-      .add(options, "diffusionStrUW")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrUQ")) {
-    DuqController = root
-      .add(options, "diffusionStrUQ")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrVU")) {
-    DvuController = root
-      .add(options, "diffusionStrVU")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrVV")) {
-    DvvController = root
-      .add(options, "diffusionStrVV")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrVW")) {
-    DvwController = root
-      .add(options, "diffusionStrVW")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrVQ")) {
-    DvqController = root
-      .add(options, "diffusionStrVQ")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrWU")) {
-    DwuController = root
-      .add(options, "diffusionStrWU")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrWV")) {
-    DwvController = root
-      .add(options, "diffusionStrWV")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrWW")) {
-    DwwController = root
-      .add(options, "diffusionStrWW")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrWQ")) {
-    DwqController = root
-      .add(options, "diffusionStrWQ")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrQU")) {
-    DquController = root
-      .add(options, "diffusionStrQU")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrQV")) {
-    DqvController = root
-      .add(options, "diffusionStrQV")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrQW")) {
-    DqwController = root
-      .add(options, "diffusionStrQW")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("diffusionStrQQ")) {
-    DqqController = root
-      .add(options, "diffusionStrQQ")
-      .onFinishChange(function () {
-        setRDEquations();
-        setEquationDisplayType();
-      });
-  }
-  if (inGUI("reactionStrU")) {
-    // Custom f(u,v) and g(u,v).
-    fController = root.add(options, "reactionStrU").onFinishChange(function () {
+  root = leftGUI.addFolder("Definitions");
+
+  root
+    .add(options, "typesetCustomEqs")
+    .name("Typeset")
+    .onChange(setEquationDisplayType);
+
+  DuuController = root
+    .add(options, "diffusionStrUU")
+    .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  }
-  if (inGUI("reactionStrV")) {
-    gController = root.add(options, "reactionStrV").onFinishChange(function () {
+
+  DuvController = root
+    .add(options, "diffusionStrUV")
+    .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  }
-  if (inGUI("reactionStrW")) {
-    hController = root.add(options, "reactionStrW").onFinishChange(function () {
+
+  DuwController = root
+    .add(options, "diffusionStrUW")
+    .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  }
-  if (inGUI("reactionStrQ")) {
-    jController = root.add(options, "reactionStrQ").onFinishChange(function () {
+
+  DuqController = root
+    .add(options, "diffusionStrUQ")
+    .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  }
+
+  DvuController = root
+    .add(options, "diffusionStrVU")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  DvvController = root
+    .add(options, "diffusionStrVV")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  DvwController = root
+    .add(options, "diffusionStrVW")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  DvqController = root
+    .add(options, "diffusionStrVQ")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  DwuController = root
+    .add(options, "diffusionStrWU")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  DwvController = root
+    .add(options, "diffusionStrWV")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  DwwController = root
+    .add(options, "diffusionStrWW")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  DwqController = root
+    .add(options, "diffusionStrWQ")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  DquController = root
+    .add(options, "diffusionStrQU")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  DqvController = root
+    .add(options, "diffusionStrQV")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  DqwController = root
+    .add(options, "diffusionStrQW")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  DqqController = root
+    .add(options, "diffusionStrQQ")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+
+  // Custom f(u,v) and g(u,v).
+  fController = root.add(options, "reactionStrU").onFinishChange(function () {
+    setRDEquations();
+    setEquationDisplayType();
+  });
+
+  gController = root.add(options, "reactionStrV").onFinishChange(function () {
+    setRDEquations();
+    setEquationDisplayType();
+  });
+
+  hController = root.add(options, "reactionStrW").onFinishChange(function () {
+    setRDEquations();
+    setEquationDisplayType();
+  });
+
+  jController = root.add(options, "reactionStrQ").onFinishChange(function () {
+    setRDEquations();
+    setEquationDisplayType();
+  });
+
   parametersFolder = leftGUI.addFolder("Parameters");
   setParamsFromKineticString();
 
   // Boundary conditions folder.
-  if (inGUI("boundaryConditionsFolder")) {
-    root = leftGUI.addFolder("Boundary conditions");
-  } else {
-    root = genericOptionsFolder;
-  }
-  if (inGUI("boundaryConditionsU")) {
-    uBCsController = root
-      .add(options, "boundaryConditionsU", {
-        Periodic: "periodic",
-        Dirichlet: "dirichlet",
-        Neumann: "neumann",
-        Robin: "robin",
-      })
-      .onChange(function () {
-        setRDEquations();
-        setBCsGUI();
-      });
-  }
-  if (inGUI("dirichletU")) {
-    dirichletUController = root
-      .add(options, "dirichletStrU")
-      .onFinishChange(setRDEquations);
-  }
-  if (inGUI("neumannStrU")) {
-    neumannUController = root
-      .add(options, "neumannStrU")
-      .onFinishChange(setRDEquations);
-  }
-  if (inGUI("robinStrU")) {
-    robinUController = root
-      .add(options, "robinStrU")
-      .onFinishChange(setRDEquations);
-  }
-  if (inGUI("boundaryConditionsV")) {
-    vBCsController = root
-      .add(options, "boundaryConditionsV", {
-        Periodic: "periodic",
-        Dirichlet: "dirichlet",
-        Neumann: "neumann",
-        Robin: "robin",
-      })
-      .onChange(function () {
-        setRDEquations();
-        setBCsGUI();
-      });
-  }
-  if (inGUI("dirichletV")) {
-    dirichletVController = root
-      .add(options, "dirichletStrV")
-      .onFinishChange(setRDEquations);
-  }
-  if (inGUI("neumannStrV")) {
-    neumannVController = root
-      .add(options, "neumannStrV")
-      .onFinishChange(setRDEquations);
-  }
-  if (inGUI("robinStrV")) {
-    robinVController = root
-      .add(options, "robinStrV")
-      .onFinishChange(setRDEquations);
-  }
-  if (inGUI("boundaryConditionsW")) {
-    wBCsController = root
-      .add(options, "boundaryConditionsW", {
-        Periodic: "periodic",
-        Dirichlet: "dirichlet",
-        Neumann: "neumann",
-        Robin: "robin",
-      })
-      .onChange(function () {
-        setRDEquations();
-        setBCsGUI();
-      });
-  }
-  if (inGUI("dirichletW")) {
-    dirichletWController = root
-      .add(options, "dirichletStrW")
-      .onFinishChange(setRDEquations);
-  }
-  if (inGUI("neumannStrW")) {
-    neumannWController = root
-      .add(options, "neumannStrW")
-      .onFinishChange(setRDEquations);
-  }
-  if (inGUI("robinStrW")) {
-    robinWController = root
-      .add(options, "robinStrW")
-      .onFinishChange(setRDEquations);
-  }
-  if (inGUI("boundaryConditionsQ")) {
-    qBCsController = root
-      .add(options, "boundaryConditionsQ", {
-        Periodic: "periodic",
-        Dirichlet: "dirichlet",
-        Neumann: "neumann",
-        Robin: "robin",
-      })
-      .name("$q$")
-      .onChange(function () {
-        setRDEquations();
-        setBCsGUI();
-      });
-  }
-  if (inGUI("dirichletQ")) {
-    dirichletQController = root
-      .add(options, "dirichletStrQ")
-      .onFinishChange(setRDEquations);
-  }
-  if (inGUI("neumannStrQ")) {
-    neumannQController = root
-      .add(options, "neumannStrQ")
-      .onFinishChange(setRDEquations);
-  }
-  if (inGUI("robinStrQ")) {
-    robinQController = root
-      .add(options, "robinStrQ")
-      .onFinishChange(setRDEquations);
-  }
+  root = leftGUI.addFolder("Boundary conditions");
+
+  uBCsController = root
+    .add(options, "boundaryConditionsU", {
+      Periodic: "periodic",
+      Dirichlet: "dirichlet",
+      Neumann: "neumann",
+      Robin: "robin",
+    })
+    .onChange(function () {
+      setRDEquations();
+      setBCsGUI();
+    });
+
+  dirichletUController = root
+    .add(options, "dirichletStrU")
+    .onFinishChange(setRDEquations);
+
+  neumannUController = root
+    .add(options, "neumannStrU")
+    .onFinishChange(setRDEquations);
+
+  robinUController = root
+    .add(options, "robinStrU")
+    .onFinishChange(setRDEquations);
+
+  vBCsController = root
+    .add(options, "boundaryConditionsV", {
+      Periodic: "periodic",
+      Dirichlet: "dirichlet",
+      Neumann: "neumann",
+      Robin: "robin",
+    })
+    .onChange(function () {
+      setRDEquations();
+      setBCsGUI();
+    });
+
+  dirichletVController = root
+    .add(options, "dirichletStrV")
+    .onFinishChange(setRDEquations);
+
+  neumannVController = root
+    .add(options, "neumannStrV")
+    .onFinishChange(setRDEquations);
+
+  robinVController = root
+    .add(options, "robinStrV")
+    .onFinishChange(setRDEquations);
+
+  wBCsController = root
+    .add(options, "boundaryConditionsW", {
+      Periodic: "periodic",
+      Dirichlet: "dirichlet",
+      Neumann: "neumann",
+      Robin: "robin",
+    })
+    .onChange(function () {
+      setRDEquations();
+      setBCsGUI();
+    });
+
+  dirichletWController = root
+    .add(options, "dirichletStrW")
+    .onFinishChange(setRDEquations);
+
+  neumannWController = root
+    .add(options, "neumannStrW")
+    .onFinishChange(setRDEquations);
+
+  robinWController = root
+    .add(options, "robinStrW")
+    .onFinishChange(setRDEquations);
+
+  qBCsController = root
+    .add(options, "boundaryConditionsQ", {
+      Periodic: "periodic",
+      Dirichlet: "dirichlet",
+      Neumann: "neumann",
+      Robin: "robin",
+    })
+    .name("$q$")
+    .onChange(function () {
+      setRDEquations();
+      setBCsGUI();
+    });
+
+  dirichletQController = root
+    .add(options, "dirichletStrQ")
+    .onFinishChange(setRDEquations);
+
+  neumannQController = root
+    .add(options, "neumannStrQ")
+    .onFinishChange(setRDEquations);
+
+  robinQController = root
+    .add(options, "robinStrQ")
+    .onFinishChange(setRDEquations);
 
   // Initial conditions folder.
-  if (inGUI("initFolder")) {
-    root = leftGUI.addFolder("Initial conditions");
-  } else {
-    root = genericOptionsFolder;
-  }
-  if (inGUI("clearValueU")) {
-    clearValueUController = root
-      .add(options, "clearValueU")
-      .onFinishChange(setClearShader);
-  }
-  if (inGUI("clearValueV")) {
-    clearValueVController = root
-      .add(options, "clearValueV")
-      .onFinishChange(setClearShader);
-  }
-  if (inGUI("clearValueW")) {
-    clearValueWController = root
-      .add(options, "clearValueW")
-      .onFinishChange(setClearShader);
-  }
-  if (inGUI("clearValueQ")) {
-    clearValueQController = root
-      .add(options, "clearValueQ")
-      .onFinishChange(setClearShader);
-  }
+  root = leftGUI.addFolder("Initial conditions");
+
+  clearValueUController = root
+    .add(options, "clearValueU")
+    .onFinishChange(setClearShader);
+
+  clearValueVController = root
+    .add(options, "clearValueV")
+    .onFinishChange(setClearShader);
+
+  clearValueWController = root
+    .add(options, "clearValueW")
+    .onFinishChange(setClearShader);
+
+  clearValueQController = root
+    .add(options, "clearValueQ")
+    .onFinishChange(setClearShader);
 
   // Plotting folder.
-  if (inGUI("renderingFolder")) {
-    root = rightGUI.addFolder("Plotting");
-  } else {
-    root = genericOptionsFolder;
-  }
-  if (inGUI("whatToPlot")) {
-    whatToPlotController = root
-      .add(options, "whatToPlot")
-      .name("Expression: ")
-      .onFinishChange(function () {
-        updateWhatToPlot();
-        render();
-      });
-  }
-  if (inGUI("plotType")) {
-    root
-      .add(options, "plotType", {
-        Line: "line",
-        Plane: "plane",
-        Surface: "surface",
-      })
-      .name("Plot type")
-      .onChange(function () {
-        configurePlotType();
-        document.activeElement.blur();
-        render();
-      });
-  }
-  if (inGUI("lineWidthMul")) {
-    lineWidthMulController = root
-      .add(options, "lineWidthMul", 0.1, 2)
-      .name("Thickness")
-      .onChange(function () {
-        setLineWidth();
-        render();
-      });
-  }
-  if (inGUI("threeDHeightScale")) {
-    threeDHeightScaleController = root
-      .add(options, "threeDHeightScale")
-      .name("Max height")
-      .onChange(updateUniforms);
-  }
-  if (inGUI("cameraTheta")) {
-    cameraThetaController = root
-      .add(options, "cameraTheta")
-      .name("View $\\theta$")
-      .onChange(configureCameraAndClicks);
-  }
-  if (inGUI("cameraPhi")) {
-    cameraPhiController = root
-      .add(options, "cameraPhi")
-      .name("View $\\phi$")
-      .onChange(configureCameraAndClicks);
-  }
-  if (inGUI("cameraZoom")) {
-    cameraZoomController = root
-      .add(options, "cameraZoom")
-      .name("Zoom")
-      .onChange(configureCameraAndClicks);
-  }
-  if (inGUI("forceManualInterpolation")) {
-    forceManualInterpolationController = root
-      .add(options, "forceManualInterpolation")
-      .name("Man. smooth")
-      .onChange(configureManualInterpolation);
-  }
-  if (inGUI("Smoothing scale")) {
-    smoothingScaleController = root
-      .add(options, "smoothingScale", 0, 16, 1)
-      .name("Smoothing")
-      .onChange(function () {
-        resizeTextures();
-        render();
-      });
-  }
+
+  root = rightGUI.addFolder("Plotting");
+
+  whatToPlotController = root
+    .add(options, "whatToPlot")
+    .name("Expression: ")
+    .onFinishChange(function () {
+      updateWhatToPlot();
+      render();
+    });
+
+  root
+    .add(options, "plotType", {
+      Line: "line",
+      Plane: "plane",
+      Surface: "surface",
+    })
+    .name("Plot type")
+    .onChange(function () {
+      configurePlotType();
+      document.activeElement.blur();
+      render();
+    });
+
+  lineWidthMulController = root
+    .add(options, "lineWidthMul", 0.1, 2)
+    .name("Thickness")
+    .onChange(function () {
+      setLineWidth();
+      render();
+    });
+
+  threeDHeightScaleController = root
+    .add(options, "threeDHeightScale")
+    .name("Max height")
+    .onChange(updateUniforms);
+
+  cameraThetaController = root
+    .add(options, "cameraTheta")
+    .name("View $\\theta$")
+    .onChange(configureCameraAndClicks);
+
+  cameraPhiController = root
+    .add(options, "cameraPhi")
+    .name("View $\\phi$")
+    .onChange(configureCameraAndClicks);
+
+  cameraZoomController = root
+    .add(options, "cameraZoom")
+    .name("Zoom")
+    .onChange(configureCameraAndClicks);
+
+  forceManualInterpolationController = root
+    .add(options, "forceManualInterpolation")
+    .name("Man. smooth")
+    .onChange(configureManualInterpolation);
+
+  smoothingScaleController = root
+    .add(options, "smoothingScale", 0, 16, 1)
+    .name("Smoothing")
+    .onChange(function () {
+      resizeTextures();
+      render();
+    });
 
   // Colour folder.
-  if (inGUI("colourFolder")) {
-    root = rightGUI.addFolder("Colour");
-  } else {
-    root = genericOptionsFolder;
-  }
-  if (inGUI("colourmap")) {
-    root
-      .add(options, "colourmap", {
-        BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
-        "Blue-Magenta": "blue-magenta",
-        Diverging: "diverging",
-        Greyscale: "greyscale",
-        Turbo: "turbo",
-        Viridis: "viridis",
-      })
-      .onChange(function () {
-        setDisplayColourAndType();
-        configureColourbar();
-      })
-      .name("Colour map");
-  }
-  if (inGUI("flipColourmap")) {
-    root.add(funsObj, "flipColourmap").name("Reverse map");
-  }
-  if (inGUI("minColourValue")) {
-    minColourValueController = root
-      .add(options, "minColourValue")
-      .name("Min value")
-      .onChange(function () {
-        updateUniforms();
-        updateColourbarLims();
+  root = rightGUI.addFolder("Colour");
+
+  root
+    .add(options, "colourmap", {
+      BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
+      "Blue-Magenta": "blue-magenta",
+      Diverging: "diverging",
+      Greyscale: "greyscale",
+      Turbo: "turbo",
+      Viridis: "viridis",
+    })
+    .onChange(function () {
+      setDisplayColourAndType();
+      configureColourbar();
+    })
+    .name("Colour map");
+
+  root.add(funsObj, "flipColourmap").name("Reverse map");
+
+  minColourValueController = root
+    .add(options, "minColourValue")
+    .name("Min value")
+    .onChange(function () {
+      updateUniforms();
+      updateColourbarLims();
+      render();
+    });
+  minColourValueController.__precision = 2;
+
+  maxColourValueController = root
+    .add(options, "maxColourValue")
+    .name("Max value")
+    .onChange(function () {
+      updateUniforms();
+      updateColourbarLims();
+      render();
+    });
+  maxColourValueController.__precision = 2;
+
+  setColourRangeController = root
+    .add(funsObj, "setColourRangeButton")
+    .name("Snap range");
+
+  autoSetColourRangeController = root
+    .add(options, "autoSetColourRange")
+    .name("Auto snap")
+    .onChange(function () {
+      if (options.autoSetColourRange) {
+        setColourRange();
         render();
-      });
-    minColourValueController.__precision = 2;
-  }
-  if (inGUI("maxColourValue")) {
-    maxColourValueController = root
-      .add(options, "maxColourValue")
-      .name("Max value")
-      .onChange(function () {
-        updateUniforms();
-        updateColourbarLims();
-        render();
-      });
-    maxColourValueController.__precision = 2;
-  }
-  if (inGUI("setColourRange")) {
-    setColourRangeController = root
-      .add(funsObj, "setColourRangeButton")
-      .name("Snap range");
-  }
-  if (inGUI("autoColourRangeButton")) {
-    autoSetColourRangeController = root
-      .add(options, "autoSetColourRange")
-      .name("Auto snap")
-      .onChange(function () {
-        if (options.autoSetColourRange) {
-          setColourRange();
-          render();
-        }
-      });
-  }
-  if (inGUI("colourbar")) {
-    root
-      .add(options, "colourbar")
-      .name("Colour bar")
-      .onChange(configureColourbar);
-  }
-  if (inGUI("backgroundColour")) {
-    root
-      .addColor(options, "backgroundColour")
-      .name("Background")
-      .onChange(function () {
-        scene.background = new THREE.Color(options.backgroundColour);
-        render();
-      });
-  }
+      }
+    });
+
+  root
+    .add(options, "colourbar")
+    .name("Colour bar")
+    .onChange(configureColourbar);
+
+  root
+    .addColor(options, "backgroundColour")
+    .name("Background")
+    .onChange(function () {
+      scene.background = new THREE.Color(options.backgroundColour);
+      render();
+    });
 
   // Images folder.
-  if (inGUI("imagesFolder")) {
-    fIm = rightGUI.addFolder("Images");
-    root = fIm;
-  } else {
-    root = genericOptionsFolder;
-  }
+  fIm = rightGUI.addFolder("Images");
+  root = fIm;
   // Always make images controller, but hide them if they're not wanted.
   createImageControllers();
 
   // Miscellaneous folder.
-  if (inGUI("miscFolder")) {
-    fMisc = rightGUI.addFolder("Misc.");
-    root = fMisc;
-  } else {
-    root = genericOptionsFolder;
-  }
-  if (inGUI("integrate")) {
-    root
-      .add(options, "integrate")
-      .name("Integrate")
-      .onChange(function () {
-        configureIntegralDisplay();
-        render();
-      });
-  }
-  if (inGUI("fixRandSeed")) {
-    root.add(options, "fixRandSeed").name("Fix random seed");
-  }
-  if (inGUI("copyConfigAsJSON")) {
-    // Copy configuration as raw JSON.
-    root.add(funsObj, "copyConfigAsJSON").name("Copy code");
-  }
-  if (inGUI("preset")) {
-    root
-      .add(options, "preset", {
-        "A harsh environment": "harshEnvironment",
-        Alan: "Alan",
-        Beginnings: "chemicalBasisOfMorphogenesis",
-        "Bistable travelling waves": "bistableTravellingWave",
-        Brusellator: "brusselator",
-        "Cahn-Hilliard": "CahnHilliard",
-        "Complex Ginzburg-Landau": "complexGinzburgLandau",
-        "Cyclic competition": "cyclicCompetition",
-        "Gierer-Meinhardt": "GiererMeinhardt",
-        "Gierer-Meinhardt: stripes": "GiererMeinhardtStripes",
-        "Gray-Scott": "subcriticalGS",
-        "Heat equation": "heatEquation",
-        "Inhomogeneous heat eqn": "inhomogHeatEquation",
-        "Inhomogeneous wave eqn": "inhomogWaveEquation",
-        "Localised patterns": "localisedPatterns",
-        Schnakenberg: "Schnakenberg",
-        "Schnakenberg-Hopf": "SchnakenbergHopf",
-        "Schrodinger + potential": "stabilizedSchrodingerEquationPotential",
-        Schrodinger: "stabilizedSchrodingerEquation",
-        "Swift-Hohenberg": "swiftHohenberg",
-        Thresholding: "thresholdSimulation",
-        "Travelling waves": "travellingWave",
-        "Variable diff heat eqn": "inhomogDiffusionHeatEquation",
-        "Wave equation w/ ICs": "waveEquationICs",
-        "Wave equation": "waveEquation",
-      })
-      .name("Preset")
-      .onChange(loadPreset);
-  }
-  let debugFolder = root.addFolder("Debug");
-  root = debugFolder;
-  if (inGUI("debug")) {
-    // Debug.
-    root.add(funsObj, "debug").name("Copy debug info");
-  }
+  root = rightGUI.addFolder("Misc.");
 
-  // Add a toggle for showing all options.
-  if (options.onlyExposeOptions.length != 0) {
-    rightGUI
-      .add(options, "showAllOptionsOverride")
-      .name("Show all")
-      .onChange(function () {
-        setShowAllToolsFlag();
-        deleteGUI(rightGUI);
-        initGUI(true);
-      });
-  }
+  root
+    .add(options, "integrate")
+    .name("Integrate")
+    .onChange(function () {
+      configureIntegralDisplay();
+      render();
+    });
 
-  // If the generic options folder is empty, hide it.
-  if (
-    genericOptionsFolder.__controllers.length == 0 &&
-    Object.keys(genericOptionsFolder.__folders).length == 0
-  ) {
-    genericOptionsFolder.hide();
-  }
+  root.add(options, "fixRandSeed").name("Fix random seed");
+
+  // Copy configuration as raw JSON.
+  root.add(funsObj, "copyConfigAsJSON").name("Copy code");
+
+  root
+    .add(options, "preset", {
+      "A harsh environment": "harshEnvironment",
+      Alan: "Alan",
+      Beginnings: "chemicalBasisOfMorphogenesis",
+      "Bistable travelling waves": "bistableTravellingWave",
+      Brusellator: "brusselator",
+      "Cahn-Hilliard": "CahnHilliard",
+      "Complex Ginzburg-Landau": "complexGinzburgLandau",
+      "Cyclic competition": "cyclicCompetition",
+      "Gierer-Meinhardt": "GiererMeinhardt",
+      "Gierer-Meinhardt: stripes": "GiererMeinhardtStripes",
+      "Gray-Scott": "subcriticalGS",
+      "Heat equation": "heatEquation",
+      "Inhomogeneous heat eqn": "inhomogHeatEquation",
+      "Inhomogeneous wave eqn": "inhomogWaveEquation",
+      "Localised patterns": "localisedPatterns",
+      Schnakenberg: "Schnakenberg",
+      "Schnakenberg-Hopf": "SchnakenbergHopf",
+      "Schrodinger + potential": "stabilizedSchrodingerEquationPotential",
+      Schrodinger: "stabilizedSchrodingerEquation",
+      "Swift-Hohenberg": "swiftHohenberg",
+      Thresholding: "thresholdSimulation",
+      "Travelling waves": "travellingWave",
+      "Variable diff heat eqn": "inhomogDiffusionHeatEquation",
+      "Wave equation w/ ICs": "waveEquationICs",
+      "Wave equation": "waveEquation",
+    })
+    .name("Preset")
+    .onChange(loadPreset);
+
+  root = root.addFolder("Debug");
+  // Debug.
+  root.add(funsObj, "debug").name("Copy debug info");
 }
 
 function animate() {
@@ -2787,9 +2637,6 @@ function loadOptions(preset) {
   setSpeciesNames(true);
   setReactionNames(true);
 
-  // Set a flag if we will be showing all tools.
-  setShowAllToolsFlag();
-
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
 
@@ -3090,11 +2937,7 @@ function createImageControllers() {
   // This is a bad solution to a problem that shouldn't exist.
   // The image controller does not modify the value that you assign to it, and doesn't respond to it being changed.
   // Hence, we create a function used solely to create the controller, which we'll do everytime a preset is loaded.
-  if (inGUI("imagesFolder")) {
-    root = fIm;
-  } else {
-    root = genericOptionsFolder;
-  }
+  root = fIm;
   imControllerOne = root
     .addImage(options, "imagePathOne")
     .name("$I_S(x,y)$")
@@ -3105,16 +2948,6 @@ function createImageControllers() {
     .onChange(loadImageSourceTwo);
   if (MathJax.typesetPromise != undefined) {
     MathJax.typesetPromise();
-  }
-  if (inGUI("imageOne")) {
-    showGUIController(imControllerOne);
-  } else {
-    hideGUIController(imControllerOne);
-  }
-  if (inGUI("imageTwo")) {
-    showGUIController(imControllerTwo);
-  } else {
-    hideGUIController(imControllerTwo);
   }
 }
 
@@ -3141,11 +2974,6 @@ function updateWhatToPlot() {
 
 function inGUI(name) {
   return showAllStandardTools || options.onlyExposeOptions.includes(name);
-}
-
-function setShowAllToolsFlag() {
-  showAllStandardTools =
-    options.showAllOptionsOverride || options.onlyExposeOptions.length == 0;
 }
 
 function showVGUIPanels() {
