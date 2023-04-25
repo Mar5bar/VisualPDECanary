@@ -4958,7 +4958,13 @@ function setSpeciesNames(onLoading) {
   const kinParamNames = getKineticParamNames();
   let message;
   for (var ind = 0; ind < newSpecies.length; ind++) {
-    if (isReservedName(newSpecies[ind], true, kinParamNames.concat(listOfReactions))) {
+    if (
+      isReservedName(
+        newSpecies[ind],
+        true,
+        kinParamNames.concat(listOfReactions)
+      )
+    ) {
       if (kinParamNames.includes(newSpecies[ind])) {
         message = "as a parameter";
       } else {
