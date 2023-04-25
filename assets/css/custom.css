@@ -47,6 +47,11 @@ div.home-banner-title {
     padding-right: 0.5rem;
 }
 
+div.home-banner iframe {
+    width: 100%;
+    height: 100%;
+}
+
 div.home_tiles {
     display: flex;
     flex-wrap: wrap;
