@@ -277,7 +277,7 @@ canvas {
 #error {
     display: none;
     top: 50%;
-    max-width: 30vh;
+    max-width: 60vw;
     width: 20rem;
     left: 50%;
     position: absolute;
@@ -309,6 +309,7 @@ canvas {
     margin-bottom: 0.5rem;
     text-align: center;
     width: 13rem;
+    max-width:100%;
     border: 1px solid;
     border-radius: 6px;
     border-color: rgba(27, 31, 36, 0.15);
