@@ -371,6 +371,15 @@ if (shouldLoadDefault) {
   // Load a specific preset as the default.
   loadPreset("GrayScott");
 }
+if (params.has("no_buttons")) {
+  // Hide all the buttons.
+  $(".ui_button").addClass("hidden");
+}
+if (params.has("no_ui")) {
+  // Hide all the ui, including buttons.
+  $(".ui_button").addClass("hidden");
+  $("#logo").addClass("hidden");
+}
 
 // If the "Try clicking!" popup is allowed, show it iff we're from an external link
 // or have loaded the default simulation.

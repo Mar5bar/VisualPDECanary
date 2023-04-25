@@ -27,6 +27,10 @@ canvas {
     height: 100dvh;
 }
 
+.hidden {
+    display: none !important;
+}
+
 .prevent-select {
     cursor: default;
     -webkit-user-select: none;
