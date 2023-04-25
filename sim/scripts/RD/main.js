@@ -2972,10 +2972,6 @@ function updateWhatToPlot() {
   render();
 }
 
-function inGUI(name) {
-  return showAllStandardTools || options.onlyExposeOptions.includes(name);
-}
-
 function showVGUIPanels() {
   if (options.crossDiffusion) {
     showGUIController(DuvController);
