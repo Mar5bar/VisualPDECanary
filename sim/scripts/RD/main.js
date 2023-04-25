@@ -5196,6 +5196,7 @@ function colourFromValue(val) {
 }
 
 function lerpArrays(v1, v2, t) {
+  // Linear interpolation of arrays v1 and v2, with t in [0,1].
   let res = new Array(v1.length);
   for (let i = 0; i < res.length; i++) {
     res[i] = lerp(v1[i], v2[i], t);
@@ -5204,10 +5205,21 @@ function lerpArrays(v1, v2, t) {
 }
 
 function lerp(a, b, t) {
+  // Linear interpolation between a and b, with t in [0,1].
   return (1 - t) * a + t * b;
 }
 
 function setLineWidth() {
   lineMaterial.linewidth = 0.01 * options.lineWidthMul;
   lineMaterial.needsUpdate = true;
+}
+
+function setOnfocus(cont, fun) {
+  // Set the onfocus handler of a free-text controller.
+  cont.domElement.firstChild.onfocus = fun;
+}
+
+function setOnblur(cont, fun) {
+  // Set the onblur handler of a free-text controller.
+  cont.domElement.firstChild.onblur = fun;
 }
