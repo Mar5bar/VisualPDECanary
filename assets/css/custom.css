@@ -40,6 +40,8 @@ div.home-banner {
     background-color: #ddf1ff;
     height: 150px;
     width: 100vw;
+    background: #def3ff url("/assets/images/bannerPlaceholder.png") no-repeat center center;
+    background-size: 100%;
     text-align: center;
     display: flex;
     align-items: center;
