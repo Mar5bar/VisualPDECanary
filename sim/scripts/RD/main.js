@@ -8,7 +8,12 @@ let camera,
   controls,
   raycaster,
   clampedCoords;
-let simTextureA, simTextureB, postTexture, interpolationTexture, simTextureOpts;
+let simTextureA,
+  simTextureB,
+  postTexture,
+  interpolationTexture,
+  simTextureOpts,
+  initialStateTexture;
 let basicMaterial,
   displayMaterial,
   drawMaterial,
@@ -469,6 +474,8 @@ function init() {
     preserveDrawingBuffer: true,
     powerPreference: "high-performance",
     antialias: false,
+    alpha: true,
+    premultipliedAlpha: false,
   });
   renderer.autoClear = true;
   gl = renderer.getContext();
@@ -1963,11 +1970,20 @@ function clearTextures() {
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
-  simDomain.material = clearMaterial;
-  renderer.setRenderTarget(simTextureA);
-  renderer.render(simScene, simCamera);
-  renderer.setRenderTarget(simTextureB);
-  renderer.render(simScene, simCamera);
+  if (initialStateTexture != undefined) {
+    uniforms.textureSource.value = initialStateTexture;
+    simDomain.material = copyMaterial;
+    renderer.setRenderTarget(simTextureA);
+    renderer.render(simScene, simCamera);
+    renderer.setRenderTarget(simTextureB);
+    renderer.render(simScene, simCamera);
+  } else {
+    simDomain.material = clearMaterial;
+    renderer.setRenderTarget(simTextureA);
+    renderer.render(simScene, simCamera);
+    renderer.setRenderTarget(simTextureB);
+    renderer.render(simScene, simCamera);
+  }
   render();
 }
 
@@ -2633,8 +2649,13 @@ function loadPreset(preset) {
   // Set the background color.
   scene.background = new THREE.Color(options.backgroundColour);
 
-  // Reset the state of the simulation.
-  resetSim();
+  // If an initial state has been specified, load it in, which will also reset the simulation.
+  if (options.initialState != "") {
+    loadSimState(options.initialState);
+  } else {
+    // Reset the state of the simulation using specified ICs.
+    resetSim();
+  }
 
   // Set the camera.
   configureCameraAndClicks();
@@ -5299,8 +5320,6 @@ function exportSimState() {
     uniforms.textureSource.value = simTextureA.texture;
   }
   renderer.setRenderTarget(null);
-  renderer.alpha = true;
-  renderer.premultipliedAlpha = false;
   renderer.render(scene, camera);
 
   var link = document.createElement("a");
@@ -5312,14 +5331,13 @@ function exportSimState() {
   setSizes();
 
   domain.material = displayMaterial;
-  renderer.alpha = false;
-  renderer.premultipliedAlpha = true;
   render();
 }
 
 function loadSimStateFromInput() {
   let input = document.createElement("input");
   input.type = "file";
+  input.value = null;
   input.onchange = function () {
     loadSimState(URL.createObjectURL(input.files[0]));
     input.remove();
@@ -5330,17 +5348,10 @@ function loadSimStateFromInput() {
 function loadSimState(url) {
   let image = new Image();
   image.src = url;
-  let texture = new THREE.Texture();
-  texture.image = image;
+  initialStateTexture = new THREE.Texture();
+  initialStateTexture.image = image;
   image.onload = function () {
-    texture.needsUpdate = true;
-    uniforms.textureSource.value = texture;
-    simDomain.material = copyMaterial;
-    renderer.setRenderTarget(simTextureA);
-    renderer.render(simScene, simCamera);
-    renderer.setRenderTarget(simTextureB);
-    renderer.render(simScene, simCamera);
-    texture.dispose();
-    render();
+    initialStateTexture.needsUpdate = true;
+    resetSim();
   };
 }
