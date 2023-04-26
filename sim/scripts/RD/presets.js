@@ -5,13 +5,9 @@ export function getPreset(id) {
   switch (id) {
     case "Banner":
       options = {
-        brushRadius: "5",
-        clearValueU: "1",
-        clearValueV: "I_SR",
-        diffusionStrWW: "0",
-        imagePathOne: "./images/BannerInitCond.png",
+        brushRadius: "1",
+        initialState: "./images/BannerInitState.png",
         preset: "Banner",
-        resetOnImageLoad: true,
       };
       break;
     case "KlausmeierModel":
@@ -1795,6 +1791,7 @@ export function getPreset(id) {
         forceTryClickingPopup: false,
         imagePathOne: "./images/Sofya.png",
         imagePathTwo: "./images/Alan.png",
+        initialState: "",
         integrate: false,
         kineticParams: "",
         lineWidthMul: 1,
@@ -1809,6 +1806,7 @@ export function getPreset(id) {
         oneDimensional: false,
         plotType: "plane",
         preset: "default",
+        resetFromCheckpoints: true,
         resetOnImageLoad: false,
         renderSize: 512,
         reactionNames: "f g h j",

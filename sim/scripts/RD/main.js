@@ -287,11 +287,17 @@ funsObj = {
     });
     navigator.clipboard.writeText(str);
   },
+  saveSimState: function () {
+    saveSimState();
+  },
   exportSimState: function () {
     exportSimState();
   },
   loadSimStateFromInput: function () {
     loadSimStateFromInput();
+  },
+  clearCheckpoints: function () {
+    initialStateTexture = null;
   },
 };
 
@@ -1603,6 +1609,24 @@ function initGUI(startOpen) {
   // Always make images controller, but hide them if they're not wanted.
   createImageControllers();
 
+  // Saving/loading folder.
+  root = rightGUI.addFolder("Checkpoints");
+
+  // Checkpoints override initial condition
+  root.add(options, "resetFromCheckpoints").name("Use");
+
+  // Save checkpoint.
+  root.add(funsObj, "saveSimState").name("Save");
+
+  // Clear checkpoint.
+  root.add(funsObj, "clearCheckpoints").name("Clear");
+
+  // Export simulation state..
+  root.add(funsObj, "exportSimState").name("Save to file");
+
+  // Load simulation state..
+  root.add(funsObj, "loadSimStateFromInput").name("Load from file");
+
   // Miscellaneous folder.
   root = rightGUI.addFolder("Misc.");
 
@@ -1618,12 +1642,6 @@ function initGUI(startOpen) {
 
   // Copy configuration as raw JSON.
   root.add(funsObj, "copyConfigAsJSON").name("Copy code");
-
-  // Export simulation state..
-  root.add(funsObj, "exportSimState").name("Save state");
-
-  // Load simulation state..
-  root.add(funsObj, "loadSimStateFromInput").name("Load state");
 
   root = root.addFolder("Debug");
   // Debug.
@@ -1970,7 +1988,7 @@ function clearTextures() {
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
-  if (initialStateTexture != undefined) {
+  if (initialStateTexture != undefined && options.resetFromCheckpoints) {
     uniforms.textureSource.value = initialStateTexture;
     simDomain.material = copyMaterial;
     renderer.setRenderTarget(simTextureA);
@@ -5311,8 +5329,7 @@ function deselectTeX(ids) {
   setEquationDisplayType();
 }
 
-function exportSimState() {
-  // Render the current state of the simulation texture to the canvas and save it as an image.
+function renderRawState() {
   domain.material = copyMaterial;
   if (readFromTextureB) {
     uniforms.textureSource.value = simTextureB.texture;
@@ -5321,6 +5338,28 @@ function exportSimState() {
   }
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
+  domain.material = displayMaterial;
+}
+
+function saveSimState() {
+  // Save the current state in memory.
+  renderRawState();
+
+  let image = new Image();
+  image.src = renderer.domElement.toDataURL();
+  initialStateTexture = new THREE.Texture();
+  initialStateTexture.image = image;
+  image.onload = function () {
+    initialStateTexture.needsUpdate = true;
+  };
+
+  // Return the user to what they should have been seeing.
+  render();
+}
+
+function exportSimState() {
+  // Render the current state of the simulation texture to the canvas and save it as an image.
+  renderRawState();
 
   var link = document.createElement("a");
   link.download = "VisualPDEState";
@@ -5328,9 +5367,8 @@ function exportSimState() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  setSizes();
 
-  domain.material = displayMaterial;
+  // Return the user to what they should have been seeing.
   render();
 }
 
