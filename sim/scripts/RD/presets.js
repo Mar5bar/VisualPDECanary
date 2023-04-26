@@ -39,6 +39,7 @@ export function getPreset(id) {
 	"reactionStrW": "0",
 	"spatialStep": 0.25,
 	"speciesNames": "phi v",
+        suppressTryClickingPopup: true,
 	"timeDisplay": true,
 	"typeOfBrush": "vline",
 	"whatToDraw": "phi",
