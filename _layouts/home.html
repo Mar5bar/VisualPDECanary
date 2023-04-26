@@ -80,7 +80,7 @@
     window.addEventListener("blur", () => {
       setTimeout(() => {
         if (document.activeElement.tagName === "IFRAME") {
-          document.getElementById("sim").contentWindow.playSim();
+          document.getElementById("sim").contentWindow.getElementById("play").click();
         }
       });
     }, { once: true });
