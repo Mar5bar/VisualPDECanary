@@ -5316,3 +5316,26 @@ function exportSimState() {
   renderer.premultipliedAlpha = true;
   render();
 }
+
+function loadSimState() {
+  let input = document.createElement("input");
+  input.type = "file";
+  input.onchange = function () {
+    let image = new Image();
+    image.src = URL.createObjectURL(input.files[0]);
+    let texture = new THREE.Texture();
+    texture.image = image;
+    image.onload = function () {
+      texture.needsUpdate = true;
+      uniforms.textureSource.value = texture;
+      simDomain.material = copyMaterial;
+      renderer.setRenderTarget(simTextureA);
+      renderer.render(simScene, simCamera);
+      renderer.setRenderTarget(simTextureB);
+      renderer.render(simScene, simCamera);
+      input.remove();
+      render();
+    };
+  };
+  input.click();
+}
