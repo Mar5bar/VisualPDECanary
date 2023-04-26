@@ -76,6 +76,10 @@
   </body>
 
   <script type="text/javascript">
+    document.querySelector("iframe").addEventListener( "load", function(e) {
+        this.style.visibility = "visible";
+    });
+    
     window.focus()
     window.addEventListener("blur", () => {
       setTimeout(() => {
