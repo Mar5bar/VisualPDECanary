@@ -743,6 +743,7 @@ function computeCanvasSizesAndAspect() {
   canvasWidth = Math.round(canvas.getBoundingClientRect().width);
   canvasHeight = Math.round(canvas.getBoundingClientRect().height);
   aspectRatio = canvasHeight / canvasWidth;
+  if (aspectRatio <= 0) aspectRatio = 0.1;
   // Set the domain size, setting the largest side to be of size options.domainScale.
   if (aspectRatio >= 1) {
     domainHeight = options.domainScale;
