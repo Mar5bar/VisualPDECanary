@@ -772,6 +772,8 @@ function setSizes() {
   }
   nXDisc = Math.floor(domainWidth / options.spatialStep);
   nYDisc = Math.floor(domainHeight / options.spatialStep);
+  if (nXDisc == 0) nXDisc = 1;
+  if (nYDisc == 0) nYDisc = 1;
   // If the user has specified that this is a 1D problem, set nYDisc = 1.
   if (options.dimension == 1) {
     nYDisc = 1;
@@ -791,8 +793,8 @@ function setSizes() {
   }
   // Set the size of the renderer, which will interpolate from the textures.
   renderer.setSize(
-    devicePixelRatio * canvasWidth,
-    devicePixelRatio * canvasHeight,
+    Math.round(devicePixelRatio * canvasWidth),
+    Math.round(devicePixelRatio * canvasHeight),
     false
   );
   buffer = new Float32Array(nXDisc * nYDisc * 4);
