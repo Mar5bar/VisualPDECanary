@@ -285,8 +285,8 @@ funsObj = {
   exportSimState: function () {
     exportSimState();
   },
-  loadSimState: function () {
-    loadSimState();
+  loadSimStateFromInput: function () {
+    loadSimStateFromInput();
   },
 };
 
@@ -1616,7 +1616,7 @@ function initGUI(startOpen) {
   root.add(funsObj, "exportSimState").name("Save state");
 
   // Load simulation state..
-  root.add(funsObj, "loadSimState").name("Load state");
+  root.add(funsObj, "loadSimStateFromInput").name("Load state");
 
   root = root.addFolder("Debug");
   // Debug.
@@ -5317,25 +5317,30 @@ function exportSimState() {
   render();
 }
 
-function loadSimState() {
+function loadSimStateFromInput() {
   let input = document.createElement("input");
   input.type = "file";
   input.onchange = function () {
-    let image = new Image();
-    image.src = URL.createObjectURL(input.files[0]);
-    let texture = new THREE.Texture();
-    texture.image = image;
-    image.onload = function () {
-      texture.needsUpdate = true;
-      uniforms.textureSource.value = texture;
-      simDomain.material = copyMaterial;
-      renderer.setRenderTarget(simTextureA);
-      renderer.render(simScene, simCamera);
-      renderer.setRenderTarget(simTextureB);
-      renderer.render(simScene, simCamera);
-      input.remove();
-      render();
-    };
+    loadSimState(URL.createObjectURL(input.files[0]));
+    input.remove();
   };
   input.click();
+}
+
+function loadSimState(url) {
+  let image = new Image();
+  image.src = url;
+  let texture = new THREE.Texture();
+  texture.image = image;
+  image.onload = function () {
+    texture.needsUpdate = true;
+    uniforms.textureSource.value = texture;
+    simDomain.material = copyMaterial;
+    renderer.setRenderTarget(simTextureA);
+    renderer.render(simScene, simCamera);
+    renderer.setRenderTarget(simTextureB);
+    renderer.render(simScene, simCamera);
+    texture.dispose();
+    render();
+  };
 }
