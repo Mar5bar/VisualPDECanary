@@ -41,7 +41,7 @@ In the above simulations, we considered $a$ near the boundary, and initial waves
 
 * It is difficult to analytically determine conditions for when an invasion is successful or not, as it can depend on both the size and shape of the perturbation, as well as the parameters $a$ and $D$. You can explore different values of these parameters and how they influence the success or failure of a population to persist in a new environment. 
 
-# Advection & Spatial Allee Effects
+# Advection & spatial Allee effects
 
 We can add an advection term to the equation to model movement due to, e.g., putting our population in a flowing body of water. The equation now looks like:
 

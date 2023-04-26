@@ -126,12 +126,13 @@ export function getDefaultTeXLabelsBCsICs() {
 }
 
 export function substituteGreek(str) {
+  let listOfVar = ["epsilon"];
   let listOfGreek = [
     "alpha",
     "beta",
     "gamma",
     "delta",
-    "epsilon",
+    "varepsilon",
     "zeta",
     "eta",
     "theta",
@@ -150,7 +151,15 @@ export function substituteGreek(str) {
     "chi",
     "psi",
     "omega",
+    "varphi",
+    "varpi",
+    "varsigma",
+    "vartheta",
+    "varkappa",
+    "varrho"
   ];
-  let regex = new RegExp("\\b(" + listOfGreek.join("|") + ")(\\b|_)", "ig");
+  let regex = new RegExp("\\b(" + listOfVar.join("|") + ")(\\b|_)", "ig");
+  str = str.replaceAll(regex, "var" + "$1$2");
+  regex = new RegExp("\\b(" + listOfGreek.join("|") + ")(\\b|_)", "ig");
   return str.replaceAll(regex, "\\" + "$1$2");
 }

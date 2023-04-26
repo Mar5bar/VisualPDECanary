@@ -26,7 +26,7 @@ $$\pd{u}{x}(0,y,t) = \pd{u}{x}(L_x,y,t) = \pd{u}{y}(x,0,t) = \pd{u}{y}(x,L_y,t) 
 
 What does changing the diffusion coefficient, $D$, do? 
 
-1. Change its value by clicking {{ layout.equations }}→**Parameters** and editing the value of $D$: try increasing it by a factor of 10 or even 100. 
+1. Change its value by clicking <span class='click_sequence'>{{ layout.equations }} → **Parameters**</span> and editing the value of $D$: try increasing it by a factor of 10 or even 100. 
 
 1. Now click again on the screen and see how fast the disturbance spreads out throughout the domain. 
 
@@ -59,7 +59,7 @@ $$
 
 which oscillates in time and space. 
 
-You can play with such an initial condition [here](/sim/?preset=waveEquationICs), changing $n$ and $m$ in {{ layout.equations }}→**Parameters**, and restarting the simulation by pressing {{ layout.erase }} to see how these parameters influence the solution. 
+You can play with such an initial condition [here](/sim/?preset=waveEquationICs), changing $n$ and $m$ in <span class='click_sequence'>{{ layout.equations }} → **Parameters**</span> and restarting the simulation by pressing {{ layout.erase }} to see how these parameters influence the solution. 
 
 The damping factor $C$ is also set to zero in this case. If you increase its value, the solution amplitude will decay over time. If you change the boundary conditions to Dirichlet (and set $C=0.01$), the simulation will exhibit some fascinatingly symmetric oscillations.
 

@@ -17,10 +17,10 @@ with periodic boundary conditions.
 ## Numerical notes
 
 The equation above is far from the cross-diffusion kind of system our solver is built for. However, using the product rule and an algebraic substitution, we can write it as:
-$$
-\begin{aligned} 
-\pd{u}{t}& = -\vnabla \cdot [ (1+u)\vnabla u + \vnabla v]+uv-au, \\ v& = \nabla^2 u,
-\end{aligned}
-$$
+
+$$\begin{align} 
+\pd{u}{t}& = -\vnabla \cdot [ (1+u)\vnabla u + \vnabla v]+uv-au, \\
+ v& = \nabla^2 u,
+\end{align}$$
 
 where $a$ is a damping coefficient used to help stabilise the solver. For $a=0$, this is exactly the fourth-order equation above.
