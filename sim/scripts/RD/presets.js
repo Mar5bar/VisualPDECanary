@@ -8,6 +8,7 @@ export function getPreset(id) {
         brushRadius: "1",
         initialState: "./images/BannerInitState.png",
         preset: "Banner",
+        runningOnLoad: false,
       };
       break;
     case "KlausmeierModel":
