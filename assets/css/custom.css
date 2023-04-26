@@ -22,6 +22,10 @@ a[href*='/sim/']:hover {
     color: white;
 }
 
+.trigger .nav-button{
+    margin-right:10px;
+}
+
 a[href*='//']:not([href*='visualpde.com']) {
     color: #111111;
     text-decoration: underline;
