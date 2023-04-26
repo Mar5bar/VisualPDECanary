@@ -282,6 +282,12 @@ funsObj = {
     });
     navigator.clipboard.writeText(str);
   },
+  exportSimState: function () {
+    exportSimState();
+  },
+  loadSimStateFromInput: function () {
+    loadSimStateFromInput();
+  },
 };
 
 // Define a handy countDecimals function.
@@ -737,6 +743,7 @@ function computeCanvasSizesAndAspect() {
   canvasWidth = Math.round(canvas.getBoundingClientRect().width);
   canvasHeight = Math.round(canvas.getBoundingClientRect().height);
   aspectRatio = canvasHeight / canvasWidth;
+  if (aspectRatio <= 0) aspectRatio = 0.1;
   // Set the domain size, setting the largest side to be of size options.domainScale.
   if (aspectRatio >= 1) {
     domainHeight = options.domainScale;
@@ -766,6 +773,8 @@ function setSizes() {
   }
   nXDisc = Math.floor(domainWidth / options.spatialStep);
   nYDisc = Math.floor(domainHeight / options.spatialStep);
+  if (nXDisc == 0) nXDisc = 1;
+  if (nYDisc == 0) nYDisc = 1;
   // If the user has specified that this is a 1D problem, set nYDisc = 1.
   if (options.dimension == 1) {
     nYDisc = 1;
@@ -785,8 +794,8 @@ function setSizes() {
   }
   // Set the size of the renderer, which will interpolate from the textures.
   renderer.setSize(
-    devicePixelRatio * canvasWidth,
-    devicePixelRatio * canvasHeight,
+    Math.round(devicePixelRatio * canvasWidth),
+    Math.round(devicePixelRatio * canvasHeight),
     false
   );
   buffer = new Float32Array(nXDisc * nYDisc * 4);
@@ -1602,6 +1611,12 @@ function initGUI(startOpen) {
 
   // Copy configuration as raw JSON.
   root.add(funsObj, "copyConfigAsJSON").name("Copy code");
+
+  // Export simulation state..
+  root.add(funsObj, "exportSimState").name("Save state");
+
+  // Load simulation state..
+  root.add(funsObj, "loadSimStateFromInput").name("Load state");
 
   root = root.addFolder("Debug");
   // Debug.
@@ -5273,4 +5288,59 @@ function deselectTeX(ids) {
     selectedEntries.delete(id);
   });
   setEquationDisplayType();
+}
+
+function exportSimState() {
+  // Render the current state of the simulation texture to the canvas and save it as an image.
+  domain.material = copyMaterial;
+  if (readFromTextureB) {
+    uniforms.textureSource.value = simTextureB.texture;
+  } else {
+    uniforms.textureSource.value = simTextureA.texture;
+  }
+  renderer.setRenderTarget(null);
+  renderer.alpha = true;
+  renderer.premultipliedAlpha = false;
+  renderer.render(scene, camera);
+
+  var link = document.createElement("a");
+  link.download = "VisualPDEState";
+  link.href = renderer.domElement.toDataURL();
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setSizes();
+
+  domain.material = displayMaterial;
+  renderer.alpha = false;
+  renderer.premultipliedAlpha = true;
+  render();
+}
+
+function loadSimStateFromInput() {
+  let input = document.createElement("input");
+  input.type = "file";
+  input.onchange = function () {
+    loadSimState(URL.createObjectURL(input.files[0]));
+    input.remove();
+  };
+  input.click();
+}
+
+function loadSimState(url) {
+  let image = new Image();
+  image.src = url;
+  let texture = new THREE.Texture();
+  texture.image = image;
+  image.onload = function () {
+    texture.needsUpdate = true;
+    uniforms.textureSource.value = texture;
+    simDomain.material = copyMaterial;
+    renderer.setRenderTarget(simTextureA);
+    renderer.render(simScene, simCamera);
+    renderer.setRenderTarget(simTextureB);
+    renderer.render(simScene, simCamera);
+    texture.dispose();
+    render();
+  };
 }

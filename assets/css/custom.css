@@ -1,3 +1,7 @@
+.site-header {
+    z-index: 1;
+}
+
 .nav-button,
 .nav-button:visited,
 a[href*='/sim/'] {
@@ -41,7 +45,6 @@ div.home-banner {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    z-index: -1;
 }
 
 div.home-banner-content {
