@@ -282,6 +282,12 @@ funsObj = {
     });
     navigator.clipboard.writeText(str);
   },
+  exportSimState: function () {
+    exportSimState();
+  },
+  loadSimState: function () {
+    loadSimState();
+  },
 };
 
 // Define a handy countDecimals function.
@@ -1602,6 +1608,12 @@ function initGUI(startOpen) {
 
   // Copy configuration as raw JSON.
   root.add(funsObj, "copyConfigAsJSON").name("Copy code");
+
+  // Export simulation state..
+  root.add(funsObj, "exportSimState").name("Save state");
+
+  // Load simulation state..
+  root.add(funsObj, "loadSimState").name("Load state");
 
   root = root.addFolder("Debug");
   // Debug.
@@ -5273,4 +5285,31 @@ function deselectTeX(ids) {
     selectedEntries.delete(id);
   });
   setEquationDisplayType();
+}
+
+function exportSimState() {
+  // Render the current state of the simulation texture to the canvas and save it as an image.
+  domain.material = copyMaterial;
+  if (readFromTextureB) {
+    uniforms.textureSource.value = simTextureB.texture;
+  } else {
+    uniforms.textureSource.value = simTextureA.texture;
+  }
+  renderer.setRenderTarget(null);
+  renderer.alpha = true;
+  renderer.premultipliedAlpha = false;
+  renderer.render(scene, camera);
+
+  var link = document.createElement("a");
+  link.download = "VisualPDEState";
+  link.href = renderer.domElement.toDataURL();
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setSizes();
+
+  domain.material = displayMaterial;
+  renderer.alpha = false;
+  renderer.premultipliedAlpha = true;
+  render();
 }
