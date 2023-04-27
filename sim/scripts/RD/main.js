@@ -419,11 +419,31 @@ if (
 $("#settings").click(function () {
   $("#rightGUI").toggle();
   $("#right_ui_arrow").toggle();
+  if ($("#help_panel").is(":visible")) {
+    $("#help_panel").toggle();
+  }
+  if ($("#help_panel").is(":visible")) {
+    $("#help_panel").toggle();
+  }
+  if (
+    window.innerWidth < 629 &&
+    $("#left_ui").is(":visible") &&
+    $("#rightGUI").is(":visible")
+  ) {
+    $("#left_ui").toggle();
+  }
 });
 $("#equations").click(function () {
   $("#left_ui").toggle();
   resizeEquationDisplay();
   $("#left_ui_arrow").toggle();
+  if (
+    window.innerWidth < 629 &&
+    $("#rightGUI").is(":visible") &&
+    $("#left_ui").is(":visible")
+  ) {
+    $("#rightGUI").toggle();
+  }
 });
 $("#pause").click(function () {
   pauseSim();
