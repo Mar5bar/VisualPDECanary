@@ -6,7 +6,7 @@ export function getPreset(id) {
     case "Banner":
       options = {
         brushRadius: "1",
-        cropCheckpoints: true,
+        resizeCheckpoints: "crop",
         initialState: "./images/BannerInitState.png",
         preset: "Banner",
         runningOnLoad: false,
@@ -1797,7 +1797,7 @@ export function getPreset(id) {
         clearValueQ: "0",
         colourbar: false,
         colourmap: "turbo",
-        cropCheckpoints: false,
+        resizeCheckpoints: "stretch",
         crossDiffusion: false,
         diffusionStrUU: "0.04",
         diffusionStrUV: "0",

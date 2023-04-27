@@ -1632,22 +1632,23 @@ function initGUI(startOpen) {
   root = rightGUI.addFolder("Checkpoints");
 
   // Checkpoints override initial condition
-  root.add(options, "resetFromCheckpoints").name("Use");
-
-  // Load simulation state.
-  root.add(options, "cropCheckpoints").name("Crop checkpoints");
+  root.add(options, "resetFromCheckpoints").name("Use checkpoints");
 
   // Save checkpoint.
-  root.add(funsObj, "saveSimState").name("Save");
+  root.add(funsObj, "saveSimState").name("New checkpoint");
 
   // Clear checkpoint.
-  root.add(funsObj, "clearCheckpoints").name("Clear");
+  root.add(funsObj, "clearCheckpoints").name("Clear checkpoint");
 
   // Export simulation state.
   root.add(funsObj, "exportSimState").name("Save to file");
 
   // Load simulation state.
   root.add(funsObj, "loadSimStateFromInput").name("Load from file");
+
+  root
+    .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
+    .name("Resize");
 
   // Miscellaneous folder.
   root = rightGUI.addFolder("Misc.");
@@ -5408,7 +5409,7 @@ function loadSimState(url) {
 
 function setStretchOrCropTexture(texture) {
   if (texture.image != null) {
-    if (options.cropCheckpoints) {
+    if (options.resizeCheckpoints == "crop") {
       let imageAspectRatio =
         texture.image.naturalHeight / texture.image.naturalWidth;
       let xScale = 1;

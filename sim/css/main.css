@@ -68,6 +68,18 @@ canvas {
     overflow-x: auto;
 }
 
+.dg .boolean .property-name {
+    width: 80%;
+}
+
+.dg .boolean .c {
+    width: 20%;
+}
+
+.dg .function .property-name {
+    width: 100%;
+}
+
 .dg {
     -webkit-user-select: none;
     /* Safari */
