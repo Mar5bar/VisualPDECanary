@@ -138,6 +138,7 @@ const listOfTypes = [
 let equationType, savedHTML;
 let takeAScreenshot = false;
 let buffer,
+  checkpointBuffer,
   bufferFilled = false;
 const numsAsWords = [
   "zero",
@@ -715,7 +716,7 @@ function init() {
 
   // Bind the onchange event for the checkpoint loader.
   $("#checkpointInput").change(function () {
-    loadSimState(URL.createObjectURL(this.files[0]));
+    loadSimState(this.files[0]);
     this.value = null;
   });
 }
@@ -5374,75 +5375,68 @@ function deselectTeX(ids) {
   setEquationDisplayType();
 }
 
-function renderRawState() {
-  simDomain.material = copyMaterial;
+function getRawState() {
+  checkpointBuffer = new Float32Array(nXDisc * nYDisc * 4);
   if (readFromTextureB) {
-    uniforms.textureSource.value = simTextureB.texture;
+    inTex = simTextureB;
   } else {
-    uniforms.textureSource.value = simTextureA.texture;
+    inTex = simTextureA;
   }
-  // Render in precisely the texture size.
-  setRenderSizeToDisc();
-  renderer.setRenderTarget(null);
-  renderer.render(simScene, simCamera);
+  renderer.readRenderTargetPixels(
+    inTex,
+    0,
+    0,
+    nXDisc,
+    nYDisc,
+    checkpointBuffer
+  );
 }
 
 function saveSimState() {
-  // Save the current state in memory.
-  renderRawState();
+  // Save the current state in memory as a buffer.
+  getRawState();
 
-  let image = new Image();
-  image.src = renderer.domElement.toDataURL();
-  createCheckpointTexture();
-  checkpointTexture.image = image;
-  image.onload = function () {
-    checkpointTexture.needsUpdate = true;
-    setStretchOrCropTexture(checkpointTexture);
-  };
-
-  // Return the user to what they should have been seeing.
-  setDefaultRenderSize();
-  render();
+  // Create a texture from the checkpoint buffer.
+  createCheckpointTexture(checkpointBuffer);
 }
 
 function exportSimState() {
-  // Render the current state of the simulation texture to the canvas and save it as an image.
-  renderRawState();
+  // Save a checkpoint to file. If no checkpoint exists, create one.
+  if (checkpointTexture == null) {
+    saveSimState();
+  }
 
+  // Download the buffer as a file, with the dimensions prepended.
   var link = document.createElement("a");
   link.download = "VisualPDEState";
-  link.href = renderer.domElement.toDataURL();
+  link.href = URL.createObjectURL(
+    new Blob([new Float32Array([nXDisc, nYDisc]), checkpointBuffer])
+  );
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-
-  // Return the user to what they should have been seeing.
-  setDefaultRenderSize();
-  render();
 }
 
-function loadSimState(url) {
-  let image = new Image();
-  createCheckpointTexture();
-  checkpointTexture.image = image;
-  checkpointTexture.filled = true;
-  image.onload = function () {
-    checkpointTexture.needsUpdate = true;
-    setStretchOrCropTexture(checkpointTexture);
+function loadSimState(file) {
+  const reader = new FileReader();
+  reader.onload = function () {
+    const buff = new Float32Array(reader.result);
+    // Create the checkpointBuffer from the data. The first two elements are width and height.
+    createCheckpointTexture(buff.slice(2), buff.slice(0, 2));
     resetSim();
   };
-  image.src = url;
+  reader.readAsArrayBuffer(file);
 }
 
 function setStretchOrCropTexture(texture) {
   if (texture != null) {
     if (options.resizeCheckpoints == "crop") {
-      let imageAspectRatio =
-        texture.image.naturalHeight / texture.image.naturalWidth;
+      let textureAspectRatio =
+        texture.source.data.height / texture.source.data.width;
       let xScale = 1;
-      let yScale = aspectRatio / imageAspectRatio;
+      let yScale = aspectRatio / textureAspectRatio;
       if (yScale > 1) {
-        xScale = imageAspectRatio / aspectRatio;
+        xScale = textureAspectRatio / aspectRatio;
         yScale = 1;
       }
       texture.repeat.set(xScale, yScale);
@@ -5454,24 +5448,31 @@ function setStretchOrCropTexture(texture) {
   }
 }
 
-function createCheckpointTexture() {
+function createCheckpointTexture(buff, dims) {
   if (checkpointTexture != null) {
     checkpointTexture.dispose();
   }
-  checkpointTexture = new THREE.Texture();
+  if (dims == undefined) {
+    dims = [nXDisc, nYDisc];
+  }
+  checkpointTexture = new THREE.DataTexture(
+    buff,
+    dims[0],
+    dims[1],
+    THREE.RGBAFormat,
+    THREE.FloatType
+  );
+  checkpointTexture.needsUpdate = true;
   checkpointTexture.wrapS = THREE.RepeatWrapping;
   checkpointTexture.wrapT = THREE.RepeatWrapping;
   if (checkpointMaterial != null) {
     checkpointMaterial.map = checkpointTexture;
+    checkpointMaterial.needsUpdate;
   }
 }
 
 function setRenderSizeToDisc() {
-  renderer.setSize(
-    nXDisc,
-    nYDisc,
-    false
-  );
+  renderer.setSize(nXDisc, nYDisc, false);
 }
 
 function setDefaultRenderSize() {
