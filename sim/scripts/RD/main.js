@@ -13,7 +13,9 @@ let simTextureA,
   postTexture,
   interpolationTexture,
   simTextureOpts,
-  initialStateTexture;
+  checkpointTexture,
+  imageSourceOneTexture,
+  imageSourceTwoTexture;
 let basicMaterial,
   displayMaterial,
   drawMaterial,
@@ -23,7 +25,8 @@ let basicMaterial,
   copyMaterial,
   postMaterial,
   lineMaterial,
-  interpolationMaterial;
+  interpolationMaterial,
+  checkpointMaterial;
 let domain, simDomain, clickDomain, line;
 let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine;
 let colourmap, colourmapEndpoints;
@@ -294,10 +297,10 @@ funsObj = {
     exportSimState();
   },
   loadSimStateFromInput: function () {
-    loadSimStateFromInput();
+    $("#checkpointInput").click();
   },
   clearCheckpoints: function () {
-    initialStateTexture = null;
+    checkpointTexture.filled = false;
   },
 };
 
@@ -513,6 +516,14 @@ function init() {
   postTexture = simTextureA.clone();
   interpolationTexture = simTextureA.clone();
 
+  checkpointTexture = new THREE.Texture();
+  checkpointTexture.wrapS = THREE.RepeatWrapping;
+  checkpointTexture.wrapT = THREE.RepeatWrapping;
+  checkpointTexture.filled = false;
+
+  imageSourceOneTexture = new THREE.Texture();
+  imageSourceTwoTexture = new THREE.Texture();
+
   // Periodic boundary conditions (for now).
   simTextureA.texture.wrapS = THREE.RepeatWrapping;
   simTextureA.texture.wrapT = THREE.RepeatWrapping;
@@ -599,6 +610,7 @@ function init() {
     vertexColors: true,
     linewidth: 0.01,
   });
+  checkpointMaterial = new THREE.MeshBasicMaterial({ map: checkpointTexture });
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
   simDomain = new THREE.Mesh(simPlane, simMaterial);
@@ -674,7 +686,14 @@ function init() {
     }
   });
 
+  // Listen for resize events.
   window.addEventListener("resize", resize, false);
+
+  // Bind the onchange event for the checkpoint loader.
+  $("#checkpointInput").change(function () {
+    loadSimState(URL.createObjectURL(this.files[0]));
+    this.value = null;
+  });
 }
 
 function resize() {
@@ -682,6 +701,11 @@ function resize() {
   setSizes();
   // Assign sizes to textures.
   resizeTextures();
+  // Update cropping of image textures.
+  setStretchOrCropTexture(checkpointTexture);
+  setStretchOrCropTexture(imageSourceOneTexture);
+  setStretchOrCropTexture(imageSourceTwoTexture);
+
   // Update any uniforms.
   updateUniforms();
   // Create new display domains with the correct sizes.
@@ -1988,9 +2012,8 @@ function clearTextures() {
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
-  if (initialStateTexture != undefined && options.resetFromCheckpoints) {
-    uniforms.textureSource.value = initialStateTexture;
-    simDomain.material = copyMaterial;
+  if (checkpointTexture.filled && options.resetFromCheckpoints) {
+    simDomain.material = checkpointMaterial;
     renderer.setRenderTarget(simTextureA);
     renderer.render(simScene, simCamera);
     renderer.setRenderTarget(simTextureB);
@@ -2996,7 +3019,6 @@ function loadImageSourceOne() {
       resetSim();
     }
   };
-  texture.dispose();
 }
 
 function loadImageSourceTwo() {
@@ -5347,10 +5369,10 @@ function saveSimState() {
 
   let image = new Image();
   image.src = renderer.domElement.toDataURL();
-  initialStateTexture = new THREE.Texture();
-  initialStateTexture.image = image;
+  checkpointTexture.image = image;
+  checkpointTexture.filled = true;
   image.onload = function () {
-    initialStateTexture.needsUpdate = true;
+    checkpointTexture.needsUpdate = true;
   };
 
   // Return the user to what they should have been seeing.
@@ -5372,24 +5394,34 @@ function exportSimState() {
   render();
 }
 
-function loadSimStateFromInput() {
-  let input = document.createElement("input");
-  input.type = "file";
-  input.value = null;
-  input.onchange = function () {
-    loadSimState(URL.createObjectURL(input.files[0]));
-    input.remove();
-  };
-  input.click();
-}
-
 function loadSimState(url) {
   let image = new Image();
-  image.src = url;
-  initialStateTexture = new THREE.Texture();
-  initialStateTexture.image = image;
+  checkpointTexture.image = image;
+  checkpointTexture.filled = true;
   image.onload = function () {
-    initialStateTexture.needsUpdate = true;
+    checkpointTexture.needsUpdate = true;
+    setStretchOrCropTexture(checkpointTexture);
     resetSim();
   };
+  image.src = url;
+}
+
+function setStretchOrCropTexture(texture) {
+  if (texture.image != null) {
+    if (options.cropImages) {
+      let imageAspectRatio =
+        texture.image.naturalHeight / texture.image.naturalWidth;
+      let xScale = 1;
+      let yScale = aspectRatio / imageAspectRatio;
+      if (yScale > 1) {
+        xScale = imageAspectRatio / aspectRatio;
+        yScale = 1;
+      }
+      texture.repeat.set(xScale, yScale);
+      texture.offset.set((1 - xScale) / 2, (1 - yScale) / 2);
+    } else {
+      texture.repeat.set(1, 1);
+      texture.offset.set(0, 0);
+    }
+  }
 }
