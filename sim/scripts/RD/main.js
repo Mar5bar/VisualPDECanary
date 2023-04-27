@@ -298,8 +298,10 @@ funsObj = {
     $("#checkpointInput").click();
   },
   clearCheckpoints: function () {
-    checkpointTexture.dispose();
-    checkpointTexture = null;
+    if (checkpointTexture != null) {
+      checkpointTexture.dispose();
+      checkpointTexture = null;
+    }
   },
 };
 
@@ -752,7 +754,7 @@ function configureCameraAndClicks() {
   computeCanvasSizesAndAspect();
   switch (options.plotType) {
     case "line":
-      options.cameraTheta = 0.5;
+      options.cameraTheta = 0;
       options.cameraPhi = 0;
       controls.enabled = false;
       camera.zoom = 1;
@@ -5375,15 +5377,14 @@ function deselectTeX(ids) {
 }
 
 function renderRawState() {
-  domain.material = copyMaterial;
+  simDomain.material = copyMaterial;
   if (readFromTextureB) {
     uniforms.textureSource.value = simTextureB.texture;
   } else {
     uniforms.textureSource.value = simTextureA.texture;
   }
   renderer.setRenderTarget(null);
-  renderer.render(scene, camera);
-  domain.material = displayMaterial;
+  renderer.render(simScene, simCamera);
 }
 
 function saveSimState() {
