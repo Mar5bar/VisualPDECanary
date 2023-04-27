@@ -77,7 +77,7 @@
 
   <script type="text/javascript">
     document.querySelector("iframe").addEventListener( "load", function(e) {
-        this.style.visibility = "visible";
+        setTimeout(() => this.style.visibility = "visible", 1000);
     });
     
     window.focus()
