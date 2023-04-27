@@ -2716,7 +2716,9 @@ function loadPreset(preset) {
 
   // If an initial state has been specified, load it in, which will also reset the simulation.
   if (options.initialState != "") {
-    loadSimState(options.initialState);
+    fetch(options.initialState)
+      .then((res) => res.blob())
+      .then((blob) => loadSimState(blob));
   } else {
     // Reset the state of the simulation using specified ICs.
     resetSim();
@@ -5423,6 +5425,7 @@ function loadSimState(file) {
     const buff = new Float32Array(reader.result);
     // Create the checkpointBuffer from the data. The first two elements are width and height.
     createCheckpointTexture(buff.slice(2), buff.slice(0, 2));
+    setStretchOrCropTexture(checkpointTexture);
     resetSim();
   };
   reader.readAsArrayBuffer(file);
@@ -5463,8 +5466,9 @@ function createCheckpointTexture(buff, dims) {
     THREE.FloatType
   );
   checkpointTexture.needsUpdate = true;
-  checkpointTexture.wrapS = THREE.RepeatWrapping;
-  checkpointTexture.wrapT = THREE.RepeatWrapping;
+  manualInterpolationNeeded
+    ? (checkpointTexture.magFilter = THREE.NearestFilter)
+    : (checkpointTexture.magFilter = THREE.LinearFilter);
   if (checkpointMaterial != null) {
     checkpointMaterial.map = checkpointTexture;
     checkpointMaterial.needsUpdate;

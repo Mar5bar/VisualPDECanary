@@ -7,7 +7,7 @@ export function getPreset(id) {
       options = {
         brushRadius: "1",
         resizeCheckpoints: "crop",
-        initialState: "./images/BannerInitState.png",
+        initialState: "./images/BannerInitState",
         preset: "Banner",
         runningOnLoad: false,
       };
