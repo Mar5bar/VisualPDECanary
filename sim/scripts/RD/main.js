@@ -440,9 +440,15 @@ $("#warning_restart").click(function () {
 });
 $("#share").click(function () {
   $("#share_panel").toggle();
+  if ($("#help_panel").is(":visible")) {
+    $("#help_panel").toggle();
+  }
 });
 $("#help").click(function () {
   $("#help_panel").toggle();
+  if ($("#share_panel").is(":visible")) {
+    $("#share_panel").toggle();
+  }
 });
 $("#screenshot").click(function () {
   takeAScreenshot = true;
