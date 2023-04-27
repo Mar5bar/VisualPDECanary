@@ -850,12 +850,8 @@ function setSizes() {
     xDisplayDomainCoords[i] = val;
     val += step;
   }
-  // Set the size of the renderer, which will interpolate from the textures.
-  renderer.setSize(
-    Math.round(devicePixelRatio * canvasWidth),
-    Math.round(devicePixelRatio * canvasHeight),
-    false
-  );
+  // Set the size of the renderer, which will interpolate precisely from the textures.
+  setDefaultRenderSize();
   buffer = new Float32Array(nXDisc * nYDisc * 4);
   bufferFilled = false;
 }
@@ -2034,6 +2030,7 @@ function setBrushCoords(event, container) {
 }
 
 function clearTextures() {
+  setRenderSizeToDisc();
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
@@ -2050,6 +2047,7 @@ function clearTextures() {
     renderer.setRenderTarget(simTextureB);
     renderer.render(simScene, simCamera);
   }
+  setDefaultRenderSize();
   render();
 }
 
@@ -5383,6 +5381,8 @@ function renderRawState() {
   } else {
     uniforms.textureSource.value = simTextureA.texture;
   }
+  // Render in precisely the texture size.
+  setRenderSizeToDisc();
   renderer.setRenderTarget(null);
   renderer.render(simScene, simCamera);
 }
@@ -5401,6 +5401,7 @@ function saveSimState() {
   };
 
   // Return the user to what they should have been seeing.
+  setDefaultRenderSize();
   render();
 }
 
@@ -5416,6 +5417,7 @@ function exportSimState() {
   document.body.removeChild(link);
 
   // Return the user to what they should have been seeing.
+  setDefaultRenderSize();
   render();
 }
 
@@ -5462,4 +5464,20 @@ function createCheckpointTexture() {
   if (checkpointMaterial != null) {
     checkpointMaterial.map = checkpointTexture;
   }
+}
+
+function setRenderSizeToDisc() {
+  renderer.setSize(
+    nXDisc,
+    nYDisc,
+    false
+  );
+}
+
+function setDefaultRenderSize() {
+  renderer.setSize(
+    Math.round(devicePixelRatio * canvasWidth),
+    Math.round(devicePixelRatio * canvasHeight),
+    false
+  );
 }
