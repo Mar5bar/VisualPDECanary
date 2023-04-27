@@ -541,8 +541,6 @@ function init() {
   postTexture = simTextureA.clone();
   interpolationTexture = simTextureA.clone();
 
-  createCheckpointTexture();
-
   // Periodic boundary conditions (for now).
   simTextureA.texture.wrapS = THREE.RepeatWrapping;
   simTextureA.texture.wrapT = THREE.RepeatWrapping;
@@ -628,7 +626,7 @@ function init() {
     vertexColors: true,
     linewidth: 0.01,
   });
-  checkpointMaterial = new THREE.MeshBasicMaterial({ map: checkpointTexture });
+  checkpointMaterial = new THREE.MeshBasicMaterial();
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
   simDomain = new THREE.Mesh(simPlane, simMaterial);
@@ -5434,7 +5432,7 @@ function loadSimState(url) {
 }
 
 function setStretchOrCropTexture(texture) {
-  if (texture.image != null) {
+  if (texture != null) {
     if (options.resizeCheckpoints == "crop") {
       let imageAspectRatio =
         texture.image.naturalHeight / texture.image.naturalWidth;
