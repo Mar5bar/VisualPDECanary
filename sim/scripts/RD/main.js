@@ -1661,7 +1661,7 @@ function initGUI(startOpen) {
   root.add(funsObj, "saveSimState").name("New checkpoint");
 
   // Clear checkpoint.
-  root.add(funsObj, "clearCheckpoints").name("Clear checkpoint");
+  root.add(funsObj, "clearCheckpoints").name("Discard checkpoint");
 
   // Export simulation state.
   root.add(funsObj, "exportSimState").name("Save to file");
