@@ -706,7 +706,7 @@ function init() {
         saveSimState();
       }
       if (event.key == "c") {
-        funsObj.clearCheckpoints();
+        options.resetFromCheckpoints != options.resetFromCheckpoints;
       }
     }
   });
@@ -1655,13 +1655,10 @@ function initGUI(startOpen) {
   root = rightGUI.addFolder("Checkpoints");
 
   // Checkpoints override initial condition
-  root.add(options, "resetFromCheckpoints").name("Use checkpoints");
+  root.add(options, "resetFromCheckpoints").name("Enable checkpoints");
 
   // Save checkpoint.
-  root.add(funsObj, "saveSimState").name("New checkpoint");
-
-  // Clear checkpoint.
-  root.add(funsObj, "clearCheckpoints").name("Discard checkpoint");
+  root.add(funsObj, "saveSimState").name("Set checkpoint");
 
   // Export simulation state.
   root.add(funsObj, "exportSimState").name("Save to file");
