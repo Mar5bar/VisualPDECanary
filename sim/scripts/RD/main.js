@@ -13,9 +13,7 @@ let simTextureA,
   postTexture,
   interpolationTexture,
   simTextureOpts,
-  checkpointTexture,
-  imageSourceOneTexture,
-  imageSourceTwoTexture;
+  checkpointTexture;
 let basicMaterial,
   displayMaterial,
   drawMaterial,
@@ -300,7 +298,8 @@ funsObj = {
     $("#checkpointInput").click();
   },
   clearCheckpoints: function () {
-    checkpointTexture.filled = false;
+    checkpointTexture.dispose();
+    checkpointTexture = null;
   },
 };
 
@@ -516,13 +515,7 @@ function init() {
   postTexture = simTextureA.clone();
   interpolationTexture = simTextureA.clone();
 
-  checkpointTexture = new THREE.Texture();
-  checkpointTexture.wrapS = THREE.RepeatWrapping;
-  checkpointTexture.wrapT = THREE.RepeatWrapping;
-  checkpointTexture.filled = false;
-
-  imageSourceOneTexture = new THREE.Texture();
-  imageSourceTwoTexture = new THREE.Texture();
+  createCheckpointTexture();
 
   // Periodic boundary conditions (for now).
   simTextureA.texture.wrapS = THREE.RepeatWrapping;
@@ -551,7 +544,6 @@ function init() {
       render();
     }
   });
-
   simCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
   simCamera.position.z = 1;
 
@@ -683,6 +675,12 @@ function init() {
           $(".ui").addClass("hidden");
         }
       }
+      if (event.key == "s") {
+        saveSimState();
+      }
+      if (event.key == "c") {
+        funsObj.clearCheckpoints();
+      }
     }
   });
 
@@ -701,11 +699,8 @@ function resize() {
   setSizes();
   // Assign sizes to textures.
   resizeTextures();
-  // Update cropping of image textures.
+  // Update cropping of checkpoint textures.
   setStretchOrCropTexture(checkpointTexture);
-  setStretchOrCropTexture(imageSourceOneTexture);
-  setStretchOrCropTexture(imageSourceTwoTexture);
-
   // Update any uniforms.
   updateUniforms();
   // Create new display domains with the correct sizes.
@@ -1639,16 +1634,19 @@ function initGUI(startOpen) {
   // Checkpoints override initial condition
   root.add(options, "resetFromCheckpoints").name("Use");
 
+  // Load simulation state.
+  root.add(options, "cropCheckpoints").name("Crop checkpoints");
+
   // Save checkpoint.
   root.add(funsObj, "saveSimState").name("Save");
 
   // Clear checkpoint.
   root.add(funsObj, "clearCheckpoints").name("Clear");
 
-  // Export simulation state..
+  // Export simulation state.
   root.add(funsObj, "exportSimState").name("Save to file");
 
-  // Load simulation state..
+  // Load simulation state.
   root.add(funsObj, "loadSimStateFromInput").name("Load from file");
 
   // Miscellaneous folder.
@@ -2012,7 +2010,7 @@ function clearTextures() {
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
-  if (checkpointTexture.filled && options.resetFromCheckpoints) {
+  if (checkpointTexture != null && options.resetFromCheckpoints) {
     simDomain.material = checkpointMaterial;
     renderer.setRenderTarget(simTextureA);
     renderer.render(simScene, simCamera);
@@ -5369,10 +5367,11 @@ function saveSimState() {
 
   let image = new Image();
   image.src = renderer.domElement.toDataURL();
+  createCheckpointTexture();
   checkpointTexture.image = image;
-  checkpointTexture.filled = true;
   image.onload = function () {
     checkpointTexture.needsUpdate = true;
+    setStretchOrCropTexture(checkpointTexture);
   };
 
   // Return the user to what they should have been seeing.
@@ -5396,6 +5395,7 @@ function exportSimState() {
 
 function loadSimState(url) {
   let image = new Image();
+  createCheckpointTexture();
   checkpointTexture.image = image;
   checkpointTexture.filled = true;
   image.onload = function () {
@@ -5408,7 +5408,7 @@ function loadSimState(url) {
 
 function setStretchOrCropTexture(texture) {
   if (texture.image != null) {
-    if (options.cropImages) {
+    if (options.cropCheckpoints) {
       let imageAspectRatio =
         texture.image.naturalHeight / texture.image.naturalWidth;
       let xScale = 1;
@@ -5423,5 +5423,17 @@ function setStretchOrCropTexture(texture) {
       texture.repeat.set(1, 1);
       texture.offset.set(0, 0);
     }
+  }
+}
+
+function createCheckpointTexture() {
+  if (checkpointTexture != null) {
+    checkpointTexture.dispose();
+  }
+  checkpointTexture = new THREE.Texture();
+  checkpointTexture.wrapS = THREE.RepeatWrapping;
+  checkpointTexture.wrapT = THREE.RepeatWrapping;
+  if (checkpointMaterial != null) {
+    checkpointMaterial.map = checkpointTexture;
   }
 }

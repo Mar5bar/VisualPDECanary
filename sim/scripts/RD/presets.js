@@ -6,46 +6,49 @@ export function getPreset(id) {
     case "Banner":
       options = {
         brushRadius: "1",
+        cropCheckpoints: true,
         initialState: "./images/BannerInitState.png",
         preset: "Banner",
         runningOnLoad: false,
       };
       break;
-      case "KdV":
-	options = {
-	"algebraicV": true,
-	"brushRadius": "20",
-	"cameraTheta": 0.5,
-	"cameraPhi": 0,
-	"clearValueU": "2/((cosh(x-L_x/4))^2)+2*(0.75)^2/((cosh(0.75*(x-0.4*L_x)))^2)",
-	"clearValueV": "-4/((cosh(x-L_x/4))^3)*(sinh(x-L_x/4))-4*(0.75)^3/(cosh(0.75*(x-0.4*L_x))^3)*sinh(0.75*(x-0.4*L_x))",
-	"crossDiffusion": true,
-	"diffusionStrUU": "0",
-	"diffusionStrUV": "-1",
-	"diffusionStrVV": "0",
-	"diffusionStrWW": "0",
-	"dimension": "1",
-	"domainScale": 40,
-	"dt": 0.00001,
-	"kineticParams": "",
-	"maxColourValue": 2.1,
-	"minColourValue": -0.1,
-	"numSpecies": "2",
-	"numTimestepsPerFrame": 400,
-	"plotType": "line",
-	"preset": "KdV",
-	"reactionStrU": "-6*v*phi",
-	"reactionStrV": "phi_x",
-	"reactionStrW": "0",
-	"spatialStep": 0.25,
-	"speciesNames": "phi v",
+    case "KdV":
+      options = {
+        algebraicV: true,
+        brushRadius: "20",
+        cameraTheta: 0.5,
+        cameraPhi: 0,
+        clearValueU:
+          "2/((cosh(x-L_x/4))^2)+2*(0.75)^2/((cosh(0.75*(x-0.4*L_x)))^2)",
+        clearValueV:
+          "-4/((cosh(x-L_x/4))^3)*(sinh(x-L_x/4))-4*(0.75)^3/(cosh(0.75*(x-0.4*L_x))^3)*sinh(0.75*(x-0.4*L_x))",
+        crossDiffusion: true,
+        diffusionStrUU: "0",
+        diffusionStrUV: "-1",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        dimension: "1",
+        domainScale: 40,
+        dt: 0.00001,
+        kineticParams: "",
+        maxColourValue: 2.1,
+        minColourValue: -0.1,
+        numSpecies: "2",
+        numTimestepsPerFrame: 400,
+        plotType: "line",
+        preset: "KdV",
+        reactionStrU: "-6*v*phi",
+        reactionStrV: "phi_x",
+        reactionStrW: "0",
+        spatialStep: 0.25,
+        speciesNames: "phi v",
         suppressTryClickingPopup: true,
-	"timeDisplay": true,
-	"typeOfBrush": "vline",
-	"whatToDraw": "phi",
-	"whatToPlot": "phi",
-};
-break;
+        timeDisplay: true,
+        typeOfBrush: "vline",
+        whatToDraw: "phi",
+        whatToPlot: "phi",
+      };
+      break;
     case "KlausmeierModel":
       options = {
         brushAction: "smoothadd",
@@ -1794,6 +1797,7 @@ break;
         clearValueQ: "0",
         colourbar: false,
         colourmap: "turbo",
+        cropCheckpoints: false,
         crossDiffusion: false,
         diffusionStrUU: "0.04",
         diffusionStrUV: "0",
