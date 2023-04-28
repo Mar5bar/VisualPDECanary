@@ -8,6 +8,7 @@ export function getPreset(id) {
         brushRadius: "1",
         resizeCheckpoints: "crop",
         initialState: "./images/BannerInitState",
+        numTimestepsPerFrame: 10,
         preset: "Banner",
         runningOnLoad: false,
       };

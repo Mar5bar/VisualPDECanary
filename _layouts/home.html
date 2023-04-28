@@ -91,6 +91,9 @@
     });
     
     window.focus()
+    setTimeout(() => {
+      document.getElementById("sim").contentWindow.document.getElementById("play").click();
+    }, 10000);
     window.addEventListener("blur", () => {
       setTimeout(() => {
         if (document.activeElement.tagName === "IFRAME") {
