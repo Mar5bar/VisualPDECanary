@@ -706,7 +706,8 @@ function init() {
         saveSimState();
       }
       if (event.key == "c") {
-        options.resetFromCheckpoints != options.resetFromCheckpoints;
+        options.resetFromCheckpoints = !options.resetFromCheckpoints;
+        refreshGUI(rightGUI);
       }
     }
   });
