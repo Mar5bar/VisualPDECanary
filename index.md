@@ -5,6 +5,8 @@
 layout: home
 ---
 
-See the solution to PDEs evolve before your eyes. Paint the canvas with initial conditions and see what happens. Start by finding an example below or pressing [Play!](/sim/) to provide your own PDE.
+See the solution to PDEs evolve before your eyes. Paint the canvas with initial conditions and see what happens. 
+
+Find an example below or press [Play!](/sim/) to provide your own PDE.
 
 Don't know what a PDE is? Try our collection of [Visual stories](/visual-stories) for a maths-free way to engage with VisualPDE. 
