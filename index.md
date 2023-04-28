@@ -7,4 +7,4 @@ layout: home
 
 See the solution to your PDE evolve before your eyes. Paint the canvas with initial conditions and see what happens.
 
-Follow a tutorial below or provide your own PDE.
+Find an example below or press [Play!](/sim) to provide your own PDE.
