@@ -103,7 +103,8 @@ let isRunning,
   nudgedUp = false,
   errorOccurred = false,
   NaNTimer,
-  uiHidden = false;
+  uiHidden = false,
+  checkpointExists = false;
 let inTex, outTex;
 let nXDisc,
   nYDisc,
@@ -299,9 +300,10 @@ funsObj = {
     $("#checkpointInput").click();
   },
   clearCheckpoints: function () {
-    if (checkpointTexture != null) {
+    if (checkpointExists) {
       checkpointTexture.dispose();
       checkpointTexture = null;
+      checkpointExists = false;
     }
   },
 };
@@ -2033,7 +2035,7 @@ function clearTextures() {
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
-  if (checkpointTexture != null && options.resetFromCheckpoints) {
+  if (checkpointExists && options.resetFromCheckpoints) {
     simDomain.material = checkpointMaterial;
     renderer.setRenderTarget(simTextureA);
     renderer.render(simScene, simCamera);
@@ -5398,11 +5400,13 @@ function saveSimState() {
 
   // Create a texture from the checkpoint buffer.
   createCheckpointTexture(checkpointBuffer);
+
+  checkpointExists = true;
 }
 
 function exportSimState() {
   // Save a checkpoint to file. If no checkpoint exists, create one.
-  if (checkpointTexture == null) {
+  if (!checkpointExists) {
     saveSimState();
   }
 
@@ -5424,6 +5428,7 @@ function loadSimState(file) {
     // Create the checkpointBuffer from the data. The first two elements are width and height.
     createCheckpointTexture(buff.slice(2), buff.slice(0, 2));
     setStretchOrCropTexture(checkpointTexture);
+    checkpointExists = true;
     resetSim();
   };
   reader.readAsArrayBuffer(file);
