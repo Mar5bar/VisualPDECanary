@@ -43,14 +43,14 @@ $$\begin{aligned}\pd{u}{t}&=-D\nabla^2 v+CD\nabla^2 u+V(x,y) v,\\
 \pd{v}{t} &= D\nabla^2 u+CD\nabla^2 v-V(x,y)u,
 \end{aligned}$$
 
-which is a (nondimensionalised) Schrödinger equation for $C=0$. The parameter $C$ is used to prevent spurious oscillations.Of course, even with this artificial parameter $C$, our numerical method does not preserve probability, given by
+which is a (nondimensionalised) Schrödinger equation for $C=0$. The parameter $C$ is used to prevent spurious oscillations. Of course, even with this artificial parameter $C$, our numerical method does not preserve probability, given by
 
 $$
-\int_0^L \int_0^L |\psi|^2dxdy = \int_0^L \int_0^L u^2+v^2dxdy = 1,
+\int_0^L \int_0^L |\psi|^2 \d x \, \d y = \int_0^L \int_0^L (u^2+v^2) \, \d x \, \d y = 1,
 $$
 
 as can be seen in the 1D example below. 
 
 ## Particle in a 1D potential well
 
-We can consider an analogue of a particle in a potential well by putting a [Gaussian wave packet](https://en.wikipedia.org/wiki/Wave_packet#Gaussian_wave_packets_in_quantum_mechanics) inside a quadratic potential. For short times, such a wave packet acts like a particle bouncing between the two walls of the potential with some fixed energy, as you can see [here](/sim/?preset=stabilizedSchrodinger1D). The total probability, shown in the bottom-left corner, is indeed not conserved over even small simulation steps, though the qualitative behaviour is consistent with more sophisticated simulation techniques (e.g. as shown [here](http://www.astro.utoronto.ca/~mahajan/notebooks/quantum_tunnelling.html)).
+We can consider an analogue of a particle in a potential well by putting a [Gaussian wave packet](https://en.wikipedia.org/wiki/Wave_packet#Gaussian_wave_packets_in_quantum_mechanics) inside a quadratic potential. For short times, such a wave packet acts like a particle bouncing between the two walls of the potential with some fixed energy, as you can see [here](/sim/?preset=stabilizedSchrodinger1D). The total probability, shown in the bottom-left corner, is indeed not conserved over even small simulation steps, though the qualitative behaviour is consistent with [more sophisticated simulation techniques](http://www.astro.utoronto.ca/~mahajan/notebooks/quantum_tunnelling.html).

@@ -47,10 +47,17 @@ export function computeDisplayFunShaderTop() {
 
 export function computeDisplayFunShaderMid() {
   return `
-        vec4 uvwq = texture2D(textureSource, textureCoords);
         ivec2 texSize = textureSize(textureSource,0);
+        float step_x = 1.0 / float(texSize.x);
+        float step_y = 1.0 / float(texSize.y);
         float x = textureCoords.x * float(texSize.x) * dx;
         float y = textureCoords.y * float(texSize.y) * dy;
+
+        vec4 uvwq = texture2D(textureSource, textureCoords);
+        vec4 uvwqL = texture2D(textureSource, textureCoords + vec2(-step_x, 0.0));
+        vec4 uvwqR = texture2D(textureSource, textureCoords + vec2(+step_x, 0.0));
+        vec4 uvwqT = texture2D(textureSource, textureCoords + vec2(0.0, +step_y));
+        vec4 uvwqB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y));
 
         vec4 Svec = texture2D(imageSourceOne, textureCoords);
         float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
@@ -64,6 +71,9 @@ export function computeDisplayFunShaderMid() {
         float I_TG = Tvec.g;
         float I_TB = Tvec.b;
         float I_TA = Tvec.a;
+
+        vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
+        vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
 
         float value = FUN;
         gl_FragColor = vec4(value, 0.0, 0.0, 1.0);`;

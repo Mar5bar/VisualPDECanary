@@ -8,7 +8,12 @@ let camera,
   controls,
   raycaster,
   clampedCoords;
-let simTextureA, simTextureB, postTexture, interpolationTexture, simTextureOpts;
+let simTextureA,
+  simTextureB,
+  postTexture,
+  interpolationTexture,
+  simTextureOpts,
+  checkpointTexture;
 let basicMaterial,
   displayMaterial,
   drawMaterial,
@@ -18,7 +23,8 @@ let basicMaterial,
   copyMaterial,
   postMaterial,
   lineMaterial,
-  interpolationMaterial;
+  interpolationMaterial,
+  checkpointMaterial;
 let domain, simDomain, clickDomain, line;
 let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine;
 let colourmap, colourmapEndpoints;
@@ -88,14 +94,17 @@ let leftGUI,
   robinQController,
   fIm,
   imControllerOne,
-  imControllerTwo;
+  imControllerTwo,
+  selectedEntries = new Set();
 let isRunning,
   isDrawing,
   hasDrawn,
   anyDirichletBCs,
   nudgedUp = false,
   errorOccurred = false,
-  NaNTimer;
+  NaNTimer,
+  uiHidden = false,
+  checkpointExists = false;
 let inTex, outTex;
 let nXDisc,
   nYDisc,
@@ -130,6 +139,7 @@ const listOfTypes = [
 let equationType, savedHTML;
 let takeAScreenshot = false;
 let buffer,
+  checkpointBuffer,
   bufferFilled = false;
 const numsAsWords = [
   "zero",
@@ -280,6 +290,22 @@ funsObj = {
     });
     navigator.clipboard.writeText(str);
   },
+  saveSimState: function () {
+    saveSimState();
+  },
+  exportSimState: function () {
+    exportSimState();
+  },
+  loadSimStateFromInput: function () {
+    $("#checkpointInput").click();
+  },
+  clearCheckpoints: function () {
+    if (checkpointExists) {
+      checkpointTexture.dispose();
+      checkpointTexture = null;
+      checkpointExists = false;
+    }
+  },
 };
 
 // Define a handy countDecimals function.
@@ -325,8 +351,19 @@ if (!fromExternalLink()) {
 // flip-flop between two textures, A and B.
 var readFromTextureB = true;
 
+// Check URL for any specified options.
+const params = new URLSearchParams(window.location.search);
+
+if (params.has("no_ui")) {
+  // Hide all the ui, including buttons.
+  $(".ui").addClass("hidden");
+  uiHidden = true;
+} else {
+  $(".ui").removeClass("hidden");
+}
+
 // Warn the user about flashing images and ask for cookie permission to store this.
-if (!warningCookieExists()) {
+if (!warningCookieExists() && !uiHidden) {
   // Display the warning message.
   $("#warning").css("display", "block");
   const permission = await Promise.race([
@@ -345,10 +382,9 @@ loadOptions("default");
 // Initialise simulation and GUI.
 init();
 
+// Load things from the search string, if anything is there
 // Unless this value is set to false later, we will load a default preset.
 let shouldLoadDefault = true;
-// Check URL for any preset or specified options.
-const params = new URLSearchParams(window.location.search);
 if (params.has("preset")) {
   // If a preset is specified, load it.
   loadPreset(params.get("preset"));
@@ -388,11 +424,31 @@ if (
 $("#settings").click(function () {
   $("#rightGUI").toggle();
   $("#right_ui_arrow").toggle();
+  if ($("#help_panel").is(":visible")) {
+    $("#help_panel").toggle();
+  }
+  if ($("#help_panel").is(":visible")) {
+    $("#help_panel").toggle();
+  }
+  if (
+    window.innerWidth < 629 &&
+    $("#left_ui").is(":visible") &&
+    $("#rightGUI").is(":visible")
+  ) {
+    $("#left_ui").toggle();
+  }
 });
 $("#equations").click(function () {
   $("#left_ui").toggle();
   resizeEquationDisplay();
   $("#left_ui_arrow").toggle();
+  if (
+    window.innerWidth < 629 &&
+    $("#rightGUI").is(":visible") &&
+    $("#left_ui").is(":visible")
+  ) {
+    $("#rightGUI").toggle();
+  }
 });
 $("#pause").click(function () {
   pauseSim();
@@ -409,9 +465,15 @@ $("#warning_restart").click(function () {
 });
 $("#share").click(function () {
   $("#share_panel").toggle();
+  if ($("#help_panel").is(":visible")) {
+    $("#help_panel").toggle();
+  }
 });
 $("#help").click(function () {
   $("#help_panel").toggle();
+  if ($("#share_panel").is(":visible")) {
+    $("#share_panel").toggle();
+  }
 });
 $("#screenshot").click(function () {
   takeAScreenshot = true;
@@ -451,6 +513,8 @@ function init() {
     preserveDrawingBuffer: true,
     powerPreference: "high-performance",
     antialias: false,
+    alpha: true,
+    premultipliedAlpha: false,
   });
   renderer.autoClear = true;
   gl = renderer.getContext();
@@ -509,7 +573,6 @@ function init() {
       render();
     }
   });
-
   simCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
   simCamera.position.z = 1;
 
@@ -568,6 +631,7 @@ function init() {
     vertexColors: true,
     linewidth: 0.01,
   });
+  checkpointMaterial = new THREE.MeshBasicMaterial();
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
   simDomain = new THREE.Mesh(simPlane, simMaterial);
@@ -625,10 +689,39 @@ function init() {
       if (event.key === " ") {
         funsObj.toggleRunning();
       }
+      if (event.key === "h") {
+        if (uiHidden) {
+          uiHidden = false;
+          $(".ui").removeClass("hidden");
+          // Ensure that the correct play/pause button is showing.
+          isRunning ? playSim() : pauseSim();
+          // Check for any positioning that relies on elements being visible.
+          checkColourbarPosition();
+          checkColourbarLogoCollision();
+          resizeEquationDisplay();
+        } else {
+          uiHidden = true;
+          $(".ui").addClass("hidden");
+        }
+      }
+      if (event.key == "s") {
+        saveSimState();
+      }
+      if (event.key == "c") {
+        options.resetFromCheckpoints = !options.resetFromCheckpoints;
+        refreshGUI(rightGUI);
+      }
     }
   });
 
+  // Listen for resize events.
   window.addEventListener("resize", resize, false);
+
+  // Bind the onchange event for the checkpoint loader.
+  $("#checkpointInput").change(function () {
+    loadSimState(this.files[0]);
+    this.value = null;
+  });
 }
 
 function resize() {
@@ -636,6 +729,8 @@ function resize() {
   setSizes();
   // Assign sizes to textures.
   resizeTextures();
+  // Update cropping of checkpoint textures.
+  setStretchOrCropTexture(checkpointTexture);
   // Update any uniforms.
   updateUniforms();
   // Create new display domains with the correct sizes.
@@ -663,7 +758,7 @@ function configureCameraAndClicks() {
   computeCanvasSizesAndAspect();
   switch (options.plotType) {
     case "line":
-      options.cameraTheta = 0.5;
+      options.cameraTheta = 0;
       options.cameraPhi = 0;
       controls.enabled = false;
       camera.zoom = 1;
@@ -710,6 +805,7 @@ function computeCanvasSizesAndAspect() {
   canvasWidth = Math.round(canvas.getBoundingClientRect().width);
   canvasHeight = Math.round(canvas.getBoundingClientRect().height);
   aspectRatio = canvasHeight / canvasWidth;
+  if (aspectRatio <= 0) aspectRatio = 0.1;
   // Set the domain size, setting the largest side to be of size options.domainScale.
   if (aspectRatio >= 1) {
     domainHeight = options.domainScale;
@@ -739,6 +835,8 @@ function setSizes() {
   }
   nXDisc = Math.floor(domainWidth / options.spatialStep);
   nYDisc = Math.floor(domainHeight / options.spatialStep);
+  if (nXDisc == 0) nXDisc = 1;
+  if (nYDisc == 0) nYDisc = 1;
   // If the user has specified that this is a 1D problem, set nYDisc = 1.
   if (options.dimension == 1) {
     nYDisc = 1;
@@ -756,12 +854,8 @@ function setSizes() {
     xDisplayDomainCoords[i] = val;
     val += step;
   }
-  // Set the size of the renderer, which will interpolate from the textures.
-  renderer.setSize(
-    devicePixelRatio * canvasWidth,
-    devicePixelRatio * canvasHeight,
-    false
-  );
+  // Set the size of the renderer, which will interpolate precisely from the textures.
+  setDefaultRenderSize();
   buffer = new Float32Array(nXDisc * nYDisc * 4);
   bufferFilled = false;
 }
@@ -798,7 +892,7 @@ function createDisplayDomains() {
 
   // Create a line object whose coordinates we can set when plotting lines.
   const lineGeom = new LineGeometry();
-  numPointsInLine = devicePixelRatio * canvasWidth;
+  numPointsInLine = Math.round(devicePixelRatio * canvasWidth);
   const positions = new Array(3 * numPointsInLine).fill(0);
   const lineColours = new Array(positions.length).fill(0);
   lineGeom.setPositions(positions);
@@ -956,6 +1050,7 @@ function initGUI(startOpen) {
   // Initialise the right GUI.
   rightGUI = new dat.GUI({ closeOnTop: true });
   rightGUI.domElement.id = "rightGUI";
+  rightGUI.domElement.classList.add("ui");
 
   leftGUI.open();
   rightGUI.open();
@@ -1131,6 +1226,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DuuController, selectTeX, ["D", "U", "UU"]);
+  setOnblur(DuuController, deselectTeX, ["D", "U", "UU"]);
 
   DuvController = root
     .add(options, "diffusionStrUV")
@@ -1138,6 +1235,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DuvController, selectTeX, ["UV"]);
+  setOnblur(DuvController, deselectTeX, ["UV"]);
 
   DuwController = root
     .add(options, "diffusionStrUW")
@@ -1145,6 +1244,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DuwController, selectTeX, ["UW"]);
+  setOnblur(DuwController, deselectTeX, ["UW"]);
 
   DuqController = root
     .add(options, "diffusionStrUQ")
@@ -1152,6 +1253,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DuqController, selectTeX, ["UQ"]);
+  setOnblur(DuqController, deselectTeX, ["UQ"]);
 
   DvuController = root
     .add(options, "diffusionStrVU")
@@ -1159,6 +1262,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DvuController, selectTeX, ["VU"]);
+  setOnblur(DvuController, deselectTeX, ["VU"]);
 
   DvvController = root
     .add(options, "diffusionStrVV")
@@ -1166,6 +1271,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DvvController, selectTeX, ["V", "VV"]);
+  setOnblur(DvvController, deselectTeX, ["V", "VV"]);
 
   DvwController = root
     .add(options, "diffusionStrVW")
@@ -1173,6 +1280,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DvwController, selectTeX, ["VW"]);
+  setOnblur(DvwController, deselectTeX, ["VW"]);
 
   DvqController = root
     .add(options, "diffusionStrVQ")
@@ -1180,6 +1289,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DvqController, selectTeX, ["VQ"]);
+  setOnblur(DvqController, deselectTeX, ["VQ"]);
 
   DwuController = root
     .add(options, "diffusionStrWU")
@@ -1187,6 +1298,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DwuController, selectTeX, ["WU"]);
+  setOnblur(DwuController, deselectTeX, ["WU"]);
 
   DwvController = root
     .add(options, "diffusionStrWV")
@@ -1194,6 +1307,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DwvController, selectTeX, ["WV"]);
+  setOnblur(DwvController, deselectTeX, ["WV"]);
 
   DwwController = root
     .add(options, "diffusionStrWW")
@@ -1201,6 +1316,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DwwController, selectTeX, ["W", "WW"]);
+  setOnblur(DwwController, deselectTeX, ["W", "WW"]);
 
   DwqController = root
     .add(options, "diffusionStrWQ")
@@ -1208,6 +1325,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DwqController, selectTeX, ["WQ"]);
+  setOnblur(DwqController, deselectTeX, ["WQ"]);
 
   DquController = root
     .add(options, "diffusionStrQU")
@@ -1215,6 +1334,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DquController, selectTeX, ["QU"]);
+  setOnblur(DquController, deselectTeX, ["QU"]);
 
   DqvController = root
     .add(options, "diffusionStrQV")
@@ -1222,6 +1343,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DqvController, selectTeX, ["QV"]);
+  setOnblur(DqvController, deselectTeX, ["QV"]);
 
   DqwController = root
     .add(options, "diffusionStrQW")
@@ -1229,6 +1352,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DqwController, selectTeX, ["QW"]);
+  setOnblur(DqwController, deselectTeX, ["QW"]);
 
   DqqController = root
     .add(options, "diffusionStrQQ")
@@ -1236,27 +1361,37 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
+  setOnfocus(DqqController, selectTeX, ["Q", "QQ"]);
+  setOnblur(DqqController, deselectTeX, ["Q", "QQ"]);
 
   // Custom f(u,v) and g(u,v).
   fController = root.add(options, "reactionStrU").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
+  setOnfocus(fController, selectTeX, ["f"]);
+  setOnblur(fController, deselectTeX, ["f"]);
 
   gController = root.add(options, "reactionStrV").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
+  setOnfocus(gController, selectTeX, ["g"]);
+  setOnblur(gController, deselectTeX, ["g"]);
 
   hController = root.add(options, "reactionStrW").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
+  setOnfocus(hController, selectTeX, ["h"]);
+  setOnblur(hController, deselectTeX, ["h"]);
 
   jController = root.add(options, "reactionStrQ").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
+  setOnfocus(jController, selectTeX, ["j"]);
+  setOnblur(jController, deselectTeX, ["j"]);
 
   parametersFolder = leftGUI.addFolder("Parameters");
   setParamsFromKineticString();
@@ -1519,6 +1654,25 @@ function initGUI(startOpen) {
   // Always make images controller, but hide them if they're not wanted.
   createImageControllers();
 
+  // Saving/loading folder.
+  root = rightGUI.addFolder("Checkpoints");
+
+  // Checkpoints override initial condition
+  root.add(options, "resetFromCheckpoints").name("Enable checkpoints");
+
+  // Save checkpoint.
+  root.add(funsObj, "saveSimState").name("Set checkpoint");
+
+  // Export simulation state.
+  root.add(funsObj, "exportSimState").name("Save to file");
+
+  // Load simulation state.
+  root.add(funsObj, "loadSimStateFromInput").name("Load from file");
+
+  root
+    .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
+    .name("Resize");
+
   // Miscellaneous folder.
   root = rightGUI.addFolder("Misc.");
 
@@ -1534,37 +1688,6 @@ function initGUI(startOpen) {
 
   // Copy configuration as raw JSON.
   root.add(funsObj, "copyConfigAsJSON").name("Copy code");
-
-  root
-    .add(options, "preset", {
-      "A harsh environment": "harshEnvironment",
-      Alan: "Alan",
-      Beginnings: "chemicalBasisOfMorphogenesis",
-      "Bistable travelling waves": "bistableTravellingWave",
-      Brusellator: "brusselator",
-      "Cahn-Hilliard": "CahnHilliard",
-      "Complex Ginzburg-Landau": "complexGinzburgLandau",
-      "Cyclic competition": "cyclicCompetition",
-      "Gierer-Meinhardt": "GiererMeinhardt",
-      "Gierer-Meinhardt: stripes": "GiererMeinhardtStripes",
-      "Gray-Scott": "subcriticalGS",
-      "Heat equation": "heatEquation",
-      "Inhomogeneous heat eqn": "inhomogHeatEquation",
-      "Inhomogeneous wave eqn": "inhomogWaveEquation",
-      "Localised patterns": "localisedPatterns",
-      Schnakenberg: "Schnakenberg",
-      "Schnakenberg-Hopf": "SchnakenbergHopf",
-      "Schrodinger + potential": "stabilizedSchrodingerEquationPotential",
-      Schrodinger: "stabilizedSchrodingerEquation",
-      "Swift-Hohenberg": "swiftHohenberg",
-      Thresholding: "thresholdSimulation",
-      "Travelling waves": "travellingWave",
-      "Variable diff heat eqn": "inhomogDiffusionHeatEquation",
-      "Wave equation w/ ICs": "waveEquationICs",
-      "Wave equation": "waveEquation",
-    })
-    .name("Preset")
-    .onChange(loadPreset);
 
   root = root.addFolder("Debug");
   // Debug.
@@ -1908,26 +2031,40 @@ function setBrushCoords(event, container) {
 }
 
 function clearTextures() {
+  setRenderSizeToDisc();
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
-  simDomain.material = clearMaterial;
-  renderer.setRenderTarget(simTextureA);
-  renderer.render(simScene, simCamera);
-  renderer.setRenderTarget(simTextureB);
-  renderer.render(simScene, simCamera);
+  if (checkpointExists && options.resetFromCheckpoints) {
+    simDomain.material = checkpointMaterial;
+    renderer.setRenderTarget(simTextureA);
+    renderer.render(simScene, simCamera);
+    renderer.setRenderTarget(simTextureB);
+    renderer.render(simScene, simCamera);
+  } else {
+    simDomain.material = clearMaterial;
+    renderer.setRenderTarget(simTextureA);
+    renderer.render(simScene, simCamera);
+    renderer.setRenderTarget(simTextureB);
+    renderer.render(simScene, simCamera);
+  }
+  setDefaultRenderSize();
   render();
 }
 
 function pauseSim() {
-  $("#pause").hide();
-  $("#play").show();
+  if (!uiHidden) {
+    $("#pause").hide();
+    $("#play").show();
+  }
   isRunning = false;
 }
 
 function playSim() {
-  $("#play").hide();
-  $("#pause").show();
+  if (!uiHidden) {
+    $("#play").hide();
+    $("#pause").show();
+  }
   isRunning = true;
 }
 
@@ -2577,8 +2714,15 @@ function loadPreset(preset) {
   // Set the background color.
   scene.background = new THREE.Color(options.backgroundColour);
 
-  // Reset the state of the simulation.
-  resetSim();
+  // If an initial state has been specified, load it in, which will also reset the simulation.
+  if (options.initialState != "") {
+    fetch(options.initialState)
+      .then((res) => res.blob())
+      .then((blob) => loadSimState(blob));
+  } else {
+    // Reset the state of the simulation using specified ICs.
+    resetSim();
+  }
 
   // Set the camera.
   configureCameraAndClicks();
@@ -2901,7 +3045,6 @@ function loadImageSourceOne() {
       resetSim();
     }
   };
-  texture.dispose();
 }
 
 function loadImageSourceTwo() {
@@ -3599,13 +3742,6 @@ function configureGUI() {
   // Refresh the GUI displays.
   refreshGUI(leftGUI);
   refreshGUI(rightGUI);
-  if (isRunning) {
-    $("#play").hide();
-    $("#pause").show();
-  } else {
-    $("#play").show();
-    $("#pause").hide();
-  }
   manualInterpolationNeeded
     ? hideGUIController(forceManualInterpolationController)
     : showGUIController(forceManualInterpolationController);
@@ -3812,33 +3948,36 @@ function setEquationDisplayType() {
   let str = equationTEX[equationType];
 
   let regex;
+  // Define a list of strings that will be used to make regexes.
+  const regexes = {};
+  regexes["D"] = /\b(D) (\\vnabla u)/g;
+  regexes["U"] = /\b(D_{u}) (\\vnabla u)/g;
+  regexes["UU"] = /\b(D_{u u}) (\\vnabla u)/g;
+  regexes["V"] = /\b(D_{v}) (\\vnabla v)/g;
+  regexes["VV"] = /\b(D_{v v}) (\\vnabla v)/g;
+  regexes["W"] = /\b(D_{w}) (\\vnabla w)/g;
+  regexes["WW"] = /\b(D_{w w}) (\\vnabla w)/g;
+  regexes["Q"] = /\b(D_{q}) (\\vnabla q)/g;
+  regexes["QQ"] = /\b(D_{q q}) (\\vnabla q)/g;
+  regexes["UV"] = /\b(D_{u v}) (\\vnabla v)/g;
+  regexes["UW"] = /\b(D_{u w}) (\\vnabla w)/g;
+  regexes["UQ"] = /\b(D_{u q}) (\\vnabla q)/g;
+  regexes["VU"] = /\b(D_{v u}) (\\vnabla u)/g;
+  regexes["VW"] = /\b(D_{v w}) (\\vnabla w)/g;
+  regexes["VQ"] = /\b(D_{v q}) (\\vnabla q)/g;
+  regexes["WU"] = /\b(D_{w u}) (\\vnabla u)/g;
+  regexes["WV"] = /\b(D_{w v}) (\\vnabla v)/g;
+  regexes["WQ"] = /\b(D_{w q}) (\\vnabla q)/g;
+  regexes["QU"] = /\b(D_{q u}) (\\vnabla u)/g;
+  regexes["QV"] = /\b(D_{q v}) (\\vnabla v)/g;
+  regexes["QW"] = /\b(D_{q w}) (\\vnabla w)/g;
+  regexes["f"] = /\b(f)/g;
+  regexes["g"] = /\b(g)/g;
+  regexes["h"] = /\b(h)/g;
+  regexes["j"] = /\b(j)/g;
 
   if (options.typesetCustomEqs) {
-    // Define a list of strings that will be used to make regexes. We'll work using the default notation,
-    // then convert at the end.
-    let regexStrs = {};
-    regexStrs["D"] = "\\b(D) (\\\\vnabla u)";
-    regexStrs["U"] = "\\b(D_{u}) (\\\\vnabla u)";
-    regexStrs["UU"] = "\\b(D_{u u}) (\\\\vnabla u)";
-    regexStrs["V"] = "\\b(D_{v}) (\\\\vnabla v)";
-    regexStrs["VV"] = "\\b(D_{v v}) (\\\\vnabla v)";
-    regexStrs["W"] = "\\b(D_{w}) (\\\\vnabla w)";
-    regexStrs["WW"] = "\\b(D_{w w}) (\\\\vnabla w)";
-    regexStrs["Q"] = "\\b(D_{q}) (\\\\vnabla q)";
-    regexStrs["QQ"] = "\\b(D_{q q}) (\\\\vnabla q)";
-    regexStrs["UV"] = "\\b(D_{u v}) (\\\\vnabla v)";
-    regexStrs["UW"] = "\\b(D_{u w}) (\\\\vnabla w)";
-    regexStrs["UQ"] = "\\b(D_{u q}) (\\\\vnabla q)";
-    regexStrs["VU"] = "\\b(D_{v u}) (\\\\vnabla u)";
-    regexStrs["VW"] = "\\b(D_{v w}) (\\\\vnabla w)";
-    regexStrs["VQ"] = "\\b(D_{v q}) (\\\\vnabla q)";
-    regexStrs["WU"] = "\\b(D_{w u}) (\\\\vnabla u)";
-    regexStrs["WV"] = "\\b(D_{w v}) (\\\\vnabla v)";
-    regexStrs["WQ"] = "\\b(D_{w q}) (\\\\vnabla q)";
-    regexStrs["QU"] = "\\b(D_{q u}) (\\\\vnabla u)";
-    regexStrs["QV"] = "\\b(D_{q v}) (\\\\vnabla v)";
-    regexStrs["QW"] = "\\b(D_{q w}) (\\\\vnabla w)";
-
+    // We'll work using the default notation, then convert at the end.
     let associatedStrs = {};
     associatedStrs["D"] = options.diffusionStrUU;
     associatedStrs["U"] = options.diffusionStrUU;
@@ -3861,26 +4000,36 @@ function setEquationDisplayType() {
     associatedStrs["QU"] = options.diffusionStrQU;
     associatedStrs["QV"] = options.diffusionStrQV;
     associatedStrs["QW"] = options.diffusionStrQW;
+    associatedStrs["f"] = options.reactionStrU;
+    associatedStrs["g"] = options.reactionStrV;
+    associatedStrs["h"] = options.reactionStrW;
+    associatedStrs["j"] = options.reactionStrQ;
 
-    // For each diffusion string, replace it with the value in associatedStrs, duly converted back
-    // to default notation.
+    // Convert all the associated strings back to default notation.
     function toDefault(s) {
       return replaceSymbolsInStr(s, listOfSpecies, defaultSpecies, "_[xy]");
     }
-    Object.keys(regexStrs).forEach(function (key) {
-      str = replaceUserDefDiff(
-        str,
-        RegExp(regexStrs[key], "g"),
-        toDefault(associatedStrs[key]),
-        "[]"
-      );
+
+    Object.keys(associatedStrs).forEach(function (key) {
+      associatedStrs[key] = toDefault(associatedStrs[key]);
+    });
+
+    // Add in \selected{} to any selected entry.
+    selectedEntries.forEach(function (x) {
+      associatedStrs[x] = "\\selected{ " + associatedStrs[x] + " }";
+    });
+
+    // For each diffusion string, replace it with the value in associatedStrs.
+    Object.keys(associatedStrs).forEach(function (key) {
+      if (!defaultReactions.includes(key))
+        str = replaceUserDefDiff(str, regexes[key], associatedStrs[key], "[]");
     });
 
     // Replace the reaction strings, converting everything back to default notation.
-    str = replaceUserDefReac(str, /\bf\b/g, toDefault(options.reactionStrU));
-    str = replaceUserDefReac(str, /\bg\b/g, toDefault(options.reactionStrV));
-    str = replaceUserDefReac(str, /\bh\b/g, toDefault(options.reactionStrW));
-    str = replaceUserDefReac(str, /\bj\b/g, toDefault(options.reactionStrQ));
+    str = replaceUserDefReac(str, regexes["f"], associatedStrs["f"]);
+    str = replaceUserDefReac(str, regexes["g"], associatedStrs["g"]);
+    str = replaceUserDefReac(str, regexes["h"], associatedStrs["h"]);
+    str = replaceUserDefReac(str, regexes["j"], associatedStrs["j"]);
 
     // Look through the string for any open brackets ( or [ followed by a + or -.
     regex = /\(\s*\+/g;
@@ -3933,6 +4082,15 @@ function setEquationDisplayType() {
     // Replace u_x, u_y etc with \pd{u}{x} etc.
     regex = /\b([uvwq])_([xy])\b/g;
     str = str.replaceAll(regex, "\\textstyle \\pd{$1}{$2}");
+  } else {
+    // Even if we're not customising the typesetting, add in \selected{} to any selected entry.
+    selectedEntries.forEach(function (x) {
+      str = str.replaceAll(regexes[x], function (match, g1, g2) {
+        let val = "\\selected{ " + g1 + " ";
+        if (typeof g2 == "string") val += g2;
+        return val + " }";
+      });
+    });
   }
 
   // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
@@ -5195,12 +5353,139 @@ function setLineWidth() {
   lineMaterial.needsUpdate = true;
 }
 
-function setOnfocus(cont, fun) {
+function setOnfocus(cont, fun, args) {
   // Set the onfocus handler of a free-text controller.
-  cont.domElement.firstChild.onfocus = fun;
+  cont.domElement.firstChild.onfocus = () => fun(args);
 }
 
-function setOnblur(cont, fun) {
+function setOnblur(cont, fun, args) {
   // Set the onblur handler of a free-text controller.
-  cont.domElement.firstChild.onblur = fun;
+  cont.domElement.firstChild.onblur = () => fun(args);
+}
+
+function selectTeX(ids) {
+  ids.forEach(function (id) {
+    selectedEntries.add(id);
+  });
+  setEquationDisplayType();
+}
+
+function deselectTeX(ids) {
+  ids.forEach(function (id) {
+    selectedEntries.delete(id);
+  });
+  setEquationDisplayType();
+}
+
+function getRawState() {
+  checkpointBuffer = new Float32Array(nXDisc * nYDisc * 4);
+  if (readFromTextureB) {
+    inTex = simTextureB;
+  } else {
+    inTex = simTextureA;
+  }
+  renderer.readRenderTargetPixels(
+    inTex,
+    0,
+    0,
+    nXDisc,
+    nYDisc,
+    checkpointBuffer
+  );
+}
+
+function saveSimState() {
+  // Save the current state in memory as a buffer.
+  getRawState();
+
+  // Create a texture from the checkpoint buffer.
+  createCheckpointTexture(checkpointBuffer);
+
+  checkpointExists = true;
+}
+
+function exportSimState() {
+  // Save a checkpoint to file. If no checkpoint exists, create one.
+  if (!checkpointExists) {
+    saveSimState();
+  }
+
+  // Download the buffer as a file, with the dimensions prepended.
+  var link = document.createElement("a");
+  link.download = "VisualPDEState";
+  link.href = URL.createObjectURL(
+    new Blob([new Float32Array([nXDisc, nYDisc]), checkpointBuffer])
+  );
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function loadSimState(file) {
+  const reader = new FileReader();
+  reader.onload = function () {
+    const buff = new Float32Array(reader.result);
+    // Create the checkpointBuffer from the data. The first two elements are width and height.
+    createCheckpointTexture(buff.slice(2), buff.slice(0, 2));
+    setStretchOrCropTexture(checkpointTexture);
+    checkpointExists = true;
+    resetSim();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function setStretchOrCropTexture(texture) {
+  if (texture != null) {
+    if (options.resizeCheckpoints == "crop") {
+      let textureAspectRatio =
+        texture.source.data.height / texture.source.data.width;
+      let xScale = 1;
+      let yScale = aspectRatio / textureAspectRatio;
+      if (yScale > 1) {
+        xScale = textureAspectRatio / aspectRatio;
+        yScale = 1;
+      }
+      texture.repeat.set(xScale, yScale);
+      texture.offset.set((1 - xScale) / 2, (1 - yScale) / 2);
+    } else {
+      texture.repeat.set(1, 1);
+      texture.offset.set(0, 0);
+    }
+  }
+}
+
+function createCheckpointTexture(buff, dims) {
+  if (checkpointTexture != null) {
+    checkpointTexture.dispose();
+  }
+  if (dims == undefined) {
+    dims = [nXDisc, nYDisc];
+  }
+  checkpointTexture = new THREE.DataTexture(
+    buff,
+    dims[0],
+    dims[1],
+    THREE.RGBAFormat,
+    THREE.FloatType
+  );
+  checkpointTexture.needsUpdate = true;
+  manualInterpolationNeeded
+    ? (checkpointTexture.magFilter = THREE.NearestFilter)
+    : (checkpointTexture.magFilter = THREE.LinearFilter);
+  if (checkpointMaterial != null) {
+    checkpointMaterial.map = checkpointTexture;
+    checkpointMaterial.needsUpdate;
+  }
+}
+
+function setRenderSizeToDisc() {
+  renderer.setSize(nXDisc, nYDisc, false);
+}
+
+function setDefaultRenderSize() {
+  renderer.setSize(
+    Math.round(devicePixelRatio * canvasWidth),
+    Math.round(devicePixelRatio * canvasHeight),
+    false
+  );
 }

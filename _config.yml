@@ -54,6 +54,9 @@ collections:
   user-guide:
     output: true
     title: User guide
+  visual-stories:
+    output: true
+    title: Visual stories
 
 defaults:
   -

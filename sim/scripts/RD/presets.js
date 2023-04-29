@@ -3,6 +3,53 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "Banner":
+      options = {
+        brushRadius: "1",
+        resizeCheckpoints: "crop",
+        initialState: "./images/BannerInitState",
+        numTimestepsPerFrame: 10,
+        preset: "Banner",
+        runningOnLoad: false,
+      };
+      break;
+    case "KdV":
+      options = {
+        algebraicV: true,
+        brushRadius: "20",
+        cameraTheta: 0.5,
+        cameraPhi: 0,
+        clearValueU:
+          "2/((cosh(x-L_x/4))^2)+2*(0.75)^2/((cosh(0.75*(x-0.4*L_x)))^2)",
+        clearValueV:
+          "-4/((cosh(x-L_x/4))^3)*(sinh(x-L_x/4))-4*(0.75)^3/(cosh(0.75*(x-0.4*L_x))^3)*sinh(0.75*(x-0.4*L_x))",
+        crossDiffusion: true,
+        diffusionStrUU: "0",
+        diffusionStrUV: "-1",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        dimension: "1",
+        domainScale: 40,
+        dt: 0.00001,
+        kineticParams: "",
+        maxColourValue: 2.1,
+        minColourValue: -0.1,
+        numSpecies: "2",
+        numTimestepsPerFrame: 400,
+        plotType: "line",
+        preset: "KdV",
+        reactionStrU: "-6*v*phi",
+        reactionStrV: "phi_x",
+        reactionStrW: "0",
+        spatialStep: 0.25,
+        speciesNames: "phi v",
+        suppressTryClickingPopup: true,
+        timeDisplay: true,
+        typeOfBrush: "vline",
+        whatToDraw: "phi",
+        whatToPlot: "phi",
+      };
+      break;
     case "KlausmeierModel":
       options = {
         brushAction: "smoothadd",
@@ -171,7 +218,7 @@ export function getPreset(id) {
         domainScale: 150,
         dt: 0.001,
         kineticParams:
-          "r = -0.28  in  [-2,2];a = 1.6  in  [-2, 2];b = -1  in  [-2, 0.1, 2];c = -1;D = 1;P = 3.0 in  [1, 1, 3];Q = 1.0 in [1,1,2];V = 0.100 in [0,0.01,1];theta = -3.1500000 in  [-6.4,0.01,6.4];",
+          "r = -0.28  in  [-2,2];a = 1.6  in  [-2, 2];b = -1  in  [-2, 0.1, 2];c = -1;D = 1;P = 3.0 in  [1, 1, 3];V = 0.100 in [0,0.01,1];",
         maxColourValue: 1.2757612466812134,
         minColourValue: -0.3343241214752197,
         numTimestepsPerFrame: 200,
@@ -1751,6 +1798,7 @@ export function getPreset(id) {
         clearValueQ: "0",
         colourbar: false,
         colourmap: "turbo",
+        resizeCheckpoints: "stretch",
         crossDiffusion: false,
         diffusionStrUU: "0.04",
         diffusionStrUV: "0",
@@ -1784,6 +1832,7 @@ export function getPreset(id) {
         forceTryClickingPopup: false,
         imagePathOne: "./images/Sofya.png",
         imagePathTwo: "./images/Alan.png",
+        initialState: "",
         integrate: false,
         kineticParams: "",
         lineWidthMul: 1,
@@ -1798,6 +1847,7 @@ export function getPreset(id) {
         oneDimensional: false,
         plotType: "plane",
         preset: "default",
+        resetFromCheckpoints: true,
         resetOnImageLoad: false,
         renderSize: 512,
         reactionNames: "f g h j",

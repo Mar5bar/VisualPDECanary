@@ -8,8 +8,11 @@
     {%- include header.html -%}
 
     <div class="home-banner">
+      <iframe id="sim" src="/sim/?preset=Banner&no_ui" style="visibility:hidden"></iframe>
+      <div class='home-banner-content'>
         <div class='home-banner-subtitle'>Interactive live solutions of PDE systems</div>
         <div class='home-banner-title'>right on your device.</div>
+      </div>
     </div>
     <main class="page-content" aria-label="Content">
       <div class="wrapper">
@@ -20,7 +23,7 @@
 
         {{ content }}
 
-        <h2>Tutorials</h2>
+        <!-- <h2>Tutorials</h2> -->
         <div class='home_tiles'>
           <a class='home_tile' href='basic-pdes'>
             <div class='container'>
@@ -61,6 +64,16 @@
               <div class='subtitle'>Optics, QFT and the rest</div>
               <div class='button'>Browse</div>
             </div>
+          </a>
+          <a class='home_tile' href='visual-stories'>
+            <div class='container'>
+              <img src='/assets/images/OnceUponATime.png' />
+            </div>
+            <div class='container'>
+              <div class='title'>Visual stories</div>
+              <div class='subtitle'>No maths? No problem</div>
+              <div class='button'>Browse</div>
+            </div>
           </a> 
         </div>
 
@@ -71,5 +84,23 @@
     {%- include mathjax.html -%}
 
   </body>
+
+  <script type="text/javascript">
+    document.querySelector("iframe").addEventListener( "load", function(e) {
+        setTimeout(() => this.style.visibility = "visible", 1000);
+    });
+    
+    window.focus()
+    setTimeout(() => {
+      document.getElementById("sim").contentWindow.document.getElementById("play").click();
+    }, 10000);
+    window.addEventListener("blur", () => {
+      setTimeout(() => {
+        if (document.activeElement.tagName === "IFRAME") {
+          document.getElementById("sim").contentWindow.document.getElementById("play").click();
+        }
+      });
+    }, { once: true });
+  </script>
 
 </html>

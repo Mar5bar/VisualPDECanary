@@ -4,7 +4,7 @@ title: About
 permalink: /about/
 ---
 
-VisualPDE is a collection of online tools designed to bring the world of partial differential equations to a wider audience through the use of real-time interactive web-based simulations usable on almost any device. 
+VisualPDE is a website designed to bring the world of partial differential equations to a wider audience through the use of real-time interactive web-based simulations usable on almost any device. 
 
 We provide numerous examples of such simulations exploring a wide variety of topics from waves and transport theory, to chaotic nonlinear physical systems and pattern-forming models in mathematical biology. 
 

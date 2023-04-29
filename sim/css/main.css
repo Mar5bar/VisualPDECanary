@@ -27,6 +27,10 @@ canvas {
     height: 100dvh;
 }
 
+.hidden {
+    display: none !important;
+}
+
 .prevent-select {
     cursor: default;
     -webkit-user-select: none;
@@ -62,6 +66,18 @@ canvas {
 
 .dg li.title {
     overflow-x: auto;
+}
+
+.dg .boolean .property-name {
+    width: 80%;
+}
+
+.dg .boolean .c {
+    width: 20%;
+}
+
+.dg .function .property-name {
+    width: 100%;
 }
 
 .dg {
@@ -273,7 +289,7 @@ canvas {
 #error {
     display: none;
     top: 50%;
-    max-width: 30vh;
+    max-width: 60vw;
     width: 20rem;
     left: 50%;
     position: absolute;
@@ -305,6 +321,7 @@ canvas {
     margin-bottom: 0.5rem;
     text-align: center;
     width: 13rem;
+    max-width:100%;
     border: 1px solid;
     border-radius: 6px;
     border-color: rgba(27, 31, 36, 0.15);

@@ -1,3 +1,7 @@
+.site-header {
+    z-index: 1;
+}
+
 .nav-button,
 .nav-button:visited,
 a[href*='/sim/'] {
@@ -22,16 +26,31 @@ a[href*='/sim/']:hover {
     color: white;
 }
 
+.trigger .nav-button{
+    margin-right:10px;
+}
+
 a[href*='//']:not([href*='visualpde.com']) {
     color: #111111;
     text-decoration: underline;
 }
 
 div.home-banner {
+    position: relative;
     background-color: #ddf1ff;
     height: 150px;
-    background: #def3ff url("/assets/images/banner.png") no-repeat center center;
-    background-size: 100%;
+    width: 100vw;
+    background: #def3ff url("/assets/images/bannerPlaceholder.png") no-repeat center center;
+    background-size: cover;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+div.home-banner-content {
+    position: absolute;
     text-align: center;
     display: flex;
     align-items: center;
@@ -45,6 +64,12 @@ div.home-banner-title {
     color: white;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
+}
+
+div.home-banner iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
 }
 
 div.home_tiles {
