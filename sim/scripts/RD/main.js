@@ -892,7 +892,7 @@ function createDisplayDomains() {
 
   // Create a line object whose coordinates we can set when plotting lines.
   const lineGeom = new LineGeometry();
-  numPointsInLine = devicePixelRatio * canvasWidth;
+  numPointsInLine = Math.round(devicePixelRatio * canvasWidth);
   const positions = new Array(3 * numPointsInLine).fill(0);
   const lineColours = new Array(positions.length).fill(0);
   lineGeom.setPositions(positions);
