@@ -2237,7 +2237,7 @@ function parseShaderString(str) {
   str = " " + str + " ";
   
   // Do some basic syntax checking to prevent compile-time errors.
-  if (/(\s*)/.test(str)) {
+  if (/\(\s*\)/.test(str)) {
     throwError("Empty parentheses in " + str + ".");
     return "";
   }
