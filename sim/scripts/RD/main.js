@@ -2238,9 +2238,24 @@ function parseShaderString(str) {
   
   // Do some basic syntax checking to prevent compile-time errors.
   if (/\(\s*\)/.test(str)) {
-    throwError("Empty parentheses in " + str + ".");
-    return "";
+    throwError("Empty parentheses in " + str.trim() + ".");
+    return "0";
   }
+  
+  // Check for balanced parentheses.
+  let bracketDepth = 0;
+  for (var ind = 0; ind < str.length; ind++) {
+    if (str[ind] == "(") {
+      bracketDepth += 1;
+    } else if (str[ind] == ")") {
+      bracketInd -= 1;
+    }
+  }
+  if (bracketDepth != 0) {
+    throwError("Unbalanced parentheses in " + str.trim() + ".");
+    return "0";
+  }
+  
 
   // Replace tanh with safetanh.
   str = str.replaceAll(/\btanh\b/g, "safetanh");
