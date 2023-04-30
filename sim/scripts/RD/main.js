@@ -337,9 +337,7 @@ console.error = function (error) {
   console.log(errorStr);
   let regex = /ERROR.*/;
   regex.test(errorStr) ? (errorStr = errorStr.match(regex)) : {};
-  $("#error_description").html(errorStr);
-  fadein("#error");
-  $("#error").one("click", () => fadeout("#error"));
+  throwError(errorStr);
 };
 
 // Remove the logo if we're from an internal link.
@@ -2237,6 +2235,12 @@ function parseShaderString(str) {
   // Parse a string into valid GLSL by replacing u,v,^, and integers.
   // Pad the string.
   str = " " + str + " ";
+  
+  // Do some basic syntax checking to prevent compile-time errors.
+  if (/(\s*)/.test(str)) {
+    throwError("Empty parentheses in " + str + ".");
+    return "";
+  }
 
   // Replace tanh with safetanh.
   str = str.replaceAll(/\btanh\b/g, "safetanh");
@@ -5488,4 +5492,10 @@ function setDefaultRenderSize() {
     Math.round(devicePixelRatio * canvasHeight),
     false
   );
+}
+
+function throwError(message) {
+  $("#error_description").html(message);
+  fadein("#error");
+  $("#error").one("click", () => fadeout("#error"));
 }
