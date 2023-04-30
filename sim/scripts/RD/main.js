@@ -101,7 +101,7 @@ let isRunning,
   hasDrawn,
   anyDirichletBCs,
   nudgedUp = false,
-  errorOccurred = false,
+  compileErrorOccurred = false,
   NaNTimer,
   uiHidden = false,
   checkpointExists = false;
@@ -332,7 +332,7 @@ canvas = document.getElementById("simCanvas");
 // Warn the user if any errors occur.
 console.error = function (error) {
   // Record the fact that an error has occurred and we need to recompile shaders.
-  errorOccurred = true;
+  compileErrorOccurred = true;
   let errorStr = error.toString();
   console.log(errorStr);
   let regex = /ERROR.*/;
@@ -2235,27 +2235,11 @@ function parseShaderString(str) {
   // Parse a string into valid GLSL by replacing u,v,^, and integers.
   // Pad the string.
   str = " " + str + " ";
-  
-  // Do some basic syntax checking to prevent compile-time errors.
-  if (/\(\s*\)/.test(str)) {
-    throwError("Empty parentheses in " + str.trim() + ".");
-    return "0";
+
+  // Perform a syntax check.
+  if (!isValidSyntax(str)) {
+    return " 0.0 ";
   }
-  
-  // Check for balanced parentheses.
-  let bracketDepth = 0;
-  for (var ind = 0; ind < str.length; ind++) {
-    if (str[ind] == "(") {
-      bracketDepth += 1;
-    } else if (str[ind] == ")") {
-      bracketDepth -= 1;
-    }
-  }
-  if (bracketDepth != 0) {
-    throwError("Unbalanced parentheses in " + str.trim() + ".");
-    return "0";
-  }
-  
 
   // Replace tanh with safetanh.
   str = str.replaceAll(/\btanh\b/g, "safetanh");
@@ -4024,6 +4008,13 @@ function setEquationDisplayType() {
     associatedStrs["h"] = options.reactionStrW;
     associatedStrs["j"] = options.reactionStrQ;
 
+    // Check associatedStrs for basic syntax validity, and return without updating the TeX if there are issues.
+    var badSyntax = false;
+    Object.keys(associatedStrs).forEach(function (key) {
+      if (!badSyntax) badSyntax |= !isValidSyntax(associatedStrs[key]);
+    });
+    if (badSyntax) return;
+
     // Convert all the associated strings back to default notation.
     function toDefault(s) {
       return replaceSymbolsInStr(s, listOfSpecies, defaultSpecies, "_[xy]");
@@ -4395,10 +4386,10 @@ function createParameterController(label, isNextParam) {
         // Update the uniforms with this new value.
         if (
           setKineticUniformFromString(kineticParamsStrs[label]) ||
-          errorOccurred
+          compileErrorOccurred
         ) {
           // Reset the error flag.
-          errorOccurred = false;
+          compileErrorOccurred = false;
           // If we added a new uniform, we need to remake all the shaders.
           updateShaders();
         }
@@ -4451,9 +4442,9 @@ function createParameterController(label, isNextParam) {
         createParameterController(newLabel, true);
         // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
-        if (setKineticUniformFromString(str) || errorOccurred) {
+        if (setKineticUniformFromString(str) || compileErrorOccurred) {
           // Reset the error flag.
-          errorOccurred = false;
+          compileErrorOccurred = false;
           updateShaders();
         }
       }
@@ -5510,7 +5501,48 @@ function setDefaultRenderSize() {
 }
 
 function throwError(message) {
-  $("#error_description").html(message);
-  fadein("#error");
-  $("#error").one("click", () => fadeout("#error"));
+  // If an error is already being displayed, just update the message.
+  if ($("#error").is(":visible")) {
+    $("#error_description").html(message);
+  } else {
+    // Otherwise, create a new error message.
+    $("#error_description").html(message);
+    fadein("#error");
+    $("#error").one("click", function () {
+      fadeout("#error");
+    });
+  }
+}
+
+function isValidSyntax(str) {
+  // Return true if syntax appears correct, and false otherwise.
+
+  // Empty parentheses?
+  if (/\(\s*\)/.test(str)) {
+    throwError("Empty parentheses in " + str.trim() + ".");
+    return false;
+  }
+
+  // Balanced parentheses?
+  let bracketDepth = 0;
+  for (var ind = 0; ind < str.length; ind++) {
+    if (str[ind] == "(") {
+      bracketDepth += 1;
+    } else if (str[ind] == ")") {
+      bracketDepth -= 1;
+    }
+  }
+  if (bracketDepth != 0) {
+    throwError("Unbalanced parentheses in " + str.trim() + ".");
+    return false;
+  }
+
+  // Trailing operator?
+  if (/[\+\-\*\^]\s*$/.test(str)) {
+    throwError("A binary operator is missing an operand in " + str.trim() + ".");
+    return false;
+  }
+
+  // If we've not yet returned false, everything looks ok, so return true.
+  return true;
 }
