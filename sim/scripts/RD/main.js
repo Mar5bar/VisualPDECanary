@@ -2248,7 +2248,7 @@ function parseShaderString(str) {
     if (str[ind] == "(") {
       bracketDepth += 1;
     } else if (str[ind] == ")") {
-      bracketInd -= 1;
+      bracketDepth -= 1;
     }
   }
   if (bracketDepth != 0) {
