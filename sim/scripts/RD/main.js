@@ -5538,7 +5538,7 @@ function isValidSyntax(str) {
   }
 
   // Trailing operator?
-  if (/[\+\-\*\^]\s*$/.test(str)) {
+  if (/[\+\-\*\^\/]\s*$/.test(str)) {
     throwError("A binary operator is missing an operand in " + str.trim() + ".");
     return false;
   }
