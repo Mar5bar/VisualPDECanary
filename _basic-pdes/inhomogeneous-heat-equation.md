@@ -4,26 +4,26 @@ title: Sources and sinks of heat
 lesson_number: 30
 thumbnail: /assets/images/InhomHeatEquation.PNG
 extract: Diffusion in an inhomogeneous medium
-equation: $\pd{u}{t}= \vnabla\cdot(g(x,y)\vnabla u)+f(x,y)$
+equation: $\pd{T}{t}= \vnabla\cdot(g(x,y)\vnabla T)+f(x,y)$
 ---
 We now consider an inhomogeneous [heat equation](https://en.wikipedia.org/wiki/Heat_equation) given by
 
-$$\pd{u}{t}=D \nabla^2 u+f(x,y),$$ 
+$$\pd{T}{t}=D \nabla^2 T+f(x,y),$$ 
 
 $$f(x,y) = D\pi^2\left(\frac{n^2}{L_x^2} + \frac{m^2}{L_y^2}\right)\cos \left(\frac{n\pi x}{L_x} \right)\cos \left(\frac{m\pi y}{L_y} \right)$$
 
 with homogeneous Neumann (aka no-flux) boundary conditions on a rectangular domain with side lengths $L_x$, $L_y$. You can use [separation of variables](https://en.wikipedia.org/wiki/Separation_of_variables#Partial_differential_equations) to show that the solution at steady state looks like
 
-$$u(x,y) = -\cos \left(\frac{n\pi x}{L_x} \right)\cos \left(\frac{m\pi y}{L_y} \right).$$
+$$T(x,y) = -\cos \left(\frac{n\pi x}{L_x} \right)\cos \left(\frac{m\pi y}{L_y} \right).$$
 
 * Load the [interactive simulation](/sim/?preset=inhomogHeatEquation). 
 
 * You can change the values of $m$ and $n$ to observe different patterns of sources/sinks of heat in the domain.
 
-* You can use any function $f(x,y)$ instead of the one given above. However, if $f(x,y)$ does not satisfy the constraint that $\int_0^{L_y}\int_0^{L_x} f(x,y) \, \d x \, \d y=0$, then the solution will either grow or decrease without bound. An easy way to prove this is to multiply the equation by $u$ and integrate to find, after applying the Neumann boundary conditions,
+* You can use any function $f(x,y)$ instead of the one given above. However, if $f(x,y)$ does not satisfy the constraint that $\int_0^{L_y}\int_0^{L_x} f(x,y) \, \d x \, \d y=0$, then the solution will either grow or decrease without bound. An easy way to prove this is to multiply the equation by $T$ and integrate to find, after applying the Neumann boundary conditions,
  
 $$
-\frac{1}{2}\pd{}{t}\int_0^{L_y} \int_0^{L_x} u^2 \, \d x \, \d y = \int_0^{L_y}\int_0^{L_x} f(x,y) \, \d x \, \d y.
+\frac{1}{2}\pd{}{t}\int_0^{L_y} \int_0^{L_x} T^2 \, \d x \, \d y = \int_0^{L_y}\int_0^{L_x} f(x,y) \, \d x \, \d y.
 $$
 
 ## Inhomogeneous transport
@@ -31,7 +31,7 @@ $$
 We can also consider a diffusion coefficient which varies in space by studying
 
 $$
-\pd{u}{t}= \vnabla\cdot(g(x,y)\vnabla u),
+\pd{T}{t}= \vnabla\cdot(g(x,y)\vnabla T),
 $$
 
 where we need $g(x,y)>0$ for all $x,y$ in the domain. As a simple (though complicated-looking) example, we take,

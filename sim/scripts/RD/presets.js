@@ -1169,9 +1169,10 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 0.5,
+        speciesNames: "T",
         suppressTryClickingPopup: true,
-        whatToDraw: "u",
-        whatToPlot: "u",
+        whatToDraw: "T",
+        whatToPlot: "T",
       };
       break;
 
@@ -1193,9 +1194,10 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 0.5,
+        speciesNames: "T",
         suppressTryClickingPopup: true,
-        whatToDraw: "u",
-        whatToPlot: "u",
+        whatToDraw: "T",
+        whatToPlot: "T",
       };
       break;
 
