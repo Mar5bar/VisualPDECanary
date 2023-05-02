@@ -3974,10 +3974,10 @@ function setEquationDisplayType() {
   regexes["QU"] = /\b(D_{q u}) (\\vnabla u)/g;
   regexes["QV"] = /\b(D_{q v}) (\\vnabla v)/g;
   regexes["QW"] = /\b(D_{q w}) (\\vnabla w)/g;
-  regexes["f"] = /\b(f)/g;
-  regexes["g"] = /\b(g)/g;
-  regexes["h"] = /\b(h)/g;
-  regexes["j"] = /\b(j)/g;
+  regexes["f"] = /\b(fFUN)/g;
+  regexes["g"] = /\b(gFUN)/g;
+  regexes["h"] = /\b(hFUN)/g;
+  regexes["j"] = /\b(jFUN)/g;
 
   if (options.typesetCustomEqs) {
     // We'll work using the default notation, then convert at the end.
@@ -4101,6 +4101,8 @@ function setEquationDisplayType() {
         return val + " }";
       });
     });
+    // Replace fFUN, gFUN etc with simply f,g,h,j.
+    str = replaceSymbolsInStr(str, ["fFUN", "gFUN", "hFUN", "jFUN"], ["f", "g", "h", "j"], "_[xy]");
   }
 
   // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.

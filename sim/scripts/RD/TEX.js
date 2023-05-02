@@ -1,64 +1,64 @@
 export function equationTEXFun() {
   let out = [];
   out[0] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D \\vnabla u) + f
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D \\vnabla u) + fFUN
     \\end{aligned}$`;
   out[1] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + f\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + g
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + fFUN\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + gFUN
     \\end{aligned}$`;
   out[2] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot (D_{u u} \\vnabla u+D_{u v} \\vnabla v ) + f\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot (D_{v u} \\vnabla u+D_{v v} \\vnabla v ) + g
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot (D_{u u} \\vnabla u+D_{u v} \\vnabla v ) + fFUN\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot (D_{v u} \\vnabla u+D_{v v} \\vnabla v ) + gFUN
     \\end{aligned}$`;
   out[3] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot (D_{u u} \\vnabla u+D_{u v} \\vnabla v ) + f\\\\
-    v &= \\vnabla \\cdot (D_{v u} \\vnabla u) + g
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot (D_{u u} \\vnabla u+D_{u v} \\vnabla v ) + fFUN\\\\
+    v &= \\vnabla \\cdot (D_{v u} \\vnabla u) + gFUN
     \\end{aligned}$`;
   out[4] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + f\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + g\\\\
-    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w} \\vnabla w) + h
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + fFUN\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + gFUN\\\\
+    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w} \\vnabla w) + hFUN
     \\end{aligned}$`;
   out[5] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w) + f\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w) + g\\\\
-    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w) + h
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w) + fFUN\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w) + gFUN\\\\
+    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w) + hFUN
     \\end{aligned}$`;
   out[6] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w) + f\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w) + g\\\\
-    w &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v) + h
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w) + fFUN\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w) + gFUN\\\\
+    w &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v) + hFUN
     \\end{aligned}$`;
   out[7] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + f\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + g\\\\
-    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w} \\vnabla w) + h\\\\
-    \\textstyle \\pd{q}{t} &= \\vnabla \\cdot(D_{q} \\vnabla q) + j
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + fFUN\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + gFUN\\\\
+    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w} \\vnabla w) + hFUN\\\\
+    \\textstyle \\pd{q}{t} &= \\vnabla \\cdot(D_{q} \\vnabla q) + jFUN
     \\end{aligned}$`;
   out[8] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + f\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + g\\\\
-    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w+D_{w q} \\vnabla q) + h\\\\
-    \\textstyle \\pd{q}{t} &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w+D_{q q} \\vnabla q) + j
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + fFUN\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + gFUN\\\\
+    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w+D_{w q} \\vnabla q) + hFUN\\\\
+    \\textstyle \\pd{q}{t} &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w+D_{q q} \\vnabla q) + jFUN
     \\end{aligned}$`;
   out[9] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + f\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + g\\\\
-    w &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w q} \\vnabla q) + h\\\\
-    \\textstyle \\pd{q}{t} &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w+D_{q q} \\vnabla q) + j
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + fFUN\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + gFUN\\\\
+    w &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w q} \\vnabla q) + hFUN\\\\
+    \\textstyle \\pd{q}{t} &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w+D_{q q} \\vnabla q) + jFUN
     \\end{aligned}$`;
   out[10] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + f\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + g\\\\
-    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w+D_{w q} \\vnabla q) + h\\\\
-    q &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w) + j
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + fFUN\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + gFUN\\\\
+    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w+D_{w q} \\vnabla q) + hFUN\\\\
+    q &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w) + jFUN
     \\end{aligned}$`;
   out[11] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + f\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + g\\\\
-    w &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w q} \\vnabla q) + h\\\\
-    q &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w) + j
+    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + fFUN\\\\
+    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + gFUN\\\\
+    w &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w q} \\vnabla q) + hFUN\\\\
+    q &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w) + jFUN
     \\end{aligned}$`;
   return out;
 }
