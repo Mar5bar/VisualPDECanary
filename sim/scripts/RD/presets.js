@@ -3,6 +3,32 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "Shell":
+      options = {
+        brushRadius: "2",
+        clearValueU: "0",
+        clearValueV: "1",
+        colourmap: "BlackGreenYellowRedWhite",
+        diffusionStrUU: "0.042",
+        diffusionStrVV: "2",
+        diffusionStrWW: "0",
+        dt: 0.0012,
+        flippedColourmap: true,
+        imagePathOne: "./images/shell_square.png",
+        maxColourValue: 3,
+        numTimestepsPerFrame: 200,
+        preset: "Shell",
+        resetOnImageLoad: true,
+        renderSize: 652,
+        reactionStrU: "- u*(1-0.9*I_S)+ u^2*v",
+        reactionStrV: "0.3 - u^2*v",
+        reactionStrW: "0",
+        spatialStep: 0.2,
+        squareCanvas: true,
+        whatToDraw: "u",
+        whatToPlot: "u",
+      };
+      break;
     case "Banner":
       options = {
         brushRadius: "1",
@@ -1169,9 +1195,10 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 0.5,
+        speciesNames: "T",
         suppressTryClickingPopup: true,
-        whatToDraw: "u",
-        whatToPlot: "u",
+        whatToDraw: "T",
+        whatToPlot: "T",
       };
       break;
 
@@ -1193,9 +1220,10 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 0.5,
+        speciesNames: "T",
         suppressTryClickingPopup: true,
-        whatToDraw: "u",
-        whatToPlot: "u",
+        whatToDraw: "T",
+        whatToPlot: "T",
       };
       break;
 

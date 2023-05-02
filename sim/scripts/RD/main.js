@@ -101,7 +101,7 @@ let isRunning,
   hasDrawn,
   anyDirichletBCs,
   nudgedUp = false,
-  errorOccurred = false,
+  compileErrorOccurred = false,
   NaNTimer,
   uiHidden = false,
   checkpointExists = false;
@@ -119,7 +119,7 @@ let parametersFolder,
   kineticParamsLabels = [],
   kineticParamsCounter = 0;
 const defaultSpecies = ["u", "v", "w", "q"];
-const defaultReactions = ["f", "g", "h", "j"];
+const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
 const placeholderSp = ["SPECIES1", "SPECIES2", "SPECIES3", "SPECIES4"];
 const placeholderRe = ["REACT1", "REACT2", "REACT3", "REACT4"];
 const listOfTypes = [
@@ -332,14 +332,12 @@ canvas = document.getElementById("simCanvas");
 // Warn the user if any errors occur.
 console.error = function (error) {
   // Record the fact that an error has occurred and we need to recompile shaders.
-  errorOccurred = true;
+  compileErrorOccurred = true;
   let errorStr = error.toString();
   console.log(errorStr);
   let regex = /ERROR.*/;
   regex.test(errorStr) ? (errorStr = errorStr.match(regex)) : {};
-  $("#error_description").html(errorStr);
-  fadein("#error");
-  $("#error").one("click", () => fadeout("#error"));
+  throwError(errorStr);
 };
 
 // Remove the logo if we're from an internal link.
@@ -1201,14 +1199,14 @@ function initGUI(startOpen) {
     .add(options, "speciesNames")
     .name("Species names")
     .onFinishChange(function () {
-      setSpeciesNames();
+      setCustomNames();
     });
 
   root
     .add(options, "reactionNames")
     .name("Reactions")
     .onFinishChange(function () {
-      setReactionNames();
+      setCustomNames();
     });
 
   // Let's put these in the left GUI.
@@ -1369,29 +1367,29 @@ function initGUI(startOpen) {
     setRDEquations();
     setEquationDisplayType();
   });
-  setOnfocus(fController, selectTeX, ["f"]);
-  setOnblur(fController, deselectTeX, ["f"]);
+  setOnfocus(fController, selectTeX, ["UFUN"]);
+  setOnblur(fController, deselectTeX, ["UFUN"]);
 
   gController = root.add(options, "reactionStrV").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
-  setOnfocus(gController, selectTeX, ["g"]);
-  setOnblur(gController, deselectTeX, ["g"]);
+  setOnfocus(gController, selectTeX, ["VFUN"]);
+  setOnblur(gController, deselectTeX, ["VFUN"]);
 
   hController = root.add(options, "reactionStrW").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
-  setOnfocus(hController, selectTeX, ["h"]);
-  setOnblur(hController, deselectTeX, ["h"]);
+  setOnfocus(hController, selectTeX, ["WFUN"]);
+  setOnblur(hController, deselectTeX, ["WFUN"]);
 
   jController = root.add(options, "reactionStrQ").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
-  setOnfocus(jController, selectTeX, ["j"]);
-  setOnblur(jController, deselectTeX, ["j"]);
+  setOnfocus(jController, selectTeX, ["QFUN"]);
+  setOnblur(jController, deselectTeX, ["QFUN"]);
 
   parametersFolder = leftGUI.addFolder("Parameters");
   setParamsFromKineticString();
@@ -2238,6 +2236,11 @@ function parseShaderString(str) {
   // Pad the string.
   str = " " + str + " ";
 
+  // Perform a syntax check.
+  if (!isValidSyntax(str)) {
+    return " 0.0 ";
+  }
+
   // Replace tanh with safetanh.
   str = str.replaceAll(/\btanh\b/g, "safetanh");
 
@@ -2764,8 +2767,7 @@ function loadOptions(preset) {
   Object.assign(options, newOptions);
 
   // Set custom species names and reaction names.
-  setSpeciesNames(true);
-  setReactionNames(true);
+  setCustomNames(true);
 
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
@@ -3336,7 +3338,7 @@ function configureGUI() {
 
       // Configure the controller names.
       setGUIControllerName(DuuController, TeXStrings["D"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
 
       break;
 
@@ -3358,8 +3360,8 @@ function configureGUI() {
       // Configure the controller names.
       setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
       setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
-      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
 
       break;
 
@@ -3383,8 +3385,8 @@ function configureGUI() {
       setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
       setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
       setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
-      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
       break;
 
     case 3:
@@ -3407,10 +3409,10 @@ function configureGUI() {
       // Configure the controller names.
       setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
       setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
       // Controllers for algebraic species have a different tooltip.
       setGUIControllerName(DvuController, TeXStrings["Dvu"], Vtooltip);
-      setGUIControllerName(gController, TeXStrings["g"], Vtooltip);
+      setGUIControllerName(gController, TeXStrings["VFUN"], Vtooltip);
       break;
 
     case 4:
@@ -3433,9 +3435,9 @@ function configureGUI() {
       setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
       setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
       setGUIControllerName(DwwController, TeXStrings["Dw"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
-      setGUIControllerName(gController, TeXStrings["g"], tooltip);
-      setGUIControllerName(hController, TeXStrings["h"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
+      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
       break;
 
     case 5:
@@ -3465,9 +3467,9 @@ function configureGUI() {
       setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
       setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
       setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
-      setGUIControllerName(gController, TeXStrings["g"], tooltip);
-      setGUIControllerName(hController, TeXStrings["h"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
+      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
       break;
 
     case 6:
@@ -3495,12 +3497,12 @@ function configureGUI() {
       setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
       setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
       setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
-      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
       // Controllers for algebraic species have a different tooltip.
       setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
       setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
-      setGUIControllerName(hController, TeXStrings["h"], Wtooltip);
+      setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
       break;
     case 7:
       // 4Species
@@ -3521,10 +3523,10 @@ function configureGUI() {
       setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
       setGUIControllerName(DwwController, TeXStrings["Dw"], tooltip);
       setGUIControllerName(DqqController, TeXStrings["Dq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
-      setGUIControllerName(gController, TeXStrings["g"], tooltip);
-      setGUIControllerName(hController, TeXStrings["h"], tooltip);
-      setGUIControllerName(jController, TeXStrings["j"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
+      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
+      setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
       break;
     case 8:
       // 4SpeciesCrossDiffusion.
@@ -3558,10 +3560,10 @@ function configureGUI() {
       setGUIControllerName(DqvController, TeXStrings["Dqv"], tooltip);
       setGUIControllerName(DqwController, TeXStrings["Dqw"], tooltip);
       setGUIControllerName(DqqController, TeXStrings["Dqq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
-      setGUIControllerName(gController, TeXStrings["g"], tooltip);
-      setGUIControllerName(hController, TeXStrings["h"], tooltip);
-      setGUIControllerName(jController, TeXStrings["j"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
+      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
+      setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
       break;
     case 9:
       // 4SpeciesCrossDiffusionAlgebraicW.
@@ -3591,14 +3593,14 @@ function configureGUI() {
       setGUIControllerName(DqvController, TeXStrings["Dqv"], tooltip);
       setGUIControllerName(DqwController, TeXStrings["Dqw"], tooltip);
       setGUIControllerName(DqqController, TeXStrings["Dqq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
-      setGUIControllerName(gController, TeXStrings["g"], tooltip);
-      setGUIControllerName(jController, TeXStrings["j"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
+      setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
       // Controllers for algebraic species have a different tooltip.
       setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
       setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
       setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
-      setGUIControllerName(hController, TeXStrings["h"], Wtooltip);
+      setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
       break;
     case 10:
       // 4SpeciesCrossDiffusionAlgebraicQ.
@@ -3628,14 +3630,14 @@ function configureGUI() {
       setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
       setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
       setGUIControllerName(DwqController, TeXStrings["Dwq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
-      setGUIControllerName(gController, TeXStrings["g"], tooltip);
-      setGUIControllerName(hController, TeXStrings["h"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
+      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
       // Controllers for algebraic species have a different tooltip.
       setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
       setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
       setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
-      setGUIControllerName(jController, TeXStrings["j"], Qtooltip);
+      setGUIControllerName(jController, TeXStrings["QFUN"], Qtooltip);
       break;
     case 11:
       // 4SpeciesCrossDiffusionAlgebraicWQ.
@@ -3661,17 +3663,17 @@ function configureGUI() {
       setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
       setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
       setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["f"], tooltip);
-      setGUIControllerName(gController, TeXStrings["g"], tooltip);
+      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
       // Controllers for algebraic species have a different tooltip.
       setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
       setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
       setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
-      setGUIControllerName(hController, TeXStrings["h"], Wtooltip);
+      setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
       setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
       setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
       setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
-      setGUIControllerName(jController, TeXStrings["j"], Qtooltip);
+      setGUIControllerName(jController, TeXStrings["QFUN"], Qtooltip);
       break;
   }
   // Set the names of the BCs and ICs controllers.
@@ -3971,10 +3973,10 @@ function setEquationDisplayType() {
   regexes["QU"] = /\b(D_{q u}) (\\vnabla u)/g;
   regexes["QV"] = /\b(D_{q v}) (\\vnabla v)/g;
   regexes["QW"] = /\b(D_{q w}) (\\vnabla w)/g;
-  regexes["f"] = /\b(f)/g;
-  regexes["g"] = /\b(g)/g;
-  regexes["h"] = /\b(h)/g;
-  regexes["j"] = /\b(j)/g;
+  regexes["UFUN"] = /\b(UFUN)/g;
+  regexes["VFUN"] = /\b(VFUN)/g;
+  regexes["WFUN"] = /\b(WFUN)/g;
+  regexes["QFUN"] = /\b(QFUN)/g;
 
   if (options.typesetCustomEqs) {
     // We'll work using the default notation, then convert at the end.
@@ -4000,10 +4002,17 @@ function setEquationDisplayType() {
     associatedStrs["QU"] = options.diffusionStrQU;
     associatedStrs["QV"] = options.diffusionStrQV;
     associatedStrs["QW"] = options.diffusionStrQW;
-    associatedStrs["f"] = options.reactionStrU;
-    associatedStrs["g"] = options.reactionStrV;
-    associatedStrs["h"] = options.reactionStrW;
-    associatedStrs["j"] = options.reactionStrQ;
+    associatedStrs["UFUN"] = options.reactionStrU;
+    associatedStrs["VFUN"] = options.reactionStrV;
+    associatedStrs["WFUN"] = options.reactionStrW;
+    associatedStrs["QFUN"] = options.reactionStrQ;
+
+    // Check associatedStrs for basic syntax validity, and return without updating the TeX if there are issues.
+    var badSyntax = false;
+    Object.keys(associatedStrs).forEach(function (key) {
+      if (!badSyntax) badSyntax |= !isValidSyntax(associatedStrs[key]);
+    });
+    if (badSyntax) return;
 
     // Convert all the associated strings back to default notation.
     function toDefault(s) {
@@ -4026,10 +4035,10 @@ function setEquationDisplayType() {
     });
 
     // Replace the reaction strings, converting everything back to default notation.
-    str = replaceUserDefReac(str, regexes["f"], associatedStrs["f"]);
-    str = replaceUserDefReac(str, regexes["g"], associatedStrs["g"]);
-    str = replaceUserDefReac(str, regexes["h"], associatedStrs["h"]);
-    str = replaceUserDefReac(str, regexes["j"], associatedStrs["j"]);
+    str = replaceUserDefReac(str, regexes["UFUN"], associatedStrs["UFUN"]);
+    str = replaceUserDefReac(str, regexes["VFUN"], associatedStrs["VFUN"]);
+    str = replaceUserDefReac(str, regexes["WFUN"], associatedStrs["WFUN"]);
+    str = replaceUserDefReac(str, regexes["QFUN"], associatedStrs["QFUN"]);
 
     // Look through the string for any open brackets ( or [ followed by a + or -.
     regex = /\(\s*\+/g;
@@ -4091,6 +4100,13 @@ function setEquationDisplayType() {
         return val + " }";
       });
     });
+    // Replace fFUN, gFUN etc with the reaction names.
+    str = replaceSymbolsInStr(
+      str,
+      ["UFUN", "VFUN", "WFUN", "QFUN"],
+      listOfReactions,
+      "_[xy]"
+    );
   }
 
   // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
@@ -4376,10 +4392,10 @@ function createParameterController(label, isNextParam) {
         // Update the uniforms with this new value.
         if (
           setKineticUniformFromString(kineticParamsStrs[label]) ||
-          errorOccurred
+          compileErrorOccurred
         ) {
           // Reset the error flag.
-          errorOccurred = false;
+          compileErrorOccurred = false;
           // If we added a new uniform, we need to remake all the shaders.
           updateShaders();
         }
@@ -4432,9 +4448,9 @@ function createParameterController(label, isNextParam) {
         createParameterController(newLabel, true);
         // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
-        if (setKineticUniformFromString(str) || errorOccurred) {
+        if (setKineticUniformFromString(str) || compileErrorOccurred) {
           // Reset the error flag.
-          errorOccurred = false;
+          compileErrorOccurred = false;
           updateShaders();
         }
       }
@@ -4822,19 +4838,17 @@ function waitListener(element, listenerName, val) {
   });
 }
 
-function getReservedStrs(allowSpecies, exclusions) {
+function getReservedStrs(exclusions) {
   // Load an RD shader and find floats, vecs, and ivecs.
   let regex = /(?:float|vec\d|ivec\d|function|void)\b\s+(\w+)\b/g;
   let str = RDShaderTop() + RDShaderUpdateCross();
   let reserved = [...str.matchAll(regex)].map((x) => x[1]).concat(exclusions);
-  if (!allowSpecies) reserved = reserved.concat(listOfSpecies);
   return reserved;
 }
 
-function isReservedName(name, allowSpecies, exclusions) {
-  if (allowSpecies == undefined) allowSpecies = false;
+function isReservedName(name, exclusions) {
   if (exclusions == undefined) exclusions = [];
-  return getReservedStrs(allowSpecies, exclusions).some(function (badName) {
+  return getReservedStrs(exclusions).some(function (badName) {
     let regex = new RegExp("\\b" + badName + "\\b", "g");
     return regex.test(name);
   });
@@ -4991,7 +5005,7 @@ function setKineticUniformFromString(str) {
       alert(
         "The name '" +
           match[1] +
-          "' is used under the hood, so can't be used as a species name. Please , so can't be used as a parameter. Please use a different name for " +
+          "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
           match[1] +
           "."
       );
@@ -5102,7 +5116,7 @@ function updateGUIDropdown(controller, labels, values) {
   controller.domElement.children[0].innerHTML = innerHTMLStr;
 }
 
-function setSpeciesNames(onLoading) {
+function setCustomNames(onLoading) {
   let oldListOfSpecies;
   if (listOfSpecies != undefined) {
     oldListOfSpecies = listOfSpecies;
@@ -5113,41 +5127,85 @@ function setSpeciesNames(onLoading) {
     .split(" ")
     .slice(0, defaultSpecies.length);
 
+  const newReactions = options.reactionNames
+    .replaceAll(/\W+/g, " ")
+    .trim()
+    .split(" ")
+    .slice(0, defaultReactions.length);
+
+  // If not enough species or reactions have been provided, add placeholders for those remaining.
+  const tempListOfSpecies = newSpecies.concat(
+    placeholderSp.slice(newSpecies.length)
+  );
+  const tempListOfReactions = newReactions.concat(
+    placeholderRe.slice(newReactions.length)
+  );
+
   // Check if any reserved names have been used, and stop if so.
   const kinParamNames = getKineticParamNames();
   let message;
-  for (var ind = 0; ind < newSpecies.length; ind++) {
+  for (var ind = 0; ind < tempListOfSpecies.length; ind++) {
     if (
       isReservedName(
-        newSpecies[ind],
-        true,
-        kinParamNames.concat(listOfReactions)
+        tempListOfSpecies[ind],
+        kinParamNames.concat(tempListOfReactions)
       )
     ) {
-      if (kinParamNames.includes(newSpecies[ind])) {
+      if (kinParamNames.includes(tempListOfSpecies[ind])) {
         message = "as a parameter";
+      } else if (tempListOfReactions.includes(tempListOfSpecies[ind])) {
+        message = "as a reaction";
       } else {
         message = "under the hood";
       }
       alert(
         "The name '" +
-          newSpecies[ind] +
+          tempListOfSpecies[ind] +
           "' is used " +
           message +
           ", so can't be used as a species name. Please use a different name for " +
-          newSpecies[ind] +
+          tempListOfSpecies[ind] +
+          "."
+      );
+      return;
+    }
+  }
+  for (var ind = 0; ind < tempListOfReactions.length; ind++) {
+    if (
+      isReservedName(
+        tempListOfReactions[ind],
+        kinParamNames.concat(tempListOfSpecies[ind])
+      )
+    ) {
+      if (kinParamNames.includes(tempListOfReactions[ind])) {
+        message = "as a parameter";
+      } else if (tempListOfSpecies.includes(tempListOfReactions[ind])) {
+        message = "as a reaction";
+      } else {
+        message = "under the hood";
+      }
+      alert(
+        "The name '" +
+          tempListOfReactions[ind] +
+          "' is used " +
+          message +
+          ", so can't be used as a function name. Please use a different name for " +
+          tempListOfReactions[ind] +
           "."
       );
       return;
     }
   }
 
-  // If not enough species have been provided, add placeholders for those remaining.
-  // The length of listOfSpecies is unchanged, preserving the total number of species.
-  listOfSpecies = newSpecies.concat(placeholderSp.slice(newSpecies.length));
+  // Now that we know all the names are valid, assign the names to the global variables.
+  listOfSpecies = tempListOfSpecies;
+  listOfReactions = tempListOfReactions;
+
+  // Define non-capturing strings that are equivalent to the old [uvwq], [vwq] etc in regexes.
+  genAnySpeciesRegexStrs();
 
   // Configuring the GUI requires strings for D_{u u} etc, so we'll modify the strings here for later use.
-  const defaultStrings = {
+  let defaultStrings = {
     ...getDefaultTeXLabelsDiffusion(),
     ...getDefaultTeXLabelsBCsICs(),
   };
@@ -5162,70 +5220,9 @@ function setSpeciesNames(onLoading) {
     );
   });
 
-  // Define a non-capturing strings that are equivalent to the old [uvwq], [vwq] etc in regexes.
-  genAnySpeciesRegexStrs();
-
-  // Don't update the problem if we're just loading in, as this will be done as part of loading.
-  if (onLoading) return;
-
-  // If we're not loading in, go through options and replace the old species with the new ones.
-  Object.keys(options).forEach(function (key) {
-    if (userTextFields.includes(key)) {
-      options[key] = replaceSymbolsInStr(
-        options[key],
-        oldListOfSpecies,
-        listOfSpecies,
-        "_[xy]"
-      );
-    }
-  });
-  configureOptions();
-  configureGUI();
-  updateShaders();
-  setEquationDisplayType();
-}
-
-function setReactionNames(onLoading) {
-  const newReactions = options.reactionNames
-    .replaceAll(/\W+/g, " ")
-    .trim()
-    .split(" ")
-    .slice(0, defaultReactions.length);
-  // Check if any reserved names have been used, and stop if so.
-  const kinParamNames = getKineticParamNames();
-  let message;
-  for (var ind = 0; ind < newReactions.length; ind++) {
-    if (isReservedName(newReactions[ind], false)) {
-      if (kinParamNames.includes(newReactions[ind])) {
-        message = "as a parameter";
-      } else if (listOfSpecies.includes(newReactions[ind])) {
-        message = "as a species name";
-      } else {
-        message = "under the hood";
-      }
-      alert(
-        "The name '" +
-          newReactions[ind] +
-          "' is used " +
-          message +
-          ", so can't be used as a function name. Please use a different name for " +
-          newReactions[ind] +
-          "."
-      );
-      return;
-    }
-  }
-
-  // If not enough reactions have been provided, add placeholders for those remaining.
-  // The length of listOfReactions is unchanged, preserving the total number of species.
-  listOfReactions = newReactions.concat(
-    placeholderRe.slice(newReactions.length)
-  );
-
-  // Configuring the GUI requires strings for f, g etc, so we'll modify the default strings for use here
+   // Configuring the GUI requires strings for f, g etc, so we'll modify the default strings for use here
   // via placeholders.
-  let regex;
-  const defaultStrings = getDefaultTeXLabelsReaction();
+  defaultStrings = getDefaultTeXLabelsReaction();
   Object.keys(defaultStrings).forEach(function (key) {
     TeXStrings[key] = parseStringToTEX(
       replaceSymbolsInStr(
@@ -5236,10 +5233,25 @@ function setReactionNames(onLoading) {
     );
   });
 
-  // Don't update the GUI if we're just loading in, as this will be done as part of loading.
-  if (onLoading) return;
-  configureGUI();
-  setEquationDisplayType();
+// Don't update the problem if we're just loading in, as this will be done as part of loading.
+if (onLoading) return;
+
+// If we're not loading in, go through options and replace the old species with the new ones.
+Object.keys(options).forEach(function (key) {
+  if (userTextFields.includes(key)) {
+    options[key] = replaceSymbolsInStr(
+      options[key],
+      oldListOfSpecies,
+      listOfSpecies,
+      "_[xy]"
+    );
+  }
+});
+configureOptions();
+configureGUI();
+updateShaders();
+setEquationDisplayType();
+
 }
 
 function genAnySpeciesRegexStrs() {
@@ -5488,4 +5500,53 @@ function setDefaultRenderSize() {
     Math.round(devicePixelRatio * canvasHeight),
     false
   );
+}
+
+function throwError(message) {
+  // If an error is already being displayed, just update the message.
+  if ($("#error").is(":visible")) {
+    $("#error_description").html(message);
+  } else {
+    // Otherwise, create a new error message.
+    $("#error_description").html(message);
+    fadein("#error");
+    $("#error").one("click", function () {
+      fadeout("#error");
+    });
+  }
+}
+
+function isValidSyntax(str) {
+  // Return true if syntax appears correct, and false otherwise.
+
+  // Empty parentheses?
+  if (/\(\s*\)/.test(str)) {
+    throwError("Empty parentheses in " + str.trim() + ".");
+    return false;
+  }
+
+  // Balanced parentheses?
+  let bracketDepth = 0;
+  for (var ind = 0; ind < str.length; ind++) {
+    if (str[ind] == "(") {
+      bracketDepth += 1;
+    } else if (str[ind] == ")") {
+      bracketDepth -= 1;
+    }
+  }
+  if (bracketDepth != 0) {
+    throwError("Unbalanced parentheses in " + str.trim() + ".");
+    return false;
+  }
+
+  // Trailing operator?
+  if (/[\+\-\*\^\/]\s*$/.test(str)) {
+    throwError(
+      "A binary operator is missing an operand in " + str.trim() + "."
+    );
+    return false;
+  }
+
+  // If we've not yet returned false, everything looks ok, so return true.
+  return true;
 }
