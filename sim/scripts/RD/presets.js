@@ -12,7 +12,7 @@ export function getPreset(id) {
         diffusionStrUU: "0.042",
         diffusionStrVV: "2",
         diffusionStrWW: "0",
-        dt: 0.0018,
+        dt: 0.0012,
         flippedColourmap: true,
         imagePathOne: "./images/shell_square.png",
         maxColourValue: 3,
