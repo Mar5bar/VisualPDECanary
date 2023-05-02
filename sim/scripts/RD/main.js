@@ -5003,7 +5003,7 @@ function setKineticUniformFromString(str) {
       alert(
         "The name '" +
           match[1] +
-          "' is used under the hood, so can't be used as a species name. Please , so can't be used as a parameter. Please use a different name for " +
+          "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
           match[1] +
           "."
       );
