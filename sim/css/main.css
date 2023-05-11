@@ -163,6 +163,14 @@ canvas {
     border-radius: 5px;
 }
 
+#leftGUI ul li div ul li div .property-name{
+    width:27%;
+}
+#leftGUI ul li div ul li div div.c {
+    width:73%;
+}
+
+
 .ui_button {
     position: absolute;
     display: flex;
