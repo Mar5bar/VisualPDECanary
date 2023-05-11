@@ -197,7 +197,7 @@ import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
-import { getPreset, getUserTextFields } from "./presets.js";
+import { getPreset, getUserTextFields, getFieldsInView } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import * as THREE from "../three.module.js";
 import { OrbitControls } from "../OrbitControls.js";
@@ -220,6 +220,7 @@ let TeXStrings = {
   ...getDefaultTeXLabelsBCsICs(),
 };
 let listOfSpecies, listOfReactions, anySpeciesRegexStrs;
+const fieldsInView = getFieldsInView();
 
 // Setup some configurable options.
 options = {};
@@ -1591,57 +1592,6 @@ function initGUI(startOpen) {
   root = rightGUI.addFolder("Colour");
 
   root
-    .add(options, "colourmap", {
-      BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
-      "Blue-Magenta": "blue-magenta",
-      Diverging: "diverging",
-      Greyscale: "greyscale",
-      Turbo: "turbo",
-      Viridis: "viridis",
-    })
-    .onChange(function () {
-      setDisplayColourAndType();
-      configureColourbar();
-    })
-    .name("Colour map");
-
-  root.add(funsObj, "flipColourmap").name("Reverse map");
-
-  minColourValueController = root
-    .add(options, "minColourValue")
-    .name("Min value")
-    .onChange(function () {
-      updateUniforms();
-      updateColourbarLims();
-      render();
-    });
-  minColourValueController.__precision = 2;
-
-  maxColourValueController = root
-    .add(options, "maxColourValue")
-    .name("Max value")
-    .onChange(function () {
-      updateUniforms();
-      updateColourbarLims();
-      render();
-    });
-  maxColourValueController.__precision = 2;
-
-  setColourRangeController = root
-    .add(funsObj, "setColourRangeButton")
-    .name("Snap range");
-
-  autoSetColourRangeController = root
-    .add(options, "autoSetColourRange")
-    .name("Auto snap")
-    .onChange(function () {
-      if (options.autoSetColourRange) {
-        setColourRange();
-        render();
-      }
-    });
-
-  root
     .add(options, "colourbar")
     .name("Colour bar")
     .onChange(configureColourbar);
@@ -1710,17 +1660,64 @@ function initGUI(startOpen) {
     .add(options, "whatToPlot")
     .name("Expression: ")
     .onFinishChange(function () {
+      checkIfCustomView(this.property);
       updateWhatToPlot();
-      // Register the Custom button as active if whatToPlot doesn't match the active view.
-      if (
-        options.whatToPlot != options.views[options.activeViewInd].whatToPlot
-      ) {
-        $("#views_list a").removeClass("active_button");
-        $("#customViewButton").addClass("active_button");
-        options.activeViewInd = customViewInd;
-        options.views[customViewInd].whatToPlot = options.whatToPlot;
-      }
       render();
+    });
+
+  root
+    .add(options, "colourmap", {
+      BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
+      "Blue-Magenta": "blue-magenta",
+      Diverging: "diverging",
+      Greyscale: "greyscale",
+      Turbo: "turbo",
+      Viridis: "viridis",
+    })
+    .onChange(function () {
+      checkIfCustomView(this.property);
+      setDisplayColourAndType();
+      configureColourbar();
+    })
+    .name("Colour map");
+
+  root.add(funsObj, "flipColourmap").name("Reverse map");
+
+  minColourValueController = root
+    .add(options, "minColourValue")
+    .name("Min value")
+    .onChange(function () {
+      checkIfCustomView(this.property);
+      updateUniforms();
+      updateColourbarLims();
+      render();
+    });
+  minColourValueController.__precision = 2;
+
+  maxColourValueController = root
+    .add(options, "maxColourValue")
+    .name("Max value")
+    .onChange(function () {
+      checkIfCustomView(this.property);
+      updateUniforms();
+      updateColourbarLims();
+      render();
+    });
+  maxColourValueController.__precision = 2;
+
+  setColourRangeController = root
+    .add(funsObj, "setColourRangeButton")
+    .name("Snap range");
+
+  autoSetColourRangeController = root
+    .add(options, "autoSetColourRange")
+    .name("Auto snap")
+    .onChange(function () {
+      checkIfCustomView(this.property);
+      if (options.autoSetColourRange) {
+        setColourRange();
+        render();
+      }
     });
 }
 
@@ -5650,13 +5647,36 @@ function configureViewsGUI() {
 
 function applyView(view, update) {
   // Apply the view, which is an object of parameters that resembles options.
+  // There may be fields missing from view, so we take those from preset=default and then preset=current.
+  let defaultOptions = getPreset("default");
+  let presetOptions = getPreset(options.preset);
+  Object.assign(defaultOptions, presetOptions);
+  fieldsInView.map(function (key) {
+    options[key] = defaultOptions[key];
+  });
+  console.log(defaultOptions);
   Object.assign(options, view);
   delete options.name;
-  whatToPlotController.updateDisplay();
+  refreshGUI(viewsGUI);
 
   if (update == undefined || update) {
     // Update what is being plotted, and render.
     updateWhatToPlot();
+    setDisplayColourAndType();
+    setColourRange();
+    updateUniforms();
+    updateColourbarLims();
+    configureColourbar();
     render();
+  }
+}
+
+function checkIfCustomView(property) {
+  // Register the Custom button as active if options.property doesn't match the active view.
+  if (options[property] != options.views[options.activeViewInd][property]) {
+    $("#views_list a").removeClass("active_button");
+    $("#customViewButton").addClass("active_button");
+    options.activeViewInd = customViewInd;
+    options.views[customViewInd][property] = options[property];
   }
 }

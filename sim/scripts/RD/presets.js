@@ -10,6 +10,8 @@ export function getPreset(id) {
           { name: "Activator", whatToPlot: "u" },
           { name: "Inhibitor", whatToPlot: "v" },
         ],
+        colourmap: "BlackGreenYellowRedWhite",
+        preset: "Test",
       };
       break;
     case "ShallowWaterDisk":
@@ -1993,5 +1995,16 @@ export function getUserTextFields() {
     "robinStrQ",
     "whatToDraw",
     "whatToPlot",
+  ];
+}
+
+export function getFieldsInView() {
+  return [
+    "whatToPlot",
+    "colourmap",
+    "flippedColourmap",
+    "minColourValue",
+    "maxColourValue",
+    "autoSetColourRange",
   ];
 }
