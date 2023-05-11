@@ -5649,6 +5649,7 @@ function configureViewsGUI() {
     };
     item.innerHTML = options.views[ind].name;
     if (ind == options.activeViewInd) item.classList.add("active_button");
+    if (options.views[ind].name == "Default") item.classList.add("lonely_button");
     document.getElementById("views_list").appendChild(item);
   }
 }
@@ -5659,7 +5660,7 @@ function applyView(view, update) {
   let defaultOptions = getPreset("default");
   let presetOptions = getPreset(options.preset);
   Object.assign(defaultOptions, presetOptions);
-  fieldsInView.map(function (key) {
+  fieldsInView.forEach(function (key) {
     options[key] = defaultOptions[key];
   });
   Object.assign(options, view);
@@ -5682,7 +5683,7 @@ function buildViewFromOptions() {
   let presetOptions = getPreset(options.preset);
   Object.assign(defaultOptions, presetOptions);
   let view = {};
-  fieldsInView.map(function (key) {
+  fieldsInView.forEach(function (key) {
     view[key] = defaultOptions[key];
   });
   return view;

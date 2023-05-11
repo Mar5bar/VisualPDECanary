@@ -766,6 +766,10 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     background-color: #888;
 }
 
+.lonely_button {
+    background: none !important;
+}
+
 .popout_panel .arrow,
 .popout_panel .arrow::after,
 #right_ui_arrow,
