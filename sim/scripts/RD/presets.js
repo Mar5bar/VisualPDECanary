@@ -1292,6 +1292,15 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 0.3,
+        views: [
+          { name: "$u$", whatToPlot: "u" },
+          {
+            name: "$v$",
+            whatToPlot: "v",
+            minColourValue: -0.1,
+            maxColourValue: 0.1,
+          },
+        ],
         whatToPlot: "u",
       };
       break;
@@ -1707,6 +1716,26 @@ export function getPreset(id) {
         reactionStrW: "0",
         squareCanvas: true,
         spatialStep: 0.5,
+        views: [
+          {
+            name: "$\\lvert \\psi\\rvert^2$",
+            whatToPlot: "u^2 + v^2",
+            minColourValue: 0,
+            maxColourValue: 1,
+          },
+          {
+            name: "$\\Re(\\psi)$",
+            whatToPlot: "u",
+            minColourValue: -1,
+            maxColourValue: 1,
+          },
+          {
+            name: "$\\Im(\\psi)$",
+            whatToPlot: "v",
+            minColourValue: -1,
+            maxColourValue: 1,
+          },
+        ],
         whatToDraw: "u",
         whatToPlot: "u^2+v^2",
       };
