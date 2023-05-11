@@ -2743,6 +2743,9 @@ function loadPreset(preset) {
     delete options.oneDimensional;
   }
 
+  // Configure views.
+  configureViews();
+
   // Replace the GUI.
   deleteGUIs();
   initGUI();
@@ -5646,23 +5649,29 @@ function isValidSyntax(str) {
   return true;
 }
 
-function addDefaultViewIfNeeded() {
-  // If there are no views specified, create one that simply corresponds to what is in options.
+function configureViews() {
+  // If there's no default view in options.views, add one.
   if (options.views.length == 0) {
     let view = buildViewFromOptions();
     view.name = "Default";
     options.views.push(view);
+  } else {
+    // Fill in any unset parts of the views.
+    options.views = options.views.map(function(view) {
+      let newView = buildViewFromOptions();
+      Object.assign(newView, view);
+      return newView;
+    })
   }
+
   // Now that all views are built, save them so that we can restore them later.
   savedViews = options.views;
+
 }
 
 function configureViewsGUI() {
   // Remove every existing list item from views_list.
   $("#views_list").empty();
-
-  // If there's no default view in options.views, add one.
-  addDefaultViewIfNeeded();
 
   let item;
   for (let ind = 0; ind < options.views.length; ind++) {
@@ -5684,10 +5693,6 @@ function configureViewsGUI() {
 
 function applyView(view, update) {
   // Apply the view, which is an object of parameters that resembles options.
-  // There may be fields missing from view, so we take those from the loaded options.
-  fieldsInView.forEach(function (key) {
-    options[key] = savedOptions[key];
-  });
   Object.assign(options, view);
   delete options.name;
   refreshGUI(viewsGUI);
