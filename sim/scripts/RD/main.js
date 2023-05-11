@@ -28,7 +28,7 @@ let basicMaterial,
 let domain, simDomain, clickDomain, line;
 let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine;
 let colourmap, colourmapEndpoints;
-let options, uniforms, funsObj;
+let options, uniforms, funsObj, savedOptions;
 let leftGUI,
   rightGUI,
   viewsGUI,
@@ -2849,6 +2849,8 @@ function loadOptions(preset) {
         );
       }
     });
+    // Save these loaded options if we ever need to revert.
+    savedOptions = options;
   }
 
   // If either of the images are used in the simulation, ensure that the simulation resets when the images are
@@ -5315,6 +5317,32 @@ function setCustomNames(onLoading) {
     });
     return newView;
   });
+  // Do the same for savedOptions.
+  Object.keys(savedOptions).forEach(function (key) {
+    if (userTextFields.includes(key)) {
+      savedOptions[key] = replaceSymbolsInStr(
+        savedOptions[key],
+        oldListOfSpecies,
+        listOfSpecies,
+        "_[xy]"
+      );
+    }
+  });
+  savedOptions.views = savedOptions.views.map(function (view) {
+    let newView = {};
+    newView.name = view.name;
+    Object.keys(view).forEach(function (key) {
+      if (userTextFields.includes(key)) {
+        newView[key] = replaceSymbolsInStr(
+          view[key],
+          oldListOfSpecies,
+          listOfSpecies,
+          "_[xy]"
+        );
+      }
+    });
+    return newView;
+  });
   configureOptions();
   configureGUI();
   updateShaders();
@@ -5656,12 +5684,9 @@ function configureViewsGUI() {
 
 function applyView(view, update) {
   // Apply the view, which is an object of parameters that resembles options.
-  // There may be fields missing from view, so we take those from preset=default and then preset=current.
-  let defaultOptions = getPreset("default");
-  let presetOptions = getPreset(options.preset);
-  Object.assign(defaultOptions, presetOptions);
+  // There may be fields missing from view, so we take those from the loaded options.
   fieldsInView.forEach(function (key) {
-    options[key] = defaultOptions[key];
+    options[key] = savedOptions[key];
   });
   Object.assign(options, view);
   delete options.name;
@@ -5679,12 +5704,9 @@ function applyView(view, update) {
 }
 
 function buildViewFromOptions() {
-  let defaultOptions = getPreset("default");
-  let presetOptions = getPreset(options.preset);
-  Object.assign(defaultOptions, presetOptions);
   let view = {};
   fieldsInView.forEach(function (key) {
-    view[key] = defaultOptions[key];
+    view[key] = savedOptions[key];
   });
   return view;
 }
