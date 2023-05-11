@@ -5657,7 +5657,7 @@ function configureViews() {
   // If there's no default view in options.views, add one.
   if (options.views.length == 0) {
     let view = buildViewFromOptions();
-    view.name = "Default";
+    view.name = "Default View";
     options.views.push(view);
   } else {
     // Fill in any unset parts of the views.
