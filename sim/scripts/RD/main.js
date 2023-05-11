@@ -423,8 +423,7 @@ if (
 
 /* GUI settings and equations buttons */
 $("#settings").click(function () {
-  $("#rightGUI").toggle();
-  $("#right_ui_arrow").toggle();
+  $("#right_ui").toggle();
   if ($("#help_panel").is(":visible")) {
     $("#help_panel").toggle();
   }
@@ -434,7 +433,7 @@ $("#settings").click(function () {
   if (
     window.innerWidth < 629 &&
     $("#left_ui").is(":visible") &&
-    $("#rightGUI").is(":visible")
+    $("#right_ui").is(":visible")
   ) {
     $("#left_ui").toggle();
   }
@@ -442,13 +441,12 @@ $("#settings").click(function () {
 $("#equations").click(function () {
   $("#left_ui").toggle();
   resizeEquationDisplay();
-  $("#left_ui_arrow").toggle();
   if (
     window.innerWidth < 629 &&
-    $("#rightGUI").is(":visible") &&
+    $("#right_ui").is(":visible") &&
     $("#left_ui").is(":visible")
   ) {
-    $("#rightGUI").toggle();
+    $("#right_ui").toggle();
   }
   if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
     $("#views_ui").toggle();
@@ -1058,9 +1056,9 @@ function initGUI(startOpen) {
   document.getElementById("leftGUIContainer").appendChild(leftGUI.domElement);
 
   // Initialise the right GUI.
-  rightGUI = new dat.GUI({ closeOnTop: true });
+  rightGUI = new dat.GUI({ closeOnTop: true, autoPlace: false });
   rightGUI.domElement.id = "rightGUI";
-  rightGUI.domElement.classList.add("ui");
+  document.getElementById("rightGUIContainer").appendChild(rightGUI.domElement);
 
   // Initialise the viewsGUI.
   viewsGUI = new dat.GUI({ closeOnTop: true, autoPlace: false });
@@ -1071,11 +1069,11 @@ function initGUI(startOpen) {
   rightGUI.open();
   viewsGUI.open();
   if (startOpen != undefined && startOpen) {
-    $("#rightGUI").show();
+    $("#right_ui").show();
     $("#left_ui").show();
   } else {
     $("#left_ui").hide();
-    $("#rightGUI").hide();
+    $("#right_ui").hide();
   }
 
   // Brush folder.
@@ -1705,7 +1703,7 @@ function initGUI(startOpen) {
   // Create a custom element for containing the view options.
   const viewsList = document.createElement("div");
   viewsList.id = "views_list";
-  viewsGUI.domElement.appendChild(viewsList);
+  viewsGUI.domElement.prepend(viewsList);
 
   root = viewsGUI.addFolder("Edit");
   whatToPlotController = root
@@ -2911,12 +2909,12 @@ function refreshGUI(folder, typeset) {
 }
 
 function deleteGUIs() {
-  deleteGUI(leftGUI);
-  deleteGUI(rightGUI);
-  deleteGUI(viewsGUI);
+  deleteGUI(leftGUI, true);
+  deleteGUI(rightGUI, true);
+  deleteGUI(viewsGUI, true);
 }
 
-function deleteGUI(folder) {
+function deleteGUI(folder, topLevel) {
   if (folder != undefined) {
     // Traverse through all the subfolders and recurse.
     for (let subfolderName in folder.__folders) {
@@ -2928,11 +2926,9 @@ function deleteGUI(folder) {
       folder.__controllers[i].remove();
     }
     // If this is the top-level GUI, destroy it.
-    if (folder == rightGUI) {
-      rightGUI.destroy();
-    } else if (folder == leftGUI) {
-      leftGUI.domElement.remove();
-      leftGUI.destroy();
+    if (topLevel != undefined && topLevel) {
+      folder.domElement.remove();
+      folder.destroy();
     }
   }
 }
@@ -5612,7 +5608,7 @@ function isValidSyntax(str) {
 }
 
 function addCustomViewIfNeeded() {
-  // If none of the views is labelled Custom, create one that simply displays the first species.
+  // If none of the views is labelled Custom, create one that simply displays what is in whatToPlot.
   if (
     !options.views.some(function (view) {
       return view.name == "Custom";
@@ -5620,7 +5616,7 @@ function addCustomViewIfNeeded() {
   ) {
     let view = {};
     view.name = "Custom";
-    view.whatToPlot = options.speciesNames[0];
+    view.whatToPlot = options.whatToPlot;
     customViewInd = options.views.length;
     options.views.push(view);
   }

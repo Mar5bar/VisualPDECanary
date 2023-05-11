@@ -83,7 +83,6 @@
 </div>
 
 <div class="ui hidden ui_button" id="settings" title="Settings"><i class="fa-solid fa-wrench"></i></div>
-<div id="right_ui_arrow" class="ui hidden"></div>
 
 <div class="ui hidden ui_button" id="play" title="Play (space)"><i class="fa-solid fa-play"></i></div>
 <div class="ui hidden ui_button" id="pause" title="Pause (space)"><i class="fa-solid fa-pause"></i></div>
@@ -95,7 +94,6 @@
 <div class="ui hidden ui_button" id="views" title="Views"><i class="fa-solid fa-layer-group"></i></div>
 
 <div class="ui hidden ui_button" id="equations" title="Edit equations"></div>
-<div id="left_ui_arrow" class="ui"></div>
 
 <a href='/'><div id="logo" class="ui hidden">VisualPDE</div></a>
 
@@ -114,6 +112,11 @@
     <button id="warning_no" class="btn-primary"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
 
+<div id="right_ui" class="ui hidden">
+    <div class="dg ac" id="rightGUIContainer" style="position: relative;"></div>
+    <div id="right_ui_arrow"></div>
+</div>
+
 <div id="left_ui" class="ui hidden">
     <div id="equation_display">
         <div id="equation_display_box">
@@ -121,10 +124,12 @@
         </div>
     </div>
     <div class="dg ac" id="leftGUIContainer" style="position: relative;"></div>
+    <div id="left_ui_arrow" class="ui"></div>
 </div>
 
 <div id="views_ui" class="ui hidden">
     <div class="dg ac" id="viewsGUIContainer" style="position: relative;"></div>
+    <div id="views_ui_arrow"></div>
 </div>
 
 <div id="share_panel" class="ui hidden popout_panel">

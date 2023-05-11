@@ -93,48 +93,50 @@ canvas {
 
 /* Simulation GUI */
 
+#leftGUI,
+#rightGUI,
+#viewsGUI {
+    padding: 5px;
+    background-color: black;
+    overflow-y: auto;
+    border: 5px black solid;
+    border-radius: 5px;
+    pointer-events: all;
+}
+
 #rightGUI {
     position: absolute;
     top: 0px;
-    right: 40px;
-    direction: rtl;
+    right: 0px;
     max-height: 90dvh;
+    direction: rtl;
 }
 
 #leftGUI {
     margin-top: -5px;
+    border-radius: 0px 0px 5px 5px;
     direction: ltr;
-    border: 5px black solid;
-    background-color: black;
-    pointer-events: all;
 }
 
-#leftGUIContainer {
-    top: 1px;
+#left_ui, #right_ui, #views_ui {
+    display: none;
+    position: absolute;
+    pointer-events: none;
 }
 
 #left_ui {
-    display: none;
-    position: absolute;
     top: 0px;
     left: 55px;
-    pointer-events: none;
+}
+
+#right_ui {
+    top: 0px;
+    right: 55px;
 }
 
 #views_ui {
-    display: none;
-    position: absolute;
-    top: 90px;
+    top: 130px;
     left: 55px;
-    pointer-events: none;
-}
-
-#viewsGUI {
-    margin-top: -5px;
-    direction: ltr;
-    border: 5px black solid;
-    background-color: black;
-    pointer-events: all;
 }
 
 #equation_display {
@@ -161,22 +163,6 @@ canvas {
 #equation_display.flexbox {
     display: flex;
     /* JQuery toggles to flex */
-}
-
-#leftGUI,
-#rightGUI {
-    padding: 5px;
-    background-color: black;
-    resize: horizontal;
-    overflow-y: auto
-}
-
-#leftGUI {
-    border-radius: 0px 0px 5px 5px;
-}
-
-#rightGUI {
-    border-radius: 5px;
 }
 
 #leftGUI ul li div ul li div .property-name{
@@ -785,7 +771,9 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
 #right_ui_arrow,
 #right_ui_arrow::after,
 #left_ui_arrow,
-#left_ui_arrow::after {
+#left_ui_arrow::after,
+#views_ui_arrow,
+#views_ui_arrow:after {
     position: absolute;
     border-color: transparent;
     border-style: solid;
@@ -854,8 +842,7 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 #right_ui_arrow {
-    display: none;
-    right: 48px;
+    right: -10px;
     top: 10px;
     border-width: 14px 0px 14px 14px;
     border-left-color: #000;
@@ -871,14 +858,29 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 #left_ui_arrow {
-    display: none;
-    left: 48px;
+    left: -10px;
     top: 10px;
     border-width: 14px 14px 14px 0px;
     border-right-color: #000;
 }
 
 #left_ui_arrow::after {
+    border-width: 14px 14px 14px 0px;
+    border-right-color: #ccc;
+    top: -14px;
+    left: -1px;
+    content: "";
+    z-index: -1;
+}
+
+#views_ui_arrow {
+    left: -10px;
+    top: 10px;
+    border-width: 14px 14px 14px 0px;
+    border-right-color: #000;
+}
+
+#views_ui_arrow::after {
     border-width: 14px 14px 14px 0px;
     border-right-color: #ccc;
     top: -14px;
