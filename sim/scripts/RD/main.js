@@ -431,15 +431,12 @@ $("#settings").click(function () {
   if ($("#help_panel").is(":visible")) {
     $("#help_panel").toggle();
   }
-  if ($("#help_panel").is(":visible")) {
-    $("#help_panel").toggle();
+  if ($("#share_panel").is(":visible")) {
+    $("#share_panel").toggle();
   }
-  if (
-    window.innerWidth < 629 &&
-    $("#left_ui").is(":visible") &&
-    $("#right_ui").is(":visible")
-  ) {
-    $("#left_ui").toggle();
+  if (window.innerWidth < 629 && $("#right_ui").is(":visible")) {
+    if ($("#left_ui").is(":visible")) $("#left_ui").toggle();
+    if ($("#views_ui").is(":visible")) $("#views_ui").toggle();
   }
 });
 $("#equations").click(function () {
@@ -495,6 +492,13 @@ $("#help_panel .container .button").click(function () {
 });
 $("#views").click(function () {
   $("#views_ui").toggle();
+  if (
+    window.innerWidth < 629 &&
+    $("#right_ui").is(":visible") &&
+    $("#views_ui").is(":visible")
+  ) {
+    $("#right_ui").toggle();
+  }
   if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
     $("#left_ui").toggle();
   }
@@ -5657,16 +5661,15 @@ function configureViews() {
     options.views.push(view);
   } else {
     // Fill in any unset parts of the views.
-    options.views = options.views.map(function(view) {
+    options.views = options.views.map(function (view) {
       let newView = buildViewFromOptions();
       Object.assign(newView, view);
       return newView;
-    })
+    });
   }
 
   // Now that all views are built, save them so that we can restore them later.
   savedViews = options.views;
-
 }
 
 function configureViewsGUI() {
@@ -5686,7 +5689,8 @@ function configureViewsGUI() {
     };
     item.innerHTML = options.views[ind].name;
     if (ind == options.activeViewInd) item.classList.add("active_button");
-    if (options.views[ind].name == "Default") item.classList.add("lonely_button");
+    if (options.views[ind].name == "Default")
+      item.classList.add("lonely_button");
     document.getElementById("views_list").appendChild(item);
   }
 }
