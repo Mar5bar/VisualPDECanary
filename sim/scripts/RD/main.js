@@ -5672,7 +5672,6 @@ function applyView(view, update) {
     // Update what is being plotted, and render.
     updateWhatToPlot();
     setDisplayColourAndType();
-    setColourRange();
     updateUniforms();
     updateColourbarLims();
     configureColourbar();
