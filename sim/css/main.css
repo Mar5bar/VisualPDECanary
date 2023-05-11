@@ -121,6 +121,22 @@ canvas {
     pointer-events: none;
 }
 
+#views_ui {
+    display: none;
+    position: absolute;
+    top: 90px;
+    left: 55px;
+    pointer-events: none;
+}
+
+#viewsGUI {
+    margin-top: -5px;
+    direction: ltr;
+    border: 5px black solid;
+    background-color: black;
+    pointer-events: all;
+}
+
 #equation_display {
     border: 5px black solid;
     border-radius: 5px;
@@ -737,16 +753,6 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     border-radius: 6px;
     box-shadow: 0 5px 10px #1113;
     z-index: 0;
-}
-
-#viewsContainer {
-    position: absolute;
-	left: 60px;
-	top: 95px;
-    border: 5px black solid;
-    border-radius: 5px;
-    background-color: black;
-		width: min(245px, calc(80vw - 65px)) !important;
 }
 
 #views_list {

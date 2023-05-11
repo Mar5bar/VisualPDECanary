@@ -450,6 +450,9 @@ $("#equations").click(function () {
   ) {
     $("#rightGUI").toggle();
   }
+  if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
+    $("#views_ui").toggle();
+  }
 });
 $("#pause").click(function () {
   pauseSim();
@@ -489,7 +492,10 @@ $("#help_panel .container .button").click(function () {
   $("#help_panel").toggle();
 });
 $("#views").click(function () {
-  $("#viewsContainer").toggle();
+  $("#views_ui").toggle();
+  if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
+    $("#left_ui").toggle();
+  }
 });
 
 // Begin the simulation.
@@ -1695,7 +1701,13 @@ function initGUI(startOpen) {
   // Debug.
   root.add(funsObj, "debug").name("Copy debug info");
 
-  root = viewsGUI;
+  // Populate the viewsGUI.
+  // Create a custom element for containing the view options.
+  const viewsList = document.createElement("div");
+  viewsList.id = "views_list";
+  viewsGUI.domElement.appendChild(viewsList);
+
+  root = viewsGUI.addFolder("Edit");
   whatToPlotController = root
     .add(options, "whatToPlot")
     .name("Expression: ")
