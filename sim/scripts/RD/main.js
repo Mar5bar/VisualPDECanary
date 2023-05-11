@@ -107,7 +107,7 @@ let isRunning,
   NaNTimer,
   uiHidden = false,
   checkpointExists = false,
-  customViewInd;
+  savedViews;
 let inTex, outTex;
 let nXDisc,
   nYDisc,
@@ -309,6 +309,9 @@ funsObj = {
       checkpointTexture = null;
       checkpointExists = false;
     }
+  },
+  restoreCurrentView: function () {
+    restoreCurrentView();
   },
 };
 
@@ -1660,7 +1663,7 @@ function initGUI(startOpen) {
     .add(options, "whatToPlot")
     .name("Expression: ")
     .onFinishChange(function () {
-      checkIfCustomView(this.property);
+      updateView(this.property);
       updateWhatToPlot();
       render();
     });
@@ -1675,7 +1678,7 @@ function initGUI(startOpen) {
       Viridis: "viridis",
     })
     .onChange(function () {
-      checkIfCustomView(this.property);
+      updateView(this.property);
       setDisplayColourAndType();
       configureColourbar();
     })
@@ -1685,14 +1688,14 @@ function initGUI(startOpen) {
     .add(funsObj, "flipColourmap")
     .name("Reverse map")
     .onChange(function () {
-      checkIfCustomView("flippedColourmap");
+      updateView("flippedColourmap");
     });
 
   minColourValueController = root
     .add(options, "minColourValue")
     .name("Min value")
     .onChange(function () {
-      checkIfCustomView(this.property);
+      updateView(this.property);
       updateUniforms();
       updateColourbarLims();
       render();
@@ -1703,7 +1706,7 @@ function initGUI(startOpen) {
     .add(options, "maxColourValue")
     .name("Max value")
     .onChange(function () {
-      checkIfCustomView(this.property);
+      updateView(this.property);
       updateUniforms();
       updateColourbarLims();
       render();
@@ -1714,20 +1717,22 @@ function initGUI(startOpen) {
     .add(funsObj, "setColourRangeButton")
     .name("Snap range")
     .onChange(function () {
-      checkIfCustomView("minColourValue");
-      checkIfCustomView("maxColourValue");
+      updateView("minColourValue");
+      updateView("maxColourValue");
     });
 
   autoSetColourRangeController = root
     .add(options, "autoSetColourRange")
     .name("Auto snap")
     .onChange(function () {
-      checkIfCustomView(this.property);
+      updateView(this.property);
       if (options.autoSetColourRange) {
         setColourRange();
         render();
       }
     });
+
+  // root.add(funsObj, "restoreCurrentView").name("Restore");
 }
 
 function animate() {
@@ -5613,34 +5618,34 @@ function isValidSyntax(str) {
   return true;
 }
 
-function addCustomViewIfNeeded() {
-  // If none of the views is labelled Custom, create one that simply displays what is in whatToPlot.
+function addDefaultViewIfNeeded() {
+  // If none of the views is labelled Default, create one that simply displays what is in options.
   if (
     !options.views.some(function (view) {
-      return view.name == "Custom";
+      return view.name == "Default";
     })
   ) {
-    let view = {};
-    view.name = "Custom";
-    view.whatToPlot = options.whatToPlot;
-    customViewInd = options.views.length;
+    let view = buildViewFromOptions();
+    view.name = "Default";
     options.views.push(view);
   }
+  // Now that all views are built, save them so that we can restore them later.
+  savedViews = options.views;
 }
 
 function configureViewsGUI() {
   // Remove every existing list item from views_list.
   $("#views_list").empty();
 
-  // If there's no custom view in options.views, add one.
-  addCustomViewIfNeeded();
+  // If there's no default view in options.views, add one.
+  addDefaultViewIfNeeded();
 
   let item;
   for (let ind = 0; ind < options.views.length; ind++) {
     item = document.createElement("a");
     item.onclick = function () {
       options.activeViewInd = ind;
-      // Apply the view. Second argument specifies that whatToPlotController should be disabled.
+      // Apply the view.
       applyView(options.views[ind]);
       // Register this button as active, and remove the active class from the others.
       $("#views_list a").removeClass("active_button");
@@ -5648,8 +5653,6 @@ function configureViewsGUI() {
     };
     item.innerHTML = options.views[ind].name;
     if (ind == options.activeViewInd) item.classList.add("active_button");
-    // If this is the Custom view, give it an ID.
-    if (ind == customViewInd) item.id = "customViewButton";
     document.getElementById("views_list").appendChild(item);
   }
 }
@@ -5663,7 +5666,6 @@ function applyView(view, update) {
   fieldsInView.map(function (key) {
     options[key] = defaultOptions[key];
   });
-  console.log(defaultOptions);
   Object.assign(options, view);
   delete options.name;
   refreshGUI(viewsGUI);
@@ -5679,12 +5681,30 @@ function applyView(view, update) {
   }
 }
 
-function checkIfCustomView(property) {
-  // Register the Custom button as active if options.property doesn't match the active view.
-  if (options[property] != options.views[options.activeViewInd][property]) {
-    $("#views_list a").removeClass("active_button");
-    $("#customViewButton").addClass("active_button");
-    options.activeViewInd = customViewInd;
-    options.views[customViewInd][property] = options[property];
-  }
+function buildViewFromOptions() {
+  let defaultOptions = getPreset("default");
+  let presetOptions = getPreset(options.preset);
+  Object.assign(defaultOptions, presetOptions);
+  let view = {};
+  fieldsInView.map(function (key) {
+    view[key] = defaultOptions[key];
+  });
+  return view;
+}
+
+function restoreView(ind) {
+  // Restore the view at index ind to the saved state.
+  options.views[ind] = savedViews[ind];
+  applyView(options.views[ind]);
+}
+
+function restoreCurrentView() {
+  if (options.activeViewInd < options.views.length)
+    restoreView(options.activeViewInd);
+}
+
+function updateView(property) {
+  // Update the active view with options.property.
+  if (options.activeViewInd < options.views.length)
+    options.views[options.activeViewInd][property] = options[property];
 }
