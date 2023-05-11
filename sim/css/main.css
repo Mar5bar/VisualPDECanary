@@ -102,12 +102,10 @@ canvas {
     border: 5px black solid;
     border-radius: 5px;
     pointer-events: all;
+    transform: translate3d(0, 0, 0);
 }
 
 #rightGUI {
-    position: absolute;
-    top: 0px;
-    right: 0px;
     max-height: 90dvh;
     direction: rtl;
 }
