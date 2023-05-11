@@ -5619,12 +5619,8 @@ function isValidSyntax(str) {
 }
 
 function addDefaultViewIfNeeded() {
-  // If none of the views is labelled Default, create one that simply displays what is in options.
-  if (
-    !options.views.some(function (view) {
-      return view.name == "Default";
-    })
-  ) {
+  // If there are no views specified, create one that simply corresponds to what is in options.
+  if (options.views.length == 0) {
     let view = buildViewFromOptions();
     view.name = "Default";
     options.views.push(view);
