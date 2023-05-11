@@ -3,6 +3,15 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "Test":
+      options = {
+        activeViewInd: 1,
+        views: [
+          { name: "Activator", whatToPlot: "u" },
+          { name: "Inhibitor", whatToPlot: "v" },
+        ],
+      };
+      break;
     case "ShallowWaterDisk":
       options = {
         boundaryConditionsU: "dirichlet",
@@ -1839,6 +1848,7 @@ export function getPreset(id) {
 
     default:
       options = {
+        activeViewInd: 0,
         algebraicV: false,
         algebraicW: false,
         algebraicQ: false,
@@ -1933,6 +1943,7 @@ export function getPreset(id) {
         tryClickingText: "Try clicking!",
         typeOfBrush: "circle",
         typesetCustomEqs: true,
+        views: [],
         whatToDraw: "v",
         whatToPlot: "v",
       };

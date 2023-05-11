@@ -31,6 +31,7 @@ let colourmap, colourmapEndpoints;
 let options, uniforms, funsObj;
 let leftGUI,
   rightGUI,
+  viewsGUI,
   root,
   typeOfBrushController,
   drawIn3DController,
@@ -95,6 +96,7 @@ let leftGUI,
   fIm,
   imControllerOne,
   imControllerTwo,
+  whatToPlotController,
   selectedEntries = new Set();
 let isRunning,
   isDrawing,
@@ -104,7 +106,8 @@ let isRunning,
   compileErrorOccurred = false,
   NaNTimer,
   uiHidden = false,
-  checkpointExists = false;
+  checkpointExists = false,
+  customViewInd;
 let inTex, outTex;
 let nXDisc,
   nYDisc,
@@ -484,6 +487,9 @@ $("#link").click(function () {
 });
 $("#help_panel .container .button").click(function () {
   $("#help_panel").toggle();
+});
+$("#views").click(function () {
+  $("#viewsContainer").toggle();
 });
 
 // Begin the simulation.
@@ -1050,8 +1056,14 @@ function initGUI(startOpen) {
   rightGUI.domElement.id = "rightGUI";
   rightGUI.domElement.classList.add("ui");
 
+  // Initialise the viewsGUI.
+  viewsGUI = new dat.GUI({ closeOnTop: true, autoPlace: false });
+  viewsGUI.domElement.id = "viewsGUI";
+  document.getElementById("viewsGUIContainer").appendChild(viewsGUI.domElement);
+
   leftGUI.open();
   rightGUI.open();
+  viewsGUI.open();
   if (startOpen != undefined && startOpen) {
     $("#rightGUI").show();
     $("#left_ui").show();
@@ -1518,14 +1530,6 @@ function initGUI(startOpen) {
   root = rightGUI.addFolder("Plotting");
 
   root
-    .add(options, "whatToPlot")
-    .name("Expression: ")
-    .onFinishChange(function () {
-      updateWhatToPlot();
-      render();
-    });
-
-  root
     .add(options, "plotType", {
       Line: "line",
       Plane: "plane",
@@ -1690,6 +1694,24 @@ function initGUI(startOpen) {
   root = root.addFolder("Debug");
   // Debug.
   root.add(funsObj, "debug").name("Copy debug info");
+
+  root = viewsGUI;
+  whatToPlotController = root
+    .add(options, "whatToPlot")
+    .name("Expression: ")
+    .onFinishChange(function () {
+      updateWhatToPlot();
+      // Register the Custom button as active if whatToPlot doesn't match the active view.
+      if (
+        options.whatToPlot != options.views[options.activeViewInd].whatToPlot
+      ) {
+        $("#views_list a").removeClass("active_button");
+        $("#customViewButton").addClass("active_button");
+        options.activeViewInd = customViewInd;
+        options.views[customViewInd].whatToPlot = options.whatToPlot;
+      }
+      render();
+    });
 }
 
 function animate() {
@@ -2704,6 +2726,14 @@ function loadPreset(preset) {
   deleteGUIs();
   initGUI();
 
+  // Apply any specified view.
+  if (options.activeViewInd < options.views.length) {
+    applyView(options.views[options.activeViewInd], false, false);
+  } else {
+    // No valid view has been specified, so apply an empty view that can be customised.
+    applyView({}, true, false);
+  }
+
   // Update the equations, setup and GUI in line with new options.
   updateProblem();
 
@@ -2871,6 +2901,7 @@ function refreshGUI(folder, typeset) {
 function deleteGUIs() {
   deleteGUI(leftGUI);
   deleteGUI(rightGUI);
+  deleteGUI(viewsGUI);
 }
 
 function deleteGUI(folder) {
@@ -3741,9 +3772,6 @@ function configureGUI() {
   options.plotType == "line"
     ? hideGUIController(typeOfBrushController)
     : showGUIController(typeOfBrushController);
-  // Refresh the GUI displays.
-  refreshGUI(leftGUI);
-  refreshGUI(rightGUI);
   manualInterpolationNeeded
     ? hideGUIController(forceManualInterpolationController)
     : showGUIController(forceManualInterpolationController);
@@ -3755,6 +3783,12 @@ function configureGUI() {
     whatToDrawController,
     listOfSpecies.slice(0, options.numSpecies)
   );
+  // Configure the Views GUI from options.views.
+  configureViewsGUI();
+  // Refresh the GUI displays.
+  refreshGUI(leftGUI);
+  refreshGUI(rightGUI);
+  refreshGUI(viewsGUI);
 }
 
 function configureOptions() {
@@ -5220,7 +5254,7 @@ function setCustomNames(onLoading) {
     );
   });
 
-   // Configuring the GUI requires strings for f, g etc, so we'll modify the default strings for use here
+  // Configuring the GUI requires strings for f, g etc, so we'll modify the default strings for use here
   // via placeholders.
   defaultStrings = getDefaultTeXLabelsReaction();
   Object.keys(defaultStrings).forEach(function (key) {
@@ -5233,25 +5267,39 @@ function setCustomNames(onLoading) {
     );
   });
 
-// Don't update the problem if we're just loading in, as this will be done as part of loading.
-if (onLoading) return;
+  // Don't update the problem if we're just loading in, as this will be done as part of loading.
+  if (onLoading) return;
 
-// If we're not loading in, go through options and replace the old species with the new ones.
-Object.keys(options).forEach(function (key) {
-  if (userTextFields.includes(key)) {
-    options[key] = replaceSymbolsInStr(
-      options[key],
-      oldListOfSpecies,
-      listOfSpecies,
-      "_[xy]"
-    );
-  }
-});
-configureOptions();
-configureGUI();
-updateShaders();
-setEquationDisplayType();
-
+  // If we're not loading in, go through options and replace the old species with the new ones.
+  Object.keys(options).forEach(function (key) {
+    if (userTextFields.includes(key)) {
+      options[key] = replaceSymbolsInStr(
+        options[key],
+        oldListOfSpecies,
+        listOfSpecies,
+        "_[xy]"
+      );
+    }
+  });
+  options.views = options.views.map(function (view) {
+    let newView = {};
+    newView.name = view.name;
+    Object.keys(view).forEach(function (key) {
+      if (userTextFields.includes(key)) {
+        newView[key] = replaceSymbolsInStr(
+          view[key],
+          oldListOfSpecies,
+          listOfSpecies,
+          "_[xy]"
+        );
+      }
+    });
+    return newView;
+  });
+  configureOptions();
+  configureGUI();
+  updateShaders();
+  setEquationDisplayType();
 }
 
 function genAnySpeciesRegexStrs() {
@@ -5549,4 +5597,58 @@ function isValidSyntax(str) {
 
   // If we've not yet returned false, everything looks ok, so return true.
   return true;
+}
+
+function addCustomViewIfNeeded() {
+  // If none of the views is labelled Custom, create one that simply displays the first species.
+  if (
+    !options.views.some(function (view) {
+      return view.name == "Custom";
+    })
+  ) {
+    let view = {};
+    view.name = "Custom";
+    view.whatToPlot = options.speciesNames[0];
+    customViewInd = options.views.length;
+    options.views.push(view);
+  }
+}
+
+function configureViewsGUI() {
+  // Remove every existing list item from views_list.
+  $("#views_list").empty();
+
+  // If there's no custom view in options.views, add one.
+  addCustomViewIfNeeded();
+
+  let item;
+  for (let ind = 0; ind < options.views.length; ind++) {
+    item = document.createElement("a");
+    item.onclick = function () {
+      options.activeViewInd = ind;
+      // Apply the view. Second argument specifies that whatToPlotController should be disabled.
+      applyView(options.views[ind]);
+      // Register this button as active, and remove the active class from the others.
+      $("#views_list a").removeClass("active_button");
+      this.classList.add("active_button");
+    };
+    item.innerHTML = options.views[ind].name;
+    if (ind == options.activeViewInd) item.classList.add("active_button");
+    // If this is the Custom view, give it an ID.
+    if (ind == customViewInd) item.id = "customViewButton";
+    document.getElementById("views_list").appendChild(item);
+  }
+}
+
+function applyView(view, update) {
+  // Apply the view, which is an object of parameters that resembles options.
+  Object.assign(options, view);
+  delete options.name;
+  whatToPlotController.updateDisplay();
+
+  if (update == undefined || update) {
+    // Update what is being plotted, and render.
+    updateWhatToPlot();
+    render();
+  }
 }

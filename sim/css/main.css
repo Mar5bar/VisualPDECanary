@@ -232,6 +232,11 @@ canvas {
     right: 3px;
 }
 
+#views {
+	top: 130px;
+	left: 3px;
+}
+
 #link {
     top: 130px;
     right: 3px;
@@ -724,6 +729,41 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     border-radius: 6px;
     box-shadow: 0 5px 10px #1113;
     z-index: 0;
+}
+
+#viewsContainer {
+    position: absolute;
+	left: 60px;
+	top: 95px;
+    border: 5px black solid;
+    border-radius: 5px;
+    background-color: black;
+		width: min(245px, calc(80vw - 65px)) !important;
+}
+
+#views_list {
+	overflow: auto;
+    white-space: nowrap;
+	text-align: center;
+}
+
+#views_list a {
+	display: inline-block;
+  color: white;
+  text-align: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 8px;
+  padding-right: 8px;
+  text-decoration: none;
+}
+
+#views_list a:hover {
+	background-color: #777;
+}
+
+.active_button {
+    background-color: #888;
 }
 
 .popout_panel .arrow,
