@@ -1681,7 +1681,12 @@ function initGUI(startOpen) {
     })
     .name("Colour map");
 
-  root.add(funsObj, "flipColourmap").name("Reverse map");
+  root
+    .add(funsObj, "flipColourmap")
+    .name("Reverse map")
+    .onChange(function () {
+      checkIfCustomView("flippedColourmap");
+    });
 
   minColourValueController = root
     .add(options, "minColourValue")
@@ -1707,7 +1712,11 @@ function initGUI(startOpen) {
 
   setColourRangeController = root
     .add(funsObj, "setColourRangeButton")
-    .name("Snap range");
+    .name("Snap range")
+    .onChange(function () {
+      checkIfCustomView("minColourValue");
+      checkIfCustomView("maxColourValue");
+    });
 
   autoSetColourRangeController = root
     .add(options, "autoSetColourRange")
