@@ -1661,7 +1661,11 @@ function initGUI(startOpen) {
   const viewsList = document.createElement("div");
   viewsList.id = "views_list";
   viewsGUI.domElement.prepend(viewsList);
-
+  const viewsLabel = document.createElement("div");
+  viewsLabel.innerHTML = "Views";
+  viewsLabel.id = "views_label";
+  viewsGUI.domElement.prepend(viewsLabel);
+  
   root = viewsGUI.addFolder("Edit");
   whatToPlotController = root
     .add(options, "whatToPlot")
