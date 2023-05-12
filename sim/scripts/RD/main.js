@@ -4604,7 +4604,11 @@ function setParamsFromKineticString() {
 
 function setKineticStringFromParams() {
   // Combine the custom parameters into a single string for storage, so long as no reserved names are used.
-  options.kineticParams = Object.values(kineticParamsStrs).join(";");
+  options.kineticParams = Object.values(kineticParamsStrs)
+    .map(function (str) {
+      return str.replaceAll(/"\s+"/g, " ");
+    })
+    .join(";");
 }
 
 function fromExternalLink() {
