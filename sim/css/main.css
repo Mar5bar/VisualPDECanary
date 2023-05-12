@@ -765,6 +765,9 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
 #views_label {
     padding-bottom: 8px;
     text-align: center;
+    font-size: 20px;
+    font-weight: 200;
+    letter-spacing: -1px;
 }
 
 .active_button {
