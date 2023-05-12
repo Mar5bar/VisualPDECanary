@@ -372,8 +372,7 @@ export function getPreset(id) {
         domainScale: 250,
         dt: 0.001,
         kineticParams:
-          "V  =  20 in [0,40];R  =  10 in [0,20];lambda  =  1;beta  =  0;sigma  =  0;eta_sus  =  0.1 in [0,1];rho_sus  =  0.1 in [0,1];I  =  1;",
-        minColourValue: -5.731946473019889e-9,
+          "V = 20 in [0,40];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         neumannStrU: "-H((dx-x))*C_x + H((x+dx-L_x))*C_x",
         numSpecies: "3",
         numTimestepsPerFrame: 200,
@@ -386,6 +385,10 @@ export function getPreset(id) {
         speciesNames: "C d P",
         suppressTryClickingPopup: true,
         timeDisplay: true,
+        views: [
+          { name: "Probability", whatToPlot: "P" },
+          { name: "Concentration", whatToPlot: "C", maxColourValue: 5 },
+        ],
         whatToDraw: "C",
         whatToPlot: "P",
       };
