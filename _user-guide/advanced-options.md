@@ -84,6 +84,9 @@ Click to instantly snap **Min value** and **Max value** to the current minimum a
 **Auto snap**\
 Toggle the automatic snapping of the colour map limits. This can be very useful if you don't know the range in which **Expression** will fall, especially if it is changing frequently.
 
+**Edit name**\
+Edit the name of the current View, enclosing any mathematics in '$' tags.
+
 ## Settings <a id='settings'> {{ layout.settings }}
 Almost everything in VisualPDE is customisable. Here you can edit a wide range of settings, from the size of the brush to the timestep of the simulation.
 
