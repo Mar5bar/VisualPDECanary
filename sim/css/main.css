@@ -755,6 +755,7 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     text-decoration: none;
     border: 2px solid #ccc;
     border-radius: 5px;
+    cursor: pointer;
 }
 
 #views_list a:hover {
