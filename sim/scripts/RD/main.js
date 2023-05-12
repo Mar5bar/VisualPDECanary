@@ -313,6 +313,19 @@ funsObj = {
   restoreCurrentView: function () {
     restoreCurrentView();
   },
+  editCurrentViewName: function () {
+    let name = prompt(
+      "Enter a name for the current View. You can enclose mathematics in $ $.",
+      options.views[options.activeViewInd].name
+    );
+    if (name != null) {
+      options.views[options.activeViewInd].name = name;
+      configureViewsGUI();
+      if (MathJax.typesetPromise != undefined) {
+        MathJax.typesetPromise();
+      }
+    }
+  },
 };
 
 // Define a handy countDecimals function.
@@ -1665,7 +1678,7 @@ function initGUI(startOpen) {
   viewsLabel.innerHTML = "Views";
   viewsLabel.id = "views_label";
   viewsGUI.domElement.prepend(viewsLabel);
-  
+
   root = viewsGUI.addFolder("Edit");
   whatToPlotController = root
     .add(options, "whatToPlot")
@@ -1739,6 +1752,8 @@ function initGUI(startOpen) {
         render();
       }
     });
+
+  root.add(funsObj, "editCurrentViewName").name("Edit name");
 
   // root.add(funsObj, "restoreCurrentView").name("Restore");
 }
