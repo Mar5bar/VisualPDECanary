@@ -5712,8 +5712,7 @@ function configureViewsGUI() {
     };
     item.innerHTML = options.views[ind].name;
     if (ind == options.activeViewInd) item.classList.add("active_button");
-    if (options.views[ind].name == "Default")
-      item.classList.add("lonely_button");
+    if (options.views.length == 1) item.classList.add("lonely_button");
     document.getElementById("views_list").appendChild(item);
   }
 }
