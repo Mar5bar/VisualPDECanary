@@ -2848,6 +2848,9 @@ function loadOptions(preset) {
 
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
+  
+  // Ensure that the correct play/pause button is showing.
+  isRunning ? playSim() : pauseSim();
 
   // Enable backwards compatibility.
   options.brushRadius = options.brushRadius.toString();
