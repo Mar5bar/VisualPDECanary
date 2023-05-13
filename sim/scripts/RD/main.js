@@ -85,6 +85,10 @@ let leftGUI,
   dirichletVController,
   dirichletWController,
   dirichletQController,
+  mixedUController,
+  mixedVController,
+  mixedWController,
+  mixedQController,
   neumannUController,
   neumannVController,
   neumannWController,
@@ -1440,6 +1444,7 @@ function initGUI(startOpen) {
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Mixed: "mixed",
     })
     .onChange(function () {
       setRDEquations();
@@ -1458,12 +1463,18 @@ function initGUI(startOpen) {
     .add(options, "robinStrU")
     .onFinishChange(setRDEquations);
 
+  mixedUController = root
+    .add(options, "mixedStrU")
+    .name("Mixed")
+    .onFinishChange(setRDEquations);
+
   vBCsController = root
     .add(options, "boundaryConditionsV", {
       Periodic: "periodic",
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Mixed: "mixed",
     })
     .onChange(function () {
       setRDEquations();
@@ -1482,12 +1493,18 @@ function initGUI(startOpen) {
     .add(options, "robinStrV")
     .onFinishChange(setRDEquations);
 
+  mixedVController = root
+    .add(options, "mixedStrV")
+    .name("Mixed")
+    .onFinishChange(setRDEquations);
+
   wBCsController = root
     .add(options, "boundaryConditionsW", {
       Periodic: "periodic",
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Mixed: "mixed",
     })
     .onChange(function () {
       setRDEquations();
@@ -1506,12 +1523,18 @@ function initGUI(startOpen) {
     .add(options, "robinStrW")
     .onFinishChange(setRDEquations);
 
+  mixedWController = root
+    .add(options, "mixedStrW")
+    .name("Mixed")
+    .onFinishChange(setRDEquations);
+
   qBCsController = root
     .add(options, "boundaryConditionsQ", {
       Periodic: "periodic",
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Mixed: "mixed",
     })
     .name("$q$")
     .onChange(function () {
@@ -1529,6 +1552,11 @@ function initGUI(startOpen) {
 
   robinQController = root
     .add(options, "robinStrQ")
+    .onFinishChange(setRDEquations);
+
+  mixedQController = root
+    .add(options, "mixedStrQ")
+    .name("Mixed")
     .onFinishChange(setRDEquations);
 
   // Initial conditions folder.
@@ -2990,6 +3018,27 @@ function setBCsGUI() {
     showGUIController(robinQController);
   } else {
     hideGUIController(robinQController);
+  }
+
+  if (options.boundaryConditionsU == "mixed") {
+    showGUIController(mixedUController);
+  } else {
+    hideGUIController(mixedUController);
+  }
+  if (options.boundaryConditionsV == "mixed") {
+    showGUIController(mixedVController);
+  } else {
+    hideGUIController(mixedVController);
+  }
+  if (options.boundaryConditionsW == "mixed") {
+    showGUIController(mixedWController);
+  } else {
+    hideGUIController(mixedWController);
+  }
+  if (options.boundaryConditionsQ == "mixed") {
+    showGUIController(mixedQController);
+  } else {
+    hideGUIController(mixedQController);
   }
 
   if (options.domainViaIndicatorFun) {
