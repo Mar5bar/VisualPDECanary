@@ -89,6 +89,7 @@ export function RDShaderRobinX(LR) {
   if (LR == undefined) return L + R;
   if (LR == "L") return L;
   if (LR == "R") return R;
+  return "";
 }
 
 export function RDShaderRobinY(TB) {
@@ -103,8 +104,9 @@ export function RDShaderRobinY(TB) {
     }
     `;
   if (TB == undefined) return T + B;
-  if (TB == "L") return T;
-  if (TB == "R") return B;
+  if (TB == "T") return T;
+  if (TB == "B") return B;
+  return "";
 }
 
 export function RDShaderAdvectionPreBC() {
@@ -192,6 +194,7 @@ export function RDShaderDirichletX(LR) {
     if (LR == undefined) return L + R;
     if (LR == "L") return L;
     if (LR == "R") return R;
+    return "";
 }
 
 export function RDShaderDirichletY(TB) {
@@ -208,6 +211,7 @@ export function RDShaderDirichletY(TB) {
     if (TB == undefined) return T + B;
     if (TB == "T") return T;
     if (TB == "B") return B;
+    return "";
 }
 
 export function RDShaderDirichletIndicatorFun() {
