@@ -2472,51 +2472,67 @@ function setRDEquations() {
       ";\n}\n";
   } else {
     if (options.boundaryConditionsU == "dirichlet") {
-      dirichletShader +=
-        selectSpeciesInShaderStr(RDShaderDirichletX(), listOfSpecies[0]) +
-        parseShaderString(options.dirichletStrU) +
-        ";\n}\n";
+      dirichletShader += parseDirichletRHS(
+        options.dirichletStrU,
+        listOfSpecies[0]
+      );
+      dirichletShader += selectSpeciesInShaderStr(
+        RDShaderDirichletX(),
+        listOfSpecies[0]
+      );
       if (options.dimension > 1) {
-        dirichletShader +=
-          selectSpeciesInShaderStr(RDShaderDirichletY(), listOfSpecies[0]) +
-          parseShaderString(options.dirichletStrU) +
-          ";\n}\n";
+        dirichletShader += selectSpeciesInShaderStr(
+          RDShaderDirichletY(),
+          listOfSpecies[0]
+        );
       }
     }
     if (options.boundaryConditionsV == "dirichlet") {
-      dirichletShader +=
-        selectSpeciesInShaderStr(RDShaderDirichletX(), listOfSpecies[1]) +
-        parseShaderString(options.dirichletStrV) +
-        ";\n}\n";
+      dirichletShader += parseDirichletRHS(
+        options.dirichletStrV,
+        listOfSpecies[1]
+      );
+      dirichletShader += selectSpeciesInShaderStr(
+        RDShaderDirichletX(),
+        listOfSpecies[1]
+      );
       if (options.dimension > 1) {
-        dirichletShader +=
-          selectSpeciesInShaderStr(RDShaderDirichletY(), listOfSpecies[1]) +
-          parseShaderString(options.dirichletStrV) +
-          ";\n}\n";
+        dirichletShader += selectSpeciesInShaderStr(
+          RDShaderDirichletY(),
+          listOfSpecies[1]
+        );
       }
     }
     if (options.boundaryConditionsW == "dirichlet") {
-      dirichletShader +=
-        selectSpeciesInShaderStr(RDShaderDirichletX(), listOfSpecies[2]) +
-        parseShaderString(options.dirichletStrW) +
-        ";\n}\n";
+      dirichletShader += parseDirichletRHS(
+        options.dirichletStrW,
+        listOfSpecies[2]
+      );
+      dirichletShader += selectSpeciesInShaderStr(
+        RDShaderDirichletX(),
+        listOfSpecies[2]
+      );
       if (options.dimension > 1) {
-        dirichletShader +=
-          selectSpeciesInShaderStr(RDShaderDirichletY(), listOfSpecies[2]) +
-          parseShaderString(options.dirichletStrW) +
-          ";\n}\n";
+        dirichletShader += selectSpeciesInShaderStr(
+          RDShaderDirichletY(),
+          listOfSpecies[2]
+        );
       }
     }
     if (options.boundaryConditionsQ == "dirichlet") {
-      dirichletShader +=
-        selectSpeciesInShaderStr(RDShaderDirichletX(), listOfSpecies[3]) +
-        parseShaderString(options.dirichletStrQ) +
-        ";\n}\n";
+      dirichletShader += parseDirichletRHS(
+        options.dirichletStrQ,
+        listOfSpecies[3]
+      );
+      dirichletShader += selectSpeciesInShaderStr(
+        RDShaderDirichletX(),
+        listOfSpecies[3]
+      );
       if (options.dimension > 1) {
-        dirichletShader +=
-          selectSpeciesInShaderStr(RDShaderDirichletY(), listOfSpecies[3]) +
-          parseShaderString(options.dirichletStrQ) +
-          ";\n}\n";
+        dirichletShader += selectSpeciesInShaderStr(
+          RDShaderDirichletY(),
+          listOfSpecies[3]
+        );
       }
     }
   }
@@ -2652,79 +2668,72 @@ function setRDEquations() {
         ";\n}\n";
     } else {
       if (options.boundaryConditionsU == "dirichlet") {
-        dirichletShader +=
-          selectSpeciesInShaderStr(
-            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
-            listOfSpecies[0]
-          ) +
-          parseShaderString(options.dirichletStrU) +
-          ";\n}\n";
+        dirichletShader += parseDirichletRHS(
+          options.dirichletStrU,
+          listOfSpecies[0]
+        );
+        dirichletShader += selectSpeciesInShaderStr(
+          RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+          listOfSpecies[0]
+        );
         if (options.dimension > 1) {
-          dirichletShader +=
-            selectSpeciesInShaderStr(
-              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
-              listOfSpecies[0]
-            ) +
-            parseShaderString(options.dirichletStrU) +
-            ";\n}\n";
+          dirichletShader += selectSpeciesInShaderStr(
+            RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+            listOfSpecies[0]
+          );
         }
       }
       if (options.boundaryConditionsV == "dirichlet") {
-        dirichletShader +=
-          selectSpeciesInShaderStr(
-            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
-            listOfSpecies[1]
-          ) +
-          parseShaderString(options.dirichletStrV) +
-          ";\n}\n";
+        dirichletShader += parseDirichletRHS(
+          options.dirichletStrV,
+          listOfSpecies[1]
+        );
+        dirichletShader += selectSpeciesInShaderStr(
+          RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+          listOfSpecies[1]
+        );
         if (options.dimension > 1) {
-          dirichletShader +=
-            selectSpeciesInShaderStr(
-              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
-              listOfSpecies[1]
-            ) +
-            parseShaderString(options.dirichletStrV) +
-            ";\n}\n";
+          dirichletShader += selectSpeciesInShaderStr(
+            RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+            listOfSpecies[1]
+          );
         }
       }
       if (options.boundaryConditionsW == "dirichlet") {
-        dirichletShader +=
-          selectSpeciesInShaderStr(
-            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
-            listOfSpecies[2]
-          ) +
-          parseShaderString(options.dirichletStrW) +
-          ";\n}\n";
+        dirichletShader += parseDirichletRHS(
+          options.dirichletStrW,
+          listOfSpecies[2]
+        );
+        dirichletShader += selectSpeciesInShaderStr(
+          RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+          listOfSpecies[2]
+        );
         if (options.dimension > 1) {
-          dirichletShader +=
-            selectSpeciesInShaderStr(
-              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
-              listOfSpecies[2]
-            ) +
-            parseShaderString(options.dirichletStrW) +
-            ";\n}\n";
+          dirichletShader += selectSpeciesInShaderStr(
+            RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+            listOfSpecies[2]
+          );
         }
       }
       if (options.boundaryConditionsQ == "dirichlet") {
-        dirichletShader +=
-          selectSpeciesInShaderStr(
-            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
-            listOfSpecies[3]
-          ) +
-          parseShaderString(options.dirichletStrQ) +
-          ";\n}\n";
+        dirichletShader += parseDirichletRHS(
+          options.dirichletStrQ,
+          listOfSpecies[3]
+        );
+        dirichletShader += selectSpeciesInShaderStr(
+          RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
+          listOfSpecies[3]
+        );
         if (options.dimension > 1) {
-          dirichletShader +=
-            selectSpeciesInShaderStr(
-              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
-              listOfSpecies[3]
-            ) +
-            parseShaderString(options.dirichletStrQ) +
-            ";\n}\n";
+          dirichletShader += selectSpeciesInShaderStr(
+            RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
+            listOfSpecies[3]
+          );
         }
       }
     }
     dirichletShader += "}";
+    console.log(dirichletShader)
     dirichletMaterial.fragmentShader = dirichletShader;
     dirichletMaterial.needsUpdate = true;
   }
@@ -2739,8 +2748,38 @@ function checkForAnyDirichletBCs() {
     options.boundaryConditionsQ == "dirichlet";
 }
 
-function parseRobinRHS(string, species) {
-  return "float robinRHS" + species + " = " + parseShaderString(string) + ";\n";
+function parseRobinRHS(string, species, side) {
+  if (side == undefined) {
+    // Make a copy for each side.
+    return ["L", "R", "T", "B"]
+      .map((side) => parseRobinRHS(string, species, side))
+      .join("");
+  }
+  return (
+    "float robinRHS" +
+    species +
+    side +
+    " = " +
+    parseShaderString(string) +
+    ";\n"
+  );
+}
+
+function parseDirichletRHS(string, species, side) {
+  if (side == undefined) {
+    // Make a copy for each side.
+    return ["L", "R", "T", "B"]
+      .map((side) => parseDirichletRHS(string, species, side))
+      .join("");
+  }
+  return (
+    "float dirichletRHS" +
+    species +
+    side +
+    " = " +
+    parseShaderString(string) +
+    ";\n"
+  );
 }
 
 function loadPreset(preset) {
@@ -2848,7 +2887,7 @@ function loadOptions(preset) {
 
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
-  
+
   // Ensure that the correct play/pause button is showing.
   isRunning ? playSim() : pauseSim();
 
@@ -3004,8 +3043,10 @@ function selectSpeciesInShaderStr(shaderStr, species) {
   let regex = /\bSPECIES\b/g;
   let channel = speciesToChannelChar(species);
   shaderStr = shaderStr.replace(regex, channel);
-  regex = /\brobinRHSSPECIES\b/g;
+  regex = /\brobinRHSSPECIES/g;
   shaderStr = shaderStr.replace(regex, "robinRHS" + species);
+  regex = /\bdirichletRHSSPECIES/g;
+  shaderStr = shaderStr.replace(regex, "dirichletRHS" + species);
   return shaderStr;
 }
 
