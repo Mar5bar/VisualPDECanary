@@ -14,6 +14,36 @@ export function getPreset(id) {
         preset: "Test",
       };
       break;
+      case "ShallowWaterBox":
+        options = {
+          boundaryConditionsU: "dirichlet",
+          boundaryConditionsV: "dirichlet",
+          boundaryConditionsW: "dirichlet",
+          brushValue: "-0.5",
+          brushRadius: "10",
+          clearValueU: "0",
+          colourmap: "viridis",
+          diffusionStrUU: "D",
+          diffusionStrVV: "nu",
+          diffusionStrWW: "nu",
+          domainScale: 1000,
+          dt: 0.005,
+          kineticParams: "He = 1;D = 0.01;g = 9.81;f = 1;k = 0.00;nu=0.2;",
+          maxColourValue: 0.1,
+          minColourValue: -0.05,
+          numSpecies: "3",
+          numTimestepsPerFrame: 100,
+          preset: "ShallowWaterBox",
+          reactionNames: "F G K j",
+          reactionStrU: "- (u_x + v_y)",
+          reactionStrV: "-g*h_x - k*u",
+          reactionStrW: "-g*h_y - k*v",
+          spatialStep: 2,
+          speciesNames: "h u v w",
+          whatToDraw: "h",
+          whatToPlot: "h",
+        };
+        break;
     case "ShallowWaterDisk":
       options = {
         boundaryConditionsU: "dirichlet",
@@ -44,6 +74,7 @@ export function getPreset(id) {
         spatialStep: 2,
         speciesNames: "h u v w",
         squareCanvas: true,
+        suppressTryClickingPopup: true,
         whatToDraw: "h",
         whatToPlot: "h",
       };
