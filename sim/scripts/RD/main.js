@@ -102,6 +102,7 @@ let isRunning,
   isDrawing,
   hasDrawn,
   anyDirichletBCs,
+  oldWrapping,
   nudgedUp = false,
   compileErrorOccurred = false,
   NaNTimer,
@@ -580,6 +581,7 @@ function init() {
   simTextureA.texture.wrapT = THREE.RepeatWrapping;
   simTextureB.texture.wrapS = THREE.RepeatWrapping;
   simTextureB.texture.wrapT = THREE.RepeatWrapping;
+  oldWrapping = THREE.RepeatWrapping;
 
   // The post and interpolation materials, used for display, will always edge clamp to avoid artefacts.
   postTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
@@ -1440,8 +1442,10 @@ function initGUI(startOpen) {
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Mirrored: "mirrored",
     })
     .onChange(function () {
+      configureMirroredOptions(options.boundaryConditionsU);
       setRDEquations();
       setBCsGUI();
     });
@@ -1464,8 +1468,10 @@ function initGUI(startOpen) {
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Mirrored: "mirrored",
     })
     .onChange(function () {
+      configureMirroredOptions(options.boundaryConditionsV);
       setRDEquations();
       setBCsGUI();
     });
@@ -1488,8 +1494,10 @@ function initGUI(startOpen) {
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Mirrored: "mirrored",
     })
     .onChange(function () {
+      configureMirroredOptions(options.boundaryConditionsW);
       setRDEquations();
       setBCsGUI();
     });
@@ -1512,9 +1520,11 @@ function initGUI(startOpen) {
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Mirrored: "mirrored",
     })
     .name("$q$")
     .onChange(function () {
+      configureMirroredOptions(options.boundaryConditionsQ);
       setRDEquations();
       setBCsGUI();
     });
@@ -2611,6 +2621,20 @@ function setRDEquations() {
     return;
   }
 
+  let wrapping;
+  if (anyMirroredBCs()) {
+    // Set up mirrored texture wrapping.
+    wrapping = THREE.MirroredRepeatWrapping;
+  } else {
+    // Set up periodic texture wrapping as default.
+    wrapping = THREE.RepeatWrapping;
+  }
+  // Only if the wrapping has changed, update the textures.
+  if (wrapping != oldWrapping) {
+    updateTextureWrapping(wrapping);
+    oldWrapping = wrapping;
+  }
+
   simMaterial.fragmentShader = [
     kineticStr,
     RDShaderTop(),
@@ -2737,6 +2761,16 @@ function checkForAnyDirichletBCs() {
     options.boundaryConditionsV == "dirichlet" ||
     options.boundaryConditionsW == "dirichlet" ||
     options.boundaryConditionsQ == "dirichlet";
+  anyDirichletBCs &= !anyMirroredBCs();
+}
+
+function anyMirroredBCs() {
+  return (
+    options.boundaryConditionsU == "mirrored" ||
+    options.boundaryConditionsV == "mirrored" ||
+    options.boundaryConditionsW == "mirrored" ||
+    options.boundaryConditionsQ == "mirrored"
+  );
 }
 
 function parseRobinRHS(string, species) {
@@ -2848,6 +2882,9 @@ function loadOptions(preset) {
 
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
+
+  // Check if any mirrored BCs have been specified and configure options accordingly.
+  configureMirroredOptions(anyMirroredBCs() ? "mirrored" : "periodic");
 
   // Enable backwards compatibility.
   options.brushRadius = options.brushRadius.toString();
@@ -5757,4 +5794,69 @@ function updateView(property) {
   // Update the active view with options.property.
   if (options.activeViewInd < options.views.length)
     options.views[options.activeViewInd][property] = options[property];
+}
+
+function updateTextureWrapping(wrap) {
+  // In order to update texture wrapping of render targets, we sadly need to create new textures.
+  simDomain.material = copyMaterial;
+
+  if (!readFromTextureB) {
+    uniforms.textureSource.value = simTextureA.texture;
+    let newB = simTextureB.clone();
+    newB.texture.wrapS = wrap;
+    newB.texture.wrapT = wrap;
+    renderer.setRenderTarget(newB);
+    renderer.render(simScene, simCamera);
+    simTextureA.dispose();
+    simTextureB.dispose();
+    simTextureB = newB;
+    simTextureA = simTextureB.clone();
+    uniforms.textureSource.value = simTextureB.texture;
+  } else {
+    uniforms.textureSource.value = simTextureB.texture;
+    let newA = simTextureA.clone();
+    newA.texture.wrapS = wrap;
+    newA.texture.wrapT = wrap;
+    renderer.setRenderTarget(newA);
+    renderer.render(simScene, simCamera);
+    simTextureA.dispose();
+    simTextureB.dispose();
+    simTextureA = newA;
+    simTextureB = simTextureA.clone();
+    uniforms.textureSource.value = simTextureA.texture;
+  }
+  readFromTextureB = !readFromTextureB;
+}
+
+function configureMirroredOptions(newState) {
+  if (newState == "mirrored") {
+    // If we've just become mirrored, set all periodic BCs to mirrored.
+    if (options.boundaryConditionsU == "periodic") {
+      options.boundaryConditionsU = "mirrored";
+    }
+    if (options.boundaryConditionsV == "periodic") {
+      options.boundaryConditionsV = "mirrored";
+    }
+    if (options.boundaryConditionsW == "periodic") {
+      options.boundaryConditionsW = "mirrored";
+    }
+    if (options.boundaryConditionsQ == "periodic") {
+      options.boundaryConditionsQ = "mirrored";
+    }
+  } else if (newState == "periodic") {
+    // If we've just become periodic, turn any mirrored values to periodic.
+    if (options.boundaryConditionsU == "mirrored") {
+      options.boundaryConditionsU = "periodic";
+    }
+    if (options.boundaryConditionsV == "mirrored") {
+      options.boundaryConditionsV = "periodic";
+    }
+    if (options.boundaryConditionsW == "mirrored") {
+      options.boundaryConditionsW = "periodic";
+    }
+    if (options.boundaryConditionsQ == "mirrored") {
+      options.boundaryConditionsQ = "periodic";
+    }
+  }
+  refreshGUI(leftGUI);
 }
