@@ -23,8 +23,8 @@ export function getPreset(id) {
     case "ShallowWaterBox":
       options = {
         boundaryConditionsU: "neumann",
-        boundaryConditionsV: "mixed",
-        boundaryConditionsW: "mixed",
+        boundaryConditionsV: "combo",
+        boundaryConditionsW: "combo",
         brushValue: "-0.5",
         brushRadius: "10",
         clearValueU: "0",
@@ -37,9 +37,9 @@ export function getPreset(id) {
         kineticParams: "He = 1;D = 0.01;g = 9.81;f = 1;k = 0.00;nu=0.2;",
         maxColourValue: 0.1,
         minColourValue: -0.05,
-        mixedStrV:
+        comboStrV:
           "Left:  Dirichlet = 0; Top:  Neumann = 0; Right:  Dirichlet = 0; Bottom:  Neumann = 0",
-        mixedStrW:
+        comboStrW:
           "Left:  Neumann = 0; Top:  Dirichlet = 0; Right:  Neumann = 0; Bottom:  Dirichlet = 0",
         numSpecies: "3",
         numTimestepsPerFrame: 100,
@@ -59,7 +59,7 @@ export function getPreset(id) {
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
         boundaryConditionsW: "dirichlet",
-        brushValue: "0.5",
+        brushValue: "-0.5",
         brushRadius: "40",
         clearValueU: "exp(-((x-L_x/2)^2 + (y-L_y/2)^2)/L)",
         colourmap: "viridis",
