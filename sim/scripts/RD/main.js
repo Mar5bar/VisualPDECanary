@@ -2509,7 +2509,6 @@ function setRDEquations() {
       robinShader += parseRobinRHS(RStrs[ind], listOfSpecies[ind]);
       robinShader += robinUpdateShader(ind);
     } else if (str == "combo") {
-      console.log(MStrs[ind]);
       [
         ...MStrs[ind].matchAll(
           /(Left|Right|Top|Bottom)\s*:\s*Robin\s*=([^;]*);/g
