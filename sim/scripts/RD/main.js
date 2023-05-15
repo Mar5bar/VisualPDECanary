@@ -120,7 +120,8 @@ let nXDisc,
   maxDim,
   canvasWidth,
   canvasHeight,
-  usingLowResDomain = true;
+  usingLowResDomain = true,
+  domainScaleFactor = 1;
 let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
@@ -382,6 +383,15 @@ if (params.has("no_ui")) {
   uiHidden = true;
 } else {
   $(".ui").removeClass("hidden");
+}
+
+if (params.has("sf")) {
+  // Set the domain scale factor from the search string.
+  domainScaleFactor = parseFloat(params.get("sf"));
+  if (isNaN(domainScaleFactor) || domainScaleFactor <= 0)
+  {
+    domainScaleFactor = 1;
+  }
 }
 
 // Warn the user about flashing images and ask for cookie permission to store this.
@@ -2695,6 +2705,9 @@ function loadPreset(preset) {
     }
     delete options.oneDimensional;
   }
+  
+  // Update the domain scale based on URL params.
+  options.domainScale *= domainScaleFactor;
 
   // Configure views.
   configureViews();
