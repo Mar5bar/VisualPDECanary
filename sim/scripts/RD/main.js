@@ -1159,7 +1159,7 @@ function initGUI(startOpen) {
 
   root
     .add(options, "squareCanvas")
-    .name("Square display")
+    .name("Square")
     .onFinishChange(function () {
       setCanvasShape();
       resize();
