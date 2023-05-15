@@ -596,7 +596,7 @@ function init() {
   controls = new OrbitControls(camera, canvas);
   controls.listenToKeyEvents(document);
   controls.addEventListener("change", function () {
-    if (options.dimension == 3) {
+    if (options.plotType == "surface") {
       options.cameraTheta =
         90 - (180 * Math.atan2(camera.position.z, camera.position.y)) / Math.PI;
       options.cameraPhi =
