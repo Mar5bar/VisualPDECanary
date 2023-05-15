@@ -66,7 +66,7 @@ export function getPreset(id) {
         diffusionStrUU: "D",
         diffusionStrVV: "nu",
         diffusionStrWW: "nu",
-        domainIndicatorFun: "(x-L_x/2)^2 + (y-L_y/2)^2 < 500^2",
+        domainIndicatorFun: "(x-L_x/2)^2 + (y-L_y/2)^2 < 499^2",
         domainScale: 1000,
         domainViaIndicatorFun: true,
         dt: 0.005,
