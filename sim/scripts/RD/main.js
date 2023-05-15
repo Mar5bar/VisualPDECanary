@@ -85,10 +85,10 @@ let leftGUI,
   dirichletVController,
   dirichletWController,
   dirichletQController,
-  mixedUController,
-  mixedVController,
-  mixedWController,
-  mixedQController,
+  comboUController,
+  comboVController,
+  comboWController,
+  comboQController,
   neumannUController,
   neumannVController,
   neumannWController,
@@ -1444,7 +1444,7 @@ function initGUI(startOpen) {
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
-      Mixed: "mixed",
+      Combination: "combo",
     })
     .onChange(function () {
       setRDEquations();
@@ -1463,9 +1463,9 @@ function initGUI(startOpen) {
     .add(options, "robinStrU")
     .onFinishChange(setRDEquations);
 
-  mixedUController = root
-    .add(options, "mixedStrU")
-    .name("Mixed")
+  comboUController = root
+    .add(options, "comboStrU")
+    .name("Details")
     .onFinishChange(setRDEquations);
 
   vBCsController = root
@@ -1474,7 +1474,7 @@ function initGUI(startOpen) {
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
-      Mixed: "mixed",
+      Combination: "combo",
     })
     .onChange(function () {
       setRDEquations();
@@ -1493,9 +1493,9 @@ function initGUI(startOpen) {
     .add(options, "robinStrV")
     .onFinishChange(setRDEquations);
 
-  mixedVController = root
-    .add(options, "mixedStrV")
-    .name("Mixed")
+  comboVController = root
+    .add(options, "comboStrV")
+    .name("Details")
     .onFinishChange(setRDEquations);
 
   wBCsController = root
@@ -1504,7 +1504,7 @@ function initGUI(startOpen) {
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
-      Mixed: "mixed",
+      Combination: "combo",
     })
     .onChange(function () {
       setRDEquations();
@@ -1523,9 +1523,9 @@ function initGUI(startOpen) {
     .add(options, "robinStrW")
     .onFinishChange(setRDEquations);
 
-  mixedWController = root
-    .add(options, "mixedStrW")
-    .name("Mixed")
+  comboWController = root
+    .add(options, "comboStrW")
+    .name("Details")
     .onFinishChange(setRDEquations);
 
   qBCsController = root
@@ -1534,7 +1534,7 @@ function initGUI(startOpen) {
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
-      Mixed: "mixed",
+      Combination: "combo",
     })
     .name("$q$")
     .onChange(function () {
@@ -1554,9 +1554,9 @@ function initGUI(startOpen) {
     .add(options, "robinStrQ")
     .onFinishChange(setRDEquations);
 
-  mixedQController = root
-    .add(options, "mixedStrQ")
-    .name("Mixed")
+  comboQController = root
+    .add(options, "comboStrQ")
+    .name("Details")
     .onFinishChange(setRDEquations);
 
   // Initial conditions folder.
@@ -2435,10 +2435,10 @@ function setRDEquations() {
     options.neumannStrQ,
   ];
   const MStrs = [
-    options.mixedStrU,
-    options.mixedStrV,
-    options.mixedStrW,
-    options.mixedStrQ,
+    options.comboStrU,
+    options.comboStrV,
+    options.comboStrW,
+    options.comboStrQ,
   ].map((s) => s + ";");
   const DStrs = [
     options.dirichletStrU,
@@ -2458,7 +2458,7 @@ function setRDEquations() {
     if (str == "neumann") {
       neumannShader += parseRobinRHS(NStrs[ind], listOfSpecies[ind]);
       neumannShader += neumannUpdateShader(ind);
-    } else if (str == "mixed") {
+    } else if (str == "combo") {
       [
         ...MStrs[ind].matchAll(
           /(Left|Right|Top|Bottom)\s*:\s*Neumann\s*=([^;]*);/g
@@ -2489,7 +2489,7 @@ function setRDEquations() {
       if (str == "dirichlet") {
         dirichletShader += parseDirichletRHS(DStrs[ind], listOfSpecies[ind]);
         dirichletShader += dirichletUpdateShader(ind);
-      } else if (str == "mixed") {
+      } else if (str == "combo") {
         [
           ...MStrs[ind].matchAll(
             /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g
@@ -2508,7 +2508,7 @@ function setRDEquations() {
     if (str == "robin") {
       robinShader += parseRobinRHS(RStrs[ind], listOfSpecies[ind]);
       robinShader += robinUpdateShader(ind);
-    } else if (str == "mixed") {
+    } else if (str == "combo") {
       console.log(MStrs[ind]);
       [
         ...MStrs[ind].matchAll(
@@ -2604,7 +2604,7 @@ function setRDEquations() {
         if (str == "dirichlet") {
           dirichletShader += parseDirichletRHS(DStrs[ind], listOfSpecies[ind]);
           dirichletShader += dirichletEnforceShader(ind);
-        } else if (str == "mixed") {
+        } else if (str == "combo") {
           [
             ...MStrs[ind].matchAll(
               /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g
@@ -2634,10 +2634,10 @@ function checkForAnyDirichletBCs() {
     options.boundaryConditionsV == "dirichlet" ||
     options.boundaryConditionsW == "dirichlet" ||
     options.boundaryConditionsQ == "dirichlet" ||
-    /Dirichlet/.test(options.mixedStrU) ||
-    /Dirichlet/.test(options.mixedStrV) ||
-    /Dirichlet/.test(options.mixedStrW) ||
-    /Dirichlet/.test(options.mixedStrQ);
+    /Dirichlet/.test(options.comboStrU) ||
+    /Dirichlet/.test(options.comboStrV) ||
+    /Dirichlet/.test(options.comboStrW) ||
+    /Dirichlet/.test(options.comboStrQ);
 }
 
 function parseRobinRHS(string, species, side) {
@@ -2849,10 +2849,10 @@ function loadOptions(preset) {
     options.robinStrV,
     options.robinStrW,
     options.robinStrQ,
-    options.mixedStrU,
-    options.mixedStrV,
-    options.mixedStrW,
-    options.mixedStrQ,
+    options.comboStrU,
+    options.comboStrV,
+    options.comboStrW,
+    options.comboStrQ,
     options.neumannStrU,
     options.neumannStrV,
     options.neumannStrW,
@@ -3020,25 +3020,25 @@ function setBCsGUI() {
     hideGUIController(robinQController);
   }
 
-  if (options.boundaryConditionsU == "mixed") {
-    showGUIController(mixedUController);
+  if (options.boundaryConditionsU == "combo") {
+    showGUIController(comboUController);
   } else {
-    hideGUIController(mixedUController);
+    hideGUIController(comboUController);
   }
-  if (options.boundaryConditionsV == "mixed") {
-    showGUIController(mixedVController);
+  if (options.boundaryConditionsV == "combo") {
+    showGUIController(comboVController);
   } else {
-    hideGUIController(mixedVController);
+    hideGUIController(comboVController);
   }
-  if (options.boundaryConditionsW == "mixed") {
-    showGUIController(mixedWController);
+  if (options.boundaryConditionsW == "combo") {
+    showGUIController(comboWController);
   } else {
-    hideGUIController(mixedWController);
+    hideGUIController(comboWController);
   }
-  if (options.boundaryConditionsQ == "mixed") {
-    showGUIController(mixedQController);
+  if (options.boundaryConditionsQ == "combo") {
+    showGUIController(comboQController);
   } else {
-    hideGUIController(mixedQController);
+    hideGUIController(comboQController);
   }
 
   if (options.domainViaIndicatorFun) {
