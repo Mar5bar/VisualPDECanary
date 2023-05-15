@@ -2,7 +2,7 @@
 layout: page
 title: Ripples in a pond
 lesson_number: 10
-thumbnail: /assets/images/heat-equation.png
+thumbnail: /assets/images/ShallowWaterDisk.png
 extract: Making waves in shallow water
 equation:
 ---
