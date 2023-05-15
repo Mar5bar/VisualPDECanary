@@ -339,3 +339,9 @@ span.click_sequence {
     margin-left: -1px;
     margin-right: -1px;
 }
+
+.sim {
+    width: 100%;
+    aspect-ratio: 1;
+    border: none;
+}
