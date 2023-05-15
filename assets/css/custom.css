@@ -341,7 +341,8 @@ span.click_sequence {
 }
 
 .sim {
-    width: 100%;
+    width: 90%;
     aspect-ratio: 1;
-    border: none;
+    border: 2px solid black;
+    margin: 5%;
 }
