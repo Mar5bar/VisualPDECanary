@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Ripples in a pond
+title: Ripples on a pond
 lesson_number: 10
 thumbnail: /assets/images/ShallowWaterDisk.png
 extract: Making waves in shallow water
