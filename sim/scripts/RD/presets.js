@@ -13,41 +13,47 @@ export function getPreset(id) {
         colourmap: "BlackGreenYellowRedWhite",
         boundaryConditionsU: "combo",
         boundaryConditionsV: "combo",
-        comboStrU: "Left: Dirichlet = 1; Right: Neumann = 0; Top: Robin = 0.2; Bottom: Dirichlet = 0",
-        comboStrV: "Left: Dirichlet = 1; Right: Neumann = 0; Top: Robin = 0.2; Bottom: Dirichlet = 0",
+        comboStrU:
+          "Left: Dirichlet = 1; Right: Neumann = 0; Top: Robin = 0.2; Bottom: Dirichlet = 0",
+        comboStrV:
+          "Left: Dirichlet = 1; Right: Neumann = 0; Top: Robin = 0.2; Bottom: Dirichlet = 0",
         preset: "Test",
       };
       break;
-      case "ShallowWaterBox":
-        options = {
-          boundaryConditionsU: "dirichlet",
-          boundaryConditionsV: "dirichlet",
-          boundaryConditionsW: "dirichlet",
-          brushValue: "-0.5",
-          brushRadius: "10",
-          clearValueU: "0",
-          colourmap: "viridis",
-          diffusionStrUU: "D",
-          diffusionStrVV: "nu",
-          diffusionStrWW: "nu",
-          domainScale: 1000,
-          dt: 0.005,
-          kineticParams: "He = 1;D = 0.01;g = 9.81;f = 1;k = 0.00;nu=0.2;",
-          maxColourValue: 0.1,
-          minColourValue: -0.05,
-          numSpecies: "3",
-          numTimestepsPerFrame: 100,
-          preset: "ShallowWaterBox",
-          reactionNames: "F G K j",
-          reactionStrU: "- (u_x + v_y)",
-          reactionStrV: "-g*h_x - k*u",
-          reactionStrW: "-g*h_y - k*v",
-          spatialStep: 2,
-          speciesNames: "h u v w",
-          whatToDraw: "h",
-          whatToPlot: "h",
-        };
-        break;
+    case "ShallowWaterBox":
+      options = {
+        boundaryConditionsU: "neumann",
+        boundaryConditionsV: "mixed",
+        boundaryConditionsW: "mixed",
+        brushValue: "-0.5",
+        brushRadius: "10",
+        clearValueU: "0",
+        colourmap: "viridis",
+        diffusionStrUU: "D",
+        diffusionStrVV: "nu",
+        diffusionStrWW: "nu",
+        domainScale: 1000,
+        dt: 0.005,
+        kineticParams: "He = 1;D = 0.01;g = 9.81;f = 1;k = 0.00;nu=0.2;",
+        maxColourValue: 0.1,
+        minColourValue: -0.05,
+        mixedStrV:
+          "Left:  Dirichlet = 0; Top:  Neumann = 0; Right:  Dirichlet = 0; Bottom:  Neumann = 0",
+        mixedStrW:
+          "Left:  Neumann = 0; Top:  Dirichlet = 0; Right:  Neumann = 0; Bottom:  Dirichlet = 0",
+        numSpecies: "3",
+        numTimestepsPerFrame: 100,
+        preset: "ShallowWaterBox",
+        reactionNames: "F G K j",
+        reactionStrU: "- (u_x + v_y)",
+        reactionStrV: "-g*h_x - k*u",
+        reactionStrW: "-g*h_y - k*v",
+        spatialStep: 2,
+        speciesNames: "h u v w",
+        whatToDraw: "h",
+        whatToPlot: "h",
+      };
+      break;
     case "ShallowWaterDisk":
       options = {
         boundaryConditionsU: "dirichlet",
