@@ -57,7 +57,6 @@ The most complicated type is a system of PDEs in four unknowns, $u$, $v$, $w$ an
 
 $$\begin{aligned}
 \pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_{uq}\vnabla q) + f,\\
-\pd{v}{t} &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + g,\\
 \text{or}\left\{\begin{matrix}\displaystyle\pd{v}{t} \\ v\end{matrix}\right. & 
 \begin{aligned}
     &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + g \vphantom{\displaystyle\pd{v}{t}}, \\
