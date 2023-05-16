@@ -388,8 +388,7 @@ if (params.has("no_ui")) {
 if (params.has("sf")) {
   // Set the domain scale factor from the search string.
   domainScaleFactor = parseFloat(params.get("sf"));
-  if (isNaN(domainScaleFactor) || domainScaleFactor <= 0)
-  {
+  if (isNaN(domainScaleFactor) || domainScaleFactor <= 0) {
     domainScaleFactor = 1;
   }
 }
@@ -1592,19 +1591,6 @@ function initGUI(startOpen) {
 
   root = rightGUI.addFolder("Plotting");
 
-  root
-    .add(options, "plotType", {
-      Line: "line",
-      Plane: "plane",
-      Surface: "surface",
-    })
-    .name("Plot type")
-    .onChange(function () {
-      configurePlotType();
-      document.activeElement.blur();
-      render();
-    });
-
   lineWidthMulController = root
     .add(options, "lineWidthMul", 0.1, 2)
     .name("Thickness")
@@ -1724,6 +1710,19 @@ function initGUI(startOpen) {
     .onFinishChange(function () {
       updateView(this.property);
       updateWhatToPlot();
+      render();
+    });
+
+  root
+    .add(options, "plotType", {
+      Line: "line",
+      Plane: "plane",
+      Surface: "surface",
+    })
+    .name("Plot type")
+    .onChange(function () {
+      configurePlotType();
+      document.activeElement.blur();
       render();
     });
 
@@ -2705,7 +2704,7 @@ function loadPreset(preset) {
     }
     delete options.oneDimensional;
   }
-  
+
   // Update the domain scale based on URL params.
   options.domainScale *= domainScaleFactor;
 
@@ -5699,6 +5698,7 @@ function applyView(view, update) {
   if (update == undefined || update) {
     // Update what is being plotted, and render.
     updateWhatToPlot();
+    configurePlotType();
     setDisplayColourAndType();
     updateUniforms();
     updateColourbarLims();

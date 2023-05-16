@@ -50,6 +50,10 @@ export function getPreset(id) {
         reactionStrW: "-g*h_y - k*v",
         spatialStep: 2,
         speciesNames: "h u v w",
+        views: [
+          { name: "From above", plotType: "plane" },
+          { name: "3D", plotType: "surface" },
+        ],
         whatToDraw: "h",
         whatToPlot: "h",
       };
@@ -85,6 +89,10 @@ export function getPreset(id) {
         speciesNames: "h u v w",
         squareCanvas: true,
         suppressTryClickingPopup: true,
+        views: [
+          { name: "From above", plotType: "plane" },
+          { name: "3D", plotType: "surface" },
+        ],
         whatToDraw: "h",
         whatToPlot: "h",
       };
@@ -2085,5 +2093,6 @@ export function getFieldsInView() {
     "minColourValue",
     "maxColourValue",
     "autoSetColourRange",
+    "plotType",
   ];
 }

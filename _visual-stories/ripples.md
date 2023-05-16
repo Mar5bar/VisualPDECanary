@@ -28,7 +28,7 @@ There is a lot left to explore about waves even in this simple-looking setting, 
 <iframe class="sim" src="/sim/?preset=ShallowWaterDisk" frameborder="0"></iframe>
 
 # Looking for more?
-Not quite had enough of water waves? For a different perspective on this Visual Story, try pressing <span class='click_sequence'>{{ layout.settings }} → **Plotting**</span> and changing the **Plot type** from 'Plane' to 'Surface' in either of the simulations above. What you'll see is the surface of the water drawn in 3D - try dragging to change the view, or clicking on the surface to disturb it, and experience a new point of view.
+Not quite had enough of water waves? For a different perspective on this Visual Story, try pressing <span class='click_sequence'>{{ layout.views }} → **3D**</span> in either of the simulations above. What you'll see is the surface of the water drawn in 3D - try dragging to change the view, or clicking on the surface to disturb it, and experience a new point of view.
 
 Enjoyed this Visual Story? We'd love to hear your feedback at [hello@visualpde.com](mailto:hello@visualpde.com).
 
