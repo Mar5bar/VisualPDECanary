@@ -3642,7 +3642,6 @@ function configureGUI() {
       showWGUIPanels();
       showQGUIPanels();
       hideGUIController(DwwController);
-      hideGUIController(DqqController);
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
@@ -3680,6 +3679,7 @@ function configureGUI() {
       showVGUIPanels();
       showWGUIPanels();
       showQGUIPanels();
+      hideGUIController(DqqController);
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
@@ -3717,6 +3717,8 @@ function configureGUI() {
       showVGUIPanels();
       showWGUIPanels();
       showQGUIPanels();
+      hideGUIController(DwwController);
+      hideGUIController(DqqController);
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
