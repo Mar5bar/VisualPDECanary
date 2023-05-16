@@ -1721,6 +1721,7 @@ function initGUI(startOpen) {
     })
     .name("Plot type")
     .onChange(function () {
+      updateView(this.property);
       configurePlotType();
       document.activeElement.blur();
       render();
