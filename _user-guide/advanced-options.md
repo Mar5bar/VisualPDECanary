@@ -159,8 +159,8 @@ Specify the number of unknowns (1, 2, 3, or 4) in the simulatino.
 **Cross (diffusion)**\
 Enable cross diffusion in systems with 2 or more species, enabling simulation of a wide range of systems.
 
-**Algebraic**\
-Convert the specified equations to algebraic form in systems with cross diffusion enabled.
+**\#Algebraic**\
+Choose how many equations you want to be in algebraic form in systems with cross diffusion enabled. The equations will be put in algebraic form in reverse order, e.g. a 4-species system with 1 algebraic species will convert the final equation to be algebraic.
 
 **Species/Reactions (names)**\
 Specify custom names for the species and reaction terms in VisualPDE, which often default to $u$, $v$, $w$, $q$ and $f$, $g$, $h$, $j$. Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, 'T_01' is a valid name (rendered as $T_{01}$) whilst 'T 01' is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as 'H' for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old species and reaction terms everywhere in the simulation and interface.
