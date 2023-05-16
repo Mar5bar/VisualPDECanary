@@ -393,6 +393,20 @@ if (params.has("sf")) {
   }
 }
 
+if (params.has("story")) {
+  // If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
+  $("#settings").addClass("hidden");
+  $("#equations").addClass("hidden");
+  $("#help").addClass("hidden");
+  $("#share").addClass("hidden");
+
+  $("#play").css("top", "-=50");
+  $("#pause").css("top", "-=50");
+  $("#erase").css("top", "-=50");
+  $("#views").css("top", "-=50");
+  $("#views_ui").css("top", "-=50");
+}
+
 // Warn the user about flashing images and ask for cookie permission to store this.
 if (!warningCookieExists() && !uiHidden) {
   // Display the warning message.
@@ -557,7 +571,7 @@ function init() {
     antialias: false,
     alpha: true,
     premultipliedAlpha: false,
-    stencilBuffer: false
+    stencilBuffer: false,
   });
   renderer.autoClear = true;
   gl = renderer.getContext();
