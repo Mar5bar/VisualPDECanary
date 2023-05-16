@@ -32,4 +32,22 @@
   <meta property="og:url" content="https://visualpde.com" />
   <meta property="og:site_name" content="VisualPDE" />
 
+  <script>
+    // If the window is very narrow, use a smaller domain in any iframe simulations.
+    if (window.innerWidth < 600) {
+      window.onload = function() {
+        // For each .sim element with an sf parameter in the query string, modify the URL to include a domain scale factor.
+        [...document.getElementsByClassName('sim')].forEach(el => {
+          const url = new URL(el.src);
+          if (/[?&]/.test(url.search)) {
+            // If there is already a query string, append sf.
+            el.src += "&sf=0.5";
+          } else {
+            el.src += "?sf=0.5";
+          }
+        })
+      }
+    }
+  </script>
+
 </head>
