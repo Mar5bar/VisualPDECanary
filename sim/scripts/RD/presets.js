@@ -2000,9 +2000,6 @@ export function getPreset(id) {
     default:
       options = {
         activeViewInd: 0,
-        algebraicV: false,
-        algebraicW: false,
-        algebraicQ: false,
         autoSetColourRange: false,
         backgroundColour: 0xffffff,
         boundaryConditionsU: "periodic",
@@ -2069,6 +2066,7 @@ export function getPreset(id) {
         neumannStrV: "0",
         neumannStrW: "0",
         neumannStrQ: "0",
+        numAlgebraicSpecies: 0,
         numSpecies: 2,
         numTimestepsPerFrame: 100,
         oneDimensional: false,

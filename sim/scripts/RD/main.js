@@ -39,9 +39,7 @@ let leftGUI,
   gController,
   hController,
   jController,
-  algebraicVController,
-  algebraicWController,
-  algebraicQController,
+  algebraicSpeciesController,
   crossDiffusionController,
   domainIndicatorFunController,
   DuuController,
@@ -111,7 +109,8 @@ let isRunning,
   NaNTimer,
   uiHidden = false,
   checkpointExists = false,
-  savedViews;
+  savedViews,
+  updatingAlgebraicSpecies = false;
 let inTex, outTex;
 let nXDisc,
   nYDisc,
@@ -138,13 +137,14 @@ const listOfTypes = [
   "3Species", // 4
   "3SpeciesCrossDiffusion", // 5
   "3SpeciesCrossDiffusionAlgebraicW", // 6
-  "4Species", // 7
-  "4SpeciesCrossDiffusion", // 8
-  "4SpeciesCrossDiffusionAlgebraicW", // 9
+  "3SpeciesCrossDiffusionAlgebraicVW", // 7
+  "4Species", // 8
+  "4SpeciesCrossDiffusion", // 9
   "4SpeciesCrossDiffusionAlgebraicQ", // 10
   "4SpeciesCrossDiffusionAlgebraicWQ", // 11
+  "4SpeciesCrossDiffusionAlgebraicVWQ", // 12
 ];
-let equationType, savedHTML;
+let equationType, savedHTML, algebraicV, algebraicW, algebraicQ;
 let takeAScreenshot = false;
 let buffer,
   checkpointBuffer,
@@ -1252,20 +1252,15 @@ function initGUI(startOpen) {
     .name("Cross diffusion")
     .onChange(updateProblem);
 
-  algebraicVController = root
-    .add(options, "algebraicV")
-    .name("Algebraic v")
-    .onChange(updateProblem);
-
-  algebraicWController = root
-    .add(options, "algebraicW")
-    .name("Algebraic w")
-    .onChange(updateProblem);
-
-  algebraicQController = root
-    .add(options, "algebraicQ")
-    .name("Algebraic q")
-    .onChange(updateProblem);
+  // Number of algebraic species.
+  algebraicSpeciesController = root
+    .add(options, "numAlgebraicSpecies", { 0: 0, 1: 1, 2: 2, 3: 3 })
+    .name("Algebraic species")
+    .onChange(function () {
+      updatingAlgebraicSpecies = true;
+      updateProblem();
+      updatingAlgebraicSpecies = false;
+    });
 
   root
     .add(options, "speciesNames")
@@ -2568,7 +2563,7 @@ function setRDEquations() {
   }
 
   // If v should be algebraic, append this to the normal update shader.
-  if (options.algebraicV && options.crossDiffusion) {
+  if (algebraicV && options.crossDiffusion) {
     updateShader += selectSpeciesInShaderStr(
       RDShaderAlgebraicV(),
       listOfSpecies[1]
@@ -2576,7 +2571,7 @@ function setRDEquations() {
   }
 
   // If w should be algebraic, append this to the normal update shader.
-  if (options.algebraicW && options.crossDiffusion) {
+  if (algebraicW && options.crossDiffusion) {
     updateShader += selectSpeciesInShaderStr(
       RDShaderAlgebraicW(),
       listOfSpecies[2]
@@ -2584,7 +2579,7 @@ function setRDEquations() {
   }
 
   // If q should be algebraic, append this to the normal update shader.
-  if (options.algebraicQ && options.crossDiffusion) {
+  if (algebraicQ && options.crossDiffusion) {
     updateShader += selectSpeciesInShaderStr(
       RDShaderAlgebraicQ(),
       listOfSpecies[3]
@@ -2843,6 +2838,20 @@ function loadOptions(preset) {
         );
       }
     });
+    // Map algebraicV, algebraicW, and algebraicQ onto numAlgebraicSpecies.
+    var count = 0;
+    count += options.hasOwnProperty("algebraicV");
+    count += options.hasOwnProperty("algebraicW");
+    count += options.hasOwnProperty("algebraicQ");
+    if (count && !options.numAlgebraicSpecies) {
+      // If algebraicV,W,Q contain more information than count, then update it.
+      options.numAlgebraicSpecies = count;
+    }
+    // Remove obsolete fields from options.
+    delete options.algebraicV;
+    delete options.algebraicW;
+    delete options.algebraicQ;
+
     // Save these loaded options if we ever need to revert.
     savedOptions = options;
   }
@@ -3321,8 +3330,21 @@ function setPostFunMaxFragShader() {
   updateUniforms();
 }
 
+function setAlgebraicVarsFromOptions() {
+  // Set the variables algebraicV etc and constrain numAlgebraicSpecies.
+  // Limit the number of algebraic species to at most one less than the number of species.
+  options.numAlgebraicSpecies = Math.min(
+    parseInt(options.numAlgebraicSpecies),
+    parseInt(options.numSpecies) - 1
+  );
+  algebraicV = options.numAlgebraicSpecies >= options.numSpecies - 1;
+  algebraicW = options.numAlgebraicSpecies >= options.numSpecies - 2;
+  algebraicQ = options.numAlgebraicSpecies >= options.numSpecies - 3;
+}
+
 function problemTypeFromOptions() {
   // Use the currently selected options to specify an equation type as an index into listOfTypes.
+  setAlgebraicVarsFromOptions();
   switch (parseInt(options.numSpecies)) {
     case 1:
       // 1Species
@@ -3330,7 +3352,7 @@ function problemTypeFromOptions() {
       break;
     case 2:
       if (options.crossDiffusion) {
-        if (options.algebraicV) {
+        if (options.numAlgebraicSpecies == 1) {
           // 2SpeciesCrossDiffusionAlgebraicV
           equationType = 3;
         } else {
@@ -3344,12 +3366,19 @@ function problemTypeFromOptions() {
       break;
     case 3:
       if (options.crossDiffusion) {
-        if (options.algebraicW) {
-          // 3SpeciesCrossDiffusionAlgebraicW
-          equationType = 6;
-        } else {
-          // 3SpeciesCrossDiffusion
-          equationType = 5;
+        switch (options.numAlgebraicSpecies) {
+          case 0:
+            // 3SpeciesCrossDiffusion
+            equationType = 5;
+            break;
+          case 1:
+            // 3SpeciesCrossDiffusionAlgebraicW
+            equationType = 6;
+            break;
+          case 2:
+            // 3SpeciesCrossDiffusionVW
+            equationType = 7;
+            break;
         }
       } else {
         // 3Species
@@ -3358,34 +3387,34 @@ function problemTypeFromOptions() {
       break;
     case 4:
       if (options.crossDiffusion) {
-        if (options.algebraicW) {
-          if (options.algebraicQ) {
-            // 4SpeciesCrossDiffusionAlgebraicWQ
-            equationType = 11;
-          } else {
-            // 4SpeciesCrossDiffusionAlgebraicW
+        switch (options.numAlgebraicSpecies) {
+          case 0:
+            // 4SpeciesCrossDiffusion
             equationType = 9;
-          }
-        } else {
-          if (options.algebraicQ) {
+            break;
+          case 1:
             // 4SpeciesCrossDiffusionAlgebraicQ
             equationType = 10;
-          } else {
-            // 4SpeciesCrossDiffusion
-            equationType = 8;
-          }
+            break;
+          case 2:
+            // 4SpeciesCrossDiffusionAlgebraicWQ
+            equationType = 11;
+            break;
+          case 3:
+            // 4SpeciesCrossDiffusionAlgebraicVWQ
+            equationType = 12;
+            break;
         }
       } else {
         // 4Species
-        equationType = 7;
+        equationType = 8;
       }
       break;
   }
 }
 
 function configureGUI() {
-  // Set up the GUI based on the the current options: numSpecies, crossDiffusion, and algebraicV.
-  // We need a separate block for each of the six cases.
+  // Set up the GUI based on the the current options: numSpecies, crossDiffusion, and numAlgebraicSpecies.
   let tooltip =
     "function of " +
     listOfSpecies.slice(0, options.numSpecies).join(", ") +
@@ -3395,362 +3424,92 @@ function configureGUI() {
   let Wtooltip = tooltip.replace(" " + listOfSpecies[3] + ",", "");
 
   if (options.dimension == 1) tooltip = tooltip.replace(" y,", "");
-  switch (equationType) {
-    case 0:
-      // 1Species
-      // Hide everything to do with v, w, and q.
-      hideVGUIPanels();
-      hideWGUIPanels();
-      hideQGUIPanels();
-
-      // Hide the cross diffusion, algebraicV, algebraicW, and algebraicQ controllers.
-      hideGUIController(crossDiffusionController);
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["D"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-
-      break;
-
-    case 1:
-      // 2Species
-      // Show v panels.
-      showVGUIPanels();
-      // Hide w and q panels.
-      hideWGUIPanels();
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV and algebraicW controllers.
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-
-      break;
-
-    case 2:
-      // 2SpeciesCrossDiffusion
-      // Show v panels.
-      showVGUIPanels();
-      // Hide w and q panels.
-      hideWGUIPanels();
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV, algebraicW, and algebraicQ controllers.
-      showGUIController(algebraicVController);
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      break;
-
-    case 3:
-      // 2SpeciesCrossDiffusionAlgebraicV
-      // Show v panels.
-      showVGUIPanels();
-      hideGUIController(DvvController);
-      // Hide w and q panels.
-      hideWGUIPanels();
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Show the algebraicV controller.
-      showGUIController(algebraicVController);
-      // Hide the algebraicW and algebraicQ controllers.
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      // Controllers for algebraic species have a different tooltip.
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], Vtooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], Vtooltip);
-      break;
-
-    case 4:
-      // 3Species
-      // Show v panels.
-      showVGUIPanels();
-      // Show w panels.
-      showWGUIPanels();
-      // Hide q panels.
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV, algebraicW, and algebraicQ controllers.
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
-      setGUIControllerName(DwwController, TeXStrings["Dw"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
-      break;
-
-    case 5:
-      // 3SpeciesCrossDiffusion
-      // Show v panels.
-      showVGUIPanels();
-      // Show w panels.
-      showWGUIPanels();
-      // Hide q panels.
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV and algebraic Q controller.
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicQController);
-      // Show the algebraicW controller.
-      showGUIController(algebraicWController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
-      setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
-      break;
-
-    case 6:
-      // 3SpeciesCrossDiffusionAlgebraicW
-      // Show v panels.
-      showVGUIPanels();
-      // Show w panels.
-      showWGUIPanels();
-      hideGUIController(DwwController);
-      // Hide q panels.
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV and algebraicQ controller.
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      // Controllers for algebraic species have a different tooltip.
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
-      break;
-    case 7:
-      // 4Species
-      // Show v,w,q panels.
-      showVGUIPanels();
-      showWGUIPanels();
-      showQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV, algebraicQ, and algebraicW controllers.
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
-      setGUIControllerName(DwwController, TeXStrings["Dw"], tooltip);
-      setGUIControllerName(DqqController, TeXStrings["Dq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
-      setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
-      break;
-    case 8:
-      // 4SpeciesCrossDiffusion.
-      // Show v,w,q panels.
-      showVGUIPanels();
-      showWGUIPanels();
-      showQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV controller.
-      hideGUIController(algebraicVController);
-      // Show the algebraicW and algebriacQ controllers.
-      showGUIController(algebraicWController);
-      showGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
-      setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
-      setGUIControllerName(DwqController, TeXStrings["Dwq"], tooltip);
-      setGUIControllerName(DquController, TeXStrings["Dqu"], tooltip);
-      setGUIControllerName(DqvController, TeXStrings["Dqv"], tooltip);
-      setGUIControllerName(DqwController, TeXStrings["Dqw"], tooltip);
-      setGUIControllerName(DqqController, TeXStrings["Dqq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
-      setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
-      break;
-    case 9:
-      // 4SpeciesCrossDiffusionAlgebraicW.
-      // Show v,w,q panels.
-      showVGUIPanels();
-      showWGUIPanels();
-      showQGUIPanels();
-      hideGUIController(DwwController);
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV controller.
-      hideGUIController(algebraicVController);
-      // Show the algebraicW and algebriacQ controllers.
-      showGUIController(algebraicWController);
-      showGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
-      setGUIControllerName(DquController, TeXStrings["Dqu"], tooltip);
-      setGUIControllerName(DqvController, TeXStrings["Dqv"], tooltip);
-      setGUIControllerName(DqwController, TeXStrings["Dqw"], tooltip);
-      setGUIControllerName(DqqController, TeXStrings["Dqq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
-      // Controllers for algebraic species have a different tooltip.
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
-      setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
-      break;
-    case 10:
-      // 4SpeciesCrossDiffusionAlgebraicQ.
-      // Show v,w,q panels.
-      showVGUIPanels();
-      showWGUIPanels();
-      showQGUIPanels();
-      hideGUIController(DqqController);
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV controller.
-      hideGUIController(algebraicVController);
-      // Show the algebraicW and algebriacQ controllers.
-      showGUIController(algebraicWController);
-      showGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
-      setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
-      setGUIControllerName(DwqController, TeXStrings["Dwq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
-      // Controllers for algebraic species have a different tooltip.
-      setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
-      setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
-      setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
-      setGUIControllerName(jController, TeXStrings["QFUN"], Qtooltip);
-      break;
-    case 11:
-      // 4SpeciesCrossDiffusionAlgebraicWQ.
-      // Show v,w,q panels.
-      showVGUIPanels();
-      showWGUIPanels();
-      showQGUIPanels();
-      hideGUIController(DwwController);
-      hideGUIController(DqqController);
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV controller.
-      hideGUIController(algebraicVController);
-      // Show the algebraicW and algebriacQ controllers.
-      showGUIController(algebraicWController);
-      showGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      // Controllers for algebraic species have a different tooltip.
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
-      setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
-      setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
-      setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
-      setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
-      setGUIControllerName(jController, TeXStrings["QFUN"], Qtooltip);
-      break;
+  if (options.crossDiffusion && parseInt(options.numSpecies) > 1) {
+    if (!updatingAlgebraicSpecies) {
+      updateGUIDropdown(
+        algebraicSpeciesController,
+        Array.from(Array(parseInt(options.numSpecies)).keys())
+      );
+    }
+    showGUIController(algebraicSpeciesController);
+  } else {
+    hideGUIController(algebraicSpeciesController);
   }
+
+  if (options.numSpecies > 1) {
+    showGUIController(crossDiffusionController);
+  } else {
+    hideGUIController(crossDiffusionController);
+  }
+
+  // Hide/Show VWQGUI panels.
+  hideVGUIPanels();
+  hideWGUIPanels();
+  hideQGUIPanels();
+  switch (parseInt(options.numSpecies)) {
+    case 4:
+      showQGUIPanels();
+    case 3:
+      showWGUIPanels();
+    case 2:
+      showVGUIPanels();
+  }
+
+  // Configure the controller names.
+  // We'll set the generic names then alter any algebraic ones.
+  if (options.numSpecies == 1) {
+    setGUIControllerName(DuuController, TeXStrings["D"], tooltip);
+  } else if (options.crossDiffusion) {
+    setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
+    setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
+    setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
+    setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
+    setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
+    setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
+    setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
+    setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
+    setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
+    setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
+    setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
+    setGUIControllerName(DwqController, TeXStrings["Dwq"], tooltip);
+    setGUIControllerName(DquController, TeXStrings["Dqu"], tooltip);
+    setGUIControllerName(DqvController, TeXStrings["Dqv"], tooltip);
+    setGUIControllerName(DqwController, TeXStrings["Dqw"], tooltip);
+    setGUIControllerName(DqqController, TeXStrings["Dqq"], tooltip);
+  } else {
+    setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
+    setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
+    setGUIControllerName(DwwController, TeXStrings["Dw"], tooltip);
+    setGUIControllerName(DqqController, TeXStrings["Dq"], tooltip);
+  }
+  setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+  setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
+  setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
+  setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
+
+  // Configure the names of algebraic controllers.
+  if (algebraicV) {
+    setGUIControllerName(DvuController, TeXStrings["Dvu"], Vtooltip);
+    setGUIControllerName(DvwController, TeXStrings["Dvw"], Vtooltip);
+    setGUIControllerName(DvqController, TeXStrings["Dvq"], Vtooltip);
+    setGUIControllerName(gController, TeXStrings["VFUN"], Vtooltip);
+    hideGUIController(DvvController);
+  }
+  if (algebraicW) {
+    setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
+    setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
+    setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
+    setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
+    hideGUIController(DwwController);
+  }
+  if (algebraicQ) {
+    setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
+    setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
+    setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
+    setGUIControllerName(jController, TeXStrings["QFUN"], Qtooltip);
+    hideGUIController(DqqController);
+  }
+
   // Set the names of the BCs and ICs controllers.
   setGUIControllerName(uBCsController, TeXStrings["u"]);
   setGUIControllerName(vBCsController, TeXStrings["v"]);
@@ -3772,10 +3531,6 @@ function configureGUI() {
   setGUIControllerName(clearValueVController, TeXStrings["vInit"]);
   setGUIControllerName(clearValueWController, TeXStrings["wInit"]);
   setGUIControllerName(clearValueQController, TeXStrings["qInit"]);
-  // Set the names of the algebraic controllers.
-  setGUIControllerName(algebraicVController, "Algebraic " + TeXStrings["v"]);
-  setGUIControllerName(algebraicWController, "Algebraic " + TeXStrings["w"]);
-  setGUIControllerName(algebraicQController, "Algebraic " + TeXStrings["q"]);
 
   // Show/hide the indicator function controller.
   if (options.domainViaIndicatorFun) {
@@ -3839,6 +3594,8 @@ function configureOptions() {
   // Configure any options that depend on the equation type.
   let regex;
 
+  setAlgebraicVarsFromOptions();
+
   if (options.domainViaIndicatorFun) {
     // Only allow Dirichlet conditions.
     options.boundaryConditionsU = "dirichlet";
@@ -3851,9 +3608,6 @@ function configureOptions() {
   switch (parseInt(options.numSpecies)) {
     case 1:
       options.crossDiffusion = false;
-      options.algebraicV = false;
-      options.algebraicW = false;
-      options.algebraicQ = false;
 
       // Ensure that u is being displayed on the screen (and the brush target).
       options.whatToDraw = listOfSpecies[0];
@@ -3907,8 +3661,6 @@ function configureOptions() {
       ) {
         options.whatToPlot = listOfSpecies[0];
       }
-      options.algebraicW = false;
-      options.algebraicQ = false;
 
       // Set the diffusion of w and q to zero to prevent them from causing numerical instability.
       options.diffusionStrUW = "0";
@@ -3950,7 +3702,6 @@ function configureOptions() {
       if (options.whatToPlot == listOfSpecies[3]) {
         options.whatToPlot = listOfSpecies[0];
       }
-      options.algebraicV = false;
 
       // Set the diffusion of q to zero to prevent it from causing numerical instability.
       options.diffusionStrUQ = "0";
@@ -3979,7 +3730,6 @@ function configureOptions() {
       }
       break;
     case 4:
-      options.algebraicV = false;
       break;
   }
 
@@ -3992,14 +3742,20 @@ function configureOptions() {
     case 6:
       // 3SpeciesCrossDiffusionAlgebraicW
       options.diffusionStrWW = "0";
-    case 9:
-      // 4SpeciesCrossDiffusionAlgebraicW
+    case 7:
+      // 3SpeciesCrossDiffusionAlgebraicVW
+      options.diffusionStrVV = "0";
       options.diffusionStrWW = "0";
     case 10:
       // 4SpeciesCrossDiffusionAlgebraicQ
       options.diffusionStrQQ = "0";
     case 11:
       // 4SpeciesCrossDiffusionAlgebraicWQ
+      options.diffusionStrWW = "0";
+      options.diffusionStrQQ = "0";
+    case 12:
+      // 4SpeciesCrossDiffusionAlgebraicVWQ
+      options.diffusionStrVV = "0";
       options.diffusionStrWW = "0";
       options.diffusionStrQQ = "0";
   }
@@ -5192,7 +4948,12 @@ function updateGUIDropdown(controller, labels, values) {
   }
   let innerHTMLStr = "";
   for (var i = 0; i < labels.length; i++) {
-    var str = "<option value='" + values[i] + "'>" + labels[i] + "</option>";
+    var str =
+      "<option value='" +
+      values[i].toString() +
+      "'>" +
+      labels[i].toString() +
+      "</option>";
     innerHTMLStr += str;
   }
   controller.domElement.children[0].innerHTML = innerHTMLStr;
