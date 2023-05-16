@@ -3559,8 +3559,6 @@ function configureGUI() {
       // Hide the algebraicV and algebraicQ controller.
       hideGUIController(algebraicVController);
       hideGUIController(algebraicQController);
-      // Show the algebraicW controller.
-      showGUIController(algebraicWController);
 
       // Configure the controller names.
       setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
@@ -3643,6 +3641,8 @@ function configureGUI() {
       showVGUIPanels();
       showWGUIPanels();
       showQGUIPanels();
+      hideGUIController(DwwController);
+      hideGUIController(DqqController);
 
       // Show the cross diffusion controller.
       showGUIController(crossDiffusionController);
