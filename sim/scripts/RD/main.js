@@ -750,6 +750,8 @@ function init() {
         if (uiHidden) {
           uiHidden = false;
           $(".ui").removeClass("hidden");
+          // Reset any custom positioning for the Story ui.
+          $(".ui").css("top","");
           // Ensure that the correct play/pause button is showing.
           isRunning ? playSim() : pauseSim();
           // Check for any positioning that relies on elements being visible.
