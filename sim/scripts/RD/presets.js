@@ -3,6 +3,75 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "FlowSimplePeriodicNetwork":
+      options = {
+        activeViewInd: 3,
+        algebraicW: true,
+        algebraicQ: true,
+        boundaryConditionsU: "combo",
+        boundaryConditionsV: "combo",
+        boundaryConditionsW: "combo",
+        brushRadius: "20",
+        clearValueU: "1 - x/L_x",
+        clearValueW: "1",
+        colourbar: true,
+        crossDiffusion: true,
+        diffusionStrUU: "0.1",
+        diffusionStrVV: "0.1",
+        diffusionStrWW: "0",
+        domainScale: 250,
+        kineticParams: "delta  =  0;",
+        maxColourValue: 0.4960000216960907,
+        minColourValue: -0.0040000081062316895,
+        comboStrU: "Left: Dirichlet = 1; Right: Dirichlet = 0",
+        comboStrV: "Left: Dirichlet = L_x/100; Right: Neumann = 0",
+        comboStrW: "Left: Dirichlet = 1; Right: Dirichlet = 1",
+        neumannStrU: "-H((dx-x))*p_x + H((x+dx-L_x))*p_x",
+        numSpecies: "4",
+        numTimestepsPerFrame: 400,
+        preset: "FlowSimplePeriodicNetwork",
+        reactionStrU: "-delta*(u_x + v_y)",
+        reactionStrV: "(p_x + p_y)*c*0 - u*c_x - v*c_y",
+        reactionStrW: "-p_x",
+        reactionStrQ: "-p_y",
+        spatialStep: 1,
+        speciesNames: "p c u v",
+        suppressTryClickingPopup: true,
+        timeDisplay: true,
+        views: [
+          {
+            whatToPlot: "u_x+v_y",
+            colourmap: "turbo",
+            autoSetColourRange: true,
+            plotType: "plane",
+            name: "Divergence",
+          },
+          {
+            whatToPlot: "u",
+            colourmap: "turbo",
+            autoSetColourRange: true,
+            plotType: "plane",
+            name: "u",
+          },
+          {
+            whatToPlot: "v",
+            colourmap: "turbo",
+            autoSetColourRange: true,
+            plotType: "plane",
+            name: "v",
+          },
+          {
+            whatToPlot: "c",
+            colourmap: "turbo",
+            autoSetColourRange: true,
+            plotType: "plane",
+            name: "c",
+          },
+        ],
+        whatToDraw: "p",
+        whatToPlot: "c",
+      };
+      break;
     case "Test":
       options = {
         activeViewInd: 1,
@@ -633,10 +702,7 @@ export function getPreset(id) {
         reactionStrW: "0",
         squareCanvas: true,
         suppressTryClickingPopup: true,
-        views: [
-          { name: "Default"},
-          { name: "3D", plotType: "surface" },
-        ],
+        views: [{ name: "Default" }, { name: "3D", plotType: "surface" }],
         whatToDraw: "u",
         whatToPlot: "u",
       };

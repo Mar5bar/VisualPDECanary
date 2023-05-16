@@ -270,6 +270,7 @@ funsObj = {
     let str = JSON.stringify(objDiff)
       .replaceAll(/\s*,\s*([^0-9-\.\s])/g, ",\n\t$1")
       .replaceAll(":", ": ")
+      .replaceAll("  ", " ")
       .replace("{", "{\n\t")
       .replace("}", ",\n}");
     str = 'case "PRESETNAME":\n\toptions = ' + str + ";\nbreak;";
@@ -751,7 +752,7 @@ function init() {
           uiHidden = false;
           $(".ui").removeClass("hidden");
           // Reset any custom positioning for the Story ui.
-          $(".ui").css("top","");
+          $(".ui").css("top", "");
           // Ensure that the correct play/pause button is showing.
           isRunning ? playSim() : pauseSim();
           // Check for any positioning that relies on elements being visible.
