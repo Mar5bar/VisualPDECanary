@@ -557,6 +557,7 @@ function init() {
     antialias: false,
     alpha: true,
     premultipliedAlpha: false,
+    stencilBuffer: false
   });
   renderer.autoClear = true;
   gl = renderer.getContext();
@@ -917,6 +918,7 @@ function createDisplayDomains() {
   domain = new THREE.Mesh(plane, displayMaterial);
   domain.position.z = 0;
   domain.visible = options.plotType != "line";
+  domain.matrixAutoUpdate = false;
   scene.add(domain);
 
   // Create an invisible, low-poly plane used for raycasting.
@@ -929,6 +931,7 @@ function createDisplayDomains() {
   clickDomain = new THREE.Mesh(simplePlane, basicMaterial);
   clickDomain.position.z = 0;
   clickDomain.visible = false;
+  clickDomain.matrixAutoUpdate = false;
   scene.add(clickDomain);
   setDomainOrientation();
 
@@ -958,6 +961,8 @@ function setDomainOrientation() {
       clickDomain.rotation.x = -Math.PI / 2;
       break;
   }
+  domain.updateMatrix();
+  clickDomain.updateMatrix();
 }
 
 function setCanvasShape() {
