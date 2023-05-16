@@ -478,11 +478,12 @@ export function getPreset(id) {
     case "CovidInARoom":
       options = {
         algebraicW: true,
-        boundaryConditionsU: "neumann",
+        boundaryConditionsU: "combo",
         brushAction: "smoothadd",
         brushRadius: "20",
         clearValueU: "0",
         colourbar: true,
+        comboStrU: "Top: Neumann = 0; Bottom: Neumann = 0",
         crossDiffusion: true,
         diffusionStrUU: "1",
         diffusionStrVV: "0",
@@ -490,13 +491,12 @@ export function getPreset(id) {
         domainScale: 250,
         dt: 0.001,
         kineticParams:
-          "V = 20 in [0,40];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
-        neumannStrU: "-H((dx-x))*C_x + H((x+dx-L_x))*C_x",
+          "V = 20 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         numSpecies: "3",
         numTimestepsPerFrame: 200,
         preset: "CovidInARoom",
         reactionStrU:
-          "R*exp(-0.01*((x-L_x/2)^2+(y-L_y/2)^2))-(lambda+beta+sigma)*C-V*C_x",
+          "R*exp(-0.01*((x-X*L_x)^2+(y-Y*L_y)^2))-(lambda+beta+sigma)*C-V*C_x",
         reactionStrV: "(1-eta_sus)*rho_sus*C",
         reactionStrW: "1 - exp(-I*d)",
         spatialStep: 1,
