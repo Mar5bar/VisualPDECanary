@@ -633,6 +633,10 @@ export function getPreset(id) {
         reactionStrW: "0",
         squareCanvas: true,
         suppressTryClickingPopup: true,
+        views: [
+          { name: "Default"},
+          { name: "3D", plotType: "surface" },
+        ],
         whatToDraw: "u",
         whatToPlot: "u",
       };
