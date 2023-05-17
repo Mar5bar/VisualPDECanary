@@ -3742,22 +3742,27 @@ function configureOptions() {
     case 6:
       // 3SpeciesCrossDiffusionAlgebraicW
       options.diffusionStrWW = "0";
+      break;
     case 7:
       // 3SpeciesCrossDiffusionAlgebraicVW
       options.diffusionStrVV = "0";
       options.diffusionStrWW = "0";
+      break;
     case 10:
       // 4SpeciesCrossDiffusionAlgebraicQ
       options.diffusionStrQQ = "0";
+      break;
     case 11:
       // 4SpeciesCrossDiffusionAlgebraicWQ
       options.diffusionStrWW = "0";
       options.diffusionStrQQ = "0";
+      break;
     case 12:
       // 4SpeciesCrossDiffusionAlgebraicVWQ
       options.diffusionStrVV = "0";
       options.diffusionStrWW = "0";
       options.diffusionStrQQ = "0";
+      break;
   }
 
   // Refresh the GUI displays.
