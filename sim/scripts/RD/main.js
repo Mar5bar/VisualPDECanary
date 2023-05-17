@@ -5467,11 +5467,8 @@ function configureViewsGUI() {
     item = document.createElement("a");
     item.onclick = function () {
       options.activeViewInd = ind;
-      // Apply the view.
+      // Apply the view, which will update which button is active through configureGUI().
       applyView(options.views[ind]);
-      // Register this button as active, and remove the active class from the others.
-      $("#views_list a").removeClass("active_button");
-      this.classList.add("active_button");
     };
     item.innerHTML = options.views[ind].name;
     if (ind == options.activeViewInd) item.classList.add("active_button");
