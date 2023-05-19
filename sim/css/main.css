@@ -742,6 +742,7 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
 #views_list {
     display: flex;
     justify-content: space-evenly;
+    flex-flow: row wrap;
 }
 
 #views_list a {
@@ -756,6 +757,9 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     border: 2px solid #ccc;
     border-radius: 5px;
     cursor: pointer;
+    height: fit-content;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 #views_list a:hover {
@@ -772,10 +776,6 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
 
 .active_button {
     background-color: #666;
-}
-
-.lonely_button {
-    background: none !important;
 }
 
 .popout_panel .arrow,

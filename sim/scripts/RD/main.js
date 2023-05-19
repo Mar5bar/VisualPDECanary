@@ -99,6 +99,7 @@ let leftGUI,
   imControllerOne,
   imControllerTwo,
   whatToPlotController,
+  deleteViewController,
   selectedEntries = new Set();
 let isRunning,
   isDrawing,
@@ -331,6 +332,12 @@ funsObj = {
         MathJax.typesetPromise();
       }
     }
+  },
+  addView: function () {
+    addView();
+  },
+  deleteView: function () {
+    deleteView();
   },
 };
 
@@ -1809,6 +1816,10 @@ function initGUI(startOpen) {
     });
 
   root.add(funsObj, "editCurrentViewName").name("Edit name");
+
+  root.add(funsObj, "addView").name("New view");
+
+  deleteViewController = root.add(funsObj, "deleteView").name("Delete view");
 
   // root.add(funsObj, "restoreCurrentView").name("Restore");
 }
@@ -5472,8 +5483,14 @@ function configureViewsGUI() {
     };
     item.innerHTML = options.views[ind].name;
     if (ind == options.activeViewInd) item.classList.add("active_button");
-    if (options.views.length == 1) item.classList.add("lonely_button");
     document.getElementById("views_list").appendChild(item);
+  }
+
+  // Only show the Delete Views button if there is more than one view.
+  if (options.views.length > 1) {
+    showGUIController(deleteViewController);
+  } else {
+    hideGUIController(deleteViewController);
   }
 }
 
@@ -5493,6 +5510,32 @@ function applyView(view, update) {
     configureColourbar();
     render();
   }
+}
+
+function addView() {
+  // Add a new view.
+  let view = buildViewFromOptions();
+  view.name = "Custom";
+  options.views.push(view);
+  options.activeViewInd = options.views.length - 1;
+  configureViewsGUI();
+}
+
+function deleteView() {
+  // Remove the current view if there is more than one view.
+  if (options.views.length > 1) {
+    options.views.splice(options.activeViewInd, 1);
+    // Activate the previous view in the list, or the first element.
+    if (options.activeViewInd < 1) {
+      options.activeViewInd = 0;
+    } else {
+      options.activeViewInd -= 1;
+    }
+  } else {
+    // Otherwise, just rename the view.
+    options.views[options.activeViewInd].name = "Custom";
+  }
+  configureViewsGUI();
 }
 
 function buildViewFromOptions() {
