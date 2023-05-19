@@ -111,8 +111,14 @@ canvas {
 }
 
 #leftGUI {
+    max-height: 90dvh;
     margin-top: -5px;
     border-radius: 0px 0px 5px 5px;
+    direction: ltr;
+}
+
+#viewsGUI {
+    max-height: calc(90dvh - 130px);
     direction: ltr;
 }
 
