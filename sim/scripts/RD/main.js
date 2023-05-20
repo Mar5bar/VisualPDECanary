@@ -1721,6 +1721,7 @@ function initGUI(startOpen) {
   // Create a custom element for containing the view options.
   const viewsList = document.createElement("div");
   viewsList.id = "views_list";
+  viewsList.classList.add("button_list");
   viewsGUI.domElement.prepend(viewsList);
   const viewsLabel = document.createElement("div");
   viewsLabel.innerHTML = "Views";

@@ -745,13 +745,13 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     z-index: 0;
 }
 
-#views_list {
+.button_list {
     display: flex;
     justify-content: space-evenly;
     flex-flow: row wrap;
 }
 
-#views_list a {
+.button_list a {
     display: inline-block;
     color: white;
     text-align: center;
@@ -768,7 +768,7 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     margin-bottom: 2px;
 }
 
-#views_list a:hover {
+.button_list a:hover {
 	background-color: #555;
 }
 
