@@ -320,19 +320,6 @@ funsObj = {
   restoreCurrentView: function () {
     restoreCurrentView();
   },
-  editCurrentViewName: function () {
-    let name = prompt(
-      "Enter a name for the current View. You can enclose mathematics in $ $.",
-      options.views[options.activeViewInd].name
-    );
-    if (name != null) {
-      options.views[options.activeViewInd].name = name;
-      configureViewsGUI();
-      if (MathJax.typesetPromise != undefined) {
-        MathJax.typesetPromise();
-      }
-    }
-  },
   addView: function () {
     addView();
   },
@@ -1816,11 +1803,14 @@ function initGUI(startOpen) {
       }
     });
 
-  root.add(funsObj, "editCurrentViewName").name("Edit name");
+  const editViewButtons = document.createElement("li");
+  editViewButtons.id = "edit_view_buttons";
+  editViewButtons.classList.add("button_list");
+  root.domElement.children[0].appendChild(editViewButtons);
 
-  root.add(funsObj, "addView").name("New view");
-
-  deleteViewController = root.add(funsObj, "deleteView").name("Delete view");
+  addButton(editViewButtons, "New", addView);
+  addButton(editViewButtons, "Rename", editCurrentViewName);
+  addButton(editViewButtons, "Delete", deleteView, "deleteViewButton");
 
   // root.add(funsObj, "restoreCurrentView").name("Restore");
 }
@@ -5489,9 +5479,9 @@ function configureViewsGUI() {
 
   // Only show the Delete Views button if there is more than one view.
   if (options.views.length > 1) {
-    showGUIController(deleteViewController);
+    $("#deleteViewButton").removeClass("hidden");
   } else {
-    hideGUIController(deleteViewController);
+    $("#deleteViewButton").addClass("hidden");
   }
 }
 
@@ -5510,6 +5500,20 @@ function applyView(view, update) {
     updateColourbarLims();
     configureColourbar();
     render();
+  }
+}
+
+function editCurrentViewName() {
+  let name = prompt(
+    "Enter a name for the current View. You can enclose mathematics in $ $.",
+    options.views[options.activeViewInd].name
+  );
+  if (name != null) {
+    options.views[options.activeViewInd].name = name;
+    configureViewsGUI();
+    if (MathJax.typesetPromise != undefined) {
+      MathJax.typesetPromise();
+    }
   }
 }
 
@@ -5622,4 +5626,12 @@ function dirichletEnforceShader(speciesInd, side) {
     );
   }
   return str;
+}
+
+function addButton(parent, inner, onclick, id) {
+  const button = document.createElement("a");
+  if (onclick != undefined) button.onclick = onclick;
+  if (id != undefined) button.id = id;
+  if (inner != undefined) button.innerHTML = inner;
+  parent.appendChild(button);
 }
