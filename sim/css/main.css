@@ -773,6 +773,10 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
 	background-color: #555;
 }
 
+.button_list a:active {
+	background-color: #666;
+}
+
 #views_label {
     padding-bottom: 8px;
     text-align: center;

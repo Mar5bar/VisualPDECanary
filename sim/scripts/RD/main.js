@@ -307,9 +307,6 @@ funsObj = {
   exportSimState: function () {
     exportSimState();
   },
-  loadSimStateFromInput: function () {
-    $("#checkpointInput").click();
-  },
   clearCheckpoints: function () {
     if (checkpointExists) {
       checkpointTexture.dispose();
@@ -319,12 +316,6 @@ funsObj = {
   },
   restoreCurrentView: function () {
     restoreCurrentView();
-  },
-  addView: function () {
-    addView();
-  },
-  deleteView: function () {
-    deleteView();
   },
 };
 
@@ -1671,18 +1662,19 @@ function initGUI(startOpen) {
   // Checkpoints override initial condition
   root.add(options, "resetFromCheckpoints").name("Enable checkpoints");
 
-  // Save checkpoint.
-  root.add(funsObj, "saveSimState").name("Set checkpoint");
-
-  // Export simulation state.
-  root.add(funsObj, "exportSimState").name("Save to file");
-
-  // Load simulation state.
-  root.add(funsObj, "loadSimStateFromInput").name("Load from file");
-
   root
     .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
     .name("Resize");
+
+  const checkpointButtons = document.createElement("li");
+  checkpointButtons.classList.add("button_list");
+  root.domElement.children[0].appendChild(checkpointButtons);
+
+  addButton(checkpointButtons, "Set", saveSimState);
+  addButton(checkpointButtons, "Export", exportSimState);
+  addButton(checkpointButtons, "Import", function () {
+    $("#checkpointInput").click();
+  });
 
   // Miscellaneous folder.
   root = rightGUI.addFolder("Misc.");
