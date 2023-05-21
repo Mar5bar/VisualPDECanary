@@ -1699,6 +1699,16 @@ function initGUI(startOpen) {
   viewsGUI.domElement.prepend(viewsLabel);
 
   root = viewsGUI.addFolder("Edit");
+
+  const editViewButtons = document.createElement("li");
+  editViewButtons.id = "edit_view_buttons";
+  editViewButtons.classList.add("button_list");
+  root.domElement.children[0].appendChild(editViewButtons);
+
+  addButton(editViewButtons, "New", addView);
+  addButton(editViewButtons, "Rename", editCurrentViewName);
+  addButton(editViewButtons, "Delete", deleteView, "deleteViewButton");
+
   whatToPlotController = root
     .add(options, "whatToPlot")
     .name("Expression: ")
@@ -1738,23 +1748,6 @@ function initGUI(startOpen) {
     })
     .name("Colour map");
 
-  const colourmapButtons = document.createElement("li");
-  colourmapButtons.classList.add("button_list");
-  root.domElement.children[0].appendChild(colourmapButtons);
-
-  addButton(colourmapButtons, "Reverse", function () {
-    updateView("flippedColourmap");
-    options.flippedColourmap = !options.flippedColourmap;
-    setDisplayColourAndType();
-    configureColourbar();
-  });
-  addButton(colourmapButtons, "Snap", function () {
-    updateView("minColourValue");
-    updateView("maxColourValue");
-    setColourRange();
-    render();
-  });
-
   minColourValueController = root
     .add(options, "minColourValue")
     .name("Min value")
@@ -1777,6 +1770,23 @@ function initGUI(startOpen) {
     });
   maxColourValueController.__precision = 2;
 
+  const colourmapButtons = document.createElement("li");
+  colourmapButtons.classList.add("button_list");
+  root.domElement.children[0].appendChild(colourmapButtons);
+
+  addButton(colourmapButtons, "Reverse", function () {
+    updateView("flippedColourmap");
+    options.flippedColourmap = !options.flippedColourmap;
+    setDisplayColourAndType();
+    configureColourbar();
+  });
+  addButton(colourmapButtons, "Snap", function () {
+    updateView("minColourValue");
+    updateView("maxColourValue");
+    setColourRange();
+    render();
+  });
+
   autoSetColourRangeController = root
     .add(options, "autoSetColourRange")
     .name("Auto snap")
@@ -1787,15 +1797,6 @@ function initGUI(startOpen) {
         render();
       }
     });
-
-  const editViewButtons = document.createElement("li");
-  editViewButtons.id = "edit_view_buttons";
-  editViewButtons.classList.add("button_list");
-  root.domElement.children[0].appendChild(editViewButtons);
-
-  addButton(editViewButtons, "New", addView);
-  addButton(editViewButtons, "Rename", editCurrentViewName);
-  addButton(editViewButtons, "Delete", deleteView, "deleteViewButton");
 
   // root.add(funsObj, "restoreCurrentView").name("Restore");
 }
