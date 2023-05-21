@@ -756,8 +756,8 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     display: inline-block;
     color: white;
     text-align: center;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding-top: 2px;
+    padding-bottom: 2px;
     padding-left: 8px;
     padding-right: 8px;
     text-decoration: none;
@@ -765,7 +765,7 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     border-radius: 5px;
     cursor: pointer;
     height: fit-content;
-    margin-top: 2px;
+    margin-top: 4px;
     margin-bottom: 2px;
 }
 

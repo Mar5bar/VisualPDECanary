@@ -277,15 +277,6 @@ funsObj = {
     str = 'case "PRESETNAME":\n\toptions = ' + str + ";\nbreak;";
     navigator.clipboard.writeText(str);
   },
-  flipColourmap: function () {
-    options.flippedColourmap = !options.flippedColourmap;
-    setDisplayColourAndType();
-    configureColourbar();
-  },
-  setColourRangeButton: function () {
-    setColourRange();
-    render();
-  },
   debug: function () {
     // Write lots of data to the clipboard for debugging.
     let str = "";
@@ -1747,12 +1738,22 @@ function initGUI(startOpen) {
     })
     .name("Colour map");
 
-  root
-    .add(funsObj, "flipColourmap")
-    .name("Reverse map")
-    .onChange(function () {
-      updateView("flippedColourmap");
-    });
+  const colourmapButtons = document.createElement("li");
+  colourmapButtons.classList.add("button_list");
+  root.domElement.children[0].appendChild(colourmapButtons);
+
+  addButton(colourmapButtons, "Reverse", function () {
+    updateView("flippedColourmap");
+    options.flippedColourmap = !options.flippedColourmap;
+    setDisplayColourAndType();
+    configureColourbar();
+  });
+  addButton(colourmapButtons, "Snap", function () {
+    updateView("minColourValue");
+    updateView("maxColourValue");
+    setColourRange();
+    render();
+  });
 
   minColourValueController = root
     .add(options, "minColourValue")
@@ -1775,14 +1776,6 @@ function initGUI(startOpen) {
       render();
     });
   maxColourValueController.__precision = 2;
-
-  setColourRangeController = root
-    .add(funsObj, "setColourRangeButton")
-    .name("Snap range")
-    .onChange(function () {
-      updateView("minColourValue");
-      updateView("maxColourValue");
-    });
 
   autoSetColourRangeController = root
     .add(options, "autoSetColourRange")
