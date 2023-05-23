@@ -264,34 +264,6 @@ funsObj = {
       }
     );
   },
-  copyConfigAsJSON: function () {
-    // Encode the current simulation configuration as raw JSON and put it on the clipboard.
-    let objDiff = diffObjects(options, getPreset("default"));
-    objDiff.preset = "PRESETNAME";
-    let str = JSON.stringify(objDiff)
-      .replaceAll(/\s*,\s*([^0-9-\.\s])/g, ",\n\t$1")
-      .replaceAll(":", ": ")
-      .replaceAll("  ", " ")
-      .replace("{", "{\n\t")
-      .replace("}", ",\n}");
-    str = 'case "PRESETNAME":\n\toptions = ' + str + ";\nbreak;";
-    navigator.clipboard.writeText(str);
-  },
-  debug: function () {
-    // Write lots of data to the clipboard for debugging.
-    let str = "";
-    str += JSON.stringify(options);
-    str += JSON.stringify(uniforms);
-    str += JSON.stringify({
-      nXDisc: nXDisc,
-      nYDisc: nYDisc,
-      domainHeight: domainHeight,
-      domainWidth: domainWidth,
-      aspectRatio: aspectRatio,
-      canvas: canvas.getBoundingClientRect(),
-    });
-    navigator.clipboard.writeText(str);
-  },
   saveSimState: function () {
     saveSimState();
   },
@@ -1681,11 +1653,18 @@ function initGUI(startOpen) {
   root.add(options, "fixRandSeed").name("Fix random seed");
 
   // Copy configuration as raw JSON.
-  root.add(funsObj, "copyConfigAsJSON").name("Copy code");
+  const codeButton = document.createElement("li");
+  codeButton.classList.add("button_list");
+  root.domElement.children[0].appendChild(codeButton);
+  addButton(codeButton, "Copy code", copyConfigAsJSON);
 
   root = root.addFolder("Debug");
   // Debug.
-  root.add(funsObj, "debug").name("Copy debug info");
+  // Copy configuration as raw JSON.
+  const debugButton = document.createElement("li");
+  debugButton.classList.add("button_list");
+  root.domElement.children[0].appendChild(debugButton);
+  addButton(debugButton, "Copy debug information", copyDebug);
 
   // Populate the viewsGUI.
   // Create a custom element for containing the view options.
@@ -5620,4 +5599,35 @@ function addButton(parent, inner, onclick, id) {
   if (id != undefined) button.id = id;
   if (inner != undefined) button.innerHTML = inner;
   parent.appendChild(button);
+}
+
+function copyConfigAsJSON() {
+  // Encode the current simulation configuration as raw JSON and put it on the clipboard.
+  let objDiff = diffObjects(options, getPreset("default"));
+  objDiff.preset = "PRESETNAME";
+  let str = JSON.stringify(objDiff)
+    .replaceAll(/\s*,\s*([^0-9-\.\s])/g, ",\n\t$1")
+    .replaceAll(":", ": ")
+    .replaceAll("  ", " ")
+    .replace("{", "{\n\t")
+    .replace("}", ",\n}");
+  str = 'case "PRESETNAME":\n\toptions = ' + str + ";\nbreak;";
+
+  navigator.clipboard.writeText(str);
+}
+
+function copyDebug() {
+  // Write lots of data to the clipboard for debugging.
+  let str = "";
+  str += JSON.stringify(options);
+  str += JSON.stringify(uniforms);
+  str += JSON.stringify({
+    nXDisc: nXDisc,
+    nYDisc: nYDisc,
+    domainHeight: domainHeight,
+    domainWidth: domainWidth,
+    aspectRatio: aspectRatio,
+    canvas: canvas.getBoundingClientRect(),
+  });
+  navigator.clipboard.writeText(str);
 }
