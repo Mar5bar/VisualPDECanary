@@ -502,7 +502,6 @@ export function getPreset(id) {
         spatialStep: 1,
         speciesNames: "C d P",
         suppressTryClickingPopup: true,
-        timeDisplay: true,
         views: [
           { name: "Probability", whatToPlot: "P" },
           { name: "Concentration", whatToPlot: "C", maxColourValue: 5 },
@@ -539,7 +538,6 @@ export function getPreset(id) {
         spatialStep: 1,
         speciesNames: "C d P",
         suppressTryClickingPopup: true,
-        timeDisplay: true,
         views: [
           { name: "Probability", whatToPlot: "P" },
           { name: "Concentration", whatToPlot: "C", maxColourValue: 5 },
@@ -569,14 +567,13 @@ export function getPreset(id) {
         numTimestepsPerFrame: 20,
         preset: "CovidInARoomCircling",
         reactionStrU:
-          "R*exp(-0.01*((x-L_x/2 + 0.4*cos(t)*L_min)^2+(y-L_y/2 + 0.4*sin(t)*L_min)^2))-(lambda+beta+sigma)*C-V*C_x",
+          "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C-V*C_x",
         reactionStrV: "(1-eta_sus)*rho_sus*C",
         reactionStrW: "1 - exp(-I*d)",
         runningOnLoad: false,
         spatialStep: 1,
         speciesNames: "C d P",
         suppressTryClickingPopup: true,
-        timeDisplay: true,
         views: [
           { name: "Probability", whatToPlot: "P" },
           { name: "Concentration", whatToPlot: "C", maxColourValue: 5 },
@@ -606,14 +603,12 @@ export function getPreset(id) {
         numTimestepsPerFrame: 20,
         preset: "CovidInAStillRoomCircling",
         reactionStrU:
-          "R*exp(-0.01*((x-L_x/2 + 0.4*cos(t)*L_min)^2+(y-L_y/2 + 0.4*sin(t)*L_min)^2))-(lambda+beta+sigma)*C-V*C_x",
+          "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C-V*C_x",
         reactionStrV: "(1-eta_sus)*rho_sus*C",
         reactionStrW: "1 - exp(-I*d)",
-        runningOnLoad: false,
         spatialStep: 1,
         speciesNames: "C d P",
         suppressTryClickingPopup: true,
-        timeDisplay: true,
         views: [
           { name: "Probability", whatToPlot: "P" },
           { name: "Concentration", whatToPlot: "C", maxColourValue: 5 },
