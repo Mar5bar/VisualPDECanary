@@ -12,7 +12,10 @@ equation:
 <iframe class="sim" src="/sim/?preset=CovidInAStillRoom&story" frameborder="0"></iframe>
 
 <!-- virus probability is another way of viewing things. Caveat of only illustrative numbers here -->
-<!-- Probability increases with time - all other things being equal, short exposure is better than long exposure -->
+
+Whilst looking at the virus concentration can be helpful, we might also be interested in looking at the probability of infection if you'd been stood at a particular location for the duration of the simulation. With VisualPDE, we can switch to the Probability View by pressing {{ layout.views }} and choosing 'Probability', though it's worth noting that these numbers aren't meant to match up perfectly with reality here.
+
+Here, the probability of being infected is only large close to where we know the source of the infection is, right in the middle of the room. As you might expect, the probability of being infected increases with the amount of time that you're exposed to the virus. This time-dependent effect is visible when you click to cough whilst using the Probability View. To reset the simulation, press {{ layout.erase }}
 
 # Recirculation
 It's fairly rare for air to stay still. Let's see what effect the movement of air can have on the distribution of virus and the chance of infection. In the simulation below, we've added in the effects of the air being blown from left to right, mimicking an air conditioner, with anything that reaches the right-hand side of the room being recycled back into left side.
