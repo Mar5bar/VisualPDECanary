@@ -34,7 +34,6 @@ let leftGUI,
   viewsGUI,
   root,
   typeOfBrushController,
-  drawIn3DController,
   fController,
   gController,
   hController,
@@ -108,6 +107,7 @@ let isRunning,
   nudgedUp = false,
   compileErrorOccurred = false,
   NaNTimer,
+  topMessageTimer,
   uiHidden = false,
   checkpointExists = false,
   savedViews,
@@ -405,13 +405,14 @@ if (shouldLoadDefault) {
 // or have loaded the default simulation.
 if (
   (fromExternalLink() || shouldLoadDefault || options.forceTryClickingPopup) &&
-  !options.suppressTryClickingPopup
+  !options.suppressTryClickingPopup &&
+  options.brushEnabled
 ) {
-  $("#try_clicking").html("<p>" + options.tryClickingText + "</p>");
-  fadein("#try_clicking");
+  $("#top_message").html("<p>" + options.tryClickingText + "</p>");
+  fadein("#top_message");
   // Fadeout either after the user clicks on the canvas or 5s passes.
-  setTimeout(() => fadeout("#try_clicking"), 5000);
-  $("#simCanvas").one("pointerdown touchstart", () => fadeout("#try_clicking"));
+  setTimeout(() => fadeout("#top_message"), 5000);
+  $("#simCanvas").one("pointerdown touchstart", () => fadeout("#top_message"));
 }
 
 /* GUI settings and equations buttons */
@@ -1083,6 +1084,8 @@ function initGUI(startOpen) {
   // Brush folder.
   root = rightGUI.addFolder("Brush");
 
+  root.add(options, "brushEnabled").name("Enabled");
+
   root
     .add(options, "brushAction", {
       Replace: "replace",
@@ -1110,8 +1113,6 @@ function initGUI(startOpen) {
     .add(options, "whatToDraw", listOfSpecies)
     .name("Species")
     .onChange(setBrushType);
-
-  drawIn3DController = root.add(options, "drawIn3D").name("3D enabled");
 
   // Domain folder.
   root = rightGUI.addFolder("Domain");
@@ -1623,7 +1624,7 @@ function initGUI(startOpen) {
   root = rightGUI.addFolder("Checkpoints");
 
   // Checkpoints override initial condition
-  root.add(options, "resetFromCheckpoints").name("Enable checkpoints");
+  root.add(options, "resetFromCheckpoints").name("Enabled");
 
   root
     .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
@@ -1785,7 +1786,7 @@ function animate() {
 
   hasDrawn = isDrawing;
   // Draw on any input from the user, which can happen even if timestepping is not running.
-  if (isDrawing && options.drawIn3D | (options.plotType != "surface")) {
+  if (isDrawing && options.brushEnabled) {
     draw();
   }
 
@@ -1986,7 +1987,7 @@ function render() {
   }
 
   // Update the position of the click domain for easy clicking.
-  if (options.drawIn3D && options.plotType == "surface") {
+  if (options.brushEnabled && options.plotType == "surface") {
     let val =
       (getMeanVal() - options.minColourValue) /
         (options.maxColourValue - options.minColourValue) -
@@ -2071,8 +2072,19 @@ function render() {
 
 function onDocumentPointerDown(event) {
   isDrawing = setBrushCoords(event, canvas);
-  if (isDrawing && options.drawIn3D && options.plotType == "surface") {
-    controls.enabled = false;
+  if (isDrawing) {
+    if (options.brushEnabled && options.plotType == "surface") {
+      controls.enabled = false;
+    } else if (!options.brushEnabled) {
+      // Display a message saying that the brush is disabled.
+      $("#top_message").html("<p>Brush disabled</p>");
+      fadein("#top_message");
+      // Fadeout after 3s passes.
+      window.clearTimeout(topMessageTimer);
+      topMessageTimer = setTimeout(function () {
+        if (!$("#top_message").hasClass("fading_out")) fadeout("#top_message");
+      }, 3000);
+    }
   }
 }
 
@@ -2091,7 +2103,7 @@ function setBrushCoords(event, container) {
   var cRect = container.getBoundingClientRect();
   let x = (event.clientX - cRect.x) / cRect.width;
   let y = 1 - (event.clientY - cRect.y) / cRect.height;
-  if (options.drawIn3D && options.plotType == "surface") {
+  if (options.plotType == "surface") {
     // If we're in 3D, we have to project onto the simulation domain.
     // We need x,y between -1 and 1.
     clampedCoords.x = 2 * x - 1;
@@ -2781,6 +2793,9 @@ function loadOptions(preset) {
 
   // Enable backwards compatibility.
   options.brushRadius = options.brushRadius.toString();
+  if (options.hasOwnProperty("drawIn3D")) {
+    options.brushEnabled = options.drawIn3D;
+  }
   // Replace T and S with I_T and I_S if T, S are not in the listOfSpecies.
   if (!listOfSpecies.includes("T")) {
     Object.keys(options).forEach(function (key) {
@@ -3514,21 +3529,18 @@ function configureGUI() {
     showGUIController(cameraThetaController);
     showGUIController(cameraPhiController);
     showGUIController(cameraZoomController);
-    showGUIController(drawIn3DController);
   } else if (options.plotType == "line") {
     showGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
     hideGUIController(cameraPhiController);
     hideGUIController(cameraZoomController);
-    hideGUIController(drawIn3DController);
   } else {
     hideGUIController(lineWidthMulController);
     hideGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
     hideGUIController(cameraPhiController);
     hideGUIController(cameraZoomController);
-    hideGUIController(drawIn3DController);
   }
   configureColourbar();
   configureTimeDisplay();
@@ -4372,13 +4384,12 @@ function fadein(id) {
 function fadeout(id) {
   $(id).removeClass("fading_in");
   $(id).addClass("fading_out");
-  $(id).bind(
-    "webkitTransitionEnd oTransitionEnd transitionend msTransitionEnd",
-    function () {
-      $(this).removeClass("fading_out");
-      $(this).hide();
+  setTimeout(function () {
+    if ($(id).hasClass("fading_out")) {
+      $(id).removeClass("fading_out");
+      $(id).hide();
     }
-  );
+  }, 1000);
 }
 
 function configureColourbar() {

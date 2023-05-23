@@ -74,6 +74,15 @@ Initial conditions can be specified for any species in the simulation. They can 
 ## Views <a id='views'> {{ layout.views }}
 There are often multiple ways to visualise a solution to a PDE. In the Views pane, you can select from and customise a range of example-specific display options. More advanced settings can be found under [**Settings**](#settings).
 
+**New**\
+Create a new view with the placeholder name 'Custom' from the current view configuration.
+
+**Rename**\
+Edit the name of the current View, enclosing any mathematics in '$' tags.
+
+**Delete**\
+Delete the currently selected View. Only visible if there are at least two views.
+
 **Expression**\
 Choose the expression that you want to be used to colour the domain, which can be any function of the species solved for, as well as space, time, and user-defined parameters. Often, this is either $u$, $v$, $w$ or $q$. Alternatively, setting this to 'MAX' will colour the domain by the maximum of the species. Explicitly, this can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$) and their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
 
@@ -87,26 +96,27 @@ Surface plots are constructed by using the chosen **Expression** as a height map
 **Colour map**\
 Set the current colour map being used to convert **Expression** into a colour value. Use the dropdown to select from the available options. We have tried to cater for everyone in these options but, if you find that no colour map is available that allows you to easily distinguish between values, please let us know at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can add a more appropriate map.
 
-**Reverse map**\
-Reverse the direction of the current colour map.
 
 **Min/Max value**\
 Set the limits of the colour map that transforms  **Expression** into colour. If viewing a surface plot, this also impacts the height of the surface. Must be a numerical value.
 
-**Snap range**\
+**Reverse**\
+Reverse the direction of the current colour map.
+
+**Snap**\
 Click to instantly snap **Min value** and **Max value** to the current minimum and maximum of **Expression** in the domain. If these values are within a small tolerance (0.005), VisualPDE will center the range on the average of the two and fix a width of 0.005.
 
 **Auto snap**\
 Toggle the automatic snapping of the colour map limits. This can be very useful if you don't know the range in which **Expression** will fall, especially if it is changing frequently.
-
-**Edit name**\
-Edit the name of the current View, enclosing any mathematics in '$' tags.
 
 ## Settings <a id='settings'> {{ layout.settings }}
 Almost everything in VisualPDE is customisable. Here you can edit a wide range of settings, from the size of the brush to the timestep of the simulation.
 
 ### Brush <a id='brush'>
 VisualPDE allows you to interact directly with simulations via a brush by simply clicking/pressing on the domain. The brush paints values onto the discrete representation of the domain, which act like initial conditions for the rest of the simulation.
+
+**Enabled**\
+Enable or disable the brush. Most simulations will have the brush enabled by default.
 
 **Type**\
 Change the shape of the brush, choosing between **Disk**, **Horizontal line** and **Vertical line**.
@@ -119,9 +129,6 @@ Change the brush size, measured on the same scale as the domain size. This can e
 
 **Species**\
 Set the **species** ($u$, $v$, $w$, $q$) you are painting.
-
-**3D enabled**\
-Allow yourself to draw while viewing the solution as a surface (surface plot only).
 
 ### Domain <a id='domain'>
 **Largest side**\
@@ -198,17 +205,17 @@ Define the scalar fields $I_S$ and $I_T$, which are derived from images that you
 ### Checkpoints <a id='checkpoints'>
 VisualPDE supports checkpoints, which allow you to save the state of a simulation at the touch of a button. This allows you to instantly return to a previous solution state - very handy if you've crafted the perfect initial condition by painting with the brush. Revert to a checkpoint by pressing {{ layout.restart }}
 
-**Enable checkpoints**\
+**Enabled**\
 Toggle the use of checkpoints. When enabled, resetting the simulation will revert to a saved checkpoint (if one exists) instead of using any initial conditions defined alongside the equations.
 
-**Set checkpoint**\
+**Set**\
 Save the current simulation as a checkpoint.
 
-**Save to file**\
-Click to download the last checkpoint as a file to your device, which can be shared and uploaded to the site and used as a checkpoint. If no checkpoint exists, one will be created. By default, the file will be called 'VisualPDEState'.
+**Export**\
+Click to export the last checkpoint as a file to your device, which can be shared and uploaded to the site and used as a checkpoint. If no checkpoint exists, one will be created. By default, the file will be called 'VisualPDEState'.
 
-**Load from file**\
-Load a checkpoint from a VisualPDE file. By default, these are called 'VisualPDEState'.
+**Import**\
+Import a checkpoint from a VisualPDE file. By default, these are called 'VisualPDEState'.
 
 **Resize**\
 Specify how a checkpoint should be resized to fit the current simulation domain. 'Stretch' will stretch the checkpoint so that it fills the current domain, but will not preserve the aspect ratio in general. "Crop" will crop the checkpoint whilst preserving the aspect ratio, but may result in some information not being used.

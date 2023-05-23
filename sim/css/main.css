@@ -277,7 +277,7 @@ canvas {
     display: none;
 }
 
-#try_clicking {
+#top_message {
     top: 20px;
     left: 50%;
     position: absolute;
@@ -416,8 +416,8 @@ i.icon_on_text_button {
 
 .fading_in {
     opacity: 100% !important;
-    transition-duration: 3s;
-    transition-delay: 1s;
+    transition-duration: 2s;
+    transition-delay: 0.5s;
 }
 
 .fading_out {

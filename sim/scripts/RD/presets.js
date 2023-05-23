@@ -205,7 +205,7 @@ export function getPreset(id) {
     case "KdV":
       options = {
         algebraicV: true,
-        brushRadius: "20",
+        brushEnabled: false,
         cameraTheta: 0.5,
         cameraPhi: 0,
         clearValueU:
@@ -1819,7 +1819,7 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
-        brushRadius: 1,
+        brushEnabled: false,
         clearValueU: "sin(n*pi*x/100)*sin(m*pi*y/100)",
         crossDiffusion: true,
         diffusionStrUU: "C*D",
@@ -1866,7 +1866,7 @@ export function getPreset(id) {
         autoSetColourRange: true,
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
-        brushRadius: 1,
+        brushEnabled: false,
         clearValueU: "(sin(pi*x/100)*sin(pi*y/100))^10",
         crossDiffusion: true,
         diffusionStrUU: "C*D",
@@ -1892,7 +1892,7 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
-        brushRadius: 1,
+        brushEnabled: false,
         cameraTheta: 0.5,
         cameraPhi: 0,
         clearValueU: "exp(-(0.5*pi/s^2)*(x/100-x0)^2)*cos(a*x)/N",
@@ -2007,6 +2007,7 @@ export function getPreset(id) {
         boundaryConditionsW: "periodic",
         boundaryConditionsQ: "periodic",
         brushAction: "replace",
+        brushEnabled: true,
         brushValue: "1",
         brushRadius: 5,
         cameraTheta: 30,
@@ -2044,7 +2045,6 @@ export function getPreset(id) {
         domainIndicatorFun: "1",
         domainScale: 100,
         domainViaIndicatorFun: false,
-        drawIn3D: true,
         dt: 0.1,
         fixRandSeed: false,
         flippedColourmap: false,
