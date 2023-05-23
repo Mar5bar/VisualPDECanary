@@ -9,6 +9,7 @@ export function drawShaderTop() {
     uniform float L;
     uniform float L_x;
     uniform float L_y;
+    uniform float L_min;
     uniform float seed;
     uniform float t;
     uniform float dx;

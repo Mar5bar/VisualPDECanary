@@ -10,6 +10,7 @@ export function clearShaderTop() {
     uniform float L;
     uniform float L_x;
     uniform float L_y;
+    uniform float L_min;
     uniform int nXDisc;
     uniform int nYDisc;
     uniform float seed;

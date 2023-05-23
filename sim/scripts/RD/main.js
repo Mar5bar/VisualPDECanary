@@ -799,6 +799,7 @@ function updateUniforms() {
   uniforms.L.value = options.domainScale;
   uniforms.L_y.value = domainHeight;
   uniforms.L_x.value = domainWidth;
+  uniforms.L_min.value = Math.min(domainHeight, domainWidth);
   uniforms.dt.value = options.dt;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
@@ -1001,6 +1002,9 @@ function initUniforms() {
       type: "f",
     },
     L_y: {
+      type: "f",
+    },
+    L_min: {
       type: "f",
     },
     dt: {
