@@ -111,7 +111,8 @@ let isRunning,
   uiHidden = false,
   checkpointExists = false,
   savedViews,
-  updatingAlgebraicSpecies = false;
+  updatingAlgebraicSpecies = false,
+  viewUIOffsetInit;
 let inTex, outTex;
 let nXDisc,
   nYDisc,
@@ -354,6 +355,8 @@ if (params.has("story")) {
   $("#erase").css("top", "-=50");
   $("#views").css("top", "-=50");
   $("#views_ui").css("top", "-=50");
+  viewUIOffsetInit = $(":root").css("--views-ui-offset");
+  $(":root").css("--views-ui-offset", "-=50");
 }
 
 // Warn the user about flashing images and ask for cookie permission to store this.
@@ -497,7 +500,9 @@ $("#views").click(function () {
 
 // New, rename, delete
 // (Dynamically created buttons, like the +, can't use .click())
-$(document).on("click", "#add_view", function () { addView(); });
+$(document).on("click", "#add_view", function () {
+  addView();
+});
 
 // Begin the simulation.
 animate();
@@ -707,6 +712,7 @@ function init() {
           $(".ui").removeClass("hidden");
           // Reset any custom positioning for the Story ui.
           $(".ui").css("top", "");
+          $(":root").css("--views-ui-offset", viewUIOffsetInit);
           // Ensure that the correct play/pause button is showing.
           isRunning ? playSim() : pauseSim();
           // Check for any positioning that relies on elements being visible.
@@ -1666,7 +1672,11 @@ function initGUI(startOpen) {
   const codeButton = document.createElement("li");
   codeButton.classList.add("button_list");
   root.domElement.children[0].appendChild(codeButton);
-  addButton(codeButton, '<i class="fa-regular fa-copy"></i> Copy code', copyConfigAsJSON);
+  addButton(
+    codeButton,
+    '<i class="fa-regular fa-copy"></i> Copy code',
+    copyConfigAsJSON
+  );
 
   root = root.addFolder("Debug");
   // Debug.
@@ -1694,9 +1704,20 @@ function initGUI(startOpen) {
   editViewButtons.classList.add("button_list");
   root.domElement.children[0].appendChild(editViewButtons);
 
-  addButton(editViewButtons, '<i class="fa-solid fa-pen-nib"></i> Rename', editCurrentViewName, null, "Rename view"); // Rename
-  addButton(editViewButtons, '<i class="fa-solid fa-xmark"></i> Delete', deleteView, "deleteViewButton", "Delete view"); // Delete
-
+  addButton(
+    editViewButtons,
+    '<i class="fa-solid fa-pen-nib"></i> Rename',
+    editCurrentViewName,
+    null,
+    "Rename view"
+  ); // Rename
+  addButton(
+    editViewButtons,
+    '<i class="fa-solid fa-xmark"></i> Delete',
+    deleteView,
+    "deleteViewButton",
+    "Delete view"
+  ); // Delete
 
   whatToPlotController = root
     .add(options, "whatToPlot")
@@ -1775,21 +1796,31 @@ function initGUI(startOpen) {
   colourmapButtons.classList.add("button_list");
   root.domElement.children[0].appendChild(colourmapButtons);
 
-  addButton(colourmapButtons, '<i class="fa-solid fa-arrow-right-arrow-left"></i> Reverse', function () {
-    updateView("flippedColourmap");
-    options.flippedColourmap = !options.flippedColourmap;
-    setDisplayColourAndType();
-    configureColourbar();
-  },
-  null, "Reverse colour map");
-  
-  addButton(colourmapButtons, '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap', function () {
-    updateView("minColourValue");
-    updateView("maxColourValue");
-    setColourRange();
-    render();
-  },
-  null, "Snap min/max to visible");
+  addButton(
+    colourmapButtons,
+    '<i class="fa-solid fa-arrow-right-arrow-left"></i> Reverse',
+    function () {
+      updateView("flippedColourmap");
+      options.flippedColourmap = !options.flippedColourmap;
+      setDisplayColourAndType();
+      configureColourbar();
+    },
+    null,
+    "Reverse colour map"
+  );
+
+  addButton(
+    colourmapButtons,
+    '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap',
+    function () {
+      updateView("minColourValue");
+      updateView("maxColourValue");
+      setColourRange();
+      render();
+    },
+    null,
+    "Snap min/max to visible"
+  );
 
   // root.add(funsObj, "restoreCurrentView").name("Restore");
 }
@@ -2003,7 +2034,7 @@ function render() {
   if (options.brushEnabled && options.plotType == "surface") {
     let val =
       (getMeanVal() - options.minColourValue) /
-      (options.maxColourValue - options.minColourValue) -
+        (options.maxColourValue - options.minColourValue) -
       0.5;
     clickDomain.position.y = options.threeDHeightScale * val.clamp(-0.5, 0.5);
     clickDomain.updateWorldMatrix();
@@ -2032,7 +2063,7 @@ function render() {
     for (let i = 0; i < buffer.length; i += 4) {
       scaledValue =
         (buffer[i] - options.minColourValue) /
-        (options.maxColourValue - options.minColourValue) -
+          (options.maxColourValue - options.minColourValue) -
         0.5;
       // Set the height.
       yDisplayDomainCoords[ind++] = scaledValue.clamp(-0.5, 0.5);
@@ -2926,7 +2957,7 @@ function refreshGUI(folder, typeset) {
   if (typeset && MathJax.typesetPromise != undefined) {
     MathJax.typesetPromise();
   }
-  fitty(".view_label", {maxSize: 32, minSize: 12 });
+  fitty(".view_label", { maxSize: 32, minSize: 12 });
 }
 
 function deleteGUIs() {
@@ -4217,11 +4248,11 @@ function createParameterController(label, isNextParam) {
         kineticParamsStrs[label] = kineticParamsStrs[label].replace(
           valueRegex,
           match[1] +
-          " = " +
-          parseFloat(controller.slider.value)
-            .toFixed(controller.slider.precision)
-            .toString() +
-          " "
+            " = " +
+            parseFloat(controller.slider.value)
+              .toFixed(controller.slider.precision)
+              .toString() +
+            " "
         );
         refreshGUI(parametersFolder);
         setKineticStringFromParams();
@@ -4844,10 +4875,10 @@ function setKineticUniformFromString(str) {
     if (isReservedName(match[1])) {
       alert(
         "The name '" +
-        match[1] +
-        "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
-        match[1] +
-        "."
+          match[1] +
+          "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
+          match[1] +
+          "."
       );
     } else {
       // If no such uniform exists, make a note of this.
@@ -4916,8 +4947,8 @@ function resizeEquationDisplay() {
   $("#leftGUI").css(
     "max-height",
     "calc(90dvh - " +
-    $("#equation_display")[0].getBoundingClientRect().bottom +
-    "px)"
+      $("#equation_display")[0].getBoundingClientRect().bottom +
+      "px)"
   );
 }
 
@@ -5005,12 +5036,12 @@ function setCustomNames(onLoading) {
       }
       alert(
         "The name '" +
-        tempListOfSpecies[ind] +
-        "' is used " +
-        message +
-        ", so can't be used as a species name. Please use a different name for " +
-        tempListOfSpecies[ind] +
-        "."
+          tempListOfSpecies[ind] +
+          "' is used " +
+          message +
+          ", so can't be used as a species name. Please use a different name for " +
+          tempListOfSpecies[ind] +
+          "."
       );
       return;
     }
@@ -5031,12 +5062,12 @@ function setCustomNames(onLoading) {
       }
       alert(
         "The name '" +
-        tempListOfReactions[ind] +
-        "' is used " +
-        message +
-        ", so can't be used as a function name. Please use a different name for " +
-        tempListOfReactions[ind] +
-        "."
+          tempListOfReactions[ind] +
+          "' is used " +
+          message +
+          ", so can't be used as a function name. Please use a different name for " +
+          tempListOfReactions[ind] +
+          "."
       );
       return;
     }
@@ -5146,12 +5177,12 @@ function genAnySpeciesRegexStrs() {
   for (let i = 0; i < listOfSpecies.length; i++) {
     anySpeciesRegexStrs.push(
       "(?:" +
-      listOfSpecies
-        .slice(i)
-        .sort((a, b) => b.length - a.length)
-        .map((x) => "(?:" + x + ")")
-        .join("|") +
-      ")"
+        listOfSpecies
+          .slice(i)
+          .sort((a, b) => b.length - a.length)
+          .map((x) => "(?:" + x + ")")
+          .join("|") +
+        ")"
     );
   }
 }
@@ -5227,7 +5258,7 @@ function colourFromValue(val) {
     colourmap[ind],
     colourmap[ind + 1],
     (val - colourmapEndpoints[ind]) /
-    (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind])
+      (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind])
   );
 }
 
@@ -5467,7 +5498,8 @@ function configureViewsGUI() {
       // Apply the view, which will update which button is active through configureGUI().
       applyView(options.views[ind]);
     };
-    item.innerHTML = "<div class='view_label'>" + options.views[ind].name + "</div>";
+    item.innerHTML =
+      "<div class='view_label'>" + options.views[ind].name + "</div>";
     if (ind == options.activeViewInd) item.classList.add("active_button");
     $("#views_list").append(item);
   }
@@ -5488,7 +5520,7 @@ function configureViewsGUI() {
   if (MathJax.typesetPromise != undefined) {
     MathJax.typesetPromise();
   }
-  if (options.views.length > 0){
+  if (options.views.length > 0) {
     fitty(".view_label", { maxSize: 32, minSize: 12 });
   }
 }
