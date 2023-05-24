@@ -494,6 +494,10 @@ $("#views").click(function () {
   }
 });
 
+// New, rename, delete
+// (Dynamically created buttons, like the +, can't use .click())
+$(document).on("click", "#add_view", function () { addView(); });
+
 // Begin the simulation.
 animate();
 
@@ -1657,7 +1661,7 @@ function initGUI(startOpen) {
   const codeButton = document.createElement("li");
   codeButton.classList.add("button_list");
   root.domElement.children[0].appendChild(codeButton);
-  addButton(codeButton, "Copy code", copyConfigAsJSON);
+  addButton(codeButton, '<i class="fa-regular fa-copy"></i> Copy code', copyConfigAsJSON);
 
   root = root.addFolder("Debug");
   // Debug.
@@ -1671,23 +1675,23 @@ function initGUI(startOpen) {
   // Create a custom element for containing the view options.
   const viewsList = document.createElement("div");
   viewsList.id = "views_list";
-  viewsList.classList.add("button_list");
+  // viewsList.classList.add("button_list");
   viewsGUI.domElement.prepend(viewsList);
   const viewsLabel = document.createElement("div");
   viewsLabel.innerHTML = "Views";
   viewsLabel.id = "views_label";
   viewsGUI.domElement.prepend(viewsLabel);
 
-  root = viewsGUI.addFolder("Edit");
+  root = viewsGUI.addFolder("Edit view");
 
   const editViewButtons = document.createElement("li");
   editViewButtons.id = "edit_view_buttons";
   editViewButtons.classList.add("button_list");
   root.domElement.children[0].appendChild(editViewButtons);
 
-  addButton(editViewButtons, "New", addView);
-  addButton(editViewButtons, "Rename", editCurrentViewName);
-  addButton(editViewButtons, "Delete", deleteView, "deleteViewButton");
+  addButton(editViewButtons, '<i class="fa-solid fa-pen-nib"></i> Rename', editCurrentViewName, null, "Rename view"); // Rename
+  addButton(editViewButtons, '<i class="fa-solid fa-xmark"></i> Delete', deleteView, "deleteViewButton", "Delete view"); // Delete
+
 
   whatToPlotController = root
     .add(options, "whatToPlot")
@@ -1750,23 +1754,6 @@ function initGUI(startOpen) {
     });
   maxColourValueController.__precision = 2;
 
-  const colourmapButtons = document.createElement("li");
-  colourmapButtons.classList.add("button_list");
-  root.domElement.children[0].appendChild(colourmapButtons);
-
-  addButton(colourmapButtons, "Reverse", function () {
-    updateView("flippedColourmap");
-    options.flippedColourmap = !options.flippedColourmap;
-    setDisplayColourAndType();
-    configureColourbar();
-  });
-  addButton(colourmapButtons, "Snap", function () {
-    updateView("minColourValue");
-    updateView("maxColourValue");
-    setColourRange();
-    render();
-  });
-
   autoSetColourRangeController = root
     .add(options, "autoSetColourRange")
     .name("Auto snap")
@@ -1777,6 +1764,27 @@ function initGUI(startOpen) {
         render();
       }
     });
+
+  const colourmapButtons = document.createElement("li");
+  colourmapButtons.id = "colour_map_buttons";
+  colourmapButtons.classList.add("button_list");
+  root.domElement.children[0].appendChild(colourmapButtons);
+
+  addButton(colourmapButtons, '<i class="fa-solid fa-arrow-right-arrow-left"></i> Reverse', function () {
+    updateView("flippedColourmap");
+    options.flippedColourmap = !options.flippedColourmap;
+    setDisplayColourAndType();
+    configureColourbar();
+  },
+  null, "Reverse colour map");
+  
+  addButton(colourmapButtons, '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap', function () {
+    updateView("minColourValue");
+    updateView("maxColourValue");
+    setColourRange();
+    render();
+  },
+  null, "Snap min/max to visible");
 
   // root.add(funsObj, "restoreCurrentView").name("Restore");
 }
@@ -1990,7 +1998,7 @@ function render() {
   if (options.brushEnabled && options.plotType == "surface") {
     let val =
       (getMeanVal() - options.minColourValue) /
-        (options.maxColourValue - options.minColourValue) -
+      (options.maxColourValue - options.minColourValue) -
       0.5;
     clickDomain.position.y = options.threeDHeightScale * val.clamp(-0.5, 0.5);
     clickDomain.updateWorldMatrix();
@@ -2019,7 +2027,7 @@ function render() {
     for (let i = 0; i < buffer.length; i += 4) {
       scaledValue =
         (buffer[i] - options.minColourValue) /
-          (options.maxColourValue - options.minColourValue) -
+        (options.maxColourValue - options.minColourValue) -
         0.5;
       // Set the height.
       yDisplayDomainCoords[ind++] = scaledValue.clamp(-0.5, 0.5);
@@ -2908,6 +2916,7 @@ function refreshGUI(folder, typeset) {
   if (typeset && MathJax.typesetPromise != undefined) {
     MathJax.typesetPromise();
   }
+  fitty(".view_label", {maxSize: 32, minSize: 10 });
 }
 
 function deleteGUIs() {
@@ -4198,11 +4207,11 @@ function createParameterController(label, isNextParam) {
         kineticParamsStrs[label] = kineticParamsStrs[label].replace(
           valueRegex,
           match[1] +
-            " = " +
-            parseFloat(controller.slider.value)
-              .toFixed(controller.slider.precision)
-              .toString() +
-            " "
+          " = " +
+          parseFloat(controller.slider.value)
+            .toFixed(controller.slider.precision)
+            .toString() +
+          " "
         );
         refreshGUI(parametersFolder);
         setKineticStringFromParams();
@@ -4825,10 +4834,10 @@ function setKineticUniformFromString(str) {
     if (isReservedName(match[1])) {
       alert(
         "The name '" +
-          match[1] +
-          "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
-          match[1] +
-          "."
+        match[1] +
+        "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
+        match[1] +
+        "."
       );
     } else {
       // If no such uniform exists, make a note of this.
@@ -4897,8 +4906,8 @@ function resizeEquationDisplay() {
   $("#leftGUI").css(
     "max-height",
     "calc(90dvh - " +
-      $("#equation_display")[0].getBoundingClientRect().bottom +
-      "px)"
+    $("#equation_display")[0].getBoundingClientRect().bottom +
+    "px)"
   );
 }
 
@@ -4986,12 +4995,12 @@ function setCustomNames(onLoading) {
       }
       alert(
         "The name '" +
-          tempListOfSpecies[ind] +
-          "' is used " +
-          message +
-          ", so can't be used as a species name. Please use a different name for " +
-          tempListOfSpecies[ind] +
-          "."
+        tempListOfSpecies[ind] +
+        "' is used " +
+        message +
+        ", so can't be used as a species name. Please use a different name for " +
+        tempListOfSpecies[ind] +
+        "."
       );
       return;
     }
@@ -5012,12 +5021,12 @@ function setCustomNames(onLoading) {
       }
       alert(
         "The name '" +
-          tempListOfReactions[ind] +
-          "' is used " +
-          message +
-          ", so can't be used as a function name. Please use a different name for " +
-          tempListOfReactions[ind] +
-          "."
+        tempListOfReactions[ind] +
+        "' is used " +
+        message +
+        ", so can't be used as a function name. Please use a different name for " +
+        tempListOfReactions[ind] +
+        "."
       );
       return;
     }
@@ -5127,12 +5136,12 @@ function genAnySpeciesRegexStrs() {
   for (let i = 0; i < listOfSpecies.length; i++) {
     anySpeciesRegexStrs.push(
       "(?:" +
-        listOfSpecies
-          .slice(i)
-          .sort((a, b) => b.length - a.length)
-          .map((x) => "(?:" + x + ")")
-          .join("|") +
-        ")"
+      listOfSpecies
+        .slice(i)
+        .sort((a, b) => b.length - a.length)
+        .map((x) => "(?:" + x + ")")
+        .join("|") +
+      ")"
     );
   }
 }
@@ -5208,7 +5217,7 @@ function colourFromValue(val) {
     colourmap[ind],
     colourmap[ind + 1],
     (val - colourmapEndpoints[ind]) /
-      (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind])
+    (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind])
   );
 }
 
@@ -5421,7 +5430,7 @@ function configureViews() {
   // If there's no default view in options.views, add one.
   if (options.views.length == 0) {
     let view = buildViewFromOptions();
-    view.name = "Default";
+    view.name = "1";
     options.views.push(view);
   } else {
     // Fill in any unset parts of the views.
@@ -5448,10 +5457,17 @@ function configureViewsGUI() {
       // Apply the view, which will update which button is active through configureGUI().
       applyView(options.views[ind]);
     };
-    item.innerHTML = options.views[ind].name;
+    item.innerHTML = "<div class='view_label'>" + options.views[ind].name + "</div>";
     if (ind == options.activeViewInd) item.classList.add("active_button");
-    document.getElementById("views_list").appendChild(item);
+    $("#views_list").append(item);
   }
+
+  // + button
+  item = document.createElement("a");
+  item.innerHTML = '<i class="fa-regular fa-plus"></i>';
+  item.setAttribute("id", "add_view");
+  item.setAttribute("title", "New view");
+  $("#views_list").append(item);
 
   // Only show the Delete Views button if there is more than one view.
   if (options.views.length > 1) {
@@ -5459,6 +5475,10 @@ function configureViewsGUI() {
   } else {
     $("#deleteViewButton").addClass("hidden");
   }
+  if (MathJax.typesetPromise != undefined) {
+    MathJax.typesetPromise();
+  }
+  fitty(".view_label", { maxSize: 32, minSize: 10 });
 }
 
 function applyView(view, update) {
@@ -5490,13 +5510,14 @@ function editCurrentViewName() {
     if (MathJax.typesetPromise != undefined) {
       MathJax.typesetPromise();
     }
+    fitty(".view_label", { maxSize: 32, minSize: 10 });
   }
 }
 
 function addView() {
   // Add a new view.
   let view = buildViewFromOptions();
-  view.name = "Custom";
+  view.name = options.views.length + 1;
   options.views.push(view);
   options.activeViewInd = options.views.length - 1;
   configureViewsGUI();
@@ -5604,10 +5625,11 @@ function dirichletEnforceShader(speciesInd, side) {
   return str;
 }
 
-function addButton(parent, inner, onclick, id) {
+function addButton(parent, inner, onclick, id, title) {
   const button = document.createElement("a");
   if (onclick != undefined) button.onclick = onclick;
   if (id != undefined) button.id = id;
+  if (title != undefined) button.title = title;
   if (inner != undefined) button.innerHTML = inner;
   parent.appendChild(button);
 }
