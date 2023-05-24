@@ -7,29 +7,37 @@ extract: Visualising airborne infections
 equation:
 ---
 
+Since the Covid-19 pandemic began, airborne viruses have formed a large part of scientific study. In this short Story, we're going to explore one aspect of this work: the effects of airflow.
+
+Suppose that lots of people are sat in a sealed room and one of them is infectious. We'll assume that the infectious person is constantly producing virus-laden particles that spread out around them before slowly decaying away. The simulation below shows what this might look like. The colour corresponds to the concentration or amount of virus in the air.
+
 <!-- virus conc in a still room. Click to simulate a cough -->
 
 <iframe class="sim" src="/sim/?preset=CovidInAStillRoom&story" frameborder="0"></iframe>
 
-<!-- virus probability is another way of viewing things. Caveat of only illustrative numbers here -->
+With VisualPDE, we're not just limited to watching a simulation: we can interact with it too. Clicking in the room will introduce some viral particles to the air, as if someone with a slight infection had coughed. Try clicking in the room to see what difference a cough can make.
 
-Whilst looking at the virus concentration can be helpful, we might also be interested in looking at the probability of infection if you'd been stood at a particular location for the duration of the simulation. With VisualPDE, we can switch to the Probability View by pressing {{ layout.views }} and choosing 'Probability', though it's worth noting that these numbers aren't meant to match up perfectly with reality here.
+Though each cough introduces some virus to the room, it looks like it quickly decays away until we can't even tell it was there. So, does this mean we shouldn't be worried about a cough?
 
-Here, the probability of being infected is only large close to where we know the source of the infection is, right in the middle of the room. As you might expect, the probability of being infected increases with the amount of time that you're exposed to the virus. This time-dependent effect is visible when you click to cough whilst using the Probability View. To reset the simulation, press {{ layout.erase }}
+To explore this further, lets look at the probability of getting an infection, which is related but not equal to the virus concentration. Specifically, we'll look at the chance of catching the virus assuming that you'd been stood in the same location for the duration of the simulation. With VisualPDE, we can do this by switching to the Probability View by pressing {{ layout.views }} and choosing 'Probability'. It's worth noting that these numbers aren't meant to match up perfectly with reality, so try to focus on qualitative features rather than particular values.
+
+Here, the probability of being infected is large close to where we know the source of the infection is, right in the middle of the room. If you clicked in the room to simulate a cough, you should also see some high probabilities elsewhere. This shows that, even though the viral particles seemed to disperse quickly after a cough, they made a significant difference to the probability of catching an infection near to the cougher.
+
+As you might expect, the probability of being infected increases with the amount of time that you're exposed to the virus. This time-dependent effect is especially visible when you click to cough whilst using the Probability View. To reset the simulation and see this clearly, press {{ layout.erase }}
 
 # Recirculation
-It's fairly rare for air to stay still. Let's see what effect the movement of air can have on the distribution of virus and the chance of infection. In the simulation below, we've added in the effects of the air being blown from left to right, mimicking an air conditioner, with anything that reaches the right-hand side of the room being recycled back into left side.
+It's fairly rare for air to stay still. Let's see what effect the movement of air can have on the distribution of a virus and the chance of infection. In the simulation below, we've added in the effects of the air being blown from left to right, mimicking an air conditioner, with anything that reaches the right-hand side of the room being recycled back into the left side.
 
 <iframe class="sim" src="/sim/?preset=CovidInARoom&story" frameborder="0"></iframe>
 
-With this new air movement, it looks like standing downwind of the infected person is a bad idea: particles of the virus are swept from left to right by the air current, and the probability of being infected is much higher on the right of the infected person. Remember you can swap between Views to see the effects on both Probability and Concentration. Try clicking whilst viewing the Concentration to really see how the air drives the spread of the virus in one direction.
+With this new air movement, it now looks like standing downwind of the infected person is a bad idea: particles of the virus are swept from left to right by the air current, and the probability of being infected is much higher on the right of the infected person. Remember you can swap between Views to see the effects on both Probability and Concentration. Try clicking whilst viewing the Concentration to really see how the air drives the spread of the virus in one direction, in contrast to the earlier flow-free room.
 
 # A meandering infection
 It's also rare for people to stay still. Unsurprisingly, the movement of an infected individual can have a big impact on the spread of a virus. In the next simulation, we've set it up so that the source of the infection moves around the room, as if they were a waiter going between tables in a restaurant. We've also turned off the air conditioner, so that the air in the room is still.
 
 <iframe class="sim" src="/sim/?preset=CovidInAStillRoomCircling&story" frameborder="0"></iframe>
 
-The Probability View shows the buildup of a ring of likely infections as the infectious person circles the room. A quick look at the Concentration shows their circular path, leaving a trail of virus particles behind them.
+The Probability View shows the buildup of a ring of likely infections as the infectious person circles the room. A quick look at the Concentration View shows their circular path, leaving a trail of virus particles behind them.
 
 In this scenario, what do you think happens if we turn on the air conditioner? The next simulation does just this. Start the simulation by pressing {{ layout.play }}
 
