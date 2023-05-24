@@ -2778,6 +2778,11 @@ function loadOptions(preset) {
     newOptions = getPreset("default");
   }
 
+  // If newOptions specifies a parent, first load the options of the parent.
+  if (newOptions.hasOwnProperty("parent") && newOptions.parent != null) {
+    loadOptions(newOptions.parent);
+  }
+
   // Reset the kinetic parameters.
   kineticParamsCounter = 0;
   kineticParamsLabels = [];

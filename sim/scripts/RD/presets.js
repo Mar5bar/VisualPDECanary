@@ -512,109 +512,29 @@ export function getPreset(id) {
       break;
     case "CovidInAStillRoom":
       options = {
+        parent: "CovidInARoom",
         activeViewInd: 1,
-        algebraicW: true,
-        boundaryConditionsU: "combo",
-        brushAction: "smoothadd",
-        brushRadius: "20",
-        clearValueU: "0",
-        colourbar: true,
-        comboStrU: "Top: Neumann = 0; Bottom: Neumann = 0",
-        crossDiffusion: true,
-        diffusionStrUU: "1",
-        diffusionStrVV: "0",
-        diffusionStrWW: "0",
-        domainScale: 150,
-        dt: 0.001,
         kineticParams:
           "V = 0 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
-        numSpecies: "3",
-        numTimestepsPerFrame: 20,
         preset: "CovidInAStillRoom",
-        reactionStrU:
-          "R*exp(-0.01*((x-X*L_x)^2+(y-Y*L_y)^2))-(lambda+beta+sigma)*C-V*C_x",
-        reactionStrV: "(1-eta_sus)*rho_sus*C",
-        reactionStrW: "1 - exp(-I*d)",
-        spatialStep: 1,
-        speciesNames: "C d P",
-        suppressTryClickingPopup: true,
-        views: [
-          { name: "Probability", whatToPlot: "P" },
-          { name: "Concentration", whatToPlot: "C", maxColourValue: 5 },
-        ],
-        whatToDraw: "C",
-        whatToPlot: "P",
       };
       break;
     case "CovidInARoomCircling":
       options = {
-        algebraicW: true,
-        boundaryConditionsU: "combo",
-        brushAction: "smoothadd",
-        brushRadius: "20",
-        clearValueU: "0",
-        colourbar: true,
-        comboStrU: "Top: Neumann = 0; Bottom: Neumann = 0",
-        crossDiffusion: true,
-        diffusionStrUU: "1",
-        diffusionStrVV: "0",
-        diffusionStrWW: "0",
-        domainScale: 150,
-        dt: 0.001,
+        parent: "CovidInARoom",
+        preset: "CovidInARoomCircling",
         kineticParams:
           "V = 40 in [0,40];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
-        numSpecies: "3",
-        numTimestepsPerFrame: 20,
-        preset: "CovidInARoomCircling",
         reactionStrU:
           "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C-V*C_x",
-        reactionStrV: "(1-eta_sus)*rho_sus*C",
-        reactionStrW: "1 - exp(-I*d)",
-        runningOnLoad: false,
-        spatialStep: 1,
-        speciesNames: "C d P",
-        suppressTryClickingPopup: true,
-        views: [
-          { name: "Probability", whatToPlot: "P" },
-          { name: "Concentration", whatToPlot: "C", maxColourValue: 5 },
-        ],
-        whatToDraw: "C",
-        whatToPlot: "P",
       };
       break;
     case "CovidInAStillRoomCircling":
       options = {
-        algebraicW: true,
-        boundaryConditionsU: "combo",
-        brushAction: "smoothadd",
-        brushRadius: "20",
-        clearValueU: "0",
-        colourbar: true,
-        comboStrU: "Top: Neumann = 0; Bottom: Neumann = 0",
-        crossDiffusion: true,
-        diffusionStrUU: "1",
-        diffusionStrVV: "0",
-        diffusionStrWW: "0",
-        domainScale: 150,
-        dt: 0.001,
+        parent: "CovidInARoomCircling",
         kineticParams:
-          "V = 0 in [0,40];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
-        numSpecies: "3",
-        numTimestepsPerFrame: 20,
+          "V = 0 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         preset: "CovidInAStillRoomCircling",
-        reactionStrU:
-          "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C-V*C_x",
-        reactionStrV: "(1-eta_sus)*rho_sus*C",
-        reactionStrW: "1 - exp(-I*d)",
-        spatialStep: 1,
-        speciesNames: "C d P",
-        suppressTryClickingPopup: true,
-        views: [
-          { name: "Probability", whatToPlot: "P" },
-          { name: "Concentration", whatToPlot: "C", maxColourValue: 5 },
-        ],
-        whatToDraw: "C",
-        whatToPlot: "P",
       };
       break;
     case "maze":
@@ -2176,6 +2096,7 @@ export function getPreset(id) {
         numSpecies: 2,
         numTimestepsPerFrame: 100,
         oneDimensional: false,
+        parent: null,
         plotType: "plane",
         preset: "default",
         resetFromCheckpoints: true,
