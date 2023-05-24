@@ -120,7 +120,7 @@ export function getPreset(id) {
         spatialStep: 2,
         speciesNames: "h u v w",
         views: [
-          { name: "From above", plotType: "plane" },
+          { name: "From<br />above", plotType: "plane" },
           { name: "3D", plotType: "surface" },
         ],
         whatToDraw: "h",
@@ -159,7 +159,7 @@ export function getPreset(id) {
         squareCanvas: true,
         suppressTryClickingPopup: true,
         views: [
-          { name: "From above", plotType: "plane" },
+          { name: "From<br />above", plotType: "plane" },
           { name: "3D", plotType: "surface" },
         ],
         whatToDraw: "h",

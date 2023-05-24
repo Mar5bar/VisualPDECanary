@@ -495,7 +495,7 @@ $("#views").click(function () {
   if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
     $("#left_ui").toggle();
   }
-  fitty(".view_label", { maxSize: 32, minSize: 12 });
+  // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
 });
 
 // New, rename, delete
@@ -1693,7 +1693,7 @@ function initGUI(startOpen) {
   // viewsList.classList.add("button_list");
   viewsGUI.domElement.prepend(viewsList);
   const viewsLabel = document.createElement("div");
-  viewsLabel.innerHTML = "Views";
+  viewsLabel.innerHTML = "Views<a id='add_view' title='New view'><i class='fa-solid fa-plus'></i></a>";
   viewsLabel.id = "views_label";
   viewsGUI.domElement.prepend(viewsLabel);
 
@@ -2957,7 +2957,7 @@ function refreshGUI(folder, typeset) {
   if (typeset && MathJax.typesetPromise != undefined) {
     MathJax.typesetPromise();
   }
-  fitty(".view_label", { maxSize: 32, minSize: 12 });
+  // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
 }
 
 function deleteGUIs() {
@@ -5504,12 +5504,12 @@ function configureViewsGUI() {
     $("#views_list").append(item);
   }
 
-  // + button
-  item = document.createElement("a");
-  item.innerHTML = '<i class="fa-regular fa-plus"></i>';
-  item.setAttribute("id", "add_view");
-  item.setAttribute("title", "New view");
-  $("#views_list").append(item);
+  // // + button
+  // item = document.createElement("a");
+  // item.innerHTML = '<i class="fa-regular fa-plus"></i>';
+  // item.setAttribute("id", "add_view");
+  // item.setAttribute("title", "New view");
+  // $("#views_list").append(item);
 
   // Only show the Delete Views button if there is more than one view.
   if (options.views.length > 1) {
@@ -5521,7 +5521,7 @@ function configureViewsGUI() {
     MathJax.typesetPromise();
   }
   if (options.views.length > 0) {
-    fitty(".view_label", { maxSize: 32, minSize: 12 });
+    // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
   }
 }
 
@@ -5542,7 +5542,7 @@ function applyView(view, update) {
     render();
   }
 
-  fitty(".view_label", { maxSize: 32, minSize: 12 });
+  // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
 }
 
 function editCurrentViewName() {
@@ -5556,7 +5556,7 @@ function editCurrentViewName() {
     if (MathJax.typesetPromise != undefined) {
       MathJax.typesetPromise();
     }
-    fitty(".view_label", { maxSize: 32, minSize: 12 });
+    // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
   }
 }
 
