@@ -770,7 +770,7 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     transition:0.1s;
     line-height: 1.1;
 }
-#views_list .views_label{
+#views_list .view_label{
     width:2.8rem;
     text-align: center;
 }

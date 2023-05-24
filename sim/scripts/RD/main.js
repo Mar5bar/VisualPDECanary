@@ -492,6 +492,7 @@ $("#views").click(function () {
   if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
     $("#left_ui").toggle();
   }
+  fitty(".view_label", { maxSize: 32, minSize: 12 });
 });
 
 // New, rename, delete
@@ -2925,7 +2926,7 @@ function refreshGUI(folder, typeset) {
   if (typeset && MathJax.typesetPromise != undefined) {
     MathJax.typesetPromise();
   }
-  fitty(".view_label", {maxSize: 32, minSize: 10 });
+  fitty(".view_label", {maxSize: 32, minSize: 12 });
 }
 
 function deleteGUIs() {
@@ -5487,7 +5488,9 @@ function configureViewsGUI() {
   if (MathJax.typesetPromise != undefined) {
     MathJax.typesetPromise();
   }
-  fitty(".view_label", { maxSize: 32, minSize: 10 });
+  if (options.views.length > 0){
+    fitty(".view_label", { maxSize: 32, minSize: 12 });
+  }
 }
 
 function applyView(view, update) {
@@ -5506,6 +5509,8 @@ function applyView(view, update) {
     configureColourbar();
     render();
   }
+
+  fitty(".view_label", { maxSize: 32, minSize: 12 });
 }
 
 function editCurrentViewName() {
@@ -5519,7 +5524,7 @@ function editCurrentViewName() {
     if (MathJax.typesetPromise != undefined) {
       MathJax.typesetPromise();
     }
-    fitty(".view_label", { maxSize: 32, minSize: 10 });
+    fitty(".view_label", { maxSize: 32, minSize: 12 });
   }
 }
 
