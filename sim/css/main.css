@@ -52,7 +52,8 @@ canvas {
 }
 
 .dg .main {
-    width: min(245px, calc(80vw - 65px)) !important;
+    width: min(245px, calc(80vw - 30px)) !important;
+    /* width: min(245px, calc(80vw - 65px)) !important; */
 }
 
 .dg {
@@ -118,7 +119,7 @@ canvas {
 }
 
 #viewsGUI {
-    max-height: calc(90dvh - 130px);
+    max-height: calc(108dvh - 130px);
     direction: ltr;
 }
 
@@ -757,7 +758,8 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     display: flex;
     /* word-break: break-all; */
     hyphens: auto;
-    width:3rem;
+    min-width:3rem;
+    max-width:5.5rem;
     height:3rem;
     border-radius: 0.5rem;
     align-items: center;
@@ -771,7 +773,7 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     line-height: 1.1;
 }
 #views_list .view_label{
-    width:2.8rem;
+    width:95%;
     text-align: center;
 }
 a#add_view {
