@@ -40,8 +40,11 @@
         [...document.getElementsByClassName('sim')].forEach(el => {
           const url = new URL(el.src);
           if (/[?&]/.test(url.search)) {
-            // If there is already a query string, append sf.
-            el.src += "&sf=0.5";
+            const params = new URLSearchParams(url.search);
+            // If there's an sf specified, do not modify.
+            if (!params.has("sf")) {
+              el.src += "&sf=0.5";
+            }
           } else {
             el.src += "?sf=0.5";
           }

@@ -2,7 +2,7 @@
 layout: page
 title: Virus transmission
 lesson_number: 20
-thumbnail: /assets/images/ShallowWaterBox.png
+thumbnail: /assets/images/VirusTransmission.png
 extract: Visualising airborne infections
 equation:
 ---
@@ -13,12 +13,13 @@ Suppose that lots of people are sat in a sealed room and one of them is infectio
 
 <!-- virus conc in a still room. Click to simulate a cough -->
 
-<iframe class="sim" src="/sim/?preset=CovidInAStillRoom&story" frameborder="0"></iframe>
+<iframe class="sim" src="/sim/?preset=CovidInAStillRoom&story&sf=1" frameborder="0"></iframe>
 
 With VisualPDE, we're not just limited to watching a simulation: we can interact with it too. Clicking in the room will introduce some viral particles to the air, as if someone with a slight infection had coughed. Try clicking in the room to see what difference a cough can make.
 
 Though each cough introduces some virus to the room, it looks like it quickly decays away until we can't even tell it was there. So, does this mean we shouldn't be worried about a cough?
 
+# Catching the virus
 To explore this further, lets look at the probability of getting an infection, which is related but not equal to the virus concentration. Specifically, we'll look at the chance of catching the virus assuming that you'd been stood in the same location for the duration of the simulation. With VisualPDE, we can do this by switching to the Probability View by pressing {{ layout.views }} and choosing 'Probability'. It's worth noting that these numbers aren't meant to match up perfectly with reality, so try to focus on qualitative features rather than particular values.
 
 Here, the probability of being infected is large close to where we know the source of the infection is, right in the middle of the room. If you clicked in the room to simulate a cough, you should also see some high probabilities elsewhere. This shows that, even though the viral particles seemed to disperse quickly after a cough, they made a significant difference to the probability of catching an infection near to the cougher.
@@ -28,22 +29,22 @@ As you might expect, the probability of being infected increases with the amount
 # Recirculation
 It's fairly rare for air to stay still. Let's see what effect the movement of air can have on the distribution of a virus and the chance of infection. In the simulation below, we've added in the effects of the air being blown from left to right, mimicking an air conditioner, with anything that reaches the right-hand side of the room being recycled back into the left side.
 
-<iframe class="sim" src="/sim/?preset=CovidInARoom&story" frameborder="0"></iframe>
+<iframe class="sim" src="/sim/?preset=CovidInARoom&story&sf=1" frameborder="0"></iframe>
 
-With this new air movement, it now looks like standing downwind of the infected person is a bad idea: particles of the virus are swept from left to right by the air current, and the probability of being infected is much higher on the right of the infected person. Remember you can swap between Views to see the effects on both Probability and Concentration. Try clicking whilst viewing the Concentration to really see how the air drives the spread of the virus in one direction, in contrast to the earlier flow-free room.
+With this new air movement, it now looks like standing downwind of the infected person is a bad idea: particles of the virus are swept from left to right by the air current, and the probability of being infected is much higher on the right of the infected person. Eventually, the recirculation of the air means that viral particles reach even the left side of the room, leading to a large zone in the room where the probability of infection is high. Remember you can swap between Views to see the effects on both Probability and Concentration. Try clicking whilst viewing the Concentration to really see how the air drives the spread of the virus in one direction, in contrast to the earlier flow-free room.
 
 # A meandering infection
 It's also rare for people to stay still. Unsurprisingly, the movement of an infected individual can have a big impact on the spread of a virus. In the next simulation, we've set it up so that the source of the infection moves around the room, as if they were a waiter going between tables in a restaurant. We've also turned off the air conditioner, so that the air in the room is still.
 
-<iframe class="sim" src="/sim/?preset=CovidInAStillRoomCircling&story" frameborder="0"></iframe>
+<iframe class="sim" src="/sim/?preset=CovidInAStillRoomCircling&story&sf=1" frameborder="0"></iframe>
 
 The Probability View shows the buildup of a ring of likely infections as the infectious person circles the room. A quick look at the Concentration View shows their circular path, leaving a trail of virus particles behind them.
 
 In this scenario, what do you think happens if we turn on the air conditioner? The next simulation does just this. Start the simulation by pressing {{ layout.play }}
 
-<iframe class="sim" src="/sim/?preset=CovidInARoomCircling&story" frameborder="0"></iframe>
+<iframe class="sim" src="/sim/?preset=CovidInARoomCircling&story&sf=1" frameborder="0"></iframe>
 
-Now, instead of a nice clean ring of likely infections, we immediately see that people on the downwind side of the room are much more likely to be infected - people that had a lower chance of infection in a room with no air recirculation. If we wait a little longer, we can see this effect increasing and even reaching those far upwind of the source of infection, as the recirculating air carries the virus with it. 
+Now, instead of a nice clean ring of likely infections, we immediately see that people on the downwind side of the room are much more likely to be infected - people that had a lower chance of infection in a room with no air recirculation. If we wait a little longer, we can see this effect increasing and reaching those far upwind of the source of infection, as the recirculating air carries the virus with it, just like it did in our earlier example.
 
 Finally, we can look at the Concentration View to see how the airflow is breaking not only the left-right symmetry of the room, but also the up-down symmetry. What do you think would happen if we reverse the direction that the waiter is circling the room? How would the picture change?
 
