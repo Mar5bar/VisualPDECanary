@@ -9,6 +9,7 @@ export function getPreset(id) {
 	options = {
 	"autoSetColourRange": true,
 	"brushRadius": "5",
+	brushEnabled: false,
 	"cameraTheta": 0,
 	"cameraPhi": 0,
 	"clearValueU": "cos(c*x)/cosh(x-L_x/3)",
