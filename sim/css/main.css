@@ -206,8 +206,10 @@ canvas {
     text-shadow: 0 1px #fff;
 }
 
-.ui_button:hover {
-    color: black;
+@media (hover: hover) {
+    .ui_button:hover {
+        color: black;
+    }
 }
 
 .ui_button.top {
@@ -363,9 +365,11 @@ canvas {
     color: white !important;
 }
 
-#warning_ok:hover {
-    background-color: #134484;
-    cursor: pointer;
+@media (hover: hover) {
+    #warning_ok:hover {
+        background-color: #134484;
+        cursor: pointer;
+    }
 }
 
 /* #warning_np{
@@ -378,11 +382,13 @@ canvas {
     color: #111;
 }
 
-#warning_no:hover,
-#warning_restart:hover {
-    background-color: #ddd;
-    cursor: pointer;
-    color: #111 !important;
+@media (hover: hover) {
+    #warning_no:hover,
+    #warning_restart:hover {
+        background-color: #ddd;
+        cursor: pointer;
+        color: #111 !important;
+    }
 }
 
 .error_infinity {
@@ -687,11 +693,13 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     background-color: #ededed;
 }
 
-#equations:hover {
-    background: url("/assets/images/function-button-black.png") no-repeat;
-    background-size: 80%;
-    background-position: center;
-    background-color: #ededed;
+@media (hover: hover) {
+    #equations:hover {
+        background: url("/assets/images/function-button-black.png") no-repeat;
+        background-size: 80%;
+        background-position: center;
+        background-color: #ededed;
+    }
 }
 
 #equations::after {
@@ -763,18 +771,14 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
 }
 #views_list a{
     display: flex;
-    /* word-break: break-all; */
     hyphens: auto;
-    /* width:3rem; */
     min-width:2.2rem;
-    /* max-width:5.1rem; */
     padding-left: 0.4rem;
     padding-right: 0.4rem;
     height:3rem;
     border-radius: 0.5rem;
     align-items: center;
     justify-content: center;
-    /* font-size:2rem; */
     font-size:12pt;
     font-weight:200;
     text-shadow:none;
@@ -802,31 +806,29 @@ a#add_view {
     cursor: pointer;
 }
 
-#views_list a:not(.active_button):hover,
-a#add_view:hover{
-    background-color: #222;
-    transition:0.1s;
+@media (hover: hover) {
+    #views_list a:not(.active_button):hover,
+    a#add_view:hover{
+        background-color: #222;
+        transition:0.1s;
+    }
 }
 
 .button_list{
     display: flex;
     justify-content: right;
     flex-flow: row wrap;
-    /* line-height: inherit !important; */
     border-bottom:0px;
     padding-top:5px !important;
     padding-bottom:5px !important;
-    /* height:3rem; */
 }
 .dg .closed li:not(.title) {
-    /* height:0px !important; */
     padding:0 !important;
     border-bottom: 0px !important;
 }
 
 .dg li:not(.folder) {
     border-bottom: 1px solid #1e1e1e !important;
-    /* border-bottom: 0px !important; */
 }
 
 ul li.folder .dg ul li.cr{
@@ -847,7 +849,6 @@ select {
     align-items: center;
     border:1px solid #555;
     height:1.8rem;
-    /* width:2.1rem; */
     padding-left:0.6rem;
     padding-right:0.6rem;
     border-radius:5px;
@@ -862,46 +863,17 @@ select {
     margin-right:5px;
 }
 
-.button_list a:hover{
-    background-color: #333;
+@media (hover: hover) {
+    .button_list a:hover,
+    .button_list a:active{
+        background-color: #333;
+    }
 }
 
 .button_list a#deleteViewButton{
     color:red;
     border: 1px solid #755 !important;
 }
-
-/* .button_list {
-    display: flex;
-    justify-content: space-evenly;
-    flex-flow: row wrap;
-    line-height: inherit !important;
-} */
-
-/* .button_list a {
-    display: inline-block;
-    color: white;
-    text-align: center;
-    padding-top: 2px;
-    padding-bottom: 2px;
-    padding-left: 8px;
-    padding-right: 8px;
-    text-decoration: none;
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    cursor: pointer;
-    height: fit-content;
-    margin-top: 4px;
-    margin-bottom: 2px;
-}
-
-.button_list a:hover {
-	background-color: #555;
-}
-
-.button_list a:active {
-	background-color: #555;
-} */
 
 .active_button {
     background-color: #555;
@@ -911,10 +883,8 @@ select {
     margin-left:10px;
     margin-bottom: 10px;
     margin-top:10px;
-    /* text-align: center; */
     font-size: 12pt;
     font-weight: 500;
-    /* letter-spacing: -1px; */
 }
 
 .popout_panel .arrow,
@@ -977,13 +947,14 @@ select {
     font-size: 14.4px;
 }
 
-.popout_panel .button:hover {
-    text-decoration: underline;
-    cursor: pointer;
-}
-
-.popout_panel .button:hover .share-icon {
-    background-color: #1756a930;
+@media (hover: hover) {
+    .popout_panel .button:hover {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+    .popout_panel .button:hover .share-icon {
+        background-color: #1756a930;
+    }
 }
 
 .popout_panel a,
