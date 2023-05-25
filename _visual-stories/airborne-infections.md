@@ -15,7 +15,7 @@ Suppose that lots of people are sat in a sealed room and one of them is infectio
 
 <iframe class="sim" src="/sim/?preset=CovidInAStillRoom&story&sf=1" frameborder="0"></iframe>
 
-With VisualPDE, we're not just limited to watching a simulation: we can interact with it too. Clicking in the room will introduce some viral particles to the air, as if someone with a slight infection had coughed. Try clicking in the room to see what difference a cough can make.
+With VisualPDE, we're not just limited to watching a simulation: we can interact with it too. Clicking in the room will introduce some viral particles to the air, as if someone with a slight infection had coughed. Try clicking to see what difference a cough can make.
 
 Though each cough introduces some virus to the room, it looks like it quickly decays away until we can't even tell it was there. So, does this mean we shouldn't be worried about a cough?
 
@@ -56,7 +56,7 @@ As with all of our Stories, it is worth remembering the limitations of what we'v
 # Looking for more?
 Not quite had enough of exploring airborne infections? You can play around with the speed of the air in any of the above simulations by moving the top-most slider that can be found under <span class='click_sequence'>{{ layout.equations }} → **Parameters**</span> under the label beginning with 'V', to see if and how this impacts the spread of the virus. 
 
-For the science behind this Story, we recommend that you check out the work of [Prof. Ian Griffiths](https://people.maths.ox.ac.uk/griffit4/) and collaborators on modelling the Covid-19 pandemic, which forms a basis for the mathematical models that we've just explored with VisualPDE.
+For the science behind this Story, we recommend that you check out the work of [Ian Griffiths](https://people.maths.ox.ac.uk/griffit4/) and collaborators on modelling the Covid-19 pandemic, which forms a basis for the mathematical models that we've just explored with VisualPDE.
 
 Enjoyed this Visual Story? We'd love to hear your feedback at [hello@visualpde.com](mailto:hello@visualpde.com).
 
