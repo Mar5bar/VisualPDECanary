@@ -60,7 +60,7 @@ For the science behind this Story, we recommend that you check out the work of [
 
 Enjoyed this Visual Story? We'd love to hear your feedback at [hello@visualpde.com](mailto:hello@visualpde.com).
 
-Looking for more VisualPDE? Try out our other [Visual Stories](/visual_stories) or some mathematically flavoured content from [Basic PDEs](/basic-pdes).
+Looking for more VisualPDE? Try out our other [Visual Stories](/visual-stories) or some mathematically flavoured content from [Basic PDEs](/basic-pdes).
 
 
 
