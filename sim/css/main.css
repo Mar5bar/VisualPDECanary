@@ -850,7 +850,8 @@ select {
     margin-right:5px;
 }
 
-.button_list a:hover{
+.button_list a:hover,
+.button_list a:active{
     background-color: #333;
 }
 
