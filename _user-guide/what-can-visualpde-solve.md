@@ -46,5 +46,5 @@ where
 * $\m{D}$ is a possibly non-constant matrix that may contain zeros; you might know this as a 'diffusion tensor',
 * $\v{f}$ is a vector of one, two, three or four components that contains our interaction or kinetic terms.
 
-VisualPDE allows you to easily change the [number of components](quick-start#equations) and the [boundary conditions](quick-start#boundary-conditions). You can set initial conditions just by clicking/tapping the screen.
+VisualPDE allows you to easily change the [number of components](quick-start#equations) and the [boundary conditions](quick-start#boundary-conditions). You can set initial conditions just by clicking the screen.
 

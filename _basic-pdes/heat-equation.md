@@ -16,7 +16,7 @@ $$\pd{T}{x}(0,y,t) = \pd{T}{x}(L_x,y,t) = \pd{T}{y}(x,0,t) = \pd{T}{y}(x,L_y,t) 
 
 1. Load the [interactive simulation](/sim/?preset=heatEquation), which has been set up for this tutorial.
 
-1. Click or tap on the screen to visualise the spread of heat throughout the domain. When you click/tap, you add localised heat to the domain.
+1. Click on the screen to visualise the spread of heat throughout the domain. When you click, you add localised heat to the domain.
 
 1. Now press {{ layout.pause }}, paint some initial data, and then press {{ layout.play }} to set it in motion.
 
