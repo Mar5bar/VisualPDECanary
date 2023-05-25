@@ -104,7 +104,7 @@ let isRunning,
   isDrawing,
   hasDrawn,
   anyDirichletBCs,
-  nudgedUp = false,
+  dataNudgedUp = false,
   compileErrorOccurred = false,
   NaNTimer,
   topMessageTimer,
@@ -1693,7 +1693,8 @@ function initGUI(startOpen) {
   // viewsList.classList.add("button_list");
   viewsGUI.domElement.prepend(viewsList);
   const viewsLabel = document.createElement("div");
-  viewsLabel.innerHTML = "Views<a id='add_view' title='New view'><i class='fa-solid fa-plus'></i></a>";
+  viewsLabel.innerHTML =
+    "Views<a id='add_view' title='New view'><i class='fa-solid fa-plus'></i></a>";
   viewsLabel.id = "views_label";
   viewsGUI.domElement.prepend(viewsLabel);
 
@@ -4651,12 +4652,12 @@ function checkColourbarPosition() {
     if (colourbarDims.right >= bottomDims.left) {
       if (colourbarDims.top <= bottomDims.bottom) {
         nudgeUIUp("#dataContainer", 40);
-        nudgedUp = true;
+        dataNudgedUp = true;
       }
     } else {
-      if (nudgedUp) {
+      if (dataNudgedUp) {
         nudgeUIUp("#dataContainer", 0);
-        nudgedUp = false;
+        dataNudgedUp = false;
       }
     }
   }
@@ -4943,12 +4944,10 @@ function resizeEquationDisplay() {
     count += 1;
   }
 
-  // Set the left gui max height based on the height of the equation container.
-  $("#leftGUI").css(
-    "max-height",
-    "calc(90dvh - " +
-      $("#equation_display")[0].getBoundingClientRect().bottom +
-      "px)"
+  // Set the left gui max height based on its position.
+  $(":root").css(
+    "--left-ui-v-offset",
+    $("#leftGUI")[0].getBoundingClientRect().top
   );
 }
 

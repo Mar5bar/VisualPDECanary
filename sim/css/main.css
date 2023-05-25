@@ -1,5 +1,7 @@
 :root {
-    --views-ui-offset: 130;
+    --views-ui-offset: 85;
+    --ui-bot-offset: 80;
+    --left-ui-v-offset: 0;
 }
 
 html,
@@ -111,19 +113,19 @@ canvas {
 }
 
 #rightGUI {
-    max-height: 90dvh;
+    max-height: calc(100dvh - var(--ui-bot-offset)*1px);
     direction: rtl;
 }
 
 #leftGUI {
-    max-height: 90dvh;
+    max-height: calc(100dvh - var(--ui-bot-offset)*1px - var(--left-ui-v-offset)*1px);
     margin-top: -5px;
     border-radius: 0px 0px 5px 5px;
     direction: ltr;
 }
 
 #viewsGUI {
-    max-height: calc(90dvh - var(--views-ui-offset)*1px);
+    max-height: calc(100dvh - 150px - var(--views-ui-offset)*1px);
     direction: ltr;
 }
 
@@ -131,6 +133,7 @@ canvas {
     display: none;
     position: absolute;
     pointer-events: none;
+    z-index: 1;
 }
 
 #left_ui {
