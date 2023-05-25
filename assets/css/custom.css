@@ -344,7 +344,7 @@ span.click_sequence {
     width: 90%;
     aspect-ratio: 1;
     border: 2px solid black;
-    margin: 5%;
+    margin: calc(5% - 2px);
     background-color: black;
 }
 @media only screen and (max-width: 600px) {
