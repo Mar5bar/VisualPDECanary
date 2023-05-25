@@ -2,6 +2,8 @@
     --views-ui-offset: 85;
     --ui-bot-offset: 80;
     --left-ui-v-offset: 0;
+    --ui-button-h-gap: 3px;
+    --ui-h-gap: 60px;
 }
 
 html,
@@ -125,7 +127,7 @@ canvas {
 }
 
 #viewsGUI {
-    max-height: calc(100dvh - 150px - var(--views-ui-offset)*1px);
+    max-height: calc(100dvh - var(--ui-bot-offset)*1px - var(--views-ui-offset)*1px);
     direction: ltr;
 }
 
@@ -138,17 +140,17 @@ canvas {
 
 #left_ui {
     top: 0px;
-    left: 60px;
+    left: var(--ui-h-gap);
 }
 
 #right_ui {
     top: 0px;
-    right: 60px;
+    right: var(--ui-h-gap);
 }
 
 #views_ui {
     top: 85px;
-    left: 60px;
+    left: var(--ui-h-gap);
 }
 
 #equation_display {
@@ -218,52 +220,52 @@ canvas {
 
 #settings {
     top: 0px;
-    right: 3px;
+    right: var(--ui-button-h-gap);
 }
 
 #pause {
     top: 50px;
-    left: 3px;
+    left: var(--ui-button-h-gap);
 }
 
 #play {
     top: 50px;
-    left: 3px;
+    left: var(--ui-button-h-gap);
 }
 
 #erase {
     top: 90px;
-    left: 3px;
+    left: var(--ui-button-h-gap);
 }
 
 #screenshot {
     top: 90px;
-    right: 3px;
+    right: var(--ui-button-h-gap);
 }
 
 #share {
     top: 90px;
-    right: 3px;
+    right: var(--ui-button-h-gap);
 }
 
 #equations {
     top: 0px;
-    left: 3px;
+    left: var(--ui-button-h-gap);
 }
 
 #help {
     top: 50px;
-    right: 3px;
+    right: var(--ui-button-h-gap);
 }
 
 #views {
 	top: 130px;
-	left: 3px;
+	left: var(--ui-button-h-gap);
 }
 
 #link {
     top: 130px;
-    right: 3px;
+    right: var(--ui-button-h-gap);
 }
 
 #link_copied {
@@ -816,7 +818,7 @@ a#add_view {
 
 .button_list{
     display: flex;
-    justify-content: right;
+    justify-content: space-evenly;
     flex-flow: row wrap;
     border-bottom:0px;
     padding-top:5px !important;
@@ -854,7 +856,6 @@ select {
     border-radius:5px;
     text-align: center;
     margin-top:0.05rem;
-    margin-left:10px;
     cursor: pointer;
 }
 
