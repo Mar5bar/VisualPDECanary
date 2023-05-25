@@ -2842,6 +2842,14 @@ function loadOptions(preset) {
   // Ensure that the correct play/pause button is showing.
   isRunning ? playSim() : pauseSim();
 
+  // If we're on mobile, replace 'clicking' with 'tapping' in tryClickingText if it exists.
+  if (onMobile()) {
+    options.tryClickingText = options.tryClickingText.replaceAll(
+      "clicking",
+      "tapping"
+    );
+  }
+
   // Enable backwards compatibility.
   options.brushRadius = options.brushRadius.toString();
   if (options.hasOwnProperty("drawIn3D")) {
@@ -5737,4 +5745,10 @@ function toggleHelpPanel() {
 function toggleSharePanel() {
   $("#share_panel").toggle();
   $("#share").toggleClass("clicked");
+}
+
+function onMobile() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
 }
