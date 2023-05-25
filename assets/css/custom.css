@@ -346,3 +346,9 @@ span.click_sequence {
     border: 2px solid black;
     margin: 5%;
 }
+@media only screen and (max-width: 600px) {
+    .sim {
+        width: 99%;
+        margin:0%;
+    }
+}

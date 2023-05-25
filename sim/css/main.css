@@ -762,6 +762,7 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     display: flex;
     hyphens: auto;
     min-width:2.2rem;
+    padding-left: 0.4rem;
     padding-right: 0.4rem;
     height:3rem;
     border-radius: 0.5rem;
