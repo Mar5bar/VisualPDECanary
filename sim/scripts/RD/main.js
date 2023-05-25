@@ -431,6 +431,7 @@ $("#settings").click(function () {
     if ($("#left_ui").is(":visible")) $("#left_ui").toggle();
     if ($("#views_ui").is(":visible")) $("#views_ui").toggle();
   }
+  if ($("#left_ui").is(":visible")) resizeEquationDisplay();
 });
 $("#equations").click(function () {
   $("#left_ui").toggle();
@@ -4932,10 +4933,13 @@ function resizeEquationDisplay() {
   el.css("font-size", "");
   var count = 0;
   if ($("#leftGUI")[0] == undefined) return;
+  const rGUI = $("#rightGUI")[0];
+  var rGUICorrection = 0;
+  if (rGUI != undefined) rGUICorrection = rGUI.getBoundingClientRect().width;
   while (
     (count < 20) &
     ($("#equation_display")[0].getBoundingClientRect().right >=
-      window.innerWidth - 65) &
+      window.innerWidth - 65 - rGUICorrection) &
     ($("#equation_display")[0].getBoundingClientRect().width >
       $("#leftGUI")[0].getBoundingClientRect().width)
   ) {
