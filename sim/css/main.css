@@ -208,6 +208,10 @@ canvas {
     text-shadow: 0 1px #fff;
 }
 
+.ui_button.clicked {
+    outline: 3px solid rgb(255, 255, 255);
+}
+
 @media (hover: hover) {
     .ui_button:hover {
         color: black;

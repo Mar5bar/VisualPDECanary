@@ -420,31 +420,31 @@ if (
 
 /* GUI settings and equations buttons */
 $("#settings").click(function () {
-  $("#right_ui").toggle();
-  if ($("#help_panel").is(":visible")) {
-    $("#help_panel").toggle();
+  toggleRightUI();
+  if ($("#right_ui").is(":visible") && $("#help_panel").is(":visible")) {
+    toggleHelpPanel();
   }
-  if ($("#share_panel").is(":visible")) {
-    $("#share_panel").toggle();
+  if ($("#right_ui").is(":visible") && $("#share_panel").is(":visible")) {
+    toggleSharePanel();
   }
   if (window.innerWidth < 629 && $("#right_ui").is(":visible")) {
-    if ($("#left_ui").is(":visible")) $("#left_ui").toggle();
-    if ($("#views_ui").is(":visible")) $("#views_ui").toggle();
+    if ($("#left_ui").is(":visible")) toggleLeftUI();
+    if ($("#views_ui").is(":visible")) toggleViewsUI();
   }
   if ($("#left_ui").is(":visible")) resizeEquationDisplay();
 });
 $("#equations").click(function () {
-  $("#left_ui").toggle();
+  toggleLeftUI();
   resizeEquationDisplay();
   if (
     window.innerWidth < 629 &&
     $("#right_ui").is(":visible") &&
     $("#left_ui").is(":visible")
   ) {
-    $("#right_ui").toggle();
+    toggleRightUI();
   }
   if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
-    $("#views_ui").toggle();
+    toggleViewsUI();
   }
 });
 $("#pause").click(function () {
@@ -461,40 +461,40 @@ $("#warning_restart").click(function () {
   resetSim();
 });
 $("#share").click(function () {
-  $("#share_panel").toggle();
+  toggleSharePanel();
   if ($("#help_panel").is(":visible")) {
-    $("#help_panel").toggle();
+    toggleHelpPanel();
   }
 });
 $("#help").click(function () {
-  $("#help_panel").toggle();
+  toggleHelpPanel();
   if ($("#share_panel").is(":visible")) {
-    $("#share_panel").toggle();
+    toggleSharePanel();
   }
 });
 $("#screenshot").click(function () {
   takeAScreenshot = true;
   render();
-  $("#share_panel").toggle();
+  toggleSharePanel();
 });
 $("#link").click(function () {
   funsObj.copyConfigAsURL();
-  $("#share_panel").toggle();
+  toggleSharePanel();
 });
 $("#help_panel .container .button").click(function () {
-  $("#help_panel").toggle();
+  toggleHelpPanel();
 });
 $("#views").click(function () {
-  $("#views_ui").toggle();
+  toggleViewsUI();
   if (
     window.innerWidth < 629 &&
     $("#right_ui").is(":visible") &&
     $("#views_ui").is(":visible")
   ) {
-    $("#right_ui").toggle();
+    toggleRightUI();
   }
   if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
-    $("#left_ui").toggle();
+    toggleLeftUI();
   }
   // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
 });
@@ -5712,4 +5712,29 @@ function copyDebug() {
     canvas: canvas.getBoundingClientRect(),
   });
   navigator.clipboard.writeText(str);
+}
+
+function toggleRightUI() {
+  $("#right_ui").toggle();
+  $("#settings").toggleClass("clicked");
+}
+
+function toggleLeftUI() {
+  $("#left_ui").toggle();
+  $("#equations").toggleClass("clicked");
+}
+
+function toggleViewsUI() {
+  $("#views_ui").toggle();
+  $("#views").toggleClass("clicked");
+}
+
+function toggleHelpPanel() {
+  $("#help_panel").toggle();
+  $("#help").toggleClass("clicked");
+}
+
+function toggleSharePanel() {
+  $("#share_panel").toggle();
+  $("#share").toggleClass("clicked");
 }
