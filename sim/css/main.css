@@ -4,6 +4,7 @@
     --left-ui-v-offset: 0;
     --ui-button-h-gap: 3px;
     --ui-h-gap: 60px;
+    --ui-button-outline: white;
 }
 
 html,
@@ -210,6 +211,7 @@ canvas {
 
 .ui_button.clicked {
     outline: 3px solid rgb(255, 255, 255);
+    outline-color: var(--ui-button-outline);
 }
 
 @media (hover: hover) {

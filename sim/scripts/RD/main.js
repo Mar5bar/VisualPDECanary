@@ -3607,9 +3607,13 @@ function configureGUI() {
   configureIntegralDisplay();
   configureDataContainer();
   // Show/hide/modify GUI elements that depend on dimension.
-  options.plotType == "line"
-    ? hideGUIController(typeOfBrushController)
-    : showGUIController(typeOfBrushController);
+  if (options.plotType == "line") {
+    hideGUIController(typeOfBrushController);
+    $(":root").css("--ui-button-outline", "black");
+  } else {
+    showGUIController(typeOfBrushController);
+    $(":root").css("--ui-button-outline", "white");
+  }
   manualInterpolationNeeded
     ? hideGUIController(forceManualInterpolationController)
     : showGUIController(forceManualInterpolationController);
