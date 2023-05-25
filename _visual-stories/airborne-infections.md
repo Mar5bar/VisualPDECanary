@@ -54,7 +54,7 @@ The story of airborne infections is far from over, but our viral Visual Story ha
 As with all of our Stories, it is worth remembering the limitations of what we've learned. Our approach has knowingly ignored lots of factors that could be very important, including the potentially vast differences that can exists between different viruses and between different environments. So, while we've hopefully gained lots of intuition, we would do well to take our conclusions with a healthy pinch of salt.
 
 # Looking for more?
-Not quite had enough of exploring airborne infections? You can play around with the speed of the air in any of the above simulations by moving the top-most slider that can be found under <span class='click_sequence'>{{ layout.equations }} → **Parameters**</span> under the label beginning with 'V', to see if and how this impacts the spread of the virus. 
+Not quite had enough of exploring airborne infections? You can play around with the speed of the air by opening our [customisable simulation](/sim/?preset=CovidInARoomCircling) and moving the top-most slider that can be found under <span class='click_sequence'>{{ layout.equations }} → **Parameters**</span> and beneath the label beginning with 'V'. Try exploring how the air speed impacts the spread of the virus.
 
 For the science behind this Story, we recommend that you check out the work of [Ian Griffiths](https://people.maths.ox.ac.uk/griffit4/) and collaborators on modelling the Covid-19 pandemic, which forms a basis for the mathematical models that we've just explored with VisualPDE.
 
