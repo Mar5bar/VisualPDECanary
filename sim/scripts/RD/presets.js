@@ -3,6 +3,48 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+      
+      
+      case "NonlinearSchrodingerSoliton":
+	options = {
+	"autoSetColourRange": true,
+	"brushRadius": "5",
+	"cameraTheta": 0,
+	"cameraPhi": 0,
+	"clearValueU": "cos(c_1*x)/cosh(x-L_x/3)",
+	"clearValueV": "sin(c_1*x)/cosh(x-L_x/3)",
+	"crossDiffusion": true,
+	"diffusionStrUU": "0",
+	"diffusionStrUV": "-D_i",
+	"diffusionStrVU": "D_i",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dimension": "1",
+	"domainScale": 30,
+	"dt": 0.00001,
+	"kineticParams": "b_i = 1 in [-5, 5];D_i = 1;c_1 = 10;",
+	"maxColourValue": 1.5772895812988281,
+	"minColourValue": 1.5497322536361935e-8,
+	"numTimestepsPerFrame": 400,
+	"plotType": "line",
+	"preset": "NonlinearSchrodingerSoliton",
+	"reactionStrU": "(-b_i*v)*(u^2+v^2)",
+	"reactionStrV": "(b_i*u)*(u^2+v^2)",
+	"reactionStrW": "0",
+	"spatialStep": 0.1,
+  "suppressTryClickingPopup": true,
+	"typeOfBrush": "vline",
+	"views": [{"whatToPlot": "u^2+v^2",
+	"colourmap": "turbo",
+	"flippedColourmap": false,
+	"minColourValue": 0.00015078618889674544,
+	"maxColourValue": 1,
+	"autoSetColourRange": true,
+	"plotType": "plane",
+	"name": "Default",
+}],
+	"whatToPlot": "u^2+v^2"};
+break;
     case "FlowSimplePeriodicNetwork":
       options = {
         activeViewInd: 3,
