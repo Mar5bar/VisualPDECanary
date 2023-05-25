@@ -4,13 +4,13 @@ title: Solitons in the Korteweg–De Vries equation
 lesson_number: 80
 thumbnail: /assets/images/complexGinzburgLandau.png
 extract: Solitary movement through eachother
-equation: $\pd{\phi}{t}=-\frac{\partial^3 \phi}{\partial x^3}+6\phi \pd{\phi}{x}$
+equation: $\pd{\phi}{t}=-\pdn{\phi}{x}{3}+6\phi \pd{\phi}{x}$
 ---
 
 
 Here is an implementation of the [Korteweg–De Vries (KdV) equation](https://en.wikipedia.org/wiki/Korteweg%E2%80%93De_Vries_equation) given by
 
-$$\pd{\phi}{t}=-\frac{\partial^3 \phi}{\partial x^3}+6\phi \pd{\phi}{x},$$
+$$\pd{\phi}{t}=-\pdn{\phi}{x}{3}+6\phi \pd{\phi}{x},$$
 
 which is a very simple model of solitons, as described at the bottom of the page for the [Nonlinear Schrödinger equation](/nonlinear-physics/nls-cgl).
 
