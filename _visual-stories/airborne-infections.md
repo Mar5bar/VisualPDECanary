@@ -24,7 +24,7 @@ To explore this further, lets look at the probability of getting an infection, w
 
 Here, the probability of being infected is large close to where we know the source of the infection is, right in the middle of the room. If you clicked in the room to simulate a cough, you should also see some high probabilities elsewhere. This shows that, even though the viral particles seemed to disperse quickly after a cough, they made a significant difference to the probability of catching an infection near to the cougher.
 
-As you might expect, the probability of being infected increases with the amount of time that you're exposed to the virus. This time-dependent effect is especially visible when you click to cough while using the Probability View. To reset the simulation and see this clearly, press {{ layout.erase }}
+As you might expect, the probability of being infected increases with the amount of time that you're exposed to the virus. This time-dependent effect is especially visible when you click to cough while using the Probability View. To reset the simulation and see this clearly, press {{ layout.erase }}. What do you think will happen if you cough multiple times in the same spot? Test out your prediction with VisualPDE!
 
 # Recirculation
 It's fairly rare for air to stay still. Let's see what effect the movement of air can have on the distribution of a virus and the chance of infection. In the simulation below, we've added in the effects of the air being blown from left to right, mimicking an air conditioner, with anything that reaches the right-hand side of the room being recycled back into the left side.

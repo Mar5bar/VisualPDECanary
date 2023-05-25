@@ -570,6 +570,7 @@ break;
           "V = 40 in [0,40];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         reactionStrU:
           "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C-V*C_x",
+        runningOnLoad: false,
       };
       break;
     case "CovidInAStillRoomCircling":
