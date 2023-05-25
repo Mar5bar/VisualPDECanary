@@ -32,6 +32,6 @@ $$
 i\pd{\psi}{t}=-\nabla^2 \psi+\kappa\psi|\psi|^2,
 $$
 
-with the sign of $\kappa$ determining whether the system is ``focusing" or ``defocusing", and hence whether we can observe dark or bright [solitons](https://en.wikipedia.org/wiki/Soliton) or other behaviours.
+with the sign of $\kappa$ determining whether the system is "focusing" or "defocusing", and hence whether we can observe dark or bright [solitons](https://en.wikipedia.org/wiki/Soliton) or other behaviours.
 
 [This simulation](/sim/?preset=NonlinearSchrodingerSoliton) is an example of a soliton moving to the right at a speed given by $c$ (which is determined entirely by the initial condition). If you change the value of $\kappa$ and restart the simulation, you can observe different behaviours. For example, $\kappa=-1$ gives a defocusing equation, for which the soliton eventually breaks apart into something resembly a moving [Jacobi elliptic function](https://en.wikipedia.org/wiki/Jacobi_elliptic_functions). We note that the simulator used does not preserve the conserved quantities in this model, so may give spurious or incorrect solutions for some parameters or initial conditions.
