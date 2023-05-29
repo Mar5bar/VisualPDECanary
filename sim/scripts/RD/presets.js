@@ -40,7 +40,7 @@ export function getPreset(id) {
 	"maxColourValue": 0.9580471515655518,
 	"autoSetColourRange": true,
 	"plotType": "plane",
-	"name": "psi_1",
+	"name": "$\psi_1$",
 },
 	{"whatToPlot": "u_2^2+v_2^2",
 	"colourmap": "turbo",
@@ -49,7 +49,7 @@ export function getPreset(id) {
 	"maxColourValue": 0.895037829875946,
 	"autoSetColourRange": true,
 	"plotType": "plane",
-	"name": "psi_2"}],
+	"name": "$\psi_2$"}],
 	"whatToDraw": "v_1",
 	"whatToPlot": "u_1^2+v_1^2"};
 break;
