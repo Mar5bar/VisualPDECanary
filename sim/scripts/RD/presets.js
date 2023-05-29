@@ -3,9 +3,9 @@
 export function getPreset(id) {
   let options;
   switch (id) {
-      
       case "CoupledCGL":
 	options = {
+	"activeViewInd": 1,
 	"autoSetColourRange": true,
 	"brushRadius": "5",
 	"clearValueU": "1",
@@ -24,7 +24,8 @@ export function getPreset(id) {
 	"domainScale": 500,
 	"dt": 0.001,
 	"kineticParams": "b_1i = 5 in [-5, 5];D_1r = 1;D_1i = 0.1;a_1r = 1;a_1i = 0;b_1r = -1;b_2i = 5;D_2r = 1;D_2i = 0.1;a_2r = 1;a_2i = 0;b_2r = -1;alpha_1 = 4;alpha_2 = 4;",
-	"maxColourValue": 0.9607804417610168,
+	"maxColourValue": 0.9703768491744995,
+	"minColourValue": 6.515668137192483e-25,
 	"numSpecies": "4",
 	"numTimestepsPerFrame": 200,
 	"preset": "CoupledCGL",
@@ -40,7 +41,7 @@ export function getPreset(id) {
 	"maxColourValue": 0.9580471515655518,
 	"autoSetColourRange": true,
 	"plotType": "plane",
-	"name": "$\psi_1$",
+	"name": "$|\\psi_1|^2$",
 },
 	{"whatToPlot": "u_2^2+v_2^2",
 	"colourmap": "turbo",
@@ -49,10 +50,11 @@ export function getPreset(id) {
 	"maxColourValue": 0.895037829875946,
 	"autoSetColourRange": true,
 	"plotType": "plane",
-	"name": "$\psi_2$"}],
+	"name": "$|\\psi_2|^2$"}],
 	"whatToDraw": "v_1",
-	"whatToPlot": "u_1^2+v_1^2"};
+	"whatToPlot": "u_2^2+v_2^2"};
 break;
+      
       case "NonlinearSchrodingerSoliton":
 	options = {
 	"autoSetColourRange": true,
