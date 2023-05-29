@@ -28,19 +28,17 @@ let basicMaterial,
 let domain, simDomain, clickDomain, line;
 let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine;
 let colourmap, colourmapEndpoints;
-let options, uniforms, funsObj;
+let options, uniforms, funsObj, savedOptions;
 let leftGUI,
   rightGUI,
+  viewsGUI,
   root,
   typeOfBrushController,
-  drawIn3DController,
   fController,
   gController,
   hController,
   jController,
-  algebraicVController,
-  algebraicWController,
-  algebraicQController,
+  algebraicSpeciesController,
   crossDiffusionController,
   domainIndicatorFunController,
   DuuController,
@@ -84,6 +82,10 @@ let leftGUI,
   dirichletVController,
   dirichletWController,
   dirichletQController,
+  comboUController,
+  comboVController,
+  comboWController,
+  comboQController,
   neumannUController,
   neumannVController,
   neumannWController,
@@ -95,16 +97,22 @@ let leftGUI,
   fIm,
   imControllerOne,
   imControllerTwo,
+  whatToPlotController,
+  deleteViewController,
   selectedEntries = new Set();
 let isRunning,
   isDrawing,
   hasDrawn,
   anyDirichletBCs,
-  nudgedUp = false,
+  dataNudgedUp = false,
   compileErrorOccurred = false,
   NaNTimer,
+  topMessageTimer,
   uiHidden = false,
-  checkpointExists = false;
+  checkpointExists = false,
+  savedViews,
+  updatingAlgebraicSpecies = false,
+  viewUIOffsetInit;
 let inTex, outTex;
 let nXDisc,
   nYDisc,
@@ -113,7 +121,8 @@ let nXDisc,
   maxDim,
   canvasWidth,
   canvasHeight,
-  usingLowResDomain = true;
+  usingLowResDomain = true,
+  domainScaleFactor = 1;
 let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
@@ -130,13 +139,14 @@ const listOfTypes = [
   "3Species", // 4
   "3SpeciesCrossDiffusion", // 5
   "3SpeciesCrossDiffusionAlgebraicW", // 6
-  "4Species", // 7
-  "4SpeciesCrossDiffusion", // 8
-  "4SpeciesCrossDiffusionAlgebraicW", // 9
+  "3SpeciesCrossDiffusionAlgebraicVW", // 7
+  "4Species", // 8
+  "4SpeciesCrossDiffusion", // 9
   "4SpeciesCrossDiffusionAlgebraicQ", // 10
   "4SpeciesCrossDiffusionAlgebraicWQ", // 11
+  "4SpeciesCrossDiffusionAlgebraicVWQ", // 12
 ];
-let equationType, savedHTML;
+let equationType, savedHTML, algebraicV, algebraicW, algebraicQ;
 let takeAScreenshot = false;
 let buffer,
   checkpointBuffer,
@@ -194,7 +204,7 @@ import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
-import { getPreset, getUserTextFields } from "./presets.js";
+import { getPreset, getUserTextFields, getFieldsInView } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import * as THREE from "../three.module.js";
 import { OrbitControls } from "../OrbitControls.js";
@@ -217,6 +227,7 @@ let TeXStrings = {
   ...getDefaultTeXLabelsBCsICs(),
 };
 let listOfSpecies, listOfReactions, anySpeciesRegexStrs;
+const fieldsInView = getFieldsInView();
 
 // Setup some configurable options.
 options = {};
@@ -254,50 +265,11 @@ funsObj = {
       }
     );
   },
-  copyConfigAsJSON: function () {
-    // Encode the current simulation configuration as raw JSON and put it on the clipboard.
-    let objDiff = diffObjects(options, getPreset("default"));
-    objDiff.preset = "PRESETNAME";
-    let str = JSON.stringify(objDiff)
-      .replaceAll(/\s*,\s*([^0-9-\.\s])/g, ",\n\t$1")
-      .replaceAll(":", ": ")
-      .replace("{", "{\n\t")
-      .replace("}", ",\n}");
-    str = 'case "PRESETNAME":\n\toptions = ' + str + ";\nbreak;";
-    navigator.clipboard.writeText(str);
-  },
-  flipColourmap: function () {
-    options.flippedColourmap = !options.flippedColourmap;
-    setDisplayColourAndType();
-    configureColourbar();
-  },
-  setColourRangeButton: function () {
-    setColourRange();
-    render();
-  },
-  debug: function () {
-    // Write lots of data to the clipboard for debugging.
-    let str = "";
-    str += JSON.stringify(options);
-    str += JSON.stringify(uniforms);
-    str += JSON.stringify({
-      nXDisc: nXDisc,
-      nYDisc: nYDisc,
-      domainHeight: domainHeight,
-      domainWidth: domainWidth,
-      aspectRatio: aspectRatio,
-      canvas: canvas.getBoundingClientRect(),
-    });
-    navigator.clipboard.writeText(str);
-  },
   saveSimState: function () {
     saveSimState();
   },
   exportSimState: function () {
     exportSimState();
-  },
-  loadSimStateFromInput: function () {
-    $("#checkpointInput").click();
   },
   clearCheckpoints: function () {
     if (checkpointExists) {
@@ -305,6 +277,9 @@ funsObj = {
       checkpointTexture = null;
       checkpointExists = false;
     }
+  },
+  restoreCurrentView: function () {
+    restoreCurrentView();
   },
 };
 
@@ -360,6 +335,30 @@ if (params.has("no_ui")) {
   $(".ui").removeClass("hidden");
 }
 
+if (params.has("sf")) {
+  // Set the domain scale factor from the search string.
+  domainScaleFactor = parseFloat(params.get("sf"));
+  if (isNaN(domainScaleFactor) || domainScaleFactor <= 0) {
+    domainScaleFactor = 1;
+  }
+}
+
+if (params.has("story")) {
+  // If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
+  $("#settings").addClass("hidden");
+  $("#equations").addClass("hidden");
+  $("#help").addClass("hidden");
+  $("#share").addClass("hidden");
+
+  $("#play").css("top", "-=50");
+  $("#pause").css("top", "-=50");
+  $("#erase").css("top", "-=50");
+  $("#views").css("top", "-=50");
+  $("#views_ui").css("top", "-=50");
+  viewUIOffsetInit = $(":root").css("--views-ui-offset");
+  $(":root").css("--views-ui-offset", "-=50");
+}
+
 // Warn the user about flashing images and ask for cookie permission to store this.
 if (!warningCookieExists() && !uiHidden) {
   // Display the warning message.
@@ -409,43 +408,43 @@ if (shouldLoadDefault) {
 // or have loaded the default simulation.
 if (
   (fromExternalLink() || shouldLoadDefault || options.forceTryClickingPopup) &&
-  !options.suppressTryClickingPopup
+  !options.suppressTryClickingPopup &&
+  options.brushEnabled
 ) {
-  $("#try_clicking").html("<p>" + options.tryClickingText + "</p>");
-  fadein("#try_clicking");
+  $("#top_message").html("<p>" + options.tryClickingText + "</p>");
+  fadein("#top_message");
   // Fadeout either after the user clicks on the canvas or 5s passes.
-  setTimeout(() => fadeout("#try_clicking"), 5000);
-  $("#simCanvas").one("pointerdown touchstart", () => fadeout("#try_clicking"));
+  setTimeout(() => fadeout("#top_message"), 5000);
+  $("#simCanvas").one("pointerdown touchstart", () => fadeout("#top_message"));
 }
 
 /* GUI settings and equations buttons */
 $("#settings").click(function () {
-  $("#rightGUI").toggle();
-  $("#right_ui_arrow").toggle();
-  if ($("#help_panel").is(":visible")) {
-    $("#help_panel").toggle();
+  toggleRightUI();
+  if ($("#right_ui").is(":visible") && $("#help_panel").is(":visible")) {
+    toggleHelpPanel();
   }
-  if ($("#help_panel").is(":visible")) {
-    $("#help_panel").toggle();
+  if ($("#right_ui").is(":visible") && $("#share_panel").is(":visible")) {
+    toggleSharePanel();
   }
-  if (
-    window.innerWidth < 629 &&
-    $("#left_ui").is(":visible") &&
-    $("#rightGUI").is(":visible")
-  ) {
-    $("#left_ui").toggle();
+  if (window.innerWidth < 629 && $("#right_ui").is(":visible")) {
+    if ($("#left_ui").is(":visible")) toggleLeftUI();
+    if ($("#views_ui").is(":visible")) toggleViewsUI();
   }
+  if ($("#left_ui").is(":visible")) resizeEquationDisplay();
 });
 $("#equations").click(function () {
-  $("#left_ui").toggle();
+  toggleLeftUI();
   resizeEquationDisplay();
-  $("#left_ui_arrow").toggle();
   if (
     window.innerWidth < 629 &&
-    $("#rightGUI").is(":visible") &&
+    $("#right_ui").is(":visible") &&
     $("#left_ui").is(":visible")
   ) {
-    $("#rightGUI").toggle();
+    toggleRightUI();
+  }
+  if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
+    toggleViewsUI();
   }
 });
 $("#pause").click(function () {
@@ -462,28 +461,48 @@ $("#warning_restart").click(function () {
   resetSim();
 });
 $("#share").click(function () {
-  $("#share_panel").toggle();
+  toggleSharePanel();
   if ($("#help_panel").is(":visible")) {
-    $("#help_panel").toggle();
+    toggleHelpPanel();
   }
 });
 $("#help").click(function () {
-  $("#help_panel").toggle();
+  toggleHelpPanel();
   if ($("#share_panel").is(":visible")) {
-    $("#share_panel").toggle();
+    toggleSharePanel();
   }
 });
 $("#screenshot").click(function () {
   takeAScreenshot = true;
   render();
-  $("#share_panel").toggle();
+  toggleSharePanel();
 });
 $("#link").click(function () {
   funsObj.copyConfigAsURL();
-  $("#share_panel").toggle();
+  toggleSharePanel();
 });
 $("#help_panel .container .button").click(function () {
-  $("#help_panel").toggle();
+  toggleHelpPanel();
+});
+$("#views").click(function () {
+  toggleViewsUI();
+  if (
+    window.innerWidth < 629 &&
+    $("#right_ui").is(":visible") &&
+    $("#views_ui").is(":visible")
+  ) {
+    toggleRightUI();
+  }
+  if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
+    toggleLeftUI();
+  }
+  // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
+});
+
+// New, rename, delete
+// (Dynamically created buttons, like the +, can't use .click())
+$(document).on("click", "#add_view", function () {
+  addView();
 });
 
 // Begin the simulation.
@@ -513,6 +532,7 @@ function init() {
     antialias: false,
     alpha: true,
     premultipliedAlpha: false,
+    stencilBuffer: false,
   });
   renderer.autoClear = true;
   gl = renderer.getContext();
@@ -561,7 +581,7 @@ function init() {
   controls = new OrbitControls(camera, canvas);
   controls.listenToKeyEvents(document);
   controls.addEventListener("change", function () {
-    if (options.dimension == 3) {
+    if (options.plotType == "surface") {
       options.cameraTheta =
         90 - (180 * Math.atan2(camera.position.z, camera.position.y)) / Math.PI;
       options.cameraPhi =
@@ -691,6 +711,9 @@ function init() {
         if (uiHidden) {
           uiHidden = false;
           $(".ui").removeClass("hidden");
+          // Reset any custom positioning for the Story ui.
+          $(".ui").css("top", "");
+          $(":root").css("--views-ui-offset", viewUIOffsetInit);
           // Ensure that the correct play/pause button is showing.
           isRunning ? playSim() : pauseSim();
           // Check for any positioning that relies on elements being visible.
@@ -788,6 +811,7 @@ function updateUniforms() {
   uniforms.L.value = options.domainScale;
   uniforms.L_y.value = domainHeight;
   uniforms.L_x.value = domainWidth;
+  uniforms.L_min.value = Math.min(domainHeight, domainWidth);
   uniforms.dt.value = options.dt;
   uniforms.dx.value = domainWidth / nXDisc;
   uniforms.dy.value = domainHeight / nYDisc;
@@ -873,6 +897,7 @@ function createDisplayDomains() {
   domain = new THREE.Mesh(plane, displayMaterial);
   domain.position.z = 0;
   domain.visible = options.plotType != "line";
+  domain.matrixAutoUpdate = false;
   scene.add(domain);
 
   // Create an invisible, low-poly plane used for raycasting.
@@ -885,6 +910,7 @@ function createDisplayDomains() {
   clickDomain = new THREE.Mesh(simplePlane, basicMaterial);
   clickDomain.position.z = 0;
   clickDomain.visible = false;
+  clickDomain.matrixAutoUpdate = false;
   scene.add(clickDomain);
   setDomainOrientation();
 
@@ -914,6 +940,8 @@ function setDomainOrientation() {
       clickDomain.rotation.x = -Math.PI / 2;
       break;
   }
+  domain.updateMatrix();
+  clickDomain.updateMatrix();
 }
 
 function setCanvasShape() {
@@ -988,6 +1016,9 @@ function initUniforms() {
     L_y: {
       type: "f",
     },
+    L_min: {
+      type: "f",
+    },
     dt: {
       type: "f",
       value: 0.01,
@@ -1046,22 +1077,30 @@ function initGUI(startOpen) {
   document.getElementById("leftGUIContainer").appendChild(leftGUI.domElement);
 
   // Initialise the right GUI.
-  rightGUI = new dat.GUI({ closeOnTop: true });
+  rightGUI = new dat.GUI({ closeOnTop: true, autoPlace: false });
   rightGUI.domElement.id = "rightGUI";
-  rightGUI.domElement.classList.add("ui");
+  document.getElementById("rightGUIContainer").appendChild(rightGUI.domElement);
+
+  // Initialise the viewsGUI.
+  viewsGUI = new dat.GUI({ closeOnTop: true, autoPlace: false });
+  viewsGUI.domElement.id = "viewsGUI";
+  document.getElementById("viewsGUIContainer").appendChild(viewsGUI.domElement);
 
   leftGUI.open();
   rightGUI.open();
+  viewsGUI.open();
   if (startOpen != undefined && startOpen) {
-    $("#rightGUI").show();
+    $("#right_ui").show();
     $("#left_ui").show();
   } else {
     $("#left_ui").hide();
-    $("#rightGUI").hide();
+    $("#right_ui").hide();
   }
 
   // Brush folder.
   root = rightGUI.addFolder("Brush");
+
+  root.add(options, "brushEnabled").name("Enabled");
 
   root
     .add(options, "brushAction", {
@@ -1091,8 +1130,6 @@ function initGUI(startOpen) {
     .name("Species")
     .onChange(setBrushType);
 
-  drawIn3DController = root.add(options, "drawIn3D").name("3D enabled");
-
   // Domain folder.
   root = rightGUI.addFolder("Domain");
 
@@ -1118,7 +1155,7 @@ function initGUI(startOpen) {
 
   root
     .add(options, "squareCanvas")
-    .name("Square display")
+    .name("Square")
     .onFinishChange(function () {
       setCanvasShape();
       resize();
@@ -1180,20 +1217,15 @@ function initGUI(startOpen) {
     .name("Cross diffusion")
     .onChange(updateProblem);
 
-  algebraicVController = root
-    .add(options, "algebraicV")
-    .name("Algebraic v")
-    .onChange(updateProblem);
-
-  algebraicWController = root
-    .add(options, "algebraicW")
-    .name("Algebraic w")
-    .onChange(updateProblem);
-
-  algebraicQController = root
-    .add(options, "algebraicQ")
-    .name("Algebraic q")
-    .onChange(updateProblem);
+  // Number of algebraic species.
+  algebraicSpeciesController = root
+    .add(options, "numAlgebraicSpecies", { 0: 0, 1: 1, 2: 2, 3: 3 })
+    .name("# Algebraic")
+    .onChange(function () {
+      updatingAlgebraicSpecies = true;
+      updateProblem();
+      updatingAlgebraicSpecies = false;
+    });
 
   root
     .add(options, "speciesNames")
@@ -1403,6 +1435,7 @@ function initGUI(startOpen) {
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Combination: "combo",
     })
     .onChange(function () {
       setRDEquations();
@@ -1421,12 +1454,18 @@ function initGUI(startOpen) {
     .add(options, "robinStrU")
     .onFinishChange(setRDEquations);
 
+  comboUController = root
+    .add(options, "comboStrU")
+    .name("Details")
+    .onFinishChange(setRDEquations);
+
   vBCsController = root
     .add(options, "boundaryConditionsV", {
       Periodic: "periodic",
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Combination: "combo",
     })
     .onChange(function () {
       setRDEquations();
@@ -1445,12 +1484,18 @@ function initGUI(startOpen) {
     .add(options, "robinStrV")
     .onFinishChange(setRDEquations);
 
+  comboVController = root
+    .add(options, "comboStrV")
+    .name("Details")
+    .onFinishChange(setRDEquations);
+
   wBCsController = root
     .add(options, "boundaryConditionsW", {
       Periodic: "periodic",
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Combination: "combo",
     })
     .onChange(function () {
       setRDEquations();
@@ -1469,12 +1514,18 @@ function initGUI(startOpen) {
     .add(options, "robinStrW")
     .onFinishChange(setRDEquations);
 
+  comboWController = root
+    .add(options, "comboStrW")
+    .name("Details")
+    .onFinishChange(setRDEquations);
+
   qBCsController = root
     .add(options, "boundaryConditionsQ", {
       Periodic: "periodic",
       Dirichlet: "dirichlet",
       Neumann: "neumann",
       Robin: "robin",
+      Combination: "combo",
     })
     .name("$q$")
     .onChange(function () {
@@ -1492,6 +1543,11 @@ function initGUI(startOpen) {
 
   robinQController = root
     .add(options, "robinStrQ")
+    .onFinishChange(setRDEquations);
+
+  comboQController = root
+    .add(options, "comboStrQ")
+    .name("Details")
     .onFinishChange(setRDEquations);
 
   // Initial conditions folder.
@@ -1516,27 +1572,6 @@ function initGUI(startOpen) {
   // Plotting folder.
 
   root = rightGUI.addFolder("Plotting");
-
-  root
-    .add(options, "whatToPlot")
-    .name("Expression: ")
-    .onFinishChange(function () {
-      updateWhatToPlot();
-      render();
-    });
-
-  root
-    .add(options, "plotType", {
-      Line: "line",
-      Plane: "plane",
-      Surface: "surface",
-    })
-    .name("Plot type")
-    .onChange(function () {
-      configurePlotType();
-      document.activeElement.blur();
-      render();
-    });
 
   lineWidthMulController = root
     .add(options, "lineWidthMul", 0.1, 2)
@@ -1583,57 +1618,6 @@ function initGUI(startOpen) {
   root = rightGUI.addFolder("Colour");
 
   root
-    .add(options, "colourmap", {
-      BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
-      "Blue-Magenta": "blue-magenta",
-      Diverging: "diverging",
-      Greyscale: "greyscale",
-      Turbo: "turbo",
-      Viridis: "viridis",
-    })
-    .onChange(function () {
-      setDisplayColourAndType();
-      configureColourbar();
-    })
-    .name("Colour map");
-
-  root.add(funsObj, "flipColourmap").name("Reverse map");
-
-  minColourValueController = root
-    .add(options, "minColourValue")
-    .name("Min value")
-    .onChange(function () {
-      updateUniforms();
-      updateColourbarLims();
-      render();
-    });
-  minColourValueController.__precision = 2;
-
-  maxColourValueController = root
-    .add(options, "maxColourValue")
-    .name("Max value")
-    .onChange(function () {
-      updateUniforms();
-      updateColourbarLims();
-      render();
-    });
-  maxColourValueController.__precision = 2;
-
-  setColourRangeController = root
-    .add(funsObj, "setColourRangeButton")
-    .name("Snap range");
-
-  autoSetColourRangeController = root
-    .add(options, "autoSetColourRange")
-    .name("Auto snap")
-    .onChange(function () {
-      if (options.autoSetColourRange) {
-        setColourRange();
-        render();
-      }
-    });
-
-  root
     .add(options, "colourbar")
     .name("Colour bar")
     .onChange(configureColourbar);
@@ -1656,20 +1640,21 @@ function initGUI(startOpen) {
   root = rightGUI.addFolder("Checkpoints");
 
   // Checkpoints override initial condition
-  root.add(options, "resetFromCheckpoints").name("Enable checkpoints");
-
-  // Save checkpoint.
-  root.add(funsObj, "saveSimState").name("Set checkpoint");
-
-  // Export simulation state.
-  root.add(funsObj, "exportSimState").name("Save to file");
-
-  // Load simulation state.
-  root.add(funsObj, "loadSimStateFromInput").name("Load from file");
+  root.add(options, "resetFromCheckpoints").name("Enabled");
 
   root
     .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
     .name("Resize");
+
+  const checkpointButtons = document.createElement("li");
+  checkpointButtons.classList.add("button_list");
+  root.domElement.children[0].appendChild(checkpointButtons);
+
+  addButton(checkpointButtons, "Set", saveSimState);
+  addButton(checkpointButtons, "Export", exportSimState);
+  addButton(checkpointButtons, "Import", function () {
+    $("#checkpointInput").click();
+  });
 
   // Miscellaneous folder.
   root = rightGUI.addFolder("Misc.");
@@ -1685,11 +1670,161 @@ function initGUI(startOpen) {
   root.add(options, "fixRandSeed").name("Fix random seed");
 
   // Copy configuration as raw JSON.
-  root.add(funsObj, "copyConfigAsJSON").name("Copy code");
+  const codeButton = document.createElement("li");
+  codeButton.classList.add("button_list");
+  root.domElement.children[0].appendChild(codeButton);
+  addButton(
+    codeButton,
+    '<i class="fa-regular fa-copy"></i> Copy code',
+    copyConfigAsJSON
+  );
 
   root = root.addFolder("Debug");
   // Debug.
-  root.add(funsObj, "debug").name("Copy debug info");
+  // Copy configuration as raw JSON.
+  const debugButton = document.createElement("li");
+  debugButton.classList.add("button_list");
+  root.domElement.children[0].appendChild(debugButton);
+  addButton(debugButton, "Copy debug information", copyDebug);
+
+  // Populate the viewsGUI.
+  // Create a custom element for containing the view options.
+  const viewsList = document.createElement("div");
+  viewsList.id = "views_list";
+  // viewsList.classList.add("button_list");
+  viewsGUI.domElement.prepend(viewsList);
+  const viewsLabel = document.createElement("div");
+  viewsLabel.innerHTML =
+    "Views<a id='add_view' title='New view'><i class='fa-solid fa-plus'></i></a>";
+  viewsLabel.id = "views_label";
+  viewsGUI.domElement.prepend(viewsLabel);
+
+  root = viewsGUI.addFolder("Edit view");
+
+  const editViewButtons = document.createElement("li");
+  editViewButtons.id = "edit_view_buttons";
+  editViewButtons.classList.add("button_list");
+  root.domElement.children[0].appendChild(editViewButtons);
+
+  addButton(
+    editViewButtons,
+    '<i class="fa-solid fa-pen-nib"></i> Rename',
+    editCurrentViewName,
+    null,
+    "Rename view"
+  ); // Rename
+  addButton(
+    editViewButtons,
+    '<i class="fa-solid fa-xmark"></i> Delete',
+    deleteView,
+    "deleteViewButton",
+    "Delete view"
+  ); // Delete
+
+  whatToPlotController = root
+    .add(options, "whatToPlot")
+    .name("Expression: ")
+    .onFinishChange(function () {
+      updateView(this.property);
+      updateWhatToPlot();
+      render();
+    });
+
+  root
+    .add(options, "plotType", {
+      Line: "line",
+      Plane: "plane",
+      Surface: "surface",
+    })
+    .name("Plot type")
+    .onChange(function () {
+      updateView(this.property);
+      configurePlotType();
+      document.activeElement.blur();
+      render();
+    });
+
+  root
+    .add(options, "colourmap", {
+      BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
+      "Blue-Magenta": "blue-magenta",
+      Diverging: "diverging",
+      Greyscale: "greyscale",
+      Turbo: "turbo",
+      Viridis: "viridis",
+    })
+    .onChange(function () {
+      updateView(this.property);
+      setDisplayColourAndType();
+      configureColourbar();
+    })
+    .name("Colour map");
+
+  minColourValueController = root
+    .add(options, "minColourValue")
+    .name("Min value")
+    .onChange(function () {
+      updateView(this.property);
+      updateUniforms();
+      updateColourbarLims();
+      render();
+    });
+  minColourValueController.__precision = 2;
+
+  maxColourValueController = root
+    .add(options, "maxColourValue")
+    .name("Max value")
+    .onChange(function () {
+      updateView(this.property);
+      updateUniforms();
+      updateColourbarLims();
+      render();
+    });
+  maxColourValueController.__precision = 2;
+
+  autoSetColourRangeController = root
+    .add(options, "autoSetColourRange")
+    .name("Auto snap")
+    .onChange(function () {
+      updateView(this.property);
+      if (options.autoSetColourRange) {
+        setColourRange();
+        render();
+      }
+    });
+
+  const colourmapButtons = document.createElement("li");
+  colourmapButtons.id = "colour_map_buttons";
+  colourmapButtons.classList.add("button_list");
+  root.domElement.children[0].appendChild(colourmapButtons);
+
+  addButton(
+    colourmapButtons,
+    '<i class="fa-solid fa-arrow-right-arrow-left"></i> Reverse',
+    function () {
+      updateView("flippedColourmap");
+      options.flippedColourmap = !options.flippedColourmap;
+      setDisplayColourAndType();
+      configureColourbar();
+    },
+    null,
+    "Reverse colour map"
+  );
+
+  addButton(
+    colourmapButtons,
+    '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap',
+    function () {
+      updateView("minColourValue");
+      updateView("maxColourValue");
+      setColourRange();
+      render();
+    },
+    null,
+    "Snap min/max to visible"
+  );
+
+  // root.add(funsObj, "restoreCurrentView").name("Restore");
 }
 
 function animate() {
@@ -1697,7 +1832,7 @@ function animate() {
 
   hasDrawn = isDrawing;
   // Draw on any input from the user, which can happen even if timestepping is not running.
-  if (isDrawing && options.drawIn3D | (options.plotType != "surface")) {
+  if (isDrawing && options.brushEnabled) {
     draw();
   }
 
@@ -1898,7 +2033,7 @@ function render() {
   }
 
   // Update the position of the click domain for easy clicking.
-  if (options.drawIn3D && options.plotType == "surface") {
+  if (options.brushEnabled && options.plotType == "surface") {
     let val =
       (getMeanVal() - options.minColourValue) /
         (options.maxColourValue - options.minColourValue) -
@@ -1983,8 +2118,19 @@ function render() {
 
 function onDocumentPointerDown(event) {
   isDrawing = setBrushCoords(event, canvas);
-  if (isDrawing && options.drawIn3D && options.plotType == "surface") {
-    controls.enabled = false;
+  if (isDrawing) {
+    if (options.brushEnabled && options.plotType == "surface") {
+      controls.enabled = false;
+    } else if (!options.brushEnabled) {
+      // Display a message saying that the brush is disabled.
+      $("#top_message").html("<p>Brush disabled</p>");
+      fadein("#top_message");
+      // Fadeout after 3s passes.
+      window.clearTimeout(topMessageTimer);
+      topMessageTimer = setTimeout(function () {
+        if (!$("#top_message").hasClass("fading_out")) fadeout("#top_message");
+      }, 3000);
+    }
   }
 }
 
@@ -2003,7 +2149,7 @@ function setBrushCoords(event, container) {
   var cRect = container.getBoundingClientRect();
   let x = (event.clientX - cRect.x) / cRect.width;
   let y = 1 - (event.clientY - cRect.y) / cRect.height;
-  if (options.drawIn3D && options.plotType == "surface") {
+  if (options.plotType == "surface") {
     // If we're in 3D, we have to project onto the simulation domain.
     // We need x,y between -1 and 1.
     clampedCoords.x = 2 * x - 1;
@@ -2326,60 +2472,56 @@ function setRDEquations() {
   let dirichletShader = "";
   let robinShader = "";
   let updateShader = "";
+  let m;
+
+  const BCStrs = [
+    options.boundaryConditionsU,
+    options.boundaryConditionsV,
+    options.boundaryConditionsW,
+    options.boundaryConditionsQ,
+  ];
+  const NStrs = [
+    options.neumannStrU,
+    options.neumannStrV,
+    options.neumannStrW,
+    options.neumannStrQ,
+  ];
+  const MStrs = [
+    options.comboStrU,
+    options.comboStrV,
+    options.comboStrW,
+    options.comboStrQ,
+  ].map((s) => s + ";");
+  const DStrs = [
+    options.dirichletStrU,
+    options.dirichletStrV,
+    options.dirichletStrW,
+    options.dirichletStrQ,
+  ];
+  const RStrs = [
+    options.robinStrU,
+    options.robinStrV,
+    options.robinStrW,
+    options.robinStrQ,
+  ];
 
   // Create a Neumann shader block for each species separately, which is just a special case of Robin.
-  if (options.boundaryConditionsU == "neumann") {
-    neumannShader += parseRobinRHS(options.neumannStrU, listOfSpecies[0]);
-    neumannShader += selectSpeciesInShaderStr(
-      RDShaderRobinX(),
-      listOfSpecies[0]
-    );
-    if (options.dimension > 1) {
-      neumannShader += selectSpeciesInShaderStr(
-        RDShaderRobinY(),
-        listOfSpecies[0]
-      );
+  BCStrs.forEach(function (str, ind) {
+    if (str == "neumann") {
+      neumannShader += parseRobinRHS(NStrs[ind], listOfSpecies[ind]);
+      neumannShader += neumannUpdateShader(ind);
+    } else if (str == "combo") {
+      [
+        ...MStrs[ind].matchAll(
+          /(Left|Right|Top|Bottom)\s*:\s*Neumann\s*=([^;]*);/g
+        ),
+      ].forEach(function (m) {
+        const side = m[1][0].toUpperCase();
+        neumannShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
+        neumannShader += neumannUpdateShader(ind, side);
+      });
     }
-  }
-  if (options.boundaryConditionsV == "neumann") {
-    neumannShader += parseRobinRHS(options.neumannStrV, listOfSpecies[1]);
-    neumannShader += selectSpeciesInShaderStr(
-      RDShaderRobinX(),
-      listOfSpecies[1]
-    );
-    if (options.dimension > 1) {
-      neumannShader += selectSpeciesInShaderStr(
-        RDShaderRobinY(),
-        listOfSpecies[1]
-      );
-    }
-  }
-  if (options.boundaryConditionsW == "neumann") {
-    neumannShader += parseRobinRHS(options.neumannStrW, listOfSpecies[2]);
-    neumannShader += selectSpeciesInShaderStr(
-      RDShaderRobinX(),
-      listOfSpecies[2]
-    );
-    if (options.dimension > 1) {
-      neumannShader += selectSpeciesInShaderStr(
-        RDShaderRobinY(),
-        listOfSpecies[2]
-      );
-    }
-  }
-  if (options.boundaryConditionsQ == "neumann") {
-    neumannShader += parseRobinRHS(options.neumannStrQ, listOfSpecies[3]);
-    neumannShader += selectSpeciesInShaderStr(
-      RDShaderRobinX(),
-      listOfSpecies[3]
-    );
-    if (options.dimension > 1) {
-      neumannShader += selectSpeciesInShaderStr(
-        RDShaderRobinY(),
-        listOfSpecies[3]
-      );
-    }
-  }
+  });
 
   // Create Dirichlet shaders.
   if (options.domainViaIndicatorFun) {
@@ -2388,114 +2530,48 @@ function setRDEquations() {
       /indicatorFun/g,
       parseShaderString(options.domainIndicatorFun)
     );
-    dirichletShader +=
-      selectSpeciesInShaderStr(str, listOfSpecies[0]) +
-      parseShaderString(options.dirichletStrU) +
-      ";\n}\n";
-    dirichletShader +=
-      selectSpeciesInShaderStr(str, listOfSpecies[1]) +
-      parseShaderString(options.dirichletStrV) +
-      ";\n}\n";
-    dirichletShader +=
-      selectSpeciesInShaderStr(str, listOfSpecies[2]) +
-      parseShaderString(options.dirichletStrW) +
-      ";\n}\n";
-    dirichletShader +=
-      selectSpeciesInShaderStr(str, listOfSpecies[3]) +
-      parseShaderString(options.dirichletStrQ) +
-      ";\n}\n";
+    DStrs.forEach(function (D, ind) {
+      dirichletShader +=
+        selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
+        parseShaderString(D) +
+        ";\n}\n";
+    });
   } else {
-    if (options.boundaryConditionsU == "dirichlet") {
-      dirichletShader +=
-        selectSpeciesInShaderStr(RDShaderDirichletX(), listOfSpecies[0]) +
-        parseShaderString(options.dirichletStrU) +
-        ";\n}\n";
-      if (options.dimension > 1) {
-        dirichletShader +=
-          selectSpeciesInShaderStr(RDShaderDirichletY(), listOfSpecies[0]) +
-          parseShaderString(options.dirichletStrU) +
-          ";\n}\n";
+    BCStrs.forEach(function (str, ind) {
+      if (str == "dirichlet") {
+        dirichletShader += parseDirichletRHS(DStrs[ind], listOfSpecies[ind]);
+        dirichletShader += dirichletUpdateShader(ind);
+      } else if (str == "combo") {
+        [
+          ...MStrs[ind].matchAll(
+            /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g
+          ),
+        ].forEach(function (m) {
+          const side = m[1][0].toUpperCase();
+          dirichletShader += parseDirichletRHS(m[2], listOfSpecies[ind], side);
+          dirichletShader += dirichletUpdateShader(ind, side);
+        });
       }
-    }
-    if (options.boundaryConditionsV == "dirichlet") {
-      dirichletShader +=
-        selectSpeciesInShaderStr(RDShaderDirichletX(), listOfSpecies[1]) +
-        parseShaderString(options.dirichletStrV) +
-        ";\n}\n";
-      if (options.dimension > 1) {
-        dirichletShader +=
-          selectSpeciesInShaderStr(RDShaderDirichletY(), listOfSpecies[1]) +
-          parseShaderString(options.dirichletStrV) +
-          ";\n}\n";
-      }
-    }
-    if (options.boundaryConditionsW == "dirichlet") {
-      dirichletShader +=
-        selectSpeciesInShaderStr(RDShaderDirichletX(), listOfSpecies[2]) +
-        parseShaderString(options.dirichletStrW) +
-        ";\n}\n";
-      if (options.dimension > 1) {
-        dirichletShader +=
-          selectSpeciesInShaderStr(RDShaderDirichletY(), listOfSpecies[2]) +
-          parseShaderString(options.dirichletStrW) +
-          ";\n}\n";
-      }
-    }
-    if (options.boundaryConditionsQ == "dirichlet") {
-      dirichletShader +=
-        selectSpeciesInShaderStr(RDShaderDirichletX(), listOfSpecies[3]) +
-        parseShaderString(options.dirichletStrQ) +
-        ";\n}\n";
-      if (options.dimension > 1) {
-        dirichletShader +=
-          selectSpeciesInShaderStr(RDShaderDirichletY(), listOfSpecies[3]) +
-          parseShaderString(options.dirichletStrQ) +
-          ";\n}\n";
-      }
-    }
+    });
   }
 
   // Create a Robin shader block for each species separately.
-  if (options.boundaryConditionsU == "robin") {
-    robinShader += parseRobinRHS(options.robinStrU, listOfSpecies[0]);
-    robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[0]);
-    if (options.dimension > 1) {
-      robinShader += selectSpeciesInShaderStr(
-        RDShaderRobinY(),
-        listOfSpecies[0]
-      );
+  BCStrs.forEach(function (str, ind) {
+    if (str == "robin") {
+      robinShader += parseRobinRHS(RStrs[ind], listOfSpecies[ind]);
+      robinShader += robinUpdateShader(ind);
+    } else if (str == "combo") {
+      [
+        ...MStrs[ind].matchAll(
+          /(Left|Right|Top|Bottom)\s*:\s*Robin\s*=([^;]*);/g
+        ),
+      ].forEach(function (m) {
+        const side = m[1][0].toUpperCase();
+        robinShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
+        robinShader += robinUpdateShader(ind, side);
+      });
     }
-  }
-  if (options.boundaryConditionsV == "robin") {
-    robinShader += parseRobinRHS(options.robinStrV, listOfSpecies[1]);
-    robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[1]);
-    if (options.dimension > 1) {
-      robinShader += selectSpeciesInShaderStr(
-        RDShaderRobinY(),
-        listOfSpecies[1]
-      );
-    }
-  }
-  if (options.boundaryConditionsW == "robin") {
-    robinShader += parseRobinRHS(options.robinStrW, listOfSpecies[2]);
-    robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[2]);
-    if (options.dimension > 1) {
-      robinShader += selectSpeciesInShaderStr(
-        RDShaderRobinY(),
-        listOfSpecies[2]
-      );
-    }
-  }
-  if (options.boundaryConditionsQ == "robin") {
-    robinShader += parseRobinRHS(options.robinStrQ, listOfSpecies[3]);
-    robinShader += selectSpeciesInShaderStr(RDShaderRobinX(), listOfSpecies[3]);
-    if (options.dimension > 1) {
-      robinShader += selectSpeciesInShaderStr(
-        RDShaderRobinY(),
-        listOfSpecies[3]
-      );
-    }
-  }
+  });
 
   // Insert any user-defined kinetic parameters, given as a string that needs parsing.
   // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
@@ -2512,7 +2588,7 @@ function setRDEquations() {
   }
 
   // If v should be algebraic, append this to the normal update shader.
-  if (options.algebraicV && options.crossDiffusion) {
+  if (algebraicV && options.crossDiffusion) {
     updateShader += selectSpeciesInShaderStr(
       RDShaderAlgebraicV(),
       listOfSpecies[1]
@@ -2520,7 +2596,7 @@ function setRDEquations() {
   }
 
   // If w should be algebraic, append this to the normal update shader.
-  if (options.algebraicW && options.crossDiffusion) {
+  if (algebraicW && options.crossDiffusion) {
     updateShader += selectSpeciesInShaderStr(
       RDShaderAlgebraicW(),
       listOfSpecies[2]
@@ -2528,7 +2604,7 @@ function setRDEquations() {
   }
 
   // If q should be algebraic, append this to the normal update shader.
-  if (options.algebraicQ && options.crossDiffusion) {
+  if (algebraicQ && options.crossDiffusion) {
     updateShader += selectSpeciesInShaderStr(
       RDShaderAlgebraicQ(),
       listOfSpecies[3]
@@ -2568,95 +2644,33 @@ function setRDEquations() {
       let str = RDShaderDirichletIndicatorFun()
         .replace(/indicatorFun/g, parseShaderString(options.domainIndicatorFun))
         .replace(/updated/g, "gl_FragColor");
-      dirichletShader +=
-        selectSpeciesInShaderStr(str, listOfSpecies[0]) +
-        parseShaderString(options.dirichletStrU) +
-        ";\n}\n";
-      dirichletShader +=
-        selectSpeciesInShaderStr(str, listOfSpecies[1]) +
-        parseShaderString(options.dirichletStrV) +
-        ";\n}\n";
-      dirichletShader +=
-        selectSpeciesInShaderStr(str, listOfSpecies[2]) +
-        parseShaderString(options.dirichletStrW) +
-        ";\n}\n";
-      dirichletShader +=
-        selectSpeciesInShaderStr(str, listOfSpecies[3]) +
-        parseShaderString(options.dirichletStrQ) +
-        ";\n}\n";
+      DStrs.forEach(function (D, ind) {
+        dirichletShader +=
+          selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
+          parseShaderString(D) +
+          ";\n}\n";
+      });
     } else {
-      if (options.boundaryConditionsU == "dirichlet") {
-        dirichletShader +=
-          selectSpeciesInShaderStr(
-            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
-            listOfSpecies[0]
-          ) +
-          parseShaderString(options.dirichletStrU) +
-          ";\n}\n";
-        if (options.dimension > 1) {
-          dirichletShader +=
-            selectSpeciesInShaderStr(
-              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
-              listOfSpecies[0]
-            ) +
-            parseShaderString(options.dirichletStrU) +
-            ";\n}\n";
+      BCStrs.forEach(function (str, ind) {
+        if (str == "dirichlet") {
+          dirichletShader += parseDirichletRHS(DStrs[ind], listOfSpecies[ind]);
+          dirichletShader += dirichletEnforceShader(ind);
+        } else if (str == "combo") {
+          [
+            ...MStrs[ind].matchAll(
+              /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g
+            ),
+          ].forEach(function (m) {
+            const side = m[1][0].toUpperCase();
+            dirichletShader += parseDirichletRHS(
+              m[2],
+              listOfSpecies[ind],
+              side
+            );
+            dirichletShader += dirichletEnforceShader(ind, side);
+          });
         }
-      }
-      if (options.boundaryConditionsV == "dirichlet") {
-        dirichletShader +=
-          selectSpeciesInShaderStr(
-            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
-            listOfSpecies[1]
-          ) +
-          parseShaderString(options.dirichletStrV) +
-          ";\n}\n";
-        if (options.dimension > 1) {
-          dirichletShader +=
-            selectSpeciesInShaderStr(
-              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
-              listOfSpecies[1]
-            ) +
-            parseShaderString(options.dirichletStrV) +
-            ";\n}\n";
-        }
-      }
-      if (options.boundaryConditionsW == "dirichlet") {
-        dirichletShader +=
-          selectSpeciesInShaderStr(
-            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
-            listOfSpecies[2]
-          ) +
-          parseShaderString(options.dirichletStrW) +
-          ";\n}\n";
-        if (options.dimension > 1) {
-          dirichletShader +=
-            selectSpeciesInShaderStr(
-              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
-              listOfSpecies[2]
-            ) +
-            parseShaderString(options.dirichletStrW) +
-            ";\n}\n";
-        }
-      }
-      if (options.boundaryConditionsQ == "dirichlet") {
-        dirichletShader +=
-          selectSpeciesInShaderStr(
-            RDShaderDirichletX().replaceAll(/updated/g, "gl_FragColor"),
-            listOfSpecies[3]
-          ) +
-          parseShaderString(options.dirichletStrQ) +
-          ";\n}\n";
-        if (options.dimension > 1) {
-          dirichletShader +=
-            selectSpeciesInShaderStr(
-              RDShaderDirichletY().replaceAll(/updated/g, "gl_FragColor"),
-              listOfSpecies[3]
-            ) +
-            parseShaderString(options.dirichletStrQ) +
-            ";\n}\n";
-        }
-      }
+      });
     }
     dirichletShader += "}";
     dirichletMaterial.fragmentShader = dirichletShader;
@@ -2670,11 +2684,45 @@ function checkForAnyDirichletBCs() {
     options.boundaryConditionsU == "dirichlet" ||
     options.boundaryConditionsV == "dirichlet" ||
     options.boundaryConditionsW == "dirichlet" ||
-    options.boundaryConditionsQ == "dirichlet";
+    options.boundaryConditionsQ == "dirichlet" ||
+    /Dirichlet/.test(options.comboStrU) ||
+    /Dirichlet/.test(options.comboStrV) ||
+    /Dirichlet/.test(options.comboStrW) ||
+    /Dirichlet/.test(options.comboStrQ);
 }
 
-function parseRobinRHS(string, species) {
-  return "float robinRHS" + species + " = " + parseShaderString(string) + ";\n";
+function parseRobinRHS(string, species, side) {
+  if (side == undefined) {
+    // Make a copy for each side.
+    return ["L", "R", "T", "B"]
+      .map((side) => parseRobinRHS(string, species, side))
+      .join("");
+  }
+  return (
+    "float robinRHS" +
+    species +
+    side +
+    " = " +
+    parseShaderString(string) +
+    ";\n"
+  );
+}
+
+function parseDirichletRHS(string, species, side) {
+  if (side == undefined) {
+    // Make a copy for each side.
+    return ["L", "R", "T", "B"]
+      .map((side) => parseDirichletRHS(string, species, side))
+      .join("");
+  }
+  return (
+    "float dirichletRHS" +
+    species +
+    side +
+    " = " +
+    parseShaderString(string) +
+    ";\n"
+  );
 }
 
 function loadPreset(preset) {
@@ -2700,9 +2748,23 @@ function loadPreset(preset) {
     delete options.oneDimensional;
   }
 
+  // Update the domain scale based on URL params.
+  options.domainScale *= domainScaleFactor;
+
+  // Configure views.
+  configureViews();
+
   // Replace the GUI.
   deleteGUIs();
   initGUI();
+
+  // Apply any specified view.
+  if (options.activeViewInd < options.views.length) {
+    applyView(options.views[options.activeViewInd], false, false);
+  } else {
+    // No valid view has been specified, so apply an empty view that can be customised.
+    applyView({}, true, false);
+  }
 
   // Update the equations, setup and GUI in line with new options.
   updateProblem();
@@ -2758,6 +2820,11 @@ function loadOptions(preset) {
     newOptions = getPreset("default");
   }
 
+  // If newOptions specifies a parent, first load the options of the parent.
+  if (newOptions.hasOwnProperty("parent") && newOptions.parent != null) {
+    loadOptions(newOptions.parent);
+  }
+
   // Reset the kinetic parameters.
   kineticParamsCounter = 0;
   kineticParamsLabels = [];
@@ -2772,8 +2839,22 @@ function loadOptions(preset) {
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
 
+  // Ensure that the correct play/pause button is showing.
+  isRunning ? playSim() : pauseSim();
+
+  // If we're on mobile, replace 'clicking' with 'tapping' in tryClickingText if it exists.
+  if (onMobile()) {
+    options.tryClickingText = options.tryClickingText.replaceAll(
+      "clicking",
+      "tapping"
+    );
+  }
+
   // Enable backwards compatibility.
   options.brushRadius = options.brushRadius.toString();
+  if (options.hasOwnProperty("drawIn3D")) {
+    options.brushEnabled = options.drawIn3D;
+  }
   // Replace T and S with I_T and I_S if T, S are not in the listOfSpecies.
   if (!listOfSpecies.includes("T")) {
     Object.keys(options).forEach(function (key) {
@@ -2798,6 +2879,22 @@ function loadOptions(preset) {
         );
       }
     });
+    // Map algebraicV, algebraicW, and algebraicQ onto numAlgebraicSpecies.
+    var count = 0;
+    count += options.hasOwnProperty("algebraicV");
+    count += options.hasOwnProperty("algebraicW");
+    count += options.hasOwnProperty("algebraicQ");
+    if (count && !options.numAlgebraicSpecies) {
+      // If algebraicV,W,Q contain more information than count, then update it.
+      options.numAlgebraicSpecies = count;
+    }
+    // Remove obsolete fields from options.
+    delete options.algebraicV;
+    delete options.algebraicW;
+    delete options.algebraicQ;
+
+    // Save these loaded options if we ever need to revert.
+    savedOptions = options;
   }
 
   // If either of the images are used in the simulation, ensure that the simulation resets when the images are
@@ -2836,6 +2933,10 @@ function loadOptions(preset) {
     options.robinStrV,
     options.robinStrW,
     options.robinStrQ,
+    options.comboStrU,
+    options.comboStrV,
+    options.comboStrW,
+    options.comboStrQ,
     options.neumannStrU,
     options.neumannStrV,
     options.neumannStrW,
@@ -2866,14 +2967,16 @@ function refreshGUI(folder, typeset) {
   if (typeset && MathJax.typesetPromise != undefined) {
     MathJax.typesetPromise();
   }
+  // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
 }
 
 function deleteGUIs() {
-  deleteGUI(leftGUI);
-  deleteGUI(rightGUI);
+  deleteGUI(leftGUI, true);
+  deleteGUI(rightGUI, true);
+  deleteGUI(viewsGUI, true);
 }
 
-function deleteGUI(folder) {
+function deleteGUI(folder, topLevel) {
   if (folder != undefined) {
     // Traverse through all the subfolders and recurse.
     for (let subfolderName in folder.__folders) {
@@ -2885,11 +2988,9 @@ function deleteGUI(folder) {
       folder.__controllers[i].remove();
     }
     // If this is the top-level GUI, destroy it.
-    if (folder == rightGUI) {
-      rightGUI.destroy();
-    } else if (folder == leftGUI) {
-      leftGUI.domElement.remove();
-      leftGUI.destroy();
+    if (topLevel != undefined && topLevel) {
+      folder.domElement.remove();
+      folder.destroy();
     }
   }
 }
@@ -2923,8 +3024,10 @@ function selectSpeciesInShaderStr(shaderStr, species) {
   let regex = /\bSPECIES\b/g;
   let channel = speciesToChannelChar(species);
   shaderStr = shaderStr.replace(regex, channel);
-  regex = /\brobinRHSSPECIES\b/g;
+  regex = /\brobinRHSSPECIES/g;
   shaderStr = shaderStr.replace(regex, "robinRHS" + species);
+  regex = /\bdirichletRHSSPECIES/g;
+  shaderStr = shaderStr.replace(regex, "dirichletRHS" + species);
   return shaderStr;
 }
 
@@ -3000,6 +3103,27 @@ function setBCsGUI() {
     showGUIController(robinQController);
   } else {
     hideGUIController(robinQController);
+  }
+
+  if (options.boundaryConditionsU == "combo") {
+    showGUIController(comboUController);
+  } else {
+    hideGUIController(comboUController);
+  }
+  if (options.boundaryConditionsV == "combo") {
+    showGUIController(comboVController);
+  } else {
+    hideGUIController(comboVController);
+  }
+  if (options.boundaryConditionsW == "combo") {
+    showGUIController(comboWController);
+  } else {
+    hideGUIController(comboWController);
+  }
+  if (options.boundaryConditionsQ == "combo") {
+    showGUIController(comboQController);
+  } else {
+    hideGUIController(comboQController);
   }
 
   if (options.domainViaIndicatorFun) {
@@ -3248,8 +3372,21 @@ function setPostFunMaxFragShader() {
   updateUniforms();
 }
 
+function setAlgebraicVarsFromOptions() {
+  // Set the variables algebraicV etc and constrain numAlgebraicSpecies.
+  // Limit the number of algebraic species to at most one less than the number of species.
+  options.numAlgebraicSpecies = Math.min(
+    parseInt(options.numAlgebraicSpecies),
+    parseInt(options.numSpecies) - 1
+  );
+  algebraicV = options.numAlgebraicSpecies >= options.numSpecies - 1;
+  algebraicW = options.numAlgebraicSpecies >= options.numSpecies - 2;
+  algebraicQ = options.numAlgebraicSpecies >= options.numSpecies - 3;
+}
+
 function problemTypeFromOptions() {
   // Use the currently selected options to specify an equation type as an index into listOfTypes.
+  setAlgebraicVarsFromOptions();
   switch (parseInt(options.numSpecies)) {
     case 1:
       // 1Species
@@ -3257,7 +3394,7 @@ function problemTypeFromOptions() {
       break;
     case 2:
       if (options.crossDiffusion) {
-        if (options.algebraicV) {
+        if (options.numAlgebraicSpecies == 1) {
           // 2SpeciesCrossDiffusionAlgebraicV
           equationType = 3;
         } else {
@@ -3271,12 +3408,19 @@ function problemTypeFromOptions() {
       break;
     case 3:
       if (options.crossDiffusion) {
-        if (options.algebraicW) {
-          // 3SpeciesCrossDiffusionAlgebraicW
-          equationType = 6;
-        } else {
-          // 3SpeciesCrossDiffusion
-          equationType = 5;
+        switch (options.numAlgebraicSpecies) {
+          case 0:
+            // 3SpeciesCrossDiffusion
+            equationType = 5;
+            break;
+          case 1:
+            // 3SpeciesCrossDiffusionAlgebraicW
+            equationType = 6;
+            break;
+          case 2:
+            // 3SpeciesCrossDiffusionVW
+            equationType = 7;
+            break;
         }
       } else {
         // 3Species
@@ -3285,34 +3429,34 @@ function problemTypeFromOptions() {
       break;
     case 4:
       if (options.crossDiffusion) {
-        if (options.algebraicW) {
-          if (options.algebraicQ) {
-            // 4SpeciesCrossDiffusionAlgebraicWQ
-            equationType = 11;
-          } else {
-            // 4SpeciesCrossDiffusionAlgebraicW
+        switch (options.numAlgebraicSpecies) {
+          case 0:
+            // 4SpeciesCrossDiffusion
             equationType = 9;
-          }
-        } else {
-          if (options.algebraicQ) {
+            break;
+          case 1:
             // 4SpeciesCrossDiffusionAlgebraicQ
             equationType = 10;
-          } else {
-            // 4SpeciesCrossDiffusion
-            equationType = 8;
-          }
+            break;
+          case 2:
+            // 4SpeciesCrossDiffusionAlgebraicWQ
+            equationType = 11;
+            break;
+          case 3:
+            // 4SpeciesCrossDiffusionAlgebraicVWQ
+            equationType = 12;
+            break;
         }
       } else {
         // 4Species
-        equationType = 7;
+        equationType = 8;
       }
       break;
   }
 }
 
 function configureGUI() {
-  // Set up the GUI based on the the current options: numSpecies, crossDiffusion, and algebraicV.
-  // We need a separate block for each of the six cases.
+  // Set up the GUI based on the the current options: numSpecies, crossDiffusion, and numAlgebraicSpecies.
   let tooltip =
     "function of " +
     listOfSpecies.slice(0, options.numSpecies).join(", ") +
@@ -3322,360 +3466,92 @@ function configureGUI() {
   let Wtooltip = tooltip.replace(" " + listOfSpecies[3] + ",", "");
 
   if (options.dimension == 1) tooltip = tooltip.replace(" y,", "");
-  switch (equationType) {
-    case 0:
-      // 1Species
-      // Hide everything to do with v, w, and q.
-      hideVGUIPanels();
-      hideWGUIPanels();
-      hideQGUIPanels();
-
-      // Hide the cross diffusion, algebraicV, algebraicW, and algebraicQ controllers.
-      hideGUIController(crossDiffusionController);
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["D"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-
-      break;
-
-    case 1:
-      // 2Species
-      // Show v panels.
-      showVGUIPanels();
-      // Hide w and q panels.
-      hideWGUIPanels();
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV and algebraicW controllers.
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-
-      break;
-
-    case 2:
-      // 2SpeciesCrossDiffusion
-      // Show v panels.
-      showVGUIPanels();
-      // Hide w and q panels.
-      hideWGUIPanels();
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV, algebraicW, and algebraicQ controllers.
-      showGUIController(algebraicVController);
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      break;
-
-    case 3:
-      // 2SpeciesCrossDiffusionAlgebraicV
-      // Show v panels.
-      showVGUIPanels();
-      hideGUIController(DvvController);
-      // Hide w and q panels.
-      hideWGUIPanels();
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Show the algebraicV controller.
-      showGUIController(algebraicVController);
-      // Hide the algebraicW and algebraicQ controllers.
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      // Controllers for algebraic species have a different tooltip.
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], Vtooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], Vtooltip);
-      break;
-
-    case 4:
-      // 3Species
-      // Show v panels.
-      showVGUIPanels();
-      // Show w panels.
-      showWGUIPanels();
-      // Hide q panels.
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV, algebraicW, and algebraicQ controllers.
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
-      setGUIControllerName(DwwController, TeXStrings["Dw"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
-      break;
-
-    case 5:
-      // 3SpeciesCrossDiffusion
-      // Show v panels.
-      showVGUIPanels();
-      // Show w panels.
-      showWGUIPanels();
-      // Hide q panels.
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV and algebraic Q controller.
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicQController);
-      // Show the algebraicW controller.
-      showGUIController(algebraicWController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
-      setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
-      break;
-
-    case 6:
-      // 3SpeciesCrossDiffusionAlgebraicW
-      // Show v panels.
-      showVGUIPanels();
-      // Show w panels.
-      showWGUIPanels();
-      hideGUIController(DwwController);
-      // Hide q panels.
-      hideQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV and algebraicQ controller.
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicQController);
-      // Show the algebraicW controller.
-      showGUIController(algebraicWController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      // Controllers for algebraic species have a different tooltip.
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
-      break;
-    case 7:
-      // 4Species
-      // Show v,w,q panels.
-      showVGUIPanels();
-      showWGUIPanels();
-      showQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV, algebraicQ, and algebraicW controllers.
-      hideGUIController(algebraicVController);
-      hideGUIController(algebraicWController);
-      hideGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
-      setGUIControllerName(DwwController, TeXStrings["Dw"], tooltip);
-      setGUIControllerName(DqqController, TeXStrings["Dq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
-      setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
-      break;
-    case 8:
-      // 4SpeciesCrossDiffusion.
-      // Show v,w,q panels.
-      showVGUIPanels();
-      showWGUIPanels();
-      showQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV controller.
-      hideGUIController(algebraicVController);
-      // Show the algebraicW and algebriacQ controllers.
-      showGUIController(algebraicWController);
-      showGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
-      setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
-      setGUIControllerName(DwqController, TeXStrings["Dwq"], tooltip);
-      setGUIControllerName(DquController, TeXStrings["Dqu"], tooltip);
-      setGUIControllerName(DqvController, TeXStrings["Dqv"], tooltip);
-      setGUIControllerName(DqwController, TeXStrings["Dqw"], tooltip);
-      setGUIControllerName(DqqController, TeXStrings["Dqq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
-      setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
-      break;
-    case 9:
-      // 4SpeciesCrossDiffusionAlgebraicW.
-      // Show v,w,q panels.
-      showVGUIPanels();
-      showWGUIPanels();
-      showQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV controller.
-      hideGUIController(algebraicVController);
-      // Show the algebraicW and algebriacQ controllers.
-      showGUIController(algebraicWController);
-      showGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
-      setGUIControllerName(DquController, TeXStrings["Dqu"], tooltip);
-      setGUIControllerName(DqvController, TeXStrings["Dqv"], tooltip);
-      setGUIControllerName(DqwController, TeXStrings["Dqw"], tooltip);
-      setGUIControllerName(DqqController, TeXStrings["Dqq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
-      // Controllers for algebraic species have a different tooltip.
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
-      setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
-      break;
-    case 10:
-      // 4SpeciesCrossDiffusionAlgebraicQ.
-      // Show v,w,q panels.
-      showVGUIPanels();
-      showWGUIPanels();
-      showQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV controller.
-      hideGUIController(algebraicVController);
-      // Show the algebraicW and algebriacQ controllers.
-      showGUIController(algebraicWController);
-      showGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
-      setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
-      setGUIControllerName(DwqController, TeXStrings["Dwq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
-      // Controllers for algebraic species have a different tooltip.
-      setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
-      setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
-      setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
-      setGUIControllerName(jController, TeXStrings["QFUN"], Qtooltip);
-      break;
-    case 11:
-      // 4SpeciesCrossDiffusionAlgebraicWQ.
-      // Show v,w,q panels.
-      showVGUIPanels();
-      showWGUIPanels();
-      showQGUIPanels();
-
-      // Show the cross diffusion controller.
-      showGUIController(crossDiffusionController);
-      // Hide the algebraicV controller.
-      hideGUIController(algebraicVController);
-      // Show the algebraicW and algebriacQ controllers.
-      showGUIController(algebraicWController);
-      showGUIController(algebraicQController);
-
-      // Configure the controller names.
-      setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-      setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-      setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-      setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
-      setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
-      setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-      setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-      // Controllers for algebraic species have a different tooltip.
-      setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
-      setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
-      setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
-      setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
-      setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
-      setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
-      setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
-      setGUIControllerName(jController, TeXStrings["QFUN"], Qtooltip);
-      break;
+  if (options.crossDiffusion && parseInt(options.numSpecies) > 1) {
+    if (!updatingAlgebraicSpecies) {
+      updateGUIDropdown(
+        algebraicSpeciesController,
+        Array.from(Array(parseInt(options.numSpecies)).keys())
+      );
+    }
+    showGUIController(algebraicSpeciesController);
+  } else {
+    hideGUIController(algebraicSpeciesController);
   }
+
+  if (options.numSpecies > 1) {
+    showGUIController(crossDiffusionController);
+  } else {
+    hideGUIController(crossDiffusionController);
+  }
+
+  // Hide/Show VWQGUI panels.
+  hideVGUIPanels();
+  hideWGUIPanels();
+  hideQGUIPanels();
+  switch (parseInt(options.numSpecies)) {
+    case 4:
+      showQGUIPanels();
+    case 3:
+      showWGUIPanels();
+    case 2:
+      showVGUIPanels();
+  }
+
+  // Configure the controller names.
+  // We'll set the generic names then alter any algebraic ones.
+  if (options.numSpecies == 1) {
+    setGUIControllerName(DuuController, TeXStrings["D"], tooltip);
+  } else if (options.crossDiffusion) {
+    setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
+    setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
+    setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
+    setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
+    setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
+    setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
+    setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
+    setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
+    setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
+    setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
+    setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
+    setGUIControllerName(DwqController, TeXStrings["Dwq"], tooltip);
+    setGUIControllerName(DquController, TeXStrings["Dqu"], tooltip);
+    setGUIControllerName(DqvController, TeXStrings["Dqv"], tooltip);
+    setGUIControllerName(DqwController, TeXStrings["Dqw"], tooltip);
+    setGUIControllerName(DqqController, TeXStrings["Dqq"], tooltip);
+  } else {
+    setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
+    setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
+    setGUIControllerName(DwwController, TeXStrings["Dw"], tooltip);
+    setGUIControllerName(DqqController, TeXStrings["Dq"], tooltip);
+  }
+  setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
+  setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
+  setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
+  setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
+
+  // Configure the names of algebraic controllers.
+  if (algebraicV) {
+    setGUIControllerName(DvuController, TeXStrings["Dvu"], Vtooltip);
+    setGUIControllerName(DvwController, TeXStrings["Dvw"], Vtooltip);
+    setGUIControllerName(DvqController, TeXStrings["Dvq"], Vtooltip);
+    setGUIControllerName(gController, TeXStrings["VFUN"], Vtooltip);
+    hideGUIController(DvvController);
+  }
+  if (algebraicW) {
+    setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
+    setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
+    setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
+    setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
+    hideGUIController(DwwController);
+  }
+  if (algebraicQ) {
+    setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
+    setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
+    setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
+    setGUIControllerName(jController, TeXStrings["QFUN"], Qtooltip);
+    hideGUIController(DqqController);
+  }
+
   // Set the names of the BCs and ICs controllers.
   setGUIControllerName(uBCsController, TeXStrings["u"]);
   setGUIControllerName(vBCsController, TeXStrings["v"]);
@@ -3697,10 +3573,6 @@ function configureGUI() {
   setGUIControllerName(clearValueVController, TeXStrings["vInit"]);
   setGUIControllerName(clearValueWController, TeXStrings["wInit"]);
   setGUIControllerName(clearValueQController, TeXStrings["qInit"]);
-  // Set the names of the algebraic controllers.
-  setGUIControllerName(algebraicVController, "Algebraic " + TeXStrings["v"]);
-  setGUIControllerName(algebraicWController, "Algebraic " + TeXStrings["w"]);
-  setGUIControllerName(algebraicQController, "Algebraic " + TeXStrings["q"]);
 
   // Show/hide the indicator function controller.
   if (options.domainViaIndicatorFun) {
@@ -3717,33 +3589,31 @@ function configureGUI() {
     showGUIController(cameraThetaController);
     showGUIController(cameraPhiController);
     showGUIController(cameraZoomController);
-    showGUIController(drawIn3DController);
   } else if (options.plotType == "line") {
     showGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
     hideGUIController(cameraPhiController);
     hideGUIController(cameraZoomController);
-    hideGUIController(drawIn3DController);
   } else {
     hideGUIController(lineWidthMulController);
     hideGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
     hideGUIController(cameraPhiController);
     hideGUIController(cameraZoomController);
-    hideGUIController(drawIn3DController);
   }
   configureColourbar();
   configureTimeDisplay();
   configureIntegralDisplay();
   configureDataContainer();
   // Show/hide/modify GUI elements that depend on dimension.
-  options.plotType == "line"
-    ? hideGUIController(typeOfBrushController)
-    : showGUIController(typeOfBrushController);
-  // Refresh the GUI displays.
-  refreshGUI(leftGUI);
-  refreshGUI(rightGUI);
+  if (options.plotType == "line") {
+    hideGUIController(typeOfBrushController);
+    $(":root").css("--ui-button-outline", "black");
+  } else {
+    showGUIController(typeOfBrushController);
+    $(":root").css("--ui-button-outline", "white");
+  }
   manualInterpolationNeeded
     ? hideGUIController(forceManualInterpolationController)
     : showGUIController(forceManualInterpolationController);
@@ -3755,11 +3625,19 @@ function configureGUI() {
     whatToDrawController,
     listOfSpecies.slice(0, options.numSpecies)
   );
+  // Configure the Views GUI from options.views.
+  configureViewsGUI();
+  // Refresh the GUI displays.
+  refreshGUI(leftGUI);
+  refreshGUI(rightGUI);
+  refreshGUI(viewsGUI);
 }
 
 function configureOptions() {
   // Configure any options that depend on the equation type.
   let regex;
+
+  setAlgebraicVarsFromOptions();
 
   if (options.domainViaIndicatorFun) {
     // Only allow Dirichlet conditions.
@@ -3773,9 +3651,6 @@ function configureOptions() {
   switch (parseInt(options.numSpecies)) {
     case 1:
       options.crossDiffusion = false;
-      options.algebraicV = false;
-      options.algebraicW = false;
-      options.algebraicQ = false;
 
       // Ensure that u is being displayed on the screen (and the brush target).
       options.whatToDraw = listOfSpecies[0];
@@ -3829,8 +3704,6 @@ function configureOptions() {
       ) {
         options.whatToPlot = listOfSpecies[0];
       }
-      options.algebraicW = false;
-      options.algebraicQ = false;
 
       // Set the diffusion of w and q to zero to prevent them from causing numerical instability.
       options.diffusionStrUW = "0";
@@ -3872,7 +3745,6 @@ function configureOptions() {
       if (options.whatToPlot == listOfSpecies[3]) {
         options.whatToPlot = listOfSpecies[0];
       }
-      options.algebraicV = false;
 
       // Set the diffusion of q to zero to prevent it from causing numerical instability.
       options.diffusionStrUQ = "0";
@@ -3901,7 +3773,6 @@ function configureOptions() {
       }
       break;
     case 4:
-      options.algebraicV = false;
       break;
   }
 
@@ -3914,16 +3785,27 @@ function configureOptions() {
     case 6:
       // 3SpeciesCrossDiffusionAlgebraicW
       options.diffusionStrWW = "0";
-    case 9:
-      // 4SpeciesCrossDiffusionAlgebraicW
+      break;
+    case 7:
+      // 3SpeciesCrossDiffusionAlgebraicVW
+      options.diffusionStrVV = "0";
       options.diffusionStrWW = "0";
+      break;
     case 10:
       // 4SpeciesCrossDiffusionAlgebraicQ
       options.diffusionStrQQ = "0";
+      break;
     case 11:
       // 4SpeciesCrossDiffusionAlgebraicWQ
       options.diffusionStrWW = "0";
       options.diffusionStrQQ = "0";
+      break;
+    case 12:
+      // 4SpeciesCrossDiffusionAlgebraicVWQ
+      options.diffusionStrVV = "0";
+      options.diffusionStrWW = "0";
+      options.diffusionStrQQ = "0";
+      break;
   }
 
   // Refresh the GUI displays.
@@ -4542,7 +4424,11 @@ function setParamsFromKineticString() {
 
 function setKineticStringFromParams() {
   // Combine the custom parameters into a single string for storage, so long as no reserved names are used.
-  options.kineticParams = Object.values(kineticParamsStrs).join(";");
+  options.kineticParams = Object.values(kineticParamsStrs)
+    .map(function (str) {
+      return str.replaceAll(/"\s+"/g, " ");
+    })
+    .join(";");
 }
 
 function fromExternalLink() {
@@ -4562,13 +4448,12 @@ function fadein(id) {
 function fadeout(id) {
   $(id).removeClass("fading_in");
   $(id).addClass("fading_out");
-  $(id).bind(
-    "webkitTransitionEnd oTransitionEnd transitionend msTransitionEnd",
-    function () {
-      $(this).removeClass("fading_out");
-      $(this).hide();
+  setTimeout(function () {
+    if ($(id).hasClass("fading_out")) {
+      $(id).removeClass("fading_out");
+      $(id).hide();
     }
-  );
+  }, 1000);
 }
 
 function configureColourbar() {
@@ -4780,12 +4665,12 @@ function checkColourbarPosition() {
     if (colourbarDims.right >= bottomDims.left) {
       if (colourbarDims.top <= bottomDims.bottom) {
         nudgeUIUp("#dataContainer", 40);
-        nudgedUp = true;
+        dataNudgedUp = true;
       }
     } else {
-      if (nudgedUp) {
+      if (dataNudgedUp) {
         nudgeUIUp("#dataContainer", 0);
-        nudgedUp = false;
+        dataNudgedUp = false;
       }
     }
   }
@@ -5060,10 +4945,13 @@ function resizeEquationDisplay() {
   el.css("font-size", "");
   var count = 0;
   if ($("#leftGUI")[0] == undefined) return;
+  const rGUI = $("#rightGUI")[0];
+  var rGUICorrection = 0;
+  if (rGUI != undefined) rGUICorrection = rGUI.getBoundingClientRect().width;
   while (
     (count < 20) &
     ($("#equation_display")[0].getBoundingClientRect().right >=
-      window.innerWidth - 65) &
+      window.innerWidth - 65 - rGUICorrection) &
     ($("#equation_display")[0].getBoundingClientRect().width >
       $("#leftGUI")[0].getBoundingClientRect().width)
   ) {
@@ -5072,12 +4960,10 @@ function resizeEquationDisplay() {
     count += 1;
   }
 
-  // Set the left gui max height based on the height of the equation container.
-  $("#leftGUI").css(
-    "max-height",
-    "calc(90dvh - " +
-      $("#equation_display")[0].getBoundingClientRect().bottom +
-      "px)"
+  // Set the left gui max height based on its position.
+  $(":root").css(
+    "--left-ui-v-offset",
+    $("#leftGUI")[0].getBoundingClientRect().top
   );
 }
 
@@ -5110,7 +4996,12 @@ function updateGUIDropdown(controller, labels, values) {
   }
   let innerHTMLStr = "";
   for (var i = 0; i < labels.length; i++) {
-    var str = "<option value='" + values[i] + "'>" + labels[i] + "</option>";
+    var str =
+      "<option value='" +
+      values[i].toString() +
+      "'>" +
+      labels[i].toString() +
+      "</option>";
     innerHTMLStr += str;
   }
   controller.domElement.children[0].innerHTML = innerHTMLStr;
@@ -5220,7 +5111,7 @@ function setCustomNames(onLoading) {
     );
   });
 
-   // Configuring the GUI requires strings for f, g etc, so we'll modify the default strings for use here
+  // Configuring the GUI requires strings for f, g etc, so we'll modify the default strings for use here
   // via placeholders.
   defaultStrings = getDefaultTeXLabelsReaction();
   Object.keys(defaultStrings).forEach(function (key) {
@@ -5233,25 +5124,65 @@ function setCustomNames(onLoading) {
     );
   });
 
-// Don't update the problem if we're just loading in, as this will be done as part of loading.
-if (onLoading) return;
+  // Don't update the problem if we're just loading in, as this will be done as part of loading.
+  if (onLoading) return;
 
-// If we're not loading in, go through options and replace the old species with the new ones.
-Object.keys(options).forEach(function (key) {
-  if (userTextFields.includes(key)) {
-    options[key] = replaceSymbolsInStr(
-      options[key],
-      oldListOfSpecies,
-      listOfSpecies,
-      "_[xy]"
-    );
-  }
-});
-configureOptions();
-configureGUI();
-updateShaders();
-setEquationDisplayType();
-
+  // If we're not loading in, go through options and replace the old species with the new ones.
+  Object.keys(options).forEach(function (key) {
+    if (userTextFields.includes(key)) {
+      options[key] = replaceSymbolsInStr(
+        options[key],
+        oldListOfSpecies,
+        listOfSpecies,
+        "_[xy]"
+      );
+    }
+  });
+  options.views = options.views.map(function (view) {
+    let newView = {};
+    newView.name = view.name;
+    Object.keys(view).forEach(function (key) {
+      if (userTextFields.includes(key)) {
+        newView[key] = replaceSymbolsInStr(
+          view[key],
+          oldListOfSpecies,
+          listOfSpecies,
+          "_[xy]"
+        );
+      }
+    });
+    return newView;
+  });
+  // Do the same for savedOptions.
+  Object.keys(savedOptions).forEach(function (key) {
+    if (userTextFields.includes(key)) {
+      savedOptions[key] = replaceSymbolsInStr(
+        savedOptions[key],
+        oldListOfSpecies,
+        listOfSpecies,
+        "_[xy]"
+      );
+    }
+  });
+  savedOptions.views = savedOptions.views.map(function (view) {
+    let newView = {};
+    newView.name = view.name;
+    Object.keys(view).forEach(function (key) {
+      if (userTextFields.includes(key)) {
+        newView[key] = replaceSymbolsInStr(
+          view[key],
+          oldListOfSpecies,
+          listOfSpecies,
+          "_[xy]"
+        );
+      }
+    });
+    return newView;
+  });
+  configureOptions();
+  configureGUI();
+  updateShaders();
+  setEquationDisplayType();
 }
 
 function genAnySpeciesRegexStrs() {
@@ -5549,4 +5480,279 @@ function isValidSyntax(str) {
 
   // If we've not yet returned false, everything looks ok, so return true.
   return true;
+}
+
+function configureViews() {
+  // If there's no default view in options.views, add one.
+  if (options.views.length == 0) {
+    let view = buildViewFromOptions();
+    view.name = "1";
+    options.views.push(view);
+  } else {
+    // Fill in any unset parts of the views.
+    options.views = options.views.map(function (view) {
+      let newView = buildViewFromOptions();
+      Object.assign(newView, view);
+      return newView;
+    });
+  }
+
+  // Now that all views are built, save them so that we can restore them later.
+  savedViews = options.views;
+}
+
+function configureViewsGUI() {
+  // Remove every existing list item from views_list.
+  $("#views_list").empty();
+
+  let item;
+  for (let ind = 0; ind < options.views.length; ind++) {
+    item = document.createElement("a");
+    item.onclick = function () {
+      options.activeViewInd = ind;
+      // Apply the view, which will update which button is active through configureGUI().
+      applyView(options.views[ind]);
+    };
+    item.innerHTML =
+      "<div class='view_label'>" + options.views[ind].name + "</div>";
+    if (ind == options.activeViewInd) item.classList.add("active_button");
+    $("#views_list").append(item);
+  }
+
+  // // + button
+  // item = document.createElement("a");
+  // item.innerHTML = '<i class="fa-regular fa-plus"></i>';
+  // item.setAttribute("id", "add_view");
+  // item.setAttribute("title", "New view");
+  // $("#views_list").append(item);
+
+  // Only show the Delete Views button if there is more than one view.
+  if (options.views.length > 1) {
+    $("#deleteViewButton").removeClass("hidden");
+  } else {
+    $("#deleteViewButton").addClass("hidden");
+  }
+  if (MathJax.typesetPromise != undefined) {
+    MathJax.typesetPromise();
+  }
+  if (options.views.length > 0) {
+    // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
+  }
+}
+
+function applyView(view, update) {
+  // Apply the view, which is an object of parameters that resembles options.
+  Object.assign(options, view);
+  delete options.name;
+  refreshGUI(viewsGUI);
+
+  if (update == undefined || update) {
+    // Update what is being plotted, and render.
+    updateWhatToPlot();
+    configurePlotType();
+    setDisplayColourAndType();
+    updateUniforms();
+    updateColourbarLims();
+    configureColourbar();
+    render();
+  }
+
+  // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
+}
+
+function editCurrentViewName() {
+  let name = prompt(
+    "Enter a name for the current View. You can enclose mathematics in $ $.",
+    options.views[options.activeViewInd].name
+  );
+  if (name != null) {
+    options.views[options.activeViewInd].name = name;
+    configureViewsGUI();
+    if (MathJax.typesetPromise != undefined) {
+      MathJax.typesetPromise();
+    }
+    // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
+  }
+}
+
+function addView() {
+  // Add a new view.
+  let view = buildViewFromOptions();
+  view.name = options.views.length + 1;
+  options.views.push(view);
+  options.activeViewInd = options.views.length - 1;
+  configureViewsGUI();
+}
+
+function deleteView() {
+  // Remove the current view if there is more than one view.
+  if (options.views.length > 1) {
+    options.views.splice(options.activeViewInd, 1);
+    // Activate the previous view in the list, or the first element.
+    if (options.activeViewInd < 1) {
+      options.activeViewInd = 0;
+    } else {
+      options.activeViewInd -= 1;
+    }
+  } else {
+    // Otherwise, just rename the view.
+    options.views[options.activeViewInd].name = "Custom";
+  }
+  configureViewsGUI();
+}
+
+function buildViewFromOptions() {
+  let view = {};
+  fieldsInView.forEach(function (key) {
+    view[key] = savedOptions[key];
+  });
+  return view;
+}
+
+function restoreView(ind) {
+  // Restore the view at index ind to the saved state.
+  options.views[ind] = savedViews[ind];
+  applyView(options.views[ind]);
+}
+
+function restoreCurrentView() {
+  if (options.activeViewInd < options.views.length)
+    restoreView(options.activeViewInd);
+}
+
+function updateView(property) {
+  // Update the active view with options.property.
+  if (options.activeViewInd < options.views.length)
+    options.views[options.activeViewInd][property] = options[property];
+}
+
+function neumannUpdateShader(speciesInd, side) {
+  let str = "";
+  str += selectSpeciesInShaderStr(
+    RDShaderRobinX(side),
+    listOfSpecies[speciesInd]
+  );
+  if (options.dimension > 1) {
+    str += selectSpeciesInShaderStr(
+      RDShaderRobinY(side),
+      listOfSpecies[speciesInd]
+    );
+  }
+  return str;
+}
+
+function dirichletUpdateShader(speciesInd, side) {
+  let str = "";
+  str += selectSpeciesInShaderStr(
+    RDShaderDirichletX(side),
+    listOfSpecies[speciesInd]
+  );
+  if (options.dimension > 1) {
+    str += selectSpeciesInShaderStr(
+      RDShaderDirichletY(side),
+      listOfSpecies[speciesInd]
+    );
+  }
+  return str;
+}
+
+function robinUpdateShader(speciesInd, side) {
+  let str = "";
+  str += selectSpeciesInShaderStr(
+    RDShaderRobinX(side),
+    listOfSpecies[speciesInd]
+  );
+  if (options.dimension > 1) {
+    str += selectSpeciesInShaderStr(
+      RDShaderRobinY(side),
+      listOfSpecies[speciesInd]
+    );
+  }
+  return str;
+}
+
+function dirichletEnforceShader(speciesInd, side) {
+  let str = "";
+  str += selectSpeciesInShaderStr(
+    RDShaderDirichletX(side).replaceAll(/updated/g, "gl_FragColor"),
+    listOfSpecies[speciesInd]
+  );
+  if (options.dimension > 1) {
+    str += selectSpeciesInShaderStr(
+      RDShaderDirichletY(side).replaceAll(/updated/g, "gl_FragColor"),
+      listOfSpecies[speciesInd]
+    );
+  }
+  return str;
+}
+
+function addButton(parent, inner, onclick, id, title) {
+  const button = document.createElement("a");
+  if (onclick != undefined) button.onclick = onclick;
+  if (id != undefined) button.id = id;
+  if (title != undefined) button.title = title;
+  if (inner != undefined) button.innerHTML = inner;
+  parent.appendChild(button);
+}
+
+function copyConfigAsJSON() {
+  // Encode the current simulation configuration as raw JSON and put it on the clipboard.
+  let objDiff = diffObjects(options, getPreset("default"));
+  objDiff.preset = "PRESETNAME";
+  let str = JSON.stringify(objDiff)
+    .replaceAll(/\s*,\s*([^0-9-\.\s])/g, ",\n\t$1")
+    .replaceAll(":", ": ")
+    .replaceAll("  ", " ")
+    .replace("{", "{\n\t")
+    .replace("}", ",\n}");
+  str = 'case "PRESETNAME":\n\toptions = ' + str + ";\nbreak;";
+
+  navigator.clipboard.writeText(str);
+}
+
+function copyDebug() {
+  // Write lots of data to the clipboard for debugging.
+  let str = "";
+  str += JSON.stringify(options);
+  str += JSON.stringify(uniforms);
+  str += JSON.stringify({
+    nXDisc: nXDisc,
+    nYDisc: nYDisc,
+    domainHeight: domainHeight,
+    domainWidth: domainWidth,
+    aspectRatio: aspectRatio,
+    canvas: canvas.getBoundingClientRect(),
+  });
+  navigator.clipboard.writeText(str);
+}
+
+function toggleRightUI() {
+  $("#right_ui").toggle();
+  $("#settings").toggleClass("clicked");
+}
+
+function toggleLeftUI() {
+  $("#left_ui").toggle();
+  $("#equations").toggleClass("clicked");
+}
+
+function toggleViewsUI() {
+  $("#views_ui").toggle();
+  $("#views").toggleClass("clicked");
+}
+
+function toggleHelpPanel() {
+  $("#help_panel").toggle();
+  $("#help").toggleClass("clicked");
+}
+
+function toggleSharePanel() {
+  $("#share_panel").toggle();
+  $("#share").toggleClass("clicked");
+}
+
+function onMobile() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
 }

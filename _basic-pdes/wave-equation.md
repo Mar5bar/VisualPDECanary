@@ -16,7 +16,7 @@ $$\pd{u}{x}(0,y,t) = \pd{u}{x}(L_x,y,t) = \pd{u}{y}(x,0,t) = \pd{u}{y}(x,L_y,t) 
 
 1. Load the [interactive simulation](/sim/?preset=waveEquation), which has been set up for this tutorial.
 
-1. Click or tap on the screen to visualise a disturbance in the medium which will then propagate in all directions. 
+1. Click on the screen to visualise a disturbance in the medium which will then propagate in all directions. 
 
 1. Now press {{ layout.pause }}, paint some initial data, and then press {{ layout.play }} to set it in motion.
 

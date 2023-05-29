@@ -6,7 +6,10 @@ thumbnail: /assets/images/Brusselator.PNG
 extract: A glossary of all the features you can play with
 ---
 
-The basic functionality of every option that can be found in the menus of VisualPDE, accessible via {{ layout.equations }} and {{ layout.settings }}.
+The basic functionality of every option that can be found in the menus of VisualPDE, accessible via {{ layout.equations }}, {{ layout.settings }} and {{ layout.views }}.
+
+## Equations <a id='equations'> {{ layout.equations }}
+VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Settings**](#settings).
 
 ### Definitions <a id='definitions'>
 **Typeset**\
@@ -57,12 +60,63 @@ Boundary conditions can be specified for any species in the simulation. The foll
 
 Boundary conditions that allow you to specify values can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. Robin boundary conditions are the only type supported that allow you to use an unknown in the specification of its own boundary condition. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
 
+An additional option, **Combination**, is also available, which allows you to specify different types of boundary condition on the Left, Right, Top and Bottom sides of rectangular domains. These conditions are specified as a string, e.g. 
+
+```
+Left: Dirichlet = 0; Right: Neumann = 1; Top: Robin = u; Bottom: Dirichlet = sin(x)
+```
+
+for the species $u$ would specify $u = 0$ on the left boundary, $\pd{u}{n} = 1$ on the right boundary, $\pd{u}{n} = u$ on the top boundary and $u = sin(x)$ on the bottom boundary. Sides can be specified in any order and are case sensitive. Omitting any side will default to periodic boundary conditions (beware, this may have unexpected results if the matching side is not also periodic).
+
 ### Initial conditions <a id='initial-conditions'>
 Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
 
+## Views <a id='views'> {{ layout.views }}
+There are often multiple ways to visualise a solution to a PDE. In the Views pane, you can select from and customise a range of example-specific display options. More advanced settings can be found under [**Settings**](#settings).
+
+**New**\
+Create a new view with the placeholder name 'Custom' from the current view configuration.
+
+**Rename**\
+Edit the name of the current View, enclosing any mathematics in '$' tags.
+
+**Delete**\
+Delete the currently selected View. Only visible if there are at least two views.
+
+**Expression**\
+Choose the expression that you want to be used to colour the domain, which can be any function of the species solved for, as well as space, time, and user-defined parameters. Often, this is either $u$, $v$, $w$ or $q$. Alternatively, setting this to 'MAX' will colour the domain by the maximum of the species. Explicitly, this can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$) and their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
+
+**Plot type**\
+Choose from three types of plot: **line**, **plane** or **surface**. Any simulation can be viewed as any plot type.
+
+Line plots are the default plot type for 1D domains. Cubic splines are used to interpolate between nodes of the computational domain for smooth plotting. This may lead to transient oscillations appearing near discontinuities in the solution.
+
+Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Max height** parameter. The limits of the colour axis specify the values at which the height of the surface is capped.
+
+**Colour map**\
+Set the current colour map being used to convert **Expression** into a colour value. Use the dropdown to select from the available options. We have tried to cater for everyone in these options but, if you find that no colour map is available that allows you to easily distinguish between values, please let us know at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can add a more appropriate map.
+
+
+**Min/Max value**\
+Set the limits of the colour map that transforms  **Expression** into colour. If viewing a surface plot, this also impacts the height of the surface. Must be a numerical value.
+
+**Reverse**\
+Reverse the direction of the current colour map.
+
+**Snap**\
+Click to instantly snap **Min value** and **Max value** to the current minimum and maximum of **Expression** in the domain. If these values are within a small tolerance (0.005), VisualPDE will center the range on the average of the two and fix a width of 0.005.
+
+**Auto snap**\
+Toggle the automatic snapping of the colour map limits. This can be very useful if you don't know the range in which **Expression** will fall, especially if it is changing frequently.
+
+## Settings <a id='settings'> {{ layout.settings }}
+Almost everything in VisualPDE is customisable. Here you can edit a wide range of settings, from the size of the brush to the timestep of the simulation.
 
 ### Brush <a id='brush'>
 VisualPDE allows you to interact directly with simulations via a brush by simply clicking/pressing on the domain. The brush paints values onto the discrete representation of the domain, which act like initial conditions for the rest of the simulation.
+
+**Enabled**\
+Enable or disable the brush. Most simulations will have the brush enabled by default.
 
 **Type**\
 Change the shape of the brush, choosing between **Disk**, **Horizontal line** and **Vertical line**.
@@ -75,9 +129,6 @@ Change the brush size, measured on the same scale as the domain size. This can e
 
 **Species**\
 Set the **species** ($u$, $v$, $w$, $q$) you are painting.
-
-**3D enabled**\
-Allow yourself to draw while viewing the solution as a surface (surface plot only).
 
 ### Domain <a id='domain'>
 **Largest side**\
@@ -115,23 +166,13 @@ Specify the number of unknowns (1, 2, 3, or 4) in the simulatino.
 **Cross (diffusion)**\
 Enable cross diffusion in systems with 2 or more species, enabling simulation of a wide range of systems.
 
-**Algebraic**\
-Convert the specified equations to algebraic form in systems with cross diffusion enabled.
+**\#Algebraic**\
+Choose how many equations you want to be in algebraic form in systems with cross diffusion enabled. The equations will be put in algebraic form in reverse order, e.g. a 4-species system with 1 algebraic species will convert the final equation to be algebraic.
 
 **Species/Reactions (names)**\
 Specify custom names for the species and reaction terms in VisualPDE, which often default to $u$, $v$, $w$, $q$ and $f$, $g$, $h$, $j$. Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, 'T_01' is a valid name (rendered as $T_{01}$) whilst 'T 01' is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as 'H' for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old species and reaction terms everywhere in the simulation and interface.
 
 ### Plotting <a id='plotting'>
-**Expression**\
-Choose the expression that you want to be used to colour the domain, which can be any function of the species solved for, as well as space, time, and user-defined parameters. Often, this is either $u$, $v$, $w$ or $q$. Alternatively, setting this to 'MAX' will colour the domain by the maximum of the species. Explicitly, this can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$) and their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
-
-**Plot type**\
-Choose from three types of plot: **line**, **plane** or **surface**. Any simulation can be viewed as any plot type.
-
-Line plots are the default plot type for 1D domains. Cubic splines are used to interpolate between nodes of the computational domain for smooth plotting. This may lead to transient oscillations appearing near discontinuities in the solution.
-
-Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Max height** parameter. The limits of the colour axis specify the values at which the height of the surface is capped.
-
 **Max height**\
 The maximum height of a plotted line or surface, measured in the same units as the domain size. Changing this parameter effectively makes the variation more/less prominent. Must be a numerical value.
 
@@ -151,21 +192,6 @@ Use this option to force the use of manual, configurable, unoptimised filtering 
 Control the degree of smoothing applied to the simulation output before display. Setting this value to zero turns off all smoothing. Larger values demand more memory and compute power, but increasingly smooth the output with bilinear interpolation. Only available if manual smoothing is enabled.
 
 ### Colour <a id='colour'>
-**Colour map**\
-Set the current colour map being used to convert **Expression** into a colour value. Use the dropdown to select from the available options. We have tried to cater for everyone in these options but, if you find that no colour map is available that allows you to easily distinguish between values, please let us know at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can add a more appropriate map.
-
-**Reverse map**\
-Reverse the direction of the current colour map.
-
-**Min/Max value**\
-Set the limits of the colour map that transforms  **Expression** into colour. If viewing a surface plot, this also impacts the height of the surface. Must be a numerical value.
-
-**Snap range**\
-Click to instantly snap **Min value** and **Max value** to the current minimum and maximum of **Expression** in the domain. If these values are within a small tolerance (0.005), VisualPDE will center the range on the average of the two and fix a width of 0.005.
-
-**Auto snap**\
-Toggle the automatic snapping of the colour map limits. This can be very useful if you don't know the range in which **Expression** will fall, especially if it is changing frequently.
-
 **Colour bar**\
 Toggle the display of the current colour bar and limits.
 
@@ -179,17 +205,17 @@ Define the scalar fields $I_S$ and $I_T$, which are derived from images that you
 ### Checkpoints <a id='checkpoints'>
 VisualPDE supports checkpoints, which allow you to save the state of a simulation at the touch of a button. This allows you to instantly return to a previous solution state - very handy if you've crafted the perfect initial condition by painting with the brush. Revert to a checkpoint by pressing {{ layout.restart }}
 
-**Enable checkpoints**\
+**Enabled**\
 Toggle the use of checkpoints. When enabled, resetting the simulation will revert to a saved checkpoint (if one exists) instead of using any initial conditions defined alongside the equations.
 
-**Set checkpoint**\
+**Set**\
 Save the current simulation as a checkpoint.
 
-**Save to file**\
-Click to download the last checkpoint as a file to your device, which can be shared and uploaded to the site and used as a checkpoint. If no checkpoint exists, one will be created. By default, the file will be called 'VisualPDEState'.
+**Export**\
+Click to export the last checkpoint as a file to your device, which can be shared and uploaded to the site and used as a checkpoint. If no checkpoint exists, one will be created. By default, the file will be called 'VisualPDEState'.
 
-**Load from file**\
-Load a checkpoint from a VisualPDE file. By default, these are called 'VisualPDEState'.
+**Import**\
+Import a checkpoint from a VisualPDE file. By default, these are called 'VisualPDEState'.
 
 **Resize**\
 Specify how a checkpoint should be resized to fit the current simulation domain. 'Stretch' will stretch the checkpoint so that it fills the current domain, but will not preserve the aspect ratio in general. "Crop" will crop the checkpoint whilst preserving the aspect ratio, but may result in some information not being used.

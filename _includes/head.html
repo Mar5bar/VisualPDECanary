@@ -32,4 +32,43 @@
   <meta property="og:url" content="https://visualpde.com" />
   <meta property="og:site_name" content="VisualPDE" />
 
+  <script>
+    // If the window is very narrow, use a smaller domain in any iframe simulations.
+    if (window.innerWidth < 600) {
+      window.onload = function() {
+        // For each .sim element with an sf parameter in the query string, modify the URL to include a domain scale factor.
+        [...document.getElementsByClassName('sim')].forEach(el => {
+          const url = new URL(el.src);
+          if (/[?&]/.test(url.search)) {
+            const params = new URLSearchParams(url.search);
+            // If there's an sf specified, do not modify.
+            if (!params.has("sf")) {
+              el.src += "&sf=0.5";
+            }
+          } else {
+            el.src += "?sf=0.5";
+          }
+        })
+      }
+    }
+  </script>
+
+  <script>
+    // If we're on mobile, replace click with tap and clicking with tapping.
+    if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+      window.addEventListener("DOMContentLoaded", function() {
+        $('p,h1,h2,h3,h4,h5').each(function(index, element){
+          let str = element.innerHTML;
+          str = str.replaceAll(/\bclicked\b/g, "tapped");
+          str = str.replaceAll(/\bClicked\b/g, "Tapped");
+          str = str.replaceAll(/\bclicking\b/g, "tapping");
+          str = str.replaceAll(/\bClicking\b/g, "Tapping");
+          str = str.replaceAll(/\bclick\b/g, "tap");
+          str = str.replaceAll(/\bClick\b/g, "Tap");
+          element.innerHTML = str;
+        });
+      });
+    }
+  </script>
+
 </head>

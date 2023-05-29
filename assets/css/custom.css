@@ -339,3 +339,17 @@ span.click_sequence {
     margin-left: -1px;
     margin-right: -1px;
 }
+
+.sim {
+    width: 90%;
+    aspect-ratio: 1;
+    border: 2px solid black;
+    margin: calc(5% - 2px);
+    background-color: black;
+}
+@media only screen and (max-width: 600px) {
+    .sim {
+        width: 99%;
+        margin:0%;
+    }
+}

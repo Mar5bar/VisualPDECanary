@@ -18,7 +18,11 @@ The most complicated type is a system of PDEs in four unknowns, $u$, $v$, $w$ an
 
 $$\begin{aligned}
 \pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_{uq}\vnabla q) + f,\\
-\pd{v}{t} &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + g,\\
+\text{or}\left\{\begin{matrix}\displaystyle\pd{v}{t} \\ v\end{matrix}\right. & 
+\begin{aligned}
+    &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + g \vphantom{\displaystyle\pd{v}{t}}, \\
+    &= \vnabla \cdot(D_{vu}\vnabla u+D_{vw}\vnabla w+D_{vq}\vnabla q) + g,
+\end{aligned}\\
 \text{or}\left\{\begin{matrix}\displaystyle\pd{w}{t} \\ w\end{matrix}\right. & 
 \begin{aligned}
     &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w+D_{wq}\vnabla q) + h \vphantom{\displaystyle\pd{w}{t}}, \\
@@ -42,5 +46,5 @@ where
 * $\m{D}$ is a possibly non-constant matrix that may contain zeros; you might know this as a 'diffusion tensor',
 * $\v{f}$ is a vector of one, two, three or four components that contains our interaction or kinetic terms.
 
-VisualPDE allows you to easily change the [number of components](quick-start#equations) and the [boundary conditions](quick-start#boundary-conditions). You can set initial conditions just by clicking/tapping the screen.
+VisualPDE allows you to easily change the [number of components](quick-start#equations) and the [boundary conditions](quick-start#boundary-conditions). You can set initial conditions just by clicking the screen.
 

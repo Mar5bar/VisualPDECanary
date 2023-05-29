@@ -3,22 +3,238 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+      case "CoupledCGL":
+	options = {
+	"activeViewInd": 1,
+	"autoSetColourRange": true,
+	"brushRadius": "5",
+	"clearValueU": "1",
+	"clearValueV": "1",
+	"clearValueW": "1",
+	"clearValueQ": "1",
+	"crossDiffusion": true,
+	"diffusionStrUU": "D_1r",
+	"diffusionStrUV": "-D_1i",
+	"diffusionStrVU": "D_1i",
+	"diffusionStrVV": "D_1r",
+	"diffusionStrWW": "D_2r",
+	"diffusionStrWQ": "-D_2i",
+	"diffusionStrQW": "D_2i",
+	"diffusionStrQQ": "D_2r",
+	"domainScale": 500,
+	"dt": 0.001,
+	"kineticParams": "b_1i = 5 in [-5, 5];D_1r = 1;D_1i = 0.1;a_1r = 1;a_1i = 0;b_1r = -1;b_2i = 5;D_2r = 1;D_2i = 0.1;a_2r = 1;a_2i = 0;b_2r = -1;alpha_1 = 4;alpha_2 = 4;",
+	"maxColourValue": 0.9703768491744995,
+	"minColourValue": 6.515668137192483e-25,
+	"numSpecies": "4",
+	"numTimestepsPerFrame": 200,
+	"preset": "CoupledCGL",
+	"reactionStrU": "a_1r*u_1-a_1i*v_1+(b_1r*u_1-b_1i*v_1)*((u_1^2+v_1^2)+alpha_1*(u_2^2+v_2^2))",
+	"reactionStrV": "a_1r*v_1+a_1i*u_1+(b_1r*v_1+b_1i*u_1)*((u_1^2+v_1^2)+alpha_1*(u_2^2+v_2^2))",
+	"reactionStrW": "a_2r*u_2-a_2i*v_2+(b_2r*u_2-b_2i*v_2)*((u_2^2+v_2^2)+alpha_2*(u_1^2+v_1^2))",
+	"reactionStrQ": "a_2r*v_2+a_2i*u_2+(b_2r*v_2+b_2i*u_2)*((u_2^2+v_2^2)+alpha_2*(u_1^2+v_1^2))",
+	"speciesNames": "u_1 v_1 u_2 v_2",
+	"views": [{"whatToPlot": "u_1^2+v_1^2",
+	"colourmap": "turbo",
+	"flippedColourmap": false,
+	"minColourValue": 6.53918874604642e-8,
+	"maxColourValue": 0.9580471515655518,
+	"autoSetColourRange": true,
+	"plotType": "plane",
+	"name": "$|\\psi_1|^2$",
+},
+	{"whatToPlot": "u_2^2+v_2^2",
+	"colourmap": "turbo",
+	"flippedColourmap": false,
+	"minColourValue": 2.6341413859182206e-12,
+	"maxColourValue": 0.895037829875946,
+	"autoSetColourRange": true,
+	"plotType": "plane",
+	"name": "$|\\psi_2|^2$"}],
+	"whatToDraw": "v_1",
+	"whatToPlot": "u_2^2+v_2^2"};
+break;
+      
+      case "NonlinearSchrodingerSoliton":
+	options = {
+	"autoSetColourRange": true,
+	"brushRadius": "5",
+	brushEnabled: false,
+	"cameraTheta": 0,
+	"cameraPhi": 0,
+	"clearValueU": "cos(c*x)/cosh(x-L_x/3)",
+	"clearValueV": "sin(c*x)/cosh(x-L_x/3)",
+	"crossDiffusion": true,
+	"diffusionStrUU": "0",
+	"diffusionStrUV": "-D",
+	"diffusionStrVU": "D",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dimension": "1",
+	"domainScale": 30,
+	"dt": 0.00001,
+	"kineticParams": "kappa = 1 in [-5, 5];D = 1;c = 10;",
+	"maxColourValue": 1.5772895812988281,
+	"minColourValue": 1.5497322536361935e-8,
+	"numTimestepsPerFrame": 400,
+	"plotType": "line",
+	"preset": "NonlinearSchrodingerSoliton",
+	"reactionStrU": "(-kappa*v)*(u^2+v^2)",
+	"reactionStrV": "(kappa*u)*(u^2+v^2)",
+	"reactionStrW": "0",
+	"spatialStep": 0.1,
+  "suppressTryClickingPopup": true,
+	"typeOfBrush": "vline",
+	"views": [{"whatToPlot": "u^2+v^2",
+	"colourmap": "turbo",
+	"flippedColourmap": false,
+	"minColourValue": 0.00015078618889674544,
+	"maxColourValue": 1,
+	"autoSetColourRange": true,
+	"plotType": "plane",
+	"name": "Default",
+}],
+	"whatToPlot": "u^2+v^2"};
+break;
+    case "FlowSimplePeriodicNetwork":
+      options = {
+        activeViewInd: 3,
+        algebraicW: true,
+        algebraicQ: true,
+        boundaryConditionsU: "combo",
+        boundaryConditionsV: "combo",
+        boundaryConditionsW: "combo",
+        brushRadius: "20",
+        clearValueU: "1 - x/L_x",
+        clearValueW: "1",
+        colourbar: true,
+        crossDiffusion: true,
+        diffusionStrUU: "0.1",
+        diffusionStrVV: "0.1",
+        diffusionStrWW: "0",
+        domainScale: 250,
+        kineticParams: "delta  =  0;",
+        maxColourValue: 0.4960000216960907,
+        minColourValue: -0.0040000081062316895,
+        comboStrU: "Left: Dirichlet = 1; Right: Dirichlet = 0",
+        comboStrV: "Left: Dirichlet = L_x/100; Right: Neumann = 0",
+        comboStrW: "Left: Dirichlet = 1; Right: Dirichlet = 1",
+        neumannStrU: "-H((dx-x))*p_x + H((x+dx-L_x))*p_x",
+        numSpecies: "4",
+        numTimestepsPerFrame: 400,
+        preset: "FlowSimplePeriodicNetwork",
+        reactionStrU: "-delta*(u_x + v_y)",
+        reactionStrV: "(p_x + p_y)*c*0 - u*c_x - v*c_y",
+        reactionStrW: "-p_x",
+        reactionStrQ: "-p_y",
+        spatialStep: 1,
+        speciesNames: "p c u v",
+        suppressTryClickingPopup: true,
+        timeDisplay: true,
+        views: [
+          {
+            whatToPlot: "u_x+v_y",
+            colourmap: "turbo",
+            autoSetColourRange: true,
+            plotType: "plane",
+            name: "Divergence",
+          },
+          {
+            whatToPlot: "u",
+            colourmap: "turbo",
+            autoSetColourRange: true,
+            plotType: "plane",
+            name: "u",
+          },
+          {
+            whatToPlot: "v",
+            colourmap: "turbo",
+            autoSetColourRange: true,
+            plotType: "plane",
+            name: "v",
+          },
+          {
+            whatToPlot: "c",
+            colourmap: "turbo",
+            autoSetColourRange: true,
+            plotType: "plane",
+            name: "c",
+          },
+        ],
+        whatToDraw: "p",
+        whatToPlot: "c",
+      };
+      break;
+    case "Test":
+      options = {
+        activeViewInd: 1,
+        views: [
+          { name: "Activator", whatToPlot: "u" },
+          { name: "Inhibitor", whatToPlot: "v" },
+        ],
+        colourmap: "BlackGreenYellowRedWhite",
+        boundaryConditionsU: "combo",
+        boundaryConditionsV: "combo",
+        comboStrU:
+          "Left: Dirichlet = 1; Right: Neumann = 0; Top: Robin = 0.2; Bottom: Dirichlet = 0",
+        comboStrV:
+          "Left: Dirichlet = 1; Right: Neumann = 0; Top: Robin = 0.2; Bottom: Dirichlet = 0",
+        preset: "Test",
+      };
+      break;
+    case "ShallowWaterBox":
+      options = {
+        boundaryConditionsU: "neumann",
+        boundaryConditionsV: "combo",
+        boundaryConditionsW: "combo",
+        brushValue: "-0.5",
+        brushRadius: "10",
+        clearValueU: "0",
+        colourmap: "viridis",
+        diffusionStrUU: "D",
+        diffusionStrVV: "nu",
+        diffusionStrWW: "nu",
+        domainScale: 1000,
+        dt: 0.005,
+        kineticParams: "He = 1;D = 0.01;g = 9.81;f = 1;k = 0.00;nu=0.2;",
+        maxColourValue: 0.1,
+        minColourValue: -0.05,
+        comboStrV:
+          "Left:  Dirichlet = 0; Top:  Neumann = 0; Right:  Dirichlet = 0; Bottom:  Neumann = 0",
+        comboStrW:
+          "Left:  Neumann = 0; Top:  Dirichlet = 0; Right:  Neumann = 0; Bottom:  Dirichlet = 0",
+        numSpecies: "3",
+        numTimestepsPerFrame: 100,
+        preset: "ShallowWaterBox",
+        reactionNames: "F G K j",
+        reactionStrU: "- (u_x + v_y)",
+        reactionStrV: "-g*h_x - k*u",
+        reactionStrW: "-g*h_y - k*v",
+        spatialStep: 2,
+        speciesNames: "h u v w",
+        views: [
+          { name: "From<br />above", plotType: "plane" },
+          { name: "3D", plotType: "surface" },
+        ],
+        whatToDraw: "h",
+        whatToPlot: "h",
+      };
+      break;
     case "ShallowWaterDisk":
       options = {
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
         boundaryConditionsW: "dirichlet",
-        brushValue: "0.5",
+        brushValue: "-0.5",
         brushRadius: "40",
-        clearValueU: "exp(-((x-L_x/2)^2 + (y-L_y/2)^2)/L)",
+        clearValueU: "-exp(-((x-L_x/2)^2 + (y-L_y/2)^2)/L)",
         colourmap: "viridis",
         diffusionStrUU: "D",
         diffusionStrVV: "nu",
         diffusionStrWW: "nu",
-        domainIndicatorFun: "(x-L_x/2)^2 + (y-L_y/2)^2 < 500^2",
+        domainIndicatorFun: "(x-L_x/2)^2 + (y-L_y/2)^2 < (L/2-1)^2",
         domainScale: 1000,
         domainViaIndicatorFun: true,
-        drawIn3D: true,
         dt: 0.005,
         kineticParams: "He = 1;D = 0.01;g = 9.81;f = 1;k = 0.00;nu=0.2;",
         maxColourValue: 0.1,
@@ -30,9 +246,15 @@ export function getPreset(id) {
         reactionStrU: "- (u_x + v_y)",
         reactionStrV: "-g*h_x - k*u",
         reactionStrW: "-g*h_y - k*v",
+        runningOnLoad: false,
         spatialStep: 2,
         speciesNames: "h u v w",
         squareCanvas: true,
+        suppressTryClickingPopup: true,
+        views: [
+          { name: "From<br />above", plotType: "plane" },
+          { name: "3D", plotType: "surface" },
+        ],
         whatToDraw: "h",
         whatToPlot: "h",
       };
@@ -76,7 +298,7 @@ export function getPreset(id) {
     case "KdV":
       options = {
         algebraicV: true,
-        brushRadius: "20",
+        brushEnabled: false,
         cameraTheta: 0.5,
         cameraPhi: 0,
         clearValueU:
@@ -349,34 +571,64 @@ export function getPreset(id) {
     case "CovidInARoom":
       options = {
         algebraicW: true,
-        boundaryConditionsU: "neumann",
+        boundaryConditionsU: "combo",
         brushAction: "smoothadd",
         brushRadius: "20",
         clearValueU: "0",
         colourbar: true,
+        comboStrU: "Top: Neumann = 0; Bottom: Neumann = 0",
         crossDiffusion: true,
         diffusionStrUU: "1",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
-        domainScale: 250,
+        domainScale: 150,
         dt: 0.001,
         kineticParams:
-          "V  =  20 in [0,40];R  =  10 in [0,20];lambda  =  1;beta  =  0;sigma  =  0;eta_sus  =  0.1 in [0,1];rho_sus  =  0.1 in [0,1];I  =  1;",
-        minColourValue: -5.731946473019889e-9,
-        neumannStrU: "-H((dx-x))*C_x + H((x+dx-L_x))*C_x",
+          "V = 40 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         numSpecies: "3",
-        numTimestepsPerFrame: 200,
+        numTimestepsPerFrame: 20,
         preset: "CovidInARoom",
         reactionStrU:
-          "R*exp(-0.01*((x-L_x/2)^2+(y-L_y/2)^2))-(lambda+beta+sigma)*C-V*C_x",
+          "R*exp(-0.01*((x-X*L_x)^2+(y-Y*L_y)^2))-(lambda+beta+sigma)*C-V*C_x",
         reactionStrV: "(1-eta_sus)*rho_sus*C",
         reactionStrW: "1 - exp(-I*d)",
         spatialStep: 1,
         speciesNames: "C d P",
         suppressTryClickingPopup: true,
-        timeDisplay: true,
+        views: [
+          { name: "Probability", whatToPlot: "P" },
+          { name: "Concentration", whatToPlot: "C", maxColourValue: 5 },
+        ],
         whatToDraw: "C",
         whatToPlot: "P",
+      };
+      break;
+    case "CovidInAStillRoom":
+      options = {
+        parent: "CovidInARoom",
+        activeViewInd: 1,
+        kineticParams:
+          "V = 0 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
+        preset: "CovidInAStillRoom",
+      };
+      break;
+    case "CovidInARoomCircling":
+      options = {
+        parent: "CovidInARoom",
+        preset: "CovidInARoomCircling",
+        kineticParams:
+          "V = 40 in [0,40];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
+        reactionStrU:
+          "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C-V*C_x",
+        runningOnLoad: false,
+      };
+      break;
+    case "CovidInAStillRoomCircling":
+      options = {
+        parent: "CovidInARoomCircling",
+        kineticParams:
+          "V = 0 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
+        preset: "CovidInAStillRoomCircling",
       };
       break;
     case "maze":
@@ -570,6 +822,7 @@ export function getPreset(id) {
         reactionStrW: "0",
         squareCanvas: true,
         suppressTryClickingPopup: true,
+        views: [{ name: "Default" }, { name: "3D", plotType: "surface" }],
         whatToDraw: "u",
         whatToPlot: "u",
       };
@@ -1122,7 +1375,6 @@ export function getPreset(id) {
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         domainScale: 150,
-        drawIn3D: true,
         dt: 0.001,
         kineticParams: "a=0.03;",
         maxColourValue: -25.7167911529541,
@@ -1281,6 +1533,15 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 0.3,
+        views: [
+          { name: "$u$", whatToPlot: "u" },
+          {
+            name: "$v$",
+            whatToPlot: "v",
+            minColourValue: -0.1,
+            maxColourValue: 0.1,
+          },
+        ],
         whatToPlot: "u",
       };
       break;
@@ -1657,7 +1918,6 @@ export function getPreset(id) {
         diffusionStrWU: "D",
         diffusionStrWW: "0",
         domainScale: 100,
-        drawIn3D: true,
         dt: 0.0001,
         kineticParams: "D=10;Q=0.000;C=0.1;D_c=0.1;",
         minColourValue: -3,
@@ -1679,7 +1939,7 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
-        brushRadius: 1,
+        brushEnabled: false,
         clearValueU: "sin(n*pi*x/100)*sin(m*pi*y/100)",
         crossDiffusion: true,
         diffusionStrUU: "C*D",
@@ -1696,6 +1956,26 @@ export function getPreset(id) {
         reactionStrW: "0",
         squareCanvas: true,
         spatialStep: 0.5,
+        views: [
+          {
+            name: "$\\lvert \\psi\\rvert^2$",
+            whatToPlot: "u^2 + v^2",
+            minColourValue: 0,
+            maxColourValue: 1,
+          },
+          {
+            name: "$\\Re(\\psi)$",
+            whatToPlot: "u",
+            minColourValue: -1,
+            maxColourValue: 1,
+          },
+          {
+            name: "$\\Im(\\psi)$",
+            whatToPlot: "v",
+            minColourValue: -1,
+            maxColourValue: 1,
+          },
+        ],
         whatToDraw: "u",
         whatToPlot: "u^2+v^2",
       };
@@ -1706,7 +1986,7 @@ export function getPreset(id) {
         autoSetColourRange: true,
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
-        brushRadius: 1,
+        brushEnabled: false,
         clearValueU: "(sin(pi*x/100)*sin(pi*y/100))^10",
         crossDiffusion: true,
         diffusionStrUU: "C*D",
@@ -1732,7 +2012,7 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
-        brushRadius: 1,
+        brushEnabled: false,
         cameraTheta: 0.5,
         cameraPhi: 0,
         clearValueU: "exp(-(0.5*pi/s^2)*(x/100-x0)^2)*cos(a*x)/N",
@@ -1839,9 +2119,7 @@ export function getPreset(id) {
 
     default:
       options = {
-        algebraicV: false,
-        algebraicW: false,
-        algebraicQ: false,
+        activeViewInd: 0,
         autoSetColourRange: false,
         backgroundColour: 0xffffff,
         boundaryConditionsU: "periodic",
@@ -1849,6 +2127,7 @@ export function getPreset(id) {
         boundaryConditionsW: "periodic",
         boundaryConditionsQ: "periodic",
         brushAction: "replace",
+        brushEnabled: true,
         brushValue: "1",
         brushRadius: 5,
         cameraTheta: 30,
@@ -1886,7 +2165,6 @@ export function getPreset(id) {
         domainIndicatorFun: "1",
         domainScale: 100,
         domainViaIndicatorFun: false,
-        drawIn3D: false,
         dt: 0.1,
         fixRandSeed: false,
         flippedColourmap: false,
@@ -1900,13 +2178,19 @@ export function getPreset(id) {
         lineWidthMul: 1,
         maxColourValue: 1.0,
         minColourValue: 0.0,
+        comboStrU: "",
+        comboStrV: "",
+        comboStrW: "",
+        comboStrQ: "",
         neumannStrU: "0",
         neumannStrV: "0",
         neumannStrW: "0",
         neumannStrQ: "0",
+        numAlgebraicSpecies: 0,
         numSpecies: 2,
         numTimestepsPerFrame: 100,
         oneDimensional: false,
+        parent: null,
         plotType: "plane",
         preset: "default",
         resetFromCheckpoints: true,
@@ -1933,6 +2217,7 @@ export function getPreset(id) {
         tryClickingText: "Try clicking!",
         typeOfBrush: "circle",
         typesetCustomEqs: true,
+        views: [],
         whatToDraw: "v",
         whatToPlot: "v",
       };
@@ -1968,6 +2253,10 @@ export function getUserTextFields() {
     "dirichletStrW",
     "dirichletStrQ",
     "domainIndicatorFun",
+    "comboStrU",
+    "comboStrV",
+    "comboStrW",
+    "comboStrQ",
     "neumannStrU",
     "neumannStrV",
     "neumannStrW",
@@ -1982,5 +2271,17 @@ export function getUserTextFields() {
     "robinStrQ",
     "whatToDraw",
     "whatToPlot",
+  ];
+}
+
+export function getFieldsInView() {
+  return [
+    "whatToPlot",
+    "colourmap",
+    "flippedColourmap",
+    "minColourValue",
+    "maxColourValue",
+    "autoSetColourRange",
+    "plotType",
   ];
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang='en-GB'>
 
 <head>
     <title>VisualPDE | Interactive simulation</title>
@@ -22,6 +22,7 @@
                 macros: {
                     pd: ["\\frac{\\partial #1}{\\partial #2}", 2],
                     pdd: ["\\frac{\\partial^2 #1}{\\partial #2^2}", 2],
+                    pdn: ["\\frac{\\partial^{#3} #1}{\\partial #2^{#3}}", 3],
                     vnabla: "\\boldsymbol{\\nabla}",
                     lap: "\\nabla^2",
                     d: "\\mathrm{d}",
@@ -31,7 +32,14 @@
                     selected: ["{\\bbox[GreenYellow]{#1}}", 1],
                 },
                 inlineMath: [['$', '$'], ['\\(', '\\)']]
-            }
+            },
+            options: {
+                menuOptions: {
+                    settings: {
+                        inTabOrder: false
+                    }
+                }
+            }            
         };    
     </script>
     <script type="text/javascript" id="MathJax-script" async
@@ -39,6 +47,8 @@
     </script>
     <script type="module" src="./scripts/RD/dat_gui_tooltips.js"></script>
     <script type="module" src="./scripts/RD/main.js"></script>
+    <!-- <script type="module" src="./scripts/fitty.min.js"></script> -->
+    <script src="https://visualpde.com/assets/js/fitty.min.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -76,7 +86,6 @@
 </div>
 
 <div class="ui hidden ui_button" id="settings" title="Settings"><i class="fa-solid fa-wrench"></i></div>
-<div id="right_ui_arrow" class="ui hidden"></div>
 
 <div class="ui hidden ui_button" id="play" title="Play (space)"><i class="fa-solid fa-play"></i></div>
 <div class="ui hidden ui_button" id="pause" title="Pause (space)"><i class="fa-solid fa-pause"></i></div>
@@ -85,13 +94,13 @@
 <div class="message" id="link_copied"><p>Link copied to clipboard</p></div>
 <!-- <a href="../user-guide" target="_blank"><div class="ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div></a> -->
 <div class="ui hidden ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div>
+<div class="ui hidden ui_button" id="views" title="Views"><i class="fa-solid fa-layer-group"></i></div>
 
 <div class="ui hidden ui_button" id="equations" title="Edit equations"></div>
-<div id="left_ui_arrow" class="ui"></div>
 
 <a href='/'><div id="logo" class="ui hidden">VisualPDE</div></a>
 
-<div class="message" id="try_clicking" title="Try clicking!"><p>Try clicking!</p></div>
+<div class="message" id="top_message" title="Try clicking!"><p>Try clicking!</p></div>
 <div class="message" id="oops_hit_nan">
     <div class="error_infinity"><i class="fa-sharp fa-solid fa-infinity"></i></div>
     <p class="error_para"><strong>Oops!</strong> It looks like things have spiralled off to infinity, or the numerical solver is unstable.</p>
@@ -106,6 +115,11 @@
     <button id="warning_no" class="btn-primary"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
 
+<div id="right_ui" class="ui hidden">
+    <div class="dg ac" id="rightGUIContainer" style="position: relative;"></div>
+    <div id="right_ui_arrow"></div>
+</div>
+
 <div id="left_ui" class="ui hidden">
     <div id="equation_display">
         <div id="equation_display_box">
@@ -113,6 +127,12 @@
         </div>
     </div>
     <div class="dg ac" id="leftGUIContainer" style="position: relative;"></div>
+    <div id="left_ui_arrow" class="ui"></div>
+</div>
+
+<div id="views_ui" class="ui hidden">
+    <div class="dg ac" id="viewsGUIContainer" style="position: relative;"></div>
+    <div id="views_ui_arrow"></div>
 </div>
 
 <div id="share_panel" class="ui hidden popout_panel">
