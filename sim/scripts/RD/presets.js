@@ -4,7 +4,55 @@ export function getPreset(id) {
   let options;
   switch (id) {
       
-      
+      case "CoupledCGL":
+	options = {
+	"autoSetColourRange": true,
+	"brushRadius": "5",
+	"clearValueU": "1",
+	"clearValueV": "1",
+	"clearValueW": "1",
+	"clearValueQ": "1",
+	"crossDiffusion": true,
+	"diffusionStrUU": "D_1r",
+	"diffusionStrUV": "-D_1i",
+	"diffusionStrVU": "D_1i",
+	"diffusionStrVV": "D_1r",
+	"diffusionStrWW": "D_2r",
+	"diffusionStrWQ": "-D_2i",
+	"diffusionStrQW": "D_2i",
+	"diffusionStrQQ": "D_2r",
+	"domainScale": 500,
+	"dt": 0.001,
+	"kineticParams": "b_1i = 5 in [-5, 5];D_1r = 1;D_1i = 0.1;a_1r = 1;a_1i = 0;b_1r = -1;b_2i = 5;D_2r = 1;D_2i = 0.1;a_2r = 1;a_2i = 0;b_2r = -1;alpha_1 = 4;alpha_2 = 4;",
+	"maxColourValue": 0.9607804417610168,
+	"numSpecies": "4",
+	"numTimestepsPerFrame": 200,
+	"preset": "CoupledCGL",
+	"reactionStrU": "a_1r*u_1-a_1i*v_1+(b_1r*u_1-b_1i*v_1)*((u_1^2+v_1^2)+alpha_1*(u_2^2+v_2^2))",
+	"reactionStrV": "a_1r*v_1+a_1i*u_1+(b_1r*v_1+b_1i*u_1)*((u_1^2+v_1^2)+alpha_1*(u_2^2+v_2^2))",
+	"reactionStrW": "a_2r*u_2-a_2i*v_2+(b_2r*u_2-b_2i*v_2)*((u_2^2+v_2^2)+alpha_2*(u_1^2+v_1^2))",
+	"reactionStrQ": "a_2r*v_2+a_2i*u_2+(b_2r*v_2+b_2i*u_2)*((u_2^2+v_2^2)+alpha_2*(u_1^2+v_1^2))",
+	"speciesNames": "u_1 v_1 u_2 v_2",
+	"views": [{"whatToPlot": "u_1^2+v_1^2",
+	"colourmap": "turbo",
+	"flippedColourmap": false,
+	"minColourValue": 6.53918874604642e-8,
+	"maxColourValue": 0.9580471515655518,
+	"autoSetColourRange": true,
+	"plotType": "plane",
+	"name": "psi_1",
+},
+	{"whatToPlot": "u_2^2+v_2^2",
+	"colourmap": "turbo",
+	"flippedColourmap": false,
+	"minColourValue": 2.6341413859182206e-12,
+	"maxColourValue": 0.895037829875946,
+	"autoSetColourRange": true,
+	"plotType": "plane",
+	"name": "psi_2"}],
+	"whatToDraw": "v_1",
+	"whatToPlot": "u_1^2+v_1^2"};
+break;
       case "NonlinearSchrodingerSoliton":
 	options = {
 	"autoSetColourRange": true,
