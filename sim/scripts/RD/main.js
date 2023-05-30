@@ -1693,6 +1693,12 @@ function initGUI(startOpen) {
   settingsTitle.classList.add("ui_title");
   rightGUI.domElement.prepend(settingsTitle);
 
+  // Add a title to the leftGUI.
+  const equationsTitle = document.createElement("div");
+  equationsTitle.innerHTML = "Equations";
+  equationsTitle.classList.add("ui_title");
+  leftGUI.domElement.prepend(equationsTitle);
+
   // Populate the viewsGUI.
   // Create a custom element for containing the view options.
   const viewsList = document.createElement("div");
