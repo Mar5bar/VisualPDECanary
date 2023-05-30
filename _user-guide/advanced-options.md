@@ -6,7 +6,13 @@ thumbnail: /assets/images/Brusselator.PNG
 extract: A glossary of all the features you can play with
 ---
 
-The basic functionality of every option that can be found in the menus of VisualPDE, accessible via [{{ layout.equations }}](#equations), [{{ layout.settings }}](#settings) and [{{ layout.views }}](#views).
+The basic functionality of every option that can be found in the menus of VisualPDE.
+
+Jump to:
+* [Equations](#equations) {{ layout.equations }}
+* [Settings](#settings) {{ layout.settings }}
+* [Views](#views) {{ layout.views }}
+* [Writing valid expressions](#writing-valid-expressions)
 
 ## Equations <a id='equations'> {{ layout.equations }}
 VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Settings**](#settings).
