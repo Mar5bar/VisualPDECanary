@@ -1,3 +1,7 @@
+html {
+    scroll-behavior: smooth;
+}
+
 .site-header {
     z-index: 1;
     /* Fix for Safari not respecting z-index */
@@ -372,4 +376,11 @@ span.click_sequence {
 
 #top-link:hover {
     text-decoration: none;
+}
+
+/* Reduce motion if requested */
+@media (prefers-reduced-motion) {
+    html {
+        scroll-behavior: auto;
+    }
 }
