@@ -893,6 +893,7 @@ select {
     font-size: 12pt;
     font-weight: 500;
     text-align: left;
+    cursor: default;
 }
 
 .popout_panel .arrow,
