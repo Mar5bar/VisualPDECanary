@@ -1,3 +1,12 @@
+:root {
+    --text-color: #111111;
+    --visited-color: #1756a9;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
 .site-header {
     z-index: 1;
     /* Fix for Safari not respecting z-index */
@@ -34,7 +43,7 @@ a[href*='/sim/']:hover {
 }
 
 a[href*='//']:not([href*='visualpde.com']) {
-    color: #111111;
+    color: var(--text-color);
     text-decoration: underline;
 }
 
@@ -95,7 +104,7 @@ a.home_tile {
     border-radius: 6px;
     border-color: rgba(27, 31, 36, 0.15);
     line-height: 1.3;
-    color: #1756a9;
+    color: var(--visited-color);
     column-gap: 20px;
 }
 
@@ -106,7 +115,7 @@ a.topic_tile {
     border-radius: 6px;
     border-color: rgba(27, 31, 36, 0.25);
     line-height: 1.3;
-    color: #1756a9;
+    color: var(--visited-color);
     column-gap: 20px;
     margin-bottom: 1.5rem;
 }
@@ -165,7 +174,7 @@ a.topic_tile div.container {
 }
 
 a.home_tile div.container img {
-    border: 3px solid #1756a9;
+    border: 3px solid var(--visited-color);
     object-fit: cover;
     border-radius: 50%;
 }
@@ -197,12 +206,12 @@ a.home_tile div.container div.subtitle {
 
 a.topic_tile div.container div.subtitle {
     padding-bottom: 13px;
-    color: #111111;
+    color: var(--text-color);
     font-weight: 300;
 }
 
 a.topic_tile div.container div.subtitle_equation {
-    color: #111111;
+    color: var(--text-color);
     font-weight: 300;
     line-height: 1.7;
     /* padding-bottom: 13px; */
@@ -213,7 +222,7 @@ div.subtitle_equation mjx-container mjx-math {
 }
 
 a.home_tile div.container div.button {
-    background-color: #1756a9;
+    background-color: var(--visited-color);
     text-align: center;
     width: 60px;
     border: 1px solid;
@@ -234,7 +243,7 @@ a.home_tile div.container div.button:hover {
 }
 
 a.topic_tile div.container div.button {
-    background-color: #1756a9;
+    background-color: var(--visited-color);
     text-align: center;
     width: 60px;
     border: 1px solid;
@@ -258,7 +267,7 @@ a.collection {
     display: inline-block;
     text-transform: uppercase;
     color: #111;
-    /*#1756a9;*/
+    /*var(--visited-color);*/
     font-weight: 700;
     font-size: 11px;
     padding: 3px 2px 2px;
@@ -351,5 +360,36 @@ span.click_sequence {
     .sim {
         width: 99%;
         margin:0%;
+    }
+}
+
+#top-link, #top-link:visited, #top-link:hover {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 1.8rem;
+    width: 34px;
+    height: 34px;
+    display: none;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    border-radius: 100%;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
+    background: #fff;
+    color: var(--visited-color);
+    text-decoration: none;
+}
+
+@media (hover: hover) {
+    #top-link:hover {
+        color: var(--text-color);
+    }
+}
+
+/* Reduce motion if requested */
+@media (prefers-reduced-motion) {
+    html {
+        scroll-behavior: auto;
     }
 }

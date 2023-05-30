@@ -655,6 +655,10 @@ export function getPreset(id) {
         runningOnLoad: false,
         spatialStep: 0.2,
         tryClickingText: "Press play!",
+        views: [
+          { name: "🐀", whatToPlot: "u" },
+          { name: "🧀", whatToPlot: "v" },
+        ],
         whatToDraw: "u",
         whatToPlot: "u",
       };
