@@ -239,7 +239,7 @@ Copy a verbose description of your simulation in JSON form, which is especially 
 **Debug**\
 Select from a frequently updated list of available debugging tools. A permanent fixture is **Copy debug info**, which copies a selection of configuration information to your clipboard (handy when reporting bugs).
 
-### Writing valid expressions <a id='valid-expressions'>
+### Writing valid expressions <a id='writing-valid-expressions'>
 **Standard syntax**\
 VisualPDE aims to support standard mathematical syntax (+,-,*,/), along with the carat notation '^' for exponentiation. Parentheses '()' are also supported for bracketing terms together, and must be used when calling any special functions. In general, whitespace around binary operators will be ignored, so that '2 * 2' is valid syntax for multiplication, for example. Quantities with subscripts, such as $L_x$ and $L_y$, are written with an underscore, e.g. 'L_x' and 'L_y'.
 
