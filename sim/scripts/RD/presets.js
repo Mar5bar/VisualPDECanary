@@ -622,6 +622,7 @@ export function getPreset(id) {
         kineticParams:
           "V = 0 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         preset: "CovidInAStillRoomCircling",
+        runningOnLoad: true,
       };
       break;
     case "maze":
