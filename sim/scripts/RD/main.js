@@ -1687,16 +1687,21 @@ function initGUI(startOpen) {
   root.domElement.children[0].appendChild(debugButton);
   addButton(debugButton, "Copy debug information", copyDebug);
 
+  // Add a title to the rightGUI.
+  const settingsLabel = document.createElement("div");
+  settingsLabel.innerHTML = "Settings";
+  settingsLabel.classList.add("ui_title");
+  rightGUI.domElement.prepend(settingsLabel);
+
   // Populate the viewsGUI.
   // Create a custom element for containing the view options.
   const viewsList = document.createElement("div");
   viewsList.id = "views_list";
-  // viewsList.classList.add("button_list");
   viewsGUI.domElement.prepend(viewsList);
   const viewsLabel = document.createElement("div");
   viewsLabel.innerHTML =
     "Views<a id='add_view' title='New view'><i class='fa-solid fa-plus'></i></a>";
-  viewsLabel.id = "views_label";
+  viewsLabel.classList.add("ui_title");
   viewsGUI.domElement.prepend(viewsLabel);
 
   root = viewsGUI.addFolder("Edit view");
