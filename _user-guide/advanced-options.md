@@ -6,7 +6,7 @@ thumbnail: /assets/images/Brusselator.PNG
 extract: A glossary of all the features you can play with
 ---
 
-The basic functionality of every option that can be found in the menus of VisualPDE, accessible via {{ layout.equations }}, {{ layout.settings }} and {{ layout.views }}.
+The basic functionality of every option that can be found in the menus of VisualPDE, accessible via [{{ layout.equations }}](#equations), [{{ layout.settings }}](#settings) and [{{ layout.views }}](#views).
 
 ## Equations <a id='equations'> {{ layout.equations }}
 VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Settings**](#settings).
@@ -74,11 +74,11 @@ Initial conditions can be specified for any species in the simulation. They can 
 ## Views <a id='views'> {{ layout.views }}
 There are often multiple ways to visualise a solution to a PDE. In the Views pane, you can select from and customise a range of example-specific display options. More advanced settings can be found under [**Settings**](#settings).
 
-**New**\
-Create a new view with the placeholder name 'Custom' from the current view configuration.
+**New (+)**\
+Create a new view with a placeholder name from the current view configuration.
 
 **Rename**\
-Edit the name of the current View, enclosing any mathematics in '$' tags.
+Edit the name of the current View, enclosing any mathematics in '$' tags. You can even use emoji.
 
 **Delete**\
 Delete the currently selected View. Only visible if there are at least two views.
@@ -159,7 +159,7 @@ Set the timestep $\dt$ used in the solver. You may have to increase the spatial 
 **Show time**\
 Show/hide the current simulation time in the simulation window.
 
-### Equations <a id='equations'>
+### Equations <a id='equations_sub'>
 **No. species**\
 Specify the number of unknowns (1, 2, 3, or 4) in the simulatino.
 
