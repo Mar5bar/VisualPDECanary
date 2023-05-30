@@ -358,7 +358,7 @@ span.click_sequence {
     }
 }
 
-#top-link, #top-link:visited {
+#top-link, #top-link:visited, #top-link:hover {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -372,10 +372,13 @@ span.click_sequence {
     border-radius: 100%;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
     background: #fff;
-  }
+}
 
-#top-link:hover {
-    text-decoration: none;
+@media (hover: hover) {
+    #top-link:hover {
+        color: black;
+        text-decoration: none;
+    }
 }
 
 /* Reduce motion if requested */
