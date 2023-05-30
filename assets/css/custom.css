@@ -358,7 +358,7 @@ span.click_sequence {
     }
 }
 
-#top-link {
+#top-link, #top-link:visited {
     position: fixed;
     bottom: 20px;
     right: 20px;
