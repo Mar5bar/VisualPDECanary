@@ -354,25 +354,22 @@ span.click_sequence {
     }
 }
 
-.top-link {
-    --offset: 100px;
-    text-align: center;
-    position: sticky;
+#top-link {
+    position: fixed;
     bottom: 20px;
-    right: 20px; 
-    place-self: end;
-    margin-top: calc(100vh + var(--offset));
+    right: 20px;
     font-size: 1.8rem;
     width: 34px;
     height: 34px;
+    display: none;
+    text-align: center;
     align-items: center;
     justify-content: center;
-    display: flex;
     border-radius: 100%;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
     background: #fff;
   }
 
-.top-link:hover {
+#top-link:hover {
     text-decoration: none;
 }
