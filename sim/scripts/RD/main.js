@@ -1220,7 +1220,7 @@ function initGUI(startOpen) {
   // Number of algebraic species.
   algebraicSpeciesController = root
     .add(options, "numAlgebraicSpecies", { 0: 0, 1: 1, 2: 2, 3: 3 })
-    .name("# Algebraic")
+    .name("No. algebraic")
     .onChange(function () {
       updatingAlgebraicSpecies = true;
       updateProblem();
