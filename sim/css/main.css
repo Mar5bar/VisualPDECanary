@@ -161,7 +161,7 @@ canvas {
 #equation_display {
     padding: 5px;
     border-radius: 5px;
-    background-color: white;
+    background-color: #ededed;
     pointer-events: all;
     border: 1px solid #ccc;
     border-radius: 6px;
@@ -1011,7 +1011,7 @@ select {
     left: -11px;
     top: 10px;
     border-width: 14px 14px 14px 0px;
-    border-right-color: white;
+    border-right-color: #ededed;
 }
 
 #left_ui_arrow::after {
