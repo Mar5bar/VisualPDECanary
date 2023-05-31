@@ -6,7 +6,14 @@ thumbnail: /assets/images/question-marks.png
 extract: Unsure about something? Help is at hand
 ---
 
-## Sharing and citing
+Jump to:
+* [Sharing and citing](#sharing)
+* [Dealing with errors](#errors)
+* [Extending VisualPDE](#extending)
+
+---
+
+## Sharing and citing <a id='sharing'>
 
 ### Am I allowed to make and share content using VisualPDE.com?
 Yes! We would love to see you making and sharing content using VisualPDE. We ask that any content you create somehow points back to [VisualPDE.com](https://visualpde.com) – a great way to do this is to share a link directly to your simulation! Feel free to use VisualPDE in articles, images, videos, scientific works, social media posts, etc.
@@ -27,7 +34,9 @@ In principle, you can have as many embedded simulations on your site as you want
 ### How do I cite VisualPDE in my article?
 We're currently preparing a manuscript that you'll be able to cite – watch this space!
 
-## Dealing with errors
+---
+
+## Dealing with errors <a id='errors'>
 
 ### An error message has popped up – what do I do!?
 Sometimes, mistakes happen. If something has gone wrong, VisualPDE will try its best to describe the error in a helpful way via a pop-up. We try to display a helpful error message to help you identify the problem. Most error messages look something like this:
@@ -53,7 +62,9 @@ Sometimes, something might go wrong (e.g. a part of the user interface is doing 
 
 If you can, it will help us a lot if you could click <span class='click_sequence'>{{ layout.settings }} → **Misc.** → **Debug** → **Copy debug**</span> and paste the contents into your email. This will contain information about your current configuration that will help us resolve the problem.
 
-## Extending
+---
+
+## Extending VisualPDE <a id='extending'>
 
 ### I want to use VisualPDE in my teaching/research/outreach – what do I do?
 VisualPDE is designed for customising and sharing. If you're new to the site, we recommend that you play around and work through the examples found in [Basic PDEs](/basic-pdes) to get an idea of how to craft your own simulation, and make use of [link sharing](#linkSharing) to permanently save customised simulations.
