@@ -166,7 +166,7 @@ canvas {
     border: 1px solid #ccc;
     border-radius: 6px;
     box-shadow: 0 5px 10px #1113;
-    border-bottom:none;
+    border-bottom: 5px #ccc solid
 }
 
 #equation_display_box {
