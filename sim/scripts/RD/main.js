@@ -244,26 +244,8 @@ funsObj = {
     isRunning ? pauseSim() : playSim();
   },
   copyConfigAsURL: function () {
-    // Encode the current simulation configuration as a URL and put it on the clipboard.
-    let objDiff = diffObjects(options, getPreset("default"));
-    objDiff.preset = "Custom";
-    // Minify the field names in order to generate shorter URLs.
-    objDiff = minifyPreset(objDiff);
-    let str = [
-      location.href.replace(location.search, ""),
-      "?options=",
-      LZString.compressToEncodedURIComponent(JSON.stringify(objDiff)),
-    ].join("");
-    navigator.clipboard.writeText(str).then(
-      () => {
-        // Success.
-        $("#link_copied").fadeIn(1000);
-        setTimeout(() => $("#link_copied").fadeOut(1000), 2000);
-      },
-      () => {
-        // Failure.
-      }
-    );
+    let str = getSimURL();
+    copyLinkToClipboard(str);
   },
   saveSimState: function () {
     saveSimState();
@@ -480,6 +462,13 @@ $("#screenshot").click(function () {
 $("#link").click(function () {
   funsObj.copyConfigAsURL();
   toggleSharePanel();
+});
+$("#embed").click(function () {
+  copyIframe();
+  toggleSharePanel();
+});
+$("#embed_ui_type").change(function () {
+  $("#embed_ui_type").blur();
 });
 $("#help_panel .container .button").click(function () {
   toggleHelpPanel();
@@ -5765,5 +5754,52 @@ function toggleSharePanel() {
 function onMobile() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
+  );
+}
+
+function copyIframe() {
+  // Get the URL of the current sim.
+  let url = getSimURL();
+  // Use the UI options specified in embed_ui_type to append ui options.
+  switch (document.getElementById("embed_ui_type").value) {
+    case "full":
+      break;
+    case "story":
+      url += "&story";
+      break;
+    case "none":
+      url += "&no_ui";
+      break;
+  }
+  // Put the url in an iframe and copy to clipboard.
+  let str =
+    '<iframe src="' + url + '" frameborder="0" loading="lazy"></iframe>';
+  copyLinkToClipboard(str);
+}
+
+function getSimURL() {
+  // Encode the current simulation configuration as a URL and put it on the clipboard.
+  let objDiff = diffObjects(options, getPreset("default"));
+  objDiff.preset = "Custom";
+  // Minify the field names in order to generate shorter URLs.
+  objDiff = minifyPreset(objDiff);
+  let str = [
+    location.href.replace(location.search, ""),
+    "?options=",
+    LZString.compressToEncodedURIComponent(JSON.stringify(objDiff)),
+  ].join("");
+  return str;
+}
+
+function copyLinkToClipboard(str) {
+  navigator.clipboard.writeText(str).then(
+    () => {
+      // Success.
+      $("#link_copied").fadeIn(1000);
+      setTimeout(() => $("#link_copied").fadeOut(1000), 2000);
+    },
+    () => {
+      // Failure.
+    }
   );
 }

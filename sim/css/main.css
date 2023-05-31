@@ -961,6 +961,10 @@ select {
     padding: 6px 1px 4px 9px;
 }
 
+.share-icon.fa-code {
+    padding: 5px 4px 3px 5px;
+}
+
 .popout_panel #title {
     font-weight: 500;
     margin-bottom: 10px;
@@ -1089,4 +1093,12 @@ select {
     width:calc(100% - 2px) !important;
     border-radius:2px !important;
     margin-bottom:-2px;
+}
+
+#embed {
+    display: inline-block;
+}
+
+#embed_ui_type {
+    margin-left: 5px;
 }
