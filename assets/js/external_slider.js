@@ -27,6 +27,9 @@ class VPDESlider extends HTMLElement {
     slider.addEventListener("input", this.sendUpdate.bind(this));
     this.slider = slider;
 
+    // Add an event listener to the iframe so that it gets sent the current value when loaded.
+    this.attachedFrame.addEventListener("load", this.sendUpdate.bind(this));
+
     this.append(wrapper);
 
     if (MathJax.typesetPromise != undefined) {
