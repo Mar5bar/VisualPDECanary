@@ -24,7 +24,12 @@ class VPDESlider extends HTMLElement {
     slider.step = this.hasAttribute("step")
       ? this.getAttribute("step")
       : (slider.max - slider.min) / 20;
-    slider.addEventListener("input", this.sendUpdate.bind(this));
+    slider.addEventListener("input", this.onInput.bind(this));
+    // Configure the slider style for formatting.
+    slider.style.setProperty("--value", slider.value);
+    slider.style.setProperty("--min", slider.min);
+    slider.style.setProperty("--max", slider.max);
+
     this.slider = slider;
 
     // Add an event listener to the iframe so that it gets sent the current value when loaded.
@@ -35,6 +40,11 @@ class VPDESlider extends HTMLElement {
     if (MathJax.typesetPromise != undefined) {
       MathJax.typesetPromise();
     }
+  }
+
+  onInput() {
+    this.slider.style.setProperty("--value", this.slider.value);
+    this.sendUpdate();
   }
 
   // Send an update to the associated simulation.
