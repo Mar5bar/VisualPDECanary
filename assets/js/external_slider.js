@@ -8,8 +8,8 @@ class VPDESlider extends HTMLElement {
     // Create a slider and a name tag in a span.
     const wrapper = document.createElement("span");
     const label = wrapper.appendChild(document.createElement("span"));
-    label.innerHTML = this.hasAttribute("name")
-      ? "$" + this.getAttribute("name") + "$"
+    label.innerHTML = this.hasAttribute("label")
+      ? this.getAttribute("label")
       : "";
 
     const slider = wrapper.appendChild(document.createElement("input"));
