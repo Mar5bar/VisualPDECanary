@@ -126,6 +126,7 @@ let nXDisc,
 let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
+  kineticNameToCont = {},
   kineticParamsCounter = 0;
 const defaultSpecies = ["u", "v", "w", "q"];
 const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
@@ -726,6 +727,8 @@ function init() {
 
   // Listen for resize events.
   window.addEventListener("resize", resize, false);
+
+  window.addEventListener("message", updateParamFromMessage);
 
   // Bind the onchange event for the checkpoint loader.
   $("#checkpointInput").change(function () {
@@ -4323,6 +4326,7 @@ function createParameterController(label, isNextParam) {
         const match = str.match(/\s*(\w+)\s*=/);
         if (match) {
           newController.lastName = match[1];
+          kineticNameToCont[newController.lastName] = newController;
         }
         kineticParamsCounter += 1;
         let newLabel = "params" + kineticParamsCounter;
@@ -4340,6 +4344,11 @@ function createParameterController(label, isNextParam) {
   } else {
     controller = parametersFolder.add(kineticParamsStrs, label).name("");
     controller.domElement.classList.add("params");
+    const match = kineticParamsStrs[label].match(/\s*(\w+)\s*=/);
+    if (match) {
+      controller.lastName = match[1];
+      kineticNameToCont[controller.lastName] = controller;
+    }
     controller.onFinishChange(function () {
       // Remove excess whitespace.
       let str = removeWhitespace(kineticParamsStrs[label]);
@@ -4376,6 +4385,7 @@ function createParameterController(label, isNextParam) {
         ) {
           delete uniforms[controller.lastName];
           controller.lastName = match[1];
+          kineticNameToCont[controller.lastName] = controller;
         }
       }
       // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
@@ -5809,14 +5819,21 @@ function copyLinkToClipboard(str) {
 function updateParamFromMessage(event) {
   // Upon receiving a message from another window, use the message to update
   // the value in the specified parameter.
-  // Get the index of the parameter.
-  const ind = event.data.ind;
-  // Get the new value.
-  const val = event.data.value;
-  // Update the value of the slider associated with this parameter.
-  const slider =
-    parametersFolder.firstChild.firstChild.childNodes[ind + 1].firstChild
-      .childNodes[1].childNodes[1];
-  slider.value = val;
-  slider.dispatchEvent(new Event("input"));
+
+  // Update the value of the slider associated with this parameter, if it exists.
+  const controller = kineticNameToCont[event.data.name];
+  if (controller != undefined) {
+    // If there's a slider, update its value and trigger the update via the slider's input event.
+    if (controller.slider != undefined) {
+      controller.slider.value = event.data.value;
+      controller.slider.dispatchEvent(new Event("input"));
+    } else {
+      const val =
+        controller.object[controller.property].split("=")[0] +
+        "= " +
+        event.data.value.toString();
+      controller.setValue(val);
+      controller.__onFinishChange(controller, val);
+    }
+  }
 }
