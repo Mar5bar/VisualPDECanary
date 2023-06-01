@@ -5773,7 +5773,9 @@ function copyIframe() {
   }
   // Put the url in an iframe and copy to clipboard.
   let str =
-    '<iframe style="border:0;width:100%;height:100%;" src="' + url + '" frameborder="0" loading="lazy"></iframe>';
+    '<iframe style="border:0;width:100%;height:100%;" src="' +
+    url +
+    '" frameborder="0" loading="lazy"></iframe>';
   copyLinkToClipboard(str);
 }
 
@@ -5802,4 +5804,19 @@ function copyLinkToClipboard(str) {
       // Failure.
     }
   );
+}
+
+function updateParamFromMessage(event) {
+  // Upon receiving a message from another window, use the message to update
+  // the value in the specified parameter.
+  // Get the index of the parameter.
+  const ind = event.data.ind;
+  // Get the new value.
+  const val = event.data.value;
+  // Update the value of the slider associated with this parameter.
+  const slider =
+    parametersFolder.firstChild.firstChild.childNodes[ind + 1].firstChild
+      .childNodes[1].childNodes[1];
+  slider.value = val;
+  slider.dispatchEvent(new Event("input"));
 }
