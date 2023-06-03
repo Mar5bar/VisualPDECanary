@@ -3149,7 +3149,9 @@ function setClearShader() {
   let shaderStr = kineticUniformsForShader() + clearShaderTop();
   if (
     options.clearValueU.includes("RAND") ||
-    options.clearValueV.includes("RAND")
+    options.clearValueV.includes("RAND") ||
+    options.clearValueW.includes("RAND") ||
+    options.clearValueQ.includes("RAND")
   ) {
     shaderStr += randShader();
   }
