@@ -2851,6 +2851,11 @@ function loadOptions(preset) {
       "clicking",
       "tapping"
     );
+  } else {
+    options.tryClickingText = options.tryClickingText.replaceAll(
+      "tapping",
+      "clicking"
+    );
   }
 
   // Enable backwards compatibility.
