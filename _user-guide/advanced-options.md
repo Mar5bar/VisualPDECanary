@@ -6,7 +6,15 @@ thumbnail: /assets/images/Brusselator.PNG
 extract: A glossary of all the features you can play with
 ---
 
-The basic functionality of every option that can be found in the menus of VisualPDE, accessible via {{ layout.equations }}, {{ layout.settings }} and {{ layout.views }}.
+The basic functionality of every option that can be found in the menus of VisualPDE.
+
+Jump to:
+* [Equations](#equations) {{ layout.equations }}
+* [Views](#views) {{ layout.views }}
+* [Settings](#settings) {{ layout.settings }}
+* [Writing valid expressions](#writing-valid-expressions)
+
+---
 
 ## Equations <a id='equations'> {{ layout.equations }}
 VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Settings**](#settings).
@@ -71,14 +79,16 @@ for the species $u$ would specify $u = 0$ on the left boundary, $\pd{u}{n} = 1$ 
 ### Initial conditions <a id='initial-conditions'>
 Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
 
+---
+
 ## Views <a id='views'> {{ layout.views }}
 There are often multiple ways to visualise a solution to a PDE. In the Views pane, you can select from and customise a range of example-specific display options. More advanced settings can be found under [**Settings**](#settings).
 
-**New**\
-Create a new view with the placeholder name 'Custom' from the current view configuration.
+**New (+)**\
+Create a new view with a placeholder name from the current view configuration.
 
 **Rename**\
-Edit the name of the current View, enclosing any mathematics in '$' tags.
+Edit the name of the current View, enclosing any mathematics in '$' tags. You can even use emoji.
 
 **Delete**\
 Delete the currently selected View. Only visible if there are at least two views.
@@ -108,6 +118,8 @@ Click to instantly snap **Min value** and **Max value** to the current minimum a
 
 **Auto snap**\
 Toggle the automatic snapping of the colour map limits. This can be very useful if you don't know the range in which **Expression** will fall, especially if it is changing frequently.
+
+---
 
 ## Settings <a id='settings'> {{ layout.settings }}
 Almost everything in VisualPDE is customisable. Here you can edit a wide range of settings, from the size of the brush to the timestep of the simulation.
@@ -159,7 +171,7 @@ Set the timestep $\dt$ used in the solver. You may have to increase the spatial 
 **Show time**\
 Show/hide the current simulation time in the simulation window.
 
-### Equations <a id='equations'>
+### Equations <a id='equations_sub'>
 **No. species**\
 Specify the number of unknowns (1, 2, 3, or 4) in the simulatino.
 
@@ -233,9 +245,11 @@ Copy a verbose description of your simulation in JSON form, which is especially 
 **Debug**\
 Select from a frequently updated list of available debugging tools. A permanent fixture is **Copy debug info**, which copies a selection of configuration information to your clipboard (handy when reporting bugs).
 
-### Writing valid expressions <a id='valid-expressions'>
+---
+
+## Writing valid expressions <a id='writing-valid-expressions'>
 **Standard syntax**\
-VisualPDE aims to support standard mathematical syntax (+,-,*,/), along with the carat notation '^' for exponentiation. Parentheses '()' are also supported for bracketing terms together, and must be used when calling any special functions. In general, whitespace around binary operators will be ignored, so that '2 * 2' is valid syntax for multiplication, for example. Quantities with subscripts, such as $L_x$ and $L_y$, are written with an underscore, e.g. 'L_x' and 'L_y'.
+VisualPDE aims to support standard mathematical syntax (+,-,*,/), along with the caret notation '^' for exponentiation. Parentheses '()' are also supported for bracketing terms together, and must be used when calling any special functions. In general, whitespace around binary operators will be ignored, so that '2 * 2' is valid syntax for multiplication, for example. Quantities with subscripts, such as $L_x$ and $L_y$, are written with an underscore, e.g. 'L_x' and 'L_y'.
 
 Examples of valid syntax include
 

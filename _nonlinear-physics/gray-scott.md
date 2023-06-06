@@ -10,11 +10,11 @@ A reaction–diffusion system heavily studied for its complex dynamics is the Gr
 
 $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+u^2v - (a+b)u,\\ \pd{v}{t}&=D\nabla^2v-u^2v + a(1 - v),\end{aligned}$$
 
-where we take $D=2$ and only vary $a,b>0$. This model has a [wide range of behaviours](http://www.mrob.com/pub/comp/xmorphia/index.html), or shown [in a WebGL simulator](https://pmneila.github.io/jsexp/grayscott/) which partially inspired VisualPDE.
+where we take $D=2$ and only vary $a,b>0$. This model has a [wide range of behaviours](http://www.mrob.com/pub/comp/xmorphia/index.html), shown in [another WebGL simulator](https://pmneila.github.io/jsexp/grayscott/) that partially inspired VisualPDE.
 
 * Load the [interactive simulation](/sim/?preset=GrayScott) to explore the system.
 
-Below are a table of parameters which give different behaviours, mirroring identically those in the WebGL implementation above. One of our favourites is the [moving spots simulation](/sim/?preset=GrayScottGliders), which exhibits spots bobbing around. If you initiate this motion and then increase $b$ slowly to about $b=0.56$, the spots become sparse and start exhibiting strange diversions in their motions.
+Below we've listed some parameter combinations that give rise to different and interesting behaviours. One of our favourites is the [moving spots simulation](/sim/?preset=GrayScottGliders), which exhibits spots bobbing around. If you initiate this motion and then increase $b$ slowly to about $b=0.56$, the spots become sparse and start exhibiting strange diversions in their motions.
 
 | $a$  | $b$  |  Description |
 |---|---|---|

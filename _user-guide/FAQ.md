@@ -6,7 +6,14 @@ thumbnail: /assets/images/question-marks.png
 extract: Unsure about something? Help is at hand
 ---
 
-## Sharing and citing
+Jump to:
+* [Sharing and citing](#sharing)
+* [Dealing with errors](#errors)
+* [Extending VisualPDE](#extending)
+
+---
+
+## Sharing and citing <a id='sharing'>
 
 ### Am I allowed to make and share content using VisualPDE.com?
 Yes! We would love to see you making and sharing content using VisualPDE. We ask that any content you create somehow points back to [VisualPDE.com](https://visualpde.com) – a great way to do this is to share a link directly to your simulation! Feel free to use VisualPDE in articles, images, videos, scientific works, social media posts, etc.
@@ -19,10 +26,17 @@ These links can be quite long, so we recommend using a (free) shortening service
 ### How do I take a pretty screenshot without all the user interface showing up?
 Screenshots are simple in VisualPDE. Simply open the share sheet by clicking {{ layout.share }} and click 'Save image' to download a screenshot to your device.
 
+### Can I embed VisualPDE in my own site?
+Yes you can! Clicking {{ layout.share }} and then 'Embed' will put an [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) element on your clipboard that points to the current simulation. You can specify the complexity of the user interface that you want to be visible, selecting from the full experience, the minimal interface used in our [Visual Stories](/visual-stories), or no user interface at all.
+
+In principle, you can have as many embedded simulations on your site as you want. In practice, having lots of simulations running at once might cause stuttering on some devices. You can mitigate this by pausing simulations (VisualPDE consumes very few resources when paused) or by only showing a limited number of simulations onscreen at any one time (simulations that are out of view are automatically paused by your browser). You can also make your simulations less computationally demanding by reducing the number of timesteps per frame or the domain size.
+
 ### How do I cite VisualPDE in my article?
 We're currently preparing a manuscript that you'll be able to cite – watch this space!
 
-## Dealing with errors
+---
+
+## Dealing with errors <a id='errors'>
 
 ### An error message has popped up – what do I do!?
 Sometimes, mistakes happen. If something has gone wrong, VisualPDE will try its best to describe the error in a helpful way via a pop-up. We try to display a helpful error message to help you identify the problem. Most error messages look something like this:
@@ -48,19 +62,21 @@ Sometimes, something might go wrong (e.g. a part of the user interface is doing 
 
 If you can, it will help us a lot if you could click <span class='click_sequence'>{{ layout.settings }} → **Misc.** → **Debug** → **Copy debug**</span> and paste the contents into your email. This will contain information about your current configuration that will help us resolve the problem.
 
-## Extending
+---
+
+## Extending VisualPDE <a id='extending'>
 
 ### I want to use VisualPDE in my teaching/research/outreach – what do I do?
-VisualPDE is designed for customising and sharing. If you're new to the site, we recommend that you play around and work through the examples found in [Basic PDEs](/basic-pdes/) to get an idea of how to craft your own simulation, and make use of [link sharing](#linkSharing) to permanently save customised simulations.
+VisualPDE is designed for customising and sharing. If you're new to the site, we recommend that you play around and work through the examples found in [Basic PDEs](/basic-pdes) to get an idea of how to craft your own simulation, and make use of [link sharing](#linkSharing) to permanently save customised simulations.
 
-For instance, a popular way to create custom teaching materials is to simply include links to customised VisualPDE simulations in more traditional teaching materials, similar to the [examples](/basic-pdes/) on the site.
+For instance, a popular way to create custom teaching materials is to simply include links to customised VisualPDE simulations in more traditional teaching materials, similar to the [examples](/basic-pdes) on the site.
 
 If you want to do more than this allows, we'd love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can help bring VisualPDE into your teaching, research, or outreach activities.
 
 ### I've got a feature request – who do I contact?
 We're always looking to improve VisualPDE and would love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com) if you think we can improve something about the experience. If you'd like to suggest a brand new PDE for the website, we're looking for examples that are qualitatively different to what is already on the site. That being said, if you've found a cool parameter set for a system that we haven't noted already, do let us know!
 
-If you can't seem to cast your PDE in a form that VisualPDE can solve, we encourage you to look at the examples in [Basic PDEs](/basic-pdes/) to see how various types of PDE can be thrown into VisualPDE, which might provide some inspiration. If you still can't get VisualPDE to solve your system but you think it should/could be possible, we'd love to hear from you.
+If you can't seem to cast your PDE in a form that VisualPDE can solve, we encourage you to look at the examples in [Basic PDEs](/basic-pdes) to see how various types of PDE can be thrown into VisualPDE, which might provide some inspiration. If you still can't get VisualPDE to solve your system but you think it should/could be possible, we'd love to hear from you.
 
 ### Can I modify the source code of VisualPDE and host my own version?
 In short: yes! We've made VisualPDE open source for a reason and want to see as many people using it as possible. If you want to ship your own version of the source code, we ask that you follow the licences found in our [repository](https://github.com/Pecnut/visual-pde) and provide due credit to [VisualPDE.com](https://visualpde.com). If you're in any doubt about your specific case, do send us an email at [hello@visualpde.com](mailto:hello@visualpde.com) and we'll happily chat with you! We're all about making VisualPDE accessible to as many people as possible.

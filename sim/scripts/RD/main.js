@@ -126,6 +126,7 @@ let nXDisc,
 let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
+  kineticNameToCont = {},
   kineticParamsCounter = 0;
 const defaultSpecies = ["u", "v", "w", "q"];
 const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
@@ -244,26 +245,8 @@ funsObj = {
     isRunning ? pauseSim() : playSim();
   },
   copyConfigAsURL: function () {
-    // Encode the current simulation configuration as a URL and put it on the clipboard.
-    let objDiff = diffObjects(options, getPreset("default"));
-    objDiff.preset = "Custom";
-    // Minify the field names in order to generate shorter URLs.
-    objDiff = minifyPreset(objDiff);
-    let str = [
-      location.href.replace(location.search, ""),
-      "?options=",
-      LZString.compressToEncodedURIComponent(JSON.stringify(objDiff)),
-    ].join("");
-    navigator.clipboard.writeText(str).then(
-      () => {
-        // Success.
-        $("#link_copied").fadeIn(1000);
-        setTimeout(() => $("#link_copied").fadeOut(1000), 2000);
-      },
-      () => {
-        // Failure.
-      }
-    );
+    let str = getSimURL();
+    copyLinkToClipboard(str);
   },
   saveSimState: function () {
     saveSimState();
@@ -480,6 +463,13 @@ $("#screenshot").click(function () {
 $("#link").click(function () {
   funsObj.copyConfigAsURL();
   toggleSharePanel();
+});
+$("#embed").click(function () {
+  copyIframe();
+  toggleSharePanel();
+});
+$("#embed_ui_type").change(function () {
+  $("#embed_ui_type").blur();
 });
 $("#help_panel .container .button").click(function () {
   toggleHelpPanel();
@@ -737,6 +727,8 @@ function init() {
 
   // Listen for resize events.
   window.addEventListener("resize", resize, false);
+
+  window.addEventListener("message", updateParamFromMessage);
 
   // Bind the onchange event for the checkpoint loader.
   $("#checkpointInput").change(function () {
@@ -1220,7 +1212,7 @@ function initGUI(startOpen) {
   // Number of algebraic species.
   algebraicSpeciesController = root
     .add(options, "numAlgebraicSpecies", { 0: 0, 1: 1, 2: 2, 3: 3 })
-    .name("# Algebraic")
+    .name("No. algebraic")
     .onChange(function () {
       updatingAlgebraicSpecies = true;
       updateProblem();
@@ -1687,17 +1679,28 @@ function initGUI(startOpen) {
   root.domElement.children[0].appendChild(debugButton);
   addButton(debugButton, "Copy debug information", copyDebug);
 
+  // Add a title to the rightGUI.
+  const settingsTitle = document.createElement("div");
+  settingsTitle.innerHTML = "Settings";
+  settingsTitle.classList.add("ui_title");
+  rightGUI.domElement.prepend(settingsTitle);
+
+  // Add a title to the leftGUI.
+  const equationsTitle = document.createElement("div");
+  equationsTitle.innerHTML = "Equations";
+  equationsTitle.classList.add("ui_title");
+  leftGUI.domElement.prepend(equationsTitle);
+
   // Populate the viewsGUI.
   // Create a custom element for containing the view options.
   const viewsList = document.createElement("div");
   viewsList.id = "views_list";
-  // viewsList.classList.add("button_list");
   viewsGUI.domElement.prepend(viewsList);
-  const viewsLabel = document.createElement("div");
-  viewsLabel.innerHTML =
+  const viewsTitle = document.createElement("div");
+  viewsTitle.innerHTML =
     "Views<a id='add_view' title='New view'><i class='fa-solid fa-plus'></i></a>";
-  viewsLabel.id = "views_label";
-  viewsGUI.domElement.prepend(viewsLabel);
+  viewsTitle.classList.add("ui_title");
+  viewsGUI.domElement.prepend(viewsTitle);
 
   root = viewsGUI.addFolder("Edit view");
 
@@ -3146,7 +3149,9 @@ function setClearShader() {
   let shaderStr = kineticUniformsForShader() + clearShaderTop();
   if (
     options.clearValueU.includes("RAND") ||
-    options.clearValueV.includes("RAND")
+    options.clearValueV.includes("RAND") ||
+    options.clearValueW.includes("RAND") ||
+    options.clearValueQ.includes("RAND")
   ) {
     shaderStr += randShader();
   }
@@ -4323,6 +4328,7 @@ function createParameterController(label, isNextParam) {
         const match = str.match(/\s*(\w+)\s*=/);
         if (match) {
           newController.lastName = match[1];
+          kineticNameToCont[newController.lastName] = newController;
         }
         kineticParamsCounter += 1;
         let newLabel = "params" + kineticParamsCounter;
@@ -4340,6 +4346,11 @@ function createParameterController(label, isNextParam) {
   } else {
     controller = parametersFolder.add(kineticParamsStrs, label).name("");
     controller.domElement.classList.add("params");
+    const match = kineticParamsStrs[label].match(/\s*(\w+)\s*=/);
+    if (match) {
+      controller.lastName = match[1];
+      kineticNameToCont[controller.lastName] = controller;
+    }
     controller.onFinishChange(function () {
       // Remove excess whitespace.
       let str = removeWhitespace(kineticParamsStrs[label]);
@@ -4376,6 +4387,7 @@ function createParameterController(label, isNextParam) {
         ) {
           delete uniforms[controller.lastName];
           controller.lastName = match[1];
+          kineticNameToCont[controller.lastName] = controller;
         }
       }
       // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
@@ -5755,4 +5767,75 @@ function onMobile() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
   );
+}
+
+function copyIframe() {
+  // Get the URL of the current sim.
+  let url = getSimURL();
+  // Use the UI options specified in embed_ui_type to append ui options.
+  switch (document.getElementById("embed_ui_type").value) {
+    case "full":
+      break;
+    case "story":
+      url += "&story";
+      break;
+    case "none":
+      url += "&no_ui";
+      break;
+  }
+  // Put the url in an iframe and copy to clipboard.
+  let str =
+    '<iframe style="border:0;width:100%;height:100%;" src="' +
+    url +
+    '" frameborder="0" loading="lazy"></iframe>';
+  copyLinkToClipboard(str);
+}
+
+function getSimURL() {
+  // Encode the current simulation configuration as a URL and put it on the clipboard.
+  let objDiff = diffObjects(options, getPreset("default"));
+  objDiff.preset = "Custom";
+  // Minify the field names in order to generate shorter URLs.
+  objDiff = minifyPreset(objDiff);
+  let str = [
+    location.href.replace(location.search, ""),
+    "?options=",
+    LZString.compressToEncodedURIComponent(JSON.stringify(objDiff)),
+  ].join("");
+  return str;
+}
+
+function copyLinkToClipboard(str) {
+  navigator.clipboard.writeText(str).then(
+    () => {
+      // Success.
+      $("#link_copied").fadeIn(1000);
+      setTimeout(() => $("#link_copied").fadeOut(1000), 2000);
+    },
+    () => {
+      // Failure.
+    }
+  );
+}
+
+function updateParamFromMessage(event) {
+  // Upon receiving a message from another window, use the message to update
+  // the value in the specified parameter.
+
+  // Update the value of the slider associated with this parameter, if it exists.
+  const controller = kineticNameToCont[event.data.name];
+  if (controller != undefined) {
+    // If there's a slider, update its value and trigger the update via the slider's input event.
+    if (controller.slider != undefined) {
+      controller.slider.value = event.data.value;
+      controller.slider.dispatchEvent(new Event("input"));
+    } else {
+      const val =
+        controller.object[controller.property].split("=")[0] +
+        "= " +
+        event.data.value.toString();
+      controller.setValue(val);
+      controller.__onFinishChange(controller, val);
+    }
+  }
 }

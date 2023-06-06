@@ -56,7 +56,7 @@ As with all of our Stories, it is worth remembering the limitations of what we'v
 # Looking for more?
 Not quite had enough of exploring airborne infections? You can play around with the speed of the air by opening our [customisable simulation](/sim/?preset=CovidInARoomCircling) and moving the top-most slider that can be found under <span class='click_sequence'>{{ layout.equations }} → **Parameters**</span> and beneath the label beginning with 'V'. Try exploring how the air speed impacts the spread of the virus.
 
-For the science behind this Story, we recommend that you check out the work of [Ian Griffiths](https://people.maths.ox.ac.uk/griffit4/) and collaborators on modelling the Covid-19 pandemic, which forms a basis for the mathematical models that we've just explored with VisualPDE.
+For the science behind this Story, we recommend that you check out the work of [Ian Griffiths](https://people.maths.ox.ac.uk/griffit4/), [Aaron English](https://twitter.com/aaronenglish001) and collaborators on modelling the Covid-19 pandemic, which forms a basis for the mathematical models that we've just explored with VisualPDE. We recommend checking out their [Airborne Virus Risk Calculator](https://people.maths.ox.ac.uk/griffit4/Airborne_Transmission/index.html), which inspired this Visual Story.
 
 Enjoyed this Visual Story? We'd love to hear your feedback at [hello@visualpde.com](mailto:hello@visualpde.com).
 
