@@ -4,6 +4,7 @@ title: A test story
 lesson_number: 20
 thumbnail: /assets/images/VirusTransmission.png
 extract: Testing tesing
+published: false
 equation:
 ---
 

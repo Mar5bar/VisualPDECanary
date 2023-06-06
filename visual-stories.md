@@ -3,7 +3,7 @@
 # To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 
 layout: topic
-title: Visual Stories
+title: Visual stories
 collection_to_list: visual-stories
 ---
 
