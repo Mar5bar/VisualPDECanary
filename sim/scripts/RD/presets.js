@@ -563,36 +563,42 @@ export function getPreset(id) {
       break;
     case "CovidInARoom":
       options = {
-        algebraicW: true,
         boundaryConditionsU: "combo",
+        boundaryConditionsV: "combo",
         brushAction: "smoothadd",
         brushRadius: "20",
         clearValueU: "0",
+        clearValueV: "0",
         colourbar: true,
-        comboStrU: "Top: Neumann = 0; Bottom: Neumann = 0",
+        comboStrU: "Top: Neumann = 0; Bottom: Neumann = 0; Left: Ghost = C_up; Right: Ghost = C_up",
+        comboStrV: "Top: Neumann = 0; Bottom: Neumann = 0; Left: Ghost = C_low; Right: Ghost = C_low",
         crossDiffusion: true,
         diffusionStrUU: "1",
-        diffusionStrVV: "0",
+        diffusionStrVV: "1",
         diffusionStrWW: "0",
+        diffusionStrQQ: "0",
         domainScale: 150,
         dt: 0.001,
         kineticParams:
           "V = 40 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
-        numSpecies: "3",
+        numAlgebraicSpecies: 1,
+        numSpecies: "4",
         numTimestepsPerFrame: 20,
         preset: "CovidInARoom",
         reactionStrU:
-          "R*exp(-0.01*((x-X*L_x)^2+(y-Y*L_y)^2))-(lambda+beta+sigma)*C-V*C_x",
-        reactionStrV: "(1-eta_sus)*rho_sus*C",
-        reactionStrW: "1 - exp(-I*d)",
+          "R*exp(-0.01*((x-X*L_x)^2+(y-Y*L_y)^2))-(lambda+beta+sigma)*C_low-V*C_low_x",
+        reactionStrV:
+          "-(lambda+beta+sigma)*C_up+V*C_up_x",
+        reactionStrW: "(1-eta_sus)*rho_sus*(C_low + C_up)/2",
+        reactionStrQ: "1 - exp(-I*d)",
         spatialStep: 1,
-        speciesNames: "C d P",
+        speciesNames: "C_low C_up d P",
         suppressTryClickingPopup: true,
         views: [
           { name: "Probability", whatToPlot: "P" },
-          { name: "Concentration", whatToPlot: "C", maxColourValue: 5 },
+          { name: "Concentration", whatToPlot: "C_low + C_up", maxColourValue: 5 },
         ],
-        whatToDraw: "C",
+        whatToDraw: "C_low",
         whatToPlot: "P",
       };
       break;
@@ -612,7 +618,7 @@ export function getPreset(id) {
         kineticParams:
           "V = 40 in [0,40];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         reactionStrU:
-          "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C-V*C_x",
+          "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C_low-V*C_low_x",
         runningOnLoad: false,
       };
       break;
