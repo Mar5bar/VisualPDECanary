@@ -1730,9 +1730,9 @@ function initGUI(startOpen) {
     .add(options, "whatToPlot")
     .name("Expression: ")
     .onFinishChange(function () {
-      updateView(this.property);
       updateWhatToPlot();
       render();
+      updateView(this.property);
     });
 
   root
@@ -1743,10 +1743,10 @@ function initGUI(startOpen) {
     })
     .name("Plot type")
     .onChange(function () {
-      updateView(this.property);
       configurePlotType();
       document.activeElement.blur();
       render();
+      updateView(this.property);
     });
 
   root
@@ -1765,9 +1765,9 @@ function initGUI(startOpen) {
       Viridis: "viridis",
     })
     .onChange(function () {
-      updateView(this.property);
       setDisplayColourAndType();
       configureColourbar();
+      updateView(this.property);
     })
     .name("Colour map");
 
@@ -1775,10 +1775,10 @@ function initGUI(startOpen) {
     .add(options, "minColourValue")
     .name("Min value")
     .onChange(function () {
-      updateView(this.property);
       updateUniforms();
       updateColourbarLims();
       render();
+      updateView(this.property);
     });
   minColourValueController.__precision = 2;
 
@@ -1786,10 +1786,10 @@ function initGUI(startOpen) {
     .add(options, "maxColourValue")
     .name("Max value")
     .onChange(function () {
-      updateView(this.property);
       updateUniforms();
       updateColourbarLims();
       render();
+      updateView(this.property);
     });
   maxColourValueController.__precision = 2;
 
@@ -1797,11 +1797,11 @@ function initGUI(startOpen) {
     .add(options, "autoSetColourRange")
     .name("Auto snap")
     .onChange(function () {
-      updateView(this.property);
       if (options.autoSetColourRange) {
         setColourRange();
         render();
       }
+      updateView(this.property);
     });
 
   const colourmapButtons = document.createElement("li");
@@ -1813,10 +1813,10 @@ function initGUI(startOpen) {
     colourmapButtons,
     '<i class="fa-solid fa-arrow-right-arrow-left"></i> Reverse',
     function () {
-      updateView("flippedColourmap");
       options.flippedColourmap = !options.flippedColourmap;
       setDisplayColourAndType();
       configureColourbar();
+      updateView("flippedColourmap");
     },
     null,
     "Reverse colour map"
@@ -1826,10 +1826,10 @@ function initGUI(startOpen) {
     colourmapButtons,
     '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap',
     function () {
-      updateView("minColourValue");
-      updateView("maxColourValue");
       setColourRange();
       render();
+      updateView("minColourValue");
+      updateView("maxColourValue");
     },
     null,
     "Snap min/max to visible"
