@@ -200,6 +200,7 @@ import {
   RDShaderEnforceDirichletTop,
   RDShaderAdvectionPreBC,
   RDShaderAdvectionPostBC,
+  RDShaderGhostX,
   RDShaderGhostY,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
@@ -2647,6 +2648,7 @@ function setRDEquations() {
     RDShaderTop(),
     RDShaderAdvectionPreBC(),
     neumannShader,
+    ghostShader,
     robinShader,
     RDShaderAdvectionPostBC(),
     parseReactionStrings(),
@@ -5689,7 +5691,8 @@ function ghostUpdateShader(speciesInd, side, valStr) {
     );
   }
   // Replace the placeholder GHOST with the specified value.
-  str = str.replaceAll("GHOST", valStr);
+  str = str.replaceAll("GHOSTSPECIES", valStr);
+  return str;
 }
 
 function dirichletUpdateShader(speciesInd, side) {
