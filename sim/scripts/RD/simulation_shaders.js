@@ -76,6 +76,40 @@ export function RDShaderPeriodic() {
   return ``;
 }
 
+export function RDShaderGhostX(LR) {
+  const L = `
+    if (textureCoords.x - step_x < 0.0) {
+        uvwqL.SPECIES = GHOSTSPECIES;
+    }
+    `;
+  const R = `
+    if (textureCoords.x + step_x > 1.0) {
+        uvwqR.SPECIES = GHOSTSPECIES;
+    }
+    `;
+  if (LR == undefined) return L + R;
+  if (LR == "L") return L;
+  if (LR == "R") return R;
+  return "";
+}
+
+export function RDShaderGhostY(TB) {
+  const T = `
+    if (textureCoords.y + step_y > 1.0){
+        uvwqT.SPECIES = GHOSTSPECIES;
+    }
+    `;
+  const B = `
+    if (textureCoords.y - step_y < 0.0) {
+        uvwqB.SPECIES = GHOSTSPECIES;
+    }
+    `;
+  if (TB == undefined) return T + B;
+  if (TB == "T") return T;
+  if (TB == "B") return B;
+  return "";
+}
+
 export function RDShaderRobinX(LR) {
   const L = `
     if (textureCoords.x - step_x < 0.0) {

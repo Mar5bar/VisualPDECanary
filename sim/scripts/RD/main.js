@@ -200,6 +200,7 @@ import {
   RDShaderEnforceDirichletTop,
   RDShaderAdvectionPreBC,
   RDShaderAdvectionPostBC,
+  RDShaderGhostY,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
@@ -2474,6 +2475,7 @@ function replaceBinOperator(str, op, form) {
 
 function setRDEquations() {
   let neumannShader = "";
+  let ghostShader = "";
   let dirichletShader = "";
   let robinShader = "";
   let updateShader = "";
@@ -2524,6 +2526,20 @@ function setRDEquations() {
         const side = m[1][0].toUpperCase();
         neumannShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
         neumannShader += neumannUpdateShader(ind, side);
+      });
+    }
+  });
+
+  // Create a Ghost shader block for each species separately.
+  BCStrs.forEach(function (str, ind) {
+    if (str == "combo") {
+      [
+        ...MStrs[ind].matchAll(
+          /(Left|Right|Top|Bottom)\s*:\s*Ghost\s*=([^;]*);/g
+        ),
+      ].forEach(function (m) {
+        const side = m[1][0].toUpperCase();
+        ghostShader += ghostUpdateShader(ind, side, parseShaderString(m[2]));
       });
     }
   });
@@ -5658,6 +5674,22 @@ function neumannUpdateShader(speciesInd, side) {
     );
   }
   return str;
+}
+
+function ghostUpdateShader(speciesInd, side, valStr) {
+  let str = "";
+  str += selectSpeciesInShaderStr(
+    RDShaderGhostX(side),
+    listOfSpecies[speciesInd]
+  );
+  if (options.dimension > 1) {
+    str += selectSpeciesInShaderStr(
+      RDShaderGhostY(side),
+      listOfSpecies[speciesInd]
+    );
+  }
+  // Replace the placeholder GHOST with the specified value.
+  str = str.replaceAll("GHOST", valStr);
 }
 
 function dirichletUpdateShader(speciesInd, side) {
