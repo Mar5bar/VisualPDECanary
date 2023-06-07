@@ -1755,8 +1755,10 @@ function initGUI(startOpen) {
       "Blue-Magenta": "blue-magenta",
       Diverging: "diverging",
       Greyscale: "greyscale",
+      Ice: "ice",
       "Lava flow": "lavaflow",
       Midnight: "midnight",
+      Pastels: "pastels",
       "Snow Ghost": "snowghost",
       Thermal: "thermal",
       Turbo: "turbo",
@@ -5303,7 +5305,7 @@ function colourFromValue(val) {
   // For val in [0,1] assign a colour using the colourmap.
   val = val.clamp(0, 1);
   let ind = 0;
-  while (val > colourmapEndpoints[ind + 1] && ind < colourmap.length - 1) {
+  while (val > colourmapEndpoints[ind + 1] && ind < colourmap.length - 2) {
     ind += 1;
   }
 

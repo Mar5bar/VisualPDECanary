@@ -71,6 +71,19 @@ export function getColours(sel) {
       colours.push([1.0, 0.0005, 0.1724, 0.5252]);
       colours.push([0.924, 1.0, 0.05, 1.0]);
       break;
+    case "ice":
+      colours.push([-0.1706, -0.1706, -0.1706, 0]);
+      colours.push([0.6899, 0.8709, 0.9782, 0.2535]);
+      colours.push([0.6667, 0.3765, 0.2235, 0.3]);
+      colours.push([0.1137, 0.2863, 0.8549, 0.55]);
+      colours.push([0.4667, 0.9059, 0.8275, 0.8]);
+      break;
+    case "pastels":
+      colours.push([0.9647, 0.949, 0.9294, 0]);
+      colours.push([0.6899, 0.8709, 0.9782, 0.2535]);
+      colours.push([0.6667, 0.3765, 0.2235, 0.3]);
+      colours.push([0.6431, 0.9882, 0.5882, 0.59]);
+      colours.push([0.1843, 0.4275, 0.9608, 0.86]);
   }
   return colours;
 }
