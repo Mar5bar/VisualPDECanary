@@ -53,6 +53,7 @@ export function fiveColourDisplay() {
         {
             col = colour5.rgb;
         }
+        col = clamp(col, 0.0, 1.0);
         gl_FragColor = vec4(col.r, col.g, col.b, 1.0);
         
     }`;

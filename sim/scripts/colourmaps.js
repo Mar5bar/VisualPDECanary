@@ -57,6 +57,20 @@ export function getColours(sel) {
       colours.push([0.9975, 0.9975, 0.9975, 0.75]);
       colours.push([1.0, 1.0, 1.0, 1.0]);
       break;
+    case "midnight":
+      colours.push([1.5, 1.5, 1.5, 0.0]);
+      colours.push([-1.2, -0.7, -0.2, 1.0]);
+      colours.push([-1.2, -0.7, -0.2, 1.0]);
+      colours.push([-1.2, -0.7, -0.2, 1.0]);
+      colours.push([-1.2, -0.7, -0.2, 1.0]);
+      break;
+    case "lavaflow":
+      colours.push([0, 0.1, 0.088, 0.0]);
+      colours.push([0, 0.5044, 0.6114, 0.3737]);
+      colours.push([0.0, 0.0, 0.0, 0.4545]);
+      colours.push([1.0, 0.0005, 0.1724, 0.5252]);
+      colours.push([0.924, 1.0, 0.05, 1.0]);
+      break;
   }
   return colours;
 }

@@ -1755,6 +1755,8 @@ function initGUI(startOpen) {
       "Blue-Magenta": "blue-magenta",
       Diverging: "diverging",
       Greyscale: "greyscale",
+      "Lava flow": "lavaflow",
+      Midnight: "midnight",
       "Snow Ghost": "snowghost",
       Thermal: "thermal",
       Turbo: "turbo",
@@ -4496,14 +4498,16 @@ function fadeout(id) {
 function configureColourbar() {
   if (options.colourbar) {
     $("#colourbar").show();
-    let colours = colourmap.map((x) => x.map((y) => 255 * y).toString());
     let cString = "linear-gradient(90deg, ";
-    cString += "rgb(" + colours[0] + ") 0%,";
-    cString += "rgb(" + colours[1] + ") 25%,";
-    cString += "rgb(" + colours[2] + ") 50%,";
-    cString += "rgb(" + colours[3] + ") 75%,";
-    cString += "rgb(" + colours[4] + ") 100%";
-    cString += ")";
+    for (var val = 0; val < 1; val += 0.01) {
+      cString +=
+        "rgb(" +
+        colourFromValue(val).map((x) => 255 * x) +
+        ") " +
+        100 * val +
+        "%,";
+    }
+    cString = cString.slice(0, -1) + ")";
     $("#colourbar").css("background", cString);
     if (options.whatToPlot == "MAX") {
       $("#minLabel").html("$" + listOfSpecies[0] + "$");
@@ -5297,13 +5301,11 @@ function setLineColour(xy) {
 
 function colourFromValue(val) {
   // For val in [0,1] assign a colour using the colourmap.
-  if (val <= 0) return colourmap[0];
-  if (val >= 1) return colourmap[colourmap.length - 1];
+  val = val.clamp(0, 1);
   let ind = 0;
-  while (val > colourmapEndpoints[ind] && ind < colourmap.length - 1) {
+  while (val > colourmapEndpoints[ind + 1] && ind < colourmap.length - 1) {
     ind += 1;
   }
-  ind -= 1;
 
   // Interpolate between the colours on the required segment. Note ind 0 <= ind < 4.
   return lerpArrays(
@@ -5311,7 +5313,7 @@ function colourFromValue(val) {
     colourmap[ind + 1],
     (val - colourmapEndpoints[ind]) /
       (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind])
-  );
+  ).map((x) => x.clamp(0, 1));
 }
 
 function lerpArrays(v1, v2, t) {
