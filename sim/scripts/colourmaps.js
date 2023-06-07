@@ -43,6 +43,20 @@ export function getColours(sel) {
       colours.push([0.7948, 0.7255, 0.3982, 0.75]);
       colours.push([0.991, 0.894, 0.036, 1.0]);
       break;
+    case "thermal":
+      colours.push([0.909, 0.9822, 0.3555, 0.0]);
+      colours.push([0.9782, 0.5782, 0.2558, 0.25]);
+      colours.push([0.6923, 0.3736, 0.5085, 0.5]);
+      colours.push([0.3381, 0.2324, 0.6119, 0.75]);
+      colours.push([0.0156, 0.1382, 0.2018, 1.0]);
+      break;
+    case "snowghost":
+      colours.push([0.99, 0.99, 0.99, 0.0]);
+      colours.push([0.9925, 0.9925, 0.9925, 0.25]);
+      colours.push([0.995, 0.995, 0.995, 0.5]);
+      colours.push([0.9975, 0.9975, 0.9975, 0.75]);
+      colours.push([1.0, 1.0, 1.0, 1.0]);
+      break;
   }
   return colours;
 }

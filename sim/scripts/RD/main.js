@@ -1753,6 +1753,8 @@ function initGUI(startOpen) {
       "Blue-Magenta": "blue-magenta",
       Diverging: "diverging",
       Greyscale: "greyscale",
+      "Snow Ghost": "snowghost",
+      Thermal: "thermal",
       Turbo: "turbo",
       Viridis: "viridis",
     })
