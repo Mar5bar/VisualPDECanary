@@ -1074,7 +1074,7 @@ function initUniforms() {
     },
 		smoothingScale: {
 			type: "f",
-			value: options.smoothingScale,
+			value: options.smoothingScale + 1,
 		},
     textureSource: {
       type: "t",
@@ -1627,7 +1627,7 @@ function initGUI(startOpen) {
     .name("Smoothing")
     .onChange(function () {
       resizeTextures();
-			uniforms.smoothingScale.value = options.smoothingScale;
+			uniforms.smoothingScale.value = options.smoothingScale + 1;
       render();
     });
 
