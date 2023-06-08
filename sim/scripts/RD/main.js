@@ -204,7 +204,12 @@ import {
   RDShaderGhostY,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
-import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
+import {
+  fiveColourDisplayTop,
+  fiveColourDisplayBot,
+  embossShader,
+  surfaceVertexShader,
+} from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset, getUserTextFields, getFieldsInView } from "./presets.js";
@@ -812,6 +817,7 @@ function updateUniforms() {
   uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
+  setEmbossUniforms();
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
@@ -1000,6 +1006,18 @@ function initUniforms() {
     colour5: {
       type: "v4",
       value: new THREE.Vector4(1, 1, 1, 0.6),
+    },
+    embossAmbient: {
+      type: "f",
+    },
+    embossDiffuse: {
+      type: "f",
+    },
+    embossSpecular: {
+      type: "f",
+    },
+    embossLightDir: {
+      type: "vec3",
     },
     L: {
       type: "f",
@@ -1624,6 +1642,35 @@ function initGUI(startOpen) {
       render();
     });
 
+  root = root.addFolder("Embossing");
+
+  var controller;
+  controller = root
+    .add(options, "embossAmbient")
+    .name("Ambient")
+    .onChange(setEmbossUniforms);
+  createOptionSlider(controller, 0, 1, 0.001);
+  controller = root
+    .add(options, "embossDiffuse")
+    .name("Diffuse")
+    .onChange(setEmbossUniforms);
+  createOptionSlider(controller, 0, 1, 0.001);
+  controller = root
+    .add(options, "embossSpecular")
+    .name("Specular")
+    .onChange(setEmbossUniforms);
+  createOptionSlider(controller, 0, 1, 0.001);
+  controller = root
+    .add(options, "embossTheta")
+    .name("$\\theta$")
+    .onChange(setEmbossUniforms);
+  createOptionSlider(controller, 0, 1.5708, 0.001);
+  controller = root
+    .add(options, "embossPhi")
+    .name("$\\phi$")
+    .onChange(setEmbossUniforms);
+  createOptionSlider(controller, 0, 3.1456, 0.001);
+
   // Images folder.
   fIm = rightGUI.addFolder("Images");
   root = fIm;
@@ -1804,6 +1851,14 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
+  root
+    .add(options, "emboss")
+    .name("Emboss")
+    .onChange(function () {
+      setDisplayColourAndType();
+      updateView(this.property);
+    });
+
   const colourmapButtons = document.createElement("li");
   colourmapButtons.id = "colour_map_buttons";
   colourmapButtons.classList.add("button_list");
@@ -1952,7 +2007,13 @@ function setDisplayColourAndType() {
   uniforms.colour3.value = new THREE.Vector4(...colourmap[2]);
   uniforms.colour4.value = new THREE.Vector4(...colourmap[3]);
   uniforms.colour5.value = new THREE.Vector4(...colourmap[4]);
-  displayMaterial.fragmentShader = fiveColourDisplay();
+  let shader = fiveColourDisplayTop();
+  if (options.emboss) {
+    shader += embossShader();
+    setEmbossUniforms();
+  }
+  shader += fiveColourDisplayBot();
+  displayMaterial.fragmentShader = shader;
   displayMaterial.needsUpdate = true;
   postMaterial.needsUpdate = true;
   colourmapEndpoints = colourmap.map((x) => x[3]);
@@ -5884,4 +5945,42 @@ function updateParamFromMessage(event) {
       controller.__onFinishChange(controller, val);
     }
   }
+}
+
+function setEmbossUniforms() {
+  uniforms.embossAmbient.value = options.embossAmbient;
+  uniforms.embossDiffuse.value = options.embossDiffuse;
+  uniforms.embossSpecular.value = options.embossSpecular;
+  uniforms.embossLightDir.value = new THREE.Vector3(
+    Math.sin(options.embossTheta) * Math.cos(options.embossPhi),
+    Math.sin(options.embossTheta) * Math.sin(options.embossPhi),
+    Math.cos(options.embossTheta)
+  );
+}
+
+function createOptionSlider(controller, min, max, step) {
+  controller.slider = document.createElement("input");
+  controller.slider.classList.add("styled-slider");
+  controller.slider.classList.add("slider-progress");
+  controller.slider.type = "range";
+  controller.slider.min = min;
+  controller.slider.max = max;
+  controller.slider.step = step;
+
+  // Configure the slider's style so that it can be nicely formatted.
+  controller.slider.style.setProperty("--value", controller.slider.value);
+  controller.slider.style.setProperty("--min", controller.slider.min);
+  controller.slider.style.setProperty("--max", controller.slider.max);
+
+  // Configure the updated.
+  controller.slider.addEventListener("input", function () {
+    controller.slider.style.setProperty("--value", controller.slider.value);
+    controller.setValue(controller.slider.value);
+  });
+
+  // Add the slider to the DOM.
+  controller.domElement.appendChild(controller.slider);
+  controller.domElement.parentElement.parentElement.classList.add(
+    "parameterSlider"
+  );
 }

@@ -570,8 +570,10 @@ export function getPreset(id) {
         clearValueU: "0",
         clearValueV: "0",
         colourbar: true,
-        comboStrU: "Top: Neumann = 0; Bottom: Neumann = 0; Left: Ghost = C_up; Right: Ghost = C_up",
-        comboStrV: "Top: Neumann = 0; Bottom: Neumann = 0; Left: Ghost = C_low; Right: Ghost = C_low",
+        comboStrU:
+          "Top: Neumann = 0; Bottom: Neumann = 0; Left: Ghost = C_up; Right: Ghost = C_up",
+        comboStrV:
+          "Top: Neumann = 0; Bottom: Neumann = 0; Left: Ghost = C_low; Right: Ghost = C_low",
         crossDiffusion: true,
         diffusionStrUU: "1",
         diffusionStrVV: "1",
@@ -587,8 +589,7 @@ export function getPreset(id) {
         preset: "CovidInARoom",
         reactionStrU:
           "R*exp(-0.01*((x-X*L_x)^2+(y-Y*L_y)^2))-(lambda+beta+sigma)*C_low-V*C_low_x",
-        reactionStrV:
-          "-(lambda+beta+sigma)*C_up+V*C_up_x",
+        reactionStrV: "-(lambda+beta+sigma)*C_up+V*C_up_x",
         reactionStrW: "(1-eta_sus)*rho_sus*(C_low + C_up)/2",
         reactionStrQ: "1 - exp(-I*d)",
         spatialStep: 1,
@@ -596,7 +597,11 @@ export function getPreset(id) {
         suppressTryClickingPopup: true,
         views: [
           { name: "Probability", whatToPlot: "P" },
-          { name: "Concentration", whatToPlot: "C_low + C_up", maxColourValue: 5 },
+          {
+            name: "Concentration",
+            whatToPlot: "C_low + C_up",
+            maxColourValue: 5,
+          },
         ],
         whatToDraw: "C_low",
         whatToPlot: "P",
@@ -2170,6 +2175,12 @@ export function getPreset(id) {
         domainScale: 100,
         domainViaIndicatorFun: false,
         dt: 0.1,
+        emboss: false,
+        embossAmbient: 0.5,
+        embossDiffuse: 0.6,
+        embossSpecular: 0.6,
+        embossTheta: 0.7854,
+        embossPhi: 1.5708,
         fixRandSeed: false,
         flippedColourmap: false,
         forceManualInterpolation: false,
@@ -2287,5 +2298,6 @@ export function getFieldsInView() {
     "maxColourValue",
     "autoSetColourRange",
     "plotType",
+    "emboss",
   ];
 }

@@ -1,6 +1,6 @@
 // display_shaders.js
 
-export function fiveColourDisplay() {
+export function fiveColourDisplayTop() {
   return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
     uniform float minColourValue;
@@ -12,6 +12,11 @@ export function fiveColourDisplay() {
     uniform vec4 colour3;
     uniform vec4 colour4;
     uniform vec4 colour5;
+		
+    uniform float embossAmbient;
+    uniform float embossDiffuse;
+    uniform float embossSpecular;
+    uniform vec3 embossLightDir;
 
     void main()
     {   
@@ -54,9 +59,26 @@ export function fiveColourDisplay() {
             col = colour5.rgb;
         }
         col = clamp(col, 0.0, 1.0);
-        gl_FragColor = vec4(col.r, col.g, col.b, 1.0);
-        
-    }`;
+				`;
+}
+
+export function fiveColourDisplayBot() {
+  return `gl_FragColor = vec4(col.r, col.g, col.b, 1.0); 
+	}`;
+}
+
+export function embossShader() {
+  return `ivec2 texSize = textureSize(textureSource,0);
+    const float spec_exp = 10.0;
+    float step_x = 1.0 / float(texSize.x);
+    float step_y = 1.0 / float(texSize.y);
+    float gradX = (texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).r - texture2D(textureSource, textureCoords + vec2(-step_x, 0.0)).r) / (maxColourValue - minColourValue);
+    float gradY = (texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).r - texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).r) / (maxColourValue - minColourValue);
+    vec3 normal = normalize(vec3 (-gradX, -gradY, max(scaledValue, 0.2)));
+    float diff = max(0.0, dot(normal, embossLightDir));
+    float rz = max(0.0, 2.0*diff*normal.z - embossLightDir.z);
+    col = col*(embossDiffuse*diff + embossAmbient) + embossSpecular*pow(rz, spec_exp);
+    `;
 }
 
 export function largestSpeciesShader() {
@@ -70,7 +92,7 @@ export function largestSpeciesShader() {
 }
 
 export function surfaceVertexShader() {
-    return `varying vec2 textureCoords;
+  return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
     uniform float minColourValue;
     uniform float maxColourValue;
@@ -83,5 +105,5 @@ export function surfaceVertexShader() {
         float scaledValue = clamp((value - minColourValue) / (maxColourValue - minColourValue) - 0.5, -0.5, 0.5);
         newPosition.z += heightScale * scaledValue;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
-    }`
+    }`;
 }
