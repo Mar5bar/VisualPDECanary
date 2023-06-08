@@ -6,8 +6,6 @@ export function fiveColourDisplayTop() {
     uniform float minColourValue;
     uniform float maxColourValue;
     const float pi = 3.141592653589793;
-    uniform float dx;
-    uniform float dy;
 
     uniform vec4 colour1;
     uniform vec4 colour2;
@@ -74,8 +72,8 @@ export function embossShader() {
     const float spec_exp = 10.0;
     float step_x = 1.0 / float(texSize.x);
     float step_y = 1.0 / float(texSize.y);
-    float gradX = (texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).r - texture2D(textureSource, textureCoords + vec2(-step_x, 0.0)).r) / (maxColourValue - minColourValue) / (2.0*dx);
-    float gradY = (texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).r - texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).r) / (maxColourValue - minColourValue) / (2.0*dy);
+    float gradX = (texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).r - texture2D(textureSource, textureCoords + vec2(-step_x, 0.0)).r) / (maxColourValue - minColourValue);
+    float gradY = (texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).r - texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).r) / (maxColourValue - minColourValue);
     vec3 normal = normalize(vec3 (-gradX, -gradY, 1.0));
     float diff = max(0.0, dot(normal, embossLightDir));
     float rz = max(0.0, 2.0*diff*normal.z - embossLightDir.z);
