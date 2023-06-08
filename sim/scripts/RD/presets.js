@@ -596,11 +596,17 @@ export function getPreset(id) {
         speciesNames: "C_low C_up d P",
         suppressTryClickingPopup: true,
         views: [
-          { name: "Probability", whatToPlot: "P" },
+          {
+            name: "Probability",
+            whatToPlot: "P",
+            colourmap: "greyscale",
+            flippedColourmap: false,
+          },
           {
             name: "Concentration",
             whatToPlot: "C_low + C_up",
             maxColourValue: 5,
+            colourmap: "lavaflow",
           },
         ],
         whatToDraw: "C_low",
