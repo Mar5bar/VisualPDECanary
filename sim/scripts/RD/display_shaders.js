@@ -74,7 +74,7 @@ export function embossShader() {
     float step_y = 1.0 / float(texSize.y);
     float gradX = (texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).r - texture2D(textureSource, textureCoords + vec2(-step_x, 0.0)).r) / (maxColourValue - minColourValue);
     float gradY = (texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).r - texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).r) / (maxColourValue - minColourValue);
-    vec3 normal = normalize(vec3 (-gradX, -gradY, max(scaledValue, 0.2)));
+    vec3 normal = normalize(vec3 (-gradX, -gradY, 1.0));
     float diff = max(0.0, dot(normal, embossLightDir));
     float rz = max(0.0, 2.0*diff*normal.z - embossLightDir.z);
     col = col*(embossDiffuse*diff + embossAmbient) + embossSpecular*pow(rz, spec_exp);
