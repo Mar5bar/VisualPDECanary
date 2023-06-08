@@ -1662,12 +1662,12 @@ function initGUI(startOpen) {
   createOptionSlider(controller, 0, 1, 0.001);
   controller = root
     .add(options, "embossTheta")
-    .name("$\\theta$")
+    .name("Inclination")
     .onChange(setEmbossUniforms);
   createOptionSlider(controller, 0, 1.5708, 0.001);
   controller = root
     .add(options, "embossPhi")
-    .name("$\\phi$")
+    .name("Direction")
     .onChange(setEmbossUniforms);
   createOptionSlider(controller, 0, 3.1456, 0.001);
 
