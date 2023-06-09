@@ -70,6 +70,12 @@ let leftGUI,
   maxColourValueController,
   setColourRangeController,
   autoSetColourRangeController,
+  embossScaleController,
+  embossAmbientController,
+  embossDiffuseController,
+  embossSpecularController,
+  embossThetaController,
+  embossPhiController,
   clearValueUController,
   clearValueVController,
   clearValueWController,
@@ -1013,6 +1019,9 @@ function initUniforms() {
     embossDiffuse: {
       type: "f",
     },
+    embossScale: {
+      type: "f",
+    },
     embossSpecular: {
       type: "f",
     },
@@ -1072,10 +1081,10 @@ function initUniforms() {
       type: "f",
       value: 0.0,
     },
-		smoothingScale: {
-			type: "f",
-			value: options.smoothingScale + 1,
-		},
+    smoothingScale: {
+      type: "f",
+      value: options.smoothingScale + 1,
+    },
     textureSource: {
       type: "t",
     },
@@ -1627,7 +1636,7 @@ function initGUI(startOpen) {
     .name("Smoothing")
     .onChange(function () {
       resizeTextures();
-			uniforms.smoothingScale.value = options.smoothingScale + 1;
+      uniforms.smoothingScale.value = options.smoothingScale + 1;
       render();
     });
 
@@ -1649,32 +1658,36 @@ function initGUI(startOpen) {
 
   root = root.addFolder("Embossing");
 
-  var controller;
-  controller = root
+  embossScaleController = root
+    .add(options, "embossScale")
+    .name("Smoothness")
+    .onChange(setEmbossUniforms);
+  createOptionSlider(embossScaleController, 0, 1, 0.001);
+  embossAmbientController = root
     .add(options, "embossAmbient")
     .name("Ambient")
     .onChange(setEmbossUniforms);
-  createOptionSlider(controller, 0, 1, 0.001);
-  controller = root
+  createOptionSlider(embossAmbientController, 0, 1, 0.001);
+  embossDiffuseController = root
     .add(options, "embossDiffuse")
     .name("Diffuse")
     .onChange(setEmbossUniforms);
-  createOptionSlider(controller, 0, 1, 0.001);
-  controller = root
+  createOptionSlider(embossDiffuseController, 0, 1, 0.001);
+  embossSpecularController = root
     .add(options, "embossSpecular")
     .name("Specular")
     .onChange(setEmbossUniforms);
-  createOptionSlider(controller, 0, 1, 0.001);
-  controller = root
+  createOptionSlider(embossSpecularController, 0, 1, 0.001);
+  embossThetaController = root
     .add(options, "embossTheta")
     .name("Inclination")
     .onChange(setEmbossUniforms);
-  createOptionSlider(controller, 0, 1.5708, 0.001);
-  controller = root
+  createOptionSlider(embossThetaController, 0, 1.5708, 0.001);
+  embossPhiController = root
     .add(options, "embossPhi")
     .name("Direction")
     .onChange(setEmbossUniforms);
-  createOptionSlider(controller, 0, 3.1456, 0.001);
+  createOptionSlider(embossPhiController, 0, 3.1456, 0.001);
 
   // Images folder.
   fIm = rightGUI.addFolder("Images");
@@ -3725,6 +3738,8 @@ function configureGUI() {
     whatToDrawController,
     listOfSpecies.slice(0, options.numSpecies)
   );
+  // Update emboss sliders.
+  updateEmbossSliders();
   // Configure the Views GUI from options.views.
   configureViewsGUI();
   // Refresh the GUI displays.
@@ -5955,6 +5970,7 @@ function updateParamFromMessage(event) {
 function setEmbossUniforms() {
   uniforms.embossAmbient.value = options.embossAmbient;
   uniforms.embossDiffuse.value = options.embossDiffuse;
+  uniforms.embossScale.value = options.embossScale;
   uniforms.embossSpecular.value = options.embossSpecular;
   uniforms.embossLightDir.value = new THREE.Vector3(
     Math.sin(options.embossTheta) * Math.cos(options.embossPhi),
@@ -5971,21 +5987,65 @@ function createOptionSlider(controller, min, max, step) {
   controller.slider.min = min;
   controller.slider.max = max;
   controller.slider.step = step;
+  controller.slider.value = controller.getValue();
 
   // Configure the slider's style so that it can be nicely formatted.
   controller.slider.style.setProperty("--value", controller.slider.value);
   controller.slider.style.setProperty("--min", controller.slider.min);
   controller.slider.style.setProperty("--max", controller.slider.max);
 
-  // Configure the updated.
+  // Configure the update.
   controller.slider.addEventListener("input", function () {
     controller.slider.style.setProperty("--value", controller.slider.value);
     controller.setValue(controller.slider.value);
   });
+
+  // Augment the controller's onChange and onFinishChange to update the slider.
+  if (controller.__onChange != undefined) {
+    controller.oldOnChange = controller.__onChange;
+    controller.__onChange = function () {
+      controller.oldOnChange();
+      controller.slider.value = controller.getValue();
+      controller.slider.style.setProperty("--value", controller.slider.value);
+    };
+  }
+
+  if (controller.__onFinishChange != undefined) {
+    controller.oldOnFinishChange = controller.__onFinishChange;
+    controller.__onFinishChange = function () {
+      controller.oldOnFinishChange();
+      controller.slider.value = controller.getValue();
+      controller.slider.style.setProperty("--value", controller.slider.value);
+    };
+  }
 
   // Add the slider to the DOM.
   controller.domElement.appendChild(controller.slider);
   controller.domElement.parentElement.parentElement.classList.add(
     "parameterSlider"
   );
+}
+
+function updateEmbossSliders() {
+  embossScaleController.slider.style.setProperty(
+    "--value",
+    options.embossScale
+  );
+  embossAmbientController.slider.style.setProperty(
+    "--value",
+    options.embossAmbient
+  );
+  embossDiffuseController.slider.style.setProperty(
+    "--value",
+    options.embossDiffuse
+  );
+  embossSpecularController.slider.style.setProperty(
+    "--value",
+    options.embossSpecular
+  );
+  embossThetaController.slider.style.setProperty(
+    "--value",
+    options.embossTheta
+  );
+  embossPhiController.slider.style.setProperty("--value", options.embossPhi);
 }
