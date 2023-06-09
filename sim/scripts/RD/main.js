@@ -1661,32 +1661,62 @@ function initGUI(startOpen) {
   embossSmoothnessController = root
     .add(options, "embossSmoothness")
     .name("Smoothness")
-    .onChange(setEmbossUniforms);
+    .onChange(function () {
+      setEmbossUniforms();
+      if (!isRunning) {
+        render();
+      }
+    });
   createOptionSlider(embossSmoothnessController, 0, 10, 0.001);
   embossAmbientController = root
     .add(options, "embossAmbient")
     .name("Ambient")
-    .onChange(setEmbossUniforms);
+    .onChange(function () {
+      setEmbossUniforms();
+      if (!isRunning) {
+        render();
+      }
+    });
   createOptionSlider(embossAmbientController, 0, 1, 0.001);
   embossDiffuseController = root
     .add(options, "embossDiffuse")
     .name("Diffuse")
-    .onChange(setEmbossUniforms);
+    .onChange(function () {
+      setEmbossUniforms();
+      if (!isRunning) {
+        render();
+      }
+    });
   createOptionSlider(embossDiffuseController, 0, 1, 0.001);
   embossSpecularController = root
     .add(options, "embossSpecular")
     .name("Specular")
-    .onChange(setEmbossUniforms);
+    .onChange(function () {
+      setEmbossUniforms();
+      if (!isRunning) {
+        render();
+      }
+    });
   createOptionSlider(embossSpecularController, 0, 1, 0.001);
   embossThetaController = root
     .add(options, "embossTheta")
     .name("Inclination")
-    .onChange(setEmbossUniforms);
+    .onChange(function () {
+      setEmbossUniforms();
+      if (!isRunning) {
+        render();
+      }
+    });
   createOptionSlider(embossThetaController, 0, 1.5708, 0.001);
   embossPhiController = root
     .add(options, "embossPhi")
     .name("Direction")
-    .onChange(setEmbossUniforms);
+    .onChange(function () {
+      setEmbossUniforms();
+      if (!isRunning) {
+        render();
+      }
+    });
   createOptionSlider(embossPhiController, 0, 3.1456, 0.001);
 
   // Images folder.
