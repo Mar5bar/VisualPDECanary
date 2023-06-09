@@ -70,7 +70,7 @@ let leftGUI,
   maxColourValueController,
   setColourRangeController,
   autoSetColourRangeController,
-  embossScaleController,
+  embossSmoothnessController,
   embossAmbientController,
   embossDiffuseController,
   embossSpecularController,
@@ -1019,7 +1019,7 @@ function initUniforms() {
     embossDiffuse: {
       type: "f",
     },
-    embossScale: {
+    embossSmoothness: {
       type: "f",
     },
     embossSpecular: {
@@ -1658,11 +1658,11 @@ function initGUI(startOpen) {
 
   root = root.addFolder("Embossing");
 
-  embossScaleController = root
-    .add(options, "embossScale")
+  embossSmoothnessController = root
+    .add(options, "embossSmoothness")
     .name("Smoothness")
     .onChange(setEmbossUniforms);
-  createOptionSlider(embossScaleController, 0, 10, 0.001);
+  createOptionSlider(embossSmoothnessController, 0, 10, 0.001);
   embossAmbientController = root
     .add(options, "embossAmbient")
     .name("Ambient")
@@ -5970,7 +5970,7 @@ function updateParamFromMessage(event) {
 function setEmbossUniforms() {
   uniforms.embossAmbient.value = options.embossAmbient;
   uniforms.embossDiffuse.value = options.embossDiffuse;
-  uniforms.embossScale.value = options.embossScale;
+  uniforms.embossSmoothness.value = options.embossSmoothness;
   uniforms.embossSpecular.value = options.embossSpecular;
   uniforms.embossLightDir.value = new THREE.Vector3(
     Math.sin(options.embossTheta) * Math.cos(options.embossPhi),
@@ -6027,9 +6027,9 @@ function createOptionSlider(controller, min, max, step) {
 }
 
 function updateEmbossSliders() {
-  embossScaleController.slider.style.setProperty(
+  embossSmoothnessController.slider.style.setProperty(
     "--value",
-    options.embossScale
+    options.embossSmoothness
   );
   embossAmbientController.slider.style.setProperty(
     "--value",
