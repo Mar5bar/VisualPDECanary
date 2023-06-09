@@ -1662,7 +1662,7 @@ function initGUI(startOpen) {
     .add(options, "embossScale")
     .name("Smoothness")
     .onChange(setEmbossUniforms);
-  createOptionSlider(embossScaleController, 0, 1, 0.001);
+  createOptionSlider(embossScaleController, 0, 10, 0.001);
   embossAmbientController = root
     .add(options, "embossAmbient")
     .name("Ambient")
