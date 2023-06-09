@@ -944,6 +944,7 @@ export function getPreset(id) {
         diffusionStrWW: "0",
         dt: 0.001,
         emboss: true,
+        embossSmoothness: 0.2,
         fixRandSeed: true,
         kineticParams: "a=3;c=-1;n=0;m=0;",
         maxColourValue: 3.1,
