@@ -934,7 +934,7 @@ export function getPreset(id) {
       break;
     case "lambdaOmega":
       options = {
-        activeViewInd: 2,
+        activeViewInd: 1,
         brushValue: "2",
         brushRadius: "1",
         clearValueU: "sin(2*pi*x/L_x)*sin(2*pi*y/L_y)",
