@@ -22,7 +22,7 @@ export function fiveColourDisplayTop() {
     uniform vec3 embossLightDir;
 		uniform float smoothingScale;
 
-    uniform vec4 contourColour;
+    uniform vec3 contourColour;
     uniform float contourEpsilon;
     uniform float contourStep;
 
@@ -95,13 +95,10 @@ export function embossShader() {
 
 export function contourShader() {
   return `for (float contourVal = contourStep; contourVal < 1.0; contourVal += contourStep) {
-    col = mix(col, contourColour.rgb, float(abs(scaledValue - contourVal) < contourEpsilon));
+    col = mix(col, contourColour, float(abs(scaledValue - contourVal) < contourEpsilon));
   }`;
 }
 
-// if (abs(scaledValue - contourVal) < contourEpsilon) {
-//   col = colFromValue(scaledValue + contourShift);
-// }
 export function largestSpeciesShader() {
   return `varying vec2 textureCoords;
       uniform sampler2D textureSource;

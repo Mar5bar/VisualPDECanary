@@ -66,6 +66,8 @@ let leftGUI,
   cameraZoomController,
   forceManualInterpolationController,
   smoothingScaleController,
+  contourEpsilonController,
+  contourNumController,
   minColourValueController,
   maxColourValueController,
   setColourRangeController,
@@ -996,7 +998,7 @@ function initUniforms() {
     },
     colour1: {
       type: "v4",
-      value: new THREE.Vector4(0, 0, 0.0, 0),
+      value: new THREE.Vector4(0, 0, 0, 0),
     },
     colour2: {
       type: "v4",
@@ -1650,6 +1652,34 @@ function initGUI(startOpen) {
       render();
     });
 
+  root = root.addFolder("Contours");
+
+  contourNumController = root
+    .add(options, "contourNum")
+    .name("Number")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(contourNumController, 1, 20, 1);
+
+  contourEpsilonController = root
+    .add(options, "contourEpsilon")
+    .name("Threshold")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(contourEpsilonController, 0.001, 0.05, 0.001);
+
+  root
+    .addColor(options, "contourColour")
+    .name("Colour")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+    });
+
   // Colour folder.
   root = rightGUI.addFolder("Colour");
 
@@ -1673,59 +1703,52 @@ function initGUI(startOpen) {
     .name("Smoothness")
     .onChange(function () {
       setEmbossUniforms();
-      if (!isRunning) {
-        render();
-      }
+      renderIfNotRunning();
     });
   createOptionSlider(embossSmoothnessController, 0, 10, 0.001);
+
   embossAmbientController = root
     .add(options, "embossAmbient")
     .name("Ambient")
     .onChange(function () {
       setEmbossUniforms();
-      if (!isRunning) {
-        render();
-      }
+      renderIfNotRunning();
     });
   createOptionSlider(embossAmbientController, 0, 1, 0.001);
+
   embossDiffuseController = root
     .add(options, "embossDiffuse")
     .name("Diffuse")
     .onChange(function () {
       setEmbossUniforms();
-      if (!isRunning) {
-        render();
-      }
+      renderIfNotRunning();
     });
   createOptionSlider(embossDiffuseController, 0, 1, 0.001);
+
   embossSpecularController = root
     .add(options, "embossSpecular")
     .name("Specular")
     .onChange(function () {
       setEmbossUniforms();
-      if (!isRunning) {
-        render();
-      }
+      renderIfNotRunning();
     });
   createOptionSlider(embossSpecularController, 0, 1, 0.001);
+
   embossThetaController = root
     .add(options, "embossTheta")
     .name("Inclination")
     .onChange(function () {
       setEmbossUniforms();
-      if (!isRunning) {
-        render();
-      }
+      renderIfNotRunning();
     });
   createOptionSlider(embossThetaController, 0, 1.5708, 0.001);
+
   embossPhiController = root
     .add(options, "embossPhi")
     .name("Direction")
     .onChange(function () {
       setEmbossUniforms();
-      if (!isRunning) {
-        render();
-      }
+      renderIfNotRunning();
     });
   createOptionSlider(embossPhiController, 0, 3.1456, 0.001);
 
@@ -1913,6 +1936,14 @@ function initGUI(startOpen) {
     });
 
   root
+    .add(options, "contours")
+    .name("Contours")
+    .onChange(function () {
+      setDisplayColourAndType();
+      updateView(this.property);
+    });
+
+  root
     .add(options, "emboss")
     .name("Emboss")
     .onChange(function () {
@@ -2075,7 +2106,7 @@ function setDisplayColourAndType() {
   }
   if (options.contours) {
     shader += contourShader();
-    setContourStep();
+    setContourUniforms();
   }
   shader += fiveColourDisplayBot();
   displayMaterial.fragmentShader = shader;
@@ -6046,7 +6077,7 @@ function createOptionSlider(controller, min, max, step) {
   // Configure the update.
   controller.slider.addEventListener("input", function () {
     controller.slider.style.setProperty("--value", controller.slider.value);
-    controller.setValue(controller.slider.value);
+    controller.setValue(parseFloat(controller.slider.value));
   });
 
   // Augment the controller's onChange and onFinishChange to update the slider.
@@ -6099,9 +6130,12 @@ function updateEmbossSliders() {
   embossPhiController.slider.style.setProperty("--value", options.embossPhi);
 }
 
-function setContourStep() {
-  // Set the step size for contour plots based on contourNum.
+function setContourUniforms() {
   uniforms.contourColour.value = new THREE.Color(options.contourColour);
   uniforms.contourEpsilon.value = options.contourEpsilon;
   uniforms.contourStep.value = 1 / (options.contourNum + 1);
+}
+
+function renderIfNotRunning() {
+  if (!isRunning) render();
 }
