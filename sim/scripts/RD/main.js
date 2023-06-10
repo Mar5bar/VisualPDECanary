@@ -1859,6 +1859,7 @@ function initGUI(startOpen) {
       Thermal: "thermal",
       Turbo: "turbo",
       Viridis: "viridis",
+      Water: "water",
     })
     .onChange(function () {
       setDisplayColourAndType();

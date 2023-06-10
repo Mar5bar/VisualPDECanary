@@ -88,9 +88,16 @@ export function getColours(sel) {
     case "foliage":
       colours.push([0.95, 0.7388, 0.3207, 0.0]);
       colours.push([0.98039, 0.8353, 0.6471, 0.49]);
-      colours.push([0.9608, 0.9608, 0.9608, 0.5]);
-      colours.push([0.3549, 0.698, 0.3588, 0.75]);
+      colours.push([0.2, 0.2, 0.2, 0.5]);
+      colours.push([0.3549, 0.698, 0.3588, 0.55]);
       colours.push([0.4118, 0.9333, 0.3333, 1.0]);
+      break;
+    case "water":
+      colours.push([1.0, 1.0, 1.0, 0.0]);
+      colours.push([0.2588, 0.6294, 0.7529, 0.4]);
+      colours.push([0.0, 0.2529, 0.5019, 0.5]);
+      colours.push([0.0, 0.1235, 0.2509, 0.75]);
+      colours.push([0.0, 0.2529, 0.5019, 1.0]);
       break;
   }
   return colours;

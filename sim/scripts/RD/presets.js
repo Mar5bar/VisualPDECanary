@@ -327,24 +327,46 @@ export function getPreset(id) {
       break;
     case "KlausmeierModel":
       options = {
+        activeViewInd: 0,
         brushAction: "smoothadd",
         brushValue: "5",
         brushRadius: "2",
         clearValueU: "RAND",
         clearValueV: "1",
+        colourmap: "foliage",
         diffusionStrUU: "1",
         diffusionStrVV: "1",
         diffusionStrWW: "0",
         dt: 0.001,
+        embossSpecular: 0.1,
+        embossTheta: 0.2,
         kineticParams:
           "a = 2 in [0.01, 0.01, 10];m = 0.540 in [0.2,0.01,1];V=50;",
-        maxColourValue: 16,
-        minColourValue: 0.000002911286856033257,
+        maxColourValue: 7.5,
+        minColourValue: 0,
         preset: "KlausmeierModel",
         reactionStrU: "w*n^2-m*n",
         reactionStrV: "a-w-w*n^2+V*w_x",
         reactionStrW: "0",
         speciesNames: "n w",
+        views: [
+          {
+            name: "Foliage",
+            colourmap: "foliage",
+            emboss: false,
+            maxColourValue: 7.5,
+            minColourValue: 0.0,
+            whatToPlot: "n",
+          },
+          {
+            name: "Water",
+            colourmap: "water",
+            emboss: true,
+            maxColourValue: 0.33,
+            minColourValue: 0.0,
+            whatToPlot: "w",
+          },
+        ],
         whatToDraw: "n",
         whatToPlot: "n",
       };
