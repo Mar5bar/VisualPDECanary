@@ -5417,10 +5417,12 @@ function colourFromValue(val) {
   // For val in [0,1] assign a colour using the colourmap.
   val = val.clamp(0, 1);
   let ind = 0;
-  while (val > colourmapEndpoints[ind + 1] && ind < colourmap.length - 2) {
+  while (val >= colourmapEndpoints[ind + 1] && ind < colourmap.length - 2) {
     ind += 1;
   }
 
+  if (colourmapEndpoints[ind + 1] == colourmapEndpoints[ind])
+    return colourmap[ind];
   // Interpolate between the colours on the required segment. Note ind 0 <= ind < 4.
   return lerpArrays(
     colourmap[ind],
