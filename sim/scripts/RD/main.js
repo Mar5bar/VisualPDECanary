@@ -214,6 +214,7 @@ import {
   fiveColourDisplayTop,
   fiveColourDisplayBot,
   embossShader,
+  contourShader,
   surfaceVertexShader,
 } from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
@@ -1012,6 +1013,15 @@ function initUniforms() {
     colour5: {
       type: "v4",
       value: new THREE.Vector4(1, 1, 1, 0.6),
+    },
+    contourColour: {
+      type: "v4",
+    },
+    contourEpsilon: {
+      type: "f",
+    },
+    contourStep: {
+      type: "f",
     },
     embossAmbient: {
       type: "f",
@@ -2062,6 +2072,10 @@ function setDisplayColourAndType() {
   if (options.emboss) {
     shader += embossShader();
     setEmbossUniforms();
+  }
+  if (options.contours) {
+    shader += contourShader();
+    setContourStep();
   }
   shader += fiveColourDisplayBot();
   displayMaterial.fragmentShader = shader;
@@ -6083,4 +6097,11 @@ function updateEmbossSliders() {
     options.embossTheta
   );
   embossPhiController.slider.style.setProperty("--value", options.embossPhi);
+}
+
+function setContourStep() {
+  // Set the step size for contour plots based on contourNum.
+  uniforms.contourColour.value = new THREE.Color(options.contourColour);
+  uniforms.contourEpsilon.value = options.contourEpsilon;
+  uniforms.contourStep.value = 1 / (options.contourNum + 1);
 }

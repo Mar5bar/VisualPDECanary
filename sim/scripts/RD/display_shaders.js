@@ -22,6 +22,44 @@ export function fiveColourDisplayTop() {
     uniform vec3 embossLightDir;
 		uniform float smoothingScale;
 
+    uniform vec4 contourColour;
+    uniform float contourEpsilon;
+    uniform float contourStep;
+
+    vec3 colFromValue(float val) {
+        vec3 col;
+        float a = 0.0;
+        if (val <= colour1.a)
+        {
+            col = colour1.rgb;
+        }
+        if (val > colour1.a && val <= colour2.a)
+        {
+            a = (val - colour1.a)/(colour2.a - colour1.a);
+            col = mix(colour1.rgb, colour2.rgb, a);
+        }
+        if(val > colour2.a && val <= colour3.a)
+        {
+            a = (val - colour2.a)/(colour3.a - colour2.a);
+            col = mix(colour2.rgb, colour3.rgb, a);
+        }
+        if(val > colour3.a && val <= colour4.a)
+        {
+            a = (val - colour3.a)/(colour4.a - colour3.a);
+            col = mix(colour3.rgb, colour4.rgb, a);
+        }
+        if(val > colour4.a && val <= colour5.a)
+        {
+            a = (val - colour4.a)/(colour5.a - colour4.a);
+            col = mix(colour4.rgb, colour5.rgb, a);
+        }
+        if(val > colour5.a)
+        {
+            col = colour5.rgb;
+        }
+      return clamp(col, 0.0, 1.0);
+    }
+
     void main()
     {   
         vec2 values = texture2D(textureSource, textureCoords).rg;
@@ -32,42 +70,12 @@ export function fiveColourDisplayTop() {
         }
         float value = values.r;
         float scaledValue = (value - minColourValue) / (maxColourValue - minColourValue);
-        vec3 col = vec3(0.0, 0.0, 0.0);
-        float a = 0.0;
-        if (scaledValue <= colour1.a)
-        {
-            col = colour1.rgb;
-        }
-        if (scaledValue > colour1.a && scaledValue <= colour2.a)
-        {
-            a = (scaledValue - colour1.a)/(colour2.a - colour1.a);
-            col = mix(colour1.rgb, colour2.rgb, a);
-        }
-        if(scaledValue > colour2.a && scaledValue <= colour3.a)
-        {
-            a = (scaledValue - colour2.a)/(colour3.a - colour2.a);
-            col = mix(colour2.rgb, colour3.rgb, a);
-        }
-        if(scaledValue > colour3.a && scaledValue <= colour4.a)
-        {
-            a = (scaledValue - colour3.a)/(colour4.a - colour3.a);
-            col = mix(colour3.rgb, colour4.rgb, a);
-        }
-        if(scaledValue > colour4.a && scaledValue <= colour5.a)
-        {
-            a = (scaledValue - colour4.a)/(colour5.a - colour4.a);
-            col = mix(colour4.rgb, colour5.rgb, a);
-        }
-        if(scaledValue > colour5.a)
-        {
-            col = colour5.rgb;
-        }
-        col = clamp(col, 0.0, 1.0);
+        vec3 col = colFromValue(scaledValue);
 				`;
 }
 
 export function fiveColourDisplayBot() {
-  return `gl_FragColor = vec4(col.r, col.g, col.b, 1.0); 
+  return `gl_FragColor = vec4(col, 1.0); 
 	}`;
 }
 
@@ -85,6 +93,15 @@ export function embossShader() {
     `;
 }
 
+export function contourShader() {
+  return `for (float contourVal = contourStep; contourVal < 1.0; contourVal += contourStep) {
+    col = mix(col, contourColour.rgb, float(abs(scaledValue - contourVal) < contourEpsilon));
+  }`;
+}
+
+// if (abs(scaledValue - contourVal) < contourEpsilon) {
+//   col = colFromValue(scaledValue + contourShift);
+// }
 export function largestSpeciesShader() {
   return `varying vec2 textureCoords;
       uniform sampler2D textureSource;
