@@ -1850,6 +1850,7 @@ function initGUI(startOpen) {
       "Blue-Magenta": "blue-magenta",
       Diverging: "diverging",
       Greyscale: "greyscale",
+      Foliage: "foliage",
       Ice: "ice",
       "Lava flow": "lavaflow",
       Midnight: "midnight",
@@ -4655,9 +4656,9 @@ function updateColourbarLims() {
     $("#maxLabel").html(maxStr);
   }
   // Get the leftmost and rightmost colour values from the map.
-  let leftColour = computeColourBrightness(colourmap[0]);
-  let midColour = computeColourBrightness(colourmap[2]);
-  let rightColour = computeColourBrightness(colourmap[4]);
+  let leftColour = computeColourBrightness(colourFromValue(0));
+  let midColour = computeColourBrightness(colourFromValue(0.5));
+  let rightColour = computeColourBrightness(colourFromValue(1.0));
 
   const threshold = 0.51;
   if (leftColour < threshold) {
