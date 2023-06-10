@@ -2387,5 +2387,6 @@ export function getFieldsInView() {
     "autoSetColourRange",
     "plotType",
     "emboss",
+    "contours",
   ];
 }
