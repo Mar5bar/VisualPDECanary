@@ -66,6 +66,7 @@ let leftGUI,
   cameraZoomController,
   forceManualInterpolationController,
   smoothingScaleController,
+  contourController,
   contourEpsilonController,
   contourNumController,
   minColourValueController,
@@ -1935,7 +1936,7 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
-  root
+  contourController = root
     .add(options, "contours")
     .name("Contours")
     .onChange(function () {
@@ -3775,18 +3776,21 @@ function configureGUI() {
   setBCsGUI();
   // Hide or show GUI elements to do with surface plotting.
   if (options.plotType == "surface") {
+    hideGUIController(contourController);
     hideGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
     showGUIController(cameraPhiController);
     showGUIController(cameraZoomController);
   } else if (options.plotType == "line") {
+    hideGUIController(contourController);
     showGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
     hideGUIController(cameraPhiController);
     hideGUIController(cameraZoomController);
   } else {
+    showGUIController(contourController);
     hideGUIController(lineWidthMulController);
     hideGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
@@ -4987,10 +4991,12 @@ function configurePlotType() {
     refreshGUI(rightGUI);
     domain.visible = false;
     line.visible = true;
+    options.contours = false;
   } else {
     domain.visible = true;
     line.visible = false;
     if (options.plotType == "surface") {
+      options.contours = false;
       $("#simCanvas").css("outline", "2px #000 solid");
       if (usingLowResDomain) {
         usingLowResDomain = false;
@@ -5000,6 +5006,7 @@ function configurePlotType() {
       $("#simCanvas").css("outline", "");
     }
   }
+  setDisplayColourAndType();
   configureCameraAndClicks();
   configureGUI();
 }
