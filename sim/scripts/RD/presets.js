@@ -333,6 +333,7 @@ export function getPreset(id) {
         brushRadius: "2",
         clearValueU: "RAND",
         clearValueV: "1",
+        colourbar: true,
         colourmap: "foliage",
         diffusionStrUU: "1",
         diffusionStrVV: "1",

@@ -99,6 +99,13 @@ export function getColours(sel) {
       colours.push([0.0, 0.1235, 0.2509, 0.75]);
       colours.push([0.0, 0.2529, 0.5019, 1.0]);
       break;
+    case "blue":
+      colours.push([0.0, 0.1235, 0.2509, 0.75]);
+      colours.push([0.0, 0.1235, 0.2509, 0.75]);
+      colours.push([0.0, 0.1235, 0.2509, 0.75]);
+      colours.push([0.0, 0.1235, 0.2509, 0.75]);
+      colours.push([0.0, 0.1235, 0.2509, 0.75]);
+      break;
   }
   return colours;
 }

@@ -1855,6 +1855,7 @@ function initGUI(startOpen) {
       "Lava flow": "lavaflow",
       Midnight: "midnight",
       Pastels: "pastels",
+      "Simply blue": "blue",
       "Snow Ghost": "snowghost",
       Thermal: "thermal",
       Turbo: "turbo",
