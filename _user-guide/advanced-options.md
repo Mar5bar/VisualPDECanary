@@ -124,8 +124,8 @@ Toggle the automatic snapping of the colour map limits. This can be very useful 
 **Contours**\
 Toggle the rendering of contours on top of the simulation display. The number, colour, and sensitivity of (equally spaced) contours can be configured in [**Settings**](#contours).
 
-**Emboss**\
-Toggle an [embossing](https://en.wikipedia.org/wiki/Image_embossing) filter that adds reflections and shadows to the solution. This often adds a fluid-like character to a simulation, as can be seen in the [Visual Story on water waves](/visual-stories/ripples). Details of the filter, including its strength and the orientation of the simulated light, can be specified in [**Settings**](#emboss).
+**Lighting**\
+Toggle lighting effects, which adds reflections and shadows to the solution. This often adds a fluid-like character to a simulation, as can be seen in the [Visual Story on water waves](/visual-stories/ripples). Details of the filter, including its strength and the orientation of the simulated light, can be specified in [**Settings**](#lighting).
 
 ---
 
@@ -230,8 +230,8 @@ Toggle the display of the current colour bar and limits.
 **Background**\
 Set the background colour of the simulation window, which you will see often when using **Surface Plot** or **Implicit**. In implicit domains, the exterior of the domain adopts this colour.
 
-#### Embossing <a id='emboss'>
-Configure the details of the embossing filter, enabling fine-grained control of the look of the simulation. We make use of the [Phong reflection model](https://en.wikipedia.org/wiki/Phong_reflection_model).
+#### Lighting <a id='lighting'>
+Configure the details of the lighting model, enabling fine-grained control of the look of the simulation when **Lighting** is enabled in **Views**. We make use of the [Phong reflection model](https://en.wikipedia.org/wiki/Phong_reflection_model).
 
 **Smoothness**\
 Configure the simulated smoothness of the surface. Low values will result in sharp shadows and reflections, whilst larger values will produce an apparently smoother surface.
