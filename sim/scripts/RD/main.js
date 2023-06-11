@@ -66,10 +66,19 @@ let leftGUI,
   cameraZoomController,
   forceManualInterpolationController,
   smoothingScaleController,
+  contourController,
+  contourEpsilonController,
+  contourNumController,
   minColourValueController,
   maxColourValueController,
   setColourRangeController,
   autoSetColourRangeController,
+  embossSmoothnessController,
+  embossAmbientController,
+  embossDiffuseController,
+  embossSpecularController,
+  embossThetaController,
+  embossPhiController,
   clearValueUController,
   clearValueVController,
   clearValueWController,
@@ -200,9 +209,17 @@ import {
   RDShaderEnforceDirichletTop,
   RDShaderAdvectionPreBC,
   RDShaderAdvectionPostBC,
+  RDShaderGhostX,
+  RDShaderGhostY,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
-import { fiveColourDisplay, surfaceVertexShader } from "./display_shaders.js";
+import {
+  fiveColourDisplayTop,
+  fiveColourDisplayBot,
+  embossShader,
+  contourShader,
+  surfaceVertexShader,
+} from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset, getUserTextFields, getFieldsInView } from "./presets.js";
@@ -810,6 +827,7 @@ function updateUniforms() {
   uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
+  setEmbossUniforms();
   if (!options.fixRandSeed) {
     updateRandomSeed();
   }
@@ -981,7 +999,7 @@ function initUniforms() {
     },
     colour1: {
       type: "v4",
-      value: new THREE.Vector4(0, 0, 0.0, 0),
+      value: new THREE.Vector4(0, 0, 0, 0),
     },
     colour2: {
       type: "v4",
@@ -998,6 +1016,30 @@ function initUniforms() {
     colour5: {
       type: "v4",
       value: new THREE.Vector4(1, 1, 1, 0.6),
+    },
+    contourColour: {
+      type: "v4",
+    },
+    contourEpsilon: {
+      type: "f",
+    },
+    contourStep: {
+      type: "f",
+    },
+    embossAmbient: {
+      type: "f",
+    },
+    embossDiffuse: {
+      type: "f",
+    },
+    embossSmoothness: {
+      type: "f",
+    },
+    embossSpecular: {
+      type: "f",
+    },
+    embossLightDir: {
+      type: "vec3",
     },
     L: {
       type: "f",
@@ -1051,6 +1093,10 @@ function initUniforms() {
     seed: {
       type: "f",
       value: 0.0,
+    },
+    smoothingScale: {
+      type: "f",
+      value: options.smoothingScale + 1,
     },
     textureSource: {
       type: "t",
@@ -1603,7 +1649,36 @@ function initGUI(startOpen) {
     .name("Smoothing")
     .onChange(function () {
       resizeTextures();
+      uniforms.smoothingScale.value = options.smoothingScale + 1;
       render();
+    });
+
+  root = root.addFolder("Contours");
+
+  contourNumController = root
+    .add(options, "contourNum")
+    .name("Number")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(contourNumController, 1, 20, 1);
+
+  contourEpsilonController = root
+    .add(options, "contourEpsilon")
+    .name("Threshold")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(contourEpsilonController, 0.001, 0.05, 0.001);
+
+  root
+    .addColor(options, "contourColour")
+    .name("Colour")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
     });
 
   // Colour folder.
@@ -1621,6 +1696,62 @@ function initGUI(startOpen) {
       scene.background = new THREE.Color(options.backgroundColour);
       render();
     });
+
+  root = root.addFolder("Embossing");
+
+  embossSmoothnessController = root
+    .add(options, "embossSmoothness")
+    .name("Smoothness")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossSmoothnessController, 0, 10, 0.001);
+
+  embossAmbientController = root
+    .add(options, "embossAmbient")
+    .name("Ambient")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossAmbientController, 0, 1, 0.001);
+
+  embossDiffuseController = root
+    .add(options, "embossDiffuse")
+    .name("Diffuse")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossDiffuseController, 0, 1, 0.001);
+
+  embossSpecularController = root
+    .add(options, "embossSpecular")
+    .name("Specular")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossSpecularController, 0, 1, 0.001);
+
+  embossThetaController = root
+    .add(options, "embossTheta")
+    .name("Inclination")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossThetaController, 0, 1.5708, 0.001);
+
+  embossPhiController = root
+    .add(options, "embossPhi")
+    .name("Direction")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossPhiController, 0, 3.1456, 0.001);
 
   // Images folder.
   fIm = rightGUI.addFolder("Images");
@@ -1728,9 +1859,9 @@ function initGUI(startOpen) {
     .add(options, "whatToPlot")
     .name("Expression: ")
     .onFinishChange(function () {
-      updateView(this.property);
       updateWhatToPlot();
       render();
+      updateView(this.property);
     });
 
   root
@@ -1741,10 +1872,10 @@ function initGUI(startOpen) {
     })
     .name("Plot type")
     .onChange(function () {
-      updateView(this.property);
       configurePlotType();
       document.activeElement.blur();
       render();
+      updateView(this.property);
     });
 
   root
@@ -1753,13 +1884,22 @@ function initGUI(startOpen) {
       "Blue-Magenta": "blue-magenta",
       Diverging: "diverging",
       Greyscale: "greyscale",
+      Foliage: "foliage",
+      Ice: "ice",
+      "Lava flow": "lavaflow",
+      Midnight: "midnight",
+      Pastels: "pastels",
+      "Simply blue": "blue",
+      "Snow Ghost": "snowghost",
+      Thermal: "thermal",
       Turbo: "turbo",
       Viridis: "viridis",
+      Water: "water",
     })
     .onChange(function () {
-      updateView(this.property);
       setDisplayColourAndType();
       configureColourbar();
+      updateView(this.property);
     })
     .name("Colour map");
 
@@ -1767,10 +1907,10 @@ function initGUI(startOpen) {
     .add(options, "minColourValue")
     .name("Min value")
     .onChange(function () {
-      updateView(this.property);
       updateUniforms();
       updateColourbarLims();
       render();
+      updateView(this.property);
     });
   minColourValueController.__precision = 2;
 
@@ -1778,10 +1918,10 @@ function initGUI(startOpen) {
     .add(options, "maxColourValue")
     .name("Max value")
     .onChange(function () {
-      updateView(this.property);
       updateUniforms();
       updateColourbarLims();
       render();
+      updateView(this.property);
     });
   maxColourValueController.__precision = 2;
 
@@ -1789,11 +1929,27 @@ function initGUI(startOpen) {
     .add(options, "autoSetColourRange")
     .name("Auto snap")
     .onChange(function () {
-      updateView(this.property);
       if (options.autoSetColourRange) {
         setColourRange();
         render();
       }
+      updateView(this.property);
+    });
+
+  contourController = root
+    .add(options, "contours")
+    .name("Contours")
+    .onChange(function () {
+      setDisplayColourAndType();
+      updateView(this.property);
+    });
+
+  root
+    .add(options, "emboss")
+    .name("Emboss")
+    .onChange(function () {
+      setDisplayColourAndType();
+      updateView(this.property);
     });
 
   const colourmapButtons = document.createElement("li");
@@ -1805,10 +1961,10 @@ function initGUI(startOpen) {
     colourmapButtons,
     '<i class="fa-solid fa-arrow-right-arrow-left"></i> Reverse',
     function () {
-      updateView("flippedColourmap");
       options.flippedColourmap = !options.flippedColourmap;
       setDisplayColourAndType();
       configureColourbar();
+      updateView("flippedColourmap");
     },
     null,
     "Reverse colour map"
@@ -1818,10 +1974,10 @@ function initGUI(startOpen) {
     colourmapButtons,
     '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap',
     function () {
-      updateView("minColourValue");
-      updateView("maxColourValue");
       setColourRange();
       render();
+      updateView("minColourValue");
+      updateView("maxColourValue");
     },
     null,
     "Snap min/max to visible"
@@ -1944,7 +2100,17 @@ function setDisplayColourAndType() {
   uniforms.colour3.value = new THREE.Vector4(...colourmap[2]);
   uniforms.colour4.value = new THREE.Vector4(...colourmap[3]);
   uniforms.colour5.value = new THREE.Vector4(...colourmap[4]);
-  displayMaterial.fragmentShader = fiveColourDisplay();
+  let shader = fiveColourDisplayTop();
+  if (options.emboss) {
+    shader += embossShader();
+    setEmbossUniforms();
+  }
+  if (options.contours) {
+    shader += contourShader();
+    setContourUniforms();
+  }
+  shader += fiveColourDisplayBot();
+  displayMaterial.fragmentShader = shader;
   displayMaterial.needsUpdate = true;
   postMaterial.needsUpdate = true;
   colourmapEndpoints = colourmap.map((x) => x[3]);
@@ -2472,6 +2638,7 @@ function replaceBinOperator(str, op, form) {
 
 function setRDEquations() {
   let neumannShader = "";
+  let ghostShader = "";
   let dirichletShader = "";
   let robinShader = "";
   let updateShader = "";
@@ -2522,6 +2689,20 @@ function setRDEquations() {
         const side = m[1][0].toUpperCase();
         neumannShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
         neumannShader += neumannUpdateShader(ind, side);
+      });
+    }
+  });
+
+  // Create a Ghost shader block for each species separately.
+  BCStrs.forEach(function (str, ind) {
+    if (str == "combo") {
+      [
+        ...MStrs[ind].matchAll(
+          /(Left|Right|Top|Bottom)\s*:\s*Ghost\s*=([^;]*);/g
+        ),
+      ].forEach(function (m) {
+        const side = m[1][0].toUpperCase();
+        ghostShader += ghostUpdateShader(ind, side, parseShaderString(m[2]));
       });
     }
   });
@@ -2629,6 +2810,7 @@ function setRDEquations() {
     RDShaderTop(),
     RDShaderAdvectionPreBC(),
     neumannShader,
+    ghostShader,
     robinShader,
     RDShaderAdvectionPostBC(),
     parseReactionStrings(),
@@ -3594,18 +3776,21 @@ function configureGUI() {
   setBCsGUI();
   // Hide or show GUI elements to do with surface plotting.
   if (options.plotType == "surface") {
+    hideGUIController(contourController);
     hideGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
     showGUIController(cameraPhiController);
     showGUIController(cameraZoomController);
   } else if (options.plotType == "line") {
+    hideGUIController(contourController);
     showGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
     hideGUIController(cameraPhiController);
     hideGUIController(cameraZoomController);
   } else {
+    showGUIController(contourController);
     hideGUIController(lineWidthMulController);
     hideGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
@@ -3635,6 +3820,8 @@ function configureGUI() {
     whatToDrawController,
     listOfSpecies.slice(0, options.numSpecies)
   );
+  // Update emboss sliders.
+  updateEmbossSliders();
   // Configure the Views GUI from options.views.
   configureViewsGUI();
   // Refresh the GUI displays.
@@ -4476,14 +4663,16 @@ function fadeout(id) {
 function configureColourbar() {
   if (options.colourbar) {
     $("#colourbar").show();
-    let colours = colourmap.map((x) => x.map((y) => 255 * y).toString());
     let cString = "linear-gradient(90deg, ";
-    cString += "rgb(" + colours[0] + ") 0%,";
-    cString += "rgb(" + colours[1] + ") 25%,";
-    cString += "rgb(" + colours[2] + ") 50%,";
-    cString += "rgb(" + colours[3] + ") 75%,";
-    cString += "rgb(" + colours[4] + ") 100%";
-    cString += ")";
+    for (var val = 0; val < 1; val += 0.01) {
+      cString +=
+        "rgb(" +
+        colourFromValue(val).map((x) => 255 * x) +
+        ") " +
+        100 * val +
+        "%,";
+    }
+    cString = cString.slice(0, -1) + ")";
     $("#colourbar").css("background", cString);
     if (options.whatToPlot == "MAX") {
       $("#minLabel").html("$" + listOfSpecies[0] + "$");
@@ -4518,9 +4707,9 @@ function updateColourbarLims() {
     $("#maxLabel").html(maxStr);
   }
   // Get the leftmost and rightmost colour values from the map.
-  let leftColour = computeColourBrightness(colourmap[0]);
-  let midColour = computeColourBrightness(colourmap[2]);
-  let rightColour = computeColourBrightness(colourmap[4]);
+  let leftColour = computeColourBrightness(colourFromValue(0));
+  let midColour = computeColourBrightness(colourFromValue(0.5));
+  let rightColour = computeColourBrightness(colourFromValue(1.0));
 
   const threshold = 0.51;
   if (leftColour < threshold) {
@@ -4802,10 +4991,12 @@ function configurePlotType() {
     refreshGUI(rightGUI);
     domain.visible = false;
     line.visible = true;
+    options.contours = false;
   } else {
     domain.visible = true;
     line.visible = false;
     if (options.plotType == "surface") {
+      options.contours = false;
       $("#simCanvas").css("outline", "2px #000 solid");
       if (usingLowResDomain) {
         usingLowResDomain = false;
@@ -4815,6 +5006,7 @@ function configurePlotType() {
       $("#simCanvas").css("outline", "");
     }
   }
+  setDisplayColourAndType();
   configureCameraAndClicks();
   configureGUI();
 }
@@ -5277,21 +5469,21 @@ function setLineColour(xy) {
 
 function colourFromValue(val) {
   // For val in [0,1] assign a colour using the colourmap.
-  if (val <= 0) return colourmap[0];
-  if (val >= 1) return colourmap[colourmap.length - 1];
+  val = val.clamp(0, 1);
   let ind = 0;
-  while (val > colourmapEndpoints[ind] && ind < colourmap.length - 1) {
+  while (val >= colourmapEndpoints[ind + 1] && ind < colourmap.length - 2) {
     ind += 1;
   }
-  ind -= 1;
 
+  if (colourmapEndpoints[ind + 1] == colourmapEndpoints[ind])
+    return colourmap[ind];
   // Interpolate between the colours on the required segment. Note ind 0 <= ind < 4.
   return lerpArrays(
     colourmap[ind],
     colourmap[ind + 1],
     (val - colourmapEndpoints[ind]) /
       (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind])
-  );
+  ).map((x) => x.clamp(0, 1));
 }
 
 function lerpArrays(v1, v2, t) {
@@ -5658,6 +5850,23 @@ function neumannUpdateShader(speciesInd, side) {
   return str;
 }
 
+function ghostUpdateShader(speciesInd, side, valStr) {
+  let str = "";
+  str += selectSpeciesInShaderStr(
+    RDShaderGhostX(side),
+    listOfSpecies[speciesInd]
+  );
+  if (options.dimension > 1) {
+    str += selectSpeciesInShaderStr(
+      RDShaderGhostY(side),
+      listOfSpecies[speciesInd]
+    );
+  }
+  // Replace the placeholder GHOST with the specified value.
+  str = str.replaceAll("GHOSTSPECIES", valStr);
+  return str;
+}
+
 function dirichletUpdateShader(speciesInd, side) {
   let str = "";
   str += selectSpeciesInShaderStr(
@@ -5843,4 +6052,97 @@ function updateParamFromMessage(event) {
       controller.__onFinishChange(controller, val);
     }
   }
+}
+
+function setEmbossUniforms() {
+  uniforms.embossAmbient.value = options.embossAmbient;
+  uniforms.embossDiffuse.value = options.embossDiffuse;
+  uniforms.embossSmoothness.value = options.embossSmoothness;
+  uniforms.embossSpecular.value = options.embossSpecular;
+  uniforms.embossLightDir.value = new THREE.Vector3(
+    Math.sin(options.embossTheta) * Math.cos(options.embossPhi),
+    Math.sin(options.embossTheta) * Math.sin(options.embossPhi),
+    Math.cos(options.embossTheta)
+  );
+}
+
+function createOptionSlider(controller, min, max, step) {
+  controller.slider = document.createElement("input");
+  controller.slider.classList.add("styled-slider");
+  controller.slider.classList.add("slider-progress");
+  controller.slider.type = "range";
+  controller.slider.min = min;
+  controller.slider.max = max;
+  controller.slider.step = step;
+  controller.slider.value = controller.getValue();
+
+  // Configure the slider's style so that it can be nicely formatted.
+  controller.slider.style.setProperty("--value", controller.slider.value);
+  controller.slider.style.setProperty("--min", controller.slider.min);
+  controller.slider.style.setProperty("--max", controller.slider.max);
+
+  // Configure the update.
+  controller.slider.addEventListener("input", function () {
+    controller.slider.style.setProperty("--value", controller.slider.value);
+    controller.setValue(parseFloat(controller.slider.value));
+  });
+
+  // Augment the controller's onChange and onFinishChange to update the slider.
+  if (controller.__onChange != undefined) {
+    controller.oldOnChange = controller.__onChange;
+    controller.__onChange = function () {
+      controller.oldOnChange();
+      controller.slider.value = controller.getValue();
+      controller.slider.style.setProperty("--value", controller.slider.value);
+    };
+  }
+
+  if (controller.__onFinishChange != undefined) {
+    controller.oldOnFinishChange = controller.__onFinishChange;
+    controller.__onFinishChange = function () {
+      controller.oldOnFinishChange();
+      controller.slider.value = controller.getValue();
+      controller.slider.style.setProperty("--value", controller.slider.value);
+    };
+  }
+
+  // Add the slider to the DOM.
+  controller.domElement.appendChild(controller.slider);
+  controller.domElement.parentElement.parentElement.classList.add(
+    "parameterSlider"
+  );
+}
+
+function updateEmbossSliders() {
+  embossSmoothnessController.slider.style.setProperty(
+    "--value",
+    options.embossSmoothness
+  );
+  embossAmbientController.slider.style.setProperty(
+    "--value",
+    options.embossAmbient
+  );
+  embossDiffuseController.slider.style.setProperty(
+    "--value",
+    options.embossDiffuse
+  );
+  embossSpecularController.slider.style.setProperty(
+    "--value",
+    options.embossSpecular
+  );
+  embossThetaController.slider.style.setProperty(
+    "--value",
+    options.embossTheta
+  );
+  embossPhiController.slider.style.setProperty("--value", options.embossPhi);
+}
+
+function setContourUniforms() {
+  uniforms.contourColour.value = new THREE.Color(options.contourColour);
+  uniforms.contourEpsilon.value = options.contourEpsilon;
+  uniforms.contourStep.value = 1 / (options.contourNum + 1);
+}
+
+function renderIfNotRunning() {
+  if (!isRunning) render();
 }
