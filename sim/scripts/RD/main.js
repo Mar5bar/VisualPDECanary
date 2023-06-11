@@ -73,6 +73,7 @@ let leftGUI,
   maxColourValueController,
   setColourRangeController,
   autoSetColourRangeController,
+  embossShinyController,
   embossSmoothnessController,
   embossAmbientController,
   embossDiffuseController,
@@ -1032,6 +1033,9 @@ function initUniforms() {
     embossDiffuse: {
       type: "f",
     },
+    embossShiny: {
+      type: "f",
+    },
     embossSmoothness: {
       type: "f",
     },
@@ -1734,6 +1738,15 @@ function initGUI(startOpen) {
       renderIfNotRunning();
     });
   createOptionSlider(embossSpecularController, 0, 1, 0.001);
+
+  embossShinyController = root
+    .add(options, "embossShiny")
+    .name("Precision")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossShinyController, 0, 100, 1);
 
   embossThetaController = root
     .add(options, "embossTheta")
@@ -6057,6 +6070,7 @@ function updateParamFromMessage(event) {
 function setEmbossUniforms() {
   uniforms.embossAmbient.value = options.embossAmbient;
   uniforms.embossDiffuse.value = options.embossDiffuse;
+  uniforms.embossShiny.value = options.embossShiny;
   uniforms.embossSmoothness.value = options.embossSmoothness;
   uniforms.embossSpecular.value = options.embossSpecular;
   uniforms.embossLightDir.value = new THREE.Vector3(
@@ -6114,6 +6128,10 @@ function createOptionSlider(controller, min, max, step) {
 }
 
 function updateEmbossSliders() {
+  embossShinyController.slider.style.setProperty(
+    "--value",
+    options.embossShiny
+  );
   embossSmoothnessController.slider.style.setProperty(
     "--value",
     options.embossSmoothness
