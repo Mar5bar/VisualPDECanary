@@ -5,6 +5,7 @@ lesson_number: 20
 thumbnail: /assets/images/VirusTransmission.png
 extract: Visualising airborne infections
 equation:
+published: false
 ---
 
 Since the Covid-19 pandemic began, airborne viruses have formed a large part of scientific study. In this short Story, we're going to explore one aspect of this work: the effects of airflow.
