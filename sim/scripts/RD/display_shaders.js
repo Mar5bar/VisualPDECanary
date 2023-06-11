@@ -17,6 +17,7 @@ export function fiveColourDisplayTop() {
 		
     uniform float embossAmbient;
     uniform float embossDiffuse;
+    uniform float embossShiny;
     uniform float embossSmoothness;
     uniform float embossSpecular;
     uniform vec3 embossLightDir;
@@ -81,7 +82,6 @@ export function fiveColourDisplayBot() {
 
 export function embossShader() {
   return `ivec2 texSize = textureSize(textureSource,0);
-    const float spec_exp = 10.0;
     float step_x = 1.0 / float(texSize.x);
     float step_y = 1.0 / float(texSize.y);
     float gradX = (texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).r - texture2D(textureSource, textureCoords + vec2(-step_x, 0.0)).r);
@@ -89,7 +89,7 @@ export function embossShader() {
     vec3 normal = normalize(vec3 (-gradX/dx, -gradY/dy, embossSmoothness * (maxColourValue - minColourValue) / smoothingScale));
     float diff = max(0.0, dot(normal, embossLightDir));
     float rz = max(0.0, 2.0*diff*normal.z - embossLightDir.z);
-    col = col*(embossDiffuse*diff + embossAmbient) + embossSpecular*pow(rz, spec_exp);
+    col = col*(embossDiffuse*diff + embossAmbient) + embossSpecular*pow(rz, embossShiny);
     `;
 }
 

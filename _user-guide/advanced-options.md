@@ -121,6 +121,12 @@ Click to instantly snap **Min value** and **Max value** to the current minimum a
 **Auto snap**\
 Toggle the automatic snapping of the colour map limits. This can be very useful if you don't know the range in which **Expression** will fall, especially if it is changing frequently.
 
+**Contours**\
+Toggle the rendering of contours on top of the simulation display. The number, colour, and sensitivity of (equally spaced) contours can be configured in [**Settings**](#contours).
+
+**Lighting**\
+Toggle lighting effects, which adds reflections and shadows to the solution. This often adds a fluid-like character to a simulation, as can be seen in the [Visual Story on water waves](/visual-stories/ripples). Details of the filter, including its strength and the orientation of the simulated light, can be specified in [**Settings**](#lighting).
+
 ---
 
 ## Settings <a id='settings'> {{ layout.settings }}
@@ -205,12 +211,48 @@ Use this option to force the use of manual, configurable, unoptimised filtering 
 **Smoothing scale**\
 Control the degree of smoothing applied to the simulation output before display. Setting this value to zero turns off all smoothing. Larger values demand more memory and compute power, but increasingly smooth the output with bilinear interpolation. Only available if manual smoothing is enabled.
 
+#### Contours <a id='contours'>
+Customise the display of contours, which can be toggled on and off in **Views**.
+
+**Number**\
+Specify the number of contour lines to plot. These are drawn at equally spaced intervals between the minimum and maximum of the current colourmap e.g. specifying one contour will draw a line at the midpoint of the colourmap.
+
+**Threshold**\
+Set the relative numerical threshold, between 0 and 1, within which a contour will be detected. Smaller values result in more precise, thinner contours. Larger values may be needed to detect contours in solutions that vary rapidly in space. Under the hood, VisualPDE checks if a given output pixel is within this threshold of a given contour value, with all values normalised by the range of the colourbar.
+
+**Colour**\
+Specify the colour with which contours will be rendered.
+
 ### Colour <a id='colour'>
 **Colour bar**\
 Toggle the display of the current colour bar and limits.
 
 **Background**\
 Set the background colour of the simulation window, which you will see often when using **Surface Plot** or **Implicit**. In implicit domains, the exterior of the domain adopts this colour.
+
+#### Lighting <a id='lighting'>
+Configure the details of the lighting model, enabling fine-grained control of the look of the simulation when **Lighting** is enabled in **Views**. We make use of the [Phong reflection model](https://en.wikipedia.org/wiki/Phong_reflection_model).
+
+**Smoothness**\
+Configure the simulated smoothness of the surface. Low values will result in sharp shadows and reflections, whilst larger values will produce an apparently smoother surface.
+
+**Ambient**\
+Set the level of background light, which does not contribute to reflections or shadows.
+
+**Diffuse**\
+Set how much the light source impacts on the brightness of the surface.
+
+**Specular**\
+Specify the intensity of specular (shiny) reflections.
+
+**Precision**\
+Set the precision (also known as the specular exponent) of the specular reflections. Low values widely scatter light, whilst large values result in precise highlights. 
+
+**Inclination**\
+Set the angle of inclination of the light source. Setting this to 0 places the light source directly overhead.
+
+**Direction**\
+Specify the in-plane direction of the light source, rotating any shadows and highlights.
 
 ### Images <a id='images'>
 **$I_S$, $I_T$**\
