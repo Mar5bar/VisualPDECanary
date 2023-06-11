@@ -1701,7 +1701,7 @@ function initGUI(startOpen) {
       render();
     });
 
-  root = root.addFolder("Embossing");
+  root = root.addFolder("Lighting");
 
   embossSmoothnessController = root
     .add(options, "embossSmoothness")
@@ -1959,7 +1959,7 @@ function initGUI(startOpen) {
 
   root
     .add(options, "emboss")
-    .name("Emboss")
+    .name("Lighting")
     .onChange(function () {
       setDisplayColourAndType();
       updateView(this.property);
