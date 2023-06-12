@@ -5,14 +5,11 @@ lesson_number: 20
 thumbnail: /assets/images/VirusTransmission.png
 extract: Visualising airborne infections
 equation:
-published: false
 ---
 
 Since the Covid-19 pandemic began, airborne viruses have formed a large part of scientific study. In this short Story, we're going to explore one aspect of this work: the effects of airflow.
 
 Suppose that lots of people are sat in a sealed room and one of them is infectious. We'll assume that the infectious person is constantly producing virus-laden particles that spread out around them before slowly decaying away. The simulation below shows what this might look like. The colour corresponds to the concentration or amount of virus in the air.
-
-<!-- virus conc in a still room. Click to simulate a cough -->
 
 <iframe class="sim" src="/sim/?preset=CovidInAStillRoom&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
@@ -28,11 +25,13 @@ Here, the probability of being infected is large close to where we know the sour
 As you might expect, the probability of being infected increases with the amount of time that you're exposed to the virus. This time-dependent effect is especially visible when you click to cough while using the Probability View. To reset the simulation and see this clearly, press {{ layout.erase }}. What do you think will happen if you cough multiple times in the same spot? Test out your prediction with VisualPDE!
 
 # Recirculation
-It's fairly rare for air to stay still. Let's see what effect the movement of air can have on the distribution of a virus and the chance of infection. In the simulation below, we've added in the effects of the air being blown from left to right, mimicking an air conditioner, with anything that reaches the right-hand side of the room being blown back over everyone's heads before being recycled back into the left side.
+It's fairly rare for air to stay still. Let's see what effect the movement of air can have on the distribution of a virus and the chance of infection. In the simulation below, we've added in the effects of the air being blown from right to left, mimicking an air conditioner, with anything that reaches the left-hand side of the room being blown back over everyone's heads before being recycled back into the right-hand side.
 
 <iframe class="sim" src="/sim/?preset=CovidInARoom&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
-With this new air movement, it now looks like standing downwind of the infected person is a bad idea: particles of the virus are swept from left to right by the air current, and the probability of being infected is much higher on the right of the infected person. Eventually, the recirculation of the air means that viral particles reach even the left side of the room, leading to a large zone in the room where the probability of infection is high. Remember you can swap between Views to see the effects on both Probability and Concentration. Try clicking while viewing the Concentration to really see how the air drives the spread of the virus in one direction then blows it back from right to left, recirculating the virus over the room. This is in stark contrast to the behaviour of a cough in the earlier flow-free room.
+With this new air movement, it now looks like standing downwind of the infected person is a bad idea: particles of the virus are swept from right to left by the air current, and the probability of being infected is much higher on the left of the infected person. Eventually, the recirculation of the air means that viral particles reach even the right-hand side of the room, leading to a large zone in the room where the probability of infection is high. 
+
+Remember, you can swap between Views to see the effects on both Probability and Concentration. Try clicking while viewing the Concentration to really see how the air drives the spread of the virus in one direction then blows it back from left to right, recirculating the virus over the room. This is in stark contrast to the behaviour of a cough in the earlier flow-free room. Here, we're showing the total concentration of the virus at each point by adding up the amounts in the upper and lower layers of air, which is why it looks like coughs just bounce off the left-hand wall.
 
 # A meandering infection
 It's also rare for people to stay still. Unsurprisingly, the movement of an infected individual can have a big impact on the spread of a virus. In the next simulation, we've set it up so that the source of the infection moves around the room, as if they were a waiter going between tables in a restaurant. We've also turned off the air conditioner, so that the air in the room is still.
@@ -50,7 +49,7 @@ Now, instead of a nice clean ring of likely infections, we immediately see that 
 Finally, we can look at the Concentration View to see how the airflow is breaking not only the left–right symmetry of the room, but also the up–down symmetry. What do you think would happen if we reverse the direction that the waiter is circling the room? How would the picture change?
 
 # Epilogue
-The story of airborne infections is far from over, but our viral Visual Story has reached its end. Using nothing more than your browser and your curiosity, we've explored how airflow might alter the spread of an airborne virus, witnessed the transient and long-term effects that a simple cough can have, and seen the potentially superspreading effects of a wandering waitor.
+The story of airborne infections is far from over, but our viral Visual Story has reached its end. Using nothing more than your browser and your curiosity, we've explored how airflow might alter the spread of an airborne virus, witnessed the transient and long-term effects that a simple cough can have, and seen the potentially superspreading effects of a wandering waiter.
 
 As with all of our Stories, it is worth remembering the limitations of what we've learned. Our approach has knowingly ignored lots of factors that could be very important, including the potentially vast differences that can exists between different viruses and between different environments. So, while we've hopefully gained lots of intuition, we would do well to take our conclusions with a healthy pinch of salt.
 
