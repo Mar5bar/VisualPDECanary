@@ -66,6 +66,7 @@ let leftGUI,
   cameraZoomController,
   forceManualInterpolationController,
   smoothingScaleController,
+  embossController,
   contourController,
   contourEpsilonController,
   contourNumController,
@@ -1957,7 +1958,7 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
-  root
+  embossController = root
     .add(options, "emboss")
     .name("Lighting")
     .onChange(function () {
@@ -3790,6 +3791,7 @@ function configureGUI() {
   // Hide or show GUI elements to do with surface plotting.
   if (options.plotType == "surface") {
     hideGUIController(contourController);
+    showGUIController(embossController);
     hideGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
@@ -3797,6 +3799,7 @@ function configureGUI() {
     showGUIController(cameraZoomController);
   } else if (options.plotType == "line") {
     hideGUIController(contourController);
+    hideGUIController(embossController);
     showGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
@@ -3804,6 +3807,7 @@ function configureGUI() {
     hideGUIController(cameraZoomController);
   } else {
     showGUIController(contourController);
+    showGUIController(embossController);
     hideGUIController(lineWidthMulController);
     hideGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
@@ -5005,6 +5009,7 @@ function configurePlotType() {
     domain.visible = false;
     line.visible = true;
     options.contours = false;
+    options.emboss = false;
   } else {
     domain.visible = true;
     line.visible = false;
