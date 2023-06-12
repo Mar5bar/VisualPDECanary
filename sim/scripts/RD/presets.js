@@ -617,8 +617,8 @@ export function getPreset(id) {
         numTimestepsPerFrame: 20,
         preset: "CovidInARoom",
         reactionStrU:
-          "R*exp(-0.01*((x-X*L_x)^2+(y-Y*L_y)^2))-(lambda+beta+sigma)*C_low-V*C_low_x",
-        reactionStrV: "-(lambda+beta+sigma)*C_up+V*C_up_x",
+          "R*exp(-0.01*((x-X*L_x)^2+(y-Y*L_y)^2))-(lambda+beta+sigma)*C_low+V*C_low_x",
+        reactionStrV: "-(lambda+beta+sigma)*C_up-V*C_up_x",
         reactionStrW: "(1-eta_sus)*rho_sus*(C_low + C_up)/2",
         reactionStrQ: "1 - exp(-I*d)",
         spatialStep: 1,
@@ -658,7 +658,7 @@ export function getPreset(id) {
         kineticParams:
           "V = 40 in [0,40];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         reactionStrU:
-          "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C_low-V*C_low_x",
+          "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C_low+V*C_low_x",
         runningOnLoad: false,
       };
       break;
