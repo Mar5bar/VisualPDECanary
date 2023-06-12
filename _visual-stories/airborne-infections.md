@@ -11,8 +11,6 @@ Since the Covid-19 pandemic began, airborne viruses have formed a large part of 
 
 Suppose that lots of people are sat in a sealed room and one of them is infectious. We'll assume that the infectious person is constantly producing virus-laden particles that spread out around them before slowly decaying away. The simulation below shows what this might look like. The colour corresponds to the concentration or amount of virus in the air.
 
-<!-- virus conc in a still room. Click to simulate a cough -->
-
 <iframe class="sim" src="/sim/?preset=CovidInAStillRoom&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
 With VisualPDE, we're not just limited to watching a simulation: we can interact with it too. Clicking in the room will introduce some viral particles to the air, as if someone with a slight infection had coughed. Try clicking to see what difference a cough can make.
