@@ -3,6 +3,82 @@
 export function getPreset(id) {
   let options;
   switch (id) {
+    case "SimplePKPDTumour":
+      options = {
+        brushAction: "smoothadd",
+        brushRadius: "50",
+        clearValueU: "0",
+        clearValueW: "exp(-0.01*((x-L_x/2)^2 + (y-L_y/2)^2))",
+        colourmap: "water",
+        diffusionStrUU: "D",
+        diffusionStrVV: "1",
+        diffusionStrWW: "1",
+        domainScale: 1000,
+        dt: 0.001,
+        kineticParams:
+          "D = 100 in [0,200]; alpha = 0.100 in [0, 0.01, 2];beta = 1 in [0, 0.01, 2];gamma = 0.100 in [0, 0.01, 2];r = 0.500 in [0, 0.01, 2];K = 1 in [0, 0.01, 2];",
+        maxColourValue: 0.5,
+        numSpecies: "3",
+        preset: "SimplePKPDTumour",
+        reactionStrU: "-alpha*C",
+        reactionStrV: "beta*C - gamma*d",
+        reactionStrW: "r*u*(1-u/K) - d*u",
+        spatialStep: 3,
+        speciesNames: "C d u",
+        views: [
+          {
+            whatToPlot: "u",
+            colourmap: "turbo",
+            flippedColourmap: false,
+            minColourValue: 0,
+            maxColourValue: 1,
+            autoSetColourRange: false,
+            plotType: "plane",
+            emboss: false,
+            contours: false,
+            name: "Tumour",
+          },
+          {
+            whatToPlot: "C",
+            colourmap: "water",
+            flippedColourmap: false,
+            minColourValue: 0,
+            maxColourValue: 0.5,
+            autoSetColourRange: false,
+            plotType: "plane",
+            emboss: false,
+            contours: false,
+            name: "Drug",
+          },
+          {
+            whatToPlot: "d",
+            colourmap: "lavaflow",
+            flippedColourmap: false,
+            minColourValue: 0,
+            maxColourValue: 0.5,
+            autoSetColourRange: false,
+            plotType: "plane",
+            emboss: false,
+            contours: false,
+            name: "Dose",
+          },
+          {
+            whatToPlot: "u + C",
+            colourmap: "water",
+            flippedColourmap: true,
+            minColourValue: 0,
+            maxColourValue: 1,
+            autoSetColourRange: false,
+            plotType: "plane",
+            emboss: false,
+            contours: false,
+            name: "Tumour<br />and drug",
+          },
+        ],
+        whatToDraw: "C",
+        whatToPlot: "C",
+      };
+      break;
     case "CoupledCGL":
       options = {
         activeViewInd: 1,
@@ -1367,7 +1443,7 @@ export function getPreset(id) {
           {
             name: "Signal",
             whatToPlot: "S",
-          }
+          },
         ],
       };
       break;
