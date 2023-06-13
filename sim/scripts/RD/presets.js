@@ -9,6 +9,7 @@ export function getPreset(id) {
         brushRadius: "50",
         clearValueU: "0",
         clearValueW: "exp(-0.01*((x-L_x/2)^2 + (y-L_y/2)^2))",
+        colourbar: true,
         colourmap: "water",
         diffusionStrUU: "D",
         diffusionStrVV: "1",
