@@ -1108,3 +1108,7 @@ select {
 #embed_ui_type {
     margin-left: 5px;
 }
+
+.dg.main::-webkit-scrollbar {
+    border-radius: 0.5rem;
+}
