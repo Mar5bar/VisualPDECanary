@@ -211,6 +211,8 @@ import {
   RDShaderEnforceDirichletTop,
   RDShaderAdvectionPreBC,
   RDShaderAdvectionPostBC,
+  RDShaderDiffusionPreBC,
+  RDShaderDiffusionPostBC,
   RDShaderGhostX,
   RDShaderGhostY,
 } from "./simulation_shaders.js";
@@ -2610,6 +2612,14 @@ function parseShaderString(str) {
     }
   );
 
+  // Replace species_xx, species_yy etc with uvwqXX.r and uvwqYY.r, etc.
+  str = str.replaceAll(
+    RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_(xx|yy)\\b", "g"),
+    function (m, d1, d2) {
+      return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
+    }
+  );
+
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
   str = replaceDigitsWithWords(str);
 
@@ -2823,10 +2833,12 @@ function setRDEquations() {
     kineticStr,
     RDShaderTop(),
     RDShaderAdvectionPreBC(),
+    RDShaderDiffusionPreBC(),
     neumannShader,
     ghostShader,
     robinShader,
     RDShaderAdvectionPostBC(),
+    RDShaderDiffusionPostBC(),
     parseReactionStrings(),
     updateShader,
     dirichletShader,
@@ -4187,6 +4199,12 @@ function setEquationDisplayType() {
     // Replace u_x, u_y etc with \pd{u}{x} etc.
     regex = /\b([uvwq])_([xy])\b/g;
     str = str.replaceAll(regex, "\\textstyle \\pd{$1}{$2}");
+
+    // Replace u_xx, u_yy etc with \pdd{u}{x} etc.
+    regex = /\b([uvwq])_(xx|yy)\b/g;
+    str = str.replaceAll(regex, function (match, g1, g2) {
+      return "\\textstyle \\pdd{" + g1 + "}{" + g2[0] + "}";
+    });
   } else {
     // Even if we're not customising the typesetting, add in \selected{} to any selected entry.
     selectedEntries.forEach(function (x) {

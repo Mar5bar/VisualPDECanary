@@ -158,6 +158,20 @@ export function RDShaderAdvectionPostBC() {
     `;
 }
 
+export function RDShaderDiffusionPreBC() {
+  return `
+    vec4 uvwqXX = (uvwqR - 2.0*uvwq + uvwqL) / (dx*dx);
+    vec4 uvwqYY = (uvwqT - 2.0*uvwq + uvwqB) / (dy*dy);
+    `;
+}
+
+export function RDShaderDiffusionPostBC() {
+  return `
+    uvwqXX = (uvwqR - 2.0*uvwq + uvwqL) / (dx*dx);
+    uvwqYY = (uvwqT - 2.0*uvwq + uvwqB) / (dy*dy);
+    `;
+}
+
 export function RDShaderUpdateNormal() {
   return `
     float LDuuU = 0.5*((Duu*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DuuR*(uvwqR.r - uvwq.r) + DuuL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Duu*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DuuT*(uvwqT.r - uvwq.r) + DuuB*(uvwqB.r - uvwq.r)) / dy) / dy;
