@@ -947,7 +947,7 @@ select {
 .share-icon {
     color: #1756a9;
     border: 1px solid #1756a9;
-    border-radius: 100%;
+    border-radius: 0.5rem;
     height: 1.1rem;
     width: 1.1rem;
     margin-right: 5px;
