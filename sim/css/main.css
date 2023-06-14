@@ -865,17 +865,21 @@ select {
 }
 
 .button_list a{
-    display:flex;
+    display: flex;
     justify-content: center;
     align-items: center;
     border:1px solid #ddd;
     height:1.8rem;
-    padding-left:0.6rem;
-    padding-right:0.6rem;
-    border-radius:5px;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+    border-radius: 5px;
     text-align: center;
-    margin-top:0.05rem;
+    margin-top: 0.05rem;
     cursor: pointer;
+}
+
+.button_list a .svg-inline--fa {
+    margin-right: 5px;
 }
 
 .button_list i{
@@ -947,9 +951,11 @@ select {
     height: 1.1rem;
     width: 1.1rem;
     margin-right: 5px;
+    padding: 6px;
+    vertical-align: middle;
 }
 
-.share-icon.fa-camera {
+/* .share-icon.fa-camera {
     padding: 5px 3px 5px 7px;
 }
 
@@ -958,12 +964,12 @@ select {
 }
 
 .share-icon.fa-question {
-    padding: 6px 1px 4px 9px;
+    padding: 4px;
 }
 
 .share-icon.fa-code {
     padding: 5px 4px 3px 5px;
-}
+} */
 
 .popout_panel #title {
     font-weight: 500;
