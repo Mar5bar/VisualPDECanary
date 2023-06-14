@@ -62,7 +62,6 @@ canvas {
 
 .dg .main {
     width: min(245px, calc(80vw - 30px)) !important;
-    /* width: min(245px, calc(80vw - 65px)) !important; */
 }
 
 .dg {
@@ -77,10 +76,6 @@ canvas {
 .dg li.title {
     overflow-x: auto;
 }
-
-/* .dg .boolean .property-name {
-    width: 80%;
-} */
 
 .dg .boolean .c {
     width: 20%;
@@ -388,10 +383,6 @@ canvas {
     }
 }
 
-/* #warning_np{
-    background-color:white;
-    color: #1756a9 !important;
-} */
 #warning_no,
 #warning_restart {
     background-color: #e9e9ed;
@@ -421,17 +412,6 @@ i.icon_on_text_button {
     color: #606060;
     margin-right: 0.4rem;
 }
-
-
-/* #error {
-    top: 50%;
-    width: 80%;
-    max-width: 90vh;
-    left: 50%;
-    position: absolute;
-    pointer-events: all;
-    z-index: 1;
-} */
 
 .btn-primary {
     width: 80px;
@@ -549,7 +529,6 @@ sup {
 }
 
 #logo {
-    /* font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; */
     color: white;
     position: absolute;
     bottom: 1ex;
@@ -727,31 +706,6 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
     width: 0;
     z-index: -1;
 }
-
-/* #function_button_f{
-    font-size:1.4rem;
-    font-family: "Inconsolata", Arial, Times, serif;
-    font-weight:700;
-    margin-right:-1px;
-    margin-top:-3px;
-    margin-left:1px;
-  }
-
-#function_button_open_bracket,
-#function_button_close_bracket{
-    font-size: 0.8rem;
-    font-family: "Comic Neue", Arial, Helvetica, sans-serif;
-    margin-top:0px;
-    font-weight:600;
-}
-  #function_button_x{
-    font-weight:600;
-    font-size: 0.85rem;
-    font-family: "Comic Neue", Arial, Helvetica, serif;
-    font-style:italic;
-    margin-left:-1px;
-    margin-right:-1px;
-  } */
 
 .popout_panel {
     display: none;
@@ -954,22 +908,6 @@ select {
     padding: 6px;
     vertical-align: middle;
 }
-
-/* .share-icon.fa-camera {
-    padding: 5px 3px 5px 7px;
-}
-
-.share-icon.fa-link {
-    padding: 6px 5px 4px 5px;
-}
-
-.share-icon.fa-question {
-    padding: 4px;
-}
-
-.share-icon.fa-code {
-    padding: 5px 4px 3px 5px;
-} */
 
 .popout_panel #title {
     font-weight: 500;
