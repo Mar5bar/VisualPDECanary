@@ -2,7 +2,7 @@
 layout: page
 title: The Gray–Scott model
 lesson_number: 50
-thumbnail: /assets/images/GrayScott.png
+thumbnail: /assets/images/GrayScott.webp
 extract: Complex reaction–diffusion 
 equation: $\pd{u}{t}=\nabla^2 u+u^2v - (a+b)u$, $\pd{v}{t}=D\nabla^2v -u^2v + a(1 - v)$
 ---

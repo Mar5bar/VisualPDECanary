@@ -2,7 +2,7 @@
 layout: page
 title: Cahn–Hilliard equation
 lesson_number: 30
-thumbnail: /assets/images/CahnHilliard.PNG
+thumbnail: /assets/images/CahnHilliard.webp
 extract: Phase separation
 equation: $\pd{u}{t}=\nabla^2 (F(u)-g\nabla^2u)+f(u)$
 ---

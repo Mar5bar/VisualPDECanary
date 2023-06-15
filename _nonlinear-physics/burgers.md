@@ -2,7 +2,7 @@
 layout: page
 title: Viscous Burgers' equation
 lesson_number: 60
-thumbnail: /assets/images/BurgersEquation.png
+thumbnail: /assets/images/BurgersEquation.webp
 extract: Nonlinear waves
 equation: $\pd{u}{t} =-u\pd{u}{x}+\varepsilon \pdd{u}{x}$
 ---

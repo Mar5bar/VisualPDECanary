@@ -2,7 +2,7 @@
 layout: page
 title: Swift–Hohenberg equation
 lesson_number: 10
-thumbnail: /assets/images/swiftHohenberg.png
+thumbnail: /assets/images/swiftHohenberg.webp
 extract: Simplistic pattern formation 
 equation: $\pd{u}{t}=ru - (1+D\nabla^2)^2u+au^2+bu^3+cu^5$ with periodic boundary conditions
 ---

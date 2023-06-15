@@ -64,7 +64,7 @@ defaults:
       path: ""
       type: "mathematical-biology" # a collection in your site, in plural form
     values:
-      thumbnail: "/assets/images/squirrel.png"
+      thumbnail: "/assets/images/squirrel.webp"
 
 # Exclude from processing.
 # The following items will not be processed, by default.

@@ -2,7 +2,7 @@
 layout: page
 title: Virus transmission
 lesson_number: 20
-thumbnail: /assets/images/VirusTransmission.png
+thumbnail: /assets/images/VirusTransmission.webp
 extract: Visualising airborne infections
 equation:
 ---

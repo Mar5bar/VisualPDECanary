@@ -2,7 +2,7 @@
 layout: page
 title: Keller–Segel chemotaxis
 lesson_number: 90
-thumbnail: /assets/images/KellerSegel.PNG
+thumbnail: /assets/images/KellerSegel.webp
 extract: Slime moulds and cell movement
 equation: $\pd{u}{t}=\nabla^2 u-\vnabla \cdot(\chi(u)\vnabla v)+f(u)$, $\pd{v}{t}=D\nabla^2v+ g(u,v)$
 ---

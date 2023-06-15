@@ -682,7 +682,7 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 #equations {
-    background: url("/assets/images/function-button-grey.png") no-repeat;
+    background: url("/assets/images/function-button-grey.webp") no-repeat;
     background-size: 80%;
     background-position: center;
     background-color: #ededed;
@@ -690,7 +690,7 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
 
 @media (hover: hover) {
     #equations:hover {
-        background: url("/assets/images/function-button-black.png") no-repeat;
+        background: url("/assets/images/function-button-black.webp") no-repeat;
         background-size: 80%;
         background-position: center;
         background-color: #ededed;
@@ -699,7 +699,7 @@ input[type=range].styled-slider.slider-progress::-ms-fill-lower {
 
 #equations::after {
     /* Preload the hovered function button to stop flickering */
-    content: url('/assets/images/function-button-black.png');
+    content: url('/assets/images/function-button-black.webp');
     height: 0;
     overflow: hidden;
     position: absolute;

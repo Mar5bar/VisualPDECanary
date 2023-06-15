@@ -2,7 +2,7 @@
 layout: page
 title: Logistic travelling waves
 lesson_number: 10
-thumbnail: /assets/images/travelling-waves.png
+thumbnail: /assets/images/travelling-waves.webp
 extract: A classic example
 equation: $\pd{u}{t}=\nabla^2 u+ru\left(1-\frac{u}{K}\right)$<br />with periodic boundary conditions
 ---

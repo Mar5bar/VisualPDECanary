@@ -2,7 +2,7 @@
 layout: page
 title: Spiral waves
 lesson_number: 40
-thumbnail: /assets/images/spiralWaves.png
+thumbnail: /assets/images/spiralWaves.webp
 extract: You spin me right ’round, baby
 equation: $\pd{u}{t}=D_u\nabla^2 u+au-(u+cv)(u^2+v^2),$ $\pd{v}{t}=D_v\nabla^2v+av+(cu-v)(u^2+v^2)$
 ---

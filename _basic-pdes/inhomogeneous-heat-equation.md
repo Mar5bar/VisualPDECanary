@@ -2,7 +2,7 @@
 layout: page
 title: Sources and sinks of heat
 lesson_number: 30
-thumbnail: /assets/images/InhomHeatEquation.PNG
+thumbnail: /assets/images/InhomHeatEquation.webp
 extract: Diffusion in an inhomogeneous medium
 equation: $\pd{T}{t}= \vnabla\cdot(g(x,y)\vnabla T)+f(x,y)$
 ---

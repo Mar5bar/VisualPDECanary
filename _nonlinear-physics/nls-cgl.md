@@ -2,7 +2,7 @@
 layout: page
 title: Complex Ginzburg–Landau
 lesson_number: 20
-thumbnail: /assets/images/complexGinzburgLandau.png
+thumbnail: /assets/images/complexGinzburgLandau.webp
 extract: A world of complexity
 equation: $\pd{\psi}{t}=(D_r+\i D_i)\nabla^2 \psi+(a_r+\i a_i)\psi+(b_r+\i b_i)\psi|\psi|^2$
 ---
