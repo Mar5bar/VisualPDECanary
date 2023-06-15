@@ -52,7 +52,7 @@ div.home-banner {
     background-color: #ddf1ff;
     height: 150px;
     width: 100vw;
-    background: #def3ff url("/assets/images/bannerPlaceholder.png") no-repeat center center;
+    background: #def3ff url("/assets/images/bannerPlaceholderSmall.png") no-repeat center center;
     background-size: cover;
     text-align: center;
     display: flex;
