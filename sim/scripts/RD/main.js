@@ -8,8 +8,7 @@ let camera,
   controls,
   raycaster,
   clampedCoords;
-let simTextureA,
-  simTextureB,
+let simTextures = [],
   postTexture,
   interpolationTexture,
   simTextureOpts,
@@ -305,6 +304,25 @@ Number.prototype.clamp = function (min, max) {
   return Math.min(Math.max(this, min), max);
 };
 
+// Define a handy rotate function.
+Array.prototype.rotate = (function () {
+  // Save references to array functions to make lookup faster
+  var push = Array.prototype.push,
+    splice = Array.prototype.splice;
+
+  return function (count) {
+    var len = this.length >>> 0, // convert to uint
+      count = count >> 0; // convert to int
+
+    // convert count to value in range [0, len)
+    count = ((count % len) + len) % len;
+
+    // use splice.call() instead of this.splice() to make function generic
+    push.apply(this, splice.call(this, 0, count));
+    return this;
+  };
+})();
+
 // Get the canvas to draw on, as specified by the html.
 canvas = document.getElementById("simCanvas");
 
@@ -323,10 +341,6 @@ console.error = function (error) {
 if (!fromExternalLink()) {
   $("#logo").hide();
 }
-
-// Arbitrarily choose to first read from the "B" texture, noting that we will
-// flip-flop between two textures, A and B.
-var readFromTextureB = true;
 
 // Check URL for any specified options.
 const params = new URLSearchParams(window.location.search);
@@ -566,20 +580,24 @@ function init() {
   manualInterpolationNeeded
     ? (simTextureOpts.magFilter = THREE.NearestFilter)
     : (simTextureOpts.magFilter = THREE.LinearFilter);
-  simTextureA = new THREE.WebGLRenderTarget(
-    options.maxDisc,
-    options.maxDisc,
-    simTextureOpts
+  simTextures.push(
+    new THREE.WebGLRenderTarget(
+      options.maxDisc,
+      options.maxDisc,
+      simTextureOpts
+    )
   );
-  simTextureB = simTextureA.clone();
-  postTexture = simTextureA.clone();
-  interpolationTexture = simTextureA.clone();
+  // Store all the simulation textures in an array. They'll be in history order, so that the first element is the most
+  // recent. We'll write to the first texture, with later elements being further back in time.
+  simTextures.push(simTextures[0].clone());
+  postTexture = simTextures[0].clone();
+  interpolationTexture = simTextures[0].clone();
 
   // Periodic boundary conditions (for now).
-  simTextureA.texture.wrapS = THREE.RepeatWrapping;
-  simTextureA.texture.wrapT = THREE.RepeatWrapping;
-  simTextureB.texture.wrapS = THREE.RepeatWrapping;
-  simTextureB.texture.wrapT = THREE.RepeatWrapping;
+  simTextures.forEach((simTex) => {
+    simTex.texture.wrapS = THREE.RepeatWrapping;
+    simTex.texture.wrapT = THREE.RepeatWrapping;
+  });
 
   // The post and interpolation materials, used for display, will always edge clamp to avoid artefacts.
   postTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
@@ -968,24 +986,17 @@ function resizeTextures() {
   // Resize the computational domain by interpolating the existing domain onto the new discretisation.
   simDomain.material = copyMaterial;
 
-  if (!readFromTextureB) {
-    uniforms.textureSource.value = simTextureA.texture;
-    simTextureB.setSize(nXDisc, nYDisc);
-    renderer.setRenderTarget(simTextureB);
+  // Resize all history terms. We'll do 1->0 then 2->1 etc, then cycle.
+  for (let ind = 1; ind < simTextures.length; ind++) {
+    uniforms.textureSource.value = simTextures[ind].texture;
+    simTextures[ind - 1].setSize(nXDisc, nYDisc);
+    renderer.setRenderTarget(simTextures[ind - 1]);
     renderer.render(simScene, simCamera);
-    simTextureA.dispose();
-    simTextureA = simTextureB.clone();
-    uniforms.textureSource.value = simTextureB.texture;
-  } else {
-    uniforms.textureSource.value = simTextureB.texture;
-    simTextureA.setSize(nXDisc, nYDisc);
-    renderer.setRenderTarget(simTextureA);
-    renderer.render(simScene, simCamera);
-    simTextureB.dispose();
-    simTextureB = simTextureA.clone();
-    uniforms.textureSource.value = simTextureA.texture;
   }
-  readFromTextureB = !readFromTextureB;
+  simTextures.rotate(-1);
+  simTextures[0].dispose();
+  simTextures[0] = simTextures[1].clone();
+
   postTexture.setSize(nXDisc, nYDisc);
   // The interpolationTexture will be larger by a scale factor options.smoothingScale + 1.
   interpolationTexture.setSize(
@@ -2154,61 +2165,42 @@ function draw() {
   if (!options.fixRandSeed && options.brushValue.includes("RAND")) {
     updateRandomSeed();
   }
-  // Toggle texture input/output.
-  if (readFromTextureB) {
-    inTex = simTextureB;
-    outTex = simTextureA;
-  } else {
-    inTex = simTextureA;
-    outTex = simTextureB;
-  }
-  readFromTextureB = !readFromTextureB;
 
   simDomain.material = drawMaterial;
-  uniforms.textureSource.value = inTex.texture;
-  renderer.setRenderTarget(outTex);
-  renderer.render(simScene, simCamera);
-  uniforms.textureSource.value = outTex.texture;
+  // We'll draw onto all history terms. We'll do 1->0 then 2->1 etc, then cycle.
+  for (let ind = 1; ind < simTextures.length; ind++) {
+    uniforms.textureSource.value = simTextures[ind].texture;
+    renderer.setRenderTarget(simTextures[ind - 1]);
+    renderer.render(simScene, simCamera);
+  }
+
+  simTextures.rotate(-1);
 }
 
 function timestep() {
   // We timestep by updating a texture that stores the solutions. We can't overwrite
-  // the texture in the loop, so we'll use two textures and swap between them. These
+  // the texture in the loop, so we'll cycle between textures. These
   // textures are already defined above, and their resolution defines the resolution
   // of solution.
 
-  if (readFromTextureB) {
-    inTex = simTextureB;
-    outTex = simTextureA;
-  } else {
-    inTex = simTextureA;
-    outTex = simTextureB;
-  }
-  readFromTextureB = !readFromTextureB;
-
   simDomain.material = simMaterial;
-  uniforms.textureSource.value = inTex.texture;
-  renderer.setRenderTarget(outTex);
+  uniforms.textureSource.value = simTextures[1].texture;
+  renderer.setRenderTarget(simTextures[0]);
   renderer.render(simScene, simCamera);
-  uniforms.textureSource.value = outTex.texture;
+
+  simTextures.rotate(-1);
 }
 
 function enforceDirichlet() {
   // Enforce any Dirichlet boundary conditions.
-  if (readFromTextureB) {
-    inTex = simTextureB;
-    outTex = simTextureA;
-  } else {
-    inTex = simTextureA;
-    outTex = simTextureB;
-  }
-  readFromTextureB = !readFromTextureB;
-
   simDomain.material = dirichletMaterial;
-  uniforms.textureSource.value = inTex.texture;
-  renderer.setRenderTarget(outTex);
-  renderer.render(simScene, simCamera);
-  uniforms.textureSource.value = outTex.texture;
+  // We'll do 1->0 then 2->1 etc, then cycle.
+  for (let ind = 1; ind < simTextures.length; ind++) {
+    uniforms.textureSource.value = simTextures[ind].texture;
+    renderer.setRenderTarget(simTextures[ind - 1]);
+    renderer.render(simScene, simCamera);
+  }
+  simTextures.rotate(-1);
 }
 
 function render() {
@@ -2227,15 +2219,9 @@ function render() {
     clickDomain.updateWorldMatrix();
   }
 
-  // Perform any postprocessing.
-  if (readFromTextureB) {
-    inTex = simTextureB;
-  } else {
-    inTex = simTextureA;
-  }
-
+  // Perform any postprocessing on the last computed values.
   simDomain.material = postMaterial;
-  uniforms.textureSource.value = inTex.texture;
+  uniforms.textureSource.value = simTextures[1].texture;
   renderer.setRenderTarget(postTexture);
   renderer.render(simScene, simCamera);
   uniforms.textureSource.value = postTexture.texture;
@@ -2366,17 +2352,13 @@ function clearTextures() {
   }
   if (checkpointExists && options.resetFromCheckpoints) {
     simDomain.material = checkpointMaterial;
-    renderer.setRenderTarget(simTextureA);
-    renderer.render(simScene, simCamera);
-    renderer.setRenderTarget(simTextureB);
-    renderer.render(simScene, simCamera);
   } else {
     simDomain.material = clearMaterial;
-    renderer.setRenderTarget(simTextureA);
-    renderer.render(simScene, simCamera);
-    renderer.setRenderTarget(simTextureB);
-    renderer.render(simScene, simCamera);
   }
+  simTextures.forEach((tex) => {
+    renderer.setRenderTarget(tex);
+    renderer.render(simScene, simCamera);
+  });
   setDefaultRenderSize();
   render();
 }
@@ -4919,13 +4901,13 @@ function checkColourbarPosition() {
 
 function configureManualInterpolation() {
   if (isManuallyInterpolating()) {
-    simTextureA.texture.magFilter = THREE.NearestFilter;
-    simTextureB.texture.magFilter = THREE.NearestFilter;
+    simTextures[0].texture.magFilter = THREE.NearestFilter;
+    simTextures[1].texture.magFilter = THREE.NearestFilter;
     postTexture.texture.magFilter = THREE.NearestFilter;
     interpolationTexture.texture.magFilter = THREE.NearestFilter;
   } else {
-    simTextureA.texture.magFilter = THREE.LinearFilter;
-    simTextureB.texture.magFilter = THREE.LinearFilter;
+    simTextures[0].texture.magFilter = THREE.LinearFilter;
+    simTextures[1].texture.magFilter = THREE.LinearFilter;
     postTexture.texture.magFilter = THREE.LinearFilter;
     interpolationTexture.texture.magFilter = THREE.LinearFilter;
   }
@@ -5567,13 +5549,8 @@ function deselectTeX(ids) {
 
 function getRawState() {
   checkpointBuffer = new Float32Array(nXDisc * nYDisc * 4);
-  if (readFromTextureB) {
-    inTex = simTextureB;
-  } else {
-    inTex = simTextureA;
-  }
   renderer.readRenderTargetPixels(
-    inTex,
+    simTextures[1],
     0,
     0,
     nXDisc,
