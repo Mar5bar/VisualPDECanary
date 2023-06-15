@@ -227,7 +227,7 @@ import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset, getUserTextFields, getFieldsInView } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
-import * as THREE from "../three.module.js";
+import * as THREE from "../three.module.min.js";
 import { OrbitControls } from "../OrbitControls.js";
 import { Line2 } from "../lines/Line2.js";
 import { LineMaterial } from "../lines/LineMaterial.js";
