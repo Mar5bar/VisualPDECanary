@@ -118,6 +118,9 @@ export function RDShaderMain() {
           RHSNmTwo = computeRHS(textureSourceNmTwo);
           updated = texture2D(textureSourceNmOne, textureCoords) + dt * RHSNmTwo;
           break;
+        case 3:
+          updated = computeRHS(textureSourceNmOne);
+          break;
       }
 
   `;
@@ -399,4 +402,17 @@ export function RDShaderEnforceDirichletTop() {
         float I_TB = Tvec.b;
         float I_TA = Tvec.a;
     `;
+}
+
+export function RDShaderFusedMultiplyAdd() {
+  return `precision highp float;
+  varying vec2 textureCoords;
+  uniform sampler2D textureSourceNmOne;
+  uniform sampler2D textureSourceNmTwo;
+  uniform float scaleFactor;
+
+  void main() {
+    gl_FragColor = texture2D(textureSourceNmOne, textureCoords) + scaleFactor * texture2D(textureSourceNmTwo, textureCoords);
+  }
+  `;
 }
