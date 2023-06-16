@@ -214,7 +214,6 @@ import {
   RDShaderGhostX,
   RDShaderGhostY,
   RDShaderMain,
-  RDShaderFusedMultiplyAdd,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import {
@@ -593,6 +592,7 @@ function init() {
   simTextures.push(simTextures[0].clone());
   simTextures.push(simTextures[0].clone());
   simTextures.push(simTextures[0].clone());
+  simTextures.push(simTextures[0].clone());
   postTexture = simTextures[0].clone();
   interpolationTexture = simTextures[0].clone();
 
@@ -661,11 +661,6 @@ function init() {
   simMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
-  });
-  multiplyAddMaterial = new THREE.ShaderMaterial({
-    uniforms: uniforms,
-    vertexShader: genericVertexShader(),
-    fragmentShader: RDShaderFusedMultiplyAdd(),
   });
   copyMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
@@ -1116,9 +1111,6 @@ function initUniforms() {
     nYDisc: {
       type: "i",
     },
-    scaleFactor: {
-      type: "f",
-    },
     seed: {
       type: "f",
       value: 0.0,
@@ -1130,10 +1122,13 @@ function initUniforms() {
     textureSource: {
       type: "t",
     },
-    textureSourceNmOne: {
+    textureSource1: {
       type: "t",
     },
-    textureSourceNmTwo: {
+    textureSource2: {
+      type: "t",
+    },
+    textureSource3: {
       type: "t",
     },
     t: {
@@ -2214,30 +2209,36 @@ function timestep() {
   // Use the scheme specified in options.timesteppingScheme.
   switch (options.timesteppingScheme) {
     case "Euler":
+      uniforms.textureSource.value = simTextures[1].texture;
+      uniforms.textureSource1.value = simTextures[2].texture;
+      uniforms.textureSource2.value = undefined;
+      uniforms.textureSource3.value = undefined;
       uniforms.dt.value = options.dt;
       uniforms.timesteppingScheme.value = 0;
-      uniforms.textureSourceNmOne.value = simTextures[1].texture;
-      uniforms.textureSourceNmTwo.value = simTextures[2].texture;
       renderer.setRenderTarget(simTextures[0]);
       renderer.render(simScene, simCamera);
       simTextures.rotate(-1);
       uniforms.t.value += options.dt;
       break;
     case "AB2":
+      uniforms.textureSource.value = simTextures[1].texture;
+      uniforms.textureSource1.value = simTextures[2].texture;
+      uniforms.textureSource2.value = undefined;
+      uniforms.textureSource3.value = undefined;
       uniforms.dt.value = options.dt;
       uniforms.timesteppingScheme.value = 1;
-      uniforms.textureSourceNmOne.value = simTextures[1].texture;
-      uniforms.textureSourceNmTwo.value = simTextures[2].texture;
       renderer.setRenderTarget(simTextures[0]);
       renderer.render(simScene, simCamera);
       simTextures.rotate(-1);
       uniforms.t.value += options.dt;
       break;
     case "Mid":
+      uniforms.textureSource2.value = undefined;
+      uniforms.textureSource3.value = undefined;
       // Do an Euler step with 0.5dt.
       uniforms.dt.value = 0.5 * options.dt;
       uniforms.timesteppingScheme.value = 0;
-      uniforms.textureSourceNmOne.value = simTextures[1].texture;
+      uniforms.textureSource.value = simTextures[1].texture;
       renderer.setRenderTarget(simTextures[2]);
       renderer.render(simScene, simCamera);
 
@@ -2245,92 +2246,41 @@ function timestep() {
       uniforms.t.value += 0.5 * options.dt;
       uniforms.dt.value = options.dt;
       uniforms.timesteppingScheme.value = 2;
-      uniforms.textureSourceNmTwo.value = simTextures[2].texture;
+      uniforms.textureSource1.value = simTextures[2].texture;
       renderer.setRenderTarget(simTextures[0]);
       renderer.render(simScene, simCamera);
       simTextures.rotate(-1);
       uniforms.t.value += 0.5 * options.dt;
       break;
     case "RK4":
-      // We use 4 textures as follows: 
-      // [accumulator, previous state, nextk, predictor] then
-      // [predictor, previous state, nextk, accumulator], alternating.
+      // We'll use simTextures as [result, previous, k1, k2, k3].
+
+      // Compute k1 in [2].
       uniforms.timesteppingScheme.value = 3;
-
-      // Compute k1 from previous state = [1] and store it in nextk = [2].
-      simDomain.material = simMaterial;
-      uniforms.textureSourceNmOne.value = simTextures[1].texture;
+      uniforms.textureSource.value = simTextures[1].texture;
       renderer.setRenderTarget(simTextures[2]);
       renderer.render(simScene, simCamera);
 
-      // Add dt/6 k1 [2] to previous state [1] and store it in accumulator = [0].
-      simDomain.material = multiplyAddMaterial;
-      uniforms.scaleFactor.value = options.dt / 6;
-      uniforms.textureSourceNmTwo.value = simTextures[2].texture;
-      renderer.setRenderTarget(simTextures[0]);
-      renderer.render(simScene, simCamera);
-
-      // Add dt/2 k1 [2] to previous state [2] and store it in predictor = [3].
-      uniforms.scaleFactor.value = 0.5 * options.dt;
-      renderer.setRenderTarget(simTextures[3]);
-      renderer.render(simScene, simCamera);
-
-      // Compute k2 from predictor = [3] and store it in nextk = [2].
-      simDomain.material = simMaterial;
+      // Compute k2 in [3] using previous [1] and k1 [2].
+      uniforms.timesteppingScheme.value = 4;
+      uniforms.textureSource1.value = simTextures[2].texture;
       uniforms.t.value += 0.5 * options.dt;
-      uniforms.textureSourceNmOne.value = simTextures[3].texture;
-      renderer.setRenderTarget(simTextures[2]);
-      renderer.render(simScene, simCamera);
-
-      // Add dt/3 k2 [2] to accumulator [0] and store it in accumulator [3].
-      simDomain.material = multiplyAddMaterial;
-      uniforms.scaleFactor.value = options.dt / 3;
-      uniforms.textureSourceNmOne.value = simTextures[0].texture;
-      uniforms.textureSourceNmTwo.value = simTextures[2].texture;
       renderer.setRenderTarget(simTextures[3]);
       renderer.render(simScene, simCamera);
 
-      // Add dt/2 k2 [2] to previous state [1] and store it in predictor [0].
-      uniforms.scaleFactor.value = 0.5 * options.dt;
-      uniforms.textureSourceNmOne.value = simTextures[1].texture;
-      renderer.setRenderTarget(simTextures[0]);
+      // Compute k3 in [4] using previous [1] and k2 [3].
+      uniforms.timesteppingScheme.value = 5;
+      uniforms.textureSource2.value = simTextures[3].texture;
+      renderer.setRenderTarget(simTextures[4]);
       renderer.render(simScene, simCamera);
 
-      // Compute k3 from predictor [0] and store it in nextk [2].
-      simDomain.material = simMaterial;
-      uniforms.textureSourceNmOne.value = simTextures[0].texture;
-      renderer.setRenderTarget(simTextures[2]);
-      renderer.render(simScene, simCamera);
-
-      // Add dt/3 k3 [2] to accumulator [3] and store it in accumulator [0].
-      simDomain.material = multiplyAddMaterial;
-      uniforms.scaleFactor.value = options.dt / 3;
-      uniforms.textureSourceNmOne.value = simTextures[3].texture;
-      uniforms.textureSourceNmTwo.value = simTextures[2].texture;
-      renderer.setRenderTarget(simTextures[0]);
-      renderer.render(simScene, simCamera);
-
-      // Add dt k3 [2] to previous state [1] and store it in predictor [3].
-      uniforms.scaleFactor.value = options.dt;
-      uniforms.textureSourceNmOne.value = simTextures[1].texture;
-      renderer.setRenderTarget(simTextures[3]);
-      renderer.render(simScene, simCamera);
-
-      // Compute k4 from predictor [3] and store it in nextk [2].
-      simDomain.material = simMaterial;
+      // Compute the new value in [0] by computing k4 using k1, k2, k3.
+      uniforms.timesteppingScheme.value = 6;
+      uniforms.textureSource3.value = simTextures[4].texture;
       uniforms.t.value += 0.5 * options.dt;
-      uniforms.textureSourceNmOne.value = simTextures[3].texture;
-      renderer.setRenderTarget(simTextures[2]);
+      renderer.setRenderTarget(simTextures[0]);
       renderer.render(simScene, simCamera);
-
-      // Add dt/6 k4 [2] to accumulator [0] and store it in accumulator [3].
-      simDomain.material = multiplyAddMaterial;
-      uniforms.scaleFactor.value = options.dt / 6;
-      uniforms.textureSourceNmOne.value = simTextures[0].texture;
-      uniforms.textureSourceNmTwo.value = simTextures[2].texture;
-      renderer.setRenderTarget(simTextures[3]);
-      renderer.render(simScene, simCamera);
-      simTextures.rotate(-2);
+      simTextures.rotate(-1);
       break;
   }
 }
@@ -5047,13 +4997,15 @@ function checkColourbarPosition() {
 
 function configureManualInterpolation() {
   if (isManuallyInterpolating()) {
-    simTextures[0].texture.magFilter = THREE.NearestFilter;
-    simTextures[1].texture.magFilter = THREE.NearestFilter;
+    simTextures.forEach((simTex) => {
+      simTex.texture.magFilter = THREE.NearestFilter;
+    });
     postTexture.texture.magFilter = THREE.NearestFilter;
     interpolationTexture.texture.magFilter = THREE.NearestFilter;
   } else {
-    simTextures[0].texture.magFilter = THREE.LinearFilter;
-    simTextures[1].texture.magFilter = THREE.LinearFilter;
+    simTextures.forEach((simTex) => {
+      simTex.texture.magFilter = THREE.LinearFilter;
+    });
     postTexture.texture.magFilter = THREE.LinearFilter;
     interpolationTexture.texture.magFilter = THREE.LinearFilter;
   }
