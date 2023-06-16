@@ -1059,6 +1059,9 @@ function initUniforms() {
     embossLightDir: {
       type: "vec3",
     },
+    forwardEulerStep: {
+      type: "b",
+    },
     L: {
       type: "f",
     },
@@ -1119,10 +1122,10 @@ function initUniforms() {
     textureSource: {
       type: "t",
     },
-    textureSourceNm1: {
+    textureSourceNmOne: {
       type: "t",
     },
-    textureSourceNm2: {
+    textureSourceNmTwo: {
       type: "t",
     },
     t: {
@@ -1258,6 +1261,13 @@ function initGUI(startOpen) {
   dtController.__precision = 12;
   dtController.min(0);
   dtController.updateDisplay();
+
+  root
+    .add(options, "timesteppingScheme", {
+      "Forward Euler": "Euler",
+      "Adams-Bashforth 2": "AB2",
+    })
+    .name("Scheme");
 
   root
     .add(options, "timeDisplay")
@@ -2179,7 +2189,6 @@ function draw() {
     renderer.setRenderTarget(simTextures[ind - 1]);
     renderer.render(simScene, simCamera);
   }
-
   simTextures.rotate(-1);
 }
 
@@ -2190,12 +2199,26 @@ function timestep() {
   // of solution.
 
   simDomain.material = simMaterial;
-  uniforms.textureSourceNm1.value = simTextures[1].texture;
-  uniforms.textureSourceNm2.value = simTextures[2].texture;
-  renderer.setRenderTarget(simTextures[0]);
-  renderer.render(simScene, simCamera);
 
-  simTextures.rotate(-1);
+  // Use the scheme specified in options.timesteppingScheme.
+  uniforms.textureSourceNmOne.value = simTextures[1].texture;
+  uniforms.textureSourceNmTwo.value = simTextures[2].texture;
+  switch (options.timesteppingScheme) {
+    case "Euler":
+      uniforms.dt.value = options.dt;
+      uniforms.forwardEulerStep.value = true;
+      renderer.setRenderTarget(simTextures[0]);
+      renderer.render(simScene, simCamera);
+      simTextures.rotate(-1);
+      break;
+    case "AB2":
+      uniforms.dt.value = options.dt;
+      uniforms.forwardEulerStep.value = false;
+      renderer.setRenderTarget(simTextures[0]);
+      renderer.render(simScene, simCamera);
+      simTextures.rotate(-1);
+      break;
+  }
 }
 
 function enforceDirichlet() {

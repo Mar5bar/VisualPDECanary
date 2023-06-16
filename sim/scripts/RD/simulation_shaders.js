@@ -3,8 +3,9 @@
 export function RDShaderTop() {
   return `precision highp float;
     varying vec2 textureCoords;
-    uniform sampler2D textureSourceNm1;
-    uniform sampler2D textureSourceNm2;
+    uniform sampler2D textureSourceNmOne;
+    uniform sampler2D textureSourceNmTwo;
+    uniform bool forwardEulerStep;
     uniform float dt;
     uniform float dx;
     uniform float dy;
@@ -81,18 +82,35 @@ export function RDShaderMain() {
   return `
   void main()
   {
-      ivec2 texSize = textureSize(textureSourceNm1,0);
+      ivec2 texSize = textureSize(textureSourceNmOne,0);
       float step_x = 1.0 / float(texSize.x);
       float step_y = 1.0 / float(texSize.y);
+      float x = textureCoords.x * float(texSize.x) * dx;
+      float y = textureCoords.y * float(texSize.y) * dy;
+      vec4 Svec = texture2D(imageSourceOne, textureCoords);
+      float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
+      float I_SR = Svec.r;
+      float I_SG = Svec.g;
+      float I_SB = Svec.b;
+      float I_SA = Svec.a;
+      vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
+      float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
+      float I_TR = Tvec.r;
+      float I_TG = Tvec.g;
+      float I_TB = Tvec.b;
+      float I_TA = Tvec.a;
 
-      vec4 RHSNm1 = computeRHS(textureSourceNm1);
-      vec4 RHSNm2 = computeRHS(textureSourceNm2);
-
+      vec4 RHSNmOne;
+      vec4 RHSNmTwo;
       vec4 updated;
-      if (t == 0.0) {
-        updated = texture2D(textureSourceNm1, textureCoords) + dt * RHSNm1;
+
+      if (forwardEulerStep) {
+        RHSNmOne = computeRHS(textureSourceNmOne);
+        updated = texture2D(textureSourceNmOne, textureCoords) + dt * RHSNmOne;
       } else {
-        updated = texture2D(textureSourceNm1, textureCoords) + dt * (1.5 * RHSNm1 - 0.5 * RHSNm2);
+        RHSNmOne = computeRHS(textureSourceNmOne);
+        RHSNmTwo = computeRHS(textureSourceNmTwo);
+        updated = texture2D(textureSourceNmOne, textureCoords) + dt * (1.5 * RHSNmOne - 0.5 * RHSNmTwo);
       }
 
   `;
@@ -243,7 +261,7 @@ export function RDShaderUpdateCross() {
 
 export function RDShaderAlgebraicSpecies() {
   return `
-    updated.SPECIES = RHSNm1.SPECIES;
+    updated.SPECIES = RHSNmOne.SPECIES;
     `;
 }
 
