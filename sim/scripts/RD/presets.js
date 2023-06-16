@@ -1598,10 +1598,12 @@ export function getPreset(id) {
     case "thresholdSimulation":
       options = {
         boundaryConditionsU: "neumann",
-        brushRadius: 0.005,
-        diffusionStrUU: "0.0001",
+        brushRadius: 5,
+        clearValueU: "0",
+        diffusionStrUU: "1",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
+        domainScale: 100,
         dt: 0.002,
         numSpecies: 1,
         numTimestepsPerFrame: 200,
@@ -1610,6 +1612,7 @@ export function getPreset(id) {
         reactionStrU: "u*(1-u)*(u-0.4)",
         reactionStrV: "0",
         reactionStrW: "0",
+        spatialStep: 0.5,
         whatToDraw: "u",
         whatToPlot: "u",
       };
