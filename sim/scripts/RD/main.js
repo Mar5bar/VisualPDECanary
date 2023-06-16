@@ -2233,20 +2233,20 @@ function timestep() {
       uniforms.t.value += options.dt;
       break;
     case "Mid":
+      // We'll use simTextures as [result, previous, k1].
       uniforms.textureSource2.value = undefined;
       uniforms.textureSource3.value = undefined;
-      // Do an Euler step with 0.5dt.
-      uniforms.dt.value = 0.5 * options.dt;
-      uniforms.timesteppingScheme.value = 0;
+
+      // Compute k1 in [2].
+      uniforms.timesteppingScheme.value = 3;
       uniforms.textureSource.value = simTextures[1].texture;
       renderer.setRenderTarget(simTextures[2]);
       renderer.render(simScene, simCamera);
 
-      // Do a non-standard Euler update using both the original values and the just-computed values.
-      uniforms.t.value += 0.5 * options.dt;
-      uniforms.dt.value = options.dt;
+      // Compute the new value in [0] by computing k2 using k1.
       uniforms.timesteppingScheme.value = 2;
       uniforms.textureSource1.value = simTextures[2].texture;
+      uniforms.t.value += 0.5 * options.dt;
       renderer.setRenderTarget(simTextures[0]);
       renderer.render(simScene, simCamera);
       simTextures.rotate(-1);

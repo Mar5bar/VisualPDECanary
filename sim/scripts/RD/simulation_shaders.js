@@ -115,6 +115,7 @@ export function RDShaderMain() {
       vec4 uvwqR;
       vec4 uvwqT;
       vec4 uvwqB;
+      vec4 uvwqLast;
 
       switch (timesteppingScheme) {
         case 0:
@@ -142,13 +143,14 @@ export function RDShaderMain() {
           updated = texture2D(textureSource, textureCoords) + dt * (1.5 * RHS1 - 0.5 * RHS2);
           break;
         case 2:
-          uvwq = texture2D(textureSource2, textureCoords);
-          uvwqL = texture2D(textureSource2, textureCoordsL);
-          uvwqR = texture2D(textureSource2, textureCoordsR);
-          uvwqT = texture2D(textureSource2, textureCoordsT);
-          uvwqB = texture2D(textureSource2, textureCoordsB);
-          RHS2 = computeRHS(textureSource2, uvwq, uvwqL, uvwqR, uvwqT, uvwqB);
-          updated = texture2D(textureSource1, textureCoords) + dt * RHS2;
+          uvwqLast = texture2D(textureSource, textureCoords);
+          uvwq = uvwqLast + 0.5*dt*texture2D(textureSource3, textureCoords);
+          uvwqL = texture2D(textureSource, textureCoordsL) + 0.5*dt*texture2D(textureSource3, textureCoordsL);
+          uvwqR = texture2D(textureSource, textureCoordsR) + 0.5*dt*texture2D(textureSource3, textureCoordsR);
+          uvwqT = texture2D(textureSource, textureCoordsT) + 0.5*dt*texture2D(textureSource3, textureCoordsT);
+          uvwqB = texture2D(textureSource, textureCoordsB) + 0.5*dt*texture2D(textureSource3, textureCoordsB);
+          RHS1 = computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB);
+          updated = uvwqLast + dt * RHS1;
           break;
         case 3:
           uvwq = texture2D(textureSource, textureCoords);
@@ -175,7 +177,7 @@ export function RDShaderMain() {
           updated = computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB);
           break;
         case 6:
-          vec4 uvwqLast = texture2D(textureSource, textureCoords);
+          uvwqLast = texture2D(textureSource, textureCoords);
           uvwq = uvwqLast + dt*texture2D(textureSource3, textureCoords);
           uvwqL = texture2D(textureSource, textureCoordsL) + dt*texture2D(textureSource3, textureCoordsL);
           uvwqR = texture2D(textureSource, textureCoordsR) + dt*texture2D(textureSource3, textureCoordsR);
