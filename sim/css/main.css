@@ -424,6 +424,10 @@ i.icon_on_text_button {
     font-feature-settings: "kern" 1;
 }
 
+.btn-primary .svg-inline--fa {
+    margin-right: 5px;
+}
+
 .fading_in {
     opacity: 100% !important;
     transition-duration: 2s;
