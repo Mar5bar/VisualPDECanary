@@ -5,7 +5,7 @@ export function RDShaderTop() {
     varying vec2 textureCoords;
     uniform sampler2D textureSourceNmOne;
     uniform sampler2D textureSourceNmTwo;
-    uniform bool forwardEulerStep;
+    uniform int timesteppingScheme;
     uniform float dt;
     uniform float dx;
     uniform float dy;
@@ -104,13 +104,20 @@ export function RDShaderMain() {
       vec4 RHSNmTwo;
       vec4 updated;
 
-      if (forwardEulerStep) {
-        RHSNmOne = computeRHS(textureSourceNmOne);
-        updated = texture2D(textureSourceNmOne, textureCoords) + dt * RHSNmOne;
-      } else {
-        RHSNmOne = computeRHS(textureSourceNmOne);
-        RHSNmTwo = computeRHS(textureSourceNmTwo);
-        updated = texture2D(textureSourceNmOne, textureCoords) + dt * (1.5 * RHSNmOne - 0.5 * RHSNmTwo);
+      switch (timesteppingScheme) {
+        case 0:
+          RHSNmOne = computeRHS(textureSourceNmOne);
+          updated = texture2D(textureSourceNmOne, textureCoords) + dt * RHSNmOne;
+          break;
+        case 1:
+          RHSNmOne = computeRHS(textureSourceNmOne);
+          RHSNmTwo = computeRHS(textureSourceNmTwo);
+          updated = texture2D(textureSourceNmOne, textureCoords) + dt * (1.5 * RHSNmOne - 0.5 * RHSNmTwo);
+          break;
+        case 2:
+          RHSNmTwo = computeRHS(textureSourceNmTwo);
+          updated = texture2D(textureSourceNmOne, textureCoords) + dt * RHSNmTwo;
+          break;
       }
 
   `;

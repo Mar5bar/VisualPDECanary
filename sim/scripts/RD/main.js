@@ -1059,9 +1059,6 @@ function initUniforms() {
     embossLightDir: {
       type: "vec3",
     },
-    forwardEulerStep: {
-      type: "b",
-    },
     L: {
       type: "f",
     },
@@ -1131,6 +1128,9 @@ function initUniforms() {
     t: {
       type: "f",
       value: 0.0,
+    },
+    timesteppingScheme: {
+      type: "i",
     },
   };
 }
@@ -1266,6 +1266,7 @@ function initGUI(startOpen) {
     .add(options, "timesteppingScheme", {
       "Forward Euler": "Euler",
       "Adams-Bashforth 2": "AB2",
+      "Midpoint Method": "Mid",
     })
     .name("Scheme");
 
@@ -2043,9 +2044,9 @@ function animate() {
     // Ensure that any Dirichlet BCs are satisfied before timestepping (required due to brushes/init condition).
     anyDirichletBCs ? enforceDirichlet() : {};
     // Perform a number of timesteps per frame.
+    simDomain.material = simMaterial;
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
       timestep();
-      uniforms.t.value += options.dt;
     }
   }
 
@@ -2198,25 +2199,45 @@ function timestep() {
   // textures are already defined above, and their resolution defines the resolution
   // of solution.
 
-  simDomain.material = simMaterial;
-
   // Use the scheme specified in options.timesteppingScheme.
-  uniforms.textureSourceNmOne.value = simTextures[1].texture;
-  uniforms.textureSourceNmTwo.value = simTextures[2].texture;
   switch (options.timesteppingScheme) {
     case "Euler":
       uniforms.dt.value = options.dt;
-      uniforms.forwardEulerStep.value = true;
+      uniforms.timesteppingScheme.value = 0;
+      uniforms.textureSourceNmOne.value = simTextures[1].texture;
+      uniforms.textureSourceNmTwo.value = simTextures[2].texture;
       renderer.setRenderTarget(simTextures[0]);
       renderer.render(simScene, simCamera);
       simTextures.rotate(-1);
+      uniforms.t.value += options.dt;
       break;
     case "AB2":
       uniforms.dt.value = options.dt;
-      uniforms.forwardEulerStep.value = false;
+      uniforms.timesteppingScheme.value = 1;
+      uniforms.textureSourceNmOne.value = simTextures[1].texture;
+      uniforms.textureSourceNmTwo.value = simTextures[2].texture;
       renderer.setRenderTarget(simTextures[0]);
       renderer.render(simScene, simCamera);
       simTextures.rotate(-1);
+      uniforms.t.value += options.dt;
+      break;
+    case "Mid":
+      // Do an Euler step with 0.5dt.
+      uniforms.dt.value = 0.5 * options.dt;
+      uniforms.timesteppingScheme.value = 0;
+      uniforms.textureSourceNmOne.value = simTextures[1].texture;
+      renderer.setRenderTarget(simTextures[2]);
+      renderer.render(simScene, simCamera);
+
+      // Do a non-standard Euler update using both the original values and the just-computed values.
+      uniforms.t.value += 0.5 * options.dt;
+      uniforms.dt.value = options.dt;
+      uniforms.timesteppingScheme.value = 2;
+      uniforms.textureSourceNmTwo.value = simTextures[2].texture;
+      renderer.setRenderTarget(simTextures[0]);
+      renderer.render(simScene, simCamera);
+      simTextures.rotate(-1);
+      uniforms.t.value += 0.5 * options.dt;
       break;
   }
 }
