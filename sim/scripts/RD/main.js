@@ -204,9 +204,7 @@ import {
   RDShaderRobinY,
   RDShaderUpdateNormal,
   RDShaderUpdateCross,
-  RDShaderAlgebraicV,
-  RDShaderAlgebraicW,
-  RDShaderAlgebraicQ,
+  RDShaderAlgebraicSpecies,
   RDShaderEnforceDirichletTop,
   RDShaderAdvectionPreBC,
   RDShaderAdvectionPostBC,
@@ -214,6 +212,7 @@ import {
   RDShaderDiffusionPostBC,
   RDShaderGhostX,
   RDShaderGhostY,
+  RDShaderMain,
 } from "./simulation_shaders.js";
 import { randShader } from "../rand_shader.js";
 import {
@@ -589,6 +588,7 @@ function init() {
   );
   // Store all the simulation textures in an array. They'll be in history order, so that the first element is the most
   // recent. We'll write to the first texture, with later elements being further back in time.
+  simTextures.push(simTextures[0].clone());
   simTextures.push(simTextures[0].clone());
   postTexture = simTextures[0].clone();
   interpolationTexture = simTextures[0].clone();
@@ -1117,6 +1117,12 @@ function initUniforms() {
       value: options.smoothingScale + 1,
     },
     textureSource: {
+      type: "t",
+    },
+    textureSourceNm1: {
+      type: "t",
+    },
+    textureSourceNm2: {
       type: "t",
     },
     t: {
@@ -2184,7 +2190,8 @@ function timestep() {
   // of solution.
 
   simDomain.material = simMaterial;
-  uniforms.textureSource.value = simTextures[1].texture;
+  uniforms.textureSourceNm1.value = simTextures[1].texture;
+  uniforms.textureSourceNm2.value = simTextures[2].texture;
   renderer.setRenderTarget(simTextures[0]);
   renderer.render(simScene, simCamera);
 
@@ -2648,7 +2655,7 @@ function setRDEquations() {
   let dirichletShader = "";
   let robinShader = "";
   let updateShader = "";
-  let m;
+  let algebraicShader = "";
 
   const BCStrs = [
     options.boundaryConditionsU,
@@ -2779,24 +2786,24 @@ function setRDEquations() {
 
   // If v should be algebraic, append this to the normal update shader.
   if (algebraicV && options.crossDiffusion) {
-    updateShader += selectSpeciesInShaderStr(
-      RDShaderAlgebraicV(),
+    algebraicShader += selectSpeciesInShaderStr(
+      RDShaderAlgebraicSpecies(),
       listOfSpecies[1]
     );
   }
 
   // If w should be algebraic, append this to the normal update shader.
   if (algebraicW && options.crossDiffusion) {
-    updateShader += selectSpeciesInShaderStr(
-      RDShaderAlgebraicW(),
+    algebraicShader += selectSpeciesInShaderStr(
+      RDShaderAlgebraicSpecies(),
       listOfSpecies[2]
     );
   }
 
   // If q should be algebraic, append this to the normal update shader.
   if (algebraicQ && options.crossDiffusion) {
-    updateShader += selectSpeciesInShaderStr(
-      RDShaderAlgebraicQ(),
+    algebraicShader += selectSpeciesInShaderStr(
+      RDShaderAlgebraicSpecies(),
       listOfSpecies[3]
     );
   }
@@ -2823,7 +2830,9 @@ function setRDEquations() {
     RDShaderDiffusionPostBC(),
     parseReactionStrings(),
     updateShader,
+    RDShaderMain(),
     dirichletShader,
+    algebraicShader,
     RDShaderBot(),
   ].join(" ");
   simMaterial.needsUpdate = true;

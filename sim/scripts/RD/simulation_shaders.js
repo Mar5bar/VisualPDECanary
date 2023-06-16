@@ -3,7 +3,8 @@
 export function RDShaderTop() {
   return `precision highp float;
     varying vec2 textureCoords;
-    uniform sampler2D textureSource;
+    uniform sampler2D textureSourceNm1;
+    uniform sampler2D textureSourceNm2;
     uniform float dt;
     uniform float dx;
     uniform float dy;
@@ -43,19 +44,17 @@ export function RDShaderTop() {
         return -pow(-x,y);
     }
 
-    void main()
-    {
+    vec4 computeRHS(sampler2D textureSource) {
+
         ivec2 texSize = textureSize(textureSource,0);
         float step_x = 1.0 / float(texSize.x);
         float step_y = 1.0 / float(texSize.y);
         float x = textureCoords.x * float(texSize.x) * dx;
         float y = textureCoords.y * float(texSize.y) * dy;
-
-        vec4 uvwq = texture2D(textureSource, textureCoords);
-        vec4 uvwqL = texture2D(textureSource, textureCoords + vec2(-step_x, 0.0));
-        vec4 uvwqR = texture2D(textureSource, textureCoords + vec2(+step_x, 0.0));
-        vec4 uvwqT = texture2D(textureSource, textureCoords + vec2(0.0, +step_y));
-        vec4 uvwqB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y));
+        vec2 textureCoordsL = textureCoords + vec2(-step_x, 0.0);
+        vec2 textureCoordsR = textureCoords + vec2(+step_x, 0.0);
+        vec2 textureCoordsT = textureCoords + vec2(0.0, +step_y);
+        vec2 textureCoordsB = textureCoords + vec2(0.0, -step_y);
 
         vec4 Svec = texture2D(imageSourceOne, textureCoords);
         float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
@@ -69,7 +68,34 @@ export function RDShaderTop() {
         float I_TG = Tvec.g;
         float I_TB = Tvec.b;
         float I_TA = Tvec.a;
+
+        vec4 uvwq = texture2D(textureSource, textureCoords);
+        vec4 uvwqL = texture2D(textureSource, textureCoordsL);
+        vec4 uvwqR = texture2D(textureSource, textureCoordsR);
+        vec4 uvwqT = texture2D(textureSource, textureCoordsT);
+        vec4 uvwqB = texture2D(textureSource, textureCoordsB);
     `;
+}
+
+export function RDShaderMain() {
+  return `
+  void main()
+  {
+      ivec2 texSize = textureSize(textureSourceNm1,0);
+      float step_x = 1.0 / float(texSize.x);
+      float step_y = 1.0 / float(texSize.y);
+
+      vec4 RHSNm1 = computeRHS(textureSourceNm1);
+      vec4 RHSNm2 = computeRHS(textureSourceNm2);
+
+      vec4 updated;
+      if (t == 0.0) {
+        updated = texture2D(textureSourceNm1, textureCoords) + dt * RHSNm1;
+      } else {
+        updated = texture2D(textureSourceNm1, textureCoords) + dt * (1.5 * RHSNm1 - 0.5 * RHSNm2);
+      }
+
+  `;
 }
 
 export function RDShaderPeriodic() {
@@ -183,8 +209,8 @@ export function RDShaderUpdateNormal() {
     float dv = LDvvV + VFUN;
     float dw = LDwwW + WFUN;
     float dq = LDqqQ + QFUN;
-    vec4 updated = uvwq + dt * vec4(du, dv, dw, dq);
-    `;
+    return vec4(du, dv, dw, dq);
+  }`;
 }
 
 export function RDShaderUpdateCross() {
@@ -210,7 +236,14 @@ export function RDShaderUpdateCross() {
     float dv = LDvuU + LDvvV + LDvwW + LDvqQ + VFUN;
     float dw = LDwuU + LDwvV + LDwwW + LDwqQ + WFUN;
     float dq = LDquU + LDqvV + LDqwW + LDqqQ + QFUN;
-    vec4 updated = uvwq + dt * vec4(du, dv, dw, dq);
+    return vec4(du, dv, dw, dq);
+  }
+    `;
+}
+
+export function RDShaderAlgebraicSpecies() {
+  return `
+    updated.SPECIES = RHSNm1.SPECIES;
     `;
 }
 
