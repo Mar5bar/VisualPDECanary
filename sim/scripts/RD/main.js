@@ -16,7 +16,7 @@ let simTextures = [],
 let basicMaterial,
   displayMaterial,
   drawMaterial,
-  simMaterial,
+  simMaterials = {},
   multiplyAddMaterial,
   dirichletMaterial,
   clearMaterial,
@@ -657,11 +657,29 @@ function init() {
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
   });
-  // This material performs the timestepping.
-  simMaterial = new THREE.ShaderMaterial({
+
+  // We'll use a host of materials for timestepping, each with different fragment shaders.
+  simMaterials.FE = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
   });
+  simMaterials.AB2 = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: genericVertexShader(),
+  });
+  for (let ind = 1; ind < 3; ind++) {
+    simMaterials["Mid" + ind.toString()] = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: genericVertexShader(),
+    });
+  }
+  for (let ind = 1; ind < 5; ind++) {
+    simMaterials["RK4" + ind.toString()] = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: genericVertexShader(),
+    });
+  }
+
   copyMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
@@ -684,7 +702,7 @@ function init() {
   checkpointMaterial = new THREE.MeshBasicMaterial();
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
-  simDomain = new THREE.Mesh(simPlane, simMaterial);
+  simDomain = new THREE.Mesh(simPlane, simMaterials[0]);
   simDomain.position.z = 0;
   simScene.add(simDomain);
 
@@ -1134,9 +1152,6 @@ function initUniforms() {
     t: {
       type: "f",
       value: 0.0,
-    },
-    timesteppingScheme: {
-      type: "i",
     },
   };
 }
@@ -2051,7 +2066,6 @@ function animate() {
     // Ensure that any Dirichlet BCs are satisfied before timestepping (required due to brushes/init condition).
     anyDirichletBCs ? enforceDirichlet() : {};
     // Perform a number of timesteps per frame.
-    simDomain.material = simMaterial;
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
       timestep();
     }
@@ -2209,24 +2223,20 @@ function timestep() {
   // Use the scheme specified in options.timesteppingScheme.
   switch (options.timesteppingScheme) {
     case "Euler":
+      simDomain.material = simMaterials["FE"];
       uniforms.textureSource.value = simTextures[1].texture;
       uniforms.textureSource1.value = simTextures[2].texture;
-      uniforms.textureSource2.value = undefined;
-      uniforms.textureSource3.value = undefined;
       uniforms.dt.value = options.dt;
-      uniforms.timesteppingScheme.value = 0;
       renderer.setRenderTarget(simTextures[0]);
       renderer.render(simScene, simCamera);
       simTextures.rotate(-1);
       uniforms.t.value += options.dt;
       break;
     case "AB2":
+      simDomain.material = simMaterials["AB2"];
       uniforms.textureSource.value = simTextures[1].texture;
       uniforms.textureSource1.value = simTextures[2].texture;
-      uniforms.textureSource2.value = undefined;
-      uniforms.textureSource3.value = undefined;
       uniforms.dt.value = options.dt;
-      uniforms.timesteppingScheme.value = 1;
       renderer.setRenderTarget(simTextures[0]);
       renderer.render(simScene, simCamera);
       simTextures.rotate(-1);
@@ -2234,17 +2244,14 @@ function timestep() {
       break;
     case "Mid":
       // We'll use simTextures as [result, previous, k1].
-      uniforms.textureSource2.value = undefined;
-      uniforms.textureSource3.value = undefined;
-
-      // Compute k1 in [2].
-      uniforms.timesteppingScheme.value = 3;
+      // Compute k1 in [2]. Mid1
+      simDomain.material = simMaterials["Mid1"];
       uniforms.textureSource.value = simTextures[1].texture;
       renderer.setRenderTarget(simTextures[2]);
       renderer.render(simScene, simCamera);
 
-      // Compute the new value in [0] by computing k2 using k1.
-      uniforms.timesteppingScheme.value = 2;
+      // Compute the new value in [0] by computing k2 using k1. Mid2
+      simDomain.material = simMaterials["Mid2"];
       uniforms.textureSource1.value = simTextures[2].texture;
       uniforms.t.value += 0.5 * options.dt;
       renderer.setRenderTarget(simTextures[0]);
@@ -2255,27 +2262,27 @@ function timestep() {
     case "RK4":
       // We'll use simTextures as [result, previous, k1, k2, k3].
 
-      // Compute k1 in [2].
-      uniforms.timesteppingScheme.value = 3;
+      // Compute k1 in [2]. RK41
+      simDomain.material = simMaterials["RK41"];
       uniforms.textureSource.value = simTextures[1].texture;
       renderer.setRenderTarget(simTextures[2]);
       renderer.render(simScene, simCamera);
 
-      // Compute k2 in [3] using previous [1] and k1 [2].
-      uniforms.timesteppingScheme.value = 4;
+      // Compute k2 in [3] using previous [1] and k1 [2]. RK42
+      simDomain.material = simMaterials["RK42"];
       uniforms.textureSource1.value = simTextures[2].texture;
       uniforms.t.value += 0.5 * options.dt;
       renderer.setRenderTarget(simTextures[3]);
       renderer.render(simScene, simCamera);
 
-      // Compute k3 in [4] using previous [1] and k2 [3].
-      uniforms.timesteppingScheme.value = 5;
+      // Compute k3 in [4] using previous [1] and k2 [3]. RK43
+      simDomain.material = simMaterials["RK43"];
       uniforms.textureSource2.value = simTextures[3].texture;
       renderer.setRenderTarget(simTextures[4]);
       renderer.render(simScene, simCamera);
 
-      // Compute the new value in [0] by computing k4 using k1, k2, k3.
-      uniforms.timesteppingScheme.value = 6;
+      // Compute the new value in [0] by computing k4 using k1, k2, k3. RK44
+      simDomain.material = simMaterials["RK44"];
       uniforms.textureSource3.value = simTextures[4].texture;
       uniforms.t.value += 0.5 * options.dt;
       renderer.setRenderTarget(simTextures[0]);
@@ -2741,7 +2748,7 @@ function setRDEquations() {
   let ghostShader = "";
   let dirichletShader = "";
   let robinShader = "";
-  let updateShader = "";
+  let diffusionShader = "";
   let algebraicShader = "";
 
   const BCStrs = [
@@ -2864,11 +2871,12 @@ function setRDEquations() {
   let kineticStr = kineticUniformsForShader();
 
   // Choose what sort of update we are doing: normal, or cross-diffusion enabled?
-  updateShader = parseNormalDiffusionStrings() + "\n";
+  diffusionShader = parseNormalDiffusionStrings() + "\n";
   if (options.crossDiffusion) {
-    updateShader += parseCrossDiffusionStrings() + "\n" + RDShaderUpdateCross();
+    diffusionShader +=
+      parseCrossDiffusionStrings() + "\n" + RDShaderUpdateCross();
   } else {
-    updateShader += RDShaderUpdateNormal();
+    diffusionShader += RDShaderUpdateNormal();
   }
 
   // If v should be algebraic, append this to the normal update shader.
@@ -2897,7 +2905,7 @@ function setRDEquations() {
 
   // Iff the user has entered u_x, u_y etc in a diffusion coefficient, it will be present in
   // the update shader as uvwxy[XY].[rgba]. If they've done this, warn them and don't update the shader.
-  let match = updateShader.match(/\buvwq[XY]\.[rgba]\b/);
+  let match = diffusionShader.match(/\buvwq[XY]\.[rgba]\b/);
   if (match) {
     alert(
       "Including derivatives in the diffusion coefficients is not supported. Try casting your PDE in another form."
@@ -2905,9 +2913,8 @@ function setRDEquations() {
     return;
   }
 
-  simMaterial.fragmentShader = [
-    kineticStr,
-    RDShaderTop(),
+  // Using the constructed shader parts, we'll form fragment shaders for every possible timestepping scheme.
+  let middle = [
     RDShaderAdvectionPreBC(),
     RDShaderDiffusionPreBC(),
     neumannShader,
@@ -2916,13 +2923,53 @@ function setRDEquations() {
     RDShaderAdvectionPostBC(),
     RDShaderDiffusionPostBC(),
     parseReactionStrings(),
-    updateShader,
-    RDShaderMain(),
-    dirichletShader,
-    algebraicShader,
-    RDShaderBot(),
+    diffusionShader,
   ].join(" ");
-  simMaterial.needsUpdate = true;
+  let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
+
+  let type = "FE";
+  simMaterials[type].fragmentShader = [
+    kineticStr,
+    RDShaderTop(type),
+    middle,
+    RDShaderMain(type),
+    bot,
+  ].join(" ");
+
+  type = "AB2";
+  simMaterials[type].fragmentShader = [
+    kineticStr,
+    RDShaderTop(type),
+    middle,
+    RDShaderMain(type),
+    bot,
+  ].join(" ");
+
+  type = "Mid";
+  for (let ind = 1; ind < 3; ind++) {
+    simMaterials[type + ind.toString()].fragmentShader = [
+      kineticStr,
+      RDShaderTop(type + ind.toString()),
+      middle,
+      RDShaderMain(type + ind.toString()),
+      bot,
+    ].join(" ");
+  }
+
+  type = "RK4";
+  for (let ind = 1; ind < 5; ind++) {
+    simMaterials[type + ind.toString()].fragmentShader = [
+      kineticStr,
+      RDShaderTop(type + ind.toString()),
+      middle,
+      RDShaderMain(type + ind.toString()),
+      bot,
+    ].join(" ");
+  }
+
+  Object.keys(simMaterials).forEach(
+    (key) => (simMaterials[key].needsUpdate = true)
+  );
 
   // We will use a shader to enforce Dirichlet BCs before each timestep, but only if some Dirichlet
   // BCs have been specified.
