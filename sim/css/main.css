@@ -994,6 +994,7 @@ select {
 }
 .dg li.title{
     background: #fff !important;
+    overflow: hidden;
     /* background: #fff url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 13px no-repeat !important; */
 }
 .dg li.title:hover{
