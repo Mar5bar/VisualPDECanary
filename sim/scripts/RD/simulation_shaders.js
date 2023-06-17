@@ -139,7 +139,7 @@ export function RDShaderMain(type) {
     uvwqT = texture2D(textureSource, textureCoordsT);
     uvwqB = texture2D(textureSource, textureCoordsB);
     RHS = computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB);
-    updated = RHS`;
+    updated = RHS;`;
   update.Mid2 = `uvwqLast = texture2D(textureSource, textureCoords);
     uvwq = uvwqLast + 0.5*dt*texture2D(textureSource1, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL) + 0.5*dt*texture2D(textureSource1, textureCoordsL);
