@@ -3723,8 +3723,8 @@ function setAlgebraicVarsFromOptions() {
     parseInt(options.numSpecies) - 1
   );
   algebraicV = options.numAlgebraicSpecies >= options.numSpecies - 1;
-  algebraicW = options.numAlgebraicSpecies >= options.numSpecies - 2;
-  algebraicQ = options.numAlgebraicSpecies >= options.numSpecies - 3;
+  algebraicW = (options.numAlgebraicSpecies >= options.numSpecies - 2) && options.numSpecies >= 3;
+  algebraicQ = (options.numAlgebraicSpecies >= options.numSpecies - 3) && options.numSpecies >= 4;
 }
 
 function problemTypeFromOptions() {
