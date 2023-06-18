@@ -2,6 +2,7 @@
 
 export function RDShaderTop() {
   return `precision highp float;
+  precision highp sampler2D;
     varying vec2 textureCoords;
     uniform sampler2D textureSource;
     uniform sampler2D textureSource1;
