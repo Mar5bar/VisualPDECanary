@@ -45,6 +45,7 @@ export function RDShaderTop(type) {
     uniform float L_y;
     uniform float L_min;
     uniform float t;
+    uniform float seed;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
     const float pi = 3.141592653589793;

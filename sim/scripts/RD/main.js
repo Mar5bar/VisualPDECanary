@@ -114,6 +114,7 @@ let leftGUI,
 let isRunning,
   isDrawing,
   hasDrawn,
+  shaderContainsRAND = false,
   anyDirichletBCs,
   dataNudgedUp = false,
   compileErrorOccurred = false,
@@ -2067,6 +2068,7 @@ function animate() {
     anyDirichletBCs ? enforceDirichlet() : {};
     // Perform a number of timesteps per frame.
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
+      if (shaderContainsRAND && !options.fixRandSeed) updateRandomSeed();
       timestep();
     }
   }
@@ -2925,6 +2927,8 @@ function setRDEquations() {
     parseReactionStrings(),
     diffusionShader,
   ].join(" ");
+  shaderContainsRAND = /\bRAND\b/.test(middle);
+  if (shaderContainsRAND) middle = randShader() + middle;
   let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
   let type = "FE";
@@ -3723,8 +3727,12 @@ function setAlgebraicVarsFromOptions() {
     parseInt(options.numSpecies) - 1
   );
   algebraicV = options.numAlgebraicSpecies >= options.numSpecies - 1;
-  algebraicW = (options.numAlgebraicSpecies >= options.numSpecies - 2) && options.numSpecies >= 3;
-  algebraicQ = (options.numAlgebraicSpecies >= options.numSpecies - 3) && options.numSpecies >= 4;
+  algebraicW =
+    options.numAlgebraicSpecies >= options.numSpecies - 2 &&
+    options.numSpecies >= 3;
+  algebraicQ =
+    options.numAlgebraicSpecies >= options.numSpecies - 3 &&
+    options.numSpecies >= 4;
 }
 
 function problemTypeFromOptions() {
