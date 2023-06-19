@@ -2937,13 +2937,9 @@ function setRDEquations() {
   let containsRAND = /\bRAND\b/.test(middle);
   let containsRANDN = /\bRANDN\b/.test(middle);
   if (containsRAND) {
-    // Scale RAND by 1/sqrt(dt) to ensure proper timestepping with FE.
-    middle = middle.replaceAll(/\bRAND\b/g, "(RAND/sqrt(dt))");
     middle = randShader() + middle;
   }
   if (containsRANDN) {
-    // Scale RANDN by 1/sqrt(dt) to ensure proper timestepping with FE.
-    middle = middle.replaceAll(/\bRANDN\b/g, "(RANDN/sqrt(dt))");
     middle = randNShader() + middle;
   }
   shaderContainsRAND = containsRAND || containsRANDN;
