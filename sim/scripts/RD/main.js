@@ -216,7 +216,7 @@ import {
   RDShaderGhostY,
   RDShaderMain,
 } from "./simulation_shaders.js";
-import { randShader } from "../rand_shader.js";
+import { randShader, randNShader } from "../rand_shader.js";
 import {
   fiveColourDisplayTop,
   fiveColourDisplayBot,
@@ -2111,8 +2111,11 @@ function setBrushType() {
   radiusStr = radiusStr.replace(/\b(I_[ST])([RGBA]?)\b/g, "$1Brush$2");
 
   // If a random number has been requested, insert calculation of a random number.
-  if (options.brushValue.includes("RAND")) {
+  if (/\bRAND\b/.test(options.brushValue)) {
     shaderStr += randShader();
+  }
+  if (/\bRANDN\b/.test(options.brushValue)) {
+    shaderStr += randNShader();
   }
   shaderStr +=
     "float brushValue = " + parseShaderString(options.brushValue) + ";\n";
@@ -2927,8 +2930,11 @@ function setRDEquations() {
     parseReactionStrings(),
     diffusionShader,
   ].join(" ");
-  shaderContainsRAND = /\bRAND\b/.test(middle);
-  if (shaderContainsRAND) middle = randShader() + middle;
+  let containsRAND = /\bRAND\b/.test(middle);
+  let containsRANDN = /\bRANDN\b/.test(middle);
+  if (containsRAND) middle = randShader() + middle;
+  if (containsRANDN) middle = randNShader() + middle;
+  shaderContainsRAND = containsRAND || containsRANDN;
   let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
   let type = "FE";
@@ -3487,7 +3493,7 @@ function setBCsGUI() {
 
 function updateRandomSeed() {
   // Update the random seed used in the shaders.
-  uniforms.seed.value = performance.now() % 1000;
+  uniforms.seed.value = (performance.now() % 1000000) / 1000000;
 }
 
 function setClearShader() {

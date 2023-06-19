@@ -77,6 +77,20 @@ export function RDShaderTop(type) {
         return -pow(-x,y);
     }
 
+    const float ALPHA = 0.147;
+    const float INV_ALPHA = 1.0 / ALPHA;
+    const float BETA = 2.0 / (pi * ALPHA);
+    float erfinv(float pERF) {
+      float yERF;
+      if (pERF == -1.0) {
+        yERF = log(1.0 - (-0.99)*(-0.99));
+      } else {
+        yERF = log(1.0 - pERF*pERF);
+      }
+      float zERF = BETA + 0.5 * yERF;
+      return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
+    }
+
     void computeRHS(sampler2D textureSource, vec4 uvwqIn, vec4 uvwqLIn, vec4 uvwqRIn, vec4 uvwqTIn, vec4 uvwqBIn, out highp vec4 result) {
 
         ivec2 texSize = textureSize(textureSource,0);
@@ -472,6 +486,20 @@ export function RDShaderEnforceDirichletTop() {
         return -pow(-x,y);
     }
 
+    const float ALPHA = 0.147;
+    const float INV_ALPHA = 1.0 / ALPHA;
+    const float BETA = 2.0 / (pi * ALPHA);
+    float erfinv(float pERF) {
+      float yERF;
+      if (pERF == -1.0) {
+        yERF = log(1.0 - (-0.99)*(-0.99));
+      } else {
+        yERF = log(1.0 - pERF*pERF);
+      }
+      float zERF = BETA + 0.5 * yERF;
+      return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
+    }
+    
     void main()
     {
         ivec2 texSize = textureSize(textureSource,0);
