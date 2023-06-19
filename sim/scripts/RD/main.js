@@ -4352,6 +4352,14 @@ function setEquationDisplayType() {
     str = str.replaceAll(regex, function (match, g1, g2) {
       return "\\textstyle \\pdd{" + g1 + "}{" + g2[0] + "}";
     });
+
+    // Replace RAND with \mathcal{U}.
+    regex = /\bRAND\b/g;
+    str = str.replaceAll(regex, "\\mathcal{U}");
+
+    // Replace RANDN with \mathcal{Z}.
+    regex = /\bRANDN\b/g;
+    str = str.replaceAll(regex, "\\mathcal{Z}");
   } else {
     // Even if we're not customising the typesetting, add in \selected{} to any selected entry.
     selectedEntries.forEach(function (x) {
