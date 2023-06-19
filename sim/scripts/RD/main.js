@@ -101,6 +101,7 @@ let leftGUI,
   neumannVController,
   neumannWController,
   neumannQController,
+  numTimestepsPerFrameController,
   robinUController,
   robinVController,
   robinWController,
@@ -1272,7 +1273,10 @@ function initGUI(startOpen) {
   // Timestepping folder.
   root = rightGUI.addFolder("Timestepping");
 
-  root.add(options, "numTimestepsPerFrame", 1, 400, 1).name("Steps/frame");
+  numTimestepsPerFrameController = root
+    .add(options, "numTimestepsPerFrame")
+    .name("Steps/frame");
+  createOptionSlider(numTimestepsPerFrameController, 1, 400, 1);
 
   dtController = root
     .add(options, "dt")
