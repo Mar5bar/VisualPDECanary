@@ -3499,13 +3499,17 @@ function updateRandomSeed() {
 function setClearShader() {
   // Insert any user-defined kinetic parameters, as uniforms.
   let shaderStr = kineticUniformsForShader() + clearShaderTop();
-  if (
-    options.clearValueU.includes("RAND") ||
-    options.clearValueV.includes("RAND") ||
-    options.clearValueW.includes("RAND") ||
-    options.clearValueQ.includes("RAND")
-  ) {
+  let allClearShaders = [
+    options.clearValueU,
+    options.clearValueV,
+    options.clearValueW,
+    options.clearValueQ,
+  ].join(" ");
+  if (/\bRAND\b/.test(allClearShaders)) {
     shaderStr += randShader();
+  }
+  if (/\bRANDN\b/.test(allClearShaders)) {
+    shaderStr += randNShader();
   }
   shaderStr += "float u = " + parseShaderString(options.clearValueU) + ";\n";
   shaderStr += "float v = " + parseShaderString(options.clearValueV) + ";\n";
