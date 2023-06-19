@@ -3238,6 +3238,10 @@ function loadOptions(preset) {
     delete options.algebraicW;
     delete options.algebraicQ;
 
+    // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
+    if (options.minColourValue == null) options.minColourValue = 0;
+    if (options.maxColourValue == null) options.maxColourValue = 1;
+
     // Save these loaded options if we ever need to revert.
     savedOptions = options;
   }
