@@ -817,7 +817,7 @@ export function getPreset(id) {
         boundaryConditionsU: "neumann",
         brushRadius: 20,
         clearValueU: "0",
-        diffusionStrUU: "100",
+        diffusionStrUU: "60",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         domainScale: 320,

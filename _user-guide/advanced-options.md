@@ -27,7 +27,9 @@ $D_u$, $D_v$, $D_w$, ...\
 Set the diffusion coefficients of all the species in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are written $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
 
 $f$, $g$, $h$, ...\
-Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
+Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions. 
+
+Advanced users can also make careful use of 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally-distributed random number with unit variance and zero mean. This converts the equations into [stochastic partial differential equations](https://en.wikipedia.org/wiki/Stochastic_partial_differential_equation), which should only be solved using the Forward Euler timestepping scheme. Both 'RAND' and 'RANDN' are scaled such that the scheme resembles the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler–Maruyama_method). The solution under other timestepping schemes is undefined.
 
 ### Parameters <a id='parameters'>
 This menu contains a list of all the user-specified values that can be used throughout VisualPDE. New parameters can be defined using the empty input field at the bottom of the list of parameters. Parameters must be specified as numerical values and cannot depend on other quantities (including each other).
@@ -76,10 +78,10 @@ Left: Dirichlet = 0; Right: Neumann = 1; Top: Robin = u; Bottom: Dirichlet = sin
 
 for the species $u$ would specify $u = 0$ on the left boundary, $\pd{u}{n} = 1$ on the right boundary, $\pd{u}{n} = u$ on the top boundary and $u = sin(x)$ on the bottom boundary. Sides can be specified in any order and are case sensitive. Omitting any side will default to periodic boundary conditions (beware, this may have unexpected results if the matching side is not also periodic). 
 
-An additional type of condition 'Ghost' can also be specified with Combination boundary conditions. This advanced option pushes VisualPDE to its limits, overriding the value of the ghost nodes used in the spatial discretisation of the PDE, and should be used with caution. We make use of this option in our Visual Story on [virus transmission](/visual-stories/airborne-infections) to effectively double the size of the computational domain in one direction.
+An additional type of condition, 'Ghost', can also be specified with Combination boundary conditions. This advanced option pushes VisualPDE to its limits, overriding the value of the ghost nodes used in the spatial discretisation of the PDE, and should be used with caution. We make use of this option in our Visual Story on [virus transmission](/visual-stories/airborne-infections) to effectively double the size of the computational domain in one direction.
 
 ### Initial conditions <a id='initial-conditions'>
-Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
+Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), the random quantity 'RAND', a uniformly random value in $[0,1]$, the random quantity 'RANDN', a normally-distributed random number with unit variance and zero mean, and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
 
 ---
 
@@ -142,7 +144,7 @@ Enable or disable the brush. Most simulations will have the brush enabled by def
 Change the shape of the brush, choosing between **Disk**, **Horizontal line** and **Vertical line**.
 
 **Value**\
-Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and 'RAND', a uniformly random value in $[0,1]$.
+Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally-distributed random number with unit variance and zero mean.
 
 **Radius**\
 Change the brush size, measured on the same scale as the domain size. This can even be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
@@ -175,6 +177,9 @@ Set how many timesteps will be performed every time your browser requests a fram
 
 **Timestep**\
 Set the timestep $\dt$ used in the solver. You may have to increase the spatial step $\dx$ in order to maintain numerical stability if you increase the timestep (as discussed [here](/user-guide/solver)). Must be a numerical value.
+
+**Scheme**\
+Select one of various timestepping schemes. [Forward Euler](https://en.wikipedia.org/wiki/Euler_method) is the fastest but least accurate; the [Midpoint Method](https://en.wikipedia.org/wiki/Midpoint_method) and [Runge-Kutta 4](https://en.wikipedia.org/wiki/Runge–Kutta_methods) improve upon the accuracy and stability of Forward Euler, though are associated with increased computational cost. [Adams-Bashforth 2](https://en.wikipedia.org/wiki/Linear_multistep_method#Two-step_Adams–Bashforth) is more accurate but less stable than Forward Euler. Use of higher accuracy schemes may require a reduction of Steps/frame to reduce stuttering due to increased computational load. When solving stochastic partial differential equations, only Forward Euler is supported.
 
 **Show time**\
 Show/hide the current simulation time in the simulation window.
@@ -281,7 +286,7 @@ Specify how a checkpoint should be resized to fit the current simulation domain.
 Display the integral of **Expression** over the domain. This integral is coarsely approximated by a simple Riemann sum, with accuracy improving with mesh refinement. This can be used to track the numerical evolution of quantities that should be conserved in a system.
 
 **Fix random**\
-Fix the seed of the (pseudo)random number generator used to assign values to 'RAND' in all free-text fields in the VisualPDE interface. Note that 'RAND' always varies in space.
+Fix the seed of the (pseudo)random number generator used to assign values to 'RAND' and 'RANDN' in all free-text fields in the VisualPDE interface. Note that 'RAND' and 'RANDN' always vary in space.
 
 **Copy code**\
 Copy a verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples.

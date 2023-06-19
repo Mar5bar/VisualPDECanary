@@ -1274,7 +1274,7 @@ function initGUI(startOpen) {
   root = rightGUI.addFolder("Timestepping");
 
   numTimestepsPerFrameController = root
-    .add(options, "numTimestepsPerFrame")
+    .add(options, "numTimestepsPerFrame", 1, 400, 1)
     .name("Steps/frame");
   createOptionSlider(numTimestepsPerFrameController, 1, 400, 1);
 
@@ -2936,8 +2936,16 @@ function setRDEquations() {
   ].join(" ");
   let containsRAND = /\bRAND\b/.test(middle);
   let containsRANDN = /\bRANDN\b/.test(middle);
-  if (containsRAND) middle = randShader() + middle;
-  if (containsRANDN) middle = randNShader() + middle;
+  if (containsRAND) {
+    // Scale RAND by 1/sqrt(dt) to ensure proper timestepping with FE.
+    middle = middle.replaceAll(/\bRAND\b/g, "(RAND/sqrt(dt))");
+    middle = randShader() + middle;
+  }
+  if (containsRANDN) {
+    // Scale RANDN by 1/sqrt(dt) to ensure proper timestepping with FE.
+    middle = middle.replaceAll(/\bRANDN\b/g, "(RANDN/sqrt(dt))");
+    middle = randNShader() + middle;
+  }
   shaderContainsRAND = containsRAND || containsRANDN;
   let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
@@ -6281,7 +6289,9 @@ function createOptionSlider(controller, min, max, step) {
   });
 
   // Augment the controller's onChange and onFinishChange to update the slider.
+  let flag = true;
   if (controller.__onChange != undefined) {
+    flag = false;
     controller.oldOnChange = controller.__onChange;
     controller.__onChange = function () {
       controller.oldOnChange();
@@ -6291,12 +6301,21 @@ function createOptionSlider(controller, min, max, step) {
   }
 
   if (controller.__onFinishChange != undefined) {
+    flag = false;
     controller.oldOnFinishChange = controller.__onFinishChange;
     controller.__onFinishChange = function () {
       controller.oldOnFinishChange();
       controller.slider.value = controller.getValue();
       controller.slider.style.setProperty("--value", controller.slider.value);
     };
+  }
+
+  if (flag) {
+    // Neither onChange nor onFinishChange were set, so we need to add an onChange to update the slider.
+    controller.onChange(function () {
+      controller.slider.value = controller.getValue();
+      controller.slider.style.setProperty("--value", controller.slider.value);
+    });
   }
 
   // Add the slider to the DOM.
