@@ -415,6 +415,7 @@ if (params.has("story")) {
   $("#help").addClass("hidden");
   $("#share").addClass("hidden");
   editViewFolder.domElement.classList.add("hidden");
+  $("#add_view").addClass("hidden");
 
   $("#play").css("top", "-=50");
   $("#pause").css("top", "-=50");
@@ -765,6 +766,7 @@ function init() {
           uiHidden = false;
           $(".ui").removeClass("hidden");
           editViewFolder.domElement.classList.remove("hidden");
+          $("#add_view").removeClass("hidden");
           // Reset any custom positioning for the Story ui.
           $(".ui").css("top", "");
           $(":root").css("--views-ui-offset", viewUIOffsetInit);
