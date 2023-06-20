@@ -38,7 +38,7 @@ People don't always stay still in the middle of rooms. Unsurprisingly, the movem
 
 <iframe class="sim" src="/sim/?preset=CovidInAStillRoomCircling&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
-The Probability View shows the buildup of a ring of likely infections as the infectious person circles the room. A quick look at the Concentration View shows their circular path, leaving a trail of virus particles behind them.
+The Probability View shows the build-up of a ring of likely infections as the infectious person circles the room. A quick look at the Concentration View shows their circular path, leaving a trail of viral particles behind them.
 
 In this scenario, what do you think happens if we turn on the air conditioner? The next simulation does just this. Start the simulation by pressing {{ layout.play }}
 
