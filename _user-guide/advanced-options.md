@@ -211,10 +211,7 @@ The thickness of the plotted line relative to the default. Must be a numerical v
 The current zoom level of the 3D view. You can manipulate the value directly or, on touch devices, by 'pinching to zoom'.
 
 **Man. smooth (manual smoothing)**\
-Use this option to force the use of manual, configurable, unoptimised filtering in place of device-default interplation of displayed colours. This toggle is not available on devices that do not support smoothing by default; in this case, manual smoothing is always enabled.
-
-**Smoothing scale**\
-Control the degree of smoothing applied to the simulation output before display. Setting this value to zero turns off all smoothing. Larger values demand more memory and compute power, but increasingly smooth the output with bilinear interpolation. Only available if manual smoothing is enabled.
+Use this option to force the use of manual, unoptimised filtering in place of device-default interplation of displayed colours. This toggle is not available on devices that do not support smoothing by default; in this case, manual smoothing is always enabled.
 
 #### Contours <a id='contours'>
 Customise the display of contours, which can be toggled on and off in **Views**.

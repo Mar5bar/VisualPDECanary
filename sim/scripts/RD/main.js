@@ -64,7 +64,6 @@ let leftGUI,
   cameraPhiController,
   cameraZoomController,
   forceManualInterpolationController,
-  smoothingScaleController,
   embossController,
   contourController,
   contourEpsilonController,
@@ -1028,10 +1027,10 @@ function resizeTextures() {
   simTextures[0] = simTextures[1].clone();
 
   postTexture.setSize(nXDisc, nYDisc);
-  // The interpolationTexture will be larger by a scale factor options.smoothingScale + 1.
+  // The interpolationTexture will match the number of pixels in the display.
   interpolationTexture.setSize(
-    (options.smoothingScale + 1) * nXDisc,
-    (options.smoothingScale + 1) * nYDisc
+    Math.round(window.devicePixelRatio * canvasWidth),
+    Math.round(window.devicePixelRatio * canvasHeight)
   );
 }
 
@@ -1141,10 +1140,6 @@ function initUniforms() {
     seed: {
       type: "f",
       value: 0.0,
-    },
-    smoothingScale: {
-      type: "f",
-      value: options.smoothingScale + 1,
     },
     textureSource: {
       type: "t",
@@ -1712,15 +1707,6 @@ function initGUI(startOpen) {
     .add(options, "forceManualInterpolation")
     .name("Man. smooth")
     .onChange(configureManualInterpolation);
-
-  smoothingScaleController = root
-    .add(options, "smoothingScale", 0, 16, 1)
-    .name("Smoothing")
-    .onChange(function () {
-      resizeTextures();
-      uniforms.smoothingScale.value = options.smoothingScale + 1;
-      render();
-    });
 
   root = root.addFolder("Contours");
 
@@ -4004,9 +3990,6 @@ function configureGUI() {
   manualInterpolationNeeded
     ? hideGUIController(forceManualInterpolationController)
     : showGUIController(forceManualInterpolationController);
-  isManuallyInterpolating()
-    ? showGUIController(smoothingScaleController)
-    : hideGUIController(smoothingScaleController);
   // Update the options available in whatToDraw based on the number of species.
   updateGUIDropdown(
     whatToDrawController,
