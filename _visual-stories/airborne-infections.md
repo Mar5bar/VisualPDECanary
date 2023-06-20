@@ -9,7 +9,9 @@ equation:
 
 Since the Covid-19 pandemic began, airborne viruses have formed a large part of scientific study. In this short Story, we're going to explore one aspect of this work: the effects of airflow.
 
-Suppose that lots of people are sitting in a sealed room and one of them is infectious. We'll assume that the infectious person is constantly producing virus-laden particles that spread out around them and lose their potency over time. The simulation below shows what this might look like. The colour corresponds to the concentration or amount of the virus in the air. It's worth noting that the results of our simulations in this Story aren't meant to match up perfectly with reality, so we'll focus on qualitative features rather than on particular values. At the end of our exploration we'll point you towards the real science behind this Story, which includes discussions of the assumptions behind the mathematical model that inspired our Story.
+Before we begin, it's worth noting that the results of the simulations in this Story aren't meant to match up perfectly with reality, so we'll focus on qualitative features rather than on particular values. At the end of our exploration we'll point you towards the real science behind this Story, which includes discussions of the assumptions behind the mathematical model that inspired our Story.
+
+Suppose that lots of people are sitting in a sealed room and one of them is infectious. We'll assume that the infectious person is constantly producing virus-laden particles that spread out around them and lose their potency over time. The simulation below shows what this might look like. The colour corresponds to the concentration or amount of the virus in the air. 
 
 <iframe class="sim" src="/sim/?preset=CovidInAStillRoom&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
