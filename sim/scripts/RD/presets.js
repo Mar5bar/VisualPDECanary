@@ -688,7 +688,7 @@ export function getPreset(id) {
         domainScale: 150,
         dt: 0.001,
         kineticParams:
-          "V = 40 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
+          "V = 40 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 0.5;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         numAlgebraicSpecies: 1,
         numSpecies: "4",
         numTimestepsPerFrame: 20,
@@ -724,7 +724,7 @@ export function getPreset(id) {
         parent: "CovidInARoom",
         activeViewInd: 1,
         kineticParams:
-          "V = 0 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
+          "V = 0 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 0.5;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         preset: "CovidInAStillRoom",
       };
       break;
@@ -733,7 +733,7 @@ export function getPreset(id) {
         parent: "CovidInARoom",
         preset: "CovidInARoomCircling",
         kineticParams:
-          "V = 40 in [0,40];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
+          "V = 40 in [0,40];R = 10 in [0,20];lambda = 0.5;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         reactionStrU:
           "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C_low+V*C_low_x",
         runningOnLoad: false,
@@ -743,7 +743,7 @@ export function getPreset(id) {
       options = {
         parent: "CovidInARoomCircling",
         kineticParams:
-          "V = 0 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 1;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
+          "V = 0 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 0.5;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
         preset: "CovidInAStillRoomCircling",
         runningOnLoad: true,
       };
