@@ -115,6 +115,7 @@ let leftGUI,
 let isRunning,
   isDrawing,
   hasDrawn,
+  isStory = false,
   shaderContainsRAND = false,
   anyDirichletBCs,
   dataNudgedUp = false,
@@ -408,14 +409,16 @@ if (shouldLoadDefault) {
   loadPreset("GrayScott");
 }
 
-if (params.has("story")) {
-  // If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
+// If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
+isStory = params.has("story");
+if (isStory) {
   $("#settings").addClass("hidden");
   $("#equations").addClass("hidden");
   $("#help").addClass("hidden");
   $("#share").addClass("hidden");
   editViewFolder.domElement.classList.add("hidden");
   $("#add_view").addClass("hidden");
+  configureColourbar();
 
   $("#play").css("top", "-=50");
   $("#pause").css("top", "-=50");
@@ -4882,7 +4885,11 @@ function configureColourbar() {
       $("#midLabel").html("$" + listOfSpecies[1] + "$");
       $("#maxLabel").html("$" + listOfSpecies[2] + "$");
     } else {
-      $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
+      if (isStory) {
+        $("#midLabel").html(options.views[options.activeViewInd].name);
+      } else {
+        $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
+      }
     }
     if (MathJax.typesetPromise != undefined) {
       MathJax.typesetPromise($("#midLabel"));
