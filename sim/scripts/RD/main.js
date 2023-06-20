@@ -17,7 +17,6 @@ let basicMaterial,
   displayMaterial,
   drawMaterial,
   simMaterials = {},
-  multiplyAddMaterial,
   dirichletMaterial,
   clearMaterial,
   copyMaterial,
@@ -109,6 +108,7 @@ let leftGUI,
   fIm,
   imControllerOne,
   imControllerTwo,
+  editViewFolder,
   whatToPlotController,
   deleteViewController,
   selectedEntries = new Set();
@@ -363,22 +363,6 @@ if (params.has("sf")) {
   }
 }
 
-if (params.has("story")) {
-  // If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
-  $("#settings").addClass("hidden");
-  $("#equations").addClass("hidden");
-  $("#help").addClass("hidden");
-  $("#share").addClass("hidden");
-
-  $("#play").css("top", "-=50");
-  $("#pause").css("top", "-=50");
-  $("#erase").css("top", "-=50");
-  $("#views").css("top", "-=50");
-  $("#views_ui").css("top", "-=50");
-  viewUIOffsetInit = $(":root").css("--views-ui-offset");
-  $(":root").css("--views-ui-offset", "-=50");
-}
-
 // Warn the user about flashing images and ask for cookie permission to store this.
 if (!warningCookieExists() && !uiHidden) {
   // Display the warning message.
@@ -422,6 +406,23 @@ if (params.has("options")) {
 if (shouldLoadDefault) {
   // Load a specific preset as the default.
   loadPreset("GrayScott");
+}
+
+if (params.has("story")) {
+  // If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
+  $("#settings").addClass("hidden");
+  $("#equations").addClass("hidden");
+  $("#help").addClass("hidden");
+  $("#share").addClass("hidden");
+  editViewFolder.domElement.classList.add("hidden");
+
+  $("#play").css("top", "-=50");
+  $("#pause").css("top", "-=50");
+  $("#erase").css("top", "-=50");
+  $("#views").css("top", "-=50");
+  $("#views_ui").css("top", "-=50");
+  viewUIOffsetInit = $(":root").css("--views-ui-offset");
+  $(":root").css("--views-ui-offset", "-=50");
 }
 
 // If the "Try clicking!" popup is allowed, show it iff we're from an external link
@@ -763,6 +764,7 @@ function init() {
         if (uiHidden) {
           uiHidden = false;
           $(".ui").removeClass("hidden");
+          editViewFolder.domElement.classList.remove("hidden");
           // Reset any custom positioning for the Story ui.
           $(".ui").css("top", "");
           $(":root").css("--views-ui-offset", viewUIOffsetInit);
@@ -1274,7 +1276,7 @@ function initGUI(startOpen) {
   root = rightGUI.addFolder("Timestepping");
 
   numTimestepsPerFrameController = root
-    .add(options, "numTimestepsPerFrame", 1, 400, 1)
+    .add(options, "numTimestepsPerFrame", 1, 1000, 1)
     .name("Steps/frame");
   createOptionSlider(numTimestepsPerFrameController, 1, 400, 1);
 
@@ -1904,7 +1906,8 @@ function initGUI(startOpen) {
   viewsTitle.classList.add("ui_title");
   viewsGUI.domElement.prepend(viewsTitle);
 
-  root = viewsGUI.addFolder("Edit view");
+  editViewFolder = viewsGUI.addFolder("Edit view");
+  root = editViewFolder;
 
   const editViewButtons = document.createElement("li");
   editViewButtons.id = "edit_view_buttons";
