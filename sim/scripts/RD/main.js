@@ -5106,6 +5106,7 @@ function configureManualInterpolation() {
     interpolationTexture.texture.magFilter = THREE.LinearFilter;
   }
   configureGUI();
+  render();
 }
 
 function isManuallyInterpolating() {
