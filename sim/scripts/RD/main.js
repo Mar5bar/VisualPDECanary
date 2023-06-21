@@ -1712,7 +1712,7 @@ function initGUI(startOpen) {
 
   forceManualInterpolationController = root
     .add(options, "forceManualInterpolation")
-    .name("Man. smooth")
+    .name("Manual interp")
     .onChange(configureManualInterpolation);
 
   root = root.addFolder("Contours");

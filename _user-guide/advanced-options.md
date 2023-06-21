@@ -210,8 +210,8 @@ The thickness of the plotted line relative to the default. Must be a numerical v
 **Zoom**\
 The current zoom level of the 3D view. You can manipulate the value directly or, on touch devices, by 'pinching to zoom'.
 
-**Man. smooth (manual smoothing)**\
-Use this option to force the use of manual, unoptimised filtering in place of device-default interplation of displayed colours. This toggle is not available on devices that do not support smoothing by default; in this case, manual smoothing is always enabled.
+**Manual interp (manual interpolation)**\
+Use this option to force the use of manual, unoptimised filtering in place of device-default interplation of displayed colours. This toggle is not available on devices that do not support interpolation by default; in this case, manual interpolation is always enabled.
 
 #### Contours <a id='contours'>
 Customise the display of contours, which can be toggled on and off in **Views**.
