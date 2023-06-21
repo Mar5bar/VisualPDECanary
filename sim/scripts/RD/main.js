@@ -1768,7 +1768,7 @@ function initGUI(startOpen) {
       setEmbossUniforms();
       renderIfNotRunning();
     });
-  createOptionSlider(embossSmoothnessController, 0, 10, 0.001);
+  createOptionSlider(embossSmoothnessController, 0, 2, 0.001);
 
   embossAmbientController = root
     .add(options, "embossAmbient")
