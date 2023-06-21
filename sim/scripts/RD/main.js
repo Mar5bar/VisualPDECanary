@@ -1027,6 +1027,7 @@ function resizeTextures() {
   simTextures[0] = simTextures[1].clone();
 
   postTexture.setSize(nXDisc, nYDisc);
+  postprocess();
   // The interpolationTexture will match the number of pixels in the display.
   interpolationTexture.setSize(
     Math.round(window.devicePixelRatio * canvasWidth),
@@ -2330,12 +2331,7 @@ function render() {
   }
 
   // Perform any postprocessing on the last computed values.
-  simDomain.material = postMaterial;
-  uniforms.textureSource.value = simTextures[1].texture;
-  renderer.setRenderTarget(postTexture);
-  renderer.render(simScene, simCamera);
-  uniforms.textureSource.value = postTexture.texture;
-  bufferFilled = false;
+  postprocess();
 
   // If this is a line plot, modify the line positions and colours before rendering.
   if (options.plotType == "line") {
@@ -2400,6 +2396,15 @@ function render() {
     setSizes();
     render();
   }
+}
+
+function postprocess() {
+  simDomain.material = postMaterial;
+  uniforms.textureSource.value = simTextures[1].texture;
+  renderer.setRenderTarget(postTexture);
+  renderer.render(simScene, simCamera);
+  uniforms.textureSource.value = postTexture.texture;
+  bufferFilled = false;
 }
 
 function onDocumentPointerDown(event) {
