@@ -713,8 +713,6 @@ export function getPreset(id) {
             whatToPlot: "C_low + C_up",
             maxColourValue: 5,
             colourmap: "lavaflow",
-            emboss: true,
-            embossSmoothness: 0.2,
           },
         ],
         whatToDraw: "C_low",
