@@ -1108,7 +1108,13 @@ function initUniforms() {
     dx: {
       type: "f",
     },
+    dxUpscaledScale: {
+      type: "f",
+    },
     dy: {
+      type: "f",
+    },
+    dyUpscaledScale: {
       type: "f",
     },
     heightScale: {
@@ -2372,6 +2378,11 @@ function render() {
     renderer.setRenderTarget(interpolationTexture);
     renderer.render(simScene, simCamera);
     uniforms.textureSource.value = interpolationTexture.texture;
+    uniforms.dxUpscaledScale.value = (devicePixelRatio * domainWidth) / nXDisc;
+    uniforms.dyUpscaledScale.value = (devicePixelRatio * domainHeight) / nYDisc;
+  } else {
+    uniforms.dxUpscaledScale.value = 1;
+    uniforms.dyUpscaledScale.value = 1;
   }
 
   // Render the output to the screen.

@@ -15,13 +15,14 @@ export function fiveColourDisplayTop() {
     uniform vec4 colour4;
     uniform vec4 colour5;
 		
+    uniform float dxUpscaledScale;
+    uniform float dyUpscaledScale;
     uniform float embossAmbient;
     uniform float embossDiffuse;
     uniform float embossShiny;
     uniform float embossSmoothness;
     uniform float embossSpecular;
     uniform vec3 embossLightDir;
-		uniform float smoothingScale;
 
     uniform vec3 contourColour;
     uniform float contourEpsilon;
@@ -86,7 +87,7 @@ export function embossShader() {
     float step_y = 1.0 / float(texSize.y);
     float gradX = (texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).r - texture2D(textureSource, textureCoords + vec2(-step_x, 0.0)).r);
     float gradY = (texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).r - texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).r);
-    vec3 normal = normalize(vec3 (-gradX/dx, -gradY/dy, embossSmoothness * (maxColourValue - minColourValue) / smoothingScale));
+    vec3 normal = normalize(vec3 (-gradX/dx * dxUpscaledScale, -gradY/dy * dyUpscaledScale, embossSmoothness * (maxColourValue - minColourValue)));
     float diff = max(0.0, dot(normal, embossLightDir));
     float rz = max(0.0, 2.0*diff*normal.z - embossLightDir.z);
     col = col*(embossDiffuse*diff + embossAmbient) + embossSpecular*pow(rz, embossShiny);
