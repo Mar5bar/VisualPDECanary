@@ -2,7 +2,7 @@
 layout: page
 title: What can VisualPDE solve?
 lesson_number: 20
-thumbnail: /assets/images/squirrel-question.png
+thumbnail: /assets/images/squirrel-question.webp
 extract: A brief intro to the systems we simulate
 ---
 

@@ -1,7 +1,7 @@
 // clear_shader.js
 
 export function clearShaderTop() {
-    return `varying vec2 textureCoords;
+  return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
@@ -43,6 +43,20 @@ export function clearShaderTop() {
         return -pow(-x,y);
     }
 
+    const float ALPHA = 0.147;
+    const float INV_ALPHA = 1.0 / ALPHA;
+    const float BETA = 2.0 / (pi * ALPHA);
+    float erfinv(float pERF) {
+      float yERF;
+      if (pERF == -1.0) {
+        yERF = log(1.0 - (-0.99)*(-0.99));
+      } else {
+        yERF = log(1.0 - pERF*pERF);
+      }
+      float zERF = BETA + 0.5 * yERF;
+      return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
+    }
+
     void main()
     {
         float x = textureCoords.x * float(nXDisc) * dx;
@@ -63,7 +77,7 @@ export function clearShaderTop() {
 }
 
 export function clearShaderBot() {
-    return `
+  return `
         gl_FragColor = vec4(u, v, w, q);
     }`;
 }

@@ -2,7 +2,7 @@
 layout: page
 title: Chemical Basis of Morphogenesis
 lesson_number: 30
-thumbnail: /assets/images/chemicalBasis.png
+thumbnail: /assets/images/chemicalBasis.webp
 extract: A transformative text
 equation: $\pd{u}{t}=\nabla^2 u+a-u+u^2v$, $\pd{v}{t}=D\nabla^2v+ b-u^2v$
 ---

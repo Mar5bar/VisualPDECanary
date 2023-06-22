@@ -2,7 +2,7 @@
 layout: page
 title: FAQs
 lesson_number: 15
-thumbnail: /assets/images/question-marks.png
+thumbnail: /assets/images/question-marks.webp
 extract: Unsure about something? Help is at hand
 ---
 

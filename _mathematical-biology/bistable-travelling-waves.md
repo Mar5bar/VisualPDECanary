@@ -3,7 +3,7 @@ layout: page
 title: "Bistability: invasion and persistence"
 # permalink: /bistable-travelling-waves/
 lesson_number: 30
-thumbnail: /assets/images/travelling-waves.png
+thumbnail: /assets/images/travelling-waves.webp
 extract: Spatial Allee effects and changing wavespeeds
 equation: $\pd{u}{t}=D\nabla^2 u +u(u-a)(u-1)$
 ---

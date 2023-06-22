@@ -2,7 +2,7 @@
 layout: page
 title: The VisualPDE solver
 lesson_number: 30
-thumbnail: /assets/images/UnderTheHood.png
+thumbnail: /assets/images/UnderTheHood.webp
 extract: Under the hood of VisualPDE
 ---
 
@@ -35,17 +35,17 @@ $$\textstyle \vnabla \cdot(D_u\vnabla u) \approx \frac{D_u(x-\dx)[u(x-\dx) - u(x
 at a point $x$, where we've omitted any dependence of any quantities on anything other than space. Notably, this is just a standard central differences scheme if $D_u$ is constant. Adding the above to itself with $x$ replaced with $y$ gives the 2D discretisation, and adding in additional terms is simple by linearity.
 
 ### Timestepping <a id='timestepping'>
-With space discretised as above, we are faced with a large system of coupled ordinary differential equations to solve, which represent the evolution of the unknowns at each discrete gridpoint of the spatial domain. Ideally, VisualPDE would use modern, advanced solvers that are both accurate and stable in practice. In practice, we use the following scheme:
+With space discretised as above, we are faced with a large system of coupled ordinary differential equations to solve, which represent the evolution of the unknowns at each discrete gridpoint of the spatial domain. VisualPDE implements four popular schemes for timestepping: [Forward Euler](https://en.wikipedia.org/wiki/Euler_method), two-step [Adams-Bashforth](https://en.wikipedia.org/wiki/Linear_multistep_method#Two-step_Adams–Bashforth), the [Midpoint Method](https://en.wikipedia.org/wiki/Midpoint_method) and the four-step [Runge-Kutta](https://en.wikipedia.org/wiki/Runge–Kutta_methods) method (commonly known as 'RK4'). These solvers each have their strengths, with Forward Euler being the least computationally demanding while RK4 offers superior accuracy and stability at the cost of doing more calculations each timestep. The following Forward Euler scheme is the default in many of the examples on the site:
 
 $$ \pd{u}{t} \approx \frac{u(t+\dt) - u(t)}{\dt}$$
 
-for timestep $\dt$, a scheme that you might recognise as [forward Euler](https://en.wikipedia.org/wiki/Euler_method). This approach is far from state-of-the-art, but it is straightforward and intuitive to implement on massively parallel computing hardware (more on that [later](#browser)). 
+for timestep $\dt$. This approach is far from state-of-the-art, but it is straightforward and intuitive to implement on massively parallel computing hardware (more on that [later](#browser)).
 
-In practice, its simplicity can lead to some problems, with [numerical instability](https://en.wikipedia.org/wiki/Euler_method#Numerical_stability) being perhaps the most pathological. Loosely speaking, the interaction between the forward Euler scheme and our spatial discretisation can lead to numerical artefacts ruining the solution, which typically occur when the ratio $D \, \dt / \dx^2$ is too small, where $D$ is any of the diffusion coefficients in the problem. 
+In practice, its simplicity can lead to some problems, with [numerical instability](https://en.wikipedia.org/wiki/Euler_method#Numerical_stability) being perhaps the most pathological. Loosely speaking, the interaction between the forward Euler scheme and our spatial discretisation can lead to numerical artefacts ruining the solution, which typically occur when the ratio $D \, \dt / \dx^2$ is too small, where $D$ is any of the diffusion coefficients in the problem. Both the Midpoint Method and RK4 improve upon the stability of Forward Euler, whilst the Adams-Bashforth scheme is generally less stable but more accurate than Forward Euler.
 
-VisualPDE will try to tell you when it's fallen foul of this (we periodically check for 'NaN' or $\pm\infty$ in the solution), at which point you might want to try reducing $\dt$, reducing the diffusion coefficients in your problem, or increasing $\dx$ (we recommend trying each of these things in this order). If you want to experience this for yourself, try clicking in [this](/sim/?preset=unstableHeatEquation) simulation.
+VisualPDE will try to tell you when it's fallen foul of stability issues (we periodically check for 'NaN' or $\pm\infty$ in the solution), at which point you might want to try reducing $\dt$, trying out a different solver, reducing the diffusion coefficients in your problem, or increasing $\dx$ (we recommend trying each of these things in this order). If you want to experience this for yourself for Forward Euler, try clicking in [this](/sim/?preset=unstableHeatEquation) simulation. It turns out that only RK4 will make this simulation stable due to the relative size of the diffusion coefficient, timestep $\dt$ and spatial step $\dx$, which you can see for yourself by switching the timestepping scheme.
 
-Despite its limitations, this scheme has enabled VisualPDE to solve every system that we've thrown at it, though some tuning of the timestep can be necessary. If you have any tips for implementing alternative schemes (especially anything implicit), we'd love to hear from you!
+Despite each of our solvers having their limitations, these schemes have enabled VisualPDE to efficiently solve every system that we've thrown at it, though some tuning of the timestep can be necessary in extreme cases. If you have any tips for implementing alternative schemes (especially anything implicit), we'd love to hear from you!
 
 ### Boundary conditions <a id='boundary-conditions'>
 VisualPDE implements four types of boundary condition: periodic, [Dirichlet](https://en.wikipedia.org/wiki/Dirichlet_boundary_condition), [Neumann](https://en.wikipedia.org/wiki/Neumann_boundary_condition), and [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition). As each of these are slightly different in character, we briefly describe the general form of each condition that can be used in VisualPDE, along with notes on how this is enforced in the simulation. We pose these conditions as if they correspond to the scalar [heat equation](/_basic-pdes/heat-equation) in 2D.
@@ -70,7 +70,10 @@ $$\textstyle u(x-\dx,y) = u(x+\dx,y) + 2 u(x,y)\,\dx$$
 
 in the finite difference operator described [above](#spatial-discretisation), approximating the derivative at the boundary with a simple central difference.
 
+#### Combined
+VisualPDE also allows you to specify different boundary conditions on different parts of the boundary. Doing this requires some special syntax, as detailed in the [advanced documentation](/user-guide/advanced-options#boundary-conditions).
+
 ### Doing this in your browser, quickly <a id='browser'>
 Solving PDEs is hard. To solve them in real time in your browser, VisualPDE gives all the hard work to the graphics chip (GPU) on your device, making use of [WebGL](https://en.wikipedia.org/wiki/WebGL) and a low-level shader language called [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language).
 
-Every time your browser requests a frame from VisualPDE (which might be up to 60 times per second), some [JavaScript](https://en.wikipedia.org/wiki/JavaScript) organises the solving of the discretised equations, displaying the solution, and incorporating anything you've drawn, which all happen on the GPU. Each frame, we typically perform hundreds of timesteps to give you a smooth experience, mitigating the limitations of our [forward Euler solver](#timestepping). If you're interested in the finest details of the implementation, the source code for the entire site is freely available to view, reuse, and repurpose on [GitHub](https://github.com/Pecnut/visual-pde).
+Every time your browser requests a frame from VisualPDE (which might be up to 60 times per second), some [JavaScript](https://en.wikipedia.org/wiki/JavaScript) organises the solving of the discretised equations, displaying the solution, and incorporating anything you've drawn, which all happen on the GPU. Each frame, we typically perform hundreds of timesteps to give you a smooth experience, mitigating many of the limitations of our [timestepping schemes](#timestepping). If you're interested in the finest details of the implementation, the source code for the entire site is freely available to view, reuse, and repurpose on [GitHub](https://github.com/Pecnut/visual-pde).

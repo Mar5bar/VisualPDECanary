@@ -2,7 +2,7 @@
 layout: page
 title: Pattern formation & advection
 lesson_number: 70
-thumbnail: /assets/images/GrayScottAdvection.png
+thumbnail: /assets/images/GrayScottAdvection.webp
 extract: Moving patterns
 equation: 
 ---

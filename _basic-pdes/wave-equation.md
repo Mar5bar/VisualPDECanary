@@ -2,7 +2,7 @@
 layout: page
 title: Explore the wave equation
 lesson_number: 20
-thumbnail: /assets/images/waveEquation.PNG
+thumbnail: /assets/images/waveEquation.webp
 extract: Play with waves and vibrations
 equation: $\pdd{u}{t}=D \nabla^2 u$
 ---

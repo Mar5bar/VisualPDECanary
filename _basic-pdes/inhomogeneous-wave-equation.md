@@ -2,7 +2,7 @@
 layout: page
 title: Inhomogeneous waves
 lesson_number: 40
-thumbnail: /assets/images/InhomWaveEquation.PNG
+thumbnail: /assets/images/InhomWaveEquation.webp
 extract: Waves in an inhomogeneous medium
 equation: $\pdd{u}{t}= \vnabla\cdot(f(x,y)\vnabla u) $
 ---

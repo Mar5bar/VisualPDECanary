@@ -8,8 +8,7 @@ let camera,
   controls,
   raycaster,
   clampedCoords;
-let simTextureA,
-  simTextureB,
+let simTextures = [],
   postTexture,
   interpolationTexture,
   simTextureOpts,
@@ -17,7 +16,7 @@ let simTextureA,
 let basicMaterial,
   displayMaterial,
   drawMaterial,
-  simMaterial,
+  simMaterials = {},
   dirichletMaterial,
   clearMaterial,
   copyMaterial,
@@ -65,7 +64,6 @@ let leftGUI,
   cameraPhiController,
   cameraZoomController,
   forceManualInterpolationController,
-  smoothingScaleController,
   embossController,
   contourController,
   contourEpsilonController,
@@ -101,6 +99,7 @@ let leftGUI,
   neumannVController,
   neumannWController,
   neumannQController,
+  numTimestepsPerFrameController,
   robinUController,
   robinVController,
   robinWController,
@@ -108,12 +107,15 @@ let leftGUI,
   fIm,
   imControllerOne,
   imControllerTwo,
+  editViewFolder,
   whatToPlotController,
   deleteViewController,
   selectedEntries = new Set();
 let isRunning,
   isDrawing,
   hasDrawn,
+  isStory = false,
+  shaderContainsRAND = false,
   anyDirichletBCs,
   dataNudgedUp = false,
   compileErrorOccurred = false,
@@ -205,16 +207,17 @@ import {
   RDShaderRobinY,
   RDShaderUpdateNormal,
   RDShaderUpdateCross,
-  RDShaderAlgebraicV,
-  RDShaderAlgebraicW,
-  RDShaderAlgebraicQ,
+  RDShaderAlgebraicSpecies,
   RDShaderEnforceDirichletTop,
   RDShaderAdvectionPreBC,
   RDShaderAdvectionPostBC,
+  RDShaderDiffusionPreBC,
+  RDShaderDiffusionPostBC,
   RDShaderGhostX,
   RDShaderGhostY,
+  RDShaderMain,
 } from "./simulation_shaders.js";
-import { randShader } from "../rand_shader.js";
+import { randShader, randNShader } from "../rand_shader.js";
 import {
   fiveColourDisplayTop,
   fiveColourDisplayBot,
@@ -226,7 +229,7 @@ import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import { getPreset, getUserTextFields, getFieldsInView } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
-import * as THREE from "../three.module.js";
+import * as THREE from "../three.module.min.js";
 import { OrbitControls } from "../OrbitControls.js";
 import { Line2 } from "../lines/Line2.js";
 import { LineMaterial } from "../lines/LineMaterial.js";
@@ -303,6 +306,25 @@ Number.prototype.clamp = function (min, max) {
   return Math.min(Math.max(this, min), max);
 };
 
+// Define a handy rotate function.
+Array.prototype.rotate = (function () {
+  // Save references to array functions to make lookup faster
+  var push = Array.prototype.push,
+    splice = Array.prototype.splice;
+
+  return function (count) {
+    var len = this.length >>> 0, // convert to uint
+      count = count >> 0; // convert to int
+
+    // convert count to value in range [0, len)
+    count = ((count % len) + len) % len;
+
+    // use splice.call() instead of this.splice() to make function generic
+    push.apply(this, splice.call(this, 0, count));
+    return this;
+  };
+})();
+
 // Get the canvas to draw on, as specified by the html.
 canvas = document.getElementById("simCanvas");
 
@@ -322,10 +344,6 @@ if (!fromExternalLink()) {
   $("#logo").hide();
 }
 
-// Arbitrarily choose to first read from the "B" texture, noting that we will
-// flip-flop between two textures, A and B.
-var readFromTextureB = true;
-
 // Check URL for any specified options.
 const params = new URLSearchParams(window.location.search);
 
@@ -343,22 +361,6 @@ if (params.has("sf")) {
   if (isNaN(domainScaleFactor) || domainScaleFactor <= 0) {
     domainScaleFactor = 1;
   }
-}
-
-if (params.has("story")) {
-  // If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
-  $("#settings").addClass("hidden");
-  $("#equations").addClass("hidden");
-  $("#help").addClass("hidden");
-  $("#share").addClass("hidden");
-
-  $("#play").css("top", "-=50");
-  $("#pause").css("top", "-=50");
-  $("#erase").css("top", "-=50");
-  $("#views").css("top", "-=50");
-  $("#views_ui").css("top", "-=50");
-  viewUIOffsetInit = $(":root").css("--views-ui-offset");
-  $(":root").css("--views-ui-offset", "-=50");
 }
 
 // Warn the user about flashing images and ask for cookie permission to store this.
@@ -404,6 +406,26 @@ if (params.has("options")) {
 if (shouldLoadDefault) {
   // Load a specific preset as the default.
   loadPreset("GrayScott");
+}
+
+// If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
+isStory = params.has("story");
+if (isStory) {
+  $("#settings").addClass("hidden");
+  $("#equations").addClass("hidden");
+  $("#help").addClass("hidden");
+  $("#share").addClass("hidden");
+  editViewFolder.domElement.classList.add("hidden");
+  $("#add_view").addClass("hidden");
+  configureColourbar();
+
+  $("#play").css("top", "-=50");
+  $("#pause").css("top", "-=50");
+  $("#erase").css("top", "-=50");
+  $("#views").css("top", "-=50");
+  $("#views_ui").css("top", "-=50");
+  viewUIOffsetInit = $(":root").css("--views-ui-offset");
+  $(":root").css("--views-ui-offset", "-=50");
 }
 
 // If the "Try clicking!" popup is allowed, show it iff we're from an external link
@@ -564,20 +586,27 @@ function init() {
   manualInterpolationNeeded
     ? (simTextureOpts.magFilter = THREE.NearestFilter)
     : (simTextureOpts.magFilter = THREE.LinearFilter);
-  simTextureA = new THREE.WebGLRenderTarget(
-    options.maxDisc,
-    options.maxDisc,
-    simTextureOpts
+  simTextures.push(
+    new THREE.WebGLRenderTarget(
+      options.maxDisc,
+      options.maxDisc,
+      simTextureOpts
+    )
   );
-  simTextureB = simTextureA.clone();
-  postTexture = simTextureA.clone();
-  interpolationTexture = simTextureA.clone();
+  // Store all the simulation textures in an array. They'll be in history order, so that the first element is the most
+  // recent. We'll write to the first texture, with later elements being further back in time.
+  simTextures.push(simTextures[0].clone());
+  simTextures.push(simTextures[0].clone());
+  simTextures.push(simTextures[0].clone());
+  simTextures.push(simTextures[0].clone());
+  postTexture = simTextures[0].clone();
+  interpolationTexture = simTextures[0].clone();
 
   // Periodic boundary conditions (for now).
-  simTextureA.texture.wrapS = THREE.RepeatWrapping;
-  simTextureA.texture.wrapT = THREE.RepeatWrapping;
-  simTextureB.texture.wrapS = THREE.RepeatWrapping;
-  simTextureB.texture.wrapT = THREE.RepeatWrapping;
+  simTextures.forEach((simTex) => {
+    simTex.texture.wrapS = THREE.RepeatWrapping;
+    simTex.texture.wrapT = THREE.RepeatWrapping;
+  });
 
   // The post and interpolation materials, used for display, will always edge clamp to avoid artefacts.
   postTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
@@ -634,11 +663,29 @@ function init() {
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
   });
-  // This material performs the timestepping.
-  simMaterial = new THREE.ShaderMaterial({
+
+  // We'll use a host of materials for timestepping, each with different fragment shaders.
+  simMaterials.FE = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
   });
+  simMaterials.AB2 = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: genericVertexShader(),
+  });
+  for (let ind = 1; ind < 3; ind++) {
+    simMaterials["Mid" + ind.toString()] = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: genericVertexShader(),
+    });
+  }
+  for (let ind = 1; ind < 5; ind++) {
+    simMaterials["RK4" + ind.toString()] = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: genericVertexShader(),
+    });
+  }
+
   copyMaterial = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: genericVertexShader(),
@@ -661,7 +708,7 @@ function init() {
   checkpointMaterial = new THREE.MeshBasicMaterial();
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
-  simDomain = new THREE.Mesh(simPlane, simMaterial);
+  simDomain = new THREE.Mesh(simPlane, simMaterials[0]);
   simDomain.position.z = 0;
   simScene.add(simDomain);
 
@@ -720,6 +767,8 @@ function init() {
         if (uiHidden) {
           uiHidden = false;
           $(".ui").removeClass("hidden");
+          editViewFolder.domElement.classList.remove("hidden");
+          $("#add_view").removeClass("hidden");
           // Reset any custom positioning for the Story ui.
           $(".ui").css("top", "");
           $(":root").css("--views-ui-offset", viewUIOffsetInit);
@@ -966,29 +1015,23 @@ function resizeTextures() {
   // Resize the computational domain by interpolating the existing domain onto the new discretisation.
   simDomain.material = copyMaterial;
 
-  if (!readFromTextureB) {
-    uniforms.textureSource.value = simTextureA.texture;
-    simTextureB.setSize(nXDisc, nYDisc);
-    renderer.setRenderTarget(simTextureB);
+  // Resize all history terms. We'll do 1->0 then 2->1 etc, then cycle.
+  for (let ind = 1; ind < simTextures.length; ind++) {
+    uniforms.textureSource.value = simTextures[ind].texture;
+    simTextures[ind - 1].setSize(nXDisc, nYDisc);
+    renderer.setRenderTarget(simTextures[ind - 1]);
     renderer.render(simScene, simCamera);
-    simTextureA.dispose();
-    simTextureA = simTextureB.clone();
-    uniforms.textureSource.value = simTextureB.texture;
-  } else {
-    uniforms.textureSource.value = simTextureB.texture;
-    simTextureA.setSize(nXDisc, nYDisc);
-    renderer.setRenderTarget(simTextureA);
-    renderer.render(simScene, simCamera);
-    simTextureB.dispose();
-    simTextureB = simTextureA.clone();
-    uniforms.textureSource.value = simTextureA.texture;
   }
-  readFromTextureB = !readFromTextureB;
+  simTextures.rotate(-1);
+  simTextures[0].dispose();
+  simTextures[0] = simTextures[1].clone();
+
   postTexture.setSize(nXDisc, nYDisc);
-  // The interpolationTexture will be larger by a scale factor options.smoothingScale + 1.
+  postprocess();
+  // The interpolationTexture will match the number of pixels in the display.
   interpolationTexture.setSize(
-    (options.smoothingScale + 1) * nXDisc,
-    (options.smoothingScale + 1) * nYDisc
+    Math.round(window.devicePixelRatio * canvasWidth),
+    Math.round(window.devicePixelRatio * canvasHeight)
   );
 }
 
@@ -1066,7 +1109,13 @@ function initUniforms() {
     dx: {
       type: "f",
     },
+    dxUpscaledScale: {
+      type: "f",
+    },
     dy: {
+      type: "f",
+    },
+    dyUpscaledScale: {
       type: "f",
     },
     heightScale: {
@@ -1099,11 +1148,16 @@ function initUniforms() {
       type: "f",
       value: 0.0,
     },
-    smoothingScale: {
-      type: "f",
-      value: options.smoothingScale + 1,
-    },
     textureSource: {
+      type: "t",
+    },
+    textureSource1: {
+      type: "t",
+    },
+    textureSource2: {
+      type: "t",
+    },
+    textureSource3: {
       type: "t",
     },
     t: {
@@ -1228,7 +1282,10 @@ function initGUI(startOpen) {
   // Timestepping folder.
   root = rightGUI.addFolder("Timestepping");
 
-  root.add(options, "numTimestepsPerFrame", 1, 400, 1).name("Steps/frame");
+  numTimestepsPerFrameController = root
+    .add(options, "numTimestepsPerFrame", 1, 1000, 1)
+    .name("Steps/frame");
+  createOptionSlider(numTimestepsPerFrameController, 1, 400, 1);
 
   dtController = root
     .add(options, "dt")
@@ -1239,6 +1296,15 @@ function initGUI(startOpen) {
   dtController.__precision = 12;
   dtController.min(0);
   dtController.updateDisplay();
+
+  root
+    .add(options, "timesteppingScheme", {
+      "Forward Euler": "Euler",
+      "Adams-Bashforth 2": "AB2",
+      "Midpoint Method": "Mid",
+      "Runge-Kutta 4": "RK4",
+    })
+    .name("Scheme");
 
   root
     .add(options, "timeDisplay")
@@ -1646,17 +1712,8 @@ function initGUI(startOpen) {
 
   forceManualInterpolationController = root
     .add(options, "forceManualInterpolation")
-    .name("Man. smooth")
+    .name("Manual interp")
     .onChange(configureManualInterpolation);
-
-  smoothingScaleController = root
-    .add(options, "smoothingScale", 0, 16, 1)
-    .name("Smoothing")
-    .onChange(function () {
-      resizeTextures();
-      uniforms.smoothingScale.value = options.smoothingScale + 1;
-      render();
-    });
 
   root = root.addFolder("Contours");
 
@@ -1711,7 +1768,7 @@ function initGUI(startOpen) {
       setEmbossUniforms();
       renderIfNotRunning();
     });
-  createOptionSlider(embossSmoothnessController, 0, 10, 0.001);
+  createOptionSlider(embossSmoothnessController, 0, 2, 0.001);
 
   embossAmbientController = root
     .add(options, "embossAmbient")
@@ -1847,7 +1904,8 @@ function initGUI(startOpen) {
   viewsTitle.classList.add("ui_title");
   viewsGUI.domElement.prepend(viewsTitle);
 
-  root = viewsGUI.addFolder("Edit view");
+  editViewFolder = viewsGUI.addFolder("Edit view");
+  root = editViewFolder;
 
   const editViewButtons = document.createElement("li");
   editViewButtons.id = "edit_view_buttons";
@@ -2015,8 +2073,8 @@ function animate() {
     anyDirichletBCs ? enforceDirichlet() : {};
     // Perform a number of timesteps per frame.
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
+      if (shaderContainsRAND && !options.fixRandSeed) updateRandomSeed();
       timestep();
-      uniforms.t.value += options.dt;
     }
   }
 
@@ -2058,8 +2116,11 @@ function setBrushType() {
   radiusStr = radiusStr.replace(/\b(I_[ST])([RGBA]?)\b/g, "$1Brush$2");
 
   // If a random number has been requested, insert calculation of a random number.
-  if (options.brushValue.includes("RAND")) {
+  if (/\bRAND\b/.test(options.brushValue)) {
     shaderStr += randShader();
+  }
+  if (/\bRANDN\b/.test(options.brushValue)) {
+    shaderStr += randNShader();
   }
   shaderStr +=
     "float brushValue = " + parseShaderString(options.brushValue) + ";\n";
@@ -2152,61 +2213,105 @@ function draw() {
   if (!options.fixRandSeed && options.brushValue.includes("RAND")) {
     updateRandomSeed();
   }
-  // Toggle texture input/output.
-  if (readFromTextureB) {
-    inTex = simTextureB;
-    outTex = simTextureA;
-  } else {
-    inTex = simTextureA;
-    outTex = simTextureB;
-  }
-  readFromTextureB = !readFromTextureB;
 
   simDomain.material = drawMaterial;
-  uniforms.textureSource.value = inTex.texture;
-  renderer.setRenderTarget(outTex);
-  renderer.render(simScene, simCamera);
-  uniforms.textureSource.value = outTex.texture;
+  // We'll draw onto all history terms. We'll do 1->0 then 2->1 etc, then cycle.
+  for (let ind = 1; ind < simTextures.length; ind++) {
+    uniforms.textureSource.value = simTextures[ind].texture;
+    renderer.setRenderTarget(simTextures[ind - 1]);
+    renderer.render(simScene, simCamera);
+  }
+  simTextures.rotate(-1);
 }
 
 function timestep() {
   // We timestep by updating a texture that stores the solutions. We can't overwrite
-  // the texture in the loop, so we'll use two textures and swap between them. These
+  // the texture in the loop, so we'll cycle between textures. These
   // textures are already defined above, and their resolution defines the resolution
   // of solution.
 
-  if (readFromTextureB) {
-    inTex = simTextureB;
-    outTex = simTextureA;
-  } else {
-    inTex = simTextureA;
-    outTex = simTextureB;
-  }
-  readFromTextureB = !readFromTextureB;
+  // Use the scheme specified in options.timesteppingScheme.
+  switch (options.timesteppingScheme) {
+    case "Euler":
+      simDomain.material = simMaterials["FE"];
+      uniforms.textureSource.value = simTextures[1].texture;
+      uniforms.textureSource1.value = simTextures[2].texture;
+      uniforms.dt.value = options.dt;
+      renderer.setRenderTarget(simTextures[0]);
+      renderer.render(simScene, simCamera);
+      simTextures.rotate(-1);
+      uniforms.t.value += options.dt;
+      break;
+    case "AB2":
+      simDomain.material = simMaterials["AB2"];
+      uniforms.textureSource.value = simTextures[1].texture;
+      uniforms.textureSource1.value = simTextures[2].texture;
+      uniforms.dt.value = options.dt;
+      renderer.setRenderTarget(simTextures[0]);
+      renderer.render(simScene, simCamera);
+      simTextures.rotate(-1);
+      uniforms.t.value += options.dt;
+      break;
+    case "Mid":
+      // We'll use simTextures as [result, previous, k1].
+      // Compute k1 in [2]. Mid1
+      simDomain.material = simMaterials["Mid1"];
+      uniforms.textureSource.value = simTextures[1].texture;
+      renderer.setRenderTarget(simTextures[2]);
+      renderer.render(simScene, simCamera);
 
-  simDomain.material = simMaterial;
-  uniforms.textureSource.value = inTex.texture;
-  renderer.setRenderTarget(outTex);
-  renderer.render(simScene, simCamera);
-  uniforms.textureSource.value = outTex.texture;
+      // Compute the new value in [0] by computing k2 using k1. Mid2
+      simDomain.material = simMaterials["Mid2"];
+      uniforms.textureSource1.value = simTextures[2].texture;
+      uniforms.t.value += 0.5 * options.dt;
+      renderer.setRenderTarget(simTextures[0]);
+      renderer.render(simScene, simCamera);
+      simTextures.rotate(-1);
+      uniforms.t.value += 0.5 * options.dt;
+      break;
+    case "RK4":
+      // We'll use simTextures as [result, previous, k1, k2, k3].
+
+      // Compute k1 in [2]. RK41
+      simDomain.material = simMaterials["RK41"];
+      uniforms.textureSource.value = simTextures[1].texture;
+      renderer.setRenderTarget(simTextures[2]);
+      renderer.render(simScene, simCamera);
+
+      // Compute k2 in [3] using previous [1] and k1 [2]. RK42
+      simDomain.material = simMaterials["RK42"];
+      uniforms.textureSource1.value = simTextures[2].texture;
+      uniforms.t.value += 0.5 * options.dt;
+      renderer.setRenderTarget(simTextures[3]);
+      renderer.render(simScene, simCamera);
+
+      // Compute k3 in [4] using previous [1] and k2 [3]. RK43
+      simDomain.material = simMaterials["RK43"];
+      uniforms.textureSource2.value = simTextures[3].texture;
+      renderer.setRenderTarget(simTextures[4]);
+      renderer.render(simScene, simCamera);
+
+      // Compute the new value in [0] by computing k4 using k1, k2, k3. RK44
+      simDomain.material = simMaterials["RK44"];
+      uniforms.textureSource3.value = simTextures[4].texture;
+      uniforms.t.value += 0.5 * options.dt;
+      renderer.setRenderTarget(simTextures[0]);
+      renderer.render(simScene, simCamera);
+      simTextures.rotate(-1);
+      break;
+  }
 }
 
 function enforceDirichlet() {
   // Enforce any Dirichlet boundary conditions.
-  if (readFromTextureB) {
-    inTex = simTextureB;
-    outTex = simTextureA;
-  } else {
-    inTex = simTextureA;
-    outTex = simTextureB;
-  }
-  readFromTextureB = !readFromTextureB;
-
   simDomain.material = dirichletMaterial;
-  uniforms.textureSource.value = inTex.texture;
-  renderer.setRenderTarget(outTex);
-  renderer.render(simScene, simCamera);
-  uniforms.textureSource.value = outTex.texture;
+  // We'll do 1->0 then 2->1 etc, then cycle.
+  for (let ind = 1; ind < simTextures.length; ind++) {
+    uniforms.textureSource.value = simTextures[ind].texture;
+    renderer.setRenderTarget(simTextures[ind - 1]);
+    renderer.render(simScene, simCamera);
+  }
+  simTextures.rotate(-1);
 }
 
 function render() {
@@ -2225,19 +2330,8 @@ function render() {
     clickDomain.updateWorldMatrix();
   }
 
-  // Perform any postprocessing.
-  if (readFromTextureB) {
-    inTex = simTextureB;
-  } else {
-    inTex = simTextureA;
-  }
-
-  simDomain.material = postMaterial;
-  uniforms.textureSource.value = inTex.texture;
-  renderer.setRenderTarget(postTexture);
-  renderer.render(simScene, simCamera);
-  uniforms.textureSource.value = postTexture.texture;
-  bufferFilled = false;
+  // Perform any postprocessing on the last computed values.
+  postprocess();
 
   // If this is a line plot, modify the line positions and colours before rendering.
   if (options.plotType == "line") {
@@ -2280,6 +2374,11 @@ function render() {
     renderer.setRenderTarget(interpolationTexture);
     renderer.render(simScene, simCamera);
     uniforms.textureSource.value = interpolationTexture.texture;
+    uniforms.dxUpscaledScale.value = (devicePixelRatio * domainWidth) / nXDisc;
+    uniforms.dyUpscaledScale.value = (devicePixelRatio * domainHeight) / nYDisc;
+  } else {
+    uniforms.dxUpscaledScale.value = 1;
+    uniforms.dyUpscaledScale.value = 1;
   }
 
   // Render the output to the screen.
@@ -2297,6 +2396,15 @@ function render() {
     setSizes();
     render();
   }
+}
+
+function postprocess() {
+  simDomain.material = postMaterial;
+  uniforms.textureSource.value = simTextures[1].texture;
+  renderer.setRenderTarget(postTexture);
+  renderer.render(simScene, simCamera);
+  uniforms.textureSource.value = postTexture.texture;
+  bufferFilled = false;
 }
 
 function onDocumentPointerDown(event) {
@@ -2364,17 +2472,13 @@ function clearTextures() {
   }
   if (checkpointExists && options.resetFromCheckpoints) {
     simDomain.material = checkpointMaterial;
-    renderer.setRenderTarget(simTextureA);
-    renderer.render(simScene, simCamera);
-    renderer.setRenderTarget(simTextureB);
-    renderer.render(simScene, simCamera);
   } else {
     simDomain.material = clearMaterial;
-    renderer.setRenderTarget(simTextureA);
-    renderer.render(simScene, simCamera);
-    renderer.setRenderTarget(simTextureB);
-    renderer.render(simScene, simCamera);
   }
+  simTextures.forEach((tex) => {
+    renderer.setRenderTarget(tex);
+    renderer.render(simScene, simCamera);
+  });
   setDefaultRenderSize();
   render();
 }
@@ -2610,6 +2714,14 @@ function parseShaderString(str) {
     }
   );
 
+  // Replace species_xx, species_yy etc with uvwqXX.r and uvwqYY.r, etc.
+  str = str.replaceAll(
+    RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_(xx|yy)\\b", "g"),
+    function (m, d1, d2) {
+      return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
+    }
+  );
+
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
   str = replaceDigitsWithWords(str);
 
@@ -2655,8 +2767,8 @@ function setRDEquations() {
   let ghostShader = "";
   let dirichletShader = "";
   let robinShader = "";
-  let updateShader = "";
-  let m;
+  let diffusionShader = "";
+  let algebraicShader = "";
 
   const BCStrs = [
     options.boundaryConditionsU,
@@ -2778,40 +2890,41 @@ function setRDEquations() {
   let kineticStr = kineticUniformsForShader();
 
   // Choose what sort of update we are doing: normal, or cross-diffusion enabled?
-  updateShader = parseNormalDiffusionStrings() + "\n";
+  diffusionShader = parseNormalDiffusionStrings() + "\n";
   if (options.crossDiffusion) {
-    updateShader += parseCrossDiffusionStrings() + "\n" + RDShaderUpdateCross();
+    diffusionShader +=
+      parseCrossDiffusionStrings() + "\n" + RDShaderUpdateCross();
   } else {
-    updateShader += RDShaderUpdateNormal();
+    diffusionShader += RDShaderUpdateNormal();
   }
 
   // If v should be algebraic, append this to the normal update shader.
   if (algebraicV && options.crossDiffusion) {
-    updateShader += selectSpeciesInShaderStr(
-      RDShaderAlgebraicV(),
+    algebraicShader += selectSpeciesInShaderStr(
+      RDShaderAlgebraicSpecies(),
       listOfSpecies[1]
     );
   }
 
   // If w should be algebraic, append this to the normal update shader.
   if (algebraicW && options.crossDiffusion) {
-    updateShader += selectSpeciesInShaderStr(
-      RDShaderAlgebraicW(),
+    algebraicShader += selectSpeciesInShaderStr(
+      RDShaderAlgebraicSpecies(),
       listOfSpecies[2]
     );
   }
 
   // If q should be algebraic, append this to the normal update shader.
   if (algebraicQ && options.crossDiffusion) {
-    updateShader += selectSpeciesInShaderStr(
-      RDShaderAlgebraicQ(),
+    algebraicShader += selectSpeciesInShaderStr(
+      RDShaderAlgebraicSpecies(),
       listOfSpecies[3]
     );
   }
 
   // Iff the user has entered u_x, u_y etc in a diffusion coefficient, it will be present in
   // the update shader as uvwxy[XY].[rgba]. If they've done this, warn them and don't update the shader.
-  let match = updateShader.match(/\buvwq[XY]\.[rgba]\b/);
+  let match = diffusionShader.match(/\buvwq[XY]\.[rgba]\b/);
   if (match) {
     alert(
       "Including derivatives in the diffusion coefficients is not supported. Try casting your PDE in another form."
@@ -2819,20 +2932,72 @@ function setRDEquations() {
     return;
   }
 
-  simMaterial.fragmentShader = [
-    kineticStr,
-    RDShaderTop(),
+  // Using the constructed shader parts, we'll form fragment shaders for every possible timestepping scheme.
+  let middle = [
     RDShaderAdvectionPreBC(),
+    RDShaderDiffusionPreBC(),
     neumannShader,
     ghostShader,
     robinShader,
     RDShaderAdvectionPostBC(),
+    RDShaderDiffusionPostBC(),
     parseReactionStrings(),
-    updateShader,
-    dirichletShader,
-    RDShaderBot(),
+    diffusionShader,
   ].join(" ");
-  simMaterial.needsUpdate = true;
+  let containsRAND = /\bRAND\b/.test(middle);
+  let containsRANDN = /\bRANDN\b/.test(middle);
+  if (containsRAND) {
+    middle = randShader() + middle;
+  }
+  if (containsRANDN) {
+    middle = randNShader() + middle;
+  }
+  shaderContainsRAND = containsRAND || containsRANDN;
+  let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
+
+  let type = "FE";
+  simMaterials[type].fragmentShader = [
+    kineticStr,
+    RDShaderTop(type),
+    middle,
+    RDShaderMain(type),
+    bot,
+  ].join(" ");
+
+  type = "AB2";
+  simMaterials[type].fragmentShader = [
+    kineticStr,
+    RDShaderTop(type),
+    middle,
+    RDShaderMain(type),
+    bot,
+  ].join(" ");
+
+  type = "Mid";
+  for (let ind = 1; ind < 3; ind++) {
+    simMaterials[type + ind.toString()].fragmentShader = [
+      kineticStr,
+      RDShaderTop(type + ind.toString()),
+      middle,
+      RDShaderMain(type + ind.toString()),
+      bot,
+    ].join(" ");
+  }
+
+  type = "RK4";
+  for (let ind = 1; ind < 5; ind++) {
+    simMaterials[type + ind.toString()].fragmentShader = [
+      kineticStr,
+      RDShaderTop(type + ind.toString()),
+      middle,
+      RDShaderMain(type + ind.toString()),
+      bot,
+    ].join(" ");
+  }
+
+  Object.keys(simMaterials).forEach(
+    (key) => (simMaterials[key].needsUpdate = true)
+  );
 
   // We will use a shader to enforce Dirichlet BCs before each timestep, but only if some Dirichlet
   // BCs have been specified.
@@ -3097,6 +3262,10 @@ function loadOptions(preset) {
     delete options.algebraicW;
     delete options.algebraicQ;
 
+    // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
+    if (options.minColourValue == null) options.minColourValue = 0;
+    if (options.maxColourValue == null) options.maxColourValue = 1;
+
     // Save these loaded options if we ever need to revert.
     savedOptions = options;
   }
@@ -3342,19 +3511,23 @@ function setBCsGUI() {
 
 function updateRandomSeed() {
   // Update the random seed used in the shaders.
-  uniforms.seed.value = performance.now() % 1000;
+  uniforms.seed.value = (performance.now() % 1000000) / 1000000;
 }
 
 function setClearShader() {
   // Insert any user-defined kinetic parameters, as uniforms.
   let shaderStr = kineticUniformsForShader() + clearShaderTop();
-  if (
-    options.clearValueU.includes("RAND") ||
-    options.clearValueV.includes("RAND") ||
-    options.clearValueW.includes("RAND") ||
-    options.clearValueQ.includes("RAND")
-  ) {
+  let allClearShaders = [
+    options.clearValueU,
+    options.clearValueV,
+    options.clearValueW,
+    options.clearValueQ,
+  ].join(" ");
+  if (/\bRAND\b/.test(allClearShaders)) {
     shaderStr += randShader();
+  }
+  if (/\bRANDN\b/.test(allClearShaders)) {
+    shaderStr += randNShader();
   }
   shaderStr += "float u = " + parseShaderString(options.clearValueU) + ";\n";
   shaderStr += "float v = " + parseShaderString(options.clearValueV) + ";\n";
@@ -3586,8 +3759,12 @@ function setAlgebraicVarsFromOptions() {
     parseInt(options.numSpecies) - 1
   );
   algebraicV = options.numAlgebraicSpecies >= options.numSpecies - 1;
-  algebraicW = options.numAlgebraicSpecies >= options.numSpecies - 2;
-  algebraicQ = options.numAlgebraicSpecies >= options.numSpecies - 3;
+  algebraicW =
+    options.numAlgebraicSpecies >= options.numSpecies - 2 &&
+    options.numSpecies >= 3;
+  algebraicQ =
+    options.numAlgebraicSpecies >= options.numSpecies - 3 &&
+    options.numSpecies >= 4;
 }
 
 function problemTypeFromOptions() {
@@ -3829,9 +4006,6 @@ function configureGUI() {
   manualInterpolationNeeded
     ? hideGUIController(forceManualInterpolationController)
     : showGUIController(forceManualInterpolationController);
-  isManuallyInterpolating()
-    ? showGUIController(smoothingScaleController)
-    : hideGUIController(smoothingScaleController);
   // Update the options available in whatToDraw based on the number of species.
   updateGUIDropdown(
     whatToDrawController,
@@ -4187,6 +4361,20 @@ function setEquationDisplayType() {
     // Replace u_x, u_y etc with \pd{u}{x} etc.
     regex = /\b([uvwq])_([xy])\b/g;
     str = str.replaceAll(regex, "\\textstyle \\pd{$1}{$2}");
+
+    // Replace u_xx, u_yy etc with \pdd{u}{x} etc.
+    regex = /\b([uvwq])_(xx|yy)\b/g;
+    str = str.replaceAll(regex, function (match, g1, g2) {
+      return "\\textstyle \\pdd{" + g1 + "}{" + g2[0] + "}";
+    });
+
+    // Replace RAND with \mathcal{U}.
+    regex = /\bRAND\b/g;
+    str = str.replaceAll(regex, "\\mathcal{U}");
+
+    // Replace RANDN with \mathcal{Z}.
+    regex = /\bRANDN\b/g;
+    str = str.replaceAll(regex, "\\mathcal{Z}");
   } else {
     // Even if we're not customising the typesetting, add in \selected{} to any selected entry.
     selectedEntries.forEach(function (x) {
@@ -4696,7 +4884,11 @@ function configureColourbar() {
       $("#midLabel").html("$" + listOfSpecies[1] + "$");
       $("#maxLabel").html("$" + listOfSpecies[2] + "$");
     } else {
-      $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
+      if (isStory) {
+        $("#midLabel").html(options.views[options.activeViewInd].name);
+      } else {
+        $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
+      }
     }
     if (MathJax.typesetPromise != undefined) {
       MathJax.typesetPromise($("#midLabel"));
@@ -4901,17 +5093,20 @@ function checkColourbarPosition() {
 
 function configureManualInterpolation() {
   if (isManuallyInterpolating()) {
-    simTextureA.texture.magFilter = THREE.NearestFilter;
-    simTextureB.texture.magFilter = THREE.NearestFilter;
+    simTextures.forEach((simTex) => {
+      simTex.texture.magFilter = THREE.NearestFilter;
+    });
     postTexture.texture.magFilter = THREE.NearestFilter;
     interpolationTexture.texture.magFilter = THREE.NearestFilter;
   } else {
-    simTextureA.texture.magFilter = THREE.LinearFilter;
-    simTextureB.texture.magFilter = THREE.LinearFilter;
+    simTextures.forEach((simTex) => {
+      simTex.texture.magFilter = THREE.LinearFilter;
+    });
     postTexture.texture.magFilter = THREE.LinearFilter;
     interpolationTexture.texture.magFilter = THREE.LinearFilter;
   }
   configureGUI();
+  render();
 }
 
 function isManuallyInterpolating() {
@@ -5549,13 +5744,8 @@ function deselectTeX(ids) {
 
 function getRawState() {
   checkpointBuffer = new Float32Array(nXDisc * nYDisc * 4);
-  if (readFromTextureB) {
-    inTex = simTextureB;
-  } else {
-    inTex = simTextureA;
-  }
   renderer.readRenderTargetPixels(
-    inTex,
+    simTextures[1],
     0,
     0,
     nXDisc,
@@ -6107,7 +6297,9 @@ function createOptionSlider(controller, min, max, step) {
   });
 
   // Augment the controller's onChange and onFinishChange to update the slider.
+  let flag = true;
   if (controller.__onChange != undefined) {
+    flag = false;
     controller.oldOnChange = controller.__onChange;
     controller.__onChange = function () {
       controller.oldOnChange();
@@ -6117,12 +6309,21 @@ function createOptionSlider(controller, min, max, step) {
   }
 
   if (controller.__onFinishChange != undefined) {
+    flag = false;
     controller.oldOnFinishChange = controller.__onFinishChange;
     controller.__onFinishChange = function () {
       controller.oldOnFinishChange();
       controller.slider.value = controller.getValue();
       controller.slider.style.setProperty("--value", controller.slider.value);
     };
+  }
+
+  if (flag) {
+    // Neither onChange nor onFinishChange were set, so we need to add an onChange to update the slider.
+    controller.onChange(function () {
+      controller.slider.value = controller.getValue();
+      controller.slider.style.setProperty("--value", controller.slider.value);
+    });
   }
 
   // Add the slider to the DOM.

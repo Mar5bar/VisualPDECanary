@@ -2,7 +2,7 @@
 layout: page
 title: Banded vegetation patterns
 lesson_number: 130
-thumbnail: /assets/images/VegetationPatterns.png
+thumbnail: /assets/images/VegetationPatterns.webp
 extract: Stripes moving towards water
 equation: $\pd{w}{t} = a-w -wn^2+v\pd{w}{x} + \nabla^2w$, $\pd{n}{t} = wn^2 - mn + \nabla^2n$ 
 ---

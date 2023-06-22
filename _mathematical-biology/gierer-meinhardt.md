@@ -2,7 +2,7 @@
 layout: page
 title: Gierer–Meinhardt pattern formation
 lesson_number: 70
-thumbnail: /assets/images/GiererMeinhardt.PNG
+thumbnail: /assets/images/GiererMeinhardt.webp
 extract: Spots and stripes
 equation: $\pd{u}{t}=\nabla^2 u+a+\frac{u^2}{v}-bu$, $\pd{v}{t}=D\nabla^2v+ u^2-cv$
 ---

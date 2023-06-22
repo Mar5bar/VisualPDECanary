@@ -2,7 +2,7 @@
 layout: page
 title: Schnakenberg pattern formation
 lesson_number: 50
-thumbnail: /assets/images/Schnakenberg.PNG
+thumbnail: /assets/images/Schnakenberg.webp
 extract: Spots and stripes
 equation: $\pd{u}{t}=\nabla^2 u+a-u+u^2v$, $\pd{v}{t}=D\nabla^2v+ b-u^2v$
 ---

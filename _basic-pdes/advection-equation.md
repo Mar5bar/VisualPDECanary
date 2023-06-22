@@ -2,7 +2,7 @@
 layout: page
 title: Convection–diffusion
 lesson_number: 70
-thumbnail: /assets/images/AdvectionEquation.png
+thumbnail: /assets/images/AdvectionEquation.webp
 extract: Movement along streamlines
 equation: $\pd{u}{t}=D \nabla^2 u-\v{v}\cdot \vnabla u$
 ---

@@ -52,7 +52,7 @@ div.home-banner {
     background-color: #ddf1ff;
     height: 150px;
     width: 100vw;
-    background: #def3ff url("/assets/images/bannerPlaceholder.png") no-repeat center center;
+    background: #def3ff url("/assets/images/bannerPlaceholder.webp") no-repeat center center;
     background-size: cover;
     text-align: center;
     display: flex;
@@ -303,7 +303,7 @@ a.collection::after {
 }
 
 .ui_button_documentation#equations {
-    background: url("/assets/images/function-button-grey.png") no-repeat;
+    background: url("/assets/images/function-button-grey.webp") no-repeat;
     background-size: 80%;
     background-position: center;
     background-color: #ededed;

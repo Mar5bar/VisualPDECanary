@@ -2,7 +2,7 @@
 layout: page
 title: Dynamic bifurcations with heterogeneity
 lesson_number: 120
-thumbnail: /assets/images/heterogeneousGiererMeinhardt.png
+thumbnail: /assets/images/heterogeneousGiererMeinhardt.webp
 extract: Isolated patterns and moving spikes
 equation: $\pd{u}{t}=\nabla^2 u+a+G(x)+\frac{u^2}{v}-[b+H(x)]u,$ $\pd{v}{t}=D\nabla^2v+ u^2-cv$
 ---

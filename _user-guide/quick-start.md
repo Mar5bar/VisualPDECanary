@@ -2,7 +2,7 @@
 layout: page
 title: Quick start
 lesson_number: 10
-thumbnail: /assets/images/start.png
+thumbnail: /assets/images/start.webp
 extract: Two-minute top tips
 ---
 
@@ -15,7 +15,7 @@ Clicking/pressing on the simulation draws values right onto the domain. You can 
 Pressing {{ layout.equations }} opens up the **equations panel**.
 
 {:refdef: style="text-align: center;"}
-![Equations panel](/assets/images/equations-panel.png){: width="253px" }
+![Equations panel](/assets/images/equations-panel.webp){: width="253px" }
 {: refdef}
 
 Here you can:

@@ -2,7 +2,7 @@
 layout: page
 title: Bending beams and deforming plates
 lesson_number: 60
-thumbnail: /assets/images/plateEquation.PNG
+thumbnail: /assets/images/plateEquation.webp
 extract: The plate equation
 equation: $\pdd{u}{t}=-D^2 \nabla^4 u-Q$
 ---
