@@ -124,6 +124,7 @@ let isRunning,
   uiHidden = false,
   checkpointExists = false,
   savedViews,
+  nextViewNumber = 0,
   updatingAlgebraicSpecies = false,
   viewUIOffsetInit;
 let inTex, outTex;
@@ -5940,13 +5941,7 @@ function configureViewsGUI() {
     if (ind == options.activeViewInd) item.classList.add("active_button");
     $("#views_list").append(item);
   }
-
-  // // + button
-  // item = document.createElement("a");
-  // item.innerHTML = '<i class="fa-regular fa-plus"></i>';
-  // item.setAttribute("id", "add_view");
-  // item.setAttribute("title", "New view");
-  // $("#views_list").append(item);
+  nextViewNumber = Math.max(options.views.length, nextViewNumber);
 
   // Only show the Delete Views button if there is more than one view.
   if (options.views.length > 1) {
@@ -6000,7 +5995,7 @@ function editCurrentViewName() {
 function addView() {
   // Add a new view.
   let view = buildViewFromOptions();
-  view.name = options.views.length + 1;
+  view.name = ++nextViewNumber;
   options.views.push(view);
   options.activeViewInd = options.views.length - 1;
   configureViewsGUI();
