@@ -4885,7 +4885,12 @@ function configureColourbar() {
       $("#maxLabel").html("$" + listOfSpecies[2] + "$");
     } else {
       if (isStory) {
-        $("#midLabel").html(options.views[options.activeViewInd].name);
+        $("#midLabel").html(
+          options.views[options.activeViewInd].name.replaceAll(
+            /\s*<br \/>\s*/g,
+            " "
+          )
+        );
       } else {
         $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
       }
