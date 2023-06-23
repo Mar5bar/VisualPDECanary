@@ -6020,7 +6020,7 @@ function deleteView() {
     // Otherwise, just rename the view.
     options.views[options.activeViewInd].name = "Custom";
   }
-  configureViewsGUI();
+  applyView(options.views[options.activeViewInd]);
 }
 
 function buildViewFromOptions() {
