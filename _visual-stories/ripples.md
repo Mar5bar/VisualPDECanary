@@ -11,7 +11,7 @@ Waves on water can be mesmerising, especially the ripples that spread out after 
 
 Below you'll find a VisualPDE simulation set up to let us explore what happens when we press down on the surface of shallow water, just like a drop of water does as it hits the surface. Try clicking in the container to simulate a droplet landing in a still body of water.
 
-<iframe class="sim" src="/sim/?preset=ShallowWaterBox&story" frameborder="0" loading="lazy"></iframe>
+<iframe class="sim" src="/sim/?preset=ShallowWaterBox&story" frameborder="0"></iframe>
 
 # Making waves
 The drop of liquid immediately disturbs the surface, causing ripples to quickly spread out and fill the container. As soon as the ripples hit the edge of the box, they reflect back and mix with any waves still heading towards the edges. Eventually, these reflected ripples collide with those bouncing off the opposite wall, leading to large peaks and deep troughs.
@@ -25,7 +25,7 @@ All the waves that we've made so far have been pretty small. To generate bigger,
 # Time for reflection
 There is a lot left to explore about waves even in this simple-looking setting, such as investigating what happens when you click and drag? For now, we'll end this short exploration with something that's difficult to see in real life: perfect reflections in a circular container. In the simulation below, we've paused a simulation *just* as a drop of water hits the surface, precisely in the centre of a disc-shaped container. Press {{ layout.play }} to see ripples surge out from the disturbance and reflect simultaneously off the curved boundary, creating ever-more-complicated patterns that are (almost) perfectly symmetric. If you like chaos, you can break the symmetry by clicking anywhere to disturb the surface.
 
-<iframe class="sim" src="/sim/?preset=ShallowWaterDisk&story" frameborder="0" loading="lazy"></iframe>
+<iframe class="sim" src="/sim/?preset=ShallowWaterDisk&story" frameborder="0"></iframe>
 
 # Looking for more?
 Not quite had enough of water waves? For a different perspective on this Visual Story, try pressing <span class='click_sequence'>{{ layout.views }} → **3D**</span> in either of the simulations above. What you'll see is the surface of the water drawn in 3D – try dragging to change the view, or clicking on the surface to disturb it, and experience a new point of view.
