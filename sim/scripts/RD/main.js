@@ -1031,8 +1031,8 @@ function resizeTextures() {
   postprocess();
   // The interpolationTexture will match the number of pixels in the display.
   interpolationTexture.setSize(
-    Math.round(window.devicePixelRatio * canvasWidth),
-    Math.round(window.devicePixelRatio * canvasHeight)
+    Math.round(devicePixelRatio * canvasWidth),
+    Math.round(devicePixelRatio * canvasHeight)
   );
 }
 
@@ -2375,8 +2375,10 @@ function render() {
     renderer.setRenderTarget(interpolationTexture);
     renderer.render(simScene, simCamera);
     uniforms.textureSource.value = interpolationTexture.texture;
-    uniforms.dxUpscaledScale.value = (devicePixelRatio * domainWidth) / nXDisc;
-    uniforms.dyUpscaledScale.value = (devicePixelRatio * domainHeight) / nYDisc;
+    uniforms.dxUpscaledScale.value =
+      (devicePixelRatio * canvasWidth) / domainWidth;
+    uniforms.dyUpscaledScale.value =
+      (devicePixelRatio * canvasHeight) / domainHeight;
   } else {
     uniforms.dxUpscaledScale.value = 1;
     uniforms.dyUpscaledScale.value = 1;
