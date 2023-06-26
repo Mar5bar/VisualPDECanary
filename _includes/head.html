@@ -35,7 +35,7 @@
   <script>
     // If the window is very narrow, use a smaller domain in any iframe simulations.
     if (window.innerWidth < 600) {
-      window.onload = function() {
+      window.addEventListener("DOMContentLoaded", function() {
         // For each .sim element with an sf parameter in the query string, modify the URL to include a domain scale factor.
         [...document.getElementsByClassName('sim')].forEach(el => {
           const url = new URL(el.src);
@@ -49,7 +49,7 @@
             el.src += "?sf=0.5";
           }
         })
-      }
+      });
     }
   </script>
 
