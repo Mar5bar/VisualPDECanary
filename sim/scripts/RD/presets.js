@@ -2400,6 +2400,10 @@ export function getPreset(id) {
         numSpecies: 2,
         numTimestepsPerFrame: 100,
         oneDimensional: false,
+        overlay: false,
+        overlayColour: 0x000000,
+        overlayEpsilon: 0.005,
+        overlayExpr: "1",
         parent: null,
         plotType: "plane",
         preset: "default",
@@ -2495,6 +2499,7 @@ export function getFieldsInView() {
     "autoSetColourRange",
     "plotType",
     "emboss",
+    "overlay",
     "contours",
   ];
 }

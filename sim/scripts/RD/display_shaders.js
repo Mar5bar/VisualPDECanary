@@ -3,11 +3,20 @@
 export function fiveColourDisplayTop() {
   return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
+    uniform sampler2D textureSource1;
     uniform float minColourValue;
     uniform float maxColourValue;
     const float pi = 3.141592653589793;
     uniform float dx;
     uniform float dy;
+    uniform float L;
+    uniform float L_x;
+    uniform float L_y;
+    uniform float L_min;
+    uniform float t;
+
+    uniform sampler2D imageSourceOne;
+    uniform sampler2D imageSourceTwo;
 
     uniform vec4 colour1;
     uniform vec4 colour2;
@@ -27,6 +36,9 @@ export function fiveColourDisplayTop() {
     uniform vec3 contourColour;
     uniform float contourEpsilon;
     uniform float contourStep;
+
+    uniform vec3 overlayColour;
+    uniform float overlayEpsilon;
 
     vec3 colFromValue(float val) {
         vec3 col;
@@ -64,6 +76,10 @@ export function fiveColourDisplayTop() {
 
     void main()
     {   
+        ivec2 texSize = textureSize(textureSource,0);
+        float step_x = 1.0 / float(texSize.x);
+        float step_y = 1.0 / float(texSize.y);
+
         vec2 values = texture2D(textureSource, textureCoords).rg;
         if (values.g > 0.5)
         {
@@ -82,9 +98,7 @@ export function fiveColourDisplayBot() {
 }
 
 export function embossShader() {
-  return `ivec2 texSize = textureSize(textureSource,0);
-    float step_x = 1.0 / float(texSize.x);
-    float step_y = 1.0 / float(texSize.y);
+  return `
     float gradX = (texture2D(textureSource, textureCoords + vec2(+step_x, 0.0)).r - texture2D(textureSource, textureCoords + vec2(-step_x, 0.0)).r);
     float gradY = (texture2D(textureSource, textureCoords + vec2(0.0, +step_y)).r - texture2D(textureSource, textureCoords + vec2(0.0, -step_y)).r);
     vec3 normal = normalize(vec3 (-gradX/dx * dxUpscaledScale, -gradY/dy * dyUpscaledScale, embossSmoothness * (maxColourValue - minColourValue)));
@@ -98,6 +112,32 @@ export function contourShader() {
   return `for (float contourVal = contourStep; contourVal < 1.0; contourVal += contourStep) {
     col = mix(col, contourColour, float(abs(scaledValue - contourVal) < contourEpsilon));
   }`;
+}
+
+export function overlayShader() {
+  return `float x = textureCoords.x * float(texSize.x) * dx;
+  float y = textureCoords.y * float(texSize.y) * dy;
+  vec4 uvwq = texture2D(textureSource1, textureCoords);
+  vec4 uvwqL = texture2D(textureSource1, textureCoords + vec2(-step_x, 0.0));
+  vec4 uvwqR = texture2D(textureSource1, textureCoords + vec2(+step_x, 0.0));
+  vec4 uvwqT = texture2D(textureSource1, textureCoords + vec2(0.0, +step_y));
+  vec4 uvwqB = texture2D(textureSource1, textureCoords + vec2(0.0, -step_y));
+  vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
+  vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
+  vec4 Svec = texture2D(imageSourceOne, textureCoords);
+  float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
+  float I_SR = Svec.r;
+  float I_SG = Svec.g;
+  float I_SB = Svec.b;
+  float I_SA = Svec.a;
+  vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
+  float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
+  float I_TR = Tvec.r;
+  float I_TG = Tvec.g;
+  float I_TB = Tvec.b;
+  float I_TA = Tvec.a;
+  float overlayExpr = OVERLAYEXPR;
+  col = mix(col, overlayColour, float(abs(overlayExpr) < overlayEpsilon));`;
 }
 
 export function largestSpeciesShader() {

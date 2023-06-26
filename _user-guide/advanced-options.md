@@ -222,8 +222,14 @@ Specify the number of contour lines to plot. These are drawn at equally spaced i
 **Threshold**\
 Set the relative numerical threshold, between 0 and 1, within which a contour will be detected. Smaller values result in more precise, thinner contours. Larger values may be needed to detect contours in solutions that vary rapidly in space. Under the hood, VisualPDE checks if a given output pixel is within this threshold of a given contour value, with all values normalised by the range of the colourbar.
 
-**Colour**\
-Specify the colour with which contours will be rendered.
+#### Overlay <a id='overlay'>
+Customise the display of an overlay, which can be toggled on and off in **Views**.
+
+**Expression**\
+Set an expression whose zero set defines a curve to be displayed in the domain. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions. 
+
+**Threshold**\
+Set the relative numerical threshold, between 0 and 1, within which the zero set will be detected. Smaller values result in more precise, thinner curves. Larger values may be needed to detect curves in large spatial domains or for expressions that vary rapidly in space. Under the hood, VisualPDE checks if a given pixel is in the zero set to within this threshold.
 
 ### Colour <a id='colour'>
 **Colour bar**\
@@ -231,6 +237,12 @@ Toggle the display of the current colour bar and limits.
 
 **Background**\
 Set the background colour of the simulation window, which you will see often when using **Surface Plot** or **Implicit**. In implicit domains, the exterior of the domain adopts this colour.
+
+**Contours**\
+Specify the colour with which contours will be rendered.
+
+**Overlay**\
+Specify the colour with which overlays will be rendered.
 
 #### Lighting <a id='lighting'>
 Configure the details of the lighting model, enabling fine-grained control of the look of the simulation when **Lighting** is enabled in **Views**. We make use of the [Phong reflection model](https://en.wikipedia.org/wiki/Phong_reflection_model).

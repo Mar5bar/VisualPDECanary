@@ -225,6 +225,7 @@ import {
   embossShader,
   contourShader,
   surfaceVertexShader,
+  overlayShader,
 } from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
@@ -1145,6 +1146,12 @@ function initUniforms() {
     nYDisc: {
       type: "i",
     },
+    overlayColour: {
+      type: "v4",
+    },
+    overlayEpsilon: {
+      type: "f",
+    },
     seed: {
       type: "f",
       value: 0.0,
@@ -1681,7 +1688,8 @@ function initGUI(startOpen) {
 
   // Plotting folder.
 
-  root = rightGUI.addFolder("Plotting");
+  let plottingFolder = rightGUI.addFolder("Plotting");
+  root = plottingFolder;
 
   lineWidthMulController = root
     .add(options, "lineWidthMul", 0.1, 2)
@@ -1736,11 +1744,20 @@ function initGUI(startOpen) {
     });
   createOptionSlider(contourEpsilonController, 0.001, 0.05, 0.001);
 
+  root = plottingFolder.addFolder("Overlay");
   root
-    .addColor(options, "contourColour")
-    .name("Colour")
+    .add(options, "overlayExpr")
+    .name("Overlay expr.")
+    .onFinishChange(function () {
+      setDisplayColourAndType();
+      updateView(this.property);
+    });
+
+  root
+    .add(options, "overlayEpsilon")
+    .name("Threshold")
     .onChange(function () {
-      setContourUniforms();
+      setOverlayUniforms();
       renderIfNotRunning();
     });
 
@@ -1758,6 +1775,22 @@ function initGUI(startOpen) {
     .onChange(function () {
       scene.background = new THREE.Color(options.backgroundColour);
       render();
+    });
+
+  root
+    .addColor(options, "contourColour")
+    .name("Contours")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+    });
+
+  root
+    .addColor(options, "overlayColour")
+    .name("Overlay")
+    .onChange(function () {
+      setOverlayUniforms();
+      renderIfNotRunning();
     });
 
   root = root.addFolder("Lighting");
@@ -2025,6 +2058,14 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
+  root
+    .add(options, "overlay")
+    .name("Overlay")
+    .onChange(function () {
+      setDisplayColourAndType();
+      updateView(this.property);
+    });
+
   const colourmapButtons = document.createElement("li");
   colourmapButtons.id = "colour_map_buttons";
   colourmapButtons.classList.add("button_list");
@@ -2176,7 +2217,8 @@ function setDisplayColourAndType() {
   uniforms.colour3.value = new THREE.Vector4(...colourmap[2]);
   uniforms.colour4.value = new THREE.Vector4(...colourmap[3]);
   uniforms.colour5.value = new THREE.Vector4(...colourmap[4]);
-  let shader = fiveColourDisplayTop();
+  let shader = kineticUniformsForShader() + fiveColourDisplayTop();
+  console.log(shader);
   if (options.emboss) {
     shader += embossShader();
     setEmbossUniforms();
@@ -2184,6 +2226,13 @@ function setDisplayColourAndType() {
   if (options.contours) {
     shader += contourShader();
     setContourUniforms();
+  }
+  if (options.overlay) {
+    shader += overlayShader().replaceAll(
+      "OVERLAYEXPR",
+      parseShaderString(options.overlayExpr)
+    );
+    setOverlayUniforms();
   }
   shader += fiveColourDisplayBot();
   displayMaterial.fragmentShader = shader;
@@ -2406,6 +2455,7 @@ function postprocess() {
   renderer.render(simScene, simCamera);
   uniforms.textureSource.value = postTexture.texture;
   bufferFilled = false;
+  uniforms.textureSource1.value = simTextures[1].texture;
 }
 
 function onDocumentPointerDown(event) {
@@ -6366,6 +6416,11 @@ function setContourUniforms() {
   uniforms.contourColour.value = new THREE.Color(options.contourColour);
   uniforms.contourEpsilon.value = options.contourEpsilon;
   uniforms.contourStep.value = 1 / (options.contourNum + 1);
+}
+
+function setOverlayUniforms() {
+  uniforms.overlayColour.value = new THREE.Color(options.overlayColour);
+  uniforms.overlayEpsilon.value = options.overlayEpsilon;
 }
 
 function renderIfNotRunning() {
