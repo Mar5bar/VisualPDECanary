@@ -36,7 +36,7 @@
     // If the window is very narrow, use a smaller domain in any iframe simulations.
     if (window.innerWidth < 600) {
       window.addEventListener("DOMContentLoaded", function() {
-        // For each .sim element with an sf parameter in the query string, modify the URL to include a domain scale factor.
+        // For each .sim element without an sf parameter in the query string, modify the URL to include a domain scale factor.
         [...document.getElementsByClassName('sim')].forEach(el => {
           const url = new URL(el.src);
           if (/[?&]/.test(url.search)) {
@@ -48,6 +48,14 @@
           } else {
             el.src += "?sf=0.5";
           }
+          // In order for lazy loading to work with an updated string, we have to remove and 
+          // readd the element to the DOM.
+          const original = el.cloneNode(true);
+          const placeholder = document.createElement("div");
+          el.replaceWith(placeholder);
+          placeholder.replaceWith(original);
+          el.remove();
+          placeholder.remove();
         })
       });
     }
