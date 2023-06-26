@@ -5047,6 +5047,7 @@ function checkForNaN() {
   let vals = getMinMaxVal();
   if (!isFinite(vals[0]) || !isFinite(vals[1])) {
     fadein("#oops_hit_nan");
+    pauseSim();
     $("#erase").one("click", () => fadeout("#oops_hit_nan"));
   } else {
     NaNTimer = setTimeout(checkForNaN, 1000);
