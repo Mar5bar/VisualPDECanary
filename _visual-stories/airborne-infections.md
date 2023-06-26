@@ -13,7 +13,7 @@ Before we begin, it's worth noting that the results of the simulations in this S
 
 Suppose that lots of people are sitting in a sealed room and one of them is infectious. We'll assume that the infectious person is constantly producing virus-laden particles that spread out around them and lose their potency over time. The simulation below shows what this might look like. The colour corresponds to the concentration or amount of the virus in the air. 
 
-<iframe class="sim" src="/sim/?preset=CovidInAStillRoom&story&sf=1" frameborder="0"></iframe>
+<iframe class="sim" src="/sim/?preset=CovidInAStillRoom&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
 With VisualPDE, we're not just limited to watching a simulation: we can interact with it too. Clicking in the room will introduce some viral particles to the air, as if someone with a slight infection had coughed. Try clicking to see what difference a cough can make.
 
@@ -29,7 +29,7 @@ As you might expect, the probability of being infected increases with the amount
 # Recirculation
 It's fairly rare for air to stay still. Let's see what effect the movement of air can have on the distribution of a virus and the chance of infection. In the simulation below, we've added in the effects of the air being blown from right to left, mimicking an air conditioner, with anything that reaches the left-hand side of the room being blown back over everyone's heads before being recycled back into the right-hand side.
 
-<iframe class="sim" src="/sim/?preset=CovidInARoom&story&sf=1" frameborder="0"></iframe>
+<iframe class="sim" src="/sim/?preset=CovidInARoom&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
 With this new air movement, it now looks like standing downwind of the infected person is a bad idea: particles carrying the virus are swept from right to left by the air current, and the probability of being infected is much higher on the left of the infected person. Eventually, the recirculation of the air means that viral particles reach even the right-hand side of the room, leading to a large zone in the room where the probability of infection is high. 
 
@@ -38,13 +38,13 @@ Remember, you can swap between Views to see the effects on both Probability and 
 # A meandering infection
 People don't always stay still in the middle of rooms. Unsurprisingly, the movement of an infected individual can have a big impact on the spread of a virus. In the next simulation, we've set it up so that the source of the infection moves around the room, as if they were a waiter going between tables in a restaurant, perhaps. We've also turned off the air conditioner, so that the air in the room is still.
 
-<iframe class="sim" src="/sim/?preset=CovidInAStillRoomCircling&story&sf=1" frameborder="0"></iframe>
+<iframe class="sim" src="/sim/?preset=CovidInAStillRoomCircling&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
 The Probability View shows the build-up of a ring of likely infections as the infectious person circles the room. A quick look at the Concentration View shows their circular path, leaving a trail of viral particles behind them.
 
 In this scenario, what do you think happens if we turn on the air conditioner? The next simulation does just this. Start the simulation by pressing {{ layout.play }}
 
-<iframe class="sim" src="/sim/?preset=CovidInARoomCircling&story&sf=1" frameborder="0"></iframe>
+<iframe class="sim" src="/sim/?preset=CovidInARoomCircling&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
 Now, instead of a nice clean ring of likely infections, we immediately see that people on the downwind side of the room are much more likely to be infected – people that had a lower chance of infection in a room with no air circulation. If we keep watching, we can see this effect increasing and increasing. Eventually, even those that seemed to be far upwind of the source of infection have some chance of being infected, as the recirculating air slowly carries the virus with it across the room, just like it did in our earlier example.
 
