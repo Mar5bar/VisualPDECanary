@@ -142,15 +142,15 @@ export function contourShader() {
 }
 
 export function overlayShader() {
-  return `float x = textureCoords.x * float(texSize.x) * dx;
-  float y = textureCoords.y * float(texSize.y) * dy;
+  return `float x = textureCoords.x * float(texSize.x) * dx / dxUpscaledScale;
+  float y = textureCoords.y * float(texSize.y) * dy / dyUpscaledScale;
   vec4 uvwq = texture2D(textureSource1, textureCoords);
   vec4 uvwqL = texture2D(textureSource1, textureCoords + vec2(-step_x, 0.0));
   vec4 uvwqR = texture2D(textureSource1, textureCoords + vec2(+step_x, 0.0));
   vec4 uvwqT = texture2D(textureSource1, textureCoords + vec2(0.0, +step_y));
   vec4 uvwqB = texture2D(textureSource1, textureCoords + vec2(0.0, -step_y));
-  vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
-  vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
+  vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx) * dxUpscaledScale;
+  vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy) * dyUpscaledScale;
   vec4 Svec = texture2D(imageSourceOne, textureCoords);
   float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
   float I_SR = Svec.r;
