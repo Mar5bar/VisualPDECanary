@@ -2375,10 +2375,8 @@ function render() {
     renderer.setRenderTarget(interpolationTexture);
     renderer.render(simScene, simCamera);
     uniforms.textureSource.value = interpolationTexture.texture;
-    uniforms.dxUpscaledScale.value =
-      (devicePixelRatio * canvasWidth) / domainWidth;
-    uniforms.dyUpscaledScale.value =
-      (devicePixelRatio * canvasHeight) / domainHeight;
+    uniforms.dxUpscaledScale.value = (devicePixelRatio * canvasWidth) / nXDisc;
+    uniforms.dyUpscaledScale.value = (devicePixelRatio * canvasHeight) / nYDisc;
   } else {
     uniforms.dxUpscaledScale.value = 1;
     uniforms.dyUpscaledScale.value = 1;
