@@ -847,8 +847,8 @@ select {
   padding-right: 0.6rem;
   border-radius: 5px;
   text-align: center;
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 3px;
+  margin-bottom: 3px;
   cursor: pointer;
 }
 

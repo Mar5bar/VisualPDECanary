@@ -38,7 +38,6 @@ let leftGUI,
   hController,
   jController,
   algebraicSpeciesController,
-  crossDiffusionController,
   domainIndicatorFunController,
   DuuController,
   DuvController,
@@ -1204,7 +1203,13 @@ function initGUI(startOpen) {
   // Brush folder.
   root = rightGUI.addFolder("Brush");
 
-  root.add(options, "brushEnabled").name("Enabled");
+  const brushButtonList = addButtonList(root);
+
+  addToggle(
+    brushButtonList,
+    "brushEnabled",
+    '<i class="fa-regular fa-brush"></i> Enable brush'
+  );
 
   root
     .add(options, "brushAction", {
@@ -1257,24 +1262,34 @@ function initGUI(startOpen) {
   dxController.min(0);
   dxController.updateDisplay();
 
-  root
-    .add(options, "squareCanvas")
-    .name("Square")
-    .onFinishChange(function () {
+  const domainButtonList = addButtonList(root);
+
+  addToggle(
+    domainButtonList,
+    "squareCanvas",
+    '<i class="fa-regular fa-square"></i> Square',
+    function () {
       setCanvasShape();
       resize();
       configureCameraAndClicks();
-    });
+    },
+    null,
+    "Use a square domain"
+  );
 
-  root
-    .add(options, "domainViaIndicatorFun")
-    .name("Implicit")
-    .onFinishChange(function () {
+  addToggle(
+    domainButtonList,
+    "domainViaIndicatorFun",
+    '<i class="fa-regular fa-circle"></i> Implicit',
+    function () {
       configureOptions();
       configureGUI();
       setRDEquations();
       setPostFunFragShader();
-    });
+    },
+    null,
+    "Determine the domain implicitly"
+  );
 
   domainIndicatorFunController = root
     .add(options, "domainIndicatorFun")
@@ -1313,10 +1328,15 @@ function initGUI(startOpen) {
     })
     .name("Scheme");
 
-  root
-    .add(options, "timeDisplay")
-    .name("Show time")
-    .onChange(configureTimeDisplay);
+  const timeButtonList = addButtonList(root);
+  addToggle(
+    timeButtonList,
+    "timeDisplay",
+    '<i class="fa-regular fa-stopwatch"></i> Elapsed time',
+    configureTimeDisplay,
+    null,
+    "Show/hide time display"
+  );
 
   // Equations folder.
   root = rightGUI.addFolder("Equations");
@@ -1325,12 +1345,6 @@ function initGUI(startOpen) {
   root
     .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
     .name("No. species")
-    .onChange(updateProblem);
-
-  // Cross diffusion.
-  crossDiffusionController = root
-    .add(options, "crossDiffusion")
-    .name("Cross diffusion")
     .onChange(updateProblem);
 
   // Number of algebraic species.
@@ -1357,14 +1371,27 @@ function initGUI(startOpen) {
       setCustomNames();
     });
 
+  // Cross diffusion.
+  const crossDiffusionButtonList = addButtonList(root);
+  addToggle(
+    crossDiffusionButtonList,
+    "crossDiffusion",
+    '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
+    updateProblem,
+    "cross_diffusion_controller"
+  );
+
   // Let's put these in the left GUI.
   // Definitions folder.
   root = leftGUI.addFolder("Definitions");
 
-  root
-    .add(options, "typesetCustomEqs")
-    .name("Typeset")
-    .onChange(setEquationDisplayType);
+  const defButtonList = addButtonList(root);
+  addToggle(
+    defButtonList,
+    "typesetCustomEqs",
+    '<i class="fa-regular fa-square-root-variable"></i> Typeset',
+    setEquationDisplayType
+  );
 
   DuuController = root
     .add(options, "diffusionStrUU")
@@ -1694,26 +1721,36 @@ function initGUI(startOpen) {
   // Saving/loading folder.
   root = rightGUI.addFolder("Checkpoints");
 
-  // Checkpoints override initial condition
-  const checkpointButtons = document.createElement("li");
-  checkpointButtons.classList.add("button_list");
-  root.domElement.children[0].appendChild(checkpointButtons);
+  // Checkpoints override initial condition.
+  const checkpointButtons = addButtonList(root);
 
   addToggle(
     checkpointButtons,
     "resetFromCheckpoints",
-    '<i class="fa-regular fa-flag"></i> Enable checkpoints',
+    "Enable checkpoints",
     null,
     "checkpointButton"
   );
 
   // Force a newline.
   addNewline(checkpointButtons);
-  addButton(checkpointButtons, "Set", saveSimState);
-  addButton(checkpointButtons, "Export", exportSimState);
-  addButton(checkpointButtons, "Import", function () {
-    $("#checkpointInput").click();
-  });
+  addButton(
+    checkpointButtons,
+    '<i class="fa-regular fa-flag"></i> Set',
+    saveSimState
+  );
+  addButton(
+    checkpointButtons,
+    '<i class="fa-regular fa-file-arrow-down"></i> Export',
+    exportSimState
+  );
+  addButton(
+    checkpointButtons,
+    '<i class="fa-regular fa-file-arrow-up"></i> Import',
+    function () {
+      $("#checkpointInput").click();
+    }
+  );
 
   root
     .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
@@ -1730,9 +1767,7 @@ function initGUI(startOpen) {
       render();
     });
 
-  const miscButtons = document.createElement("li");
-  miscButtons.classList.add("button_list");
-  root.domElement.children[0].appendChild(miscButtons);
+  const miscButtons = addButtonList(root);
 
   addToggle(
     miscButtons,
@@ -1769,10 +1804,8 @@ function initGUI(startOpen) {
   root = root.addFolder("Debug");
   // Debug.
   // Copy configuration as raw JSON.
-  const debugButton = document.createElement("li");
-  debugButton.classList.add("button_list");
-  root.domElement.children[0].appendChild(debugButton);
-  addButton(debugButton, "Copy debug information", copyDebug);
+  const debugButtonList = addButtonList(root);
+  addButton(debugButtonList, "Copy debug information", copyDebug);
 
   // Add a title to the rightGUI.
   const settingsTitle = document.createElement("div");
@@ -1800,10 +1833,7 @@ function initGUI(startOpen) {
   editViewFolder = viewsGUI.addFolder("Edit view");
   root = editViewFolder;
 
-  const editViewButtons = document.createElement("li");
-  editViewButtons.id = "edit_view_buttons";
-  editViewButtons.classList.add("button_list");
-  root.domElement.children[0].appendChild(editViewButtons);
+  const editViewButtons = addButtonList(root, "edit_view_buttons");
 
   addButton(
     editViewButtons,
@@ -1890,10 +1920,7 @@ function initGUI(startOpen) {
     });
   maxColourValueController.__precision = 2;
 
-  const effectsButtons = document.createElement("li");
-  effectsButtons.id = "colour_map_buttons";
-  effectsButtons.classList.add("button_list");
-  root.domElement.children[0].appendChild(effectsButtons);
+  const effectsButtons = addButtonList(root, "colour_map_buttons");
 
   addButton(
     effectsButtons,
@@ -3951,9 +3978,9 @@ function configureGUI() {
   }
 
   if (options.numSpecies > 1) {
-    showGUIController(crossDiffusionController);
+    $("#cross_diffusion_controller").show();
   } else {
-    hideGUIController(crossDiffusionController);
+    $("#cross_diffusion_controller").hide();
   }
 
   // Hide/Show VWQGUI panels.
@@ -6218,6 +6245,14 @@ function dirichletEnforceShader(speciesInd, side) {
     );
   }
   return str;
+}
+
+function addButtonList(parent, id) {
+  const list = document.createElement("li");
+  if (id != null) list.id = id;
+  list.classList.add("button_list");
+  parent.domElement.children[0].appendChild(list);
+  return list;
 }
 
 function addButton(parent, inner, onclick, id, title) {
