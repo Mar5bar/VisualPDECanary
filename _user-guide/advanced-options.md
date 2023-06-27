@@ -114,7 +114,7 @@ Set the current colour map being used to convert **Expression** into a colour va
 **Min/Max value**\
 Set the limits of the colour map that transforms  **Expression** into colour. If viewing a surface plot, this also impacts the height of the surface. Must be a numerical value.
 
-**Reverse**\
+**Flip map**\
 Reverse the direction of the current colour map.
 
 **Snap**\

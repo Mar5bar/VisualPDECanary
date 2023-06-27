@@ -64,8 +64,6 @@ let leftGUI,
   cameraPhiController,
   cameraZoomController,
   forceManualInterpolationController,
-  embossController,
-  contourController,
   contourEpsilonController,
   contourNumController,
   minColourValueController,
@@ -764,6 +762,7 @@ function init() {
       }
       if (event.key === " ") {
         funsObj.toggleRunning();
+        event.preventDefault();
       }
       if (event.key === "h") {
         if (uiHidden) {
@@ -1724,50 +1723,8 @@ function initGUI(startOpen) {
     .name("Manual interp")
     .onChange(configureManualInterpolation);
 
-  root = root.addFolder("Contours");
-
-  contourNumController = root
-    .add(options, "contourNum")
-    .name("Number")
-    .onChange(function () {
-      setContourUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(contourNumController, 1, 20, 1);
-
-  contourEpsilonController = root
-    .add(options, "contourEpsilon")
-    .name("Threshold")
-    .onChange(function () {
-      setContourUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(contourEpsilonController, 0.001, 0.05, 0.001);
-
-  root = plottingFolder.addFolder("Overlay");
-  root
-    .add(options, "overlayExpr")
-    .name("Overlay expr.")
-    .onFinishChange(function () {
-      setDisplayColourAndType();
-      updateView(this.property);
-    });
-
-  root
-    .add(options, "overlayEpsilon")
-    .name("Threshold")
-    .onChange(function () {
-      setOverlayUniforms();
-      renderIfNotRunning();
-    });
-
   // Colour folder.
   root = rightGUI.addFolder("Colour");
-
-  root
-    .add(options, "colourbar")
-    .name("Colour bar")
-    .onChange(configureColourbar);
 
   root
     .addColor(options, "backgroundColour")
@@ -1776,87 +1733,6 @@ function initGUI(startOpen) {
       scene.background = new THREE.Color(options.backgroundColour);
       render();
     });
-
-  root
-    .addColor(options, "contourColour")
-    .name("Contours")
-    .onChange(function () {
-      setContourUniforms();
-      renderIfNotRunning();
-    });
-
-  root
-    .addColor(options, "overlayColour")
-    .name("Overlay")
-    .onChange(function () {
-      setOverlayUniforms();
-      renderIfNotRunning();
-    });
-
-  root = root.addFolder("Lighting");
-
-  embossSmoothnessController = root
-    .add(options, "embossSmoothness")
-    .name("Smoothness")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossSmoothnessController, 0, 2, 0.001);
-
-  embossAmbientController = root
-    .add(options, "embossAmbient")
-    .name("Ambient")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossAmbientController, 0, 1, 0.001);
-
-  embossDiffuseController = root
-    .add(options, "embossDiffuse")
-    .name("Diffuse")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossDiffuseController, 0, 1, 0.001);
-
-  embossSpecularController = root
-    .add(options, "embossSpecular")
-    .name("Specular")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossSpecularController, 0, 1, 0.001);
-
-  embossShinyController = root
-    .add(options, "embossShiny")
-    .name("Precision")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossShinyController, 0, 100, 1);
-
-  embossThetaController = root
-    .add(options, "embossTheta")
-    .name("Inclination")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossThetaController, 0, 1.5708, 0.001);
-
-  embossPhiController = root
-    .add(options, "embossPhi")
-    .name("Direction")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossPhiController, 0, 3.1456, 0.001);
 
   // Images folder.
   fIm = rightGUI.addFolder("Images");
@@ -2031,49 +1907,14 @@ function initGUI(startOpen) {
     });
   maxColourValueController.__precision = 2;
 
-  autoSetColourRangeController = root
-    .add(options, "autoSetColourRange")
-    .name("Auto snap")
-    .onChange(function () {
-      if (options.autoSetColourRange) {
-        setColourRange();
-        render();
-      }
-      updateView(this.property);
-    });
-
-  contourController = root
-    .add(options, "contours")
-    .name("Contours")
-    .onChange(function () {
-      setDisplayColourAndType();
-      updateView(this.property);
-    });
-
-  embossController = root
-    .add(options, "emboss")
-    .name("Lighting")
-    .onChange(function () {
-      setDisplayColourAndType();
-      updateView(this.property);
-    });
-
-  root
-    .add(options, "overlay")
-    .name("Overlay")
-    .onChange(function () {
-      setDisplayColourAndType();
-      updateView(this.property);
-    });
-
-  const colourmapButtons = document.createElement("li");
-  colourmapButtons.id = "colour_map_buttons";
-  colourmapButtons.classList.add("button_list");
-  root.domElement.children[0].appendChild(colourmapButtons);
+  const effectsButtons0 = document.createElement("li");
+  effectsButtons0.id = "colour_map_buttons";
+  effectsButtons0.classList.add("button_list");
+  root.domElement.children[0].appendChild(effectsButtons0);
 
   addButton(
-    colourmapButtons,
-    '<i class="fa-solid fa-arrow-right-arrow-left"></i> Reverse',
+    effectsButtons0,
+    '<i class="fa-solid fa-arrow-right-arrow-left"></i> Flip',
     function () {
       options.flippedColourmap = !options.flippedColourmap;
       setDisplayColourAndType();
@@ -2085,7 +1926,7 @@ function initGUI(startOpen) {
   );
 
   addButton(
-    colourmapButtons,
+    effectsButtons0,
     '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap',
     function () {
       setColourRange();
@@ -2097,7 +1938,202 @@ function initGUI(startOpen) {
     "Snap min/max to visible"
   );
 
-  // root.add(funsObj, "restoreCurrentView").name("Restore");
+  addToggle(
+    effectsButtons0,
+    "colourbar",
+    '<i class="fa-solid fa-bars-progress"></i> Bar',
+    function () {
+      configureColourbar();
+    },
+    null,
+    "Display the colourbar"
+  );
+
+  const effectsButtons1 = document.createElement("li");
+  effectsButtons1.id = "effects_buttons";
+  effectsButtons1.classList.add("button_list");
+  root.domElement.children[0].appendChild(effectsButtons1);
+
+  addToggle(
+    effectsButtons1,
+    "autoSetColourRange",
+    '<i class="fa-solid fa-wand-magic-sparkles"></i> Auto snap',
+    function () {
+      if (options.autoSetColourRange) {
+        setColourRange();
+        render();
+      }
+      updateView("autoSetColourRange");
+    },
+    null,
+    "Automatically snap range"
+  );
+
+  addToggle(
+    effectsButtons1,
+    "contours",
+    '<i class="fa-solid fa-bullseye"></i> Contours',
+    function () {
+      setDisplayColourAndType();
+      updateView("contours");
+    },
+    "contourButton",
+    "Toggle contours",
+    "contoursFolder"
+  );
+
+  const effectsButtons2 = document.createElement("li");
+  effectsButtons2.id = "effects_buttons";
+  effectsButtons2.classList.add("button_list");
+  root.domElement.children[0].appendChild(effectsButtons2);
+
+  addToggle(
+    effectsButtons2,
+    "emboss",
+    '<i class="fa-solid fa-lightbulb"></i> Lighting',
+    function () {
+      setDisplayColourAndType();
+      updateView("emboss");
+    },
+    "embossButton",
+    "Toggle lighting",
+    "embossFolder"
+  );
+
+  addToggle(
+    effectsButtons2,
+    "overlay",
+    '<i class="fa-solid fa-chart-line"></i> Overlay',
+    function () {
+      setDisplayColourAndType();
+      updateView("overlay");
+    },
+    null,
+    "Toggle overlay",
+    "overlayFolder"
+  );
+
+  root = editViewFolder.addFolder("Contours");
+  root.domElement.id = "contoursFolder";
+
+  root
+    .addColor(options, "contourColour")
+    .name("Colour")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+    });
+
+  contourNumController = root
+    .add(options, "contourNum")
+    .name("Number")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(contourNumController, 1, 20, 1);
+
+  contourEpsilonController = root
+    .add(options, "contourEpsilon")
+    .name("Threshold")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(contourEpsilonController, 0.001, 0.05, 0.001);
+
+  root = editViewFolder.addFolder("Lighting");
+  root.domElement.id = "embossFolder";
+
+  embossSmoothnessController = root
+    .add(options, "embossSmoothness")
+    .name("Smoothness")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossSmoothnessController, 0, 2, 0.001);
+
+  embossAmbientController = root
+    .add(options, "embossAmbient")
+    .name("Ambient")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossAmbientController, 0, 1, 0.001);
+
+  embossDiffuseController = root
+    .add(options, "embossDiffuse")
+    .name("Diffuse")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossDiffuseController, 0, 1, 0.001);
+
+  embossSpecularController = root
+    .add(options, "embossSpecular")
+    .name("Specular")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossSpecularController, 0, 1, 0.001);
+
+  embossShinyController = root
+    .add(options, "embossShiny")
+    .name("Precision")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossShinyController, 0, 100, 1);
+
+  embossThetaController = root
+    .add(options, "embossTheta")
+    .name("Inclination")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossThetaController, 0, 1.5708, 0.001);
+
+  embossPhiController = root
+    .add(options, "embossPhi")
+    .name("Direction")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+    });
+  createOptionSlider(embossPhiController, 0, 3.1456, 0.001);
+
+  root = editViewFolder.addFolder("Overlay");
+  root.domElement.id = "overlayFolder";
+
+  root
+    .addColor(options, "overlayColour")
+    .name("Colour")
+    .onChange(function () {
+      setOverlayUniforms();
+      renderIfNotRunning();
+    });
+
+  root
+    .add(options, "overlayExpr")
+    .name("Expression")
+    .onFinishChange(function () {
+      setDisplayColourAndType();
+      updateView(this.property);
+    });
+
+  root
+    .add(options, "overlayEpsilon")
+    .name("Threshold")
+    .onChange(function () {
+      setOverlayUniforms();
+      renderIfNotRunning();
+    });
 }
 
 function animate() {
@@ -2218,7 +2254,6 @@ function setDisplayColourAndType() {
   uniforms.colour4.value = new THREE.Vector4(...colourmap[3]);
   uniforms.colour5.value = new THREE.Vector4(...colourmap[4]);
   let shader = kineticUniformsForShader() + fiveColourDisplayTop();
-  console.log(shader);
   if (options.emboss) {
     shader += embossShader();
     setEmbossUniforms();
@@ -4018,24 +4053,24 @@ function configureGUI() {
   setBCsGUI();
   // Hide or show GUI elements to do with surface plotting.
   if (options.plotType == "surface") {
-    hideGUIController(contourController);
-    showGUIController(embossController);
+    $("#contourButton").hide();
+    $("#embossButton").show();
     hideGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
     showGUIController(cameraPhiController);
     showGUIController(cameraZoomController);
   } else if (options.plotType == "line") {
-    hideGUIController(contourController);
-    hideGUIController(embossController);
+    $("#contourButton").hide();
+    $("#embossButton").hide();
     showGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
     hideGUIController(cameraPhiController);
     hideGUIController(cameraZoomController);
   } else {
-    showGUIController(contourController);
-    showGUIController(embossController);
+    $("#contourButton").show();
+    $("#embossButton").show();
     hideGUIController(lineWidthMulController);
     hideGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
@@ -4064,6 +4099,10 @@ function configureGUI() {
   );
   // Update emboss sliders.
   updateEmbossSliders();
+  // Update all toggle buttons.
+  $(".toggle_button").each(function () {
+    updateToggle(this);
+  });
   // Configure the Views GUI from options.views.
   configureViewsGUI();
   // Refresh the GUI displays.
@@ -6180,6 +6219,27 @@ function addButton(parent, inner, onclick, id, title) {
   parent.appendChild(button);
 }
 
+function addToggle(parent, property, inner, onclick, id, title, folderID) {
+  const toggle = document.createElement("a");
+  toggle.classList.add("toggle_button");
+  toggle.setAttribute("property", property);
+  if (onclick != undefined) {
+    toggle.onclick = function () {
+      options[toggle.getAttribute("property")] =
+        !options[toggle.getAttribute("property")];
+      updateToggle(toggle);
+      onclick();
+    };
+  }
+  if (id != undefined) toggle.id = id;
+  if (title != undefined) toggle.title = title;
+  if (inner != undefined) toggle.innerHTML = inner;
+  if (folderID != undefined) toggle.setAttribute("folderID", folderID);
+  parent.appendChild(toggle);
+  updateToggle(toggle);
+  return toggle;
+}
+
 function copyConfigAsJSON() {
   // Encode the current simulation configuration as raw JSON and put it on the clipboard.
   let objDiff = diffObjects(options, getPreset("default"));
@@ -6425,4 +6485,19 @@ function setOverlayUniforms() {
 
 function renderIfNotRunning() {
   if (!isRunning) render();
+}
+
+function updateToggle(toggle) {
+  if (options[toggle.getAttribute("property")]) {
+    toggle.classList.add("toggled_on");
+    console.log($("#" + toggle.getAttribute("folderID")));
+    if (toggle.getAttribute("folderID")) {
+      $("#" + toggle.getAttribute("folderID")).removeClass("hidden");
+    }
+  } else {
+    toggle.classList.remove("toggled_on");
+    if (toggle.getAttribute("folderID")) {
+      $("#" + toggle.getAttribute("folderID")).addClass("hidden");
+    }
+  }
 }
