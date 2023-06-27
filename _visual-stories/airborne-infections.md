@@ -15,7 +15,7 @@ Suppose that lots of people are sitting in a sealed room and one of them is infe
 
 <iframe class="sim" src="/sim/?preset=CovidInAStillRoom&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
-With VisualPDE, we're not just limited to watching a simulation: we can interact with it too. Clicking in the room will introduce some viral particles to the air, as if someone with an infection had coughed (coughing is actually a lot more complicated and is the focus of lots of [research](LINK)). Try clicking to see what difference a cough can make.
+With VisualPDE, we're not just limited to watching a simulation: we can interact with it too. Clicking in the room will introduce some viral particles to the air, as if someone with an infection had coughed (coughing is actually a lot more complicated and is the focus of lots of [research](https://doi.org/10.1146/annurev-fluid-060220-113712)). Try clicking to see what difference a cough can make.
 
 Though each cough introduces some virus to the room, it looks like it quickly decays away until we can't even tell it was there. So, does this mean we shouldn't be worried about a cough?
 
