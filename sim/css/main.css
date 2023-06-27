@@ -809,9 +809,12 @@ a#add_view {
   justify-content: space-around;
   flex-flow: row wrap;
   border-bottom: 0px;
-  padding-top: 5px !important;
-  padding-bottom: 5px !important;
 }
+
+.dg :not(.closed) > .button_list {
+    height: fit-content !important;
+}
+
 .dg .closed li:not(.title) {
   padding: 0 !important;
   border-bottom: 0px !important;
@@ -844,7 +847,8 @@ select {
   padding-right: 0.6rem;
   border-radius: 5px;
   text-align: center;
-  margin-top: 0.05rem;
+  margin-top: 5px;
+  margin-bottom: 5px;
   cursor: pointer;
 }
 
@@ -1079,4 +1083,9 @@ select {
 
 .dg.main::-webkit-scrollbar {
   border-radius: 0.5rem;
+}
+
+.break {
+  flex-basis: 100%;
+  height: 0;
 }

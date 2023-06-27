@@ -63,7 +63,6 @@ let leftGUI,
   cameraThetaController,
   cameraPhiController,
   cameraZoomController,
-  forceManualInterpolationController,
   contourEpsilonController,
   contourNumController,
   minColourValueController,
@@ -106,6 +105,7 @@ let leftGUI,
   imControllerOne,
   imControllerTwo,
   editViewFolder,
+  linesAnd3DFolder,
   whatToPlotController,
   deleteViewController,
   selectedEntries = new Set();
@@ -789,7 +789,7 @@ function init() {
       }
       if (event.key == "c") {
         options.resetFromCheckpoints = !options.resetFromCheckpoints;
-        refreshGUI(rightGUI);
+        updateToggle($("#checkpointButton")[0]);
       }
     }
   });
@@ -1685,55 +1685,6 @@ function initGUI(startOpen) {
     .add(options, "clearValueQ")
     .onFinishChange(setClearShader);
 
-  // Plotting folder.
-
-  let plottingFolder = rightGUI.addFolder("Plotting");
-  root = plottingFolder;
-
-  lineWidthMulController = root
-    .add(options, "lineWidthMul", 0.1, 2)
-    .name("Thickness")
-    .onChange(function () {
-      setLineWidth();
-      render();
-    });
-
-  threeDHeightScaleController = root
-    .add(options, "threeDHeightScale")
-    .name("Max height")
-    .onChange(updateUniforms);
-
-  cameraThetaController = root
-    .add(options, "cameraTheta")
-    .name("View $\\theta$")
-    .onChange(configureCameraAndClicks);
-
-  cameraPhiController = root
-    .add(options, "cameraPhi")
-    .name("View $\\phi$")
-    .onChange(configureCameraAndClicks);
-
-  cameraZoomController = root
-    .add(options, "cameraZoom")
-    .name("Zoom")
-    .onChange(configureCameraAndClicks);
-
-  forceManualInterpolationController = root
-    .add(options, "forceManualInterpolation")
-    .name("Manual interp")
-    .onChange(configureManualInterpolation);
-
-  // Colour folder.
-  root = rightGUI.addFolder("Colour");
-
-  root
-    .addColor(options, "backgroundColour")
-    .name("Background")
-    .onChange(function () {
-      scene.background = new THREE.Color(options.backgroundColour);
-      render();
-    });
-
   // Images folder.
   fIm = rightGUI.addFolder("Images");
   root = fIm;
@@ -1744,41 +1695,73 @@ function initGUI(startOpen) {
   root = rightGUI.addFolder("Checkpoints");
 
   // Checkpoints override initial condition
-  root.add(options, "resetFromCheckpoints").name("Enabled");
-
-  root
-    .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
-    .name("Resize");
-
   const checkpointButtons = document.createElement("li");
   checkpointButtons.classList.add("button_list");
   root.domElement.children[0].appendChild(checkpointButtons);
 
+  addToggle(
+    checkpointButtons,
+    "resetFromCheckpoints",
+    '<i class="fa-regular fa-flag"></i> Enable checkpoints',
+    null,
+    "checkpointButton"
+  );
+
+  // Force a newline.
+  addNewline(checkpointButtons);
   addButton(checkpointButtons, "Set", saveSimState);
   addButton(checkpointButtons, "Export", exportSimState);
   addButton(checkpointButtons, "Import", function () {
     $("#checkpointInput").click();
   });
 
+  root
+    .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
+    .name("Resize");
+
   // Miscellaneous folder.
   root = rightGUI.addFolder("Misc.");
 
   root
-    .add(options, "integrate")
-    .name("Integrate")
+    .addColor(options, "backgroundColour")
+    .name("Background")
     .onChange(function () {
-      configureIntegralDisplay();
+      scene.background = new THREE.Color(options.backgroundColour);
       render();
     });
 
-  root.add(options, "fixRandSeed").name("Fix random seed");
+  const miscButtons = document.createElement("li");
+  miscButtons.classList.add("button_list");
+  root.domElement.children[0].appendChild(miscButtons);
+
+  addToggle(
+    miscButtons,
+    "integrate",
+    '<i class="fa-regular fa-chart-area"></i> Integrate',
+    function () {
+      configureIntegralDisplay();
+      render();
+    }
+  );
+
+  addToggle(
+    miscButtons,
+    "forceManualInterpolation",
+    '<i class="fa-regular fa-bezier-curve"></i> Interpolate',
+    configureManualInterpolation,
+    "interpController",
+    ""
+  );
+
+  addToggle(
+    miscButtons,
+    "fixRandSeed",
+    '<i class="fa-regular fa-shuffle"></i> Fix seed'
+  );
 
   // Copy configuration as raw JSON.
-  const codeButton = document.createElement("li");
-  codeButton.classList.add("button_list");
-  root.domElement.children[0].appendChild(codeButton);
   addButton(
-    codeButton,
+    miscButtons,
     '<i class="fa-regular fa-copy"></i> Copy code',
     copyConfigAsJSON
   );
@@ -1907,13 +1890,13 @@ function initGUI(startOpen) {
     });
   maxColourValueController.__precision = 2;
 
-  const effectsButtons0 = document.createElement("li");
-  effectsButtons0.id = "colour_map_buttons";
-  effectsButtons0.classList.add("button_list");
-  root.domElement.children[0].appendChild(effectsButtons0);
+  const effectsButtons = document.createElement("li");
+  effectsButtons.id = "colour_map_buttons";
+  effectsButtons.classList.add("button_list");
+  root.domElement.children[0].appendChild(effectsButtons);
 
   addButton(
-    effectsButtons0,
+    effectsButtons,
     '<i class="fa-solid fa-arrow-right-arrow-left"></i> Flip',
     function () {
       options.flippedColourmap = !options.flippedColourmap;
@@ -1926,7 +1909,7 @@ function initGUI(startOpen) {
   );
 
   addButton(
-    effectsButtons0,
+    effectsButtons,
     '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap',
     function () {
       setColourRange();
@@ -1939,7 +1922,7 @@ function initGUI(startOpen) {
   );
 
   addToggle(
-    effectsButtons0,
+    effectsButtons,
     "colourbar",
     '<i class="fa-solid fa-bars-progress"></i> Bar',
     function () {
@@ -1949,13 +1932,8 @@ function initGUI(startOpen) {
     "Display the colourbar"
   );
 
-  const effectsButtons1 = document.createElement("li");
-  effectsButtons1.id = "effects_buttons";
-  effectsButtons1.classList.add("button_list");
-  root.domElement.children[0].appendChild(effectsButtons1);
-
   addToggle(
-    effectsButtons1,
+    effectsButtons,
     "autoSetColourRange",
     '<i class="fa-solid fa-wand-magic-sparkles"></i> Auto snap',
     function () {
@@ -1970,7 +1948,7 @@ function initGUI(startOpen) {
   );
 
   addToggle(
-    effectsButtons1,
+    effectsButtons,
     "contours",
     '<i class="fa-solid fa-bullseye"></i> Contours',
     function () {
@@ -1982,13 +1960,8 @@ function initGUI(startOpen) {
     "contoursFolder"
   );
 
-  const effectsButtons2 = document.createElement("li");
-  effectsButtons2.id = "effects_buttons";
-  effectsButtons2.classList.add("button_list");
-  root.domElement.children[0].appendChild(effectsButtons2);
-
   addToggle(
-    effectsButtons2,
+    effectsButtons,
     "emboss",
     '<i class="fa-solid fa-lightbulb"></i> Lighting',
     function () {
@@ -2001,7 +1974,7 @@ function initGUI(startOpen) {
   );
 
   addToggle(
-    effectsButtons2,
+    effectsButtons,
     "overlay",
     '<i class="fa-solid fa-chart-line"></i> Overlay',
     function () {
@@ -2133,6 +2106,36 @@ function initGUI(startOpen) {
     .onChange(function () {
       setOverlayUniforms();
       renderIfNotRunning();
+    });
+
+  linesAnd3DFolder = editViewFolder.addFolder("3D");
+  root = linesAnd3DFolder;
+  threeDHeightScaleController = root
+    .add(options, "threeDHeightScale")
+    .name("Max height")
+    .onChange(updateUniforms);
+
+  cameraThetaController = root
+    .add(options, "cameraTheta")
+    .name("View $\\theta$")
+    .onChange(configureCameraAndClicks);
+
+  cameraPhiController = root
+    .add(options, "cameraPhi")
+    .name("View $\\phi$")
+    .onChange(configureCameraAndClicks);
+
+  cameraZoomController = root
+    .add(options, "cameraZoom")
+    .name("Zoom")
+    .onChange(configureCameraAndClicks);
+
+  lineWidthMulController = root
+    .add(options, "lineWidthMul", 0.1, 2)
+    .name("Thickness")
+    .onChange(function () {
+      setLineWidth();
+      render();
     });
 }
 
@@ -4055,6 +4058,8 @@ function configureGUI() {
   if (options.plotType == "surface") {
     $("#contourButton").hide();
     $("#embossButton").show();
+    linesAnd3DFolder.name = "3D options";
+    linesAnd3DFolder.domElement.classList.remove("hidden");
     hideGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
@@ -4063,6 +4068,8 @@ function configureGUI() {
   } else if (options.plotType == "line") {
     $("#contourButton").hide();
     $("#embossButton").hide();
+    linesAnd3DFolder.name = "Line options";
+    linesAnd3DFolder.domElement.classList.remove("hidden");
     showGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
@@ -4071,6 +4078,7 @@ function configureGUI() {
   } else {
     $("#contourButton").show();
     $("#embossButton").show();
+    linesAnd3DFolder.domElement.classList.add("hidden");
     hideGUIController(lineWidthMulController);
     hideGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
@@ -4089,9 +4097,11 @@ function configureGUI() {
     showGUIController(typeOfBrushController);
     $(":root").css("--ui-button-outline", "white");
   }
-  manualInterpolationNeeded
-    ? hideGUIController(forceManualInterpolationController)
-    : showGUIController(forceManualInterpolationController);
+  if (manualInterpolationNeeded) {
+    $("#interpController").hide();
+  } else {
+    $("#interpController").show();
+  }
   // Update the options available in whatToDraw based on the number of species.
   updateGUIDropdown(
     whatToDrawController,
@@ -6223,14 +6233,13 @@ function addToggle(parent, property, inner, onclick, id, title, folderID) {
   const toggle = document.createElement("a");
   toggle.classList.add("toggle_button");
   toggle.setAttribute("property", property);
-  if (onclick != undefined) {
-    toggle.onclick = function () {
-      options[toggle.getAttribute("property")] =
-        !options[toggle.getAttribute("property")];
-      updateToggle(toggle);
-      onclick();
-    };
-  }
+  if (onclick == undefined) onclick = () => {};
+  toggle.onclick = function () {
+    options[toggle.getAttribute("property")] =
+      !options[toggle.getAttribute("property")];
+    updateToggle(toggle);
+    onclick();
+  };
   if (id != undefined) toggle.id = id;
   if (title != undefined) toggle.title = title;
   if (inner != undefined) toggle.innerHTML = inner;
@@ -6238,6 +6247,12 @@ function addToggle(parent, property, inner, onclick, id, title, folderID) {
   parent.appendChild(toggle);
   updateToggle(toggle);
   return toggle;
+}
+
+function addNewline(parent) {
+  const breaker = document.createElement("div");
+  breaker.classList.add("break");
+  parent.appendChild(breaker);
 }
 
 function copyConfigAsJSON() {
@@ -6490,7 +6505,6 @@ function renderIfNotRunning() {
 function updateToggle(toggle) {
   if (options[toggle.getAttribute("property")]) {
     toggle.classList.add("toggled_on");
-    console.log($("#" + toggle.getAttribute("folderID")));
     if (toggle.getAttribute("folderID")) {
       $("#" + toggle.getAttribute("folderID")).removeClass("hidden");
     }
