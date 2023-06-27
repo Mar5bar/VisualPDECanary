@@ -2164,6 +2164,9 @@ function initGUI(startOpen) {
       setLineWidth();
       render();
     });
+
+  const inputs = document.querySelectorAll("input");
+  inputs.forEach((input) => disableAutocorrect(input));
 }
 
 function animate() {
@@ -4832,6 +4835,7 @@ function createParameterController(label, isNextParam) {
     kineticParamsLabels.push(label);
     kineticParamsStrs[label] = "";
     controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    disableAutocorrect(controller.domElement);
     controller.domElement.classList.add("params");
     controller.onFinishChange(function () {
       const index = kineticParamsLabels.indexOf(label);
@@ -4869,6 +4873,7 @@ function createParameterController(label, isNextParam) {
     });
   } else {
     controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    disableAutocorrect(controller.domElement);
     controller.domElement.classList.add("params");
     const match = kineticParamsStrs[label].match(/\s*(\w+)\s*=/);
     if (match) {
@@ -6549,4 +6554,11 @@ function updateToggle(toggle) {
       $("#" + toggle.getAttribute("folderID")).addClass("hidden");
     }
   }
+}
+
+function disableAutocorrect(input) {
+  input.setAttribute("autocomplete", "off");
+  input.setAttribute("autocorrect", "off");
+  input.setAttribute("autocapitalize", "off");
+  input.setAttribute("spellcheck", false);
 }
