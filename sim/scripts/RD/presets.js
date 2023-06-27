@@ -2388,7 +2388,7 @@ export function getPreset(id) {
         comboStrV: "",
         comboStrW: "",
         comboStrQ: "",
-        contours: true,
+        contours: false,
         contourColour: 0x000000,
         contourEpsilon: 0.01,
         contourNum: 5,
