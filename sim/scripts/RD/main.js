@@ -626,10 +626,13 @@ function init() {
       options.cameraTheta =
         90 - (180 * Math.atan2(camera.position.z, camera.position.y)) / Math.PI;
       options.cameraPhi =
-        (180 * Math.atan2(camera.position.x, camera.position.z)) / Math.PI;
+        -(180 * Math.atan2(camera.position.x, camera.position.z)) / Math.PI;
       options.cameraZoom = camera.zoom;
-      refreshGUI(rightGUI);
-      render();
+      updateView("cameraTheta");
+      updateView("cameraPhi");
+      updateView("cameraZoom");
+      refreshGUI(viewsGUI);
+      renderIfNotRunning();
     }
   });
   simCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
@@ -2167,6 +2170,7 @@ function initGUI(startOpen) {
       setSurfaceShader();
       configureCustomSurfaceControllers();
       updateView("customSurface");
+      renderIfNotRunning();
     },
     "customSurfaceToggle",
     "Plot the solution on a custom surface"
@@ -5448,7 +5452,7 @@ function setCameraPos() {
   const pos = new THREE.Vector3().setFromSphericalCoords(
     1,
     Math.PI / 2 - (options.cameraTheta * Math.PI) / 180,
-    (options.cameraPhi * Math.PI) / 180
+    -(options.cameraPhi * Math.PI) / 180
   );
   camera.position.set(pos.x, pos.y, pos.z);
   camera.lookAt(0, 0, 0);
