@@ -6638,13 +6638,17 @@ function setSurfaceShader() {
 }
 
 function configureCustomSurfaceControllers() {
-  if (options.customSurface) {
-    showGUIController(surfaceFunController);
-    showGUIController(surfaceMinController);
-    showGUIController(surfaceMaxController);
-  } else {
-    hideGUIController(surfaceFunController);
-    hideGUIController(surfaceMinController);
-    hideGUIController(surfaceMaxController);
+  if (options.plotType == "surface") {
+    if (options.customSurface) {
+      showGUIController(surfaceFunController);
+      showGUIController(surfaceMinController);
+      showGUIController(surfaceMaxController);
+      hideGUIController(threeDHeightScaleController);
+    } else {
+      hideGUIController(surfaceFunController);
+      hideGUIController(surfaceMinController);
+      hideGUIController(surfaceMaxController);
+      showGUIController(threeDHeightScaleController);
+    }
   }
 }

@@ -94,7 +94,7 @@ export function computeDisplayFunShaderMid() {
         float value = FUN;
 				float height = value;
 				if (customSurface) {
-					height = HEIGHT;
+					height = HEIGHT / L;
 				}
         gl_FragColor = vec4(value, 0.0, height, 1.0);`;
 }

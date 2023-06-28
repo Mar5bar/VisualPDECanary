@@ -206,7 +206,7 @@ export function surfaceVertexShaderCustom() {
         vec3 newPosition = position;
         float value = texture2D(textureSource, textureCoords).b;
         float scaledValue = clamp((value - minSurfaceValue) / (maxSurfaceValue - minSurfaceValue) - 0.5, -0.5, 0.5);
-        newPosition.z += heightScale * scaledValue;
+        newPosition.z += scaledValue;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
     }`;
 }
