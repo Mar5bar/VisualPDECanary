@@ -60,8 +60,6 @@ let leftGUI,
   lineWidthMulController,
   threeDHeightScaleController,
   surfaceFunController,
-  surfaceMinController,
-  surfaceMaxController,
   cameraThetaController,
   cameraPhiController,
   cameraZoomController,
@@ -885,8 +883,6 @@ function updateUniforms() {
   uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
-  uniforms.maxSurfaceValue.value = options.maxSurfaceValue;
-  uniforms.minSurfaceValue.value = options.minSurfaceValue;
   uniforms.customSurface.value = options.customSurface;
   setEmbossUniforms();
   if (!options.fixRandSeed) {
@@ -1148,14 +1144,6 @@ function initUniforms() {
       value: 1.0,
     },
     minColourValue: {
-      type: "f",
-      value: 0.0,
-    },
-    maxSurfaceValue: {
-      type: "f",
-      value: 1.0,
-    },
-    minSurfaceValue: {
       type: "f",
       value: 0.0,
     },
@@ -2181,24 +2169,6 @@ function initGUI(startOpen) {
     .name("Surface $z=$ ")
     .onFinishChange(function () {
       updateWhatToPlot();
-      renderIfNotRunning();
-      updateView(this.property);
-    });
-
-  surfaceMinController = root
-    .add(options, "minSurfaceValue")
-    .name("Min value")
-    .onChange(function () {
-      updateUniforms();
-      renderIfNotRunning();
-      updateView(this.property);
-    });
-
-  surfaceMaxController = root
-    .add(options, "maxSurfaceValue")
-    .name("Max value")
-    .onChange(function () {
-      updateUniforms();
       renderIfNotRunning();
       updateView(this.property);
     });
@@ -6644,13 +6614,9 @@ function configureCustomSurfaceControllers() {
   if (options.plotType == "surface") {
     if (options.customSurface) {
       showGUIController(surfaceFunController);
-      showGUIController(surfaceMinController);
-      showGUIController(surfaceMaxController);
       hideGUIController(threeDHeightScaleController);
     } else {
       hideGUIController(surfaceFunController);
-      hideGUIController(surfaceMinController);
-      hideGUIController(surfaceMaxController);
       showGUIController(threeDHeightScaleController);
     }
   }
