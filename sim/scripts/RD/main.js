@@ -2882,8 +2882,11 @@ function parseShaderString(str) {
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
   str = replaceDigitsWithWords(str);
 
+  // Replace images evaluated at coordinates with appropriate shader expressions.
+  str = enableImageLookupInShader(str, "I_TR");
+
   // Replace integers with floats.
-  while (str != (str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3")));
+  while (str != (str = str.replace(/([^.0-9a-z])(\d+)([^.0-9])/g, "$1$2.$3")));
 
   return str;
 }
@@ -4689,6 +4692,73 @@ function replaceFunctionInTeX(str, func, withBrackets) {
   return newStr;
 }
 
+function enableImageLookupInShader(str, func) {
+  // Enable function evaluation in shaders.
+  var newStr = str;
+  const matches = str.matchAll(new RegExp("\\b" + func + "\\b", "g"));
+  let funcInd,
+    startInd,
+    endInd,
+    subStr,
+    argStr,
+    args,
+    depth,
+    foundBracket,
+    ind,
+    toAdd,
+    offset = 0;
+  const imNum = func.includes("I_T") ? "Two" : "One";
+  const component = func[func.length - 1];
+  const componentLookup = { R: "x", G: "y", B: "z", A: "w" };
+  for (const match of matches) {
+    funcInd = match.index;
+    startInd = funcInd + func.length;
+    subStr = str.slice(startInd);
+    ind = 0;
+    depth = 0;
+    foundBracket = false;
+    // Try to find paired brackets.
+    while (
+      (ind <= subStr.length) &
+      (!foundBracket | !(foundBracket && depth == 0))
+    ) {
+      depth += ["("].includes(subStr[ind]);
+      depth -= [")"].includes(subStr[ind]);
+      foundBracket |= depth;
+      ind += 1;
+    }
+    // If we found correctly paired brackets, replace with the function. Otherwise, do nothing.
+    if (foundBracket && depth == 0) {
+      endInd = ind - 1 + startInd;
+      argStr = newStr.slice(startInd + offset + 1, endInd + offset);
+      // Replace x and y with x / L_x and y / L_y.
+      argStr = argStr.replaceAll(/\b([xy])\b/g, "($1/L_$1)");
+      // Replace digits with words in the arguments.
+      // argStr = replaceDigitsWithWords(argStr);
+      // Detect at most two arguments separated by a comma.
+      args = argStr.split(",");
+      // If the second argument is empty, put a zero in its place.
+      if (args.length == 1 || args[1].trim().length == 0) args[1] = "0";
+      toAdd =
+        "texture(imageSource" +
+        imNum +
+        ",vec2(" +
+        args.join(",") +
+        "))." +
+        componentLookup[component];
+
+      newStr = replaceStrAtIndex(
+        newStr,
+        toAdd,
+        funcInd + offset,
+        endInd + 1 + offset
+      );
+      offset += toAdd.length - endInd + funcInd - 1;
+    }
+  }
+  return newStr;
+}
+
 function alternateBrackets(str) {
   // Given a string with balanced bracketing, loop nested brackets through (, [.
   const openBrackets = ["(", "["];
@@ -4742,8 +4812,9 @@ function modulo(num, quot) {
   return ((num % quot) + quot) % quot;
 }
 
-function replaceStrAtIndex(str, toSub, ind) {
-  return str.slice(0, ind) + toSub + str.slice(ind + 1, str.length);
+function replaceStrAtIndex(str, toSub, ind, resumeInd) {
+  if (resumeInd == undefined) resumeInd = ind + 1;
+  return str.slice(0, ind) + toSub + str.slice(resumeInd, str.length);
 }
 
 function insertStrAtIndex(str, toAdd, ind) {
