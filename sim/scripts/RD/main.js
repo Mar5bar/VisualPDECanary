@@ -59,6 +59,9 @@ let leftGUI,
   whatToDrawController,
   lineWidthMulController,
   threeDHeightScaleController,
+  surfaceFunController,
+  surfaceMinController,
+  surfaceMaxController,
   cameraThetaController,
   cameraPhiController,
   cameraZoomController,
@@ -221,7 +224,8 @@ import {
   fiveColourDisplayBot,
   embossShader,
   contourShader,
-  surfaceVertexShader,
+  surfaceVertexShaderColour,
+  surfaceVertexShaderCustom,
   overlayShader,
 } from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
@@ -844,7 +848,7 @@ function configureCameraAndClicks() {
       controls.enabled = false;
       camera.zoom = 1;
       setCameraPos();
-      displayMaterial.vertexShader = surfaceVertexShader();
+      displayMaterial.vertexShader = surfaceVertexShaderColour();
       break;
     case "plane":
       controls.enabled = false;
@@ -855,7 +859,7 @@ function configureCameraAndClicks() {
       controls.enabled = true;
       camera.zoom = options.cameraZoom;
       setCameraPos();
-      displayMaterial.vertexShader = surfaceVertexShader();
+      setSurfaceShader();
       break;
   }
   displayMaterial.needsUpdate = true;
@@ -878,6 +882,9 @@ function updateUniforms() {
   uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
+  uniforms.maxSurfaceValue.value = options.maxSurfaceValue;
+  uniforms.minSurfaceValue.value = options.minSurfaceValue;
+  uniforms.customSurface.value = options.customSurface;
   setEmbossUniforms();
   if (!options.fixRandSeed) {
     updateRandomSeed();
@@ -1071,6 +1078,9 @@ function initUniforms() {
     contourStep: {
       type: "f",
     },
+    customSurface: {
+      type: "bool",
+    },
     embossAmbient: {
       type: "f",
     },
@@ -1135,6 +1145,14 @@ function initUniforms() {
       value: 1.0,
     },
     minColourValue: {
+      type: "f",
+      value: 0.0,
+    },
+    maxSurfaceValue: {
+      type: "f",
+      value: 1.0,
+    },
+    minSurfaceValue: {
       type: "f",
       value: 0.0,
     },
@@ -1247,7 +1265,7 @@ function initGUI(startOpen) {
     .name("Dimension")
     .onChange(function () {
       configureDimension();
-      render();
+      renderIfNotRunning();
     });
 
   root.add(options, "domainScale").name("Largest side").onChange(resize);
@@ -1764,7 +1782,7 @@ function initGUI(startOpen) {
     .name("Background")
     .onChange(function () {
       scene.background = new THREE.Color(options.backgroundColour);
-      render();
+      renderIfNotRunning();
     });
 
   const miscButtons = addButtonList(root);
@@ -1775,7 +1793,7 @@ function initGUI(startOpen) {
     '<i class="fa-regular fa-chart-area"></i> Integrate',
     function () {
       configureIntegralDisplay();
-      render();
+      renderIfNotRunning();
     }
   );
 
@@ -1855,7 +1873,7 @@ function initGUI(startOpen) {
     .name("Expression: ")
     .onFinishChange(function () {
       updateWhatToPlot();
-      render();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -1869,7 +1887,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       configurePlotType();
       document.activeElement.blur();
-      render();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -1904,7 +1922,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       updateUniforms();
       updateColourbarLims();
-      render();
+      renderIfNotRunning();
       updateView(this.property);
     });
   minColourValueController.__precision = 2;
@@ -1915,7 +1933,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       updateUniforms();
       updateColourbarLims();
-      render();
+      renderIfNotRunning();
       updateView(this.property);
     });
   maxColourValueController.__precision = 2;
@@ -2137,6 +2155,50 @@ function initGUI(startOpen) {
 
   linesAnd3DFolder = editViewFolder.addFolder("3D");
   root = linesAnd3DFolder;
+
+  const surfaceButtons = addButtonList(root);
+
+  addToggle(
+    surfaceButtons,
+    "customSurface",
+    '<i class="fa-regular fa-wave-square"></i> Custom surface',
+    function () {
+      uniforms.customSurface.value = options.customSurface;
+      setSurfaceShader();
+      configureCustomSurfaceControllers();
+      updateView("customSurface");
+    },
+    "customSurfaceToggle",
+    "Plot the solution on a custom surface"
+  );
+
+  surfaceFunController = root
+    .add(options, "surfaceFun")
+    .name("Surface $z=$ ")
+    .onFinishChange(function () {
+      updateWhatToPlot();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+
+  surfaceMinController = root
+    .add(options, "minSurfaceValue")
+    .name("Min value")
+    .onChange(function () {
+      updateUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+
+  surfaceMaxController = root
+    .add(options, "maxSurfaceValue")
+    .name("Max value")
+    .onChange(function () {
+      updateUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+
   threeDHeightScaleController = root
     .add(options, "threeDHeightScale")
     .name("Max height")
@@ -2321,8 +2383,10 @@ function selectColourspecInShaderStr(shaderStr) {
 }
 
 function setDisplayFunInShader(shaderStr) {
-  let regex = /FUN/g;
+  let regex = /\bFUN\b/g;
   shaderStr = shaderStr.replace(regex, parseShaderString(options.whatToPlot));
+  regex = /\bHEIGHT\b/g;
+  shaderStr = shaderStr.replace(regex, parseShaderString(options.surfaceFun));
   return shaderStr;
 }
 
@@ -4119,6 +4183,7 @@ function configureGUI() {
   configureTimeDisplay();
   configureIntegralDisplay();
   configureDataContainer();
+  configureCustomSurfaceControllers();
   // Show/hide/modify GUI elements that depend on dimension.
   if (options.plotType == "line") {
     hideGUIController(typeOfBrushController);
@@ -6561,4 +6626,25 @@ function disableAutocorrect(input) {
   input.setAttribute("autocorrect", "off");
   input.setAttribute("autocapitalize", "off");
   input.setAttribute("spellcheck", false);
+}
+
+function setSurfaceShader() {
+  if (options.customSurface) {
+    displayMaterial.vertexShader = surfaceVertexShaderCustom();
+  } else {
+    displayMaterial.vertexShader = surfaceVertexShaderColour();
+  }
+  displayMaterial.needsUpdate = true;
+}
+
+function configureCustomSurfaceControllers() {
+  if (options.customSurface) {
+    showGUIController(surfaceFunController);
+    showGUIController(surfaceMinController);
+    showGUIController(surfaceMaxController);
+  } else {
+    hideGUIController(surfaceFunController);
+    hideGUIController(surfaceMinController);
+    hideGUIController(surfaceMaxController);
+  }
 }

@@ -177,7 +177,7 @@ export function largestSpeciesShader() {
       }`;
 }
 
-export function surfaceVertexShader() {
+export function surfaceVertexShaderColour() {
   return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
     uniform float minColourValue;
@@ -189,6 +189,23 @@ export function surfaceVertexShader() {
         vec3 newPosition = position;
         float value = texture2D(textureSource, textureCoords).r;
         float scaledValue = clamp((value - minColourValue) / (maxColourValue - minColourValue) - 0.5, -0.5, 0.5);
+        newPosition.z += heightScale * scaledValue;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+    }`;
+}
+
+export function surfaceVertexShaderCustom() {
+  return `varying vec2 textureCoords;
+    uniform sampler2D textureSource;
+    uniform float minSurfaceValue;
+    uniform float maxSurfaceValue;
+    uniform float heightScale;
+    void main()
+    {      
+        textureCoords = uv;
+        vec3 newPosition = position;
+        float value = texture2D(textureSource, textureCoords).b;
+        float scaledValue = clamp((value - minSurfaceValue) / (maxSurfaceValue - minSurfaceValue) - 0.5, -0.5, 0.5);
         newPosition.z += heightScale * scaledValue;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
     }`;
