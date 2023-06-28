@@ -2886,7 +2886,9 @@ function parseShaderString(str) {
   str = enableImageLookupInShader(str, "I_TR");
 
   // Replace integers with floats.
-  while (str != (str = str.replace(/([^.0-9a-z])(\d+)([^.0-9])/g, "$1$2.$3")));
+  while (
+    str != (str = str.replace(/([^.0-9a-zA-Z])(\d+)([^.0-9])/g, "$1$2.$3"))
+  );
 
   return str;
 }
@@ -4692,10 +4694,10 @@ function replaceFunctionInTeX(str, func, withBrackets) {
   return newStr;
 }
 
-function enableImageLookupInShader(str, func) {
+function enableImageLookupInShader(str) {
   // Enable function evaluation in shaders.
   var newStr = str;
-  const matches = str.matchAll(new RegExp("\\b" + func + "\\b", "g"));
+  const matches = str.matchAll(/\bI_([TS])([RGBA])\b/g);
   let funcInd,
     startInd,
     endInd,
@@ -4706,13 +4708,16 @@ function enableImageLookupInShader(str, func) {
     foundBracket,
     ind,
     toAdd,
+    imNum,
+    component,
     offset = 0;
-  const imNum = func.includes("I_T") ? "Two" : "One";
-  const component = func[func.length - 1];
+  const imageLookup = { S: "One", T: "Two" };
   const componentLookup = { R: "x", G: "y", B: "z", A: "w" };
   for (const match of matches) {
     funcInd = match.index;
-    startInd = funcInd + func.length;
+    imNum = imageLookup[match[1]];
+    component = componentLookup[match[2]];
+    startInd = funcInd + match[0].length;
     subStr = str.slice(startInd);
     ind = 0;
     depth = 0;
@@ -4731,21 +4736,21 @@ function enableImageLookupInShader(str, func) {
     if (foundBracket && depth == 0) {
       endInd = ind - 1 + startInd;
       argStr = newStr.slice(startInd + offset + 1, endInd + offset);
-      // Replace x and y with x / L_x and y / L_y.
-      argStr = argStr.replaceAll(/\b([xy])\b/g, "($1/L_$1)");
       // Replace digits with words in the arguments.
-      // argStr = replaceDigitsWithWords(argStr);
+      argStr = replaceDigitsWithWords(argStr);
       // Detect at most two arguments separated by a comma.
       args = argStr.split(",");
       // If the second argument is empty, put a zero in its place.
       if (args.length == 1 || args[1].trim().length == 0) args[1] = "0";
+      args[0] = "(" + args[0] + ")/L_x";
+      args[1] = "(" + args[1] + ")/L_y";
       toAdd =
         "texture(imageSource" +
         imNum +
         ",vec2(" +
         args.join(",") +
         "))." +
-        componentLookup[component];
+        component;
 
       newStr = replaceStrAtIndex(
         newStr,
