@@ -4154,7 +4154,7 @@ function configureGUI() {
   setBCsGUI();
   // Hide or show GUI elements to do with surface plotting.
   if (options.plotType == "surface") {
-    $("#contourButton").hide();
+    $("#contourButton").show();
     $("#embossButton").show();
     linesAnd3DFolder.name = "3D options";
     linesAnd3DFolder.domElement.classList.remove("hidden");
@@ -5416,7 +5416,6 @@ function configurePlotType() {
     domain.visible = true;
     line.visible = false;
     if (options.plotType == "surface") {
-      options.contours = false;
       $("#simCanvas").css("outline", "2px #000 solid");
       if (usingLowResDomain) {
         usingLowResDomain = false;
