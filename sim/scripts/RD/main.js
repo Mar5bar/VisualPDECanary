@@ -4890,7 +4890,7 @@ function createParameterController(label, isNextParam) {
       }
       controller.slider.precision = Math.max(
         controller.slider.precision,
-        step.countDecimals()
+        parseFloat(step).countDecimals()
       );
       controller.slider.step = step.toString();
 
