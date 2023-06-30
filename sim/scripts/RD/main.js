@@ -4866,26 +4866,18 @@ function createParameterController(label, isNextParam) {
       // Define the step of the slider, which may or may not have been given.
       if (match[4] == undefined) {
         match[4] = "";
-        // If all the quantities are integers, set the default step to be integers.
-        if (
-          !kineticParamsStrs[label].includes(".") &
-          (parseFloat(match[5]) - parseFloat(match[3]) > 1)
-        ) {
-          step = 1;
-        } else {
-          // Otherwise, choose a step that either matches the max precision of the inputs, or
-          // splits the interval into 20, whichever is more precise.
-          controller.slider.precision =
-            Math.max(
-              parseFloat(match[2]).countDecimals(),
-              parseFloat(match[3]).countDecimals(),
-              parseFloat(match[5]).countDecimals()
-            ) + 1;
-          step = Math.min(
-            (parseFloat(match[5]) - parseFloat(match[3])) / 20,
-            10 ** -controller.slider.precision
-          );
-        }
+        // Choose a step that either matches the max precision of the inputs, or
+        // splits the interval into 20, whichever is more precise.
+        controller.slider.precision =
+          Math.max(
+            parseFloat(match[2]).countDecimals(),
+            parseFloat(match[3]).countDecimals(),
+            parseFloat(match[5]).countDecimals()
+          ) + 1;
+        step = Math.min(
+          (parseFloat(match[5]) - parseFloat(match[3])) / 20,
+          10 ** -controller.slider.precision
+        );
       } else {
         controller.slider.precision =
           Math.max(
@@ -4897,6 +4889,10 @@ function createParameterController(label, isNextParam) {
         step = match[4];
         match[4] += ", ";
       }
+      controller.slider.precision = Math.max(
+        controller.slider.precision,
+        step.countDecimals()
+      );
       controller.slider.step = step.toString();
 
       // Assign the initial value, which should happen after step has been defined.
