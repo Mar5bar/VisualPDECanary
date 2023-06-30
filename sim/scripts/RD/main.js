@@ -6478,7 +6478,7 @@ function copyIframe() {
       url += "&story";
       break;
     case "none":
-      url += "&no_ui";
+      url += "&logo_only";
       break;
   }
   // Put the url in an iframe and copy to clipboard.
