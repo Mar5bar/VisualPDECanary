@@ -2495,11 +2495,10 @@ function render() {
     fillBuffer();
     let scaledValue,
       ind = 0;
+    var range = options.maxColourValue - options.minColourValue;
+    range = range == 0 ? 0.5 : range;
     for (let i = 0; i < buffer.length; i += 4) {
-      scaledValue =
-        (buffer[i] - options.minColourValue) /
-          (options.maxColourValue - options.minColourValue) -
-        0.5;
+      scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
       // Set the height.
       yDisplayDomainCoords[ind++] = scaledValue.clamp(-0.5, 0.5);
     }
@@ -4133,6 +4132,7 @@ function configureGUI() {
     $("#embossButton").show();
     linesAnd3DFolder.name = "3D options";
     linesAnd3DFolder.domElement.classList.remove("hidden");
+    if (options.customSurface) showGUIController(surfaceFunController);
     hideGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
@@ -6678,6 +6678,7 @@ function setSurfaceShader() {
 
 function configureCustomSurfaceControllers() {
   if (options.plotType == "surface") {
+    $("#customSurfaceToggle").show();
     if (options.customSurface) {
       showGUIController(surfaceFunController);
       hideGUIController(threeDHeightScaleController);
@@ -6685,5 +6686,8 @@ function configureCustomSurfaceControllers() {
       hideGUIController(surfaceFunController);
       showGUIController(threeDHeightScaleController);
     }
+  } else {
+    $("#customSurfaceToggle").hide();
+    hideGUIController(surfaceFunController);
   }
 }
