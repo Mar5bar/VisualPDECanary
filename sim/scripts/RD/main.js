@@ -621,8 +621,7 @@ function init() {
   controls.listenToKeyEvents(document);
   controls.addEventListener("change", function () {
     if (options.plotType == "surface") {
-      options.cameraTheta =
-        90 - (180 * Math.atan2(camera.position.z, camera.position.y)) / Math.PI;
+      options.cameraTheta = 90 - (180 * Math.acos(camera.position.y)) / Math.PI;
       options.cameraPhi =
         -(180 * Math.atan2(camera.position.x, camera.position.z)) / Math.PI;
       options.cameraZoom = camera.zoom;
