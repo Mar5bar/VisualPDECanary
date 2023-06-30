@@ -377,6 +377,7 @@ export function getPreset(id) {
         numTimestepsPerFrame: 10,
         preset: "Banner",
         runningOnLoad: false,
+        spatialStep: 0.25,
       };
       break;
     case "KdV":
