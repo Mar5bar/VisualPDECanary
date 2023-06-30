@@ -372,7 +372,6 @@ export function getPreset(id) {
     case "Banner":
       options = {
         brushRadius: "1",
-        colourmap: "water",
         resizeCheckpoints: "crop",
         initialState: "./images/BannerInitState",
         numTimestepsPerFrame: 10,
