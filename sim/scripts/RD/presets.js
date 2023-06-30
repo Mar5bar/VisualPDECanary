@@ -703,7 +703,7 @@ export function getPreset(id) {
         preset: "CovidInARoom",
         reactionStrU:
           "R*exp(-0.01*((x-X*L_x)^2+(y-Y*L_y)^2))-(lambda+beta+sigma)*C_low-V*C_low_x",
-        reactionStrV: "-(lambda+beta+sigma)*C_up-V*C_up_x",
+        reactionStrV: "-(lambda+beta+sigma)*C_up+V*C_up_x",
         reactionStrW: "(1-eta_sus)*rho_sus*(C_low + C_up)/2",
         reactionStrQ: "1 - exp(-I*d)",
         spatialStep: 1,
