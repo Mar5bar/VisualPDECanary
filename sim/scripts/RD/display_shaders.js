@@ -114,7 +114,12 @@ export function fiveColourDisplayTop() {
             return;
         }
         float value = values.r;
-        float scaledValue = (value - minColourValue) / (maxColourValue - minColourValue);
+        float scaledValue = 0.0;
+        if (minColourValue == maxColourValue) {
+          scaledValue = 0.5;
+        } else {
+          scaledValue = (value - minColourValue) / (maxColourValue - minColourValue);
+        }
         vec3 col = colFromValue(scaledValue);
 				`;
 }

@@ -5648,12 +5648,6 @@ function computeColourBrightness(col) {
 function setColourRange() {
   // Set the range of the colour axis based on the extremes of the computed values.
   let valRange = getMinMaxVal();
-  if (Math.abs(valRange[0] - valRange[1]) < 0.005) {
-    // If the range is just one value, make the range width equal to 0.005 centered on the given value.
-    const meanVal = (valRange[0] + valRange[1]) / 2;
-    valRange[0] = meanVal - 0.0025;
-    valRange[1] = meanVal + 0.0025;
-  }
   options.minColourValue = valRange[0];
   options.maxColourValue = valRange[1];
   uniforms.maxColourValue.value = options.maxColourValue;
