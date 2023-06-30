@@ -86,7 +86,7 @@ Initial conditions can be specified for any species in the simulation. They can 
 ---
 
 ## Views <a id='views'> {{ layout.views }}
-There are often multiple ways to visualise a solution to a PDE. In the Views pane, you can select from and customise a range of example-specific display options. More advanced settings can be found under [**Settings**](#settings).
+There are often multiple ways to visualise a solution to a PDE. In the Views pane, you can select from and customise a range of example-specific display options, or create your own. Everything you customise will be saved in the current View. If you share your simulation via a link, your Views will be sent along too.
 
 **New (+)**\
 Create a new view with a placeholder name from the current view configuration.
