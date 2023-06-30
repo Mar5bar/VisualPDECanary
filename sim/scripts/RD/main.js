@@ -356,6 +356,13 @@ if (params.has("no_ui")) {
   $(".ui").removeClass("hidden");
 }
 
+if (params.has("logo_only")) {
+  // Hide all ui except the logo.
+  $(".ui").addClass("hidden");
+  $("#logo").removeClass("hidden");
+  uiHidden = true;
+}
+
 if (params.has("sf")) {
   // Set the domain scale factor from the search string.
   domainScaleFactor = parseFloat(params.get("sf"));
