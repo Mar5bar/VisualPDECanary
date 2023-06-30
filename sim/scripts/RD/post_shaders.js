@@ -11,6 +11,7 @@ export function computeDisplayFunShaderTop() {
     uniform float L_y;
     uniform float L_min;
     uniform float t;
+		uniform bool customSurface;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
 
@@ -65,8 +66,8 @@ export function computeDisplayFunShaderMid() {
         ivec2 texSize = textureSize(textureSource,0);
         float step_x = 1.0 / float(texSize.x);
         float step_y = 1.0 / float(texSize.y);
-        float x = textureCoords.x * float(texSize.x) * dx;
-        float y = textureCoords.y * float(texSize.y) * dy;
+        float x = textureCoords.x * L_x;
+        float y = textureCoords.y * L_y;
 
         vec4 uvwq = texture2D(textureSource, textureCoords);
         vec4 uvwqL = texture2D(textureSource, textureCoords + vec2(-step_x, 0.0));
@@ -91,7 +92,11 @@ export function computeDisplayFunShaderMid() {
         vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
 
         float value = FUN;
-        gl_FragColor = vec4(value, 0.0, 0.0, 1.0);`;
+				float height = value;
+				if (customSurface) {
+					height = (HEIGHT) / L;
+				}
+        gl_FragColor = vec4(value, 0.0, height, 1.0);`;
 }
 
 export function computeMaxSpeciesShaderMid() {

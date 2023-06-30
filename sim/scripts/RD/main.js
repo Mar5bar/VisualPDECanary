@@ -38,7 +38,6 @@ let leftGUI,
   hController,
   jController,
   algebraicSpeciesController,
-  crossDiffusionController,
   domainIndicatorFunController,
   DuuController,
   DuvController,
@@ -60,12 +59,10 @@ let leftGUI,
   whatToDrawController,
   lineWidthMulController,
   threeDHeightScaleController,
+  surfaceFunController,
   cameraThetaController,
   cameraPhiController,
   cameraZoomController,
-  forceManualInterpolationController,
-  embossController,
-  contourController,
   contourEpsilonController,
   contourNumController,
   minColourValueController,
@@ -108,6 +105,7 @@ let leftGUI,
   imControllerOne,
   imControllerTwo,
   editViewFolder,
+  linesAnd3DFolder,
   whatToPlotController,
   deleteViewController,
   selectedEntries = new Set();
@@ -224,7 +222,9 @@ import {
   fiveColourDisplayBot,
   embossShader,
   contourShader,
-  surfaceVertexShader,
+  surfaceVertexShaderColour,
+  surfaceVertexShaderCustom,
+  overlayShader,
 } from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
@@ -621,13 +621,15 @@ function init() {
   controls.listenToKeyEvents(document);
   controls.addEventListener("change", function () {
     if (options.plotType == "surface") {
-      options.cameraTheta =
-        90 - (180 * Math.atan2(camera.position.z, camera.position.y)) / Math.PI;
+      options.cameraTheta = 90 - (180 * Math.acos(camera.position.y)) / Math.PI;
       options.cameraPhi =
-        (180 * Math.atan2(camera.position.x, camera.position.z)) / Math.PI;
+        -(180 * Math.atan2(camera.position.x, camera.position.z)) / Math.PI;
       options.cameraZoom = camera.zoom;
-      refreshGUI(rightGUI);
-      render();
+      updateView("cameraTheta");
+      updateView("cameraPhi");
+      updateView("cameraZoom");
+      refreshGUI(viewsGUI);
+      renderIfNotRunning();
     }
   });
   simCamera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
@@ -763,6 +765,7 @@ function init() {
       }
       if (event.key === " ") {
         funsObj.toggleRunning();
+        event.preventDefault();
       }
       if (event.key === "h") {
         if (uiHidden) {
@@ -789,7 +792,7 @@ function init() {
       }
       if (event.key == "c") {
         options.resetFromCheckpoints = !options.resetFromCheckpoints;
-        refreshGUI(rightGUI);
+        updateToggle($("#checkpointButton")[0]);
       }
     }
   });
@@ -845,7 +848,7 @@ function configureCameraAndClicks() {
       controls.enabled = false;
       camera.zoom = 1;
       setCameraPos();
-      displayMaterial.vertexShader = surfaceVertexShader();
+      displayMaterial.vertexShader = surfaceVertexShaderColour();
       break;
     case "plane":
       controls.enabled = false;
@@ -856,7 +859,7 @@ function configureCameraAndClicks() {
       controls.enabled = true;
       camera.zoom = options.cameraZoom;
       setCameraPos();
-      displayMaterial.vertexShader = surfaceVertexShader();
+      setSurfaceShader();
       break;
   }
   displayMaterial.needsUpdate = true;
@@ -879,6 +882,7 @@ function updateUniforms() {
   uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
+  uniforms.customSurface.value = options.customSurface;
   setEmbossUniforms();
   if (!options.fixRandSeed) {
     updateRandomSeed();
@@ -1072,6 +1076,9 @@ function initUniforms() {
     contourStep: {
       type: "f",
     },
+    customSurface: {
+      type: "bool",
+    },
     embossAmbient: {
       type: "f",
     },
@@ -1145,6 +1152,12 @@ function initUniforms() {
     nYDisc: {
       type: "i",
     },
+    overlayColour: {
+      type: "v4",
+    },
+    overlayEpsilon: {
+      type: "f",
+    },
     seed: {
       type: "f",
       value: 0.0,
@@ -1198,7 +1211,13 @@ function initGUI(startOpen) {
   // Brush folder.
   root = rightGUI.addFolder("Brush");
 
-  root.add(options, "brushEnabled").name("Enabled");
+  const brushButtonList = addButtonList(root);
+
+  addToggle(
+    brushButtonList,
+    "brushEnabled",
+    '<i class="fa-regular fa-brush"></i> Enable brush'
+  );
 
   root
     .add(options, "brushAction", {
@@ -1236,7 +1255,7 @@ function initGUI(startOpen) {
     .name("Dimension")
     .onChange(function () {
       configureDimension();
-      render();
+      renderIfNotRunning();
     });
 
   root.add(options, "domainScale").name("Largest side").onChange(resize);
@@ -1251,24 +1270,34 @@ function initGUI(startOpen) {
   dxController.min(0);
   dxController.updateDisplay();
 
-  root
-    .add(options, "squareCanvas")
-    .name("Square")
-    .onFinishChange(function () {
+  const domainButtonList = addButtonList(root);
+
+  addToggle(
+    domainButtonList,
+    "squareCanvas",
+    '<i class="fa-regular fa-square"></i> Square',
+    function () {
       setCanvasShape();
       resize();
       configureCameraAndClicks();
-    });
+    },
+    null,
+    "Use a square domain"
+  );
 
-  root
-    .add(options, "domainViaIndicatorFun")
-    .name("Implicit")
-    .onFinishChange(function () {
+  addToggle(
+    domainButtonList,
+    "domainViaIndicatorFun",
+    '<i class="fa-regular fa-circle"></i> Implicit',
+    function () {
       configureOptions();
       configureGUI();
       setRDEquations();
       setPostFunFragShader();
-    });
+    },
+    null,
+    "Determine the domain implicitly"
+  );
 
   domainIndicatorFunController = root
     .add(options, "domainIndicatorFun")
@@ -1307,10 +1336,15 @@ function initGUI(startOpen) {
     })
     .name("Scheme");
 
-  root
-    .add(options, "timeDisplay")
-    .name("Show time")
-    .onChange(configureTimeDisplay);
+  const timeButtonList = addButtonList(root);
+  addToggle(
+    timeButtonList,
+    "timeDisplay",
+    '<i class="fa-regular fa-stopwatch"></i> Elapsed time',
+    configureTimeDisplay,
+    null,
+    "Show/hide time display"
+  );
 
   // Equations folder.
   root = rightGUI.addFolder("Equations");
@@ -1319,12 +1353,6 @@ function initGUI(startOpen) {
   root
     .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
     .name("No. species")
-    .onChange(updateProblem);
-
-  // Cross diffusion.
-  crossDiffusionController = root
-    .add(options, "crossDiffusion")
-    .name("Cross diffusion")
     .onChange(updateProblem);
 
   // Number of algebraic species.
@@ -1351,14 +1379,27 @@ function initGUI(startOpen) {
       setCustomNames();
     });
 
+  // Cross diffusion.
+  const crossDiffusionButtonList = addButtonList(root);
+  addToggle(
+    crossDiffusionButtonList,
+    "crossDiffusion",
+    '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
+    updateProblem,
+    "cross_diffusion_controller"
+  );
+
   // Let's put these in the left GUI.
   // Definitions folder.
   root = leftGUI.addFolder("Definitions");
 
-  root
-    .add(options, "typesetCustomEqs")
-    .name("Typeset")
-    .onChange(setEquationDisplayType);
+  const defButtonList = addButtonList(root);
+  addToggle(
+    defButtonList,
+    "typesetCustomEqs",
+    '<i class="fa-regular fa-square-root-variable"></i> Typeset',
+    setEquationDisplayType
+  );
 
   DuuController = root
     .add(options, "diffusionStrUU")
@@ -1679,44 +1720,317 @@ function initGUI(startOpen) {
     .add(options, "clearValueQ")
     .onFinishChange(setClearShader);
 
-  // Plotting folder.
+  // Images folder.
+  fIm = rightGUI.addFolder("Images");
+  root = fIm;
+  // Always make images controller, but hide them if they're not wanted.
+  createImageControllers();
 
-  root = rightGUI.addFolder("Plotting");
+  // Saving/loading folder.
+  root = rightGUI.addFolder("Checkpoints");
 
-  lineWidthMulController = root
-    .add(options, "lineWidthMul", 0.1, 2)
-    .name("Thickness")
+  // Checkpoints override initial condition.
+  const checkpointButtons = addButtonList(root);
+
+  addToggle(
+    checkpointButtons,
+    "resetFromCheckpoints",
+    "Enable checkpoints",
+    null,
+    "checkpointButton"
+  );
+
+  // Force a newline.
+  addNewline(checkpointButtons);
+  addButton(
+    checkpointButtons,
+    '<i class="fa-regular fa-flag"></i> Set',
+    saveSimState
+  );
+  addButton(
+    checkpointButtons,
+    '<i class="fa-regular fa-file-arrow-down"></i> Export',
+    exportSimState
+  );
+  addButton(
+    checkpointButtons,
+    '<i class="fa-regular fa-file-arrow-up"></i> Import',
+    function () {
+      $("#checkpointInput").click();
+    }
+  );
+
+  root
+    .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
+    .name("Resize");
+
+  // Miscellaneous folder.
+  root = rightGUI.addFolder("Misc.");
+
+  root
+    .addColor(options, "backgroundColour")
+    .name("Background")
     .onChange(function () {
-      setLineWidth();
-      render();
+      scene.background = new THREE.Color(options.backgroundColour);
+      renderIfNotRunning();
     });
 
-  threeDHeightScaleController = root
-    .add(options, "threeDHeightScale")
-    .name("Max height")
-    .onChange(updateUniforms);
+  const miscButtons = addButtonList(root);
 
-  cameraThetaController = root
-    .add(options, "cameraTheta")
-    .name("View $\\theta$")
-    .onChange(configureCameraAndClicks);
+  addToggle(
+    miscButtons,
+    "integrate",
+    '<i class="fa-regular fa-chart-area"></i> Integrate',
+    function () {
+      configureIntegralDisplay();
+      renderIfNotRunning();
+    }
+  );
 
-  cameraPhiController = root
-    .add(options, "cameraPhi")
-    .name("View $\\phi$")
-    .onChange(configureCameraAndClicks);
+  addToggle(
+    miscButtons,
+    "forceManualInterpolation",
+    '<i class="fa-regular fa-bezier-curve"></i> Interpolate',
+    configureManualInterpolation,
+    "interpController",
+    ""
+  );
 
-  cameraZoomController = root
-    .add(options, "cameraZoom")
-    .name("Zoom")
-    .onChange(configureCameraAndClicks);
+  addToggle(
+    miscButtons,
+    "fixRandSeed",
+    '<i class="fa-regular fa-shuffle"></i> Fix seed'
+  );
 
-  forceManualInterpolationController = root
-    .add(options, "forceManualInterpolation")
-    .name("Manual interp")
-    .onChange(configureManualInterpolation);
+  // Copy configuration as raw JSON.
+  addButton(
+    miscButtons,
+    '<i class="fa-regular fa-copy"></i> Copy code',
+    copyConfigAsJSON
+  );
 
-  root = root.addFolder("Contours");
+  root = root.addFolder("Debug");
+  // Debug.
+  // Copy configuration as raw JSON.
+  const debugButtonList = addButtonList(root);
+  addButton(debugButtonList, "Copy debug information", copyDebug);
+
+  // Add a title to the rightGUI.
+  const settingsTitle = document.createElement("div");
+  settingsTitle.innerHTML = "Settings";
+  settingsTitle.classList.add("ui_title");
+  rightGUI.domElement.prepend(settingsTitle);
+
+  // Add a title to the leftGUI.
+  const equationsTitle = document.createElement("div");
+  equationsTitle.innerHTML = "Equations";
+  equationsTitle.classList.add("ui_title");
+  leftGUI.domElement.prepend(equationsTitle);
+
+  // Populate the viewsGUI.
+  // Create a custom element for containing the view options.
+  const viewsList = document.createElement("div");
+  viewsList.id = "views_list";
+  viewsGUI.domElement.prepend(viewsList);
+  const viewsTitle = document.createElement("div");
+  viewsTitle.innerHTML =
+    "Views<a id='add_view' title='New view'><i class='fa-solid fa-plus'></i></a>";
+  viewsTitle.classList.add("ui_title");
+  viewsGUI.domElement.prepend(viewsTitle);
+
+  editViewFolder = viewsGUI.addFolder("Edit view");
+  root = editViewFolder;
+
+  const editViewButtons = addButtonList(root, "edit_view_buttons");
+
+  addButton(
+    editViewButtons,
+    '<i class="fa-solid fa-pen-nib"></i> Rename',
+    editCurrentViewName,
+    null,
+    "Rename view"
+  ); // Rename
+  addButton(
+    editViewButtons,
+    '<i class="fa-solid fa-xmark"></i> Delete',
+    deleteView,
+    "deleteViewButton",
+    "Delete view"
+  ); // Delete
+
+  whatToPlotController = root
+    .add(options, "whatToPlot")
+    .name("Expression: ")
+    .onFinishChange(function () {
+      updateWhatToPlot();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+
+  root
+    .add(options, "plotType", {
+      Line: "line",
+      Plane: "plane",
+      Surface: "surface",
+    })
+    .name("Plot type")
+    .onChange(function () {
+      configurePlotType();
+      document.activeElement.blur();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+
+  root
+    .add(options, "colourmap", {
+      BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
+      "Blue-Magenta": "blue-magenta",
+      Diverging: "diverging",
+      Greyscale: "greyscale",
+      Foliage: "foliage",
+      Ice: "ice",
+      "Lava flow": "lavaflow",
+      Midnight: "midnight",
+      Pastels: "pastels",
+      "Simply blue": "blue",
+      "Snow Ghost": "snowghost",
+      Thermal: "thermal",
+      Turbo: "turbo",
+      Viridis: "viridis",
+      Water: "water",
+    })
+    .onChange(function () {
+      setDisplayColourAndType();
+      configureColourbar();
+      updateView(this.property);
+    })
+    .name("Colour map");
+
+  minColourValueController = root
+    .add(options, "minColourValue")
+    .name("Min value")
+    .onChange(function () {
+      updateUniforms();
+      updateColourbarLims();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+  minColourValueController.__precision = 2;
+
+  maxColourValueController = root
+    .add(options, "maxColourValue")
+    .name("Max value")
+    .onChange(function () {
+      updateUniforms();
+      updateColourbarLims();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+  maxColourValueController.__precision = 2;
+
+  const effectsButtons = addButtonList(root, "colour_map_buttons");
+
+  addButton(
+    effectsButtons,
+    '<i class="fa-solid fa-arrow-right-arrow-left"></i> Flip',
+    function () {
+      options.flippedColourmap = !options.flippedColourmap;
+      setDisplayColourAndType();
+      configureColourbar();
+      updateView("flippedColourmap");
+    },
+    null,
+    "Reverse colour map"
+  );
+
+  addButton(
+    effectsButtons,
+    '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap',
+    function () {
+      setColourRange();
+      render();
+      updateView("minColourValue");
+      updateView("maxColourValue");
+    },
+    null,
+    "Snap min/max to visible"
+  );
+
+  addToggle(
+    effectsButtons,
+    "colourbar",
+    '<i class="fa-solid fa-bars-progress"></i> Bar',
+    function () {
+      configureColourbar();
+    },
+    null,
+    "Display the colourbar"
+  );
+
+  addToggle(
+    effectsButtons,
+    "autoSetColourRange",
+    '<i class="fa-solid fa-wand-magic-sparkles"></i> Auto snap',
+    function () {
+      if (options.autoSetColourRange) {
+        setColourRange();
+        render();
+      }
+      updateView("autoSetColourRange");
+    },
+    null,
+    "Automatically snap range"
+  );
+
+  addToggle(
+    effectsButtons,
+    "contours",
+    '<i class="fa-solid fa-bullseye"></i> Contours',
+    function () {
+      setDisplayColourAndType();
+      updateView("contours");
+    },
+    "contourButton",
+    "Toggle contours",
+    "contoursFolder"
+  );
+
+  addToggle(
+    effectsButtons,
+    "emboss",
+    '<i class="fa-solid fa-lightbulb"></i> Lighting',
+    function () {
+      setDisplayColourAndType();
+      updateView("emboss");
+    },
+    "embossButton",
+    "Toggle lighting",
+    "embossFolder"
+  );
+
+  addToggle(
+    effectsButtons,
+    "overlay",
+    '<i class="fa-solid fa-chart-line"></i> Overlay',
+    function () {
+      setDisplayColourAndType();
+      updateView("overlay");
+    },
+    null,
+    "Toggle overlay",
+    "overlayFolder"
+  );
+
+  root = editViewFolder.addFolder("Contours");
+  root.domElement.id = "contoursFolder";
+
+  root
+    .addColor(options, "contourColour")
+    .name("Colour")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+    });
 
   contourNumController = root
     .add(options, "contourNum")
@@ -1736,31 +2050,8 @@ function initGUI(startOpen) {
     });
   createOptionSlider(contourEpsilonController, 0.001, 0.05, 0.001);
 
-  root
-    .addColor(options, "contourColour")
-    .name("Colour")
-    .onChange(function () {
-      setContourUniforms();
-      renderIfNotRunning();
-    });
-
-  // Colour folder.
-  root = rightGUI.addFolder("Colour");
-
-  root
-    .add(options, "colourbar")
-    .name("Colour bar")
-    .onChange(configureColourbar);
-
-  root
-    .addColor(options, "backgroundColour")
-    .name("Background")
-    .onChange(function () {
-      scene.background = new THREE.Color(options.backgroundColour);
-      render();
-    });
-
-  root = root.addFolder("Lighting");
+  root = editViewFolder.addFolder("Lighting");
+  root.domElement.id = "embossFolder";
 
   embossSmoothnessController = root
     .add(options, "embossSmoothness")
@@ -1825,238 +2116,92 @@ function initGUI(startOpen) {
     });
   createOptionSlider(embossPhiController, 0, 3.1456, 0.001);
 
-  // Images folder.
-  fIm = rightGUI.addFolder("Images");
-  root = fIm;
-  // Always make images controller, but hide them if they're not wanted.
-  createImageControllers();
-
-  // Saving/loading folder.
-  root = rightGUI.addFolder("Checkpoints");
-
-  // Checkpoints override initial condition
-  root.add(options, "resetFromCheckpoints").name("Enabled");
+  root = editViewFolder.addFolder("Overlay");
+  root.domElement.id = "overlayFolder";
 
   root
-    .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
-    .name("Resize");
-
-  const checkpointButtons = document.createElement("li");
-  checkpointButtons.classList.add("button_list");
-  root.domElement.children[0].appendChild(checkpointButtons);
-
-  addButton(checkpointButtons, "Set", saveSimState);
-  addButton(checkpointButtons, "Export", exportSimState);
-  addButton(checkpointButtons, "Import", function () {
-    $("#checkpointInput").click();
-  });
-
-  // Miscellaneous folder.
-  root = rightGUI.addFolder("Misc.");
-
-  root
-    .add(options, "integrate")
-    .name("Integrate")
+    .addColor(options, "overlayColour")
+    .name("Colour")
     .onChange(function () {
-      configureIntegralDisplay();
-      render();
+      setOverlayUniforms();
+      renderIfNotRunning();
     });
 
-  root.add(options, "fixRandSeed").name("Fix random seed");
+  root
+    .add(options, "overlayExpr")
+    .name("Expression")
+    .onFinishChange(function () {
+      setDisplayColourAndType();
+      updateView(this.property);
+    });
 
-  // Copy configuration as raw JSON.
-  const codeButton = document.createElement("li");
-  codeButton.classList.add("button_list");
-  root.domElement.children[0].appendChild(codeButton);
-  addButton(
-    codeButton,
-    '<i class="fa-regular fa-copy"></i> Copy code',
-    copyConfigAsJSON
+  root
+    .add(options, "overlayEpsilon")
+    .name("Threshold")
+    .onChange(function () {
+      setOverlayUniforms();
+      renderIfNotRunning();
+    });
+
+  linesAnd3DFolder = editViewFolder.addFolder("3D");
+  root = linesAnd3DFolder;
+
+  const surfaceButtons = addButtonList(root);
+
+  addToggle(
+    surfaceButtons,
+    "customSurface",
+    '<i class="fa-regular fa-wave-square"></i> Custom surface',
+    function () {
+      uniforms.customSurface.value = options.customSurface;
+      setSurfaceShader();
+      configureCustomSurfaceControllers();
+      updateView("customSurface");
+      renderIfNotRunning();
+    },
+    "customSurfaceToggle",
+    "Plot the solution on a custom surface"
   );
 
-  root = root.addFolder("Debug");
-  // Debug.
-  // Copy configuration as raw JSON.
-  const debugButton = document.createElement("li");
-  debugButton.classList.add("button_list");
-  root.domElement.children[0].appendChild(debugButton);
-  addButton(debugButton, "Copy debug information", copyDebug);
-
-  // Add a title to the rightGUI.
-  const settingsTitle = document.createElement("div");
-  settingsTitle.innerHTML = "Settings";
-  settingsTitle.classList.add("ui_title");
-  rightGUI.domElement.prepend(settingsTitle);
-
-  // Add a title to the leftGUI.
-  const equationsTitle = document.createElement("div");
-  equationsTitle.innerHTML = "Equations";
-  equationsTitle.classList.add("ui_title");
-  leftGUI.domElement.prepend(equationsTitle);
-
-  // Populate the viewsGUI.
-  // Create a custom element for containing the view options.
-  const viewsList = document.createElement("div");
-  viewsList.id = "views_list";
-  viewsGUI.domElement.prepend(viewsList);
-  const viewsTitle = document.createElement("div");
-  viewsTitle.innerHTML =
-    "Views<a id='add_view' title='New view'><i class='fa-solid fa-plus'></i></a>";
-  viewsTitle.classList.add("ui_title");
-  viewsGUI.domElement.prepend(viewsTitle);
-
-  editViewFolder = viewsGUI.addFolder("Edit view");
-  root = editViewFolder;
-
-  const editViewButtons = document.createElement("li");
-  editViewButtons.id = "edit_view_buttons";
-  editViewButtons.classList.add("button_list");
-  root.domElement.children[0].appendChild(editViewButtons);
-
-  addButton(
-    editViewButtons,
-    '<i class="fa-solid fa-pen-nib"></i> Rename',
-    editCurrentViewName,
-    null,
-    "Rename view"
-  ); // Rename
-  addButton(
-    editViewButtons,
-    '<i class="fa-solid fa-xmark"></i> Delete',
-    deleteView,
-    "deleteViewButton",
-    "Delete view"
-  ); // Delete
-
-  whatToPlotController = root
-    .add(options, "whatToPlot")
-    .name("Expression: ")
+  surfaceFunController = root
+    .add(options, "surfaceFun")
+    .name("Surface $z=$ ")
     .onFinishChange(function () {
       updateWhatToPlot();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+
+  threeDHeightScaleController = root
+    .add(options, "threeDHeightScale")
+    .name("Max height")
+    .onChange(updateUniforms);
+
+  cameraThetaController = root
+    .add(options, "cameraTheta")
+    .name("View $\\theta$")
+    .onChange(configureCameraAndClicks);
+
+  cameraPhiController = root
+    .add(options, "cameraPhi")
+    .name("View $\\phi$")
+    .onChange(configureCameraAndClicks);
+
+  cameraZoomController = root
+    .add(options, "cameraZoom")
+    .name("Zoom")
+    .onChange(configureCameraAndClicks);
+
+  lineWidthMulController = root
+    .add(options, "lineWidthMul", 0.1, 2)
+    .name("Thickness")
+    .onChange(function () {
+      setLineWidth();
       render();
-      updateView(this.property);
     });
 
-  root
-    .add(options, "plotType", {
-      Line: "line",
-      Plane: "plane",
-      Surface: "surface",
-    })
-    .name("Plot type")
-    .onChange(function () {
-      configurePlotType();
-      document.activeElement.blur();
-      render();
-      updateView(this.property);
-    });
-
-  root
-    .add(options, "colourmap", {
-      BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
-      "Blue-Magenta": "blue-magenta",
-      Diverging: "diverging",
-      Greyscale: "greyscale",
-      Foliage: "foliage",
-      Ice: "ice",
-      "Lava flow": "lavaflow",
-      Midnight: "midnight",
-      Pastels: "pastels",
-      "Simply blue": "blue",
-      "Snow Ghost": "snowghost",
-      Thermal: "thermal",
-      Turbo: "turbo",
-      Viridis: "viridis",
-      Water: "water",
-    })
-    .onChange(function () {
-      setDisplayColourAndType();
-      configureColourbar();
-      updateView(this.property);
-    })
-    .name("Colour map");
-
-  minColourValueController = root
-    .add(options, "minColourValue")
-    .name("Min value")
-    .onChange(function () {
-      updateUniforms();
-      updateColourbarLims();
-      render();
-      updateView(this.property);
-    });
-  minColourValueController.__precision = 2;
-
-  maxColourValueController = root
-    .add(options, "maxColourValue")
-    .name("Max value")
-    .onChange(function () {
-      updateUniforms();
-      updateColourbarLims();
-      render();
-      updateView(this.property);
-    });
-  maxColourValueController.__precision = 2;
-
-  autoSetColourRangeController = root
-    .add(options, "autoSetColourRange")
-    .name("Auto snap")
-    .onChange(function () {
-      if (options.autoSetColourRange) {
-        setColourRange();
-        render();
-      }
-      updateView(this.property);
-    });
-
-  contourController = root
-    .add(options, "contours")
-    .name("Contours")
-    .onChange(function () {
-      setDisplayColourAndType();
-      updateView(this.property);
-    });
-
-  embossController = root
-    .add(options, "emboss")
-    .name("Lighting")
-    .onChange(function () {
-      setDisplayColourAndType();
-      updateView(this.property);
-    });
-
-  const colourmapButtons = document.createElement("li");
-  colourmapButtons.id = "colour_map_buttons";
-  colourmapButtons.classList.add("button_list");
-  root.domElement.children[0].appendChild(colourmapButtons);
-
-  addButton(
-    colourmapButtons,
-    '<i class="fa-solid fa-arrow-right-arrow-left"></i> Reverse',
-    function () {
-      options.flippedColourmap = !options.flippedColourmap;
-      setDisplayColourAndType();
-      configureColourbar();
-      updateView("flippedColourmap");
-    },
-    null,
-    "Reverse colour map"
-  );
-
-  addButton(
-    colourmapButtons,
-    '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap',
-    function () {
-      setColourRange();
-      render();
-      updateView("minColourValue");
-      updateView("maxColourValue");
-    },
-    null,
-    "Snap min/max to visible"
-  );
-
-  // root.add(funsObj, "restoreCurrentView").name("Restore");
+  const inputs = document.querySelectorAll("input");
+  inputs.forEach((input) => disableAutocorrect(input));
 }
 
 function animate() {
@@ -2176,7 +2321,7 @@ function setDisplayColourAndType() {
   uniforms.colour3.value = new THREE.Vector4(...colourmap[2]);
   uniforms.colour4.value = new THREE.Vector4(...colourmap[3]);
   uniforms.colour5.value = new THREE.Vector4(...colourmap[4]);
-  let shader = fiveColourDisplayTop();
+  let shader = kineticUniformsForShader() + fiveColourDisplayTop();
   if (options.emboss) {
     shader += embossShader();
     setEmbossUniforms();
@@ -2184,6 +2329,13 @@ function setDisplayColourAndType() {
   if (options.contours) {
     shader += contourShader();
     setContourUniforms();
+  }
+  if (options.overlay) {
+    shader += overlayShader().replaceAll(
+      "OVERLAYEXPR",
+      parseShaderString(options.overlayExpr)
+    );
+    setOverlayUniforms();
   }
   shader += fiveColourDisplayBot();
   displayMaterial.fragmentShader = shader;
@@ -2204,8 +2356,10 @@ function selectColourspecInShaderStr(shaderStr) {
 }
 
 function setDisplayFunInShader(shaderStr) {
-  let regex = /FUN/g;
+  let regex = /\bFUN\b/g;
   shaderStr = shaderStr.replace(regex, parseShaderString(options.whatToPlot));
+  regex = /\bHEIGHT\b/g;
+  shaderStr = shaderStr.replace(regex, parseShaderString(options.surfaceFun));
   return shaderStr;
 }
 
@@ -2340,11 +2494,10 @@ function render() {
     fillBuffer();
     let scaledValue,
       ind = 0;
+    var range = options.maxColourValue - options.minColourValue;
+    range = range == 0 ? 0.5 : range;
     for (let i = 0; i < buffer.length; i += 4) {
-      scaledValue =
-        (buffer[i] - options.minColourValue) /
-          (options.maxColourValue - options.minColourValue) -
-        0.5;
+      scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
       // Set the height.
       yDisplayDomainCoords[ind++] = scaledValue.clamp(-0.5, 0.5);
     }
@@ -2406,6 +2559,7 @@ function postprocess() {
   renderer.render(simScene, simCamera);
   uniforms.textureSource.value = postTexture.texture;
   bufferFilled = false;
+  uniforms.textureSource1.value = simTextures[1].texture;
 }
 
 function onDocumentPointerDown(event) {
@@ -2726,8 +2880,13 @@ function parseShaderString(str) {
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
   str = replaceDigitsWithWords(str);
 
+  // Replace images evaluated at coordinates with appropriate shader expressions.
+  str = enableImageLookupInShader(str, "I_TR");
+
   // Replace integers with floats.
-  while (str != (str = str.replace(/([^.0-9])(\d+)([^.0-9])/g, "$1$2.$3")));
+  while (
+    str != (str = str.replace(/([^.0-9a-zA-Z])(\d+)([^.0-9])/g, "$1$2.$3"))
+  );
 
   return str;
 }
@@ -3863,9 +4022,9 @@ function configureGUI() {
   }
 
   if (options.numSpecies > 1) {
-    showGUIController(crossDiffusionController);
+    $("#cross_diffusion_controller").show();
   } else {
-    hideGUIController(crossDiffusionController);
+    $("#cross_diffusion_controller").hide();
   }
 
   // Hide/Show VWQGUI panels.
@@ -3968,24 +4127,30 @@ function configureGUI() {
   setBCsGUI();
   // Hide or show GUI elements to do with surface plotting.
   if (options.plotType == "surface") {
-    hideGUIController(contourController);
-    showGUIController(embossController);
+    $("#contourButton").show();
+    $("#embossButton").show();
+    linesAnd3DFolder.name = "3D options";
+    linesAnd3DFolder.domElement.classList.remove("hidden");
+    if (options.customSurface) showGUIController(surfaceFunController);
     hideGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
     showGUIController(cameraPhiController);
     showGUIController(cameraZoomController);
   } else if (options.plotType == "line") {
-    hideGUIController(contourController);
-    hideGUIController(embossController);
+    $("#contourButton").hide();
+    $("#embossButton").hide();
+    linesAnd3DFolder.name = "Line options";
+    linesAnd3DFolder.domElement.classList.remove("hidden");
     showGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
     hideGUIController(cameraPhiController);
     hideGUIController(cameraZoomController);
   } else {
-    showGUIController(contourController);
-    showGUIController(embossController);
+    $("#contourButton").show();
+    $("#embossButton").show();
+    linesAnd3DFolder.domElement.classList.add("hidden");
     hideGUIController(lineWidthMulController);
     hideGUIController(threeDHeightScaleController);
     hideGUIController(cameraThetaController);
@@ -3996,6 +4161,7 @@ function configureGUI() {
   configureTimeDisplay();
   configureIntegralDisplay();
   configureDataContainer();
+  configureCustomSurfaceControllers();
   // Show/hide/modify GUI elements that depend on dimension.
   if (options.plotType == "line") {
     hideGUIController(typeOfBrushController);
@@ -4004,9 +4170,11 @@ function configureGUI() {
     showGUIController(typeOfBrushController);
     $(":root").css("--ui-button-outline", "white");
   }
-  manualInterpolationNeeded
-    ? hideGUIController(forceManualInterpolationController)
-    : showGUIController(forceManualInterpolationController);
+  if (manualInterpolationNeeded) {
+    $("#interpController").hide();
+  } else {
+    $("#interpController").show();
+  }
   // Update the options available in whatToDraw based on the number of species.
   updateGUIDropdown(
     whatToDrawController,
@@ -4014,6 +4182,10 @@ function configureGUI() {
   );
   // Update emboss sliders.
   updateEmbossSliders();
+  // Update all toggle buttons.
+  $(".toggle_button").each(function () {
+    updateToggle(this);
+  });
   // Configure the Views GUI from options.views.
   configureViewsGUI();
   // Refresh the GUI displays.
@@ -4521,6 +4693,76 @@ function replaceFunctionInTeX(str, func, withBrackets) {
   return newStr;
 }
 
+function enableImageLookupInShader(str) {
+  // Enable function evaluation in shaders.
+  var newStr = str;
+  const matches = str.matchAll(/\bI_([TS])([RGBA])\b/g);
+  let funcInd,
+    startInd,
+    endInd,
+    subStr,
+    argStr,
+    args,
+    depth,
+    foundBracket,
+    ind,
+    toAdd,
+    imNum,
+    component,
+    offset = 0;
+  const imageLookup = { S: "One", T: "Two" };
+  const componentLookup = { R: "x", G: "y", B: "z", A: "w" };
+  for (const match of matches) {
+    funcInd = match.index;
+    imNum = imageLookup[match[1]];
+    component = componentLookup[match[2]];
+    startInd = funcInd + match[0].length;
+    subStr = str.slice(startInd);
+    ind = 0;
+    depth = 0;
+    foundBracket = false;
+    // Try to find paired brackets.
+    while (
+      (ind <= subStr.length) &
+      (!foundBracket | !(foundBracket && depth == 0))
+    ) {
+      depth += ["("].includes(subStr[ind]);
+      depth -= [")"].includes(subStr[ind]);
+      foundBracket |= depth;
+      ind += 1;
+    }
+    // If we found correctly paired brackets, replace with the function. Otherwise, do nothing.
+    if (foundBracket && depth == 0) {
+      endInd = ind - 1 + startInd;
+      argStr = newStr.slice(startInd + offset + 1, endInd + offset);
+      // Replace digits with words in the arguments.
+      argStr = replaceDigitsWithWords(argStr);
+      // Detect at most two arguments separated by a comma.
+      args = argStr.split(",");
+      // If the second argument is empty, put a zero in its place.
+      if (args.length == 1 || args[1].trim().length == 0) args[1] = "0";
+      args[0] = "(" + args[0] + ")/L_x";
+      args[1] = "(" + args[1] + ")/L_y";
+      toAdd =
+        "texture(imageSource" +
+        imNum +
+        ",vec2(" +
+        args.join(",") +
+        "))." +
+        component;
+
+      newStr = replaceStrAtIndex(
+        newStr,
+        toAdd,
+        funcInd + offset,
+        endInd + 1 + offset
+      );
+      offset += toAdd.length - endInd + funcInd - 1;
+    }
+  }
+  return newStr;
+}
+
 function alternateBrackets(str) {
   // Given a string with balanced bracketing, loop nested brackets through (, [.
   const openBrackets = ["(", "["];
@@ -4574,8 +4816,9 @@ function modulo(num, quot) {
   return ((num % quot) + quot) % quot;
 }
 
-function replaceStrAtIndex(str, toSub, ind) {
-  return str.slice(0, ind) + toSub + str.slice(ind + 1, str.length);
+function replaceStrAtIndex(str, toSub, ind, resumeInd) {
+  if (resumeInd == undefined) resumeInd = ind + 1;
+  return str.slice(0, ind) + toSub + str.slice(resumeInd, str.length);
 }
 
 function insertStrAtIndex(str, toAdd, ind) {
@@ -4622,26 +4865,18 @@ function createParameterController(label, isNextParam) {
       // Define the step of the slider, which may or may not have been given.
       if (match[4] == undefined) {
         match[4] = "";
-        // If all the quantities are integers, set the default step to be integers.
-        if (
-          !kineticParamsStrs[label].includes(".") &
-          (parseFloat(match[5]) - parseFloat(match[3]) > 1)
-        ) {
-          step = 1;
-        } else {
-          // Otherwise, choose a step that either matches the max precision of the inputs, or
-          // splits the interval into 20, whichever is more precise.
-          controller.slider.precision =
-            Math.max(
-              parseFloat(match[2]).countDecimals(),
-              parseFloat(match[3]).countDecimals(),
-              parseFloat(match[5]).countDecimals()
-            ) + 1;
-          step = Math.min(
-            (parseFloat(match[5]) - parseFloat(match[3])) / 20,
-            10 ** -controller.slider.precision
-          );
-        }
+        // Choose a step that either matches the max precision of the inputs, or
+        // splits the interval into 20, whichever is more precise.
+        controller.slider.precision =
+          Math.max(
+            parseFloat(match[2]).countDecimals(),
+            parseFloat(match[3]).countDecimals(),
+            parseFloat(match[5]).countDecimals()
+          ) + 1;
+        step = Math.min(
+          (parseFloat(match[5]) - parseFloat(match[3])) / 20,
+          10 ** -controller.slider.precision
+        );
       } else {
         controller.slider.precision =
           Math.max(
@@ -4653,6 +4888,10 @@ function createParameterController(label, isNextParam) {
         step = match[4];
         match[4] += ", ";
       }
+      controller.slider.precision = Math.max(
+        controller.slider.precision,
+        step.countDecimals()
+      );
       controller.slider.step = step.toString();
 
       // Assign the initial value, which should happen after step has been defined.
@@ -4706,6 +4945,7 @@ function createParameterController(label, isNextParam) {
     kineticParamsLabels.push(label);
     kineticParamsStrs[label] = "";
     controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    disableAutocorrect(controller.domElement);
     controller.domElement.classList.add("params");
     controller.onFinishChange(function () {
       const index = kineticParamsLabels.indexOf(label);
@@ -4743,6 +4983,7 @@ function createParameterController(label, isNextParam) {
     });
   } else {
     controller = parametersFolder.add(kineticParamsStrs, label).name("");
+    disableAutocorrect(controller.domElement);
     controller.domElement.classList.add("params");
     const match = kineticParamsStrs[label].match(/\s*(\w+)\s*=/);
     if (match) {
@@ -5216,7 +5457,6 @@ function configurePlotType() {
     domain.visible = true;
     line.visible = false;
     if (options.plotType == "surface") {
-      options.contours = false;
       $("#simCanvas").css("outline", "2px #000 solid");
       if (usingLowResDomain) {
         usingLowResDomain = false;
@@ -5252,7 +5492,7 @@ function setCameraPos() {
   const pos = new THREE.Vector3().setFromSphericalCoords(
     1,
     Math.PI / 2 - (options.cameraTheta * Math.PI) / 180,
-    (options.cameraPhi * Math.PI) / 180
+    -(options.cameraPhi * Math.PI) / 180
   );
   camera.position.set(pos.x, pos.y, pos.z);
   camera.lookAt(0, 0, 0);
@@ -5403,12 +5643,6 @@ function computeColourBrightness(col) {
 function setColourRange() {
   // Set the range of the colour axis based on the extremes of the computed values.
   let valRange = getMinMaxVal();
-  if (Math.abs(valRange[0] - valRange[1]) < 0.005) {
-    // If the range is just one value, make the range width equal to 0.005 centered on the given value.
-    const meanVal = (valRange[0] + valRange[1]) / 2;
-    valRange[0] = meanVal - 0.0025;
-    valRange[1] = meanVal + 0.0025;
-  }
   options.minColourValue = valRange[0];
   options.maxColourValue = valRange[1];
   uniforms.maxColourValue.value = options.maxColourValue;
@@ -6121,6 +6355,14 @@ function dirichletEnforceShader(speciesInd, side) {
   return str;
 }
 
+function addButtonList(parent, id) {
+  const list = document.createElement("li");
+  if (id != null) list.id = id;
+  list.classList.add("button_list");
+  parent.domElement.children[0].appendChild(list);
+  return list;
+}
+
 function addButton(parent, inner, onclick, id, title) {
   const button = document.createElement("a");
   if (onclick != undefined) button.onclick = onclick;
@@ -6128,6 +6370,32 @@ function addButton(parent, inner, onclick, id, title) {
   if (title != undefined) button.title = title;
   if (inner != undefined) button.innerHTML = inner;
   parent.appendChild(button);
+}
+
+function addToggle(parent, property, inner, onclick, id, title, folderID) {
+  const toggle = document.createElement("a");
+  toggle.classList.add("toggle_button");
+  toggle.setAttribute("property", property);
+  if (onclick == undefined) onclick = () => {};
+  toggle.onclick = function () {
+    options[toggle.getAttribute("property")] =
+      !options[toggle.getAttribute("property")];
+    updateToggle(toggle);
+    onclick();
+  };
+  if (id != undefined) toggle.id = id;
+  if (title != undefined) toggle.title = title;
+  if (inner != undefined) toggle.innerHTML = inner;
+  if (folderID != undefined) toggle.setAttribute("folderID", folderID);
+  parent.appendChild(toggle);
+  updateToggle(toggle);
+  return toggle;
+}
+
+function addNewline(parent) {
+  const breaker = document.createElement("div");
+  breaker.classList.add("break");
+  parent.appendChild(breaker);
 }
 
 function copyConfigAsJSON() {
@@ -6368,6 +6636,57 @@ function setContourUniforms() {
   uniforms.contourStep.value = 1 / (options.contourNum + 1);
 }
 
+function setOverlayUniforms() {
+  uniforms.overlayColour.value = new THREE.Color(options.overlayColour);
+  uniforms.overlayEpsilon.value = options.overlayEpsilon;
+}
+
 function renderIfNotRunning() {
   if (!isRunning) render();
+}
+
+function updateToggle(toggle) {
+  if (options[toggle.getAttribute("property")]) {
+    toggle.classList.add("toggled_on");
+    if (toggle.getAttribute("folderID")) {
+      $("#" + toggle.getAttribute("folderID")).removeClass("hidden");
+    }
+  } else {
+    toggle.classList.remove("toggled_on");
+    if (toggle.getAttribute("folderID")) {
+      $("#" + toggle.getAttribute("folderID")).addClass("hidden");
+    }
+  }
+}
+
+function disableAutocorrect(input) {
+  input.setAttribute("autocomplete", "off");
+  input.setAttribute("autocorrect", "off");
+  input.setAttribute("autocapitalize", "off");
+  input.setAttribute("spellcheck", false);
+}
+
+function setSurfaceShader() {
+  if (options.customSurface) {
+    displayMaterial.vertexShader = surfaceVertexShaderCustom();
+  } else {
+    displayMaterial.vertexShader = surfaceVertexShaderColour();
+  }
+  displayMaterial.needsUpdate = true;
+}
+
+function configureCustomSurfaceControllers() {
+  if (options.plotType == "surface") {
+    $("#customSurfaceToggle").show();
+    if (options.customSurface) {
+      showGUIController(surfaceFunController);
+      hideGUIController(threeDHeightScaleController);
+    } else {
+      hideGUIController(surfaceFunController);
+      showGUIController(threeDHeightScaleController);
+    }
+  } else {
+    $("#customSurfaceToggle").hide();
+    hideGUIController(surfaceFunController);
+  }
 }
