@@ -96,8 +96,8 @@ export function RDShaderTop(type) {
         ivec2 texSize = textureSize(textureSource,0);
         float step_x = 1.0 / float(texSize.x);
         float step_y = 1.0 / float(texSize.y);
-        float x = textureCoords.x * float(texSize.x) * dx;
-        float y = textureCoords.y * float(texSize.y) * dy;
+        float x = textureCoords.x * L_x;
+        float y = textureCoords.y * L_y;
         vec2 textureCoordsL = textureCoords + vec2(-step_x, 0.0);
         vec2 textureCoordsR = textureCoords + vec2(+step_x, 0.0);
         vec2 textureCoordsT = textureCoords + vec2(0.0, +step_y);
@@ -200,8 +200,8 @@ export function RDShaderMain(type) {
       ivec2 texSize = textureSize(textureSource,0);
       float step_x = 1.0 / float(texSize.x);
       float step_y = 1.0 / float(texSize.y);
-      float x = textureCoords.x * float(texSize.x) * dx;
-      float y = textureCoords.y * float(texSize.y) * dy;
+      float x = textureCoords.x * L_x;
+      float y = textureCoords.y * L_y;
       vec4 Svec = texture2D(imageSourceOne, textureCoords);
       float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
       float I_SR = Svec.r;
@@ -505,8 +505,8 @@ export function RDShaderEnforceDirichletTop() {
         ivec2 texSize = textureSize(textureSource,0);
         float step_x = 1.0 / float(texSize.x);
         float step_y = 1.0 / float(texSize.y);
-        float x = textureCoords.x * float(texSize.x) * dx;
-        float y = textureCoords.y * float(texSize.y) * dy;
+        float x = textureCoords.x * L_x;
+        float y = textureCoords.y * L_y;
 
         vec4 uvwq = texture2D(textureSource, textureCoords);
         gl_FragColor = uvwq;
