@@ -2000,6 +2000,8 @@ function initGUI(startOpen) {
     ["narrow"]
   );
 
+  addNewline(effectsButtons);
+
   addToggle(
     effectsButtons,
     "autoSetColourRange",
