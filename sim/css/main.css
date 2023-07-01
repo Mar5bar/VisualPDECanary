@@ -63,7 +63,7 @@ canvas {
 }
 
 .dg .main {
-  width: min(245px, calc(80vw - 30px)) !important;
+  width: min(256px, calc(80vw - 30px)) !important;
 }
 
 .dg {
@@ -105,9 +105,10 @@ canvas {
 #leftGUI,
 #rightGUI,
 #viewsGUI {
-  padding: 10px;
+  padding: 10px 6px 10px 3px;
   background-color: white;
   overflow-y: auto;
+  overflow-x: hidden;
   /* border: 5px white solid; */
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -809,6 +810,7 @@ a#add_view {
   justify-content: space-around;
   flex-flow: row wrap;
   border-bottom: 0px;
+  padding: 1px !important;
 }
 
 .dg :not(.closed) > .button_list {
@@ -843,13 +845,21 @@ select {
   align-items: center;
   border: 1px solid #dddddd;
   height: 1.8rem;
-  padding-left: 0.6rem;
-  padding-right: 0.6rem;
+  padding-left: 0.3rem;
+  padding-right: 0.2rem;
   border-radius: 5px;
   text-align: center;
   margin-top: 3px;
   margin-bottom: 3px;
   cursor: pointer;
+}
+
+.button_list a.wide {
+  width: 7em;
+}
+
+.button_list a.narrow {
+  width: 4em;
 }
 
 .button_list a .svg-inline--fa {

@@ -1223,7 +1223,10 @@ function initGUI(startOpen) {
   addToggle(
     brushButtonList,
     "brushEnabled",
-    '<i class="fa-regular fa-brush"></i> Enable brush'
+    '<i class="fa-regular fa-brush"></i> Enable brush',
+    null,
+    null,
+    "Toggle the brush on or off"
   );
 
   root
@@ -1393,7 +1396,8 @@ function initGUI(startOpen) {
     "crossDiffusion",
     '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
     updateProblem,
-    "cross_diffusion_controller"
+    "cross_diffusion_controller",
+    "Toggle cross diffusion"
   );
 
   // Let's put these in the left GUI.
@@ -1405,7 +1409,9 @@ function initGUI(startOpen) {
     defButtonList,
     "typesetCustomEqs",
     '<i class="fa-regular fa-square-root-variable"></i> Typeset',
-    setEquationDisplayType
+    setEquationDisplayType,
+    null,
+    "Typeset the specified equations"
   );
 
   DuuController = root
@@ -1752,19 +1758,28 @@ function initGUI(startOpen) {
   addButton(
     checkpointButtons,
     '<i class="fa-regular fa-flag"></i> Set',
-    saveSimState
+    saveSimState,
+    null,
+    "Set a checkpoint at the current state",
+    ["narrow"]
   );
   addButton(
     checkpointButtons,
     '<i class="fa-regular fa-file-arrow-down"></i> Export',
-    exportSimState
+    exportSimState,
+    null,
+    "Download the last checkpoint as a file",
+    ["narrow"]
   );
   addButton(
     checkpointButtons,
     '<i class="fa-regular fa-file-arrow-up"></i> Import',
     function () {
       $("#checkpointInput").click();
-    }
+    },
+    null,
+    "Upload a checkpoint file",
+    ["narrow"]
   );
 
   root
@@ -1791,7 +1806,9 @@ function initGUI(startOpen) {
     function () {
       configureIntegralDisplay();
       renderIfNotRunning();
-    }
+    },
+    null,
+    "Compute the integral of the plotted expression over the domain"
   );
 
   addToggle(
@@ -1800,20 +1817,25 @@ function initGUI(startOpen) {
     '<i class="fa-regular fa-bezier-curve"></i> Interpolate',
     configureManualInterpolation,
     "interpController",
-    ""
+    "Override your device's default smoothing and perform bilinear interpolation of the display"
   );
 
   addToggle(
     miscButtons,
     "fixRandSeed",
-    '<i class="fa-regular fa-shuffle"></i> Fix seed'
+    '<i class="fa-regular fa-shuffle"></i> Fix seed',
+    null,
+    null,
+    "Fix the random seed"
   );
 
   // Copy configuration as raw JSON.
   addButton(
     miscButtons,
     '<i class="fa-regular fa-copy"></i> Copy code',
-    copyConfigAsJSON
+    copyConfigAsJSON,
+    null,
+    "Copy the simulation configuration as JSON"
   );
 
   root = root.addFolder("Debug");
@@ -1855,7 +1877,7 @@ function initGUI(startOpen) {
     '<i class="fa-solid fa-pen-nib"></i> Rename',
     editCurrentViewName,
     null,
-    "Rename view"
+    "Rename the current view"
   ); // Rename
   addButton(
     editViewButtons,
@@ -1947,7 +1969,8 @@ function initGUI(startOpen) {
       updateView("flippedColourmap");
     },
     null,
-    "Reverse colour map"
+    "Reverse colour map",
+    ["narrow"]
   );
 
   addButton(
@@ -1960,7 +1983,8 @@ function initGUI(startOpen) {
       updateView("maxColourValue");
     },
     null,
-    "Snap min/max to visible"
+    "Snap min/max to visible",
+    ["narrow"]
   );
 
   addToggle(
@@ -1971,8 +1995,12 @@ function initGUI(startOpen) {
       configureColourbar();
     },
     null,
-    "Display the colourbar"
+    "Display the colourbar",
+    null,
+    ["narrow"]
   );
+
+  addNewline(effectsButtons);
 
   addToggle(
     effectsButtons,
@@ -1986,7 +2014,9 @@ function initGUI(startOpen) {
       updateView("autoSetColourRange");
     },
     null,
-    "Automatically snap range"
+    "Automatically snap range",
+    null,
+    ["wide"]
   );
 
   addToggle(
@@ -1999,7 +2029,8 @@ function initGUI(startOpen) {
     },
     "contourButton",
     "Toggle contours",
-    "contoursFolder"
+    "contoursFolder",
+    ["wide"]
   );
 
   addToggle(
@@ -2012,7 +2043,8 @@ function initGUI(startOpen) {
     },
     "embossButton",
     "Toggle lighting",
-    "embossFolder"
+    "embossFolder",
+    ["wide"]
   );
 
   addToggle(
@@ -2025,7 +2057,8 @@ function initGUI(startOpen) {
     },
     null,
     "Toggle overlay",
-    "overlayFolder"
+    "overlayFolder",
+    ["wide"]
   );
 
   root = editViewFolder.addFolder("Contours");
@@ -6370,16 +6403,30 @@ function addButtonList(parent, id) {
   return list;
 }
 
-function addButton(parent, inner, onclick, id, title) {
+function addButton(parent, inner, onclick, id, title, classes) {
   const button = document.createElement("a");
   if (onclick != undefined) button.onclick = onclick;
   if (id != undefined) button.id = id;
   if (title != undefined) button.title = title;
   if (inner != undefined) button.innerHTML = inner;
+  if (classes != undefined) {
+    for (const c of classes) {
+      button.classList.add(c);
+    }
+  }
   parent.appendChild(button);
 }
 
-function addToggle(parent, property, inner, onclick, id, title, folderID) {
+function addToggle(
+  parent,
+  property,
+  inner,
+  onclick,
+  id,
+  title,
+  folderID,
+  classes
+) {
   const toggle = document.createElement("a");
   toggle.classList.add("toggle_button");
   toggle.setAttribute("property", property);
@@ -6394,6 +6441,11 @@ function addToggle(parent, property, inner, onclick, id, title, folderID) {
   if (title != undefined) toggle.title = title;
   if (inner != undefined) toggle.innerHTML = inner;
   if (folderID != undefined) toggle.setAttribute("folderID", folderID);
+  if (classes != undefined) {
+    for (const c of classes) {
+      toggle.classList.add(c);
+    }
+  }
   parent.appendChild(toggle);
   updateToggle(toggle);
   return toggle;

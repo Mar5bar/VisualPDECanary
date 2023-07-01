@@ -27,7 +27,7 @@ These links can be quite long, so we recommend using a (free) shortening service
 Screenshots are simple in VisualPDE. Simply open the share sheet by clicking {{ layout.share }} and click 'Save image' to download a screenshot to your device.
 
 ### Can I embed VisualPDE in my own site?
-Yes you can! Clicking {{ layout.share }} and then 'Embed' will put an [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) element on your clipboard that points to the current simulation. You can specify the complexity of the user interface that you want to be visible, selecting from the full experience, the minimal interface used in our [Visual Stories](/visual-stories), or no user interface at all.
+Yes you can! Clicking {{ layout.share }} and then 'Embed' will put an [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) element on your clipboard that points to the current simulation. You can specify the complexity of the user interface that you want to be visible, selecting from the full experience, the minimal interface used in our [Visual Stories](/visual-stories), or no user interface at all. If you do this, we'd love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com) so we can check out your site and your simulation!
 
 In principle, you can have as many embedded simulations on your site as you want. In practice, having lots of simulations running at once might cause stuttering on some devices. You can mitigate this by pausing simulations (VisualPDE consumes very few resources when paused) or by only showing a limited number of simulations onscreen at any one time (simulations that are out of view are automatically paused by your browser). You can also make your simulations less computationally demanding by reducing the number of timesteps per frame or the domain size.
 
@@ -64,7 +64,7 @@ If you can, it will help us a lot if you could click <span class='click_sequence
 
 ---
 
-## Extending VisualPDE <a id='extending'>
+## Extending and repackaging VisualPDE <a id='extending'>
 
 ### I want to use VisualPDE in my teaching/research/outreach – what do I do?
 VisualPDE is designed for customising and sharing. If you're new to the site, we recommend that you play around and work through the examples found in [Basic PDEs](/basic-pdes) to get an idea of how to craft your own simulation, and make use of [link sharing](#linkSharing) to permanently save customised simulations.
@@ -72,6 +72,9 @@ VisualPDE is designed for customising and sharing. If you're new to the site, we
 For instance, a popular way to create custom teaching materials is to simply include links to customised VisualPDE simulations in more traditional teaching materials, similar to the [examples](/basic-pdes) on the site.
 
 If you want to do more than this allows, we'd love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can help bring VisualPDE into your teaching, research, or outreach activities.
+
+### I want to use VisualPDE for my business - can I?
+Almost certainly! However, we want to make sure that we do knowledge exchange properly, so do get in touch with us at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can make sure you'll get the best out of VisualPDE.
 
 ### I've got a feature request – who do I contact?
 We're always looking to improve VisualPDE and would love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com) if you think we can improve something about the experience. If you'd like to suggest a brand new PDE for the website, we're looking for examples that are qualitatively different to what is already on the site. That being said, if you've found a cool parameter set for a system that we haven't noted already, do let us know!
