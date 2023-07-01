@@ -810,7 +810,7 @@ a#add_view {
   justify-content: space-around;
   flex-flow: row wrap;
   border-bottom: 0px;
-  padding: 0px 6px 0px 6px !important;
+  padding: 1px !important;
 }
 
 .dg :not(.closed) > .button_list {
@@ -845,8 +845,8 @@ select {
   align-items: center;
   border: 1px solid #dddddd;
   height: 1.8rem;
-  padding-left: 0.6rem;
-  padding-right: 0.6rem;
+  padding-left: 0.3rem;
+  padding-right: 0.2rem;
   border-radius: 5px;
   text-align: center;
   margin-top: 3px;
@@ -859,7 +859,7 @@ select {
 }
 
 .button_list a.narrow {
-  width: 3.5em;
+  width: 4em;
 }
 
 .button_list a .svg-inline--fa {
