@@ -864,11 +864,13 @@ select {
 
 .button_list a .svg-inline--fa {
   margin-right: 5px;
+  color: #333333;
 }
 
 .button_list i {
   font-size: 1.1rem;
   margin-right: 5px;
+  color: #333333;
 }
 
 .button_list .toggle_button.toggled_on {
