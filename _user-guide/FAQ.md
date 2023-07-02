@@ -73,6 +73,9 @@ For instance, a popular way to create custom teaching materials is to simply inc
 
 If you want to do more than this allows, we'd love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can help bring VisualPDE into your teaching, research, or outreach activities.
 
+### I want to use VisualPDE for my business - can I?
+Almost certainly! However, we want to make sure that we do knowledge exchange properly, so do get in touch with us at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can make sure you'll get the best out of VisualPDE.
+
 ### I've got a feature request – who do I contact?
 We're always looking to improve VisualPDE and would love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com) if you think we can improve something about the experience. If you'd like to suggest a brand new PDE for the website, we're looking for examples that are qualitatively different to what is already on the site. That being said, if you've found a cool parameter set for a system that we haven't noted already, do let us know!
 
@@ -80,6 +83,3 @@ If you can't seem to cast your PDE in a form that VisualPDE can solve, we encour
 
 ### Can I modify the source code of VisualPDE and host my own version?
 In short: yes! We've made VisualPDE open source for a reason and want to see as many people using it as possible. If you want to ship your own version of the source code, we ask that you follow the licences found in our [repository](https://github.com/Pecnut/visual-pde) and provide due credit to [VisualPDE.com](https://visualpde.com). If you're in any doubt about your specific case, do send us an email at [hello@visualpde.com](mailto:hello@visualpde.com) and we'll happily chat with you! We're all about making VisualPDE accessible to as many people as possible.
-
-### I want to use VisualPDE for my business - can I?
-Almost certainly! However, we want to make sure that we do knowledge exchange properly, so do get in touch with us at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can make sure you'll get the best out of VisualPDE.
