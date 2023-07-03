@@ -2517,11 +2517,15 @@ function render() {
 
   // Update the position of the click domain for easy clicking.
   if (options.brushEnabled && options.plotType == "surface") {
-    let val =
-      (getMeanVal() - options.minColourValue) /
-        (options.maxColourValue - options.minColourValue) -
-      0.5;
-    clickDomain.position.y = options.threeDHeightScale * val.clamp(-0.5, 0.5);
+    let val = 0;
+    if (options.maxColourValue - options.minColourValue > 0) {
+      val =
+        (getMeanVal() - options.minColourValue) /
+          (options.maxColourValue - options.minColourValue) -
+        0.5;
+      val = val.clamp(-0.5, 0.5);
+    }
+    clickDomain.position.y = options.threeDHeightScale * val;
     clickDomain.updateWorldMatrix();
   }
 

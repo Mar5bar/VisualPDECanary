@@ -114,10 +114,8 @@ export function fiveColourDisplayTop() {
             return;
         }
         float value = values.r;
-        float scaledValue = 0.0;
-        if (minColourValue == maxColourValue) {
-          scaledValue = 0.5;
-        } else {
+        float scaledValue = 0.5;
+        if (minColourValue != maxColourValue) {
           scaledValue = (value - minColourValue) / (maxColourValue - minColourValue);
         }
         vec3 col = colFromValue(scaledValue);
@@ -192,8 +190,11 @@ export function surfaceVertexShaderColour() {
     {      
         textureCoords = uv;
         vec3 newPosition = position;
-        float value = texture2D(textureSource, textureCoords).r;
-        float scaledValue = clamp((value - minColourValue) / (maxColourValue - minColourValue) - 0.5, -0.5, 0.5);
+        float scaledValue = 0.0;
+        if (minColourValue != maxColourValue) {
+          float value = texture2D(textureSource, textureCoords).r;
+          scaledValue = clamp((value - minColourValue) / (maxColourValue - minColourValue) - 0.5, -0.5, 0.5);
+        }
         newPosition.z += heightScale * scaledValue;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
     }`;
@@ -202,11 +203,16 @@ export function surfaceVertexShaderColour() {
 export function surfaceVertexShaderCustom() {
   return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
+    uniform float minColourValue;
+    uniform float maxColourValue;
     void main()
     {      
         textureCoords = uv;
         vec3 newPosition = position;
-        float value = texture2D(textureSource, textureCoords).b;
+        float value = 0.0;
+        if (minColourValue != maxColourValue) {
+          value = texture2D(textureSource, textureCoords).b;
+        }
         newPosition.z += value;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
     }`;
