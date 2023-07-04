@@ -4958,10 +4958,7 @@ function createParameterController(label, isNextParam) {
         setKineticStringFromParams();
         render();
         // Update the uniforms with this new value.
-        if (
-          setKineticUniformFromString(kineticParamsStrs[label]) ||
-          compileErrorOccurred
-        ) {
+        if (setKineticUniforms() || compileErrorOccurred) {
           // Reset the error flag.
           compileErrorOccurred = false;
           // If we added a new uniform, we need to remake all the shaders.
@@ -5018,7 +5015,7 @@ function createParameterController(label, isNextParam) {
         createParameterController(newLabel, true);
         // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
-        if (setKineticUniformFromString(str) || compileErrorOccurred) {
+        if (setKineticUniforms || compileErrorOccurred) {
           // Reset the error flag.
           compileErrorOccurred = false;
           updateShaders();
@@ -5073,12 +5070,16 @@ function createParameterController(label, isNextParam) {
           kineticNameToCont[controller.lastName] = controller;
         }
       }
-      // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
       setKineticStringFromParams();
-      if (setKineticUniformFromString(str)) {
+      if (setKineticUniforms()) {
         updateShaders();
       }
     });
+    // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
+    setKineticStringFromParams();
+    if (setKineticUniforms()) {
+      updateShaders();
+    }
   }
   // Now that we've made the required controller, check the current string to see if
   // the user has requested that we make other types of controller (e.g. a slider).
@@ -5569,7 +5570,7 @@ function sanitisedKineticParams() {
 
 function getKineticParamNames() {
   // Return a list of parsed kinetic parameter names.
-  const regex = /(\w+)\s*=\s*([\+\-]?)\s*([0-9\.]+)/;
+  const regex = /(\w+)\s*=/;
   return sanitisedKineticParams()
     .split(";")
     .filter((x) => x.length > 0)
@@ -5580,42 +5581,40 @@ function setKineticUniforms() {
   // Set uniforms based on the parameters defined in kineticParams.
   // Return true if we're adding a new uniform, which signifies that all shaders must be
   // updated to reference this new uniform.
-  const paramStrs = sanitisedKineticParams().split(";");
+  const paramStrs = sanitisedKineticParams()
+    .split(";")
+    .filter((x) => x.length > 0);
+  const nameVals = evaluateParamVals(paramStrs);
   let addingNewUniform = false;
-  for (const paramStr of paramStrs) {
-    addingNewUniform |= setKineticUniformFromString(paramStr);
+  for (const nameVal of nameVals) {
+    addingNewUniform |= setKineticUniform(nameVal[0], nameVal[1]);
   }
   return addingNewUniform;
 }
 
-function setKineticUniformFromString(str) {
-  // Set a uniform based on the parameter defined in str/
+function setKineticUniform(name, value) {
+  // Set a uniform with given name and value.
   // Return true if we're adding a new uniform, which signifies that all shaders must be
   // updated to reference this new uniform.
-  const regex = /(\w+)\s*=\s*([\+\-]?)\s*([0-9\.]+)/;
-  // Parse the name from the string.
-  const match = str.match(regex);
   let addingNewUniform = false;
-  if (match) {
-    // Replace any numbers in the name with the word equivalents.
-    match[1] = replaceDigitsWithWords(match[1]);
-    if (isReservedName(match[1])) {
-      alert(
-        "The name '" +
-          match[1] +
-          "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
-          match[1] +
-          "."
-      );
-    } else {
-      // If no such uniform exists, make a note of this.
-      addingNewUniform = !uniforms.hasOwnProperty(match[1]);
-      // Define the required uniform.
-      uniforms[match[1]] = {
-        type: "float",
-        value: parseFloat(match[2] + match[3]),
-      };
-    }
+  // Replace any numbers in the name with the word equivalents.
+  const cleanName = replaceDigitsWithWords(name);
+  if (isReservedName(cleanName)) {
+    alert(
+      "The name '" +
+        name +
+        "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
+        name +
+        "."
+    );
+  } else {
+    // If no such uniform exists, make a note of this.
+    addingNewUniform = !uniforms.hasOwnProperty(cleanName);
+    // Define the required uniform.
+    uniforms[cleanName] = {
+      type: "float",
+      value: value,
+    };
   }
   return addingNewUniform;
 }
@@ -5623,10 +5622,88 @@ function setKineticUniformFromString(str) {
 function kineticUniformsForShader() {
   // Given the kinetic parameters in options.kineticParams, return GLSL defining uniforms with
   // these names.
-  const regex = /;?\s*(\w+)\s*=\s*[\+\-]?\s*([0-9\.]+)\s*;?/g;
+  const regex = /;?\s*(\w+)\s*=[^;]*;?/g;
   return replaceDigitsWithWords(
     sanitisedKineticParams().replaceAll(regex, "uniform float $1;\n")
   );
+}
+
+function evaluateParamVals(strs) {
+  // Return a list of (name,value) pairs for parameters defined in
+  // a list of strings. These can depend on each other, but not cyclically.
+  let strDict = {};
+  let valDict = {};
+  let badNames = [];
+  strs.forEach(function (str) {
+    const [name, valStr] = str.split("=").map((x) => x.trim());
+    strDict[name] = valStr;
+  });
+  const nameVals = strs.map((x) => x.split("=").map((y) => y.trim()));
+  const names = nameVals.map((x) => x[0]);
+  for (const nameVal of nameVals) {
+    // Evaluate each parameter.
+    let [name, val] = nameVal;
+    if (!(name in valDict)) {
+      // We've not computed the value of this yet.
+      [valDict, , badNames] = evaluateParam(
+        name,
+        strDict,
+        valDict,
+        [name],
+        names,
+        []
+      );
+    }
+  }
+  // If the parameters were cyclic, throw an error.
+  if (badNames.length > 0) {
+    pauseSim();
+    throwError(
+      "Cyclic parameters detected. Please check the definitions of " +
+        badNames.join(", ") +
+        "."
+    );
+  }
+  return Object.keys(valDict).map((x) => [x, valDict[x]]);
+}
+
+function evaluateParam(name, strDict, valDict, stack, names, badNames) {
+  // If we know the value already, don't do anything.
+  if (name in valDict) return [valDict, stack.slice(0, -1), badNames];
+  // Find any names in val and evaluate them.
+  let regex;
+  for (const otherName of names) {
+    // Skip the name if it's not in vals.
+    regex = new RegExp("\\b" + otherName + "\\b", "g");
+    if (!regex.test(strDict[name])) continue;
+    // Otherwise, check if it's a bad name.
+    if (stack.includes(otherName)) {
+      // We've hit a parameter that we're already trying to evaluate - cyclic!
+      // Set the value to 0 and record the name as bad so that we can throw an error.
+      valDict[otherName] = 0.0;
+      strDict[otherName] = "0";
+      strDict[name] = "0";
+      badNames.push(otherName);
+    } else {
+      // Otherwise, try and evaluate the parameter and substitute the value into the expression.
+      [valDict, , badNames] = evaluateParam(
+        otherName,
+        strDict,
+        valDict,
+        [...stack, otherName],
+        names,
+        badNames
+      );
+      strDict[name] = strDict[name].replaceAll(
+        regex,
+        valDict[otherName].toString()
+      );
+    }
+  }
+  // Now that we've assigned all the values that we could need, parse the expression.
+  // valDict[name] = parser.evaluate(strDict[name]);
+  valDict[name] = parseFloat(strDict[name]);
+  return [valDict, stack.slice(0, -1), badNames];
 }
 
 function updateShaders() {
