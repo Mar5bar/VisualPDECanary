@@ -4684,6 +4684,9 @@ function parseStringToTEX(str) {
   // If there's an underscore, put {} around the word that follows it.
   str = str.replaceAll(/_(\w+\b)/g, "_{$1}");
 
+  // If letters are followed by only numbers, assume that the numbers are a subscript.
+  str = str.replaceAll(/\b([a-zA-Z]+)([0-9]+)\b/g, "$1_{$2}");
+
   return str;
 }
 
