@@ -5644,7 +5644,7 @@ function replaceDigitsWithWords(strIn) {
   let regex;
   let strOut = strIn;
   for (let num = 0; num < 10; num++) {
-    regex = new RegExp("([a-zA-Z_]+)(" + num.toString() + ")", "g");
+    regex = new RegExp("([a-zA-Z_]+[0-9]*)(" + num.toString() + ")", "g");
     while (strOut != (strOut = strOut.replace(regex, "$1" + numsAsWords[num])));
   }
   return strOut;
