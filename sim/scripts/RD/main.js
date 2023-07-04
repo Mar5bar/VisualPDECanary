@@ -253,6 +253,8 @@ let TeXStrings = {
 let listOfSpecies, listOfReactions, anySpeciesRegexStrs;
 const fieldsInView = getFieldsInView();
 
+let parser = new exprEval.Parser();
+
 // Setup some configurable options.
 options = {};
 
@@ -5659,7 +5661,7 @@ function evaluateParamVals(strs) {
   if (badNames.length > 0) {
     pauseSim();
     throwError(
-      "Cyclic parameters detected. Please check the definitions of " +
+      "Cyclic parameters detected. Please check the definition(s) of " +
         badNames.join(", ") +
         "."
     );
@@ -5701,8 +5703,7 @@ function evaluateParam(name, strDict, valDict, stack, names, badNames) {
     }
   }
   // Now that we've assigned all the values that we could need, parse the expression.
-  // valDict[name] = parser.evaluate(strDict[name]);
-  valDict[name] = parseFloat(strDict[name]);
+  valDict[name] = parser.evaluate(strDict[name]);
   return [valDict, stack.slice(0, -1), badNames];
 }
 
