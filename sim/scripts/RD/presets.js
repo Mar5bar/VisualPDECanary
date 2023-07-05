@@ -1689,6 +1689,7 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "neumann",
         boundaryConditionsV: "neumann",
+        brushAction: "smoothreplace",
         brushRadius: 1,
         clearValueU: "0",
         clearValueV: "0",
@@ -1721,6 +1722,7 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
+        brushAction: "smoothreplace",
         brushRadius: 2,
         clearValueU: "0",
         crossDiffusion: true,
@@ -1733,7 +1735,7 @@ export function getPreset(id) {
         dt: 0.002,
         kineticParams: "D=1;C=0.01;m=8 in [0,10];d=0 in [0,0.01,0.1];",
         minColourValue: -1,
-        preset: "PRESETNAME",
+        preset: "dampedWaveEquation",
         reactionStrU: "v",
         reactionStrV: "-d*v",
         reactionStrW: "0",
@@ -1893,6 +1895,7 @@ export function getPreset(id) {
 
     case "waveEquation":
       options = {
+        brushAction: "smoothreplace",
         brushRadius: 5,
         crossDiffusion: true,
         diffusionStrUU: "C*D",
@@ -1916,6 +1919,7 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "neumann",
         boundaryConditionsV: "neumann",
+        brushAction: "smoothreplace",
         brushRadius: 5,
         clearValueU: "cos(n*pi*x/L_x)*cos(m*pi*y/L_y)",
         crossDiffusion: true,
@@ -1940,6 +1944,7 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "neumann",
         boundaryConditionsV: "neumann",
+        brushAction: "smoothreplace",
         brushRadius: 5,
         cameraTheta: 0.5,
         cameraPhi: 0,
@@ -1970,6 +1975,7 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "neumann",
         boundaryConditionsV: "neumann",
+        brushAction: "smoothreplace",
         brushRadius: 5,
         cameraTheta: 31.171766170073973,
         cameraPhi: 6.119583405771913,
