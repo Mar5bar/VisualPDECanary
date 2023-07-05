@@ -63,19 +63,12 @@ let leftGUI,
   cameraThetaController,
   cameraPhiController,
   cameraZoomController,
-  contourEpsilonController,
-  contourNumController,
+  contoursControllers = [],
   minColourValueController,
   maxColourValueController,
   setColourRangeController,
   autoSetColourRangeController,
-  embossShinyController,
-  embossSmoothnessController,
-  embossAmbientController,
-  embossDiffuseController,
-  embossSpecularController,
-  embossThetaController,
-  embossPhiController,
+  embossControllers = [],
   clearValueUController,
   clearValueVController,
   clearValueWController,
@@ -327,6 +320,11 @@ Array.prototype.rotate = (function () {
     return this;
   };
 })();
+
+// Define a handy 'last' function to return the last element.
+Array.prototype.last = function () {
+  return this[this.length - 1];
+};
 
 // Get the canvas to draw on, as specified by the html.
 canvas = document.getElementById("simCanvas");
@@ -1995,6 +1993,7 @@ function initGUI(startOpen) {
     '<i class="fa-solid fa-bars-progress"></i> Bar',
     function () {
       configureColourbar();
+      updateView("colourbar");
     },
     null,
     "Display the colourbar",
@@ -2072,91 +2071,119 @@ function initGUI(startOpen) {
     .onChange(function () {
       setContourUniforms();
       renderIfNotRunning();
+      updateView(this.property);
     });
 
-  contourNumController = root
-    .add(options, "contourNum")
-    .name("Number")
-    .onChange(function () {
-      setContourUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(contourNumController, 1, 20, 1);
+  contoursControllers.push(
+    root
+      .add(options, "contourNum")
+      .name("Number")
+      .onChange(function () {
+        setContourUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(contoursControllers.last(), 1, 20, 1);
 
-  contourEpsilonController = root
-    .add(options, "contourEpsilon")
-    .name("Threshold")
-    .onChange(function () {
-      setContourUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(contourEpsilonController, 0.001, 0.05, 0.001);
+  contoursControllers.push(
+    root
+      .add(options, "contourEpsilon")
+      .name("Threshold")
+      .onChange(function () {
+        setContourUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(contoursControllers.last(), 0.001, 0.05, 0.001);
 
   root = editViewFolder.addFolder("Lighting");
   root.domElement.id = "embossFolder";
 
-  embossSmoothnessController = root
-    .add(options, "embossSmoothness")
-    .name("Smoothness")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossSmoothnessController, 0, 2, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossSmoothness")
+      .name("Smoothness")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 2, 0.001);
 
-  embossAmbientController = root
-    .add(options, "embossAmbient")
-    .name("Ambient")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossAmbientController, 0, 1, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossAmbient")
+      .name("Ambient")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 1, 0.001);
 
-  embossDiffuseController = root
-    .add(options, "embossDiffuse")
-    .name("Diffuse")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossDiffuseController, 0, 1, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossDiffuse")
+      .name("Diffuse")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 1, 0.001);
 
-  embossSpecularController = root
-    .add(options, "embossSpecular")
-    .name("Specular")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossSpecularController, 0, 1, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossSpecular")
+      .name("Specular")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 1, 0.001);
 
-  embossShinyController = root
-    .add(options, "embossShiny")
-    .name("Precision")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossShinyController, 0, 100, 1);
+  embossControllers.push(
+    root
+      .add(options, "embossShiny")
+      .name("Precision")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 100, 1);
 
-  embossThetaController = root
-    .add(options, "embossTheta")
-    .name("Inclination")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossThetaController, 0, 1.5708, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossTheta")
+      .name("Inclination")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 1.5708, 0.001);
 
-  embossPhiController = root
-    .add(options, "embossPhi")
-    .name("Direction")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossPhiController, 0, 3.1456, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossPhi")
+      .name("Direction")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 3.1456, 0.001);
 
   root = editViewFolder.addFolder("Overlay");
   root.domElement.id = "overlayFolder";
@@ -2167,6 +2194,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setOverlayUniforms();
       renderIfNotRunning();
+      updateView(this.property);
     });
 
   root
@@ -2183,6 +2211,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setOverlayUniforms();
       renderIfNotRunning();
+      updateView(this.property);
     });
 
   linesAnd3DFolder = editViewFolder.addFolder("3D");
@@ -2198,8 +2227,8 @@ function initGUI(startOpen) {
       uniforms.customSurface.value = options.customSurface;
       setSurfaceShader();
       configureCustomSurfaceControllers();
-      updateView("customSurface");
       renderIfNotRunning();
+      updateView("customSurface");
     },
     "customSurfaceToggle",
     "Plot the solution on a custom surface"
@@ -2217,22 +2246,34 @@ function initGUI(startOpen) {
   threeDHeightScaleController = root
     .add(options, "threeDHeightScale")
     .name("Max height")
-    .onChange(updateUniforms);
+    .onChange(function () {
+      updateUniforms();
+      updateView(this.property);
+    });
 
   cameraThetaController = root
     .add(options, "cameraTheta")
     .name("View $\\theta$")
-    .onChange(configureCameraAndClicks);
+    .onChange(function () {
+      configureCameraAndClicks();
+      updateView(this.property);
+    });
 
   cameraPhiController = root
     .add(options, "cameraPhi")
     .name("View $\\phi$")
-    .onChange(configureCameraAndClicks);
+    .onChange(function () {
+      configureCameraAndClicks();
+      updateView(this.property);
+    });
 
   cameraZoomController = root
     .add(options, "cameraZoom")
     .name("Zoom")
-    .onChange(configureCameraAndClicks);
+    .onChange(function () {
+      configureCameraAndClicks();
+      updateView(this.property);
+    });
 
   lineWidthMulController = root
     .add(options, "lineWidthMul", 0.1, 2)
@@ -2240,6 +2281,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setLineWidth();
       render();
+      updateView(this.property);
     });
 
   const inputs = document.querySelectorAll("input");
@@ -4227,7 +4269,7 @@ function configureGUI() {
     listOfSpecies.slice(0, options.numSpecies)
   );
   // Update emboss sliders.
-  updateEmbossSliders();
+  updateViewSliders();
   // Update all toggle buttons.
   $(".toggle_button").each(function () {
     updateToggle(this);
@@ -6331,6 +6373,7 @@ function applyView(view, update) {
     updateUniforms();
     updateColourbarLims();
     configureColourbar();
+    updateViewSliders();
     render();
   }
 
@@ -6746,32 +6789,12 @@ function createOptionSlider(controller, min, max, step) {
   );
 }
 
-function updateEmbossSliders() {
-  embossShinyController.slider.style.setProperty(
-    "--value",
-    options.embossShiny
-  );
-  embossSmoothnessController.slider.style.setProperty(
-    "--value",
-    options.embossSmoothness
-  );
-  embossAmbientController.slider.style.setProperty(
-    "--value",
-    options.embossAmbient
-  );
-  embossDiffuseController.slider.style.setProperty(
-    "--value",
-    options.embossDiffuse
-  );
-  embossSpecularController.slider.style.setProperty(
-    "--value",
-    options.embossSpecular
-  );
-  embossThetaController.slider.style.setProperty(
-    "--value",
-    options.embossTheta
-  );
-  embossPhiController.slider.style.setProperty("--value", options.embossPhi);
+function updateViewSliders() {
+  for (const controller of [...embossControllers, ...contoursControllers]) {
+    let value = controller.getValue();
+    controller.slider.style.setProperty("--value", value);
+    controller.slider.value = value;
+  }
 }
 
 function setContourUniforms() {
