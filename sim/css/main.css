@@ -844,8 +844,8 @@ select {
   align-items: center;
   border: 1px solid #dddddd;
   height: 1.8rem;
-  padding-left: 0.3rem;
-  padding-right: 0.2rem;
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
   border-radius: 5px;
   text-align: center;
   margin-top: 3px;
@@ -855,10 +855,14 @@ select {
 
 .button_list a.wide {
   width: 7em;
+  padding-left: 0.3rem;
+  padding-right: 0.2rem;
 }
 
 .button_list a.narrow {
   width: 4em;
+  padding-left: 0.3rem;
+  padding-right: 0.2rem;
 }
 
 .button_list a .svg-inline--fa {
