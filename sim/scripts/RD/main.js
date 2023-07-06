@@ -248,6 +248,9 @@ let listOfSpecies, listOfReactions, anySpeciesRegexStrs;
 const fieldsInView = getFieldsInView();
 
 let parser = new exprEval.Parser();
+parser.consts.pi = Math.PI;
+parser.consts.Pi = Math.PI;
+parser.consts.e = Math.exp(1.0);
 
 // Setup some configurable options.
 options = {};
