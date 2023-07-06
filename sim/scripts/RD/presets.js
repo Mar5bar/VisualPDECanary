@@ -991,7 +991,7 @@ export function getPreset(id) {
         boundaryConditionsU: "neumann",
         boundaryConditionsV: "neumann",
         boundaryConditionsW: "neumann",
-        brushRadius: 0,
+        brushRadius: 10,
         clearValueU: "0.1*RAND+x/100",
         clearValueV: "0.1*(1+RAND)",
         clearValueW: "0.1*(1+RAND)",
@@ -1267,7 +1267,8 @@ export function getPreset(id) {
       options = {
         boundaryConditionsU: "dirichlet",
         boundaryConditionsV: "dirichlet",
-        brushRadius: 0,
+        brushEnabled: false,
+        brushRadius: 5,
         cameraTheta: 0.5,
         cameraPhi: 0,
         cameraZoom: 0.76,
@@ -1637,7 +1638,8 @@ export function getPreset(id) {
     case "inhomogHeatEquation":
       options = {
         boundaryConditionsU: "neumann",
-        brushRadius: 0,
+        brushEnabled: false,
+        brushRadius: 10,
         clearValueU: "0",
         diffusionStrUU: "1",
         diffusionStrVV: "0",
