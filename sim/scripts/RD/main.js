@@ -899,7 +899,14 @@ function updateUniforms() {
 
 function computeCanvasSizesAndAspect() {
   // Parse the domain scale.
-  domainScaleValue = parser.evaluate(options.domainScale);
+  try {
+    domainScaleValue = parser.evaluate(options.domainScale);
+  } catch (error) {
+    throwError(
+      "Unable to evaluate the domain length. Please check the definition."
+    );
+    domainScaleValue = 100;
+  }
   canvasWidth = Math.round(canvas.getBoundingClientRect().width);
   canvasHeight = Math.round(canvas.getBoundingClientRect().height);
   aspectRatio = canvasHeight / canvasWidth;
@@ -5719,7 +5726,6 @@ function evaluateParamVals(strs) {
   }
   // If the parameters were cyclic, throw an error.
   if (badNames.length > 0) {
-    pauseSim();
     throwError(
       "Cyclic parameters detected. Please check the definition(s) of " +
         badNames.join(", ") +
@@ -5766,7 +5772,6 @@ function evaluateParam(name, strDict, valDict, stack, names, badNames) {
   try {
     valDict[name] = parser.evaluate(strDict[name]);
   } catch (error) {
-    pauseSim();
     throwError(
       "Unable to evaluate the definition of " +
         name +
@@ -6284,6 +6289,7 @@ function setDefaultRenderSize() {
 }
 
 function throwError(message) {
+  pauseSim();
   // If an error is already being displayed, just update the message.
   if ($("#error").is(":visible")) {
     $("#error_description").html(message);
