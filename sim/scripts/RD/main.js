@@ -127,6 +127,7 @@ let nXDisc,
   canvasWidth,
   canvasHeight,
   usingLowResDomain = true,
+  domainScaleValue = 1,
   domainScaleFactor = 1;
 let parametersFolder,
   kineticParamsStrs = {},
@@ -879,7 +880,7 @@ function configureCameraAndClicks() {
 }
 
 function updateUniforms() {
-  uniforms.L.value = options.domainScale;
+  uniforms.L.value = domainScaleValue;
   uniforms.L_y.value = domainHeight;
   uniforms.L_x.value = domainWidth;
   uniforms.L_min.value = Math.min(domainHeight, domainWidth);
@@ -897,20 +898,22 @@ function updateUniforms() {
 }
 
 function computeCanvasSizesAndAspect() {
+  // Parse the domain scale.
+  domainScaleValue = parser.evaluate(options.domainScale);
   canvasWidth = Math.round(canvas.getBoundingClientRect().width);
   canvasHeight = Math.round(canvas.getBoundingClientRect().height);
   aspectRatio = canvasHeight / canvasWidth;
   if (aspectRatio <= 0) aspectRatio = 0.1;
-  // Set the domain size, setting the largest side to be of size options.domainScale.
+  // Set the domain size, setting the largest side to be of size domainScaleValue.
   if (aspectRatio >= 1) {
-    domainHeight = options.domainScale;
+    domainHeight = domainScaleValue;
     domainWidth = domainHeight / aspectRatio;
   } else {
-    domainWidth = options.domainScale;
+    domainWidth = domainScaleValue;
     domainHeight = domainWidth * aspectRatio;
   }
   if (options.dimension == 1) {
-    domainWidth = options.domainScale;
+    domainWidth = domainScaleValue;
   }
   uniforms.L_x.value = domainWidth;
   uniforms.L_y.value = domainHeight;
@@ -926,7 +929,7 @@ function setSizes() {
     alert(
       "Oops! A spatial step of 0 would almost certainly crash your device. We've reset it to 1% of the maximum domain length to prevent this."
     );
-    options.spatialStep = options.domainScale / 100;
+    options.spatialStep = domainScaleValue / 100;
   }
   nXDisc = Math.floor(domainWidth / options.spatialStep);
   nYDisc = Math.floor(domainHeight / options.spatialStep);
@@ -1268,7 +1271,7 @@ function initGUI(startOpen) {
       renderIfNotRunning();
     });
 
-  root.add(options, "domainScale").name("Largest side").onChange(resize);
+  root.add(options, "domainScale").name("Largest side").onFinishChange(resize);
 
   const dxController = root
     .add(options, "spatialStep")
@@ -3361,7 +3364,7 @@ function loadPreset(preset) {
   }
 
   // Update the domain scale based on URL params.
-  options.domainScale *= domainScaleFactor;
+  domainScaleValue *= domainScaleFactor;
 
   // Configure views.
   configureViews();
@@ -3513,6 +3516,9 @@ function loadOptions(preset) {
     // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
     if (options.minColourValue == null) options.minColourValue = 0;
     if (options.maxColourValue == null) options.maxColourValue = 1;
+
+    // If options.domainScale is not a string, convert it to one.
+    options.domainScale = options.domainScale.toString();
 
     // Save these loaded options if we ever need to revert.
     savedOptions = options;
