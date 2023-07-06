@@ -5139,7 +5139,9 @@ function setParamsFromKineticString() {
   // Take the kineticParams string in the options and
   // use it to populate a GUI containing these parameters
   // as individual options.
-  let label, str;
+  let label,
+    str,
+    newLabels = [];
   let strs = options.kineticParams.split(";");
   for (var index = 0; index < strs.length; index++) {
     str = removeWhitespace(strs[index]);
@@ -5155,8 +5157,13 @@ function setParamsFromKineticString() {
       kineticParamsCounter += 1;
       kineticParamsLabels.push(label);
       kineticParamsStrs[label] = str;
-      createParameterController(label, false);
+      newLabels.push(label);
     }
+  }
+  // Having defined all the parameters, create the controllers. This separate loops allows dependencies
+  // between parameters, as all parameters have been initialised by this point.
+  for (const label of newLabels) {
+    createParameterController(label, false);
   }
   // Finally, create an empty controller for adding parameters.
   label = "param" + kineticParamsCounter;
@@ -5602,33 +5609,34 @@ function checkColourbarLogoCollision() {
   }
 }
 
-function sanitisedKineticParams() {
+function getKineticParamDefs() {
   // options.kineticParams could contain additional directives, like "in [0,1]", used
   // to create additional controllers. We want to save these in options.kineticParams, but
   // can't pass them to the shader like this. Here, we strip these directives from the string.
   // If a kineticParam is of the form "name = val in [a,b]", remove the in [a,b] part.
   let out = options.kineticParams.replaceAll(/\bin[^;]*;?/g, ";");
 
-  // A user may have used numbers when defining variable names. Replace them with the word form.
-  out = replaceDigitsWithWords(out);
-
   return out;
+}
+
+function sanitise(str) {
+  return replaceDigitsWithWords(str);
 }
 
 function getKineticParamNames() {
   // Return a list of parsed kinetic parameter names.
   const regex = /(\w+)\s*=/;
-  return sanitisedKineticParams()
+  return getKineticParamDefs()
     .split(";")
     .filter((x) => x.length > 0)
-    .map((x) => x.replace(regex, "$1").trim());
+    .map((x) => x.match(regex)[1].trim());
 }
 
 function setKineticUniforms() {
   // Set uniforms based on the parameters defined in kineticParams.
   // Return true if we're adding a new uniform, which signifies that all shaders must be
   // updated to reference this new uniform.
-  const paramStrs = sanitisedKineticParams()
+  const paramStrs = getKineticParamDefs()
     .split(";")
     .filter((x) => x.length > 0);
   const nameVals = evaluateParamVals(paramStrs);
@@ -5644,8 +5652,8 @@ function setKineticUniform(name, value) {
   // Return true if we're adding a new uniform, which signifies that all shaders must be
   // updated to reference this new uniform.
   let addingNewUniform = false;
-  // Replace any numbers in the name with the word equivalents.
-  const cleanName = replaceDigitsWithWords(name);
+  // Sanitise the name for the shader.
+  const cleanName = sanitise(name);
   if (isReservedName(cleanName)) {
     alert(
       "The name '" +
@@ -5669,9 +5677,10 @@ function setKineticUniform(name, value) {
 function kineticUniformsForShader() {
   // Given the kinetic parameters in options.kineticParams, return GLSL defining uniforms with
   // these names.
-  const regex = /;?\s*(\w+)\s*=[^;]*;?/g;
-  return replaceDigitsWithWords(
-    sanitisedKineticParams().replaceAll(regex, "uniform float $1;\n")
+  return sanitise(
+    getKineticParamNames()
+      .map((x) => "uniform float " + x + ";")
+      .join("\n")
   );
 }
 
@@ -5748,7 +5757,17 @@ function evaluateParam(name, strDict, valDict, stack, names, badNames) {
     }
   }
   // Now that we've assigned all the values that we could need, parse the expression.
-  valDict[name] = parser.evaluate(strDict[name]);
+  try {
+    valDict[name] = parser.evaluate(strDict[name]);
+  } catch (error) {
+    pauseSim();
+    throwError(
+      "Unable to evaluate the definition of " +
+        name +
+        ". Please check for syntax errors or undefined parameters."
+    );
+    valDict[name] = 0;
+  }
   return [valDict, stack.slice(0, -1), badNames];
 }
 
