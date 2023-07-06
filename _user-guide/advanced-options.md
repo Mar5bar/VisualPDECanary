@@ -210,10 +210,10 @@ Enable or disable the brush. Most simulations will have the brush enabled by def
 Change the shape of the brush, choosing between **Disk**, **Horizontal line** and **Vertical line**.
 
 * ***Value***\
-Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally-distributed random number with unit variance and zero mean.
+Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally-distributed random number with unit variance and zero mean.
 
 * ***Radius***\
-Change the brush size, measured on the same scale as the domain size. This can even be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
+Change the brush size, measured on the same scale as the domain size. This can even be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
 
 * ***Species***\
 Set the **species** ($u$, $v$, $w$, $q$) you are painting.
@@ -223,10 +223,10 @@ Set the **species** ($u$, $v$, $w$, $q$) you are painting.
 Choose between a 1D or a 2D computational domain. Switching to 1D effectively removes the $y$ dimension from the simulation. Make sure that any expressions you've defined don't contain a $y$ after moving to 1D.
 
 * ***Largest side***\
-Change the largest side $L$ of the domain. Must be a numerical value.
+Change the largest side $L$ of the domain. Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
 
 * ***Space step***\
-Set the spatial step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the spatial step (as discussed [here](/user-guide/solver#timestepping)). Must be a numerical value.
+Set the spatial step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the spatial step (as discussed [here](/user-guide/solver#timestepping)). Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
 
 * ***Square***\
 Toggle whether or not the domain is forced to be square, independent of the aspect ratio of your device/window.

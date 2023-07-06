@@ -931,15 +931,23 @@ function setSizes() {
   computeCanvasSizesAndAspect();
   // Using the user-specified spatial step size, compute as close a discretisation as possible that
   // doesn't reduce the step size below the user's choice.
-  if (options.spatialStep == 0) {
-    // Prevent a crash if a 0 spatial step is specified.
-    alert(
-      "Oops! A spatial step of 0 would almost certainly crash your device. We've reset it to 1% of the maximum domain length to prevent this."
+  let spatialStepValue = domainScaleValue / 100;
+  try {
+    spatialStepValue = parser.evaluate(options.spatialStep);
+  } catch (error) {
+    throwError(
+      "Unable to evaluate the spatial step. Please check the definition."
     );
-    options.spatialStep = domainScaleValue / 100;
   }
-  nXDisc = Math.floor(domainWidth / options.spatialStep);
-  nYDisc = Math.floor(domainHeight / options.spatialStep);
+  if (spatialStepValue <= 0) {
+    // Prevent a crash if a <=0 spatial step is specified.
+    throwError(
+      "Oops! A spatial step less than or equal to 0 would almost certainly crash your device. Please check the definition."
+    );
+    spatialStepValue = domainScaleValue / 100;
+  }
+  nXDisc = Math.floor(domainWidth / spatialStepValue);
+  nYDisc = Math.floor(domainHeight / spatialStepValue);
   if (nXDisc == 0) nXDisc = 1;
   if (nYDisc == 0) nYDisc = 1;
   // If the user has specified that this is a 1D problem, set nYDisc = 1.
@@ -1260,7 +1268,7 @@ function initGUI(startOpen) {
 
   root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
 
-  root.add(options, "brushRadius").name("Radius").onChange(setBrushType);
+  root.add(options, "brushRadius").name("Radius").onFinishChange(setBrushType);
 
   whatToDrawController = root
     .add(options, "whatToDraw", listOfSpecies)
@@ -1280,15 +1288,7 @@ function initGUI(startOpen) {
 
   root.add(options, "domainScale").name("Largest side").onFinishChange(resize);
 
-  const dxController = root
-    .add(options, "spatialStep")
-    .name("Space step")
-    .onChange(function () {
-      resize();
-    });
-  dxController.__precision = 12;
-  dxController.min(0);
-  dxController.updateDisplay();
+  root.add(options, "spatialStep").name("Space step").onFinishChange(resize);
 
   const domainButtonList = addButtonList(root);
 
@@ -2976,7 +2976,7 @@ function parseShaderString(str) {
   );
 
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
-  str = replaceDigitsWithWords(str);
+  str = sanitise(str);
 
   // Replace images evaluated at coordinates with appropriate shader expressions.
   str = enableImageLookupInShader(str, "I_TR");
@@ -3184,7 +3184,7 @@ function setRDEquations() {
   // the update shader as uvwxy[XY].[rgba]. If they've done this, warn them and don't update the shader.
   let match = diffusionShader.match(/\buvwq[XY]\.[rgba]\b/);
   if (match) {
-    alert(
+    throwError(
       "Including derivatives in the diffusion coefficients is not supported. Try casting your PDE in another form."
     );
     return;
@@ -3526,6 +3526,8 @@ function loadOptions(preset) {
 
     // If options.domainScale is not a string, convert it to one.
     options.domainScale = options.domainScale.toString();
+    // If options.spatialStep is not a string, convert it to one.
+    options.spatialStep = options.spatialStep.toString();
 
     // Save these loaded options if we ever need to revert.
     savedOptions = options;
@@ -5075,7 +5077,7 @@ function createParameterController(label, isNextParam) {
         createParameterController(newLabel, true);
         // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
-        if (setKineticUniforms || compileErrorOccurred) {
+        if (setKineticUniforms() || compileErrorOccurred) {
           // Reset the error flag.
           compileErrorOccurred = false;
           updateShaders();
@@ -5112,7 +5114,10 @@ function createParameterController(label, isNextParam) {
         kineticParamsLabels.splice(index, 1);
         delete kineticParamsStrs[label];
         // Remove any uniform created with this parameter name.
-        if (controller.hasOwnProperty("lastName")) {
+        if (
+          controller.hasOwnProperty("lastName") &&
+          !isReservedName(controller.lastName)
+        ) {
           delete uniforms[controller.lastName];
         }
       } else {
@@ -5123,7 +5128,8 @@ function createParameterController(label, isNextParam) {
         if (
           match &&
           controller.hasOwnProperty("lastName") &&
-          controller.lastName != match[1]
+          controller.lastName != match[1] &&
+          !isReservedName(controller.lastName)
         ) {
           delete uniforms[controller.lastName];
           controller.lastName = match[1];
@@ -5654,10 +5660,13 @@ function setKineticUniforms() {
     .filter((x) => x.length > 0);
   const nameVals = evaluateParamVals(paramStrs);
   let addingNewUniform = false;
+  let encounteredError = false;
   for (const nameVal of nameVals) {
-    addingNewUniform |= setKineticUniform(nameVal[0], nameVal[1]);
+    let [uniformFlag, errorFlag] = setKineticUniform(nameVal[0], nameVal[1]);
+    addingNewUniform |= addingNewUniform;
+    encounteredError |= errorFlag;
   }
-  return addingNewUniform;
+  return addingNewUniform && !encounteredError;
 }
 
 function setKineticUniform(name, value) {
@@ -5665,16 +5674,18 @@ function setKineticUniform(name, value) {
   // Return true if we're adding a new uniform, which signifies that all shaders must be
   // updated to reference this new uniform.
   let addingNewUniform = false;
+  let errorFlag = false;
   // Sanitise the name for the shader.
   const cleanName = sanitise(name);
   if (isReservedName(cleanName)) {
-    alert(
+    throwError(
       "The name '" +
         name +
         "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
         name +
         "."
     );
+    errorFlag = true;
   } else {
     // If no such uniform exists, make a note of this.
     addingNewUniform = !uniforms.hasOwnProperty(cleanName);
@@ -5684,7 +5695,7 @@ function setKineticUniform(name, value) {
       value: value,
     };
   }
-  return addingNewUniform;
+  return [addingNewUniform, errorFlag];
 }
 
 function kineticUniformsForShader() {
