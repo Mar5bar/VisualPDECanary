@@ -2368,7 +2368,7 @@ export function getPreset(id) {
         embossPhi: 1.5708,
         embossShiny: 10.0,
         embossSmoothness: 0.2,
-        embossSpecular: 0.6,
+        embossSpecular: 0.2,
         embossTheta: 0.7854,
         fixRandSeed: false,
         flippedColourmap: false,
