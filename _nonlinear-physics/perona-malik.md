@@ -4,13 +4,13 @@ title: The Perona-Malik equation
 lesson_number: 90
 thumbnail: /assets/images/complexGinzburgLandau.webp
 extract: Image denoising via nonlinear anisotropic diffusion
-equation: $\pd{u}{t}=\vnabla \cdot \left (e^{-D |\vn\bla u|^2}\vnabla u\right) $
+equation: $\pd{u}{t}=\vnabla \cdot \left (e^{-D |\vnabla u|^2}\vnabla u\right) $
 
 ---
 
 Here is an implementation of the [Perona-perona Malik equation](https://en.wikipedia.org/wiki/Anisotropic_diffusion) given by
 
-$$\pd{u}{t}=\vnabla \cdot \left (e^{-D |\vn\bla u|^2}\vnabla u\right) $$
+$$\pd{u}{t}=\vnabla \cdot \left (e^{-D |\vnabla u|^2}\vnabla u\right) $$
 
 which is use for image denoising. In particular, the nonlinear anisotropic diffusion causes sharp gradients to sharpen, and smoothes out more shallow noisy regions.
 
