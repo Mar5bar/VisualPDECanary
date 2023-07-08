@@ -4637,14 +4637,20 @@ function setEquationDisplayType() {
       }
     });
 
-    // Replace u_x, u_y etc with \pd{u}{x} etc.
-    regex = /\b([uvwq])_([xy])\b/g;
-    str = str.replaceAll(regex, "\\textstyle \\pd{$1}{$2}");
+    // Replace u_x, u_y etc with \pd{u}{x} etc. Add parentheses if followed by ^.
+    regex = /\b([uvwq])_([xy])\s*(\^?)\b/g;
+    str = str.replaceAll(regex, function (match, g1, g2, g3) {
+      let base = "\\textstyle \\pd{" + g1 + "}{" + g2 + "}";
+      if (g3 != "") base = "(" + base + ")" + g3;
+      return base;
+    });
 
     // Replace u_xx, u_yy etc with \pdd{u}{x} etc.
-    regex = /\b([uvwq])_(xx|yy)\b/g;
-    str = str.replaceAll(regex, function (match, g1, g2) {
-      return "\\textstyle \\pdd{" + g1 + "}{" + g2[0] + "}";
+    regex = /\b([uvwq])_(xx|yy)\s*(\^?)\b/g;
+    str = str.replaceAll(regex, function (match, g1, g2, g3) {
+      let base = "\\textstyle \\pdd{" + g1 + "}{" + g2[0] + "}";
+      if (g3 != "") base = "(" + base + ")" + g3;
+      return base;
     });
 
     // Replace RAND with \mathcal{U}.
