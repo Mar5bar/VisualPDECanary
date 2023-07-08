@@ -179,7 +179,7 @@ export function getPreset(id) {
 	"diffusionStrWW": "0",
 	"dt": 0.0002,
 	"kineticParams": "C = 0.01;D = 2;",
-  	"imagePathTwo":"./images/SnapshotChemicalBasis.PNG",
+  	"imagePathTwo":"./images/SnapshotChemicalBasis.png",
 	"numAlgebraicSpecies": 1,
 	"preset": "PeronaMalik",
 	"resetOnImageLoad": true,
