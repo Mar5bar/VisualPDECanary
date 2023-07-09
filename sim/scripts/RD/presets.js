@@ -168,9 +168,9 @@ export function getPreset(id) {
       break;
     case "PeronaMalik":
       options = {
-        brushAction: "smoothadd",
-        brushRadius: "200",
-        brushValue: "0.2*RAND^10",
+        brushAction: "add",
+        brushRadius: "20",
+        brushValue: "0.3*(RAND-0.5)",
         clearValueU: "(1+tanh(5*(1-I_T-0.4)))/2+sigma*(RAND-0.5)",
         colourmap: "greyscale",
         crossDiffusion: true,
