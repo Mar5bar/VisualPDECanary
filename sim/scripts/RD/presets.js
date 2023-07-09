@@ -179,6 +179,7 @@ export function getPreset(id) {
 	"diffusionStrWW": "0",
 	"dt": 0.0002,
 	"embossSpecular": 0.6,
+	"imagePathOne": "./images/Penrose.webp",
 	"imagePathTwo": "./images/Oksendal.png",
 	"kineticParams": "D = 5;sigma = 1 in [0,2];",
 	"numAlgebraicSpecies": 1,
