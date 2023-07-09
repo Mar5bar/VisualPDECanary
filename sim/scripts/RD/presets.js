@@ -1069,7 +1069,7 @@ break;
         reactionStrU: "u*(1-u-a*v-b*w)",
         reactionStrV: "v*(1-b*u-v-a*w)",
         reactionStrW: "w*(1-a*u-b*v-w)",
-        spatialStep: 2,
+        spatialStep: 1,
         whatToDraw: "u",
         whatToPlot: "u",
         diffusionUStr: "0.000001",
