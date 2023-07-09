@@ -8,7 +8,7 @@ equation: $\pd{u}{t}=\vnabla \cdot \left (e^{-D |\vnabla u|^2}\vnabla u\right) $
 
 ---
 
-Here is an implementation of the [Perona-perona Malik equation](https://en.wikipedia.org/wiki/Anisotropic_diffusion) given by
+Here is an implementation of the [Perona-Malik equation](https://en.wikipedia.org/wiki/Anisotropic_diffusion) given by
 
 $$\pd{u}{t}=\vnabla \cdot \left (e^{-D |\vnabla u|^2}\vnabla u\right) $$
 
