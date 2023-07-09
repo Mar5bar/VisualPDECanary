@@ -6649,6 +6649,19 @@ function addNewline(parent) {
 function copyConfigAsJSON() {
   // Encode the current simulation configuration as raw JSON and put it on the clipboard.
   let objDiff = diffObjects(options, getPreset("default"));
+  // If there's only one view and it has the default name, remove the view from the preset.
+  if (options.views.length == 1 && options.views[0].name == "1") {
+    delete objDiff.views;
+  }
+  // If every view has the same value as options for a property, remove that property from the views.
+  for (const key of Object.keys(options.views[0])) {
+    if (options.hasOwnProperty(key)) {
+      if (options.views.map((e) => e[key]).every((v) => v == options[key])) {
+        options.views.forEach((v) => delete v[key]);
+      }
+    }
+  }
+
   objDiff.preset = "PRESETNAME";
   let str = JSON.stringify(objDiff)
     .replaceAll(/\s*,\s*([^0-9-\.\s])/g, ",\n\t$1")

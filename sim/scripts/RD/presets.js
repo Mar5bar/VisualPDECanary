@@ -1413,30 +1413,28 @@ export function getPreset(id) {
         whatToPlot: "u",
       };
       break;
-
     case "FitzHugh-Nagumo-3":
       options = {
+        brushRadius: "12.6",
         brushValue: "0",
-        brushRadius: 12.6,
         clearValueU: "5*(exp(-0.1*((x-L_x/2)^2+(y-L_y/2)^2)))",
         clearValueV: "5*(exp(-0.1*((x-L_x/2)^2+(y-L_y/2)^2)))",
         clearValueW: "5*(exp(-0.1*((x-L_x/2)^2+(y-L_y/2)^2)))",
         diffusionStrUU: "1",
         diffusionStrVV: "40",
         diffusionStrWW: "200",
-        domainScale: "340",
-        dt: 0.001,
+        domainScale: 300,
+        dt: 0.002,
         fixRandSeed: true,
         kineticParams:
-          "a_v=.065 in [0, 0.2];m=4;e_v=0.2;e_w=1;a_w=0.5;a_z=-0.1;",
+          "a_v = 0.2 in [0, 0.5];m = 4;e_v = 0.2;e_w = 1;a_w = 0.5;a_z = -0.1;",
         minColourValue: -1,
         numSpecies: "3",
         preset: "FitzHugh-Nagumo-3",
         reactionStrU: "u-u^3-v",
         reactionStrV: "e_v*(u-a_v*v-a_w*w-a_z)",
         reactionStrW: "e_w*(u-w)",
-        spatialStep: 1.8,
-        squareCanvas: true,
+        spatialStep: 1.3,
         suppressTryClickingPopup: true,
         whatToDraw: "u",
         whatToPlot: "u",
