@@ -166,20 +166,21 @@ export function getPreset(id) {
         ],
       };
       break;
-      case "PeronaMalik":
+	case "PeronaMalik":
 	options = {
 	"brushAction": "smoothadd",
 	"brushRadius": "200",
 	"brushValue": "0.2*RAND^10",
-	"clearValueU": "(1+tanh(5*(1-I_T-0.4)))/2+0.6*RAND^10",
+	"clearValueU": "(1+tanh(5*(1-I_T-0.4)))/2+sigma*RAND",
 	"colourmap": "greyscale",
 	"crossDiffusion": true,
 	"diffusionStrUU": "exp(-D*v)",
 	"diffusionStrVV": "0",
 	"diffusionStrWW": "0",
 	"dt": 0.0002,
-	"kineticParams": "C = 0.01;D = 2;",
-  	"imagePathTwo":"./images/SnapshotChemicalBasis.png",
+	"embossSpecular": 0.6,
+	"imagePathTwo": "./images/Oksendal.png",
+	"kineticParams": "D = 5;sigma = 1 in [0,2];",
 	"numAlgebraicSpecies": 1,
 	"preset": "PeronaMalik",
 	"resetOnImageLoad": true,
@@ -187,10 +188,10 @@ export function getPreset(id) {
 	"reactionStrV": "((u_x^2+u_y^2))",
 	"reactionStrW": "0",
 	"runningOnLoad": false,
-	"spatialStep": 0.1,
+	"spatialStep": "0.2",
 	"squareCanvas": true,
 	"timeDisplay": true,
-  	"tryClickingText": "Press play!",
+	"tryClickingText": "Press play!",
 	"views": [{"autoSetColourRange": false,
 	"cameraTheta": 30,
 	"cameraPhi": 30,
