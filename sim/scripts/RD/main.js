@@ -5678,6 +5678,16 @@ function setKineticUniforms() {
     .split(";")
     .filter((x) => x.length > 0);
   const nameVals = evaluateParamVals(paramStrs);
+  // Check for any duplicated parameter names.
+  const dups = getDuplicates(getKineticParamNames());
+  if (dups.length > 0) {
+    throwError(
+      "It looks like there are multiple definitions of '" +
+        dups.join("', '") +
+        "'. Please check your parameters to ensure everything has a unique definition."
+    );
+    return false;
+  }
   let addingNewUniform = false;
   let encounteredError = false;
   for (const nameVal of nameVals) {
@@ -6930,4 +6940,11 @@ function configureCustomSurfaceControllers() {
     $("#customSurfaceToggle").hide();
     hideGUIController(surfaceFunController);
   }
+}
+
+function getDuplicates(strarr) {
+  const seen = {};
+  let dups = [];
+  strarr.forEach((e) => (seen[e] ? dups.push(e) : (seen[e] = true)));
+  return Array.from(new Set(dups));
 }
