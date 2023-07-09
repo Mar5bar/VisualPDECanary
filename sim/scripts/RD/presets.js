@@ -171,7 +171,7 @@ export function getPreset(id) {
 	"brushAction": "smoothadd",
 	"brushRadius": "200",
 	"brushValue": "0.2*RAND^10",
-	"clearValueU": "(1+tanh(5*(1-I_T-0.4)))/2+sigma*RAND",
+	"clearValueU": "(1+tanh(5*(1-I_T-0.4)))/2+sigma*(RAND-0.5)",
 	"colourmap": "greyscale",
 	"crossDiffusion": true,
 	"diffusionStrUU": "exp(-D*v)",
