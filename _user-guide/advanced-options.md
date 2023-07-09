@@ -32,7 +32,7 @@ Define the inhomogeneities in the equations. These can be functions of space ($x
     Advanced users can also make careful use of 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally distributed random number with unit variance and zero mean. This converts the equations into [stochastic partial differential equations](https://en.wikipedia.org/wiki/Stochastic_partial_differential_equation), which should only be solved using the Forward Euler timestepping scheme. Both 'RAND' and 'RANDN' require manually dividing by 'sqrt(dt)' in non-algebraic equations so that the scheme resembles the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler–Maruyama_method). The solution under other timestepping schemes is undefined.
 
 ### Parameters <a id='parameters'>
-This menu contains a list of all the user-specified values that can be used throughout VisualPDE. New parameters can be defined using the empty input field at the bottom of the list of parameters. Parameters must be specified as numerical values and cannot depend on other quantities (including each other).
+This menu contains a list of all the user-specified values that can be used throughout VisualPDE. New parameters can be defined using the empty input field at the bottom of the list of parameters. Parameters can depend on one another, but their definitions cannot be cyclic.
 
 **Basics**\
 The basic syntax for defining a parameter is
@@ -56,7 +56,7 @@ creates a slider for your variable, ranging between the 'start' and 'stop' value
 a = 0.5 in [0,1]
 ```
 
-creates a slider that ranges between 0 and 1, with initial value 0.5 and an automatically determined step size.
+creates a slider that ranges between 0 and 1, with initial value 0.5 and an automatically determined step size. Parameters with sliders cannot be defined in terms of other parameters.
 
 The configuration of a slider (value, start, step, stop) can be updated by modifying the relevant parts of the expression that defines it. Sliders can be removed by deleting 'in ...' from the parameter definition, and will be removed automatically when the associated parameter is removed.
 
@@ -139,7 +139,7 @@ Specify the number of contour lines to plot. These are drawn at equally spaced i
 Set the relative numerical threshold, between 0 and 1, within which a contour will be detected. Smaller values result in more precise, thinner contours. Larger values may be needed to detect contours in solutions that vary rapidly in space. Under the hood, VisualPDE checks if a given output pixel is within this threshold of a given contour value, with all values normalised by the range of the colourbar. If the range of the colourbar is 0, the behaviour of contours is undefined.
 
 **Lighting**\
-Toggle lighting effects, which adds reflections and shadows to the solution. This often adds a fluid-like character to a simulation, as can be seen in the [Visual Story on water waves](/visual-stories/ripples). We make use of the [Phong reflection model](https://en.wikipedia.org/wiki/Phong_reflection_model). Details of the filter, including its strength and the orientation of the simulated light, can be specified in the **Lighting** menu that appears when lighting is enabled.
+Toggle lighting effects, which adds reflections and shadows to the solution. This often adds a fluid-like character to a simulation, as can be seen in the [Visual Story on water waves](/visual-stories/ripples). We make use of the [Phong reflection model](https://en.wikipedia.org/wiki/Phong_reflection_model). Details of the filter, including its strength and the orientation of the simulated light, can be specified in the **Lighting** menu that appears when lighting is enabled. Some lighting effects may appear slightly pixellated on some devices (typically Android tablets and iPadOS devices), though increasing the grid refinement will mitigate this.
 
 * ***Smoothness***\
 Configure the simulated smoothness of the surface. Low values will result in sharp shadows and reflections, whilst larger values will produce an apparently smoother surface.
@@ -210,10 +210,10 @@ Enable or disable the brush. Most simulations will have the brush enabled by def
 Change the shape of the brush, choosing between **Disk**, **Horizontal line** and **Vertical line**.
 
 * ***Value***\
-Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally-distributed random number with unit variance and zero mean.
+Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally-distributed random number with unit variance and zero mean.
 
 * ***Radius***\
-Change the brush size, measured on the same scale as the domain size. This can even be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
+Change the brush size, measured on the same scale as the domain size. This can even be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
 
 * ***Species***\
 Set the **species** ($u$, $v$, $w$, $q$) you are painting.
@@ -223,10 +223,10 @@ Set the **species** ($u$, $v$, $w$, $q$) you are painting.
 Choose between a 1D or a 2D computational domain. Switching to 1D effectively removes the $y$ dimension from the simulation. Make sure that any expressions you've defined don't contain a $y$ after moving to 1D.
 
 * ***Largest side***\
-Change the largest side $L$ of the domain. Must be a numerical value.
+Change the largest side $L$ of the domain. Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
 
 * ***Space step***\
-Set the spatial step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the spatial step (as discussed [here](/user-guide/solver#timestepping)). Must be a numerical value.
+Set the spatial step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the spatial step (as discussed [here](/user-guide/solver#timestepping)). Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
 
 * ***Square***\
 Toggle whether or not the domain is forced to be square, independent of the aspect ratio of your device/window.

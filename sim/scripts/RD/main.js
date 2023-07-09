@@ -63,19 +63,12 @@ let leftGUI,
   cameraThetaController,
   cameraPhiController,
   cameraZoomController,
-  contourEpsilonController,
-  contourNumController,
+  contoursControllers = [],
   minColourValueController,
   maxColourValueController,
   setColourRangeController,
   autoSetColourRangeController,
-  embossShinyController,
-  embossSmoothnessController,
-  embossAmbientController,
-  embossDiffuseController,
-  embossSpecularController,
-  embossThetaController,
-  embossPhiController,
+  embossControllers = [],
   clearValueUController,
   clearValueVController,
   clearValueWController,
@@ -134,6 +127,7 @@ let nXDisc,
   canvasWidth,
   canvasHeight,
   usingLowResDomain = true,
+  domainScaleValue = 1,
   domainScaleFactor = 1;
 let parametersFolder,
   kineticParamsStrs = {},
@@ -253,6 +247,11 @@ let TeXStrings = {
 let listOfSpecies, listOfReactions, anySpeciesRegexStrs;
 const fieldsInView = getFieldsInView();
 
+let parser = new exprEval.Parser();
+parser.consts.pi = Math.PI;
+parser.consts.Pi = Math.PI;
+parser.consts.e = Math.exp(1.0);
+
 // Setup some configurable options.
 options = {};
 
@@ -325,6 +324,11 @@ Array.prototype.rotate = (function () {
     return this;
   };
 })();
+
+// Define a handy 'last' function to return the last element.
+Array.prototype.last = function () {
+  return this[this.length - 1];
+};
 
 // Get the canvas to draw on, as specified by the html.
 canvas = document.getElementById("simCanvas");
@@ -879,7 +883,7 @@ function configureCameraAndClicks() {
 }
 
 function updateUniforms() {
-  uniforms.L.value = options.domainScale;
+  uniforms.L.value = domainScaleValue;
   uniforms.L_y.value = domainHeight;
   uniforms.L_x.value = domainWidth;
   uniforms.L_min.value = Math.min(domainHeight, domainWidth);
@@ -897,20 +901,29 @@ function updateUniforms() {
 }
 
 function computeCanvasSizesAndAspect() {
+  // Parse the domain scale.
+  try {
+    domainScaleValue = parser.evaluate(options.domainScale);
+  } catch (error) {
+    throwError(
+      "Unable to evaluate the domain length. Please check the definition."
+    );
+    domainScaleValue = 100;
+  }
   canvasWidth = Math.round(canvas.getBoundingClientRect().width);
   canvasHeight = Math.round(canvas.getBoundingClientRect().height);
   aspectRatio = canvasHeight / canvasWidth;
   if (aspectRatio <= 0) aspectRatio = 0.1;
-  // Set the domain size, setting the largest side to be of size options.domainScale.
+  // Set the domain size, setting the largest side to be of size domainScaleValue.
   if (aspectRatio >= 1) {
-    domainHeight = options.domainScale;
+    domainHeight = domainScaleValue;
     domainWidth = domainHeight / aspectRatio;
   } else {
-    domainWidth = options.domainScale;
+    domainWidth = domainScaleValue;
     domainHeight = domainWidth * aspectRatio;
   }
   if (options.dimension == 1) {
-    domainWidth = options.domainScale;
+    domainWidth = domainScaleValue;
   }
   uniforms.L_x.value = domainWidth;
   uniforms.L_y.value = domainHeight;
@@ -921,15 +934,23 @@ function setSizes() {
   computeCanvasSizesAndAspect();
   // Using the user-specified spatial step size, compute as close a discretisation as possible that
   // doesn't reduce the step size below the user's choice.
-  if (options.spatialStep == 0) {
-    // Prevent a crash if a 0 spatial step is specified.
-    alert(
-      "Oops! A spatial step of 0 would almost certainly crash your device. We've reset it to 1% of the maximum domain length to prevent this."
+  let spatialStepValue = domainScaleValue / 100;
+  try {
+    spatialStepValue = parser.evaluate(options.spatialStep);
+  } catch (error) {
+    throwError(
+      "Unable to evaluate the spatial step. Please check the definition."
     );
-    options.spatialStep = options.domainScale / 100;
   }
-  nXDisc = Math.floor(domainWidth / options.spatialStep);
-  nYDisc = Math.floor(domainHeight / options.spatialStep);
+  if (spatialStepValue <= 0) {
+    // Prevent a crash if a <=0 spatial step is specified.
+    throwError(
+      "Oops! A spatial step less than or equal to 0 would almost certainly crash your device. Please check the definition."
+    );
+    spatialStepValue = domainScaleValue / 100;
+  }
+  nXDisc = Math.floor(domainWidth / spatialStepValue);
+  nYDisc = Math.floor(domainHeight / spatialStepValue);
   if (nXDisc == 0) nXDisc = 1;
   if (nYDisc == 0) nYDisc = 1;
   // If the user has specified that this is a 1D problem, set nYDisc = 1.
@@ -1250,7 +1271,7 @@ function initGUI(startOpen) {
 
   root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
 
-  root.add(options, "brushRadius").name("Radius").onChange(setBrushType);
+  root.add(options, "brushRadius").name("Radius").onFinishChange(setBrushType);
 
   whatToDrawController = root
     .add(options, "whatToDraw", listOfSpecies)
@@ -1268,17 +1289,9 @@ function initGUI(startOpen) {
       renderIfNotRunning();
     });
 
-  root.add(options, "domainScale").name("Largest side").onChange(resize);
+  root.add(options, "domainScale").name("Largest side").onFinishChange(resize);
 
-  const dxController = root
-    .add(options, "spatialStep")
-    .name("Space step")
-    .onChange(function () {
-      resize();
-    });
-  dxController.__precision = 12;
-  dxController.min(0);
-  dxController.updateDisplay();
+  root.add(options, "spatialStep").name("Space step").onFinishChange(resize);
 
   const domainButtonList = addButtonList(root);
 
@@ -1993,6 +2006,7 @@ function initGUI(startOpen) {
     '<i class="fa-solid fa-bars-progress"></i> Bar',
     function () {
       configureColourbar();
+      updateView("colourbar");
     },
     null,
     "Display the colourbar",
@@ -2070,91 +2084,119 @@ function initGUI(startOpen) {
     .onChange(function () {
       setContourUniforms();
       renderIfNotRunning();
+      updateView(this.property);
     });
 
-  contourNumController = root
-    .add(options, "contourNum")
-    .name("Number")
-    .onChange(function () {
-      setContourUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(contourNumController, 1, 20, 1);
+  contoursControllers.push(
+    root
+      .add(options, "contourNum")
+      .name("Number")
+      .onChange(function () {
+        setContourUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(contoursControllers.last(), 1, 20, 1);
 
-  contourEpsilonController = root
-    .add(options, "contourEpsilon")
-    .name("Threshold")
-    .onChange(function () {
-      setContourUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(contourEpsilonController, 0.001, 0.05, 0.001);
+  contoursControllers.push(
+    root
+      .add(options, "contourEpsilon")
+      .name("Threshold")
+      .onChange(function () {
+        setContourUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(contoursControllers.last(), 0.001, 0.05, 0.001);
 
   root = editViewFolder.addFolder("Lighting");
   root.domElement.id = "embossFolder";
 
-  embossSmoothnessController = root
-    .add(options, "embossSmoothness")
-    .name("Smoothness")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossSmoothnessController, 0, 2, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossSmoothness")
+      .name("Smoothness")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 2, 0.001);
 
-  embossAmbientController = root
-    .add(options, "embossAmbient")
-    .name("Ambient")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossAmbientController, 0, 1, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossAmbient")
+      .name("Ambient")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 1, 0.001);
 
-  embossDiffuseController = root
-    .add(options, "embossDiffuse")
-    .name("Diffuse")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossDiffuseController, 0, 1, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossDiffuse")
+      .name("Diffuse")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 1, 0.001);
 
-  embossSpecularController = root
-    .add(options, "embossSpecular")
-    .name("Specular")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossSpecularController, 0, 1, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossSpecular")
+      .name("Specular")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 1, 0.001);
 
-  embossShinyController = root
-    .add(options, "embossShiny")
-    .name("Precision")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossShinyController, 0, 100, 1);
+  embossControllers.push(
+    root
+      .add(options, "embossShiny")
+      .name("Precision")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 100, 1);
 
-  embossThetaController = root
-    .add(options, "embossTheta")
-    .name("Inclination")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossThetaController, 0, 1.5708, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossTheta")
+      .name("Inclination")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 1.5708, 0.001);
 
-  embossPhiController = root
-    .add(options, "embossPhi")
-    .name("Direction")
-    .onChange(function () {
-      setEmbossUniforms();
-      renderIfNotRunning();
-    });
-  createOptionSlider(embossPhiController, 0, 3.1456, 0.001);
+  embossControllers.push(
+    root
+      .add(options, "embossPhi")
+      .name("Direction")
+      .onChange(function () {
+        setEmbossUniforms();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+  );
+  createOptionSlider(embossControllers.last(), 0, 3.1456, 0.001);
 
   root = editViewFolder.addFolder("Overlay");
   root.domElement.id = "overlayFolder";
@@ -2165,6 +2207,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setOverlayUniforms();
       renderIfNotRunning();
+      updateView(this.property);
     });
 
   root
@@ -2181,6 +2224,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setOverlayUniforms();
       renderIfNotRunning();
+      updateView(this.property);
     });
 
   linesAnd3DFolder = editViewFolder.addFolder("3D");
@@ -2196,8 +2240,8 @@ function initGUI(startOpen) {
       uniforms.customSurface.value = options.customSurface;
       setSurfaceShader();
       configureCustomSurfaceControllers();
-      updateView("customSurface");
       renderIfNotRunning();
+      updateView("customSurface");
     },
     "customSurfaceToggle",
     "Plot the solution on a custom surface"
@@ -2215,22 +2259,34 @@ function initGUI(startOpen) {
   threeDHeightScaleController = root
     .add(options, "threeDHeightScale")
     .name("Max height")
-    .onChange(updateUniforms);
+    .onChange(function () {
+      updateUniforms();
+      updateView(this.property);
+    });
 
   cameraThetaController = root
     .add(options, "cameraTheta")
     .name("View $\\theta$")
-    .onChange(configureCameraAndClicks);
+    .onChange(function () {
+      configureCameraAndClicks();
+      updateView(this.property);
+    });
 
   cameraPhiController = root
     .add(options, "cameraPhi")
     .name("View $\\phi$")
-    .onChange(configureCameraAndClicks);
+    .onChange(function () {
+      configureCameraAndClicks();
+      updateView(this.property);
+    });
 
   cameraZoomController = root
     .add(options, "cameraZoom")
     .name("Zoom")
-    .onChange(configureCameraAndClicks);
+    .onChange(function () {
+      configureCameraAndClicks();
+      updateView(this.property);
+    });
 
   lineWidthMulController = root
     .add(options, "lineWidthMul", 0.1, 2)
@@ -2238,6 +2294,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setLineWidth();
       render();
+      updateView(this.property);
     });
 
   const inputs = document.querySelectorAll("input");
@@ -2922,7 +2979,7 @@ function parseShaderString(str) {
   );
 
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
-  str = replaceDigitsWithWords(str);
+  str = sanitise(str);
 
   // Replace images evaluated at coordinates with appropriate shader expressions.
   str = enableImageLookupInShader(str, "I_TR");
@@ -3130,7 +3187,7 @@ function setRDEquations() {
   // the update shader as uvwxy[XY].[rgba]. If they've done this, warn them and don't update the shader.
   let match = diffusionShader.match(/\buvwq[XY]\.[rgba]\b/);
   if (match) {
-    alert(
+    throwError(
       "Including derivatives in the diffusion coefficients is not supported. Try casting your PDE in another form."
     );
     return;
@@ -3317,7 +3374,7 @@ function loadPreset(preset) {
   }
 
   // Update the domain scale based on URL params.
-  options.domainScale *= domainScaleFactor;
+  domainScaleValue *= domainScaleFactor;
 
   // Configure views.
   configureViews();
@@ -3469,6 +3526,11 @@ function loadOptions(preset) {
     // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
     if (options.minColourValue == null) options.minColourValue = 0;
     if (options.maxColourValue == null) options.maxColourValue = 1;
+
+    // If options.domainScale is not a string, convert it to one.
+    options.domainScale = options.domainScale.toString();
+    // If options.spatialStep is not a string, convert it to one.
+    options.spatialStep = options.spatialStep.toString();
 
     // Save these loaded options if we ever need to revert.
     savedOptions = options;
@@ -4225,7 +4287,7 @@ function configureGUI() {
     listOfSpecies.slice(0, options.numSpecies)
   );
   // Update emboss sliders.
-  updateEmbossSliders();
+  updateViewSliders();
   // Update all toggle buttons.
   $(".toggle_button").each(function () {
     updateToggle(this);
@@ -4575,14 +4637,30 @@ function setEquationDisplayType() {
       }
     });
 
-    // Replace u_x, u_y etc with \pd{u}{x} etc.
-    regex = /\b([uvwq])_([xy])\b/g;
-    str = str.replaceAll(regex, "\\textstyle \\pd{$1}{$2}");
+    // Replace u_x, u_y etc with \pd{u}{x} etc. Add parentheses if followed by ^.
+    regex = /(\(?)\b([uvwq])_([xy])\s*(\)?)\s*(\^?)\b/g;
+    str = str.replaceAll(regex, function (match, g1, g2, g3, g4, g5) {
+      let base =
+        g1 + "\\textstyle \\pd{" + g2 + "}{" + g3 + "\\vphantom{y}}" + g4;
+      if (g5 != "" && (g1 == "" || g4 == "")) {
+        base = "(" + base + ")" + g5;
+      } else {
+        base += g5;
+      }
+      return base;
+    });
 
     // Replace u_xx, u_yy etc with \pdd{u}{x} etc.
-    regex = /\b([uvwq])_(xx|yy)\b/g;
-    str = str.replaceAll(regex, function (match, g1, g2) {
-      return "\\textstyle \\pdd{" + g1 + "}{" + g2[0] + "}";
+    regex = /(\(?)\b([uvwq])_(xx|yy)\s*(\)?)\s*(\^?)\b/g;
+    str = str.replaceAll(regex, function (match, g1, g2, g3, g4, g5) {
+      let base =
+        g1 + "\\textstyle \\pdd{" + g2 + "}{" + g3[0] + "\\vphantom{y}}" + g4;
+      if (g5 != "" && (g1 == "" || g4 == "")) {
+        base = "(" + base + ")" + g5;
+      } else {
+        base += g5;
+      }
+      return base;
     });
 
     // Replace RAND with \mathcal{U}.
@@ -4681,6 +4759,9 @@ function parseStringToTEX(str) {
 
   // If there's an underscore, put {} around the word that follows it.
   str = str.replaceAll(/_(\w+\b)/g, "_{$1}");
+
+  // If letters are followed by only numbers, assume that the numbers are a subscript.
+  str = str.replaceAll(/\b([a-zA-Z]+)([0-9]+)\b/g, "$1_{$2}");
 
   return str;
 }
@@ -4958,10 +5039,7 @@ function createParameterController(label, isNextParam) {
         setKineticStringFromParams();
         render();
         // Update the uniforms with this new value.
-        if (
-          setKineticUniformFromString(kineticParamsStrs[label]) ||
-          compileErrorOccurred
-        ) {
+        if (setKineticUniforms() || compileErrorOccurred) {
           // Reset the error flag.
           compileErrorOccurred = false;
           // If we added a new uniform, we need to remake all the shaders.
@@ -5018,7 +5096,7 @@ function createParameterController(label, isNextParam) {
         createParameterController(newLabel, true);
         // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
-        if (setKineticUniformFromString(str) || compileErrorOccurred) {
+        if (setKineticUniforms() || compileErrorOccurred) {
           // Reset the error flag.
           compileErrorOccurred = false;
           updateShaders();
@@ -5055,7 +5133,10 @@ function createParameterController(label, isNextParam) {
         kineticParamsLabels.splice(index, 1);
         delete kineticParamsStrs[label];
         // Remove any uniform created with this parameter name.
-        if (controller.hasOwnProperty("lastName")) {
+        if (
+          controller.hasOwnProperty("lastName") &&
+          !isReservedName(controller.lastName)
+        ) {
           delete uniforms[controller.lastName];
         }
       } else {
@@ -5066,19 +5147,24 @@ function createParameterController(label, isNextParam) {
         if (
           match &&
           controller.hasOwnProperty("lastName") &&
-          controller.lastName != match[1]
+          controller.lastName != match[1] &&
+          !isReservedName(controller.lastName)
         ) {
           delete uniforms[controller.lastName];
           controller.lastName = match[1];
           kineticNameToCont[controller.lastName] = controller;
         }
       }
-      // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
       setKineticStringFromParams();
-      if (setKineticUniformFromString(str)) {
+      if (setKineticUniforms()) {
         updateShaders();
       }
     });
+    // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
+    setKineticStringFromParams();
+    if (setKineticUniforms()) {
+      updateShaders();
+    }
   }
   // Now that we've made the required controller, check the current string to see if
   // the user has requested that we make other types of controller (e.g. a slider).
@@ -5091,7 +5177,9 @@ function setParamsFromKineticString() {
   // Take the kineticParams string in the options and
   // use it to populate a GUI containing these parameters
   // as individual options.
-  let label, str;
+  let label,
+    str,
+    newLabels = [];
   let strs = options.kineticParams.split(";");
   for (var index = 0; index < strs.length; index++) {
     str = removeWhitespace(strs[index]);
@@ -5107,8 +5195,13 @@ function setParamsFromKineticString() {
       kineticParamsCounter += 1;
       kineticParamsLabels.push(label);
       kineticParamsStrs[label] = str;
-      createParameterController(label, false);
+      newLabels.push(label);
     }
+  }
+  // Having defined all the parameters, create the controllers. This separate loops allows dependencies
+  // between parameters, as all parameters have been initialised by this point.
+  for (const label of newLabels) {
+    createParameterController(label, false);
   }
   // Finally, create an empty controller for adding parameters.
   label = "param" + kineticParamsCounter;
@@ -5554,79 +5647,169 @@ function checkColourbarLogoCollision() {
   }
 }
 
-function sanitisedKineticParams() {
+function getKineticParamDefs() {
   // options.kineticParams could contain additional directives, like "in [0,1]", used
   // to create additional controllers. We want to save these in options.kineticParams, but
   // can't pass them to the shader like this. Here, we strip these directives from the string.
   // If a kineticParam is of the form "name = val in [a,b]", remove the in [a,b] part.
   let out = options.kineticParams.replaceAll(/\bin[^;]*;?/g, ";");
 
-  // A user may have used numbers when defining variable names. Replace them with the word form.
-  out = replaceDigitsWithWords(out);
-
   return out;
+}
+
+function sanitise(str) {
+  return replaceDigitsWithWords(str);
 }
 
 function getKineticParamNames() {
   // Return a list of parsed kinetic parameter names.
-  const regex = /(\w+)\s*=\s*([\+\-]?)\s*([0-9\.]+)/;
-  return sanitisedKineticParams()
+  const regex = /(\w+)\s*=/;
+  return getKineticParamDefs()
     .split(";")
     .filter((x) => x.length > 0)
-    .map((x) => x.replace(regex, "$1").trim());
+    .map((x) => x.match(regex)[1].trim());
 }
 
 function setKineticUniforms() {
   // Set uniforms based on the parameters defined in kineticParams.
   // Return true if we're adding a new uniform, which signifies that all shaders must be
   // updated to reference this new uniform.
-  const paramStrs = sanitisedKineticParams().split(";");
+  const paramStrs = getKineticParamDefs()
+    .split(";")
+    .filter((x) => x.length > 0);
+  const nameVals = evaluateParamVals(paramStrs);
   let addingNewUniform = false;
-  for (const paramStr of paramStrs) {
-    addingNewUniform |= setKineticUniformFromString(paramStr);
+  let encounteredError = false;
+  for (const nameVal of nameVals) {
+    let [uniformFlag, errorFlag] = setKineticUniform(nameVal[0], nameVal[1]);
+    addingNewUniform |= addingNewUniform;
+    encounteredError |= errorFlag;
   }
-  return addingNewUniform;
+  return addingNewUniform && !encounteredError;
 }
 
-function setKineticUniformFromString(str) {
-  // Set a uniform based on the parameter defined in str/
+function setKineticUniform(name, value) {
+  // Set a uniform with given name and value.
   // Return true if we're adding a new uniform, which signifies that all shaders must be
   // updated to reference this new uniform.
-  const regex = /(\w+)\s*=\s*([\+\-]?)\s*([0-9\.]+)/;
-  // Parse the name from the string.
-  const match = str.match(regex);
   let addingNewUniform = false;
-  if (match) {
-    // Replace any numbers in the name with the word equivalents.
-    match[1] = replaceDigitsWithWords(match[1]);
-    if (isReservedName(match[1])) {
-      alert(
-        "The name '" +
-          match[1] +
-          "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
-          match[1] +
-          "."
-      );
-    } else {
-      // If no such uniform exists, make a note of this.
-      addingNewUniform = !uniforms.hasOwnProperty(match[1]);
-      // Define the required uniform.
-      uniforms[match[1]] = {
-        type: "float",
-        value: parseFloat(match[2] + match[3]),
-      };
-    }
+  let errorFlag = false;
+  // Sanitise the name for the shader.
+  const cleanName = sanitise(name);
+  if (isReservedName(cleanName)) {
+    throwError(
+      "The name '" +
+        name +
+        "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
+        name +
+        "."
+    );
+    errorFlag = true;
+  } else {
+    // If no such uniform exists, make a note of this.
+    addingNewUniform = !uniforms.hasOwnProperty(cleanName);
+    // Define the required uniform.
+    uniforms[cleanName] = {
+      type: "float",
+      value: value,
+    };
   }
-  return addingNewUniform;
+  return [addingNewUniform, errorFlag];
 }
 
 function kineticUniformsForShader() {
   // Given the kinetic parameters in options.kineticParams, return GLSL defining uniforms with
   // these names.
-  const regex = /;?\s*(\w+)\s*=\s*[\+\-]?\s*([0-9\.]+)\s*;?/g;
-  return replaceDigitsWithWords(
-    sanitisedKineticParams().replaceAll(regex, "uniform float $1;\n")
+  return sanitise(
+    getKineticParamNames()
+      .map((x) => "uniform float " + x + ";")
+      .join("\n")
   );
+}
+
+function evaluateParamVals(strs) {
+  // Return a list of (name,value) pairs for parameters defined in
+  // a list of strings. These can depend on each other, but not cyclically.
+  let strDict = {};
+  let valDict = {};
+  let badNames = [];
+  strs.forEach(function (str) {
+    const [name, valStr] = str.split("=").map((x) => x.trim());
+    strDict[name] = valStr;
+  });
+  const nameVals = strs.map((x) => x.split("=").map((y) => y.trim()));
+  const names = nameVals.map((x) => x[0]);
+  for (const nameVal of nameVals) {
+    // Evaluate each parameter.
+    let [name, val] = nameVal;
+    if (!(name in valDict)) {
+      // We've not computed the value of this yet.
+      [valDict, , badNames] = evaluateParam(
+        name,
+        strDict,
+        valDict,
+        [name],
+        names,
+        []
+      );
+    }
+  }
+  // If the parameters were cyclic, throw an error.
+  if (badNames.length > 0) {
+    throwError(
+      "Cyclic parameters detected. Please check the definition(s) of " +
+        badNames.join(", ") +
+        "."
+    );
+  }
+  return Object.keys(valDict).map((x) => [x, valDict[x]]);
+}
+
+function evaluateParam(name, strDict, valDict, stack, names, badNames) {
+  // If we know the value already, don't do anything.
+  if (name in valDict) return [valDict, stack.slice(0, -1), badNames];
+  // Find any names in val and evaluate them.
+  let regex;
+  for (const otherName of names) {
+    // Skip the name if it's not in vals.
+    regex = new RegExp("\\b" + otherName + "\\b", "g");
+    if (!regex.test(strDict[name])) continue;
+    // Otherwise, check if it's a bad name.
+    if (stack.includes(otherName)) {
+      // We've hit a parameter that we're already trying to evaluate - cyclic!
+      // Set the value to 0 and record the name as bad so that we can throw an error.
+      valDict[otherName] = 0.0;
+      strDict[otherName] = "0";
+      strDict[name] = "0";
+      badNames.push(otherName);
+    } else {
+      // Otherwise, try and evaluate the parameter and substitute the value into the expression.
+      [valDict, , badNames] = evaluateParam(
+        otherName,
+        strDict,
+        valDict,
+        [...stack, otherName],
+        names,
+        badNames
+      );
+      strDict[name] = strDict[name].replaceAll(
+        regex,
+        valDict[otherName].toString()
+      );
+    }
+  }
+  // Now that we've assigned all the values that we could need, parse the expression.
+  try {
+    valDict[name] = parser.evaluate(strDict[name]);
+  } catch (error) {
+    throwError(
+      "Unable to evaluate the definition of " +
+        name +
+        ". Please check for syntax errors or undefined parameters."
+    );
+    valDict[name] = 0;
+  }
+  return [valDict, stack.slice(0, -1), badNames];
 }
 
 function updateShaders() {
@@ -6136,6 +6319,7 @@ function setDefaultRenderSize() {
 }
 
 function throwError(message) {
+  pauseSim();
   // If an error is already being displayed, just update the message.
   if ($("#error").is(":visible")) {
     $("#error_description").html(message);
@@ -6250,6 +6434,7 @@ function applyView(view, update) {
     updateUniforms();
     updateColourbarLims();
     configureColourbar();
+    updateViewSliders();
     render();
   }
 
@@ -6464,6 +6649,19 @@ function addNewline(parent) {
 function copyConfigAsJSON() {
   // Encode the current simulation configuration as raw JSON and put it on the clipboard.
   let objDiff = diffObjects(options, getPreset("default"));
+  // If there's only one view and it has the default name, remove the view from the preset.
+  if (options.views.length == 1 && options.views[0].name == "1") {
+    delete objDiff.views;
+  }
+  // If every view has the same value as options for a property, remove that property from the views.
+  for (const key of Object.keys(options.views[0])) {
+    if (options.hasOwnProperty(key)) {
+      if (options.views.map((e) => e[key]).every((v) => v == options[key])) {
+        options.views.forEach((v) => delete v[key]);
+      }
+    }
+  }
+
   objDiff.preset = "PRESETNAME";
   let str = JSON.stringify(objDiff)
     .replaceAll(/\s*,\s*([^0-9-\.\s])/g, ",\n\t$1")
@@ -6665,32 +6863,12 @@ function createOptionSlider(controller, min, max, step) {
   );
 }
 
-function updateEmbossSliders() {
-  embossShinyController.slider.style.setProperty(
-    "--value",
-    options.embossShiny
-  );
-  embossSmoothnessController.slider.style.setProperty(
-    "--value",
-    options.embossSmoothness
-  );
-  embossAmbientController.slider.style.setProperty(
-    "--value",
-    options.embossAmbient
-  );
-  embossDiffuseController.slider.style.setProperty(
-    "--value",
-    options.embossDiffuse
-  );
-  embossSpecularController.slider.style.setProperty(
-    "--value",
-    options.embossSpecular
-  );
-  embossThetaController.slider.style.setProperty(
-    "--value",
-    options.embossTheta
-  );
-  embossPhiController.slider.style.setProperty("--value", options.embossPhi);
+function updateViewSliders() {
+  for (const controller of [...embossControllers, ...contoursControllers]) {
+    let value = controller.getValue();
+    controller.slider.style.setProperty("--value", value);
+    controller.slider.value = value;
+  }
 }
 
 function setContourUniforms() {
