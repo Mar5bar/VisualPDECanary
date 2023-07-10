@@ -2373,9 +2373,9 @@ export function getPreset(id) {
       options = {
         activeViewInd: 0,
         arrowColour: 0x00ffff,
-        arrowDensity: 1,
-        arrowX: "sin(x/L_x*t/100)",
-        arrowY: "cos(x/L_x*t/100)",
+        arrowDensity: 1.0,
+        arrowX: "x - L_x/2",
+        arrowY: "y - L_y/2",
         autoSetColourRange: false,
         backgroundColour: 0xffffff,
         boundaryConditionsU: "periodic",
@@ -2491,7 +2491,7 @@ export function getPreset(id) {
         tryClickingText: "Try clicking!",
         typeOfBrush: "circle",
         typesetCustomEqs: true,
-        vectorField: true,
+        vectorField: false,
         views: [],
         whatToDraw: "v",
         whatToPlot: "v",
@@ -2553,6 +2553,10 @@ export function getUserTextFields() {
 
 export function getFieldsInView() {
   return [
+    "arrowColour",
+    "arrowDensity",
+    "arrowX",
+    "arrowY",
     "autoSetColourRange",
     "cameraTheta",
     "cameraPhi",
@@ -2582,6 +2586,7 @@ export function getFieldsInView() {
     "plotType",
     "surfaceFun",
     "threeDHeightScale",
+    "vectorField",
     "whatToPlot",
   ];
 }

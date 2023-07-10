@@ -100,8 +100,10 @@ let leftGUI,
   fIm,
   imControllerOne,
   imControllerTwo,
+  arrowDensityController,
   editViewFolder,
   linesAnd3DFolder,
+  vectorFieldFolder,
   whatToPlotController,
   deleteViewController,
   selectedEntries = new Set();
@@ -2102,9 +2104,10 @@ function initGUI(startOpen) {
       renderIfNotRunning();
       updateView("vectorField");
     },
-    null,
+    "vectorFieldButton",
     "Toggle vector field",
-    "vectorFolder"
+    "vectorFieldFolder",
+    ["wide"]
   );
 
   root = editViewFolder.addFolder("Contours");
@@ -2328,6 +2331,48 @@ function initGUI(startOpen) {
       render();
       updateView(this.property);
     });
+
+  vectorFieldFolder = editViewFolder.addFolder("Vector field");
+  root = vectorFieldFolder;
+  root.domElement.id = "vectorFieldFolder";
+
+  root
+    .addColor(options, "arrowColour")
+    .name("Colour")
+    .onChange(function () {
+      updateArrowColour();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+
+  arrowDensityController = root
+    .add(options, "arrowDensity")
+    .onChange(function () {
+      configureVectorField();
+      renderIfNotRunning();
+      updateView(this.property);
+    })
+    .name("Density");
+  arrowDensityController.__precision = 2;
+  createOptionSlider(arrowDensityController, 0, 1, 0.001);
+
+  root
+    .add(options, "arrowX")
+    .onFinishChange(function () {
+      setPostFunFragShader();
+      renderIfNotRunning();
+      updateView(this.property);
+    })
+    .name("$x$ component");
+
+  root
+    .add(options, "arrowY")
+    .onFinishChange(function () {
+      setPostFunFragShader();
+      renderIfNotRunning();
+      updateView(this.property);
+    })
+    .name("$y$ component");
 
   const inputs = document.querySelectorAll("input");
   inputs.forEach((input) => disableAutocorrect(input));
@@ -2654,9 +2699,7 @@ function render() {
       ind = 4 * arrow.ind;
       xComp = postBuffer[ind + 2];
       yComp = postBuffer[ind + 3];
-      arrow.visible =
-        postBuffer[ind + 1] <= 0.5 &&
-        !(Math.abs(xComp) < 1e-2 && Math.abs(yComp) < 1e-2);
+      arrow.visible = postBuffer[ind + 1] <= 0.5;
       arrow.lookAt(
         arrow.position.x + xComp,
         arrow.position.y + yComp,
@@ -4290,6 +4333,7 @@ function configureGUI() {
   if (options.plotType == "surface") {
     $("#contourButton").show();
     $("#embossButton").show();
+    $("#vectorFieldButton").hide();
     linesAnd3DFolder.name = "3D options";
     linesAnd3DFolder.domElement.classList.remove("hidden");
     if (options.customSurface) showGUIController(surfaceFunController);
@@ -4301,6 +4345,7 @@ function configureGUI() {
   } else if (options.plotType == "line") {
     $("#contourButton").hide();
     $("#embossButton").hide();
+    $("#vectorFieldButton").hide();
     linesAnd3DFolder.name = "Line options";
     linesAnd3DFolder.domElement.classList.remove("hidden");
     showGUIController(lineWidthMulController);
@@ -4311,6 +4356,7 @@ function configureGUI() {
   } else {
     $("#contourButton").show();
     $("#embossButton").show();
+    $("#vectorFieldButton").show();
     linesAnd3DFolder.domElement.classList.add("hidden");
     hideGUIController(lineWidthMulController);
     hideGUIController(threeDHeightScaleController);
@@ -5645,6 +5691,8 @@ function configurePlotType() {
     line.visible = true;
     options.contours = false;
     options.emboss = false;
+    options.vectorField = false;
+    configureVectorField();
   } else {
     domain.visible = true;
     line.visible = false;
@@ -5654,6 +5702,8 @@ function configurePlotType() {
         usingLowResDomain = false;
         replaceDisplayDomains();
       }
+      options.vectorField = false;
+      configureVectorField();
     } else {
       $("#simCanvas").css("outline", "");
     }
@@ -6511,6 +6561,7 @@ function applyView(view, update) {
     updateUniforms();
     updateColourbarLims();
     configureColourbar();
+    configureVectorField();
     updateViewSliders();
     render();
   }
@@ -7020,7 +7071,7 @@ function createArrows() {
   arrowGroup = new THREE.Group();
   scene.add(arrowGroup);
   const maxDisc = Math.max(nXDisc, nYDisc);
-  const denom = Math.round(lerp(2, 16, options.arrowDensity));
+  const denom = Math.round(lerp(3, 20, options.arrowDensity));
   const stride = Math.floor(maxDisc / denom);
   const xNum = Math.floor(nXDisc / stride);
   const yNum = Math.floor(nYDisc / stride);
@@ -7070,7 +7121,12 @@ function configureVectorField() {
   if (options.vectorField) {
     deleteArrows();
     createArrows();
+    updateArrowColour();
   } else {
     deleteArrows();
   }
+}
+
+function updateArrowColour() {
+  arrowMaterial.color = new THREE.Color(options.arrowColour);
 }
