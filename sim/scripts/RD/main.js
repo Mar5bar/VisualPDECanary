@@ -5975,7 +5975,7 @@ function setCustomNames(onLoading) {
       } else {
         message = "under the hood";
       }
-      alert(
+      throwError(
         "The name '" +
           tempListOfReactions[ind] +
           "' is used " +
