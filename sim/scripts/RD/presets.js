@@ -2372,6 +2372,10 @@ export function getPreset(id) {
     default:
       options = {
         activeViewInd: 0,
+        arrowColour: 0x00ffff,
+        arrowDensity: 1,
+        arrowX: "sin(x/L_x*t/100)",
+        arrowY: "cos(x/L_x*t/100)",
         autoSetColourRange: false,
         backgroundColour: 0xffffff,
         boundaryConditionsU: "periodic",
@@ -2487,6 +2491,7 @@ export function getPreset(id) {
         tryClickingText: "Try clicking!",
         typeOfBrush: "circle",
         typesetCustomEqs: true,
+        vectorField: true,
         views: [],
         whatToDraw: "v",
         whatToPlot: "v",

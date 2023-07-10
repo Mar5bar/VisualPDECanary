@@ -22,10 +22,13 @@ let basicMaterial,
   copyMaterial,
   postMaterial,
   lineMaterial,
+  arrowMaterial,
   interpolationMaterial,
-  checkpointMaterial;
+  checkpointMaterial,
+  tailGeometry,
+  headGeometry;
 let domain, simDomain, clickDomain, line;
-let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine;
+let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
 let colourmap, colourmapEndpoints;
 let options, uniforms, funsObj, savedOptions;
 let leftGUI,
@@ -156,7 +159,8 @@ const listOfTypes = [
 let equationType, savedHTML, algebraicV, algebraicW, algebraicQ;
 let takeAScreenshot = false;
 let buffer,
-  checkpointBuffer,
+  stateBuffer,
+  postBuffer,
   bufferFilled = false;
 const numsAsWords = [
   "zero",
@@ -719,7 +723,15 @@ function init() {
     vertexColors: true,
     linewidth: 0.01,
   });
+  arrowMaterial = new THREE.MeshBasicMaterial({
+    color: options.arrowColour,
+    side: THREE.DoubleSide,
+  });
   checkpointMaterial = new THREE.MeshBasicMaterial();
+
+  // Geometry for arrows.
+  tailGeometry = new THREE.CylinderGeometry(0.01, 0.01, 0.1);
+  headGeometry = new THREE.ConeGeometry(0.05, 0.05, 4);
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
   simDomain = new THREE.Mesh(simPlane, simMaterials[0]);
@@ -831,6 +843,8 @@ function resize() {
   updateUniforms();
   // Create new display domains with the correct sizes.
   replaceDisplayDomains();
+  // Create arrows for vector fields.
+  configureVectorField();
   // Configure the camera.
   configureCameraAndClicks();
   // Check if the colourbar lies on top of the logo. If so, remove the logo.
@@ -1205,6 +1219,10 @@ function initUniforms() {
     t: {
       type: "f",
       value: 0.0,
+    },
+    vectorField: {
+      type: "bool",
+      value: true,
     },
   };
 }
@@ -1974,7 +1992,7 @@ function initGUI(startOpen) {
 
   addButton(
     effectsButtons,
-    '<i class="fa-solid fa-arrow-right-arrow-left"></i> Flip',
+    '<i class="fa-regular fa-arrows-rotate"></i> Flip',
     function () {
       options.flippedColourmap = !options.flippedColourmap;
       setDisplayColourAndType();
@@ -2073,6 +2091,20 @@ function initGUI(startOpen) {
     "Toggle overlay",
     "overlayFolder",
     ["wide"]
+  );
+
+  addToggle(
+    effectsButtons,
+    "vectorField",
+    '<i class="fa-solid fa-arrow-right-arrow-left"></i> Vector field',
+    function () {
+      configureVectorField();
+      renderIfNotRunning();
+      updateView("vectorField");
+    },
+    null,
+    "Toggle vector field",
+    "vectorFolder"
   );
 
   root = editViewFolder.addFolder("Contours");
@@ -2611,6 +2643,27 @@ function render() {
     const points = curve.getSpacedPoints(numPointsInLine);
     setLineXY(points);
     setLineColour(points);
+  }
+
+  // If a vector field is requested, update arrows. They will already be set as visible.
+  if (options.vectorField) {
+    getPostState();
+    // For each arrow, update the direction of each arrow using the b and a components of postTexture.
+    let ind, xComp, yComp;
+    for (const arrow of arrowGroup.children) {
+      ind = 4 * arrow.ind;
+      xComp = postBuffer[ind + 2];
+      yComp = postBuffer[ind + 3];
+      arrow.visible =
+        postBuffer[ind + 1] <= 0.5 &&
+        !(Math.abs(xComp) < 1e-2 && Math.abs(yComp) < 1e-2);
+      arrow.lookAt(
+        arrow.position.x + xComp,
+        arrow.position.y + yComp,
+        arrow.position.z
+      );
+    }
+    // options.vectorField = false;
   }
 
   // If selected, update the time display.
@@ -3991,7 +4044,9 @@ function getMeanVal() {
 
 function setPostFunFragShader() {
   let shaderStr = kineticUniformsForShader() + computeDisplayFunShaderTop();
-  shaderStr += computeDisplayFunShaderMid();
+  shaderStr += computeDisplayFunShaderMid()
+    .replace(/\bXVECFUN\b/, parseShaderString(options.arrowX))
+    .replace(/\bYVECFUN\b/, parseShaderString(options.arrowY));
   shaderStr = setDisplayFunInShader(shaderStr);
   if (options.domainViaIndicatorFun) {
     shaderStr += postShaderDomainIndicator().replace(
@@ -6221,14 +6276,26 @@ function deselectTeX(ids) {
 }
 
 function getRawState() {
-  checkpointBuffer = new Float32Array(nXDisc * nYDisc * 4);
+  stateBuffer = new Float32Array(nXDisc * nYDisc * 4);
   renderer.readRenderTargetPixels(
     simTextures[1],
     0,
     0,
     nXDisc,
     nYDisc,
-    checkpointBuffer
+    stateBuffer
+  );
+}
+
+function getPostState() {
+  postBuffer = new Float32Array(nXDisc * nYDisc * 4);
+  renderer.readRenderTargetPixels(
+    postTexture,
+    0,
+    0,
+    nXDisc,
+    nYDisc,
+    postBuffer
   );
 }
 
@@ -6236,8 +6303,8 @@ function saveSimState() {
   // Save the current state in memory as a buffer.
   getRawState();
 
-  // Create a texture from the checkpoint buffer.
-  createCheckpointTexture(checkpointBuffer);
+  // Create a texture from the state buffer.
+  createCheckpointTexture(stateBuffer);
 
   checkpointExists = true;
 }
@@ -6252,7 +6319,7 @@ function exportSimState() {
   var link = document.createElement("a");
   link.download = "VisualPDEState";
   link.href = URL.createObjectURL(
-    new Blob([new Float32Array([nXDisc, nYDisc]), checkpointBuffer])
+    new Blob([new Float32Array([nXDisc, nYDisc]), stateBuffer])
   );
   document.body.appendChild(link);
   link.click();
@@ -6263,7 +6330,7 @@ function loadSimState(file) {
   const reader = new FileReader();
   reader.onload = function () {
     const buff = new Float32Array(reader.result);
-    // Create the checkpointBuffer from the data. The first two elements are width and height.
+    // Create the stateBuffer from the data. The first two elements are width and height.
     createCheckpointTexture(buff.slice(2), buff.slice(0, 2));
     setStretchOrCropTexture(checkpointTexture);
     checkpointExists = true;
@@ -6947,4 +7014,63 @@ function getDuplicates(strarr) {
   let dups = [];
   strarr.forEach((e) => (seen[e] ? dups.push(e) : (seen[e] = true)));
   return Array.from(new Set(dups));
+}
+
+function createArrows() {
+  arrowGroup = new THREE.Group();
+  scene.add(arrowGroup);
+  const maxDisc = Math.max(nXDisc, nYDisc);
+  const denom = Math.round(lerp(2, 16, options.arrowDensity));
+  const stride = Math.floor(maxDisc / denom);
+  const xNum = Math.floor(nXDisc / stride);
+  const yNum = Math.floor(nYDisc / stride);
+  const xStartInd = Math.round((nXDisc - stride * (xNum - 1)) / 2);
+  const yStartInd = Math.round((nYDisc - stride * (yNum - 1)) / 2);
+  let ind, yInd, xInd, arrow, x, y;
+  // Texture reads go along rows from bottom to top.
+  for (let row = 0; row < yNum; row++) {
+    yInd = yStartInd + row * stride;
+    y = (yInd / nYDisc - 0.5) * domain.geometry.parameters.height;
+    for (let col = 0; col < xNum; col++) {
+      xInd = xStartInd + col * stride;
+      x = (xInd / nXDisc - 0.5) * domain.geometry.parameters.width;
+      ind = xInd + yInd * nXDisc;
+      arrow = createArrow([x, y, 1], [0, 0, 0]);
+      arrow.ind = ind;
+      arrowGroup.add(arrow);
+    }
+  }
+}
+
+function createArrow(pos, dir) {
+  const arrow = new THREE.Group();
+  const tail = new THREE.Mesh(tailGeometry, arrowMaterial);
+  tail.rotation.x = Math.PI / 2;
+  const head = new THREE.Mesh(headGeometry, arrowMaterial);
+  head.rotation.x = Math.PI / 2;
+  head.rotation.y = Math.PI / 4;
+  head.position.z = tailGeometry.parameters.height / 2;
+  arrow.add(tail);
+  arrow.add(head);
+  arrow.scale.multiplyScalar(0.2);
+  arrow.position.set(pos[0], pos[1], pos[2]);
+  arrow.lookAt(pos[0] + dir[0], pos[1] + dir[1], pos[2] + dir[2]);
+  return arrow;
+}
+
+function deleteArrows() {
+  if (!arrowGroup) return;
+  scene.remove(arrowGroup);
+  while (arrowGroup.children.length) {
+    arrowGroup.remove(arrowGroup.children[0]);
+  }
+}
+
+function configureVectorField() {
+  if (options.vectorField) {
+    deleteArrows();
+    createArrows();
+  } else {
+    deleteArrows();
+  }
 }
