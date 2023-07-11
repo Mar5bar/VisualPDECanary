@@ -2728,10 +2728,11 @@ function render() {
       sizes.push(arrow.size);
     }
     if (options.scaleArrows) {
-      const maxSize = Math.sqrt(Math.max(...sizes));
+      let maxSize = Math.sqrt(Math.max(...sizes));
+      if (maxSize == 0) maxSize = 1;
       for (const arrow of arrowGroup.children) {
         const scale =
-          baseArrowScale * lerp(0.3, 1.5, Math.sqrt(arrow.size) / maxSize);
+          baseArrowScale * lerp(0.1, 1.5, Math.sqrt(arrow.size) / maxSize);
         arrow.scale.set(scale, scale, scale);
       }
     }
@@ -7106,19 +7107,19 @@ function createArrows() {
   const denom = Math.round(
     lerp(3, smallScreen() ? 20 : 32, options.arrowDensity)
   );
-  const stride = Math.floor(maxDisc / denom);
+  let stride = Math.max(Math.floor(maxDisc / denom), 1);
   const xNum = Math.floor(nXDisc / stride);
   const yNum = Math.floor(nYDisc / stride);
-  const xStartInd = Math.round((nXDisc - stride * (xNum - 1)) / 2);
-  const yStartInd = Math.round((nYDisc - stride * (yNum - 1)) / 2);
+  const xStartInd = Math.floor((nXDisc - stride * (xNum - 1)) / 2);
+  const yStartInd = Math.floor((nYDisc - stride * (yNum - 1)) / 2);
   let ind, yInd, xInd, arrow, x, y;
   // Texture reads go along rows from bottom to top.
   for (let row = 0; row < yNum; row++) {
     yInd = yStartInd + row * stride;
-    y = (yInd / nYDisc - 0.5) * domain.geometry.parameters.height;
+    y = ((yInd + 0.5) / nYDisc - 0.5) * domain.geometry.parameters.height;
     for (let col = 0; col < xNum; col++) {
       xInd = xStartInd + col * stride;
-      x = (xInd / nXDisc - 0.5) * domain.geometry.parameters.width;
+      x = ((xInd + 0.5) / nXDisc - 0.5) * domain.geometry.parameters.width;
       ind = xInd + yInd * nXDisc;
       arrow = createArrow([x, y, 1], [0, 0, 0]);
       arrow.ind = ind;
