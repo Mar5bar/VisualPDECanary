@@ -12,4 +12,4 @@ A good place to start is the library of examples of [basic PDEs](/basic-pdes). B
 
 The ideas for this website originated in a [Durham Centre for Academic Development](https://www.durham.ac.uk/departments/centres/academic-development/) collaborative innovation grant titled *Accessible interactive visualisations in mathematical biology*, which supported Alex Chudasama (a final-year undergraduate at Durham University) to design an early version of an interactive PDE solver based on [this Gray–Scott reaction–diffusion simulator](https://pmneila.github.io/jsexp/grayscott/). 
 
-The current website and tools are written and maintained by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/), and [Andrew Krause](https://www.andrewkrause.org/).
+The current website and tools are written and maintained by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/) and [Andrew Krause](https://www.andrewkrause.org/).
