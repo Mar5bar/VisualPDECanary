@@ -912,6 +912,7 @@ function updateUniforms() {
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
   uniforms.customSurface.value = options.customSurface;
+  uniforms.vectorField.value = options.vectorField;
   setEmbossUniforms();
   if (!options.fixRandSeed) {
     updateRandomSeed();
@@ -1226,7 +1227,7 @@ function initUniforms() {
     },
     vectorField: {
       type: "bool",
-      value: true,
+      value: false,
     },
   };
 }
@@ -7183,6 +7184,7 @@ function deleteArrows() {
 }
 
 function configureVectorField() {
+  uniforms.vectorField.value = options.vectorField;
   if (options.vectorField) {
     deleteArrows();
     createArrows();
