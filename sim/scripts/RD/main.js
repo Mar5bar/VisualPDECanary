@@ -133,7 +133,8 @@ let nXDisc,
   canvasHeight,
   usingLowResDomain = true,
   domainScaleValue = 1,
-  domainScaleFactor = 1;
+  domainScaleFactor = 1,
+  baseArrowScale = 0.15;
 let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
@@ -732,8 +733,8 @@ function init() {
   checkpointMaterial = new THREE.MeshBasicMaterial();
 
   // Geometry for arrows.
-  tailGeometry = new THREE.CylinderGeometry(0.01, 0.01, 0.1);
-  headGeometry = new THREE.ConeGeometry(0.05, 0.05, 4);
+  tailGeometry = new THREE.CylinderGeometry(0.008, 0.008, 0.1);
+  headGeometry = new THREE.ConeGeometry(0.04, 0.04, 4);
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
   simDomain = new THREE.Mesh(simPlane, simMaterials[0]);
@@ -2374,6 +2375,21 @@ function initGUI(startOpen) {
     })
     .name("$y$ component");
 
+  const vectorFieldButtons = addButtonList(root);
+
+  addToggle(
+    vectorFieldButtons,
+    "scaleArrows",
+    '<i class="fa-regular fa-maximize"></i> Scale',
+    function () {
+      configureVectorField();
+      renderIfNotRunning();
+      updateView("scaleArrows");
+    },
+    null,
+    "Dynamically scale arrows with magnitude"
+  );
+
   const inputs = document.querySelectorAll("input");
   inputs.forEach((input) => disableAutocorrect(input));
 }
@@ -2691,10 +2707,13 @@ function render() {
   }
 
   // If a vector field is requested, update arrows. They will already be set as visible.
-  if (options.vectorField) {
+  if (options.vectorField && arrowGroup) {
     getPostState();
     // For each arrow, update the direction of each arrow using the b and a components of postTexture.
-    let ind, xComp, yComp;
+    let ind,
+      xComp,
+      yComp,
+      sizes = [];
     for (const arrow of arrowGroup.children) {
       ind = 4 * arrow.ind;
       xComp = postBuffer[ind + 2];
@@ -2705,8 +2724,17 @@ function render() {
         arrow.position.y + yComp,
         arrow.position.z
       );
+      arrow.size = xComp ** 2 + yComp ** 2;
+      sizes.push(arrow.size);
     }
-    // options.vectorField = false;
+    if (options.scaleArrows) {
+      const maxSize = Math.sqrt(Math.max(...sizes));
+      for (const arrow of arrowGroup.children) {
+        const scale =
+          baseArrowScale * lerp(0.3, 1.5, Math.sqrt(arrow.size) / maxSize);
+        arrow.scale.set(scale, scale, scale);
+      }
+    }
   }
 
   // If selected, update the time display.
@@ -6849,6 +6877,10 @@ function onMobile() {
   );
 }
 
+function smallScreen() {
+  return window.width < 629;
+}
+
 function copyIframe() {
   // Get the URL of the current sim.
   let url = getSimURL();
@@ -7071,7 +7103,9 @@ function createArrows() {
   arrowGroup = new THREE.Group();
   scene.add(arrowGroup);
   const maxDisc = Math.max(nXDisc, nYDisc);
-  const denom = Math.round(lerp(3, 20, options.arrowDensity));
+  const denom = Math.round(
+    lerp(3, smallScreen() ? 20 : 32, options.arrowDensity)
+  );
   const stride = Math.floor(maxDisc / denom);
   const xNum = Math.floor(nXDisc / stride);
   const yNum = Math.floor(nYDisc / stride);
@@ -7103,7 +7137,7 @@ function createArrow(pos, dir) {
   head.position.z = tailGeometry.parameters.height / 2;
   arrow.add(tail);
   arrow.add(head);
-  arrow.scale.multiplyScalar(0.2);
+  arrow.scale.multiplyScalar(baseArrowScale);
   arrow.position.set(pos[0], pos[1], pos[2]);
   arrow.lookAt(pos[0] + dir[0], pos[1] + dir[1], pos[2] + dir[2]);
   return arrow;
