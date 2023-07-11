@@ -2708,8 +2708,8 @@ function render() {
 
   // If a vector field is requested, update arrows. They will already be set as visible.
   if (options.vectorField && arrowGroup) {
+    // Update the direction of each arrow using the b and a components of postTexture.
     getPostState();
-    // For each arrow, update the direction of each arrow using the b and a components of postTexture.
     let ind,
       xComp,
       yComp,
