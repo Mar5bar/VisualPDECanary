@@ -101,6 +101,7 @@ let leftGUI,
   imControllerOne,
   imControllerTwo,
   arrowDensityController,
+  arrowLengthMaxController,
   editViewFolder,
   linesAnd3DFolder,
   vectorFieldFolder,
@@ -2346,17 +2347,6 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
-  arrowDensityController = root
-    .add(options, "arrowDensity")
-    .onChange(function () {
-      configureVectorField();
-      renderIfNotRunning();
-      updateView(this.property);
-    })
-    .name("Density");
-  arrowDensityController.__precision = 2;
-  createOptionSlider(arrowDensityController, 0, 1, 0.001);
-
   root
     .add(options, "arrowX")
     .onFinishChange(function () {
@@ -2375,20 +2365,38 @@ function initGUI(startOpen) {
     })
     .name("$y$ component");
 
-  const vectorFieldButtons = addButtonList(root);
-
-  addToggle(
-    vectorFieldButtons,
-    "scaleArrows",
-    '<i class="fa-regular fa-maximize"></i> Scale',
-    function () {
+  arrowDensityController = root
+    .add(options, "arrowDensity")
+    .onChange(function () {
       configureVectorField();
       renderIfNotRunning();
-      updateView("scaleArrows");
-    },
-    null,
-    "Dynamically scale arrows with magnitude"
-  );
+      updateView(this.property);
+    })
+    .name("Density");
+  arrowDensityController.__precision = 2;
+  createOptionSlider(arrowDensityController, 0, 1, 0.001);
+
+  root
+    .add(options, "arrowScale", {
+      None: "none",
+      Relative: "relative",
+      Auto: "auto",
+    })
+    .onFinishChange(function () {
+      configureGUI();
+      renderIfNotRunning();
+      updateView(this.property);
+    })
+    .name("Scaling");
+
+  arrowLengthMaxController = root
+    .add(options, "arrowLengthMax")
+    .onFinishChange(function () {
+      configureVectorField();
+      renderIfNotRunning();
+      updateView(this.property);
+    })
+    .name("Max length");
 
   const inputs = document.querySelectorAll("input");
   inputs.forEach((input) => disableAutocorrect(input));
@@ -2727,14 +2735,30 @@ function render() {
       arrow.size = xComp ** 2 + yComp ** 2;
       sizes.push(arrow.size);
     }
-    if (options.scaleArrows) {
-      let maxSize = Math.sqrt(Math.max(...sizes));
-      if (maxSize == 0) maxSize = 1;
-      for (const arrow of arrowGroup.children) {
-        const scale =
-          baseArrowScale * lerp(0.1, 1.5, Math.sqrt(arrow.size) / maxSize);
-        arrow.scale.set(scale, scale, scale);
-      }
+    let maxSize = 1;
+    switch (options.arrowScale) {
+      case "auto":
+        maxSize = Math.sqrt(Math.max(...sizes));
+        if (maxSize == 0) maxSize = 1;
+        for (const arrow of arrowGroup.children) {
+          const scale =
+            baseArrowScale * lerp(0.1, 1.5, Math.sqrt(arrow.size) / maxSize);
+          arrow.scale.set(scale, scale, scale);
+        }
+        break;
+      case "relative":
+        maxSize = arrowGroup.customMax > 0 ? arrowGroup.customMax : 1;
+        for (const arrow of arrowGroup.children) {
+          const scale =
+            baseArrowScale * lerp(0.1, 1.5, Math.sqrt(arrow.size) / maxSize);
+          arrow.scale.set(scale, scale, scale);
+        }
+        break;
+      case "none":
+        for (const arrow of arrowGroup.children) {
+          arrow.scale.set(baseArrowScale, baseArrowScale, baseArrowScale);
+        }
+        break;
     }
   }
 
@@ -4410,6 +4434,11 @@ function configureGUI() {
     $("#interpController").hide();
   } else {
     $("#interpController").show();
+  }
+  if (options.arrowScale == "relative") {
+    showGUIController(arrowLengthMaxController);
+  } else {
+    hideGUIController(arrowLengthMaxController);
   }
   // Update the options available in whatToDraw based on the number of species.
   updateGUIDropdown(
@@ -6322,6 +6351,7 @@ function lerpArrays(v1, v2, t) {
 
 function lerp(a, b, t) {
   // Linear interpolation between a and b, with t in [0,1].
+  t = t.clamp(0, 1);
   return (1 - t) * a + t * b;
 }
 
@@ -7157,6 +7187,16 @@ function configureVectorField() {
     deleteArrows();
     createArrows();
     updateArrowColour();
+    if (options.arrowScale == "relative") {
+      try {
+        arrowGroup.customMax = parser.evaluate(options.arrowLengthMax);
+      } catch (error) {
+        throwError(
+          "Unable to evaluate the maximum arrow length. Please check the definition."
+        );
+        arrowGroup.customMax = 1;
+      }
+    }
   } else {
     deleteArrows();
   }
