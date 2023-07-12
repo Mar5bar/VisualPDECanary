@@ -333,6 +333,21 @@ canvas {
   font-size: 1.5rem;
 }
 
+.btn-primary {
+  width: 80px;
+  color: #000;
+  font-size: 1.2rem;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-feature-settings: "kern" 1;
+  -moz-font-feature-settings: "kern" 1;
+  -o-font-feature-settings: "kern" 1;
+  font-feature-settings: "kern" 1;
+}
+
+.btn-primary .svg-inline--fa {
+  margin-right: 5px;
+}
+
 #warning,
 #oops_hit_nan,
 #error {
@@ -364,7 +379,7 @@ canvas {
 
 #warning_ok,
 #warning_no,
-#warning_restart {
+.warning_dismiss {
   font-size: 1rem;
   margin-bottom: 0.5rem;
   text-align: center;
@@ -393,14 +408,14 @@ canvas {
 }
 
 #warning_no,
-#warning_restart {
+.warning_dismiss {
   background-color: #e9e9ed;
   color: #111;
 }
 
 @media (hover: hover) {
   #warning_no:hover,
-  #warning_restart:hover {
+  .warning_dismiss:hover {
     background-color: #ddd;
     cursor: pointer;
     color: #111 !important;
@@ -420,21 +435,6 @@ p.error_para {
 i.icon_on_text_button {
   color: #606060;
   margin-right: 0.4rem;
-}
-
-.btn-primary {
-  width: 80px;
-  color: #000;
-  font-size: 1.2rem;
-  -webkit-text-size-adjust: 100%;
-  -webkit-font-feature-settings: "kern" 1;
-  -moz-font-feature-settings: "kern" 1;
-  -o-font-feature-settings: "kern" 1;
-  font-feature-settings: "kern" 1;
-}
-
-.btn-primary .svg-inline--fa {
-  margin-right: 5px;
 }
 
 .fading_in {

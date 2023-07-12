@@ -111,6 +111,7 @@ let leftGUI,
 let isRunning,
   isDrawing,
   hasDrawn,
+  shouldCheckNaN = true,
   isStory = false,
   shaderContainsRAND = false,
   anyDirichletBCs,
@@ -498,10 +499,6 @@ $("#play").click(function () {
   playSim();
 });
 $("#erase").click(function () {
-  resetSim();
-});
-$("#warning_restart").click(function () {
-  $("#oops_hit_nan").hide();
   resetSim();
 });
 $("#share").click(function () {
@@ -2902,6 +2899,9 @@ function playSim() {
     $("#play").hide();
     $("#pause").show();
   }
+  shouldCheckNaN = true;
+  window.clearTimeout(NaNTimer);
+  NaNTimer = setTimeout(checkForNaN, 1000);
   isRunning = true;
 }
 
@@ -2911,6 +2911,7 @@ function resetSim() {
   updateTimeDisplay();
   render();
   // Start a timer that checks for NaNs every second.
+  shouldCheckNaN = true;
   window.clearTimeout(NaNTimer);
   checkForNaN();
 }
@@ -3635,56 +3636,31 @@ function loadOptions(preset) {
   if (options.hasOwnProperty("drawIn3D")) {
     options.brushEnabled = options.drawIn3D;
   }
-  // Replace T and S with I_T and I_S if T, S are not in the listOfSpecies.
-  if (!listOfSpecies.includes("T")) {
-    Object.keys(options).forEach(function (key) {
-      if (userTextFields.includes(key)) {
-        options[key] = replaceSymbolsInStr(
-          options[key],
-          ["T"],
-          ["I_T"],
-          "[RGBA]"
-        );
-      }
-    });
+  // Map algebraicV, algebraicW, and algebraicQ onto numAlgebraicSpecies.
+  var count = 0;
+  count += options.hasOwnProperty("algebraicV");
+  count += options.hasOwnProperty("algebraicW");
+  count += options.hasOwnProperty("algebraicQ");
+  if (count && !options.numAlgebraicSpecies) {
+    // If algebraicV,W,Q contain more information than count, then update it.
+    options.numAlgebraicSpecies = count;
   }
-  if (!listOfSpecies.includes("S")) {
-    Object.keys(options).forEach(function (key) {
-      if (userTextFields.includes(key)) {
-        options[key] = replaceSymbolsInStr(
-          options[key],
-          ["S"],
-          ["I_S"],
-          "[RGBA]"
-        );
-      }
-    });
-    // Map algebraicV, algebraicW, and algebraicQ onto numAlgebraicSpecies.
-    var count = 0;
-    count += options.hasOwnProperty("algebraicV");
-    count += options.hasOwnProperty("algebraicW");
-    count += options.hasOwnProperty("algebraicQ");
-    if (count && !options.numAlgebraicSpecies) {
-      // If algebraicV,W,Q contain more information than count, then update it.
-      options.numAlgebraicSpecies = count;
-    }
-    // Remove obsolete fields from options.
-    delete options.algebraicV;
-    delete options.algebraicW;
-    delete options.algebraicQ;
+  // Remove obsolete fields from options.
+  delete options.algebraicV;
+  delete options.algebraicW;
+  delete options.algebraicQ;
 
-    // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
-    if (options.minColourValue == null) options.minColourValue = 0;
-    if (options.maxColourValue == null) options.maxColourValue = 1;
+  // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
+  if (options.minColourValue == null) options.minColourValue = 0;
+  if (options.maxColourValue == null) options.maxColourValue = 1;
 
-    // If options.domainScale is not a string, convert it to one.
-    options.domainScale = options.domainScale.toString();
-    // If options.spatialStep is not a string, convert it to one.
-    options.spatialStep = options.spatialStep.toString();
+  // If options.domainScale is not a string, convert it to one.
+  options.domainScale = options.domainScale.toString();
+  // If options.spatialStep is not a string, convert it to one.
+  options.spatialStep = options.spatialStep.toString();
 
-    // Save these loaded options if we ever need to revert.
-    savedOptions = options;
-  }
+  // Save these loaded options if we ever need to revert.
+  savedOptions = options;
 
   // If either of the images are used in the simulation, ensure that the simulation resets when the images are
   // actually loaded in.
@@ -5583,10 +5559,20 @@ function updateIntegralDisplay() {
 function checkForNaN() {
   // Check to see if a NaN value is in the first entry of the simulation array, which would mean that we've hit overflow or instability.
   let vals = getMinMaxVal();
-  if (!isFinite(vals[0]) || !isFinite(vals[1])) {
+  if (shouldCheckNaN && (!isFinite(vals[0]) || !isFinite(vals[1]))) {
+    shouldCheckNaN = false;
     fadein("#oops_hit_nan");
     pauseSim();
-    $("#erase").one("click", () => fadeout("#oops_hit_nan"));
+    $("#oops_hit_nan").one("click", function () {
+      fadeout("#oops_hit_nan");
+      shouldCheckNaN = true;
+    });
+    $("#erase").one("pointerdown", function () {
+      fadeout("#oops_hit_nan");
+      shouldCheckNaN = true;
+      window.clearTimeout(NaNTimer);
+      NaNTimer = setTimeout(checkForNaN, 1000);
+    });
   } else {
     NaNTimer = setTimeout(checkForNaN, 1000);
   }
