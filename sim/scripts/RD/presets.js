@@ -1924,7 +1924,7 @@ export function getPreset(id) {
         reactionStrW: "0",
         spatialStep: 1.5,
         speciesNames: "T",
-        views": [{"arrowLengthMax": "1",
+        "views": [{"arrowLengthMax": "1",
 	"arrowScale": "auto",
 	"arrowX": "L_x/2 - x",
 	"arrowY": "L_y/2 - y",
