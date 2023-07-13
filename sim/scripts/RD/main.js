@@ -3660,7 +3660,7 @@ function loadOptions(preset) {
   options.spatialStep = options.spatialStep.toString();
 
   // Save these loaded options if we ever need to revert.
-  savedOptions = options;
+  savedOptions = JSON.parse(JSON.stringify(options));
 
   // If either of the images are used in the simulation, ensure that the simulation resets when the images are
   // actually loaded in.
