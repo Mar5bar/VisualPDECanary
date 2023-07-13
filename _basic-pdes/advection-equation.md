@@ -33,7 +33,7 @@ The first of these expressions is a rotational velocity field about the centre o
 
 * Changing $\theta$ will change the direction of advection, and $V$ the magnitude. This form of advection is less sensitive to details like boundary conditions, so these can be changed to explore different scenarios.
 
-* In both examples, you can go to {{ layout.views }} to change to a view which also plots the vector field $\v{v}$ as arrows on top of the concentration profiles.
+* In both examples, you can go to {{ layout.views }} to change to a view that also plots the vector field $\v{v}$ as arrows on top of the concentration profiles.
 
 ## Numerical notes
 
