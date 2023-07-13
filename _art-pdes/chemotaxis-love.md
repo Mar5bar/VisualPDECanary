@@ -20,7 +20,7 @@ The next example is based on the [Keller--Segel model for chemotaxis](/mathemati
 
 # Warm hearted
 
-Using the vector field plotting mentioned in [the heat equation](/basic-pdes/heat-equation) and the idea of time-dependent forcing mentioned in [the inhonogeneous heat equation](/basic-pdes/inhomogeneous-heat-equation), we can make a simulation of a [heart being drawn in temperature](/sim/?preset=heatHeart).
+By plotting vector fields on top of the solutions to PDEs, as exemplified in [the heat equation](/basic-pdes/heat-equation), we can visualise how heat flows from a source as it traces out a heart in this [interactive simulation](/sim/?preset=heatHeart).
 
 # Numerical health warning
 
