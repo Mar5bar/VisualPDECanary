@@ -16,9 +16,11 @@ Models like [FitzHugh–Nagumo](/mathematical-biology/fitzhugh-nagumo) are the b
 
 # Chemotaxis
 
-The next example is based on the [Keller--Segel model for chemotaxis](/mathematical-biology/keller-segel).
+The next example is based on the [Keller--Segel model for chemotaxis](/mathematical-biology/keller-segel). Load the [interactive simulation](/sim/?preset=KellerSegelHeart) and enjoy!
 
-* Load the [interactive simulation](/sim/?preset=KellerSegelHeart) and enjoy. 
+# Warm hearted
+
+Using the vector field plotting mentioned in [the heat equation](/basic-pdes/heat-equation) and the idea of time-dependent forcing mentioned in [the inhonogeneous heat equation](/basic-pdes/inhomogeneous-heat-equation), we can make a simulation of a [heart being drawn in temperature](/sim/?preset=heatHeart).
 
 # Numerical health warning
 
