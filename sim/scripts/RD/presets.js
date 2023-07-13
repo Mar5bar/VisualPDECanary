@@ -92,7 +92,7 @@ export function getPreset(id) {
         brushRadius: "20",
         clearValueU: "0",
         colourmap: "thermal",
-        diffusionStrUU: "0.02",
+        diffusionStrUU: "0.1",
         diffusionStrVV: "0",
         diffusionStrWW: "0",
         domainScale: "320",
