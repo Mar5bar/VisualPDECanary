@@ -20,7 +20,9 @@ $$\pd{T}{x}(0,y,t) = \pd{T}{x}(L_x,y,t) = \pd{T}{y}(x,0,t) = \pd{T}{y}(x,L_y,t) 
 
 1. Now press {{ layout.pause }}, paint some initial data, and then press {{ layout.play }} to set it in motion.
 
-1. Press {{ layout.erase }} to clear the screen. 
+1. Press {{ layout.erase }} to clear the screen.
+
+1. You can press {{ layout.views }} to change from a plot of just the density of $T$ to a plot of $T$ augmented with the vector field given by $\nabla T$. This makes arrows which show the flux of heat as it dissipates and moves around.
 
 ### Playing with the diffusion coefficient, $D$
 
