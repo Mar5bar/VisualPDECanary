@@ -177,6 +177,9 @@ Set the relative numerical threshold, between 0 and 1, within which the zero set
 **3D options**\
 When viewing surface plots, this menu will appear to allow you to customise aspects of the display.
 
+* ***Custom surface***\
+Toggle the rendering of the solution on a custom, user-defined surface. The surface $z(x,y)$ is specified in **Surface $z$**, which appears when a custom surface is enabled. This definition can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
+
 * ***Max height***\
 The maximum height of the plotted surface, measured in units of $L$. Changing this parameter effectively makes the vertical variation appear more/less prominent. Must be a numerical value.
 
@@ -194,6 +197,24 @@ The maximum height of the plotted line, measured in units of $L$. Changing this 
 
 * ***Thickness***\
 The thickness of the plotted line relative to the default. Must be a numerical value.
+
+**Vector field**\
+Toggle the rendering of a vector field on top of the simulation. The definition, colour, density, and size of the vectors can be fully customised. This option is often used to visualise flows or fluxes.
+
+* ***Colour***\
+Specify the colour in which arrows will be rendered.
+
+* ***$x$, $y$ component***\
+Specify the $x$ and $y$ components of the vector field. These components can be functions of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
+
+* ***Density***\
+Specify the density of the rendered arrows, normalised between 0 and 1.
+
+* ***Scaling***\
+Configure how the rendered arrows will be scaled. ***Relative*** normalises arrows relative to a maximum length that you can specify. ***Auto*** normalises arrows relative to the largest computed arrow at the current instant. ***None*** renders all arrows at the same scale.
+
+* ***Max length***\
+Specify the constant length by which all arrows will be normalised. Must be a mathematical expression that is not written in terms of any parameters or user-defined quantities.
 
 ---
 

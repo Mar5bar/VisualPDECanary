@@ -5,18 +5,18 @@ title: "Bistability: invasion and persistence"
 lesson_number: 30
 thumbnail: /assets/images/travelling-waves.webp
 extract: Spatial Allee effects and changing wavespeeds
-equation: $\pd{u}{t}=D\nabla^2 u +u(u-a)(u-1)$
+equation: $\pd{u}{t}=D\nabla^2 u +u(u-a)(1-u)$
 ---
 
 
 Next we'll consider a bistable reaction--diffusion equation, sometimes referred to as the [Allen--Cahn](https://people.maths.ox.ac.uk/trefethen/pdectb/allen2.pdf) or Chaffee--Infante equation,
 
-$$\pd{u}{t}=D\nabla^2u +u(u-a)(u-1),$$
+$$\pd{u}{t}=D\nabla^2u +u(u-a)(1-u),$$
 
 where $a \in (0,1)$ is a parameter. As with the [Fisher–KPP equation](travelling-wave), this system will admit travelling waves. Here however, one can show that the wavespeed is proportional to
 
 $$
-c \propto \int_0^1 u(u-a)(u-1)\, \d u = \frac{2a-1}{12},
+c \propto \int_0^1 u(u-a)(1-u)\, \d u = \frac{1-2a}{12},
 $$
 
 and hence we expect the waves to change their direction of travel when $a$ crosses the value 0.5. 
@@ -45,6 +45,6 @@ In the above simulations, we considered $a$ near the boundary, and initial waves
 
 We can add an advection term to the equation to model movement due to, e.g., putting our population in a flowing body of water. The equation now looks like:
 
-$$\pd{u}{t}=D\nabla^2u +u(u-a)(u-1)+V(\cos(\theta)u_x + \sin(\theta)u_y),$$
+$$\pd{u}{t}=D\nabla^2u +u(u-a)(1-u)+V(\cos(\theta)u_x + \sin(\theta)u_y),$$
 
 where $V$ is a velocity and $\theta$ is a direction of advection. We implement this in [this advective bistable simulator](/sim/?preset=BistableAdvection), starting near the critical Allee threshold with $a=0.48$. It can be an interesting task to paint an initial condition capable of surviving so close to this boundary to extinction.

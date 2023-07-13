@@ -80,6 +80,40 @@ export function getPreset(id) {
         whatToPlot: "C",
       };
       break;
+
+    case "heatHeart":
+      options = {
+        activeViewInd: 1,
+        arrowLengthMax: "0.04",
+        arrowScale: "relative",
+        arrowX: "-T_x",
+        arrowY: "-T_y",
+        boundaryConditionsU: "neumann",
+        brushRadius: "20",
+        clearValueU: "0",
+        colourmap: "thermal",
+        diffusionStrUU: "0.1",
+        diffusionStrVV: "0",
+        diffusionStrWW: "0",
+        domainScale: "320",
+        dt: 0.01,
+        flippedColourmap: true,
+        kineticParams: "k = 0.01",
+        numSpecies: 1,
+        preset: "heatHeart",
+        reactionStrU:
+          "exp(-0.3*((x-L_x/2 - 40*sqrt(2)* (sin(t*k))^3)^2 + (y-L_y*0.7 - 40*(-(cos(t*k))^3 - (cos(t*k))^2 + 2*cos(t*k)))^2))",
+        reactionStrV: "0",
+        reactionStrW: "0",
+        spatialStep: "1.5",
+        speciesNames: "T",
+        typesetCustomEqs: false,
+        vectorField: true,
+        views: [{ name: "$T$ and $-\\nabla T$" }],
+        whatToDraw: "T",
+        whatToPlot: "T",
+      };
+      break;
     case "CoupledCGL":
       options = {
         activeViewInd: 1,
@@ -570,6 +604,19 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 1.25,
+        "views": [{"arrowColour": 65535,
+"arrowDensity": 1,
+"arrowX": "L_x/2 - x",
+"arrowY": "L_y/2 - y",
+"vectorField": false,
+"name": "$u$",
+},
+{"arrowColour": 16777215,
+"arrowDensity": 0.8,
+"arrowX": "-(y- L_y/2)",
+"arrowY": "x-L_x/2",
+"vectorField": true,
+"name": "$u$ and $\\v{v}$"}],
         whatToDraw: "u",
         whatToPlot: "u",
       };
@@ -593,6 +640,19 @@ export function getPreset(id) {
         reactionStrV: "0",
         reactionStrW: "0",
         spatialStep: 1.25,
+        "views": [{"arrowColour": 65535,
+"arrowDensity": 1,
+"arrowX": "L_x/2 - x",
+"arrowY": "L_y/2 - y",
+"vectorField": false,
+"name": "$u$",
+},
+{"arrowColour": 16777215,
+"arrowDensity": 0.8,
+"arrowX": "-cos(theta)",
+"arrowY": "-sin(theta)",
+"vectorField": true,
+"name": "$u$ and $\\v{v}$"}],
         whatToDraw: "u",
         whatToPlot: "u",
       };
@@ -1924,6 +1984,28 @@ export function getPreset(id) {
         reactionStrW: "0",
         spatialStep: 1.5,
         speciesNames: "T",
+        views: [
+          {
+            arrowLengthMax: "1",
+            arrowScale: "auto",
+            arrowX: "L_x/2 - x",
+            arrowY: "L_y/2 - y",
+            colourmap: "turbo",
+            flippedColourmap: false,
+            vectorField: false,
+            name: "$T$",
+          },
+          {
+            arrowLengthMax: "0.04",
+            arrowScale: "relative",
+            arrowX: "-T_x",
+            arrowY: "-T_y",
+            colourmap: "thermal",
+            flippedColourmap: true,
+            vectorField: true,
+            name: "$T$ and $\\nabla T$",
+          },
+        ],
         whatToDraw: "T",
         whatToPlot: "T",
       };
@@ -2372,6 +2454,12 @@ export function getPreset(id) {
     default:
       options = {
         activeViewInd: 0,
+        arrowColour: 0x00ffff,
+        arrowDensity: 1.0,
+        arrowLengthMax: "1",
+        arrowScale: "auto",
+        arrowX: "L_x/2 - x",
+        arrowY: "L_y/2 - y",
         autoSetColourRange: false,
         backgroundColour: 0xffffff,
         boundaryConditionsU: "periodic",
@@ -2487,6 +2575,7 @@ export function getPreset(id) {
         tryClickingText: "Try clicking!",
         typeOfBrush: "circle",
         typesetCustomEqs: true,
+        vectorField: false,
         views: [],
         whatToDraw: "v",
         whatToPlot: "v",
@@ -2548,6 +2637,12 @@ export function getUserTextFields() {
 
 export function getFieldsInView() {
   return [
+    "arrowColour",
+    "arrowDensity",
+    "arrowLengthMax",
+    "arrowScale",
+    "arrowX",
+    "arrowY",
     "autoSetColourRange",
     "cameraTheta",
     "cameraPhi",
@@ -2575,8 +2670,10 @@ export function getFieldsInView() {
     "overlayEpsilon",
     "overlayExpr",
     "plotType",
+    "scaleArrows",
     "surfaceFun",
     "threeDHeightScale",
+    "vectorField",
     "whatToPlot",
   ];
 }

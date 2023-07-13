@@ -29,10 +29,16 @@
                     pdn: ["\\frac{\\partial^{#3} #1}{\\partial #2^{#3}}", 3],
                     vnabla: "\\boldsymbol{\\nabla}",
                     lap: "\\nabla^2",
+                    m: ["{\\large\\symbfsfit{#1}}", 1],
+                    v: ["\\boldsymbol{#1}", 1],
                     d: "\\mathrm{d}",
                     i: "\\mathrm{i}",
+                    dx: "\\mathrm{dx}",
+                    dy: "\\mathrm{dy}",
+                    dt: "\\mathrm{dt}",
                     domain: "\\mathit{\\Omega}",
-                    boundary: "\\partial\\Omega",
+                    boundary: "\\partial\\mathit{\\Omega}",
+                    onboundary: "\\vert_{\\boundary}",
                     selected: ["{\\bbox[GreenYellow]{#1}}", 1],
                 },
                 inlineMath: [['$', '$'], ['\\(', '\\)']]
@@ -109,14 +115,14 @@
     <div class="error_infinity"><i class="fa-sharp fa-solid fa-infinity"></i></div>
     <p class="error_para"><strong>Oops!</strong> It looks like things have spiralled off to infinity, or the numerical solver is unstable.</p>
     <p class="error_para">Check the equations, or try reducing the timestep, and restart the simulation.</p>
-    <button id="warning_restart" class="btn-primary"><i class="fa-solid fa-arrow-rotate-left icon_on_text_button"></i>Reset</button>
+    <button class="btn-primary warning_dismiss"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
 <div class="message" id="error">
     <div class="error_infinity"><i class="fa-solid fa-clipboard-question"></i></div>
     <p class="error_para"><strong>Hmmm...</strong> VisualPDE is throwing an error, most likely as a result of the definitions and parameters.</p>
     <p class="error_para">Check for syntax errors, and reload the page if the interface is unresponsive.</p>
     <p class="error_para" id='error_description'></p>
-    <button id="warning_no" class="btn-primary"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
+    <button class="btn-primary warning_dismiss"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
 
 <div id="right_ui" class="ui hidden">

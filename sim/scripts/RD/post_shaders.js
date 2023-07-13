@@ -11,7 +11,8 @@ export function computeDisplayFunShaderTop() {
     uniform float L_y;
     uniform float L_min;
     uniform float t;
-		uniform bool customSurface;
+    uniform bool customSurface;
+    uniform bool vectorField;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
 
@@ -93,10 +94,15 @@ export function computeDisplayFunShaderMid() {
 
         float value = FUN;
 				float height = value;
+                float yVecComp;
 				if (customSurface) {
 					height = (HEIGHT) / L;
 				}
-        gl_FragColor = vec4(value, 0.0, height, 1.0);`;
+        if (vectorField) {
+            height = XVECFUN;
+            yVecComp = YVECFUN;
+        }
+        gl_FragColor = vec4(value, 0.0, height, yVecComp);`;
 }
 
 export function computeMaxSpeciesShaderMid() {

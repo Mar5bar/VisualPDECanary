@@ -22,10 +22,13 @@ let basicMaterial,
   copyMaterial,
   postMaterial,
   lineMaterial,
+  arrowMaterial,
   interpolationMaterial,
-  checkpointMaterial;
+  checkpointMaterial,
+  tailGeometry,
+  headGeometry;
 let domain, simDomain, clickDomain, line;
-let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine;
+let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
 let colourmap, colourmapEndpoints;
 let options, uniforms, funsObj, savedOptions;
 let leftGUI,
@@ -97,14 +100,18 @@ let leftGUI,
   fIm,
   imControllerOne,
   imControllerTwo,
+  arrowDensityController,
+  arrowLengthMaxController,
   editViewFolder,
   linesAnd3DFolder,
+  vectorFieldFolder,
   whatToPlotController,
   deleteViewController,
   selectedEntries = new Set();
 let isRunning,
   isDrawing,
   hasDrawn,
+  shouldCheckNaN = true,
   isStory = false,
   shaderContainsRAND = false,
   anyDirichletBCs,
@@ -128,7 +135,8 @@ let nXDisc,
   canvasHeight,
   usingLowResDomain = true,
   domainScaleValue = 1,
-  domainScaleFactor = 1;
+  domainScaleFactor = 1,
+  baseArrowScale = 0.15;
 let parametersFolder,
   kineticParamsStrs = {},
   kineticParamsLabels = [],
@@ -156,7 +164,8 @@ const listOfTypes = [
 let equationType, savedHTML, algebraicV, algebraicW, algebraicQ;
 let takeAScreenshot = false;
 let buffer,
-  checkpointBuffer,
+  stateBuffer,
+  postBuffer,
   bufferFilled = false;
 const numsAsWords = [
   "zero",
@@ -492,10 +501,6 @@ $("#play").click(function () {
 $("#erase").click(function () {
   resetSim();
 });
-$("#warning_restart").click(function () {
-  $("#oops_hit_nan").hide();
-  resetSim();
-});
 $("#share").click(function () {
   toggleSharePanel();
   if ($("#help_panel").is(":visible")) {
@@ -719,7 +724,15 @@ function init() {
     vertexColors: true,
     linewidth: 0.01,
   });
+  arrowMaterial = new THREE.MeshBasicMaterial({
+    color: options.arrowColour,
+    side: THREE.DoubleSide,
+  });
   checkpointMaterial = new THREE.MeshBasicMaterial();
+
+  // Geometry for arrows.
+  tailGeometry = new THREE.CylinderGeometry(0.008, 0.008, 0.1);
+  headGeometry = new THREE.ConeGeometry(0.04, 0.04, 4);
 
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
   simDomain = new THREE.Mesh(simPlane, simMaterials[0]);
@@ -831,6 +844,8 @@ function resize() {
   updateUniforms();
   // Create new display domains with the correct sizes.
   replaceDisplayDomains();
+  // Create arrows for vector fields.
+  configureVectorField();
   // Configure the camera.
   configureCameraAndClicks();
   // Check if the colourbar lies on top of the logo. If so, remove the logo.
@@ -894,6 +909,7 @@ function updateUniforms() {
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
   uniforms.customSurface.value = options.customSurface;
+  uniforms.vectorField.value = options.vectorField;
   setEmbossUniforms();
   if (!options.fixRandSeed) {
     updateRandomSeed();
@@ -1205,6 +1221,10 @@ function initUniforms() {
     t: {
       type: "f",
       value: 0.0,
+    },
+    vectorField: {
+      type: "bool",
+      value: false,
     },
   };
 }
@@ -1974,7 +1994,7 @@ function initGUI(startOpen) {
 
   addButton(
     effectsButtons,
-    '<i class="fa-solid fa-arrow-right-arrow-left"></i> Flip',
+    '<i class="fa-regular fa-arrows-rotate"></i> Flip',
     function () {
       options.flippedColourmap = !options.flippedColourmap;
       setDisplayColourAndType();
@@ -2072,6 +2092,21 @@ function initGUI(startOpen) {
     null,
     "Toggle overlay",
     "overlayFolder",
+    ["wide"]
+  );
+
+  addToggle(
+    effectsButtons,
+    "vectorField",
+    '<i class="fa-solid fa-arrow-right-arrow-left"></i> Vector field',
+    function () {
+      configureVectorField();
+      renderIfNotRunning();
+      updateView("vectorField");
+    },
+    "vectorFieldButton",
+    "Toggle vector field",
+    "vectorFieldFolder",
     ["wide"]
   );
 
@@ -2296,6 +2331,70 @@ function initGUI(startOpen) {
       render();
       updateView(this.property);
     });
+
+  vectorFieldFolder = editViewFolder.addFolder("Vector field");
+  root = vectorFieldFolder;
+  root.domElement.id = "vectorFieldFolder";
+
+  root
+    .addColor(options, "arrowColour")
+    .name("Colour")
+    .onChange(function () {
+      updateArrowColour();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+
+  root
+    .add(options, "arrowX")
+    .onFinishChange(function () {
+      setPostFunFragShader();
+      renderIfNotRunning();
+      updateView(this.property);
+    })
+    .name("$x$ component");
+
+  root
+    .add(options, "arrowY")
+    .onFinishChange(function () {
+      setPostFunFragShader();
+      renderIfNotRunning();
+      updateView(this.property);
+    })
+    .name("$y$ component");
+
+  arrowDensityController = root
+    .add(options, "arrowDensity")
+    .onChange(function () {
+      configureVectorField();
+      renderIfNotRunning();
+      updateView(this.property);
+    })
+    .name("Density");
+  arrowDensityController.__precision = 2;
+  createOptionSlider(arrowDensityController, 0, 1, 0.001);
+
+  root
+    .add(options, "arrowScale", {
+      None: "none",
+      Relative: "relative",
+      Auto: "auto",
+    })
+    .onFinishChange(function () {
+      configureGUI();
+      renderIfNotRunning();
+      updateView(this.property);
+    })
+    .name("Scaling");
+
+  arrowLengthMaxController = root
+    .add(options, "arrowLengthMax")
+    .onFinishChange(function () {
+      configureVectorField();
+      renderIfNotRunning();
+      updateView(this.property);
+    })
+    .name("Max length");
 
   const inputs = document.querySelectorAll("input");
   inputs.forEach((input) => disableAutocorrect(input));
@@ -2613,6 +2712,54 @@ function render() {
     setLineColour(points);
   }
 
+  // If a vector field is requested, update arrows. They will already be set as visible.
+  if (options.vectorField && arrowGroup) {
+    // Update the direction of each arrow using the b and a components of postTexture.
+    getPostState();
+    let ind,
+      xComp,
+      yComp,
+      sizes = [];
+    for (const arrow of arrowGroup.children) {
+      ind = 4 * arrow.ind;
+      xComp = postBuffer[ind + 2];
+      yComp = postBuffer[ind + 3];
+      arrow.visible = postBuffer[ind + 1] <= 0.5;
+      arrow.lookAt(
+        arrow.position.x + xComp,
+        arrow.position.y + yComp,
+        arrow.position.z
+      );
+      arrow.size = xComp ** 2 + yComp ** 2;
+      sizes.push(arrow.size);
+    }
+    let maxSize = 1;
+    switch (options.arrowScale) {
+      case "auto":
+        maxSize = Math.sqrt(Math.max(...sizes));
+        if (maxSize == 0) maxSize = 1;
+        for (const arrow of arrowGroup.children) {
+          const scale =
+            baseArrowScale * lerp(0.1, 1.5, Math.sqrt(arrow.size) / maxSize);
+          arrow.scale.set(scale, scale, scale);
+        }
+        break;
+      case "relative":
+        maxSize = arrowGroup.customMax > 0 ? arrowGroup.customMax : 1;
+        for (const arrow of arrowGroup.children) {
+          const scale =
+            baseArrowScale * lerp(0.1, 1.5, Math.sqrt(arrow.size) / maxSize);
+          arrow.scale.set(scale, scale, scale);
+        }
+        break;
+      case "none":
+        for (const arrow of arrowGroup.children) {
+          arrow.scale.set(baseArrowScale, baseArrowScale, baseArrowScale);
+        }
+        break;
+    }
+  }
+
   // If selected, update the time display.
   if (options.timeDisplay) {
     updateTimeDisplay();
@@ -2752,6 +2899,9 @@ function playSim() {
     $("#play").hide();
     $("#pause").show();
   }
+  shouldCheckNaN = true;
+  window.clearTimeout(NaNTimer);
+  NaNTimer = setTimeout(checkForNaN, 1000);
   isRunning = true;
 }
 
@@ -2761,6 +2911,7 @@ function resetSim() {
   updateTimeDisplay();
   render();
   // Start a timer that checks for NaNs every second.
+  shouldCheckNaN = true;
   window.clearTimeout(NaNTimer);
   checkForNaN();
 }
@@ -3485,56 +3636,31 @@ function loadOptions(preset) {
   if (options.hasOwnProperty("drawIn3D")) {
     options.brushEnabled = options.drawIn3D;
   }
-  // Replace T and S with I_T and I_S if T, S are not in the listOfSpecies.
-  if (!listOfSpecies.includes("T")) {
-    Object.keys(options).forEach(function (key) {
-      if (userTextFields.includes(key)) {
-        options[key] = replaceSymbolsInStr(
-          options[key],
-          ["T"],
-          ["I_T"],
-          "[RGBA]"
-        );
-      }
-    });
+  // Map algebraicV, algebraicW, and algebraicQ onto numAlgebraicSpecies.
+  var count = 0;
+  count += options.hasOwnProperty("algebraicV");
+  count += options.hasOwnProperty("algebraicW");
+  count += options.hasOwnProperty("algebraicQ");
+  if (count && !options.numAlgebraicSpecies) {
+    // If algebraicV,W,Q contain more information than count, then update it.
+    options.numAlgebraicSpecies = count;
   }
-  if (!listOfSpecies.includes("S")) {
-    Object.keys(options).forEach(function (key) {
-      if (userTextFields.includes(key)) {
-        options[key] = replaceSymbolsInStr(
-          options[key],
-          ["S"],
-          ["I_S"],
-          "[RGBA]"
-        );
-      }
-    });
-    // Map algebraicV, algebraicW, and algebraicQ onto numAlgebraicSpecies.
-    var count = 0;
-    count += options.hasOwnProperty("algebraicV");
-    count += options.hasOwnProperty("algebraicW");
-    count += options.hasOwnProperty("algebraicQ");
-    if (count && !options.numAlgebraicSpecies) {
-      // If algebraicV,W,Q contain more information than count, then update it.
-      options.numAlgebraicSpecies = count;
-    }
-    // Remove obsolete fields from options.
-    delete options.algebraicV;
-    delete options.algebraicW;
-    delete options.algebraicQ;
+  // Remove obsolete fields from options.
+  delete options.algebraicV;
+  delete options.algebraicW;
+  delete options.algebraicQ;
 
-    // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
-    if (options.minColourValue == null) options.minColourValue = 0;
-    if (options.maxColourValue == null) options.maxColourValue = 1;
+  // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
+  if (options.minColourValue == null) options.minColourValue = 0;
+  if (options.maxColourValue == null) options.maxColourValue = 1;
 
-    // If options.domainScale is not a string, convert it to one.
-    options.domainScale = options.domainScale.toString();
-    // If options.spatialStep is not a string, convert it to one.
-    options.spatialStep = options.spatialStep.toString();
+  // If options.domainScale is not a string, convert it to one.
+  options.domainScale = options.domainScale.toString();
+  // If options.spatialStep is not a string, convert it to one.
+  options.spatialStep = options.spatialStep.toString();
 
-    // Save these loaded options if we ever need to revert.
-    savedOptions = options;
-  }
+  // Save these loaded options if we ever need to revert.
+  savedOptions = JSON.parse(JSON.stringify(options));
 
   // If either of the images are used in the simulation, ensure that the simulation resets when the images are
   // actually loaded in.
@@ -3991,7 +4117,9 @@ function getMeanVal() {
 
 function setPostFunFragShader() {
   let shaderStr = kineticUniformsForShader() + computeDisplayFunShaderTop();
-  shaderStr += computeDisplayFunShaderMid();
+  shaderStr += computeDisplayFunShaderMid()
+    .replace(/\bXVECFUN\b/, parseShaderString(options.arrowX))
+    .replace(/\bYVECFUN\b/, parseShaderString(options.arrowY));
   shaderStr = setDisplayFunInShader(shaderStr);
   if (options.domainViaIndicatorFun) {
     shaderStr += postShaderDomainIndicator().replace(
@@ -4235,6 +4363,7 @@ function configureGUI() {
   if (options.plotType == "surface") {
     $("#contourButton").show();
     $("#embossButton").show();
+    $("#vectorFieldButton").hide();
     linesAnd3DFolder.name = "3D options";
     linesAnd3DFolder.domElement.classList.remove("hidden");
     if (options.customSurface) showGUIController(surfaceFunController);
@@ -4246,6 +4375,7 @@ function configureGUI() {
   } else if (options.plotType == "line") {
     $("#contourButton").hide();
     $("#embossButton").hide();
+    $("#vectorFieldButton").hide();
     linesAnd3DFolder.name = "Line options";
     linesAnd3DFolder.domElement.classList.remove("hidden");
     showGUIController(lineWidthMulController);
@@ -4256,6 +4386,7 @@ function configureGUI() {
   } else {
     $("#contourButton").show();
     $("#embossButton").show();
+    $("#vectorFieldButton").show();
     linesAnd3DFolder.domElement.classList.add("hidden");
     hideGUIController(lineWidthMulController);
     hideGUIController(threeDHeightScaleController);
@@ -4280,6 +4411,11 @@ function configureGUI() {
     $("#interpController").hide();
   } else {
     $("#interpController").show();
+  }
+  if (options.arrowScale == "relative") {
+    showGUIController(arrowLengthMaxController);
+  } else {
+    hideGUIController(arrowLengthMaxController);
   }
   // Update the options available in whatToDraw based on the number of species.
   updateGUIDropdown(
@@ -5423,10 +5559,20 @@ function updateIntegralDisplay() {
 function checkForNaN() {
   // Check to see if a NaN value is in the first entry of the simulation array, which would mean that we've hit overflow or instability.
   let vals = getMinMaxVal();
-  if (!isFinite(vals[0]) || !isFinite(vals[1])) {
+  if (shouldCheckNaN && (!isFinite(vals[0]) || !isFinite(vals[1]))) {
+    shouldCheckNaN = false;
     fadein("#oops_hit_nan");
     pauseSim();
-    $("#erase").one("click", () => fadeout("#oops_hit_nan"));
+    $("#oops_hit_nan").one("click", function () {
+      fadeout("#oops_hit_nan");
+      shouldCheckNaN = true;
+    });
+    $("#erase").one("pointerdown", function () {
+      fadeout("#oops_hit_nan");
+      shouldCheckNaN = true;
+      window.clearTimeout(NaNTimer);
+      NaNTimer = setTimeout(checkForNaN, 1000);
+    });
   } else {
     NaNTimer = setTimeout(checkForNaN, 1000);
   }
@@ -5590,6 +5736,8 @@ function configurePlotType() {
     line.visible = true;
     options.contours = false;
     options.emboss = false;
+    options.vectorField = false;
+    configureVectorField();
   } else {
     domain.visible = true;
     line.visible = false;
@@ -5599,6 +5747,8 @@ function configurePlotType() {
         usingLowResDomain = false;
         replaceDisplayDomains();
       }
+      options.vectorField = false;
+      configureVectorField();
     } else {
       $("#simCanvas").css("outline", "");
     }
@@ -6188,6 +6338,7 @@ function lerpArrays(v1, v2, t) {
 
 function lerp(a, b, t) {
   // Linear interpolation between a and b, with t in [0,1].
+  t = t.clamp(0, 1);
   return (1 - t) * a + t * b;
 }
 
@@ -6221,14 +6372,26 @@ function deselectTeX(ids) {
 }
 
 function getRawState() {
-  checkpointBuffer = new Float32Array(nXDisc * nYDisc * 4);
+  stateBuffer = new Float32Array(nXDisc * nYDisc * 4);
   renderer.readRenderTargetPixels(
     simTextures[1],
     0,
     0,
     nXDisc,
     nYDisc,
-    checkpointBuffer
+    stateBuffer
+  );
+}
+
+function getPostState() {
+  postBuffer = new Float32Array(nXDisc * nYDisc * 4);
+  renderer.readRenderTargetPixels(
+    postTexture,
+    0,
+    0,
+    nXDisc,
+    nYDisc,
+    postBuffer
   );
 }
 
@@ -6236,8 +6399,8 @@ function saveSimState() {
   // Save the current state in memory as a buffer.
   getRawState();
 
-  // Create a texture from the checkpoint buffer.
-  createCheckpointTexture(checkpointBuffer);
+  // Create a texture from the state buffer.
+  createCheckpointTexture(stateBuffer);
 
   checkpointExists = true;
 }
@@ -6252,7 +6415,7 @@ function exportSimState() {
   var link = document.createElement("a");
   link.download = "VisualPDEState";
   link.href = URL.createObjectURL(
-    new Blob([new Float32Array([nXDisc, nYDisc]), checkpointBuffer])
+    new Blob([new Float32Array([nXDisc, nYDisc]), stateBuffer])
   );
   document.body.appendChild(link);
   link.click();
@@ -6263,7 +6426,7 @@ function loadSimState(file) {
   const reader = new FileReader();
   reader.onload = function () {
     const buff = new Float32Array(reader.result);
-    // Create the checkpointBuffer from the data. The first two elements are width and height.
+    // Create the stateBuffer from the data. The first two elements are width and height.
     createCheckpointTexture(buff.slice(2), buff.slice(0, 2));
     setStretchOrCropTexture(checkpointTexture);
     checkpointExists = true;
@@ -6444,6 +6607,7 @@ function applyView(view, update) {
     updateUniforms();
     updateColourbarLims();
     configureColourbar();
+    configureVectorField();
     updateViewSliders();
     render();
   }
@@ -6731,6 +6895,10 @@ function onMobile() {
   );
 }
 
+function smallScreen() {
+  return window.width < 629;
+}
+
 function copyIframe() {
   // Get the URL of the current sim.
   let url = getSimURL();
@@ -6947,4 +7115,81 @@ function getDuplicates(strarr) {
   let dups = [];
   strarr.forEach((e) => (seen[e] ? dups.push(e) : (seen[e] = true)));
   return Array.from(new Set(dups));
+}
+
+function createArrows() {
+  arrowGroup = new THREE.Group();
+  scene.add(arrowGroup);
+  const maxDisc = Math.max(nXDisc, nYDisc);
+  const denom = Math.round(
+    lerp(3, smallScreen() ? 20 : 32, options.arrowDensity)
+  );
+  let stride = Math.max(Math.floor(maxDisc / denom), 1);
+  const xNum = Math.floor(nXDisc / stride);
+  const yNum = Math.floor(nYDisc / stride);
+  const xStartInd = Math.floor((nXDisc - stride * (xNum - 1)) / 2);
+  const yStartInd = Math.floor((nYDisc - stride * (yNum - 1)) / 2);
+  let ind, yInd, xInd, arrow, x, y;
+  // Texture reads go along rows from bottom to top.
+  for (let row = 0; row < yNum; row++) {
+    yInd = yStartInd + row * stride;
+    y = ((yInd + 0.5) / nYDisc - 0.5) * domain.geometry.parameters.height;
+    for (let col = 0; col < xNum; col++) {
+      xInd = xStartInd + col * stride;
+      x = ((xInd + 0.5) / nXDisc - 0.5) * domain.geometry.parameters.width;
+      ind = xInd + yInd * nXDisc;
+      arrow = createArrow([x, y, 1], [0, 0, 0]);
+      arrow.ind = ind;
+      arrowGroup.add(arrow);
+    }
+  }
+}
+
+function createArrow(pos, dir) {
+  const arrow = new THREE.Group();
+  const tail = new THREE.Mesh(tailGeometry, arrowMaterial);
+  tail.rotation.x = Math.PI / 2;
+  const head = new THREE.Mesh(headGeometry, arrowMaterial);
+  head.rotation.x = Math.PI / 2;
+  head.rotation.y = Math.PI / 4;
+  head.position.z = tailGeometry.parameters.height / 2;
+  arrow.add(tail);
+  arrow.add(head);
+  arrow.scale.multiplyScalar(baseArrowScale);
+  arrow.position.set(pos[0], pos[1], pos[2]);
+  arrow.lookAt(pos[0] + dir[0], pos[1] + dir[1], pos[2] + dir[2]);
+  return arrow;
+}
+
+function deleteArrows() {
+  if (!arrowGroup) return;
+  scene.remove(arrowGroup);
+  while (arrowGroup.children.length) {
+    arrowGroup.remove(arrowGroup.children[0]);
+  }
+}
+
+function configureVectorField() {
+  uniforms.vectorField.value = options.vectorField;
+  if (options.vectorField) {
+    deleteArrows();
+    createArrows();
+    updateArrowColour();
+    if (options.arrowScale == "relative") {
+      try {
+        arrowGroup.customMax = parser.evaluate(options.arrowLengthMax);
+      } catch (error) {
+        throwError(
+          "Unable to evaluate the maximum arrow length. Please check the definition."
+        );
+        arrowGroup.customMax = 1;
+      }
+    }
+  } else {
+    deleteArrows();
+  }
+}
+
+function updateArrowColour() {
+  arrowMaterial.color = new THREE.Color(options.arrowColour);
 }
