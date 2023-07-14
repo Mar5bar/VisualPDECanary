@@ -3,7 +3,7 @@
 export function getPreset(id) {
   let options;
   switch (id) {
-    case "TuringMonotile":
+    case "TuringTiling":
       options = {
         brushRadius: "2",
         clearValueU: "2.0 - 1.1*I_T",
@@ -20,7 +20,7 @@ export function getPreset(id) {
         maxColourValue: 4,
         minColourValue: -1,
         numTimestepsPerFrame: 20,
-        preset: "TuringMonotile",
+        preset: "TuringTiling",
         resetOnImageLoad: true,
         renderSize: 652,
         reactionStrU: "2*((1-I_T) - u + u^2*v)",
