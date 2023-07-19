@@ -109,6 +109,8 @@ let leftGUI,
   deleteViewController,
   selectedEntries = new Set();
 let isRunning,
+  isLoading = true,
+  hasErrored = false,
   isDrawing,
   hasDrawn,
   shouldCheckNaN = true,
@@ -554,6 +556,7 @@ $(document).on("click", "#add_view", function () {
 });
 
 // Begin the simulation.
+isLoading = false;
 animate();
 
 //---------------
@@ -822,7 +825,14 @@ function init() {
   });
 
   // Listen for resize events.
-  window.addEventListener("resize", resize, false);
+  window.addEventListener(
+    "resize",
+    function () {
+      resize();
+      renderIfNotRunning();
+    },
+    false
+  );
 
   window.addEventListener("message", updateParamFromMessage);
 
@@ -851,7 +861,6 @@ function resize() {
   // Check if the colourbar lies on top of the logo. If so, remove the logo.
   checkColourbarLogoCollision();
   resizeEquationDisplay();
-  render();
 }
 
 function replaceDisplayDomains() {
@@ -1309,9 +1318,21 @@ function initGUI(startOpen) {
       renderIfNotRunning();
     });
 
-  root.add(options, "domainScale").name("Largest side").onFinishChange(resize);
+  root
+    .add(options, "domainScale")
+    .name("Largest side")
+    .onFinishChange(function () {
+      resize();
+      renderIfNotRunning();
+    });
 
-  root.add(options, "spatialStep").name("Space step").onFinishChange(resize);
+  root
+    .add(options, "spatialStep")
+    .name("Space step")
+    .onFinishChange(function () {
+      resize();
+      renderIfNotRunning();
+    });
 
   const domainButtonList = addButtonList(root);
 
@@ -1323,6 +1344,7 @@ function initGUI(startOpen) {
       setCanvasShape();
       resize();
       configureCameraAndClicks();
+      renderIfNotRunning();
     },
     null,
     "Use a square domain"
@@ -1337,6 +1359,7 @@ function initGUI(startOpen) {
       configureGUI();
       setRDEquations();
       setPostFunFragShader();
+      renderIfNotRunning();
     },
     null,
     "Determine the domain implicitly"
@@ -1350,6 +1373,7 @@ function initGUI(startOpen) {
       configureGUI();
       setRDEquations();
       updateWhatToPlot();
+      renderIfNotRunning();
     });
 
   // Timestepping folder.
@@ -1396,7 +1420,10 @@ function initGUI(startOpen) {
   root
     .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
     .name("No. species")
-    .onChange(updateProblem);
+    .onChange(function () {
+      updateProblem();
+      resetSim();
+    });
 
   // Number of algebraic species.
   algebraicSpeciesController = root
@@ -1406,6 +1433,7 @@ function initGUI(startOpen) {
       updatingAlgebraicSpecies = true;
       updateProblem();
       updatingAlgebraicSpecies = false;
+      resetSim();
     });
 
   root
@@ -1428,7 +1456,9 @@ function initGUI(startOpen) {
     crossDiffusionButtonList,
     "crossDiffusion",
     '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
-    updateProblem,
+    function () {
+      updateProblem();
+    },
     "cross_diffusion_controller",
     "Toggle cross diffusion"
   );
@@ -1848,7 +1878,10 @@ function initGUI(startOpen) {
     miscButtons,
     "forceManualInterpolation",
     '<i class="fa-regular fa-bezier-curve"></i> Interpolate',
-    configureManualInterpolation,
+    function () {
+      configureManualInterpolation();
+      renderIfNotRunning();
+    },
     "interpController",
     "Override your device's default smoothing and perform bilinear interpolation of the display"
   );
@@ -1964,6 +1997,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setDisplayColourAndType();
       configureColourbar();
+      renderIfNotRunning();
       updateView(this.property);
     })
     .name("Colour map");
@@ -1999,6 +2033,7 @@ function initGUI(startOpen) {
       options.flippedColourmap = !options.flippedColourmap;
       setDisplayColourAndType();
       configureColourbar();
+      renderIfNotRunning();
       updateView("flippedColourmap");
     },
     null,
@@ -2059,6 +2094,7 @@ function initGUI(startOpen) {
     '<i class="fa-solid fa-bullseye"></i> Contours',
     function () {
       setDisplayColourAndType();
+      renderIfNotRunning();
       updateView("contours");
     },
     "contourButton",
@@ -2073,6 +2109,7 @@ function initGUI(startOpen) {
     '<i class="fa-solid fa-lightbulb"></i> Lighting',
     function () {
       setDisplayColourAndType();
+      renderIfNotRunning();
       updateView("emboss");
     },
     "embossButton",
@@ -2087,6 +2124,7 @@ function initGUI(startOpen) {
     '<i class="fa-solid fa-chart-line"></i> Overlay',
     function () {
       setDisplayColourAndType();
+      renderIfNotRunning();
       updateView("overlay");
     },
     null,
@@ -2250,6 +2288,7 @@ function initGUI(startOpen) {
     .name("Expression")
     .onFinishChange(function () {
       setDisplayColourAndType();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -2539,7 +2578,6 @@ function setDisplayColourAndType() {
   postMaterial.needsUpdate = true;
   colourmapEndpoints = colourmap.map((x) => x[3]);
   colourmap = colourmap.map((x) => x.slice(0, -1));
-  render();
 }
 
 function selectColourspecInShaderStr(shaderStr) {
@@ -3609,11 +3647,11 @@ function loadOptions(preset) {
   // Loop through newOptions and overwrite anything already present.
   Object.assign(options, newOptions);
 
-  // Set custom species names and reaction names.
-  setCustomNames(true);
-
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
+
+  // Set custom species names and reaction names.
+  setCustomNames(true);
 
   // Ensure that the correct play/pause button is showing.
   isRunning ? playSim() : pauseSim();
@@ -3995,7 +4033,6 @@ function updateWhatToPlot() {
   }
   configureColourbar();
   configureIntegralDisplay();
-  render();
 }
 
 function showVGUIPanels() {
@@ -4626,7 +4663,6 @@ function updateProblem() {
   setKineticUniforms();
   updateShaders();
   setEquationDisplayType();
-  resetSim();
 }
 
 function setEquationDisplayType() {
@@ -5637,7 +5673,6 @@ function configureManualInterpolation() {
     interpolationTexture.texture.magFilter = THREE.LinearFilter;
   }
   configureGUI();
-  render();
 }
 
 function isManuallyInterpolating() {
@@ -6099,7 +6134,7 @@ function setCustomNames(onLoading) {
       } else {
         message = "under the hood";
       }
-      alert(
+      throwError(
         "The name '" +
           tempListOfSpecies[ind] +
           "' is used " +
@@ -6493,6 +6528,9 @@ function setDefaultRenderSize() {
 
 function throwError(message) {
   pauseSim();
+  // If we're loading in, don't overwrite previous errors.
+  if (isLoading && hasErrored) return;
+  hasErrored = true;
   // If an error is already being displayed, just update the message.
   if ($("#error").is(":visible")) {
     $("#error_description").html(message);
