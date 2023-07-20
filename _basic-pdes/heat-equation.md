@@ -4,11 +4,11 @@ title: Get started with the heat equation
 lesson_number: 10
 thumbnail: /assets/images/heat-equation.webp
 extract: Let's see how heat diffuses over time
-equation: $\pd{T}{t}=D \nabla^2 T$
+equation: $\pd{T}{t}=D_T \nabla^2 T$
 ---
 Let's start by solving the [heat equation](https://en.wikipedia.org/wiki/Heat_equation),
 
-$$\pd{T}{t}=D \nabla^2 T,$$
+$$\pd{T}{t}=D_T \nabla^2 T,$$
 
 on a [rectangular 2D domain](/user-guide/quick-start#domain-shape) with homogeneous Neumann (aka no-flux) [boundary conditions](/user-guide/quick-start#boundary-conditions),
 
@@ -24,15 +24,15 @@ $$\pd{T}{x}(0,y,t) = \pd{T}{x}(L_x,y,t) = \pd{T}{y}(x,0,t) = \pd{T}{y}(x,L_y,t) 
 
 1. You can press {{ layout.views }} to change from a plot of just the density of $T$ to a plot of $T$ augmented with the vector field given by $-\nabla T$. This makes arrows that show the flux of heat as it dissipates and moves around the domain.
 
-### Playing with the diffusion coefficient, $D$
+### Playing with the diffusion coefficient, $D_T$
 
-What does changing the diffusion coefficient, $D$, do? 
+What does changing the diffusion coefficient, $D_T$, do? 
 
-1. Change its value by clicking {{ layout.equations }} and editing the value of $D$: try increasing it by a factor of 10. 
+1. Change its value by clicking {{ layout.equations }} and editing the value of $D_T$: try increasing it by a factor of 10. 
 
 1. Now click again on the screen and see how fast this blob spreads out throughout the domain. 
 
-Explore how the speed depends on the diffusion coefficient. You can safely increase $D$ up to around $D=50$ without hitting numerical problems: see the discussion on [timestepping issues](/user-guide/solver#timestepping). 
+Explore how the speed depends on the diffusion coefficient. You can safely increase $D_T$ up to around $D=50$ without hitting numerical problems: see the discussion on [timestepping issues](/user-guide/solver#timestepping). 
 
 ### Playing with boundary conditions
 
@@ -54,4 +54,4 @@ $$
 T(x,0) = \cos\left(\frac{m\pi}{L}\right) \implies T(x,t) = \mathrm{e}^{-Dt\left(\frac{m\pi}{L}\right)^2}\cos\left(\frac{m\pi x}{L}\right),
 $$
 
-with $m$ a positive integer. These solutions decay to 0 as time increases. Importantly, the rate of decay depends on the frequency of the initial perturbation $m$, with larger $m$ (or larger $D$) leading to more quickly decaying solutions. You can explore these solutions [here](/sim/?preset=heatEquation1D).
+with $m$ a positive integer. These solutions decay to 0 as time increases. Importantly, the rate of decay depends on the frequency of the initial perturbation $m$, with larger $m$ (or larger $D_T$) leading to more quickly decaying solutions. You can explore these solutions [here](/sim/?preset=heatEquation1D).
