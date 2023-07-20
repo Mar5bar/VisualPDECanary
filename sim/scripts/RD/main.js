@@ -5259,8 +5259,10 @@ function createParameterController(label, isNextParam) {
         // We record the name of the parameter in the controller.
         const match = str.match(/\s*(\w+)\s*=/);
         if (match) {
-          newController.lastName = match[1];
-          kineticNameToCont[newController.lastName] = newController;
+          let name = match[1];
+          validateParamName(name);
+          newController.lastName = name;
+          kineticNameToCont[name] = newController;
         }
         kineticParamsCounter += 1;
         let newLabel = "params" + kineticParamsCounter;
@@ -5281,8 +5283,10 @@ function createParameterController(label, isNextParam) {
     controller.domElement.classList.add("params");
     const match = kineticParamsStrs[label].match(/\s*(\w+)\s*=/);
     if (match) {
-      controller.lastName = match[1];
-      kineticNameToCont[controller.lastName] = controller;
+      let name = match[1];
+      validateParamName(name);
+      controller.lastName = name;
+      kineticNameToCont[name] = controller;
     }
     controller.onFinishChange(function () {
       // Remove excess whitespace.
@@ -5316,15 +5320,18 @@ function createParameterController(label, isNextParam) {
         createSlider();
         // Check if we need to update the parameter name and remove a redundant uniform.
         const match = replaceDigitsWithWords(str).match(/\s*(\w+)\s*=/);
-        if (
-          match &&
-          controller.hasOwnProperty("lastName") &&
-          controller.lastName != match[1] &&
-          !isReservedName(controller.lastName)
-        ) {
-          delete uniforms[controller.lastName];
-          controller.lastName = match[1];
-          kineticNameToCont[controller.lastName] = controller;
+        if (match) {
+          let name = match[1];
+          validateParamName(name);
+          if (
+            controller.hasOwnProperty("lastName") &&
+            controller.lastName != name &&
+            !isReservedName(controller.lastName)
+          ) {
+            delete uniforms[controller.lastName];
+            controller.lastName = name;
+            kineticNameToCont[name] = controller;
+          }
         }
       }
       setKineticStringFromParams();
@@ -7230,4 +7237,22 @@ function configureVectorField() {
 
 function updateArrowColour() {
   arrowMaterial.color = new THREE.Color(options.arrowColour);
+}
+
+function getSpecAndReacNames() {
+  return listOfSpecies.concat(listOfReactions);
+}
+
+function validateParamName(name) {
+  const val = isReservedName(name, getSpecAndReacNames());
+  if (val) {
+    throwError(
+      "The name '" +
+        name +
+        "' is already in use, so can't be used as a parameter name. Please use a different name for " +
+        name +
+        "."
+    );
+  }
+  return !val;
 }
