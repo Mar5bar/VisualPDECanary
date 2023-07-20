@@ -15,7 +15,7 @@ Clicking/pressing on the simulation draws values right onto the domain. You can 
 Pressing {{ layout.equations }} opens up the **equations panel**.
 
 {:refdef: style="text-align: center;"}
-![Equations panel](/assets/images/equations-panel.webp){: width="253px" }
+![Equations panel](/assets/images/equations-panel.webp){: width="253px" border="1px black"}
 {: refdef}
 
 Here you can:
