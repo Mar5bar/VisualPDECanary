@@ -1443,13 +1443,6 @@ function initGUI(startOpen) {
       setCustomNames();
     });
 
-  root
-    .add(options, "reactionNames")
-    .name("Reactions")
-    .onFinishChange(function () {
-      setCustomNames();
-    });
-
   // Cross diffusion.
   const crossDiffusionButtonList = addButtonList(root);
   addToggle(
@@ -4855,8 +4848,7 @@ function setEquationDisplayType() {
     str = replaceSymbolsInStr(
       str,
       ["UFUN", "VFUN", "WFUN", "QFUN"],
-      listOfReactions,
-      "_[xy]"
+      defaultReactions
     );
   }
 
@@ -6110,34 +6102,18 @@ function setCustomNames(onLoading) {
     .split(" ")
     .slice(0, defaultSpecies.length);
 
-  const newReactions = options.reactionNames
-    .replaceAll(/\W+/g, " ")
-    .trim()
-    .split(" ")
-    .slice(0, defaultReactions.length);
-
-  // If not enough species or reactions have been provided, add placeholders for those remaining.
+  // If not enough species have been provided, add placeholders for those remaining.
   const tempListOfSpecies = newSpecies.concat(
     placeholderSp.slice(newSpecies.length)
-  );
-  const tempListOfReactions = newReactions.concat(
-    placeholderRe.slice(newReactions.length)
   );
 
   // Check if any reserved names have been used, and stop if so.
   const kinParamNames = getKineticParamNames();
   let message;
   for (var ind = 0; ind < tempListOfSpecies.length; ind++) {
-    if (
-      isReservedName(
-        tempListOfSpecies[ind],
-        kinParamNames.concat(tempListOfReactions)
-      )
-    ) {
+    if (isReservedName(tempListOfSpecies[ind], kinParamNames)) {
       if (kinParamNames.includes(tempListOfSpecies[ind])) {
         message = "as a parameter";
-      } else if (tempListOfReactions.includes(tempListOfSpecies[ind])) {
-        message = "as a reaction";
       } else {
         message = "under the hood";
       }
@@ -6153,36 +6129,10 @@ function setCustomNames(onLoading) {
       return;
     }
   }
-  for (var ind = 0; ind < tempListOfReactions.length; ind++) {
-    if (
-      isReservedName(
-        tempListOfReactions[ind],
-        kinParamNames.concat(tempListOfSpecies[ind])
-      )
-    ) {
-      if (kinParamNames.includes(tempListOfReactions[ind])) {
-        message = "as a parameter";
-      } else if (tempListOfSpecies.includes(tempListOfReactions[ind])) {
-        message = "as a reaction";
-      } else {
-        message = "under the hood";
-      }
-      throwError(
-        "The name '" +
-          tempListOfReactions[ind] +
-          "' is used " +
-          message +
-          ", so can't be used as a function name. Please use a different name for " +
-          tempListOfReactions[ind] +
-          "."
-      );
-      return;
-    }
-  }
 
   // Now that we know all the names are valid, assign the names to the global variables.
   listOfSpecies = tempListOfSpecies;
-  listOfReactions = tempListOfReactions;
+  listOfReactions = listOfSpecies.map((x) => "f_{" + x + "}");
 
   // Define non-capturing strings that are equivalent to the old [uvwq], [vwq] etc in regexes.
   genAnySpeciesRegexStrs();
