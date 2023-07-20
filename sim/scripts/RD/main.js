@@ -4730,7 +4730,12 @@ function setEquationDisplayType() {
 
     // Convert all the associated strings back to default notation.
     function toDefault(s) {
-      return replaceSymbolsInStr(s, listOfSpecies, defaultSpecies, "_[xy]");
+      return replaceSymbolsInStr(
+        s,
+        listOfSpecies,
+        defaultSpecies,
+        "_(?:x+|y+)"
+      );
     }
 
     Object.keys(associatedStrs).forEach(function (key) {
@@ -4866,7 +4871,7 @@ function setEquationDisplayType() {
     str,
     defaultSpecies.concat(defaultReactions),
     listOfSpecies.concat(listOfReactions),
-    "_[xy]"
+    "_(?:x+|y+)"
   );
 
   str = parseStringToTEX(str);
@@ -6148,7 +6153,7 @@ function setCustomNames(onLoading) {
         defaultStrings[key],
         defaultSpecies,
         listOfSpecies,
-        "_[xy]"
+        "_(?:x+|y+)"
       )
     );
   });
@@ -6176,7 +6181,7 @@ function setCustomNames(onLoading) {
         options[key],
         oldListOfSpecies,
         listOfSpecies,
-        "_[xy]"
+        "_(?:x+|y+)"
       );
     }
   });
@@ -6189,7 +6194,7 @@ function setCustomNames(onLoading) {
           view[key],
           oldListOfSpecies,
           listOfSpecies,
-          "_[xy]"
+          "_(?:x+|y+)"
         );
       }
     });
@@ -6202,7 +6207,7 @@ function setCustomNames(onLoading) {
         savedOptions[key],
         oldListOfSpecies,
         listOfSpecies,
-        "_[xy]"
+        "_(?:x+|y+)"
       );
     }
   });
@@ -6215,7 +6220,7 @@ function setCustomNames(onLoading) {
           view[key],
           oldListOfSpecies,
           listOfSpecies,
-          "_[xy]"
+          "_(?:x+|y+)"
         );
       }
     });
