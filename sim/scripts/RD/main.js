@@ -59,6 +59,7 @@ let leftGUI,
   DqwController,
   DqqController,
   dtController,
+  autoPauseAtController,
   whatToDrawController,
   lineWidthMulController,
   threeDHeightScaleController,
@@ -111,6 +112,7 @@ let leftGUI,
 let isRunning,
   isLoading = true,
   hasErrored = false,
+  hasAutoPaused = false,
   isDrawing,
   hasDrawn,
   shouldCheckNaN = true,
@@ -1407,11 +1409,31 @@ function initGUI(startOpen) {
   addToggle(
     timeButtonList,
     "timeDisplay",
-    '<i class="fa-regular fa-stopwatch"></i> Elapsed time',
+    '<i class="fa-regular fa-hourglass-half"></i> Elapsed time',
     configureTimeDisplay,
     null,
     "Show/hide time display"
   );
+
+  addToggle(
+    timeButtonList,
+    "autoPause",
+    '<i class="fa-regular fa-hourglass-end"></i> Auto pause',
+    function () {
+      hasAutoPaused = false;
+      configureGUI();
+    },
+    null,
+    "Toggle automatic pausing"
+  );
+
+  autoPauseAtController = root
+    .add(options, "autoPauseAt")
+    .name("Pause at $t\\geq$")
+    .onFinishChange(function () {
+      hasAutoPaused = false;
+      autoPauseAtController.domElement.blur();
+    });
 
   // Equations folder.
   root = rightGUI.addFolder("Equations");
@@ -2447,6 +2469,16 @@ function animate() {
     anyDirichletBCs ? enforceDirichlet() : {};
     // Perform a number of timesteps per frame.
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
+      if (
+        options.autoPause &&
+        !hasAutoPaused &&
+        uniforms.t.value > options.autoPauseAt
+      ) {
+        // Pause automatically if this option is selected and we're past the set time, but only once.
+        hasAutoPaused = true;
+        pauseSim();
+        break;
+      }
       if (shaderContainsRAND && !options.fixRandSeed) updateRandomSeed();
       timestep();
     }
@@ -4454,6 +4486,12 @@ function configureGUI() {
   );
   // Update emboss sliders.
   updateViewSliders();
+  // Show/hide the autoPauseAt controller.
+  if (options.autoPause) {
+    showGUIController(autoPauseAtController);
+  } else {
+    hideGUIController(autoPauseAtController);
+  }
   // Update all toggle buttons.
   $(".toggle_button").each(function () {
     updateToggle(this);

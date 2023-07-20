@@ -2498,6 +2498,8 @@ export function getPreset(id) {
         arrowScale: "auto",
         arrowX: "L_x/2 - x",
         arrowY: "L_y/2 - y",
+        autoPause: false,
+        autoPauseAt: 10,
         autoSetColourRange: false,
         backgroundColour: 0xffffff,
         boundaryConditionsU: "periodic",
