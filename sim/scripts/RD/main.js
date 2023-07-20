@@ -112,7 +112,7 @@ let leftGUI,
 let isRunning,
   isLoading = true,
   hasErrored = false,
-  hasAutoPaused = false,
+  canAutoPause = true,
   isDrawing,
   hasDrawn,
   shouldCheckNaN = true,
@@ -1420,7 +1420,7 @@ function initGUI(startOpen) {
     "autoPause",
     '<i class="fa-regular fa-hourglass-end"></i> Auto pause',
     function () {
-      hasAutoPaused = false;
+      canAutoPause = uniforms.t.value < options.autoPauseAt;
       configureGUI();
     },
     null,
@@ -1429,9 +1429,9 @@ function initGUI(startOpen) {
 
   autoPauseAtController = root
     .add(options, "autoPauseAt")
-    .name("Pause at $t\\geq$")
+    .name("Pause at $t=$")
     .onFinishChange(function () {
-      hasAutoPaused = false;
+      canAutoPause = uniforms.t.value < options.autoPauseAt;
       autoPauseAtController.domElement.blur();
     });
 
@@ -2471,11 +2471,11 @@ function animate() {
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
       if (
         options.autoPause &&
-        !hasAutoPaused &&
+        canAutoPause &&
         uniforms.t.value >= options.autoPauseAt
       ) {
         // Pause automatically if this option is selected and we're past the set time, but only once.
-        hasAutoPaused = true;
+        canAutoPause = false;
         pauseSim();
         break;
       }
@@ -2971,7 +2971,7 @@ function playSim() {
 function resetSim() {
   clearTextures();
   uniforms.t.value = 0.0;
-  hasAutoPaused = false;
+  canAutoPause = true;
   updateTimeDisplay();
   render();
   // Start a timer that checks for NaNs every second.

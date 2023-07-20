@@ -272,7 +272,7 @@ Select one of various timestepping schemes. [Forward Euler](https://en.wikipedia
 Show/hide the elapsed time since the simulation was loaded/reset.
 
 * ***Auto pause***\
-Set the simulation to be automatically paused when the time ($t$) first passes a custom threshold, which can be configured when this option is enabled. After an automatic pause, VisualPDE won't automatically pause again unless either a new threshold is set or this option is toggled off and on again. You can resume an auto-paused simulation by pressing {{ layout.play }}
+Set the simulation to be automatically paused when the time ($t$) passes a custom threshold, which can be configured when this option is enabled. You can resume an auto-paused simulation by pressing {{ layout.play }}
 
 ### Equations <a id='equations_sub'>
 * ***No. species***\
