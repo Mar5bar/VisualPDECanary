@@ -1498,8 +1498,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DuuController, selectTeX, ["D", "U", "UU"]);
-  setOnblur(DuuController, deselectTeX, ["D", "U", "UU"]);
+  setOnfocus(DuuController, selectTeX, ["U", "UU"]);
+  setOnblur(DuuController, deselectTeX, ["U", "UU"]);
 
   DuvController = root
     .add(options, "diffusionStrUV")
@@ -4339,9 +4339,7 @@ function configureGUI() {
 
   // Configure the controller names.
   // We'll set the generic names then alter any algebraic ones.
-  if (options.numSpecies == 1) {
-    setGUIControllerName(DuuController, TeXStrings["D"], tooltip);
-  } else if (options.crossDiffusion) {
+  if (options.crossDiffusion) {
     setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
     setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
     setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
@@ -4705,7 +4703,6 @@ function setEquationDisplayType() {
   let regex;
   // Define a list of strings that will be used to make regexes.
   const regexes = {};
-  regexes["D"] = /\b(D) (\\vnabla u)/g;
   regexes["U"] = /\b(D_{u}) (\\vnabla u)/g;
   regexes["UU"] = /\b(D_{u u}) (\\vnabla u)/g;
   regexes["V"] = /\b(D_{v}) (\\vnabla v)/g;
@@ -4734,7 +4731,6 @@ function setEquationDisplayType() {
   if (options.typesetCustomEqs) {
     // We'll work using the default notation, then convert at the end.
     let associatedStrs = {};
-    associatedStrs["D"] = options.diffusionStrUU;
     associatedStrs["U"] = options.diffusionStrUU;
     associatedStrs["UU"] = options.diffusionStrUU;
     associatedStrs["V"] = options.diffusionStrVV;
