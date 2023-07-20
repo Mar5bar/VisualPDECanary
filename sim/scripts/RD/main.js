@@ -2971,6 +2971,7 @@ function playSim() {
 function resetSim() {
   clearTextures();
   uniforms.t.value = 0.0;
+  hasAutoPaused = false;
   updateTimeDisplay();
   render();
   // Start a timer that checks for NaNs every second.
