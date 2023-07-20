@@ -19,8 +19,8 @@ Pressing {{ layout.equations }} opens up the **equations panel**.
 {: refdef}
 
 Here you can:
-* See the [equation being simulated](#equations), here $\pd{u}{t} = \vnabla\cdot(D\vnabla u) + f$.
-* Set the named functions in the equations, here $D$ and $f$, under **Definitions**. These can be functions of any of the unknowns, space, and time (here $u$, $x$, $y$, and $t$), and of any parameters that will be defined further down the panel.
+* See the [equation being simulated](#equations), here $\pd{u}{t} = \vnabla\cdot(D_u\vnabla u) + f_u$.
+* Set the named functions in the equations, here $D_u$ and $f_u$, under **Definitions**. These can be functions of any of the unknowns, space, and time (here $u$, $x$, $y$, and $t$), and of any parameters that will be defined further down the panel.
 * Set the value of any extra parameters.
 * Set the [boundary conditions](#boundary-conditions).
 * Set the [initial conditions](#initial-conditions).
@@ -49,32 +49,32 @@ You can specify the values to which the unknowns ($u$, $v$, $w$) are initialised
 
 The simplest system VisualPDE can solve is a single PDE,
 
-$$\pd{u}{t} = \vnabla \cdot (D \vnabla u) + f,$$
+$$\pd{u}{t} = \vnabla \cdot (D_u \vnabla u) + f_u,$$
 
-where $D$ and $f$ are functions of $u$, $x$, $y$, and $t$ that you can specify.
+where $D_u$ and $f_u$ are functions of $u$, $x$, $y$, and $t$ that you can specify.
 
 The most complicated type is a system of PDEs in four unknowns, $u$, $v$, $w$ and $q$:
 
 $$\begin{aligned}
-\pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_{uq}\vnabla q) + f,\\
+\pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_{uq}\vnabla q) + f_u,\\
 \text{or}\left\{\begin{matrix}\displaystyle\pd{v}{t} \\ v\end{matrix}\right. & 
 \begin{aligned}
-    &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + g \vphantom{\displaystyle\pd{v}{t}}, \\
-    &= \vnabla \cdot(D_{vu}\vnabla u+D_{vw}\vnabla w+D_{vq}\vnabla q) + g,
+    &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + f_v \vphantom{\displaystyle\pd{v}{t}}, \\
+    &= \vnabla \cdot(D_{vu}\vnabla u+D_{vw}\vnabla w+D_{vq}\vnabla q) + f_v,
 \end{aligned}\\
 \text{or}\left\{\begin{matrix}\displaystyle\pd{w}{t} \\ w\end{matrix}\right. & 
 \begin{aligned}
-    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w+D_{wq}\vnabla q) + h \vphantom{\displaystyle\pd{w}{t}}, \\
-    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{wq}\vnabla q) + h,
+    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w+D_{wq}\vnabla q) + f_w \vphantom{\displaystyle\pd{w}{t}}, \\
+    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{wq}\vnabla q) + f_w,
 \end{aligned}\\
 \text{or}\left\{\begin{matrix}\displaystyle\pd{q}{t} \\ q\end{matrix}\right. & 
 \begin{aligned}
-    &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w+D_{qq}\vnabla q) + j \vphantom{\displaystyle\pd{q}{t}}, \\
-    &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w) + j,
+    &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w+D_{qq}\vnabla q) + f_q \vphantom{\displaystyle\pd{q}{t}}, \\
+    &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w) + f_q,
 \end{aligned}
 \end{aligned}$$
 
-where $D_{uu}, \dots,  D_{qq}$ and $f$, $g$, $h$ and $j$ are functions of $u$, $v$, $w$, $q$, $x$, $y$ and $t$ that you can specify.
+where $D_{uu}, \dots,  D_{qq}$ and $f_u, \dots, f_q$ are functions of $u$, $v$, $w$, $q$, $x$, $y$ and $t$ that you can specify.
 
 * You can change the number of unknowns by choosing <span class='click_sequence'>{{ layout.settings }} → **Equations** → **No. species**</span>
 * In systems of multiple unknowns, you can include terms representing cross-diffusion (e.g. $D_{uv}$, $D_{vu}$) by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Cross**</span>
