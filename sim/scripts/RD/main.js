@@ -2472,7 +2472,7 @@ function animate() {
       if (
         options.autoPause &&
         !hasAutoPaused &&
-        uniforms.t.value > options.autoPauseAt
+        uniforms.t.value >= options.autoPauseAt
       ) {
         // Pause automatically if this option is selected and we're past the set time, but only once.
         hasAutoPaused = true;
