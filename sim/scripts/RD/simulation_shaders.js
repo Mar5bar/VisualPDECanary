@@ -310,6 +310,10 @@ export function RDShaderAdvectionPreBC() {
   return `
     vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
     vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
+    vec4 uvwqXF = (uvwqR - uvwq) / dx;
+    vec4 uvwqYF = (uvwqT - uvwq) / dy;
+    vec4 uvwqXB = (uvwq - uvwqL) / dx;
+    vec4 uvwqYB = (uvwq - uvwqB) / dy;
     `;
 }
 
@@ -317,6 +321,10 @@ export function RDShaderAdvectionPostBC() {
   return `
     uvwqX = (uvwqR - uvwqL) / (2.0*dx);
     uvwqY = (uvwqT - uvwqB) / (2.0*dy);
+    uvwqXF = (uvwqR - uvwq) / dx;
+    uvwqYF = (uvwqT - uvwq) / dy;
+    uvwqXB = (uvwq - uvwqL) / dx;
+    uvwqYB = (uvwq - uvwqB) / dy;
     `;
 }
 

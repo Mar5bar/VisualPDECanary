@@ -3178,8 +3178,9 @@ function parseShaderString(str) {
   );
 
   // Replace species_x, species_y etc with uvwqX.r and uvwqY.r, etc.
+  // Allow for specifying forward or backward difference.
   str = str.replaceAll(
-    RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_([xy])\\b", "g"),
+    RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_([xy][fb]?)\\b", "g"),
     function (m, d1, d2) {
       return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
     }
@@ -4843,7 +4844,7 @@ function setEquationDisplayType() {
     });
 
     // Replace u_x, u_y etc with \pd{u}{x} etc. Add parentheses if followed by ^.
-    regex = /(\(?)\b([uvwq])_([xy])\s*(\)?)\s*(\^?)\b/g;
+    regex = /(\(?)\b([uvwq])_([xy])[bf]?\s*(\)?)\s*(\^?)\b/g;
     str = str.replaceAll(regex, function (match, g1, g2, g3, g4, g5) {
       let base =
         g1 + "\\textstyle \\pd{" + g2 + "}{" + g3 + "\\vphantom{y}}" + g4;
