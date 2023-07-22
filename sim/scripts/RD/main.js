@@ -997,6 +997,9 @@ function setSizes() {
     xDisplayDomainCoords[i] = val;
     val += step;
   }
+  xDisplayDomainCoords = xDisplayDomainCoords.map(
+    (x) => (x * domainWidth) / maxDim
+  );
   // Set the size of the renderer, which will interpolate precisely from the textures.
   setDefaultRenderSize();
   buffer = new Float32Array(nXDisc * nYDisc * 4);
@@ -2762,7 +2765,8 @@ function render() {
     for (let i = 0; i < buffer.length; i += 4) {
       scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
       // Set the height.
-      yDisplayDomainCoords[ind++] = scaledValue.clamp(-0.5, 0.5);
+      yDisplayDomainCoords[ind++] =
+        (scaledValue.clamp(-0.5, 0.5) * domainHeight) / maxDim;
     }
     // Use spline-smoothed points to use for plotting.
     const curve = new THREE.SplineCurve(
@@ -3665,7 +3669,7 @@ function loadOptions(preset) {
   isRunning = options.runningOnLoad;
 
   // Set custom species names and reaction names.
-  setCustomNames(true);
+  setCustomNames();
 
   // Ensure that the correct play/pause button is showing.
   isRunning ? playSim() : pauseSim();
@@ -5822,13 +5826,15 @@ function configurePlotType() {
 
 function configureDimension() {
   // Configure the dimension of the equations.
-  if (options.dimension != 1 && options.plotType == "line") {
-    options.plotType = "plane";
-    configurePlotType();
-  }
-  if (options.dimension == 1 && options.plotType != "line") {
-    options.plotType = "line";
-    configurePlotType();
+  if (!isLoading) {
+    if (options.dimension != 1 && options.plotType == "line") {
+      options.plotType = "plane";
+      configurePlotType();
+    }
+    if (options.dimension == 1 && options.plotType != "line") {
+      options.plotType = "line";
+      configurePlotType();
+    }
   }
   resize();
   setRDEquations();
@@ -6119,7 +6125,7 @@ function updateGUIDropdown(controller, labels, values) {
   controller.domElement.children[0].innerHTML = innerHTMLStr;
 }
 
-function setCustomNames(onLoading) {
+function setCustomNames() {
   let oldListOfSpecies;
   if (listOfSpecies != undefined) {
     oldListOfSpecies = listOfSpecies;
@@ -6195,7 +6201,7 @@ function setCustomNames(onLoading) {
   });
 
   // Don't update the problem if we're just loading in, as this will be done as part of loading.
-  if (onLoading) return;
+  if (isLoading) return;
 
   // If we're not loading in, go through options and replace the old species with the new ones.
   Object.keys(options).forEach(function (key) {
