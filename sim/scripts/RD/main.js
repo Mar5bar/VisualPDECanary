@@ -1284,7 +1284,7 @@ function initGUI(startOpen) {
     "Toggle the brush on or off"
   );
 
-  root
+  const brushActionController = root
     .add(options, "brushAction", {
       Replace: "replace",
       Add: "add",
@@ -1292,7 +1292,10 @@ function initGUI(startOpen) {
       "Add (smooth)": "smoothadd",
     })
     .name("Action")
-    .onChange(setBrushType);
+    .onChange(function () {
+      setBrushType();
+      document.activeElement.blur();
+    });
 
   typeOfBrushController = root
     .add(options, "typeOfBrush", {
@@ -1320,6 +1323,7 @@ function initGUI(startOpen) {
     .name("Dimension")
     .onChange(function () {
       configureDimension();
+      document.activeElement.blur();
       renderIfNotRunning();
     });
 
@@ -1406,7 +1410,10 @@ function initGUI(startOpen) {
       "Midpoint Method": "Mid",
       "Runge-Kutta 4": "RK4",
     })
-    .name("Scheme");
+    .name("Scheme")
+    .onChange(function () {
+      document.activeElement.blur();
+    });
 
   const timeButtonList = addButtonList(root);
   addToggle(
@@ -1446,6 +1453,7 @@ function initGUI(startOpen) {
     .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
     .name("No. species")
     .onChange(function () {
+      document.activeElement.blur();
       updateProblem();
       resetSim();
     });
@@ -1685,6 +1693,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
+      document.activeElement.blur();
     });
 
   dirichletUController = root
@@ -1715,6 +1724,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
+      document.activeElement.blur();
     });
 
   dirichletVController = root
@@ -1745,6 +1755,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
+      document.activeElement.blur();
     });
 
   dirichletWController = root
@@ -1776,6 +1787,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
+      document.activeElement.blur();
     });
 
   dirichletQController = root
@@ -1865,7 +1877,10 @@ function initGUI(startOpen) {
 
   root
     .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
-    .name("Resize");
+    .name("Resize")
+    .onChange(function () {
+      document.activeElement.blur();
+    });
 
   // Miscellaneous folder.
   root = rightGUI.addFolder("Misc.");
@@ -2015,6 +2030,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setDisplayColourAndType();
       configureColourbar();
+      document.activeElement.blur();
       renderIfNotRunning();
       updateView(this.property);
     })
@@ -2353,6 +2369,7 @@ function initGUI(startOpen) {
     .name("Max height")
     .onChange(function () {
       updateUniforms();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -2361,6 +2378,7 @@ function initGUI(startOpen) {
     .name("View $\\theta$")
     .onChange(function () {
       configureCameraAndClicks();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -2369,6 +2387,7 @@ function initGUI(startOpen) {
     .name("View $\\phi$")
     .onChange(function () {
       configureCameraAndClicks();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -2377,6 +2396,7 @@ function initGUI(startOpen) {
     .name("Zoom")
     .onChange(function () {
       configureCameraAndClicks();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -2385,7 +2405,7 @@ function initGUI(startOpen) {
     .name("Thickness")
     .onChange(function () {
       setLineWidth();
-      render();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
