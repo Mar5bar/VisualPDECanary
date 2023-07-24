@@ -342,5 +342,19 @@ exp( -(x-L_x)^2 / 10)
 1 + (x^2 + x + 1) / (y^2 + y + 1)
 ```
 
+**Advanced syntax**\
+Some terms in VisualPDE have additional functionality when written with special syntax.
+* ***Images***\
+By default, images are accessed using 'I_T' and 'I_S', with individual channels available by appending R,G,B or A. When a channel is specified, you can access images using coordinates using the syntax 'I_TR(x,y)'. Examples include
+
+```
+I_TR(2*x, y)
+I_SB(x-t, y-t)
+I_TG(x, y + sin(u))
+```
+
+* ***One-sided differences***\
+First-order spatial derivatives, accessed with 'u_x', 'u_y', ..., are computed using a central finite difference discretisation by default. By appending 'f' or 'b' to the subscript, such as 'u_xf', you can tell VisualPDE to use a forward or a backward difference, respectively. Forward differences sample the solution at increased $x$ (or $y$), whilst backward differences sample at decreased $x$ (or $y$). These specialised schemes can be used in [upwind schemes](https://en.wikipedia.org/wiki/Upwind_scheme) and often reduce numerical artefacts, but at the expense of typically larger numerical error.
+
 **Special functions**\
 Throughout VisualPDE, you can make use of the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt', 'sinh', 'cosh', 'tanh' and 'H', where the latter is a [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function) smoothed over the interval $[-1,1]$ (see the [GLSL reference](https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml) for details). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'. You can also use 'min' and 'max' as functions with two arguments, which return the minimum or maximum of their arguments, e.g. 'min(u,1)' returns the minimum of $u$ and 1. If you wish to raise the output of a function to a power, you must enclose the function in parentheses, e.g. write '(cos(x))^2', not 'cos(x)^2'.
