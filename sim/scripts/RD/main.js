@@ -105,6 +105,7 @@ let leftGUI,
   arrowDensityController,
   arrowLengthMaxController,
   overlayEpsilonController,
+  overlayLineWidthMulController,
   editViewFolder,
   linesAnd3DFolder,
   vectorFieldFolder,
@@ -2357,6 +2358,15 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
+  overlayLineWidthMulController = root
+    .add(options, "overlayLineWidthMul", 0.1, 2)
+    .name("Thickness")
+    .onChange(function () {
+      setLineWidth();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+
   linesAnd3DFolder = editViewFolder.addFolder("3D");
   root = linesAnd3DFolder;
 
@@ -4547,10 +4557,12 @@ function configureGUI() {
   } else {
     hideGUIController(autoPauseAtController);
   }
-  if (options.overlay && options.plotType == "line") {
+  if (options.plotType == "line") {
     hideGUIController(overlayEpsilonController);
+    showGUIController(overlayLineWidthMulController);
   } else {
     showGUIController(overlayEpsilonController);
+    hideGUIController(overlayLineWidthMulController);
   }
   // Update all toggle buttons.
   $(".toggle_button").each(function () {
@@ -6440,7 +6452,7 @@ function lerp(a, b, t) {
 
 function setLineWidth() {
   lineMaterial.linewidth = 0.01 * options.lineWidthMul;
-  overlayLineMaterial.linewidth = 0.01 * options.lineWidthMul;
+  overlayLineMaterial.linewidth = 0.01 * options.overlayLineWidthMul;
   lineMaterial.needsUpdate = true;
   overlayLineMaterial.needsUpdate = true;
 }
