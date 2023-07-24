@@ -244,10 +244,10 @@ Set the **species** ($u$, $v$, $w$, $q$) you are painting.
 Choose between a 1D or a 2D computational domain. Switching to 1D effectively removes the $y$ dimension from the simulation. Make sure that any expressions you've defined don't contain a $y$ after moving to 1D.
 
 * ***Largest side***\
-Change the largest side $L$ of the domain. Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
+Change the largest side $L$ of the domain. Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities. If this is not an integer multiple of the space step $\dx=\dy$, the domain will extend to $\floor{L / \dx}\dx$ in practice. This guarantees the use of a precise space step.
 
 * ***Space step***\
-Set the spatial step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the spatial step (as discussed [here](/user-guide/solver#timestepping)). Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
+Set the space step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the space step (as discussed [here](/user-guide/solver#timestepping)). Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
 
 * ***Square***\
 Toggle whether or not the domain is forced to be square, independent of the aspect ratio of your device/window.
