@@ -26,7 +26,7 @@ export function getPreset(id) {
 	"dimension": "1",
 	"domainScale": "0.5",
 	"dt": 0.00005,
-	"kineticParams": "D_v = 8 in [7, 0.1, 9];a = 5;b = 9;epsilon = 0.001;tau=1;",
+	"kineticParams": "D_v = 8 in [7, 0.1, 9];a = 5;b = 9;epsilon = 0.001;tau=1 in [0,1];"
 	"maxColourValue": 20,
 	"minColourValue": -3,
 	"numSpecies": "4",
@@ -66,7 +66,7 @@ break;
 	"domainScale": "10",
 	"dt": 0.00005,
 	"emboss": true,
-	"kineticParams": "D_v = 8 in [7, 0.1, 9];a = 5;b = 9;epsilon = 0.001;tau=1;",
+	"kineticParams": "D_v = 8 in [7, 0.1, 9];a = 5;b = 9;epsilon = 0.001;tau=1 in [0,1];"
 	"maxColourValue": 20,
 	"minColourValue": -3,
 	"numSpecies": "4",
