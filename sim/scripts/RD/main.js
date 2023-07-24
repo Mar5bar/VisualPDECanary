@@ -133,7 +133,8 @@ let isRunning,
   updatingAlgebraicSpecies = false,
   viewUIOffsetInit;
 let inTex, outTex;
-let nXDisc,
+let spatialStepValue,
+  nXDisc,
   nYDisc,
   domainWidth,
   domainHeight,
@@ -923,8 +924,8 @@ function updateUniforms() {
   uniforms.L_x.value = domainWidth;
   uniforms.L_min.value = Math.min(domainHeight, domainWidth);
   uniforms.dt.value = options.dt;
-  uniforms.dx.value = domainWidth / nXDisc;
-  uniforms.dy.value = domainHeight / nYDisc;
+  uniforms.dx.value = spatialStepValue;
+  uniforms.dy.value = spatialStepValue;
   uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
@@ -970,7 +971,7 @@ function setSizes() {
   computeCanvasSizesAndAspect();
   // Using the user-specified spatial step size, compute as close a discretisation as possible that
   // doesn't reduce the step size below the user's choice.
-  let spatialStepValue = domainScaleValue / 100;
+  spatialStepValue = domainScaleValue / 100;
   try {
     spatialStepValue = parser.evaluate(options.spatialStep);
   } catch (error) {
