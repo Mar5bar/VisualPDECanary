@@ -22,12 +22,13 @@ let basicMaterial,
   copyMaterial,
   postMaterial,
   lineMaterial,
+  overlayLineMaterial,
   arrowMaterial,
   interpolationMaterial,
   checkpointMaterial,
   tailGeometry,
   headGeometry;
-let domain, simDomain, clickDomain, line;
+let domain, simDomain, clickDomain, line, overlayLine;
 let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
 let colourmap, colourmapEndpoints;
 let options, uniforms, funsObj, savedOptions;
@@ -103,6 +104,7 @@ let leftGUI,
   imControllerTwo,
   arrowDensityController,
   arrowLengthMaxController,
+  overlayEpsilonController,
   editViewFolder,
   linesAnd3DFolder,
   vectorFieldFolder,
@@ -729,6 +731,10 @@ function init() {
     vertexColors: true,
     linewidth: 0.01,
   });
+  overlayLineMaterial = new LineMaterial({
+    color: 0x000000,
+    linewidth: 0.01,
+  });
   arrowMaterial = new THREE.MeshBasicMaterial({
     color: options.arrowColour,
     side: THREE.DoubleSide,
@@ -872,6 +878,8 @@ function replaceDisplayDomains() {
   scene.remove(clickDomain);
   line.geometry.dispose();
   scene.remove(line);
+  overlayLine.geometry.dispose();
+  scene.remove(overlayLine);
   createDisplayDomains();
 }
 
@@ -1049,6 +1057,15 @@ function createDisplayDomains() {
   line.scale.set(1, 1, 1);
   line.visible = options.plotType == "line";
   scene.add(line);
+
+  // Create a line object for overlay in line plots.
+  const overlayLineGeom = new LineGeometry();
+  const overlayLinePositions = new Array(3 * numPointsInLine).fill(0);
+  overlayLineGeom.setPositions(overlayLinePositions);
+  overlayLine = new Line2(overlayLineGeom, overlayLineMaterial);
+  overlayLine.scale.set(1, 1, 1);
+  overlayLine.visible = options.plotType == "line" && options.overlay;
+  scene.add(overlayLine);
 }
 
 function setDomainOrientation() {
@@ -1215,6 +1232,10 @@ function initUniforms() {
     },
     overlayEpsilon: {
       type: "f",
+    },
+    overlayLine: {
+      type: "bool",
+      value: true,
     },
     seed: {
       type: "f",
@@ -2322,11 +2343,12 @@ function initGUI(startOpen) {
     .name("Expression")
     .onFinishChange(function () {
       setDisplayColourAndType();
+      if (options.plotType == "line") setPostFunFragShader();
       renderIfNotRunning();
       updateView(this.property);
     });
 
-  root
+  overlayEpsilonController = root
     .add(options, "overlayEpsilon")
     .name("Threshold")
     .onChange(function () {
@@ -2620,6 +2642,7 @@ function setDisplayColourAndType() {
     );
     setOverlayUniforms();
   }
+  overlayLine.visible = options.overlay && options.plotType == "line";
   shader += fiveColourDisplayBot();
   displayMaterial.fragmentShader = shader;
   displayMaterial.needsUpdate = true;
@@ -2789,14 +2812,29 @@ function render() {
         (scaledValue.clamp(-0.5, 0.5) * domainHeight) / maxDim;
     }
     // Use spline-smoothed points to use for plotting.
-    const curve = new THREE.SplineCurve(
+    let curve = new THREE.SplineCurve(
       xDisplayDomainCoords.map(
         (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
       )
     );
-    const points = curve.getSpacedPoints(numPointsInLine);
-    setLineXY(points);
-    setLineColour(points);
+    let points = curve.getSpacedPoints(numPointsInLine);
+    setLineXY(line, points);
+    setLineColour(line, points);
+    if (options.overlay) {
+      ind = 0;
+      for (let i = 2; i < 4 * nXDisc; i += 4) {
+        scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
+        yDisplayDomainCoords[ind++] =
+          (scaledValue.clamp(-0.5, 0.5) * domainHeight) / maxDim;
+      }
+      curve = new THREE.SplineCurve(
+        xDisplayDomainCoords.map(
+          (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
+        )
+      );
+      points = curve.getSpacedPoints(numPointsInLine);
+      setLineXY(overlayLine, points);
+    }
   }
 
   // If a vector field is requested, update arrows. They will already be set as visible.
@@ -4203,6 +4241,11 @@ function setPostFunFragShader() {
       parseShaderString(options.domainIndicatorFun)
     );
   }
+  shaderStr = shaderStr.replaceAll(
+    "OVERLAYEXPR",
+    parseShaderString(options.overlayExpr)
+  );
+  setOverlayUniforms();
   postMaterial.fragmentShader = shaderStr + postGenericShaderBot();
   postMaterial.needsUpdate = true;
 }
@@ -4503,6 +4546,11 @@ function configureGUI() {
     showGUIController(autoPauseAtController);
   } else {
     hideGUIController(autoPauseAtController);
+  }
+  if (options.overlay && options.plotType == "line") {
+    hideGUIController(overlayEpsilonController);
+  } else {
+    showGUIController(overlayEpsilonController);
   }
   // Update all toggle buttons.
   $(".toggle_button").each(function () {
@@ -5840,6 +5888,7 @@ function configurePlotType() {
       $("#simCanvas").css("outline", "");
     }
   }
+  overlayLine.visible = options.overlay && options.plotType == "line";
   setDisplayColourAndType();
   configureCameraAndClicks();
   configureGUI();
@@ -6326,10 +6375,10 @@ function replaceSymbolsInStr(str, originals, replacements, optional) {
   return str;
 }
 
-function setLineXY(xy) {
+function setLineXY(lineObj, xy) {
   // Set the xy coordinates of the display line, scaling y by options.threeDHeightScale.
-  let start = line.geometry.attributes.instanceStart;
-  let end = line.geometry.attributes.instanceEnd;
+  let start = lineObj.geometry.attributes.instanceStart;
+  let end = lineObj.geometry.attributes.instanceEnd;
   let coord;
   for (let i = 0; i < xy.length; i++) {
     coord = xy[i].toArray();
@@ -6341,11 +6390,11 @@ function setLineXY(xy) {
   end.needsUpdate = true;
 }
 
-function setLineColour(xy) {
+function setLineColour(lineObj, xy) {
   // Set the display line colour from the xy coordinates, noting that y in [-0.5,0.5].
   // The colour is given simply by the y coordinate.
-  let start = line.geometry.attributes.instanceColorStart;
-  let end = line.geometry.attributes.instanceColorEnd;
+  let start = lineObj.geometry.attributes.instanceColorStart;
+  let end = lineObj.geometry.attributes.instanceColorEnd;
   let colour;
   for (let i = 0; i < xy.length; i++) {
     colour = colourFromValue(xy[i].toArray()[1] + 0.5);
@@ -6391,7 +6440,9 @@ function lerp(a, b, t) {
 
 function setLineWidth() {
   lineMaterial.linewidth = 0.01 * options.lineWidthMul;
+  overlayLineMaterial.linewidth = 0.01 * options.lineWidthMul;
   lineMaterial.needsUpdate = true;
+  overlayLineMaterial.needsUpdate = true;
 }
 
 function setOnfocus(cont, fun, args) {
@@ -7108,6 +7159,9 @@ function setContourUniforms() {
 function setOverlayUniforms() {
   uniforms.overlayColour.value = new THREE.Color(options.overlayColour);
   uniforms.overlayEpsilon.value = options.overlayEpsilon;
+  uniforms.overlayLine.value = options.overlay && options.plotType == "line";
+  overlayLineMaterial.color = new THREE.Color(options.overlayColour);
+  overlayLineMaterial.needsUpdate = true;
 }
 
 function renderIfNotRunning() {

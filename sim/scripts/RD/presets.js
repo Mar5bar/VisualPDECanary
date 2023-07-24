@@ -2702,6 +2702,7 @@ export function getFieldsInView() {
     "embossSpecular",
     "embossTheta",
     "flippedColourmap",
+    "lineWidthMul",
     "maxColourValue",
     "minColourValue",
     "overlay",

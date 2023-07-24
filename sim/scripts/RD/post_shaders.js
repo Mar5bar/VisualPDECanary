@@ -13,6 +13,7 @@ export function computeDisplayFunShaderTop() {
     uniform float t;
     uniform bool customSurface;
     uniform bool vectorField;
+    uniform bool overlayLine;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
 
@@ -105,6 +106,9 @@ export function computeDisplayFunShaderMid() {
         if (vectorField) {
             height = XVECFUN;
             yVecComp = YVECFUN;
+        }
+        if (overlayLine) {
+          height = OVERLAYEXPR;
         }
         gl_FragColor = vec4(value, 0.0, height, yVecComp);`;
 }
