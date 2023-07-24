@@ -5911,10 +5911,12 @@ function configureDimension() {
   if (!isLoading) {
     if (options.dimension != 1 && options.plotType == "line") {
       options.plotType = "plane";
+      updateView("plotType");
       configurePlotType();
     }
     if (options.dimension == 1 && options.plotType != "line") {
       options.plotType = "line";
+      updateView("plotType");
       configurePlotType();
     }
   }
