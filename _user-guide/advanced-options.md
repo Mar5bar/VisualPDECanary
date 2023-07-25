@@ -322,11 +322,12 @@ Use this option to force the use of manual, unoptimised filtering in place of de
 * ***Fix seed***\
 Fix the seed of the (pseudo)random number generator used to assign values to 'RAND' and 'RANDN' in all free-text fields in the VisualPDE interface. Note that 'RAND' and 'RANDN' always vary in space.
 
-* ***Copy code***\
-Copy a verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples.
+* ***Dev***\
+Tools intended for the development of VisualPDE. 
 
-* ***Debug***\
-Select from a frequently updated list of available debugging tools. A permanent fixture is **Copy debug information**, which copies a selection of configuration information to your clipboard (handy when reporting bugs).
+    ***Copy code*** will copy a verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples. It will base the example on the selected 'parent' preset, which can be useful if you're making multiple slightly different versions of a simulation. 
+
+    ***Copy debug*** will copy a selection of configuration information to your clipboard (handy when reporting bugs).
 
 ---
 
@@ -356,7 +357,7 @@ I_TG(x, y + sin(u))
 * ***One-sided differences***\
 First derivatives in space, accessed with 'u_x', 'u_y', ..., are computed using a central finite difference discretisation by default. By appending 'f' or 'b' to the subscript, such as 'u_xf', you can tell VisualPDE to use a forward or a backward difference, respectively. Forward differences sample the solution at increased $x$ (or $y$), whilst backward differences sample at decreased $x$ (or $y$). These specialised schemes can be used in [upwind schemes](https://en.wikipedia.org/wiki/Upwind_scheme) and often reduce numerical artefacts, but at the expense of typically larger numerical error.
 
-Foward and backward differences can also be computed with second-order numerical schemes by appending '2' to the subscript, though in general this will only respect Periodic boundary conditions in the direction of the derivative. This syntax can only be used in the **Definitions** section.
+    Forward and backward differences can also be computed with second-order numerical schemes by appending '2' to the subscript, though in general this will only respect Periodic boundary conditions in the direction of the derivative. This syntax can only be used in the **Definitions** section.
 
 **Special functions**\
 Throughout VisualPDE, you can make use of the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt', 'sinh', 'cosh', 'tanh' and 'H', where the latter is a [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function) smoothed over the interval $[-1,1]$ (see the [GLSL reference](https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml) for details). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'. You can also use 'min' and 'max' as functions with two arguments, which return the minimum or maximum of their arguments, e.g. 'min(u,1)' returns the minimum of $u$ and 1. If you wish to raise the output of a function to a power, you must enclose the function in parentheses, e.g. write '(cos(x))^2', not 'cos(x)^2'.
