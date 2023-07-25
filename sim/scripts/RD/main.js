@@ -6007,11 +6007,17 @@ function sanitise(str) {
 
 function getKineticParamNames() {
   // Return a list of parsed kinetic parameter names.
-  const regex = /(\w+)\s*=/;
-  return getKineticParamDefs()
+  const regex = /^\s*(\w+)\b/;
+  let names = [];
+  getKineticParamDefs()
     .split(";")
     .filter((x) => x.length > 0)
-    .map((x) => x.match(regex)[1].trim());
+    .forEach(function (x) {
+      if (x.match(regex)) {
+        names.push(x.match(regex)[1].trim());
+      }
+    });
+  return names;
 }
 
 function setKineticUniforms() {
