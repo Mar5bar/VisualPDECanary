@@ -132,13 +132,13 @@ let isRunning,
   nextViewNumber = 0,
   updatingAlgebraicSpecies = false,
   viewUIOffsetInit;
-let inTex, outTex;
 let spatialStepValue,
   nXDisc,
   nYDisc,
   domainWidth,
   domainHeight,
   maxDim,
+  maxTexSize,
   canvasWidth,
   canvasHeight,
   usingLowResDomain = true,
@@ -593,6 +593,7 @@ function init() {
   });
   renderer.autoClear = true;
   gl = renderer.getContext();
+  maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
   // Check if we should be interpolating manually due to extensions not being supported.
   manualInterpolationNeeded = !(
@@ -988,6 +989,21 @@ function setSizes() {
   }
   nXDisc = Math.floor(domainWidth / spatialStepValue);
   nYDisc = Math.floor(domainHeight / spatialStepValue);
+  if (nXDisc > maxTexSize || nYDisc > maxTexSize) {
+    throwError(
+      "Your device does not support a discretisation this fine (maximum " +
+        maxTexSize +
+        "). Please increase the space step to at least " +
+        (Math.ceil((1e4 * domainScaleValue) / maxTexSize) / 1e4).toPrecision(
+          4
+        ) +
+        " or reduce the domain size to at most " +
+        (Math.floor(1e4 * maxTexSize * spatialStepValue) / 1e4).toPrecision(4) +
+        "."
+    );
+    nXDisc = Math.min(nXDisc, maxTexSize);
+    nYDisc = Math.min(nYDisc, maxTexSize);
+  }
   if (nXDisc == 0) nXDisc = 1;
   if (nYDisc == 0) nYDisc = 1;
   // If the user has specified that this is a 1D problem, set nYDisc = 1.
@@ -998,7 +1014,7 @@ function setSizes() {
   uniforms.nXDisc.value = nXDisc;
   uniforms.nYDisc.value = nYDisc;
   // Set an array of XDisplayDomainCoords for plotting lines. Note that these simply go between -0.5 and 0.5,
-  // and do not correspond to x in the simulation.
+  // and do not correspond to x in the simulation. Cap at 10000.
   xDisplayDomainCoords = new Array(nXDisc);
   yDisplayDomainCoords = new Array(nXDisc);
   let val = -0.5,
@@ -2822,7 +2838,7 @@ function render() {
       yDisplayDomainCoords[ind++] =
         (scaledValue.clamp(-0.5, 0.5) * domainHeight) / maxDim;
     }
-    // Use spline-smoothed points to use for plotting.
+    // Use spline-smoothed points for plotting.
     let curve = new THREE.SplineCurve(
       xDisplayDomainCoords.map(
         (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
