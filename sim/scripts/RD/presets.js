@@ -2508,7 +2508,7 @@ export function getListOfPresets() {
     squareCanvas: false,
     suppressTryClickingPopup: false,
     surfaceFun: "0",
-    threeDHeightScale: 0.5,
+    threeDHeightScale: 0.7,
     timeDisplay: false,
     timesteppingScheme: "Euler",
     tryClickingText: "Try clicking!",
