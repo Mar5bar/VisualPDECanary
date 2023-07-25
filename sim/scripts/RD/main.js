@@ -3677,7 +3677,9 @@ function loadPreset(preset) {
   if (options.threeD != undefined) {
     if (options.threeD) {
       options.dimension = 2;
-      options.plotType = "surface";
+      if (options.plotType == undefined) {
+        options.plotType = "surface";
+      }
     }
     delete options.threeD;
   }
