@@ -197,7 +197,7 @@ export function surfaceVertexShaderColour() {
         float scaledValue = 0.0;
         if (minColourValue != maxColourValue) {
           float value = texture2D(textureSource, textureCoords).r;
-          scaledValue = clamp((value - minColourValue) / (maxColourValue - minColourValue) - 0.5, -0.5, 0.5);
+          scaledValue = (value - minColourValue) / (maxColourValue - minColourValue) - 0.5;
         }
         newPosition.z += heightScale * scaledValue;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);

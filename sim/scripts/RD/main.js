@@ -1071,7 +1071,7 @@ function createDisplayDomains() {
 
   // Create a line object whose coordinates we can set when plotting lines.
   const lineGeom = new LineGeometry();
-  numPointsInLine = Math.round(devicePixelRatio * canvasWidth);
+  numPointsInLine = Math.round(2 * devicePixelRatio * canvasWidth);
   const positions = new Array(3 * numPointsInLine).fill(0);
   const lineColours = new Array(positions.length).fill(0);
   lineGeom.setPositions(positions);
@@ -2439,7 +2439,7 @@ function initGUI(startOpen) {
 
   threeDHeightScaleController = root
     .add(options, "threeDHeightScale")
-    .name("Max height")
+    .name("Height scale")
     .onChange(function () {
       updateUniforms();
       renderIfNotRunning();
@@ -2859,8 +2859,7 @@ function render() {
     for (let i = 0; i < buffer.length; i += 4) {
       scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
       // Set the height.
-      yDisplayDomainCoords[ind++] =
-        (scaledValue.clamp(-0.5, 0.5) * domainHeight) / maxDim;
+      yDisplayDomainCoords[ind++] = (scaledValue * domainHeight) / maxDim;
     }
     // Use spline-smoothed points for plotting.
     let curve = new THREE.SplineCurve(

@@ -105,7 +105,7 @@ Choose from three types of plot: **line**, **plane** or **surface**. Any simulat
 
 Line plots are the default plot type for 1D domains. Cubic splines are used to interpolate between nodes of the computational domain for smooth plotting. This may lead to transient oscillations appearing near discontinuities in the solution.
 
-Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Max height** parameter. The limits of the colour axis specify the values at which the height of the surface is capped.
+Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Height scale** parameter.
 
 **Colour map**\
 Set the current colour map being used to convert **Expression** into a colour value. Use the dropdown to select from the available options. We have tried to cater for everyone in these options but, if you find that no colour map is available that allows you to easily distinguish between values, please let us know at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can add a more appropriate map.
@@ -180,8 +180,8 @@ When viewing surface plots, this menu will appear to allow you to customise aspe
 * ***Custom surface***\
 Toggle the rendering of the solution on a custom, user-defined surface. The surface $z(x,y)$ is specified in **Surface $z$**, which appears when a custom surface is enabled. This definition can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
 
-* ***Max height***\
-The maximum height of the plotted surface, measured in units of $L$. Changing this parameter effectively makes the vertical variation appear more/less prominent. Must be a numerical value.
+* ***Height scale***\
+The scale factor used when plotting surfaces or lines. Changing this parameter effectively makes the vertical variation appear more/less prominent, though it does not alter the plotted colours. Must be a numerical value.
 
 * ***View $\theta$/$\phi$***\
 [Euler angles](https://en.wikipedia.org/wiki/Euler_angles) specifying the current 3D viewpoint, with $\theta\in[0,\pi]$ and $\phi\in[0,2\pi]$. You can manipulate these values either by inputting new values, or see them update as you rotate the viewpoint with your pointer (click and drag). As Euler angles [don't do a perfect job](https://en.wikipedia.org/wiki/Gimbal_lock) of describing orientations, you may (rarely) find that a viewpoint loaded in from a URL isn't quite what you expected.
