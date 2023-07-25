@@ -1,6 +1,6 @@
 // presets.js
 
-export function getPreset(id) {
+export function getListOfPresets() {
   let listOfPresets = {};
   listOfPresets["BrusselatorTuringWave1D"] = {
     boundaryConditionsU: "neumann",
@@ -1636,7 +1636,7 @@ export function getPreset(id) {
 
   listOfPresets["KellerSegel"] = {
     brushValue: "RAND",
-    brushRadius: 5.6000000000000005,
+    brushRadius: "5.6000000000000005",
     clearValueU: "0.01*RAND",
     crossDiffusion: true,
     diffusionStrUU: "1",
@@ -1647,14 +1647,14 @@ export function getPreset(id) {
     dt: 0.005,
     emboss: true,
     embossSmoothness: 0.2,
-    kineticParams: "c=4 in [3, 0.1, 4];D=1 in [0,1];a=0.1 in [0,0.2]",
+    kineticParams: "c = 4 in [3, 0.1, 4];D = 1 in [0, 1];a = 0.1 in [0, 0.2]",
     maxColourValue: 2.5,
     minColourValue: 0.0004821050970349461,
     preset: "KellerSegel",
     reactionStrU: "u*(1-u)",
     reactionStrV: "u-a*v",
     reactionStrW: "0",
-    spatialStep: 0.2,
+    spatialStep: "0.2",
     suppressTryClickingPopup: true,
     whatToDraw: "u",
     whatToPlot: "u",
@@ -2576,6 +2576,11 @@ export function getPreset(id) {
     whatToDraw: "v",
     whatToPlot: "v",
   };
+  return listOfPresets;
+}
+
+export function getPreset(id) {
+  const listOfPresets = getListOfPresets();
   if (listOfPresets.hasOwnProperty(id)) return listOfPresets[id];
   return listOfPresets["default"];
 }

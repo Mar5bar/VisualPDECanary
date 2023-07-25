@@ -239,7 +239,12 @@ import {
 } from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
-import { getPreset, getUserTextFields, getFieldsInView } from "./presets.js";
+import {
+  getPreset,
+  getUserTextFields,
+  getFieldsInView,
+  getListOfPresets,
+} from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import * as THREE from "../three.module.min.js";
 import { OrbitControls } from "../OrbitControls.js";
@@ -1967,20 +1972,39 @@ function initGUI(startOpen) {
     "Fix the random seed"
   );
 
+  root = root.addFolder("Dev");
+  // Dev.
+  const devButtons = addButtonList(root);
   // Copy configuration as raw JSON.
   addButton(
-    miscButtons,
+    devButtons,
     '<i class="fa-regular fa-copy"></i> Copy code',
     copyConfigAsJSON,
     null,
-    "Copy the simulation configuration as JSON"
+    "Copy the simulation configuration as JSON to the clipboard"
   );
 
-  root = root.addFolder("Debug");
-  // Debug.
   // Copy configuration as raw JSON.
-  const debugButtonList = addButtonList(root);
-  addButton(debugButtonList, "Copy debug information", copyDebug);
+  addButton(
+    devButtons,
+    '<i class="fa-regular fa-bug"></i> Copy debug',
+    copyDebug,
+    null,
+    "Copy debug information to the clipboard"
+  );
+
+  // Populate list of presets for parent selection.
+  let listOfPresets = getListOfPresets();
+  Object.keys(listOfPresets).forEach(function (key) {
+    listOfPresets[key] = key;
+  });
+  listOfPresets["default"] = null;
+  root
+    .add(options, "parent", sortObject(listOfPresets))
+    .name("Parent preset")
+    .onChange(function () {
+      document.activeElement.blur();
+    });
 
   // Add a title to the rightGUI.
   const settingsTitle = document.createElement("div");
@@ -6955,7 +6979,11 @@ function addNewline(parent) {
 
 function copyConfigAsJSON() {
   // Encode the current simulation configuration as raw JSON and put it on the clipboard.
-  let objDiff = diffObjects(options, getPreset("default"));
+  const parentOptions = Object.assign(
+    getPreset("default"),
+    getPreset(options.parent)
+  );
+  let objDiff = diffObjects(options, parentOptions);
   // If there's only one view and it has the default name, remove the view from the preset.
   if (options.views.length == 1 && options.views[0].name == "1") {
     delete objDiff.views;
@@ -7346,4 +7374,15 @@ function validateParamName(name) {
     );
   }
   return !val;
+}
+
+function sortObject(obj) {
+  return Object.keys(obj)
+    .sort(function (a, b) {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    })
+    .reduce(function (result, key) {
+      result[key] = obj[key];
+      return result;
+    }, {});
 }
