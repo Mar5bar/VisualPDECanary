@@ -4562,6 +4562,7 @@ function configureGUI() {
     hideGUIController(cameraPhiController);
     hideGUIController(cameraZoomController);
   }
+  if (options.dimension == 1) $("#vectorFieldButton").hide();
   configureColourbar();
   configureTimeDisplay();
   configureIntegralDisplay();
@@ -5958,6 +5959,7 @@ function configureDimension() {
     }
     if (options.dimension == 1 && options.plotType != "line") {
       options.plotType = "line";
+      options.vectorField = false;
       updateView("plotType");
       configurePlotType();
     }
