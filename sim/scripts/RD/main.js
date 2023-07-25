@@ -6974,9 +6974,9 @@ function copyConfigAsJSON() {
     .replaceAll(/\s*,\s*([^0-9-\.\s])/g, ",\n\t$1")
     .replaceAll(":", ": ")
     .replaceAll("  ", " ")
-    .replace("{", "{\n\t")
-    .replace("}", ",\n}");
-  str = 'case "PRESETNAME":\n\toptions = ' + str + ";\nbreak;";
+    .replaceAll("{", "{\n\t")
+    .replaceAll("}", ",\n}");
+  str = 'listOfPresets["PRESETNAME"] = ' + str + ";\n";
 
   navigator.clipboard.writeText(str);
 }
