@@ -6042,7 +6042,7 @@ function setKineticUniforms() {
   let encounteredError = false;
   for (const nameVal of nameVals) {
     let [uniformFlag, errorFlag] = setKineticUniform(nameVal[0], nameVal[1]);
-    addingNewUniform |= addingNewUniform;
+    addingNewUniform |= uniformFlag;
     encounteredError |= errorFlag;
   }
   return addingNewUniform && !encounteredError;
