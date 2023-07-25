@@ -4859,7 +4859,7 @@ function setEquationDisplayType() {
         s,
         listOfSpecies,
         defaultSpecies,
-        "_(?:x+|y+)"
+        "_(?:[xy][xybf]?)"
       );
     }
 
@@ -4992,11 +4992,12 @@ function setEquationDisplayType() {
   }
 
   // Swap out all default symbols for new species and reactions.
+  // This will also swap out strange parameter names that are 'reactionName_x', which isn't desirable.
   str = replaceSymbolsInStr(
     str,
     defaultSpecies.concat(defaultReactions),
     listOfSpecies.concat(listOfReactions),
-    "_(?:x+|y+)"
+    "_(?:[xy][xybf]?)"
   );
 
   str = parseStringToTEX(str);
@@ -6283,7 +6284,7 @@ function setCustomNames() {
         defaultStrings[key],
         defaultSpecies,
         listOfSpecies,
-        "_(?:x+|y+)"
+        "_(?:[xy][xybf]?)"
       )
     );
   });
@@ -6311,7 +6312,7 @@ function setCustomNames() {
         options[key],
         oldListOfSpecies,
         listOfSpecies,
-        "_(?:x+|y+)"
+        "_(?:[xy][xybf]?)"
       );
     }
   });
@@ -6324,7 +6325,7 @@ function setCustomNames() {
           view[key],
           oldListOfSpecies,
           listOfSpecies,
-          "_(?:x+|y+)"
+          "_(?:[xy][xybf]?)"
         );
       }
     });
@@ -6337,7 +6338,7 @@ function setCustomNames() {
         savedOptions[key],
         oldListOfSpecies,
         listOfSpecies,
-        "_(?:x+|y+)"
+        "_(?:[xy][xybf]?)"
       );
     }
   });
@@ -6350,7 +6351,7 @@ function setCustomNames() {
           view[key],
           oldListOfSpecies,
           listOfSpecies,
-          "_(?:x+|y+)"
+          "_(?:[xy][xybf]?)"
         );
       }
     });
