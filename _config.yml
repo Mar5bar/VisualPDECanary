@@ -57,6 +57,9 @@ collections:
   visual-stories:
     output: true
     title: Visual stories
+  numerical-methods:
+    output: true
+    title: Numerical Methods
 
 defaults:
   -
