@@ -2,7 +2,7 @@
 layout: page
 title: Accuracy and stability considerations
 lesson_number: 10
-thumbnail: /assets/images/CFL.png
+thumbnail: /assets/images/CFL.webp
 extract: $\Delta t$, $\Delta x$ and Numerical Stability 
 equation: 
 ---
