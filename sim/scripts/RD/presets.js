@@ -2079,6 +2079,25 @@ export function getListOfPresets() {
     whatToPlot: "u",
   };
 
+  listOfPresets["waveEquation1DValidity"] = {
+    boundaryConditionsU: "periodic",
+    boundaryConditionsV: "periodic",
+    brushRadius: "5",
+    cameraTheta: 0,
+    dimension: 1,
+    kineticParams: "D = 1;C = 0.001",
+    overlay: true,
+    overlayColour: 5621,
+    overlayExpr:
+      "(exp(-(35*pi)*(mod(x+D*t,L_x)/100-0.5)^2)+exp(-(35*pi)*(mod(x-D*t,L_x)/100-0.5)^2))/2",
+    overlayLineWidthMul: 0.2,
+    parent: "waveEquation1D",
+    preset: "waveEquation1DValidity",
+    spatialStep: "0.5",
+    threeDHeightScale: 0.3,
+    typeOfBrush: "vline",
+  };
+
   listOfPresets["waveEquation3D"] = {
     boundaryConditionsU: "neumann",
     boundaryConditionsV: "neumann",

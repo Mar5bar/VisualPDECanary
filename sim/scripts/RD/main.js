@@ -7008,7 +7008,7 @@ function copyConfigAsJSON() {
 
   objDiff.preset = "PRESETNAME";
   let str = JSON.stringify(objDiff)
-    .replaceAll(/\s*,\s*([^0-9-\.\s])/g, ",\n\t$1")
+    .replaceAll(/(:[^:]*),/g, "$1,\n\t")
     .replaceAll(":", ": ")
     .replaceAll("  ", " ")
     .replaceAll("{", "{\n\t")
