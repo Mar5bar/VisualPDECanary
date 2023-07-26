@@ -2,6 +2,39 @@
 
 export function getListOfPresets() {
   let listOfPresets = {};
+  listOfPresets["SpuriousOscillations"] = {
+	"autoPause": true,
+	"autoPauseAt": 200,
+	"brushEnabled": false,
+	"brushRadius": "5",
+	"cameraPhi": 0,
+	"cameraTheta": 0,
+	"clearValueU": "1/cosh(x-L_x/10)^2",
+	"diffusionStrUU": "0",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dimension": "1",
+	"domainScale": "50",
+	"dt": 0.0005,
+	"kineticParams": "c = 1;",
+	"numSpecies": "1",
+	"numTimestepsPerFrame": 400,
+	"overlay": true,
+	"overlayExpr": "1/cosh(mod(x-c*t,L_x)-L_x/10)^2",
+	"overlayLineWidthMul": 0.15,
+	"plotType": "line",
+	"preset": "SpuriousOscillations",
+	"reactionStrU": "-c*u_x",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": "0.05",
+	"timeDisplay": true,
+	"timesteppingScheme": "AB2",
+	"typeOfBrush": "vline",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+
   listOfPresets["BrusselatorTuringWave1D"] = {
     boundaryConditionsU: "neumann",
     boundaryConditionsV: "neumann",
