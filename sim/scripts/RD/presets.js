@@ -2041,30 +2041,20 @@ export function getListOfPresets() {
 
   listOfPresets["heatEquation1DValidity"] = {
     brushEnabled: false,
-    clearValueU: "1/sqrt(4*pi*tInit)*exp(-(x-L_x/2)^2/(4*tInit))",
+    clearValueU: "1/sqrt(t_0)*exp(-(x-L_x/2)^2/(4*t_0))",
     colourbar: true,
-    kineticParams: "tInit = 10",
-    maxColourValue: 0.09,
+    kineticParams: "t_0 = 10",
+    maxColourValue: 0.32,
     minColourValue: 0,
     overlay: true,
-    overlayExpr: "1/sqrt(4*pi*(t+tInit))*exp(-(x-L_x/2)^2/(4*(t+tInit)))",
+    overlayExpr: "1/sqrt(t+t_0)*exp(-(x-L_x/2)^2/(4*(t+t_0)))",
     overlayLineWidthMul: 0.2,
     parent: "heatEquation1D",
     preset: "heatEquation1DValidity",
     spatialStep: "1.5",
     threeDHeightScale: 0.5,
+    timeDisplay: true,
     typeOfBrush: "vline",
-    views: [
-      {
-        autoSetColourRange: false,
-        maxColourValue: 0.09,
-        name: "Fixed<br />range",
-      },
-      {
-        autoSetColourRange: true,
-        name: "Auto<br />range",
-      },
-    ],
   };
 
   listOfPresets["waveEquation"] = {
@@ -2135,7 +2125,6 @@ export function getListOfPresets() {
     reactionStrW: "0",
     renderSize: 1024,
     spatialStep: 0.5,
-    squareCanvas: true,
     suppressTryClickingPopup: true,
     whatToPlot: "u",
   };

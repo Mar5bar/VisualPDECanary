@@ -2874,8 +2874,7 @@ function render() {
       ind = 0;
       for (let i = 2; i < 4 * nXDisc; i += 4) {
         scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
-        yDisplayDomainCoords[ind++] =
-          (scaledValue.clamp(-0.5, 0.5) * domainHeight) / maxDim;
+        yDisplayDomainCoords[ind++] = (scaledValue * domainHeight) / maxDim;
       }
       curve = new THREE.SplineCurve(
         xDisplayDomainCoords.map(
