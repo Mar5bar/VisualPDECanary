@@ -655,6 +655,7 @@ export function getListOfPresets() {
     brushRadius: "1",
     brushAction: "smoothadd",
     clearValueU: "0",
+    colourmap: "water",
     diffusionStrUU: "0.02",
     diffusionStrVV: "0",
     diffusionStrWW: "0",
@@ -692,7 +693,7 @@ export function getListOfPresets() {
     views: [
       {
         arrowColour: 65535,
-        arrowDensity: 1,
+        arrowDensity: 0.5,
         arrowX: "L_x/2 - x",
         arrowY: "L_y/2 - y",
         vectorField: false,
@@ -700,7 +701,7 @@ export function getListOfPresets() {
       },
       {
         arrowColour: 16777215,
-        arrowDensity: 0.8,
+        arrowDensity: 0.4,
         arrowX: "-(y- L_y/2)",
         arrowY: "x-L_x/2",
         vectorField: true,
@@ -732,7 +733,7 @@ export function getListOfPresets() {
     views: [
       {
         arrowColour: 65535,
-        arrowDensity: 1,
+        arrowDensity: 0.5,
         arrowX: "L_x/2 - x",
         arrowY: "L_y/2 - y",
         vectorField: false,
@@ -740,7 +741,7 @@ export function getListOfPresets() {
       },
       {
         arrowColour: 16777215,
-        arrowDensity: 0.8,
+        arrowDensity: 0.4,
         arrowX: "-cos(theta)",
         arrowY: "-sin(theta)",
         vectorField: true,
@@ -1048,18 +1049,25 @@ export function getListOfPresets() {
   };
 
   listOfPresets["bistableTravellingWave"] = {
+    arrowDensity: 1,
+    arrowX: "u_x*sign(a-0.5)",
+    arrowY: "u_y*sign(a-0.5)",
     boundaryConditionsU: "neumann",
+    brushRadius: "5",
     clearValueU: "0",
+    colourmap: "water",
     diffusionStrVV: "0",
     diffusionStrWW: "0",
     dt: 0.005,
-    kineticParams: "a=0.5 in [0,0.01,1]",
+    kineticParams: "a = 0.5 in [0, 0.01, 1];",
     numSpecies: 1,
     preset: "bistableTravellingWave",
     reactionStrU: "u*(u-a)*(1-u)",
     reactionStrV: "0",
     reactionStrW: "0",
+    spatialStep: "0.25",
     typeOfBrush: "vline",
+    vectorField: true,
     whatToDraw: "u",
     whatToPlot: "u",
   };
@@ -1068,6 +1076,7 @@ export function getListOfPresets() {
     boundaryConditionsU: "neumann",
     brushRadius: 1,
     clearValueU: "0",
+    colourmap: "water",
     diffusionStrUU: "D",
     diffusionStrVV: "0",
     diffusionStrWW: "0",
@@ -2471,7 +2480,7 @@ export function getListOfPresets() {
   listOfPresets["default"] = {
     activeViewInd: 0,
     arrowColour: 0x00ffff,
-    arrowDensity: 1.0,
+    arrowDensity: 0.5,
     arrowLengthMax: "1",
     arrowScale: "auto",
     arrowX: "L_x/2 - x",

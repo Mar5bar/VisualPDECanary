@@ -7294,7 +7294,7 @@ function createArrows() {
   scene.add(arrowGroup);
   const maxDisc = Math.max(nXDisc, nYDisc);
   const denom = Math.round(
-    lerp(3, smallScreen() ? 20 : 32, options.arrowDensity)
+    lerp(3, smallScreen() ? 20 : 64, options.arrowDensity)
   );
   let stride = Math.max(Math.floor(maxDisc / denom), 1);
   const xNum = Math.floor(nXDisc / stride);
