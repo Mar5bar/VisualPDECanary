@@ -2,6 +2,17 @@
 
 export function getListOfPresets() {
   let listOfPresets = {};
+	listOfPresets["TuringWaveFHN2D"] = {
+	"cameraPhi": 26.79334481934756,
+	"cameraTheta": 80.30872912559767,
+	"cameraZoom": 0.6516049999999999,
+	"dimension": "2",
+	"emboss": true,
+	"kineticParams": "delta = 1.1;a = 0.32;b = 5.0;d11 = -1;d12 = -1;d21 = 0;d22 = -2;tau = 0.1;D2 = 1",
+	"parent": "TuringWaveFHN",
+	"plotType": "plane",
+	"preset": "PRESETNAME",
+};
 	listOfPresets["TuringWaveFHN"] = {
 	"brushRadius": "2",
 	"cameraPhi": 0,
