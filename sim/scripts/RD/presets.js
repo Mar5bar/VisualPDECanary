@@ -2113,8 +2113,6 @@ export function getListOfPresets() {
 
   listOfPresets["waveEquation1D"] = {
 	"arrowDensity": 1,
-	"autoPause": true,
-	"autoPauseAt": 25,
 	"brushAction": "smoothreplace",
 	"brushRadius": "5",
 	"cameraPhi": 0,
