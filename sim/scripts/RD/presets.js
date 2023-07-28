@@ -1059,6 +1059,7 @@ export function getListOfPresets() {
     diffusionStrVV: "0",
     diffusionStrWW: "0",
     dt: 0.005,
+    forceTryClickingPopup: true,
     kineticParams: "a = 0.5 in [0, 0.01, 1];",
     numSpecies: 1,
     preset: "bistableTravellingWave",
