@@ -7,7 +7,7 @@ extract: Turing-Wave instabilities
 equation: $\tau\pdd{u}{t}+\pd{u}{t}=D_u\nabla^2 u+f(u,v)$, $\tau\pdd{v}{t}+\pd{v}{t}=D_v\nabla^2v+ g(u,v)$
 ---
 
-One can show that two–species reaction–diffusion systems can only ever have Turing–like instabilities with real growth rates. In contrast, hyperbolic reaction–diffusion systems (or systems with more than two species) allow for Turing–Wave (or sometimes Wave or Turing–Hopf) instabilities. Such instabilities lead to spatial eigenfunctions that grow and oscillate, typically giving rise to spatiotemporal dynamics. Here we consider a hyperbolic version of the [Brusselator](/mathematical-biology/Brusselator) given by
+One can show that two–species reaction–diffusion systems can only ever have Turing–like instabilities with real growth rates. In contrast, hyperbolic reaction–diffusion systems (or systems with more than two species) allow for Turing–Wave (or sometimes Wave or Turing–Hopf) instabilities. Such instabilities lead to spatial eigenfunctions that grow and oscillate, typically giving rise to spatiotemporal dynamics. Here we consider a hyperbolic version of the [Brusselator](/mathematical-biology/brusselator) given by
 
 $$\begin{aligned}\tau\pdd{u}{t}+\pd{u}{t}&=D_u\nabla^2 u+a-(b+1)u+u^2v,\\ \tau\pdd{v}{t}+\pd{v}{t}&=D_v\nabla^2v+ bu-u^2v,\end{aligned}$$
 
