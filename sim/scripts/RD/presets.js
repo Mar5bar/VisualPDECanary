@@ -2,6 +2,30 @@
 
 export function getListOfPresets() {
   let listOfPresets = {};
+	listOfPresets["InhomogeneousFisherKPP"] = {
+	"arrowDensity": 1,
+	"boundaryConditionsU": "dirichlet",
+	"brushRadius": "5",
+	"clearValueU": "1/cosh(10*sqrt((x-L_x/2)^2+(y-L_y/2)^2))",
+	"diffusionStrUU": "D*(1+E*cos(n*pi*x/L_x)*cos(m*pi*y/L_y))",
+	"diffusionStrVV": "0",
+	"diffusionStrWW": "0",
+	"dt": 0.002,
+	"emboss": true,
+	"kineticParams": "D = 0.5;E = 1 in [0, 1];n = 40 in [1, 50];m = 37;",
+	"numSpecies": 1,
+	"preset": "InhomogeneousFisherKPP",
+	"reactionStrU": "1*u*(1-u/(0.8+0.55*cos(n*pi*x/L_x)*cos(m*pi*y/L_y)))",
+	"reactionStrV": "0",
+	"reactionStrW": "0",
+	"spatialStep": "0.2",
+	"speciesNames": "u",
+	"suppressTryClickingPopup": true,
+	"threeDHeightScale": 0.3,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+
 	listOfPresets["TuringWaveFHN2D"] = {
 	"cameraPhi": 26.79334481934756,
 	"cameraTheta": 80.30872912559767,
