@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Hyperbolic Reaction-Diffusion Systems
-lesson_number: 140
+lesson_number: 100
 thumbnail: /assets/images/FHNTuringWave.webp
 extract: Turing-Wave instabilities
 equation: $\tau\pdd{u}{t}+\pd{u}{t}=D_u\nabla^2 u+f(u,v)$, $\tau\pdd{v}{t}+\pd{v}{t}=D_v\nabla^2v+ g(u,v)$
