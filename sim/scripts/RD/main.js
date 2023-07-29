@@ -4941,7 +4941,7 @@ function setEquationDisplayType() {
 
     // Look for div(const * grad(blah)), and move the constant outside the bracket.
     // By this point, a single word (with no square brackets) in the divergence must be a single expression.
-    // If it's not x,y,u,v,w,q move it outside the brackets.
+    // If it's not x,y,u,v,w,q, I_T, I_S, move it outside the brackets.
     // First, if it's just a diffusion coefficient, move it outside, as they have already been checked for
     // constancy.
     regex =
@@ -4949,7 +4949,7 @@ function setEquationDisplayType() {
     str = str.replaceAll(regex, "$1 \\lap $2");
     regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}\*\^]*)\s*\\vnabla\s*([uvwq])\s*\)/g;
     str = str.replaceAll(regex, function (match, g1, g2) {
-      const innerRegex = /\b[xy]|[uvwq]\b/g;
+      const innerRegex = /\b[xy]|[uvwq]|(?:I_[ST][RGBA]?)\b/g;
       if (!innerRegex.test(g1)) {
         return g1 + " \\lap " + g2;
       } else {
