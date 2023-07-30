@@ -2507,17 +2507,9 @@ export function getListOfPresets() {
 
   listOfPresets["stabilizedSchrodinger1DValidity"] = {
     autoPause: true,
-    brushRadius: "5",
-    cameraTheta: 0,
-    diffusionStrUU: "0",
-    diffusionStrVV: "0",
-    dt: 0.0002,
-    kineticParams: "D = 1;a = 4;s = 0.08;x0 = 0.5;V = 100;N = 2.8279;d = 0.000",
-    numTimestepsPerFrame: 200,
     parent: "stabilizedSchrodinger1D",
-    preset: "PRESETNAME",
-    spatialStep: "0.2",
-    typeOfBrush: "vline",
+    preset: "stabilizedSchrodinger1DValidity",
+    timesteppingScheme: "Euler",
   };
 
   listOfPresets["subcriticalGS"] = {
