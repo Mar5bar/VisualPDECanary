@@ -16,7 +16,7 @@ $$\pd{T}{t}=D_T \nabla^2 T$$
 
 admits solutions of the Gaussian form 
 
-$$T(x,t) = \frac{1}/{\sqrt{t}}e^{-\frac{x^2}{4t}}.$$
+$$T(x,t) = \frac{1}{\sqrt{t}}e^{-\frac{x^2}{4t}}.$$
 
 Hence, if the initial data is Gaussian, the solution evolves as a Gaussian. We can simulate this scenario in VisualPDE by truncating the infinite domain (applying Neumann boundary conditions) and specifying initial data of this form. Note that the exponential solution decays rapidly to zero far away from the mean of the Gaussian, so that the finite-domain approximation is a very good one.
 
