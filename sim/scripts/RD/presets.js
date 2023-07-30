@@ -858,6 +858,28 @@ export function getListOfPresets() {
     whatToPlot: "u",
   };
 
+  listOfPresets["swiftHohenbergRight"] = {
+    autoPauseAt: 324,
+    brushRadius: "1",
+    cameraPhi: 90,
+    cameraTheta: 80,
+    cameraZoom: 1.5,
+    colourmap: "blue-magenta",
+    dt: 0.0001,
+    emboss: true,
+    kineticParams:
+      "r = -0.28 in [-2, 2];a = 1.6 in [-2, 2];b = -1 in [-2, 0.1, 2];c = -1;D = 1;P = 1 in [1, 1, 3]",
+    maxColourValue: 1.3540157079696655,
+    minColourValue: -0.4482521712779999,
+    numAlgebraicSpecies: 1,
+    parent: "swiftHohenbergLocalised",
+    plotType: "surface",
+    preset: "swiftHohenbergRight",
+    reactionStrU: "(r-1)*u-2*v+a*u^2+b*u^3+15*u_y",
+    spatialStep: "0.3",
+    threeDHeightScale: 0.5,
+  };
+
   listOfPresets["swiftHohenbergLocalisedDirectedAdvection"] = {
     algebraicV: true,
     autoSetColourRange: true,
@@ -2482,20 +2504,19 @@ export function getListOfPresets() {
   };
 
   listOfPresets["stabilizedSchrodinger1DValidity"] = {
-	"autoPause": true,
-	"brushRadius": "5",
-	"cameraTheta": 0,
-	"diffusionStrUU": "0",
-	"diffusionStrVV": "0",
-	"dt": 0.0002,
-	"kineticParams": "D = 1;a = 4;s = 0.08;x0 = 0.5;V = 100;N = 2.8279;d = 0.000",
-	"numTimestepsPerFrame": 200,
-	"parent": "stabilizedSchrodinger1D",
-	"preset": "PRESETNAME",
-	"spatialStep": "0.2",
-	"typeOfBrush": "vline",
-};
-
+    autoPause: true,
+    brushRadius: "5",
+    cameraTheta: 0,
+    diffusionStrUU: "0",
+    diffusionStrVV: "0",
+    dt: 0.0002,
+    kineticParams: "D = 1;a = 4;s = 0.08;x0 = 0.5;V = 100;N = 2.8279;d = 0.000",
+    numTimestepsPerFrame: 200,
+    parent: "stabilizedSchrodinger1D",
+    preset: "PRESETNAME",
+    spatialStep: "0.2",
+    typeOfBrush: "vline",
+  };
 
   listOfPresets["subcriticalGS"] = {
     preset: "subcriticalGS",
