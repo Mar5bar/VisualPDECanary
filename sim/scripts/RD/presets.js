@@ -21,7 +21,6 @@ export function getListOfPresets() {
     spatialStep: "0.2",
     speciesNames: "u",
     suppressTryClickingPopup: true,
-    threeDHeightScale: 0.3,
     whatToDraw: "u",
     whatToPlot: "u",
   };
@@ -1291,7 +1290,6 @@ export function getListOfPresets() {
     reactionStrV: "v*(1-b*u-v-a*w)",
     reactionStrW: "w*(1-a*u-b*v-w)",
     spatialStep: "1",
-    threeDHeightScale: 0.3,
     whatToDraw: "u",
     whatToPlot: "u",
     diffusionUStr: "0.000001",
@@ -2142,7 +2140,6 @@ export function getListOfPresets() {
     parent: "heatEquation1D",
     preset: "heatEquation1DValidity",
     spatialStep: "1.5",
-    threeDHeightScale: 0.5,
     timeDisplay: true,
     typeOfBrush: "vline",
   };
@@ -2237,7 +2234,6 @@ export function getListOfPresets() {
     parent: "waveEquation1D",
     preset: "waveEquation1DValidity",
     spatialStep: "0.5",
-    threeDHeightScale: 0.3,
     typeOfBrush: "vline",
   };
 
