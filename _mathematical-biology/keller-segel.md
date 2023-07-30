@@ -4,15 +4,15 @@ title: Keller–Segel chemotaxis
 lesson_number: 90
 thumbnail: /assets/images/KellerSegel.webp
 extract: Slime moulds and cell movement
-equation: $\pd{u}{t}=\nabla^2 u-\vnabla \cdot(\chi(u)\vnabla v)+f(u)$, $\pd{v}{t}=D\nabla^2v+ g(u,v)$
+equation: $\pd{u}{t}=\nabla^2 u-\vnabla \cdot(\chi(u)\vnabla v)+f_u(u)$, $\pd{v}{t}=D\nabla^2v+ f_v(u,v)$
 ---
 We now consider [Keller–Segel models of chemotaxis](https://en.wikipedia.org/wiki/Chemotaxis#Mathematical_models) of the form
 
-$$\begin{aligned}\pd{u}{t}&=\nabla^2 u-\vnabla \cdot(\chi(u)\nabla v)+f(u),\\ \pd{v}{t}&=D\nabla^2v+ g(u,v),\end{aligned}$$
+$$\begin{aligned}\pd{u}{t}&=\nabla^2 u-\vnabla \cdot(\chi(u)\nabla v)+f_u(u),\\ \pd{v}{t}&=D\nabla^2v+ f_v(u,v),\end{aligned}$$
 
 where we take 
 
-$$\begin{aligned}\chi&=\displaystyle\frac{cu}{1+u^2},\\f(u)&=u(1-u),\\g(u,v) &= u-av.\end{aligned}$$
+$$\begin{aligned}\chi&=\displaystyle\frac{cu}{1+u^2},\\f_u(u)&=u(1-u),\\f_v(u,v) &= u-av.\end{aligned}$$
 
 * Load the [interactive simulation](/sim/?preset=KellerSegel) 
 

@@ -2,7 +2,7 @@
 layout: page
 title: Solitons in the Korteweg–De Vries equation
 lesson_number: 80
-thumbnail: /assets/images/complexGinzburgLandau.webp
+thumbnail: /assets/images/KdV.webp
 extract: Solitary movement through each other
 equation: $\pd{\phi}{t}=-\pdn{\phi}{x}{3}-6\phi \pd{\phi}{x}$
 ---

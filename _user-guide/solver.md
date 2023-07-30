@@ -14,11 +14,11 @@ We are always looking for ways to improve and extend VisualPDE, especially ways 
 VisualPDE can solve a variety of PDE systems posed in 1D or 2D space, many of which are straightforward extensions of the two-species reaction–diffusion system,
 
 $$\begin{aligned}
-    \pd{u}{t} &= \vnabla \cdot(D_u\vnabla u) + f,\\
-    \pd{v}{t} &= \vnabla \cdot(D_v\vnabla v) + g.
+    \pd{u}{t} &= \vnabla \cdot(D_u\vnabla u) + f_u,\\
+    \pd{v}{t} &= \vnabla \cdot(D_v\vnabla v) + f_v.
 \end{aligned}$$
 
-Here, $u$ and $v$ are the scalar unknowns that we solve for, $t$ is time, and the divergence and gradient operators are the usual spatial operators in a 2D Euclidean domain. In general, the interaction/kinetic terms ($f$ and $g$) and the diffusion coefficients ($D_u$ and $D_v$) can each be functions of time, space, and the unknowns, though we often don't explicitly write these potential dependencies. See [here](what-can-visualpde-solve) for a comprehensive summary of the types of PDEs that VisualPDE can solve.
+Here, $u$ and $v$ are the scalar unknowns that we solve for, $t$ is time, and the divergence and gradient operators are the usual spatial operators in a 2D Euclidean domain. In general, the interaction/kinetic terms ($f_u$ and $f_v$) and the diffusion coefficients ($D_u$ and $D_v$) can each be functions of time, space, and the unknowns, though we often don't explicitly write these potential dependencies. See [here](what-can-visualpde-solve) for a comprehensive summary of the types of PDEs that VisualPDE can solve.
 
 ### The domain <a id='domain'>
 A PDE problem is not well-posed without specifying a domain (or [boundary conditions](#boundary-conditions)). We typically determine the domain $\domain$ from the size of your device, fixing the largest side to be of length $L$ and maintaining an aspect ratio of 1:1. As most screens are not square, you can demand a square domain using a toggle under <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Square**</span>

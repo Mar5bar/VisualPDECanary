@@ -2,7 +2,7 @@
 layout: page
 title: The Perona–Malik equation
 lesson_number: 90
-thumbnail: /assets/images/PeronaMalik.png
+thumbnail: /assets/images/PeronaMalik.webp
 extract: Image denoising via nonlinear anisotropic diffusion
 equation: $\pd{u}{t}=\vnabla \cdot \left (\mathrm{e}^{-D |\vnabla u|^2}\vnabla u\right) $
 

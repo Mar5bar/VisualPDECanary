@@ -13,6 +13,7 @@ export function computeDisplayFunShaderTop() {
     uniform float t;
     uniform bool customSurface;
     uniform bool vectorField;
+    uniform bool overlayLine;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
 
@@ -91,6 +92,10 @@ export function computeDisplayFunShaderMid() {
 
         vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
         vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
+        vec4 uvwqXF = (uvwqR - uvwq) / dx;
+        vec4 uvwqYF = (uvwqT - uvwq) / dy;
+        vec4 uvwqXB = (uvwq - uvwqL) / dx;
+        vec4 uvwqYB = (uvwq - uvwqB) / dy;
 
         float value = FUN;
 				float height = value;
@@ -101,6 +106,9 @@ export function computeDisplayFunShaderMid() {
         if (vectorField) {
             height = XVECFUN;
             yVecComp = YVECFUN;
+        }
+        if (overlayLine) {
+          height = OVERLAYEXPR;
         }
         gl_FragColor = vec4(value, 0.0, height, yVecComp);`;
 }

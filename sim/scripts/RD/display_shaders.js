@@ -154,6 +154,10 @@ export function overlayShader() {
   vec4 uvwqB = texture2D(textureSource1, textureCoords + vec2(0.0, -step_y));
   vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx) * dxUpscaledScale;
   vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy) * dyUpscaledScale;
+  vec4 uvwqXF = (uvwqR - uvwq) / dx * dxUpscaledScale;
+  vec4 uvwqYF = (uvwqT - uvwq) / dy * dyUpscaledScale;
+  vec4 uvwqXB = (uvwq - uvwqL) / dx * dxUpscaledScale;
+  vec4 uvwqYB = (uvwq - uvwqB) / dy * dyUpscaledScale;
   vec4 Svec = texture2D(imageSourceOne, textureCoords);
   float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
   float I_SR = Svec.r;
@@ -193,7 +197,7 @@ export function surfaceVertexShaderColour() {
         float scaledValue = 0.0;
         if (minColourValue != maxColourValue) {
           float value = texture2D(textureSource, textureCoords).r;
-          scaledValue = clamp((value - minColourValue) / (maxColourValue - minColourValue) - 0.5, -0.5, 0.5);
+          scaledValue = (value - minColourValue) / (maxColourValue - minColourValue) - 0.5;
         }
         newPosition.z += heightScale * scaledValue;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);

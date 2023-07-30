@@ -26,7 +26,7 @@ Have VisualPDE typeset the specified equations, making use of all the defined di
 * $D_u$, $D_v$, $D_w$, ...\
 Set the diffusion coefficients of all the species in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are written $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
 
-* $f$, $g$, $h$, ...\
+* $f_u$, $f_v$, $f_w$, ...\
 Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions. 
 
     Advanced users can also make careful use of 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally distributed random number with unit variance and zero mean. This converts the equations into [stochastic partial differential equations](https://en.wikipedia.org/wiki/Stochastic_partial_differential_equation), which should only be solved using the Forward Euler timestepping scheme. Both 'RAND' and 'RANDN' require manually dividing by 'sqrt(dt)' in non-algebraic equations so that the scheme resembles the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler–Maruyama_method). The solution under other timestepping schemes is undefined.
@@ -105,7 +105,7 @@ Choose from three types of plot: **line**, **plane** or **surface**. Any simulat
 
 Line plots are the default plot type for 1D domains. Cubic splines are used to interpolate between nodes of the computational domain for smooth plotting. This may lead to transient oscillations appearing near discontinuities in the solution.
 
-Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Max height** parameter. The limits of the colour axis specify the values at which the height of the surface is capped.
+Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Height scale** parameter.
 
 **Colour map**\
 Set the current colour map being used to convert **Expression** into a colour value. Use the dropdown to select from the available options. We have tried to cater for everyone in these options but, if you find that no colour map is available that allows you to easily distinguish between values, please let us know at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can add a more appropriate map.
@@ -180,8 +180,8 @@ When viewing surface plots, this menu will appear to allow you to customise aspe
 * ***Custom surface***\
 Toggle the rendering of the solution on a custom, user-defined surface. The surface $z(x,y)$ is specified in **Surface $z$**, which appears when a custom surface is enabled. This definition can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
 
-* ***Max height***\
-The maximum height of the plotted surface, measured in units of $L$. Changing this parameter effectively makes the vertical variation appear more/less prominent. Must be a numerical value.
+* ***Height scale***\
+The scale factor used when plotting surfaces or lines. Changing this parameter effectively makes the vertical variation appear more/less prominent, though it does not alter the plotted colours. Must be a numerical value.
 
 * ***View $\theta$/$\phi$***\
 [Euler angles](https://en.wikipedia.org/wiki/Euler_angles) specifying the current 3D viewpoint, with $\theta\in[0,\pi]$ and $\phi\in[0,2\pi]$. You can manipulate these values either by inputting new values, or see them update as you rotate the viewpoint with your pointer (click and drag). As Euler angles [don't do a perfect job](https://en.wikipedia.org/wiki/Gimbal_lock) of describing orientations, you may (rarely) find that a viewpoint loaded in from a URL isn't quite what you expected.
@@ -244,10 +244,10 @@ Set the **species** ($u$, $v$, $w$, $q$) you are painting.
 Choose between a 1D or a 2D computational domain. Switching to 1D effectively removes the $y$ dimension from the simulation. Make sure that any expressions you've defined don't contain a $y$ after moving to 1D.
 
 * ***Largest side***\
-Change the largest side $L$ of the domain. Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
+Change the largest side $L$ of the domain. Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities. If this is not an integer multiple of the space step $\dx=\dy$, the domain will extend to $\floor{L / \dx}\dx$ in practice. This guarantees the use of a precise space step.
 
 * ***Space step***\
-Set the spatial step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the spatial step (as discussed [here](/user-guide/solver#timestepping)). Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
+Set the space step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the space step (as discussed [here](/user-guide/solver#timestepping)). Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
 
 * ***Square***\
 Toggle whether or not the domain is forced to be square, independent of the aspect ratio of your device/window.
@@ -271,6 +271,9 @@ Select one of various timestepping schemes. [Forward Euler](https://en.wikipedia
 * ***Elapsed time***\
 Show/hide the elapsed time since the simulation was loaded/reset.
 
+* ***Auto pause***\
+Set the simulation to be automatically paused when the time ($t$) passes a custom threshold, which can be configured when this option is enabled. You can resume an auto-paused simulation by pressing {{ layout.play }}
+
 ### Equations <a id='equations_sub'>
 * ***No. species***\
 Specify the number of unknowns (1, 2, 3, or 4) in the simulation.
@@ -278,8 +281,8 @@ Specify the number of unknowns (1, 2, 3, or 4) in the simulation.
 * ***\#Algebraic***\
 Choose how many equations you want to be in algebraic form in systems with cross diffusion enabled. The equations will be put in algebraic form in reverse order, e.g. a 4-species system with 1 algebraic species will convert the final equation to be algebraic.
 
-* ***Species/Reactions (names)***\
-Specify custom names for the species and reaction terms in VisualPDE, which often default to $u$, $v$, $w$, $q$ and $f$, $g$, $h$, $j$. Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, 'T_01' is a valid name (rendered as $T_{01}$) whilst 'T 01' is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as 'H' for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old species and reaction terms everywhere in the simulation and interface.
+* ***Species (names)***\
+Specify custom names for the species in VisualPDE, which often default to $u$, $v$, $w$, $q$. Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, 'T_01' is a valid name (rendered as $T_{01}$) whilst 'T 01' is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as 'H' for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old species everywhere in the simulation and interface.
 
 * ***Cross (diffusion)***\
 Enable cross diffusion in systems with 2 or more species, enabling simulation of a wide range of systems.
@@ -319,11 +322,12 @@ Use this option to force the use of manual, unoptimised filtering in place of de
 * ***Fix seed***\
 Fix the seed of the (pseudo)random number generator used to assign values to 'RAND' and 'RANDN' in all free-text fields in the VisualPDE interface. Note that 'RAND' and 'RANDN' always vary in space.
 
-* ***Copy code***\
-Copy a verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples.
+* ***Dev***\
+Tools intended for the development of VisualPDE. 
 
-* ***Debug***\
-Select from a frequently updated list of available debugging tools. A permanent fixture is **Copy debug information**, which copies a selection of configuration information to your clipboard (handy when reporting bugs).
+    ***Copy code*** will copy a verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples. It will base the example on the selected 'parent' preset, which can be useful if you're making multiple slightly different versions of a simulation. 
+
+    ***Copy debug*** will copy a selection of configuration information to your clipboard (handy when reporting bugs).
 
 ---
 
@@ -338,6 +342,22 @@ sin(x) * cos(y)
 exp( -(x-L_x)^2 / 10)
 1 + (x^2 + x + 1) / (y^2 + y + 1)
 ```
+
+**Advanced syntax**\
+Some terms in VisualPDE have additional functionality when written with special syntax.
+* ***Images***\
+By default, images are accessed using 'I_T' and 'I_S', with individual channels available by appending R,G,B or A. When a channel is specified, you can access images using coordinates using the syntax 'I_TR(x,y)'. Examples include
+
+```
+I_TR(2*x, y)
+I_SB(x-t, y-t)
+I_TG(x, y + sin(u))
+```
+
+* ***One-sided differences***\
+First derivatives in space, accessed with 'u_x', 'u_y', ..., are computed using a central finite difference discretisation by default. By appending 'f' or 'b' to the subscript, such as 'u_xf', you can tell VisualPDE to use a forward or a backward difference, respectively. Forward differences sample the solution at increased $x$ (or $y$), whilst backward differences sample at decreased $x$ (or $y$). These specialised schemes can be used in [upwind schemes](https://en.wikipedia.org/wiki/Upwind_scheme) and often reduce numerical artefacts, but at the expense of typically larger numerical error.
+
+    Forward and backward differences can also be computed with second-order numerical schemes by appending '2' to the subscript, though in general this will only respect Periodic boundary conditions in the direction of the derivative. This syntax can only be used in the **Definitions** section.
 
 **Special functions**\
 Throughout VisualPDE, you can make use of the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt', 'sinh', 'cosh', 'tanh' and 'H', where the latter is a [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function) smoothed over the interval $[-1,1]$ (see the [GLSL reference](https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml) for details). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'. You can also use 'min' and 'max' as functions with two arguments, which return the minimum or maximum of their arguments, e.g. 'min(u,1)' returns the minimum of $u$ and 1. If you wish to raise the output of a function to a power, you must enclose the function in parentheses, e.g. write '(cos(x))^2', not 'cos(x)^2'.

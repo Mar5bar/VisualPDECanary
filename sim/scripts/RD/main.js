@@ -22,12 +22,13 @@ let basicMaterial,
   copyMaterial,
   postMaterial,
   lineMaterial,
+  overlayLineMaterial,
   arrowMaterial,
   interpolationMaterial,
   checkpointMaterial,
   tailGeometry,
   headGeometry;
-let domain, simDomain, clickDomain, line;
+let domain, simDomain, clickDomain, line, overlayLine;
 let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
 let colourmap, colourmapEndpoints;
 let options, uniforms, funsObj, savedOptions;
@@ -59,6 +60,7 @@ let leftGUI,
   DqwController,
   DqqController,
   dtController,
+  autoPauseAtController,
   whatToDrawController,
   lineWidthMulController,
   threeDHeightScaleController,
@@ -102,6 +104,8 @@ let leftGUI,
   imControllerTwo,
   arrowDensityController,
   arrowLengthMaxController,
+  overlayEpsilonController,
+  overlayLineWidthMulController,
   editViewFolder,
   linesAnd3DFolder,
   vectorFieldFolder,
@@ -109,6 +113,9 @@ let leftGUI,
   deleteViewController,
   selectedEntries = new Set();
 let isRunning,
+  isLoading = true,
+  hasErrored = false,
+  canAutoPause = true,
   isDrawing,
   hasDrawn,
   shouldCheckNaN = true,
@@ -125,12 +132,13 @@ let isRunning,
   nextViewNumber = 0,
   updatingAlgebraicSpecies = false,
   viewUIOffsetInit;
-let inTex, outTex;
-let nXDisc,
+let spatialStepValue,
+  nXDisc,
   nYDisc,
   domainWidth,
   domainHeight,
   maxDim,
+  maxTexSize,
   canvasWidth,
   canvasHeight,
   usingLowResDomain = true,
@@ -231,7 +239,12 @@ import {
 } from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
-import { getPreset, getUserTextFields, getFieldsInView } from "./presets.js";
+import {
+  getPreset,
+  getUserTextFields,
+  getFieldsInView,
+  getListOfPresets,
+} from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import * as THREE from "../three.module.min.js";
 import { OrbitControls } from "../OrbitControls.js";
@@ -554,6 +567,7 @@ $(document).on("click", "#add_view", function () {
 });
 
 // Begin the simulation.
+isLoading = false;
 animate();
 
 //---------------
@@ -584,6 +598,7 @@ function init() {
   });
   renderer.autoClear = true;
   gl = renderer.getContext();
+  maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
   // Check if we should be interpolating manually due to extensions not being supported.
   manualInterpolationNeeded = !(
@@ -724,6 +739,10 @@ function init() {
     vertexColors: true,
     linewidth: 0.01,
   });
+  overlayLineMaterial = new LineMaterial({
+    color: 0x000000,
+    linewidth: 0.01,
+  });
   arrowMaterial = new THREE.MeshBasicMaterial({
     color: options.arrowColour,
     side: THREE.DoubleSide,
@@ -822,7 +841,14 @@ function init() {
   });
 
   // Listen for resize events.
-  window.addEventListener("resize", resize, false);
+  window.addEventListener(
+    "resize",
+    function () {
+      resize();
+      renderIfNotRunning();
+    },
+    false
+  );
 
   window.addEventListener("message", updateParamFromMessage);
 
@@ -851,7 +877,6 @@ function resize() {
   // Check if the colourbar lies on top of the logo. If so, remove the logo.
   checkColourbarLogoCollision();
   resizeEquationDisplay();
-  render();
 }
 
 function replaceDisplayDomains() {
@@ -861,6 +886,8 @@ function replaceDisplayDomains() {
   scene.remove(clickDomain);
   line.geometry.dispose();
   scene.remove(line);
+  overlayLine.geometry.dispose();
+  scene.remove(overlayLine);
   createDisplayDomains();
 }
 
@@ -903,8 +930,8 @@ function updateUniforms() {
   uniforms.L_x.value = domainWidth;
   uniforms.L_min.value = Math.min(domainHeight, domainWidth);
   uniforms.dt.value = options.dt;
-  uniforms.dx.value = domainWidth / nXDisc;
-  uniforms.dy.value = domainHeight / nYDisc;
+  uniforms.dx.value = spatialStepValue;
+  uniforms.dy.value = spatialStepValue;
   uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
@@ -950,7 +977,7 @@ function setSizes() {
   computeCanvasSizesAndAspect();
   // Using the user-specified spatial step size, compute as close a discretisation as possible that
   // doesn't reduce the step size below the user's choice.
-  let spatialStepValue = domainScaleValue / 100;
+  spatialStepValue = domainScaleValue / 100;
   try {
     spatialStepValue = parser.evaluate(options.spatialStep);
   } catch (error) {
@@ -967,6 +994,21 @@ function setSizes() {
   }
   nXDisc = Math.floor(domainWidth / spatialStepValue);
   nYDisc = Math.floor(domainHeight / spatialStepValue);
+  if (nXDisc > maxTexSize || nYDisc > maxTexSize) {
+    throwError(
+      "Your device does not support a discretisation this fine (maximum " +
+        maxTexSize +
+        "). Please increase the space step to at least " +
+        (Math.ceil((1e4 * domainScaleValue) / maxTexSize) / 1e4).toPrecision(
+          4
+        ) +
+        " or reduce the domain size to at most " +
+        (Math.floor(1e4 * maxTexSize * spatialStepValue) / 1e4).toPrecision(4) +
+        "."
+    );
+    nXDisc = Math.min(nXDisc, maxTexSize);
+    nYDisc = Math.min(nYDisc, maxTexSize);
+  }
   if (nXDisc == 0) nXDisc = 1;
   if (nYDisc == 0) nYDisc = 1;
   // If the user has specified that this is a 1D problem, set nYDisc = 1.
@@ -977,7 +1019,7 @@ function setSizes() {
   uniforms.nXDisc.value = nXDisc;
   uniforms.nYDisc.value = nYDisc;
   // Set an array of XDisplayDomainCoords for plotting lines. Note that these simply go between -0.5 and 0.5,
-  // and do not correspond to x in the simulation.
+  // and do not correspond to x in the simulation. Cap at 10000.
   xDisplayDomainCoords = new Array(nXDisc);
   yDisplayDomainCoords = new Array(nXDisc);
   let val = -0.5,
@@ -986,6 +1028,9 @@ function setSizes() {
     xDisplayDomainCoords[i] = val;
     val += step;
   }
+  xDisplayDomainCoords = xDisplayDomainCoords.map(
+    (x) => (x * domainWidth) / maxDim
+  );
   // Set the size of the renderer, which will interpolate precisely from the textures.
   setDefaultRenderSize();
   buffer = new Float32Array(nXDisc * nYDisc * 4);
@@ -1026,7 +1071,7 @@ function createDisplayDomains() {
 
   // Create a line object whose coordinates we can set when plotting lines.
   const lineGeom = new LineGeometry();
-  numPointsInLine = Math.round(devicePixelRatio * canvasWidth);
+  numPointsInLine = Math.round(2 * devicePixelRatio * canvasWidth);
   const positions = new Array(3 * numPointsInLine).fill(0);
   const lineColours = new Array(positions.length).fill(0);
   lineGeom.setPositions(positions);
@@ -1035,6 +1080,15 @@ function createDisplayDomains() {
   line.scale.set(1, 1, 1);
   line.visible = options.plotType == "line";
   scene.add(line);
+
+  // Create a line object for overlay in line plots.
+  const overlayLineGeom = new LineGeometry();
+  const overlayLinePositions = new Array(3 * numPointsInLine).fill(0);
+  overlayLineGeom.setPositions(overlayLinePositions);
+  overlayLine = new Line2(overlayLineGeom, overlayLineMaterial);
+  overlayLine.scale.set(1, 1, 1);
+  overlayLine.visible = options.plotType == "line" && options.overlay;
+  scene.add(overlayLine);
 }
 
 function setDomainOrientation() {
@@ -1202,6 +1256,10 @@ function initUniforms() {
     overlayEpsilon: {
       type: "f",
     },
+    overlayLine: {
+      type: "bool",
+      value: true,
+    },
     seed: {
       type: "f",
       value: 0.0,
@@ -1270,7 +1328,7 @@ function initGUI(startOpen) {
     "Toggle the brush on or off"
   );
 
-  root
+  const brushActionController = root
     .add(options, "brushAction", {
       Replace: "replace",
       Add: "add",
@@ -1278,7 +1336,10 @@ function initGUI(startOpen) {
       "Add (smooth)": "smoothadd",
     })
     .name("Action")
-    .onChange(setBrushType);
+    .onChange(function () {
+      setBrushType();
+      document.activeElement.blur();
+    });
 
   typeOfBrushController = root
     .add(options, "typeOfBrush", {
@@ -1306,12 +1367,25 @@ function initGUI(startOpen) {
     .name("Dimension")
     .onChange(function () {
       configureDimension();
+      document.activeElement.blur();
       renderIfNotRunning();
     });
 
-  root.add(options, "domainScale").name("Largest side").onFinishChange(resize);
+  root
+    .add(options, "domainScale")
+    .name("Largest side")
+    .onFinishChange(function () {
+      resize();
+      renderIfNotRunning();
+    });
 
-  root.add(options, "spatialStep").name("Space step").onFinishChange(resize);
+  root
+    .add(options, "spatialStep")
+    .name("Space step")
+    .onFinishChange(function () {
+      resize();
+      renderIfNotRunning();
+    });
 
   const domainButtonList = addButtonList(root);
 
@@ -1323,6 +1397,7 @@ function initGUI(startOpen) {
       setCanvasShape();
       resize();
       configureCameraAndClicks();
+      renderIfNotRunning();
     },
     null,
     "Use a square domain"
@@ -1337,6 +1412,7 @@ function initGUI(startOpen) {
       configureGUI();
       setRDEquations();
       setPostFunFragShader();
+      renderIfNotRunning();
     },
     null,
     "Determine the domain implicitly"
@@ -1350,6 +1426,7 @@ function initGUI(startOpen) {
       configureGUI();
       setRDEquations();
       updateWhatToPlot();
+      renderIfNotRunning();
     });
 
   // Timestepping folder.
@@ -1377,17 +1454,40 @@ function initGUI(startOpen) {
       "Midpoint Method": "Mid",
       "Runge-Kutta 4": "RK4",
     })
-    .name("Scheme");
+    .name("Scheme")
+    .onChange(function () {
+      document.activeElement.blur();
+    });
 
   const timeButtonList = addButtonList(root);
   addToggle(
     timeButtonList,
     "timeDisplay",
-    '<i class="fa-regular fa-stopwatch"></i> Elapsed time',
+    '<i class="fa-regular fa-hourglass-half"></i> Elapsed time',
     configureTimeDisplay,
     null,
     "Show/hide time display"
   );
+
+  addToggle(
+    timeButtonList,
+    "autoPause",
+    '<i class="fa-regular fa-hourglass-end"></i> Auto pause',
+    function () {
+      canAutoPause = uniforms.t.value < options.autoPauseAt;
+      configureGUI();
+    },
+    null,
+    "Toggle automatic pausing"
+  );
+
+  autoPauseAtController = root
+    .add(options, "autoPauseAt")
+    .name("Pause at $t=$")
+    .onFinishChange(function () {
+      canAutoPause = uniforms.t.value < options.autoPauseAt;
+      autoPauseAtController.domElement.blur();
+    });
 
   // Equations folder.
   root = rightGUI.addFolder("Equations");
@@ -1396,7 +1496,11 @@ function initGUI(startOpen) {
   root
     .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
     .name("No. species")
-    .onChange(updateProblem);
+    .onChange(function () {
+      document.activeElement.blur();
+      updateProblem();
+      resetSim();
+    });
 
   // Number of algebraic species.
   algebraicSpeciesController = root
@@ -1406,18 +1510,12 @@ function initGUI(startOpen) {
       updatingAlgebraicSpecies = true;
       updateProblem();
       updatingAlgebraicSpecies = false;
+      resetSim();
     });
 
   root
     .add(options, "speciesNames")
     .name("Species names")
-    .onFinishChange(function () {
-      setCustomNames();
-    });
-
-  root
-    .add(options, "reactionNames")
-    .name("Reactions")
     .onFinishChange(function () {
       setCustomNames();
     });
@@ -1428,7 +1526,9 @@ function initGUI(startOpen) {
     crossDiffusionButtonList,
     "crossDiffusion",
     '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
-    updateProblem,
+    function () {
+      updateProblem();
+    },
     "cross_diffusion_controller",
     "Toggle cross diffusion"
   );
@@ -1453,8 +1553,8 @@ function initGUI(startOpen) {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DuuController, selectTeX, ["D", "U", "UU"]);
-  setOnblur(DuuController, deselectTeX, ["D", "U", "UU"]);
+  setOnfocus(DuuController, selectTeX, ["U", "UU"]);
+  setOnblur(DuuController, deselectTeX, ["U", "UU"]);
 
   DuvController = root
     .add(options, "diffusionStrUV")
@@ -1637,6 +1737,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
+      document.activeElement.blur();
     });
 
   dirichletUController = root
@@ -1667,6 +1768,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
+      document.activeElement.blur();
     });
 
   dirichletVController = root
@@ -1697,6 +1799,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
+      document.activeElement.blur();
     });
 
   dirichletWController = root
@@ -1728,6 +1831,7 @@ function initGUI(startOpen) {
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
+      document.activeElement.blur();
     });
 
   dirichletQController = root
@@ -1817,7 +1921,10 @@ function initGUI(startOpen) {
 
   root
     .add(options, "resizeCheckpoints", { Stretch: "stretch", Crop: "crop" })
-    .name("Resize");
+    .name("Resize")
+    .onChange(function () {
+      document.activeElement.blur();
+    });
 
   // Miscellaneous folder.
   root = rightGUI.addFolder("Misc.");
@@ -1848,7 +1955,10 @@ function initGUI(startOpen) {
     miscButtons,
     "forceManualInterpolation",
     '<i class="fa-regular fa-bezier-curve"></i> Interpolate',
-    configureManualInterpolation,
+    function () {
+      configureManualInterpolation();
+      renderIfNotRunning();
+    },
     "interpController",
     "Override your device's default smoothing and perform bilinear interpolation of the display"
   );
@@ -1862,20 +1972,39 @@ function initGUI(startOpen) {
     "Fix the random seed"
   );
 
+  root = root.addFolder("Dev");
+  // Dev.
+  const devButtons = addButtonList(root);
   // Copy configuration as raw JSON.
   addButton(
-    miscButtons,
+    devButtons,
     '<i class="fa-regular fa-copy"></i> Copy code',
     copyConfigAsJSON,
     null,
-    "Copy the simulation configuration as JSON"
+    "Copy the simulation configuration as JSON to the clipboard"
   );
 
-  root = root.addFolder("Debug");
-  // Debug.
   // Copy configuration as raw JSON.
-  const debugButtonList = addButtonList(root);
-  addButton(debugButtonList, "Copy debug information", copyDebug);
+  addButton(
+    devButtons,
+    '<i class="fa-regular fa-bug"></i> Copy debug',
+    copyDebug,
+    null,
+    "Copy debug information to the clipboard"
+  );
+
+  // Populate list of presets for parent selection.
+  let listOfPresets = getListOfPresets();
+  Object.keys(listOfPresets).forEach(function (key) {
+    listOfPresets[key] = key;
+  });
+  listOfPresets["default"] = null;
+  root
+    .add(options, "parent", sortObject(listOfPresets))
+    .name("Parent preset")
+    .onChange(function () {
+      document.activeElement.blur();
+    });
 
   // Add a title to the rightGUI.
   const settingsTitle = document.createElement("div");
@@ -1964,6 +2093,8 @@ function initGUI(startOpen) {
     .onChange(function () {
       setDisplayColourAndType();
       configureColourbar();
+      document.activeElement.blur();
+      renderIfNotRunning();
       updateView(this.property);
     })
     .name("Colour map");
@@ -1999,6 +2130,7 @@ function initGUI(startOpen) {
       options.flippedColourmap = !options.flippedColourmap;
       setDisplayColourAndType();
       configureColourbar();
+      renderIfNotRunning();
       updateView("flippedColourmap");
     },
     null,
@@ -2059,6 +2191,7 @@ function initGUI(startOpen) {
     '<i class="fa-solid fa-bullseye"></i> Contours',
     function () {
       setDisplayColourAndType();
+      renderIfNotRunning();
       updateView("contours");
     },
     "contourButton",
@@ -2073,6 +2206,7 @@ function initGUI(startOpen) {
     '<i class="fa-solid fa-lightbulb"></i> Lighting',
     function () {
       setDisplayColourAndType();
+      renderIfNotRunning();
       updateView("emboss");
     },
     "embossButton",
@@ -2087,6 +2221,7 @@ function initGUI(startOpen) {
     '<i class="fa-solid fa-chart-line"></i> Overlay',
     function () {
       setDisplayColourAndType();
+      renderIfNotRunning();
       updateView("overlay");
     },
     null,
@@ -2250,14 +2385,25 @@ function initGUI(startOpen) {
     .name("Expression")
     .onFinishChange(function () {
       setDisplayColourAndType();
+      if (options.plotType == "line") setPostFunFragShader();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
-  root
+  overlayEpsilonController = root
     .add(options, "overlayEpsilon")
     .name("Threshold")
     .onChange(function () {
       setOverlayUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+
+  overlayLineWidthMulController = root
+    .add(options, "overlayLineWidthMul", 0.1, 2)
+    .name("Thickness")
+    .onChange(function () {
+      setLineWidth();
       renderIfNotRunning();
       updateView(this.property);
     });
@@ -2293,9 +2439,10 @@ function initGUI(startOpen) {
 
   threeDHeightScaleController = root
     .add(options, "threeDHeightScale")
-    .name("Max height")
+    .name("Height scale")
     .onChange(function () {
       updateUniforms();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -2304,6 +2451,7 @@ function initGUI(startOpen) {
     .name("View $\\theta$")
     .onChange(function () {
       configureCameraAndClicks();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -2312,6 +2460,7 @@ function initGUI(startOpen) {
     .name("View $\\phi$")
     .onChange(function () {
       configureCameraAndClicks();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -2320,6 +2469,7 @@ function initGUI(startOpen) {
     .name("Zoom")
     .onChange(function () {
       configureCameraAndClicks();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -2328,7 +2478,7 @@ function initGUI(startOpen) {
     .name("Thickness")
     .onChange(function () {
       setLineWidth();
-      render();
+      renderIfNotRunning();
       updateView(this.property);
     });
 
@@ -2415,6 +2565,16 @@ function animate() {
     anyDirichletBCs ? enforceDirichlet() : {};
     // Perform a number of timesteps per frame.
     for (let i = 0; i < options.numTimestepsPerFrame; i++) {
+      if (
+        options.autoPause &&
+        canAutoPause &&
+        uniforms.t.value >= options.autoPauseAt
+      ) {
+        // Pause automatically if this option is selected and we're past the set time, but only once.
+        canAutoPause = false;
+        pauseSim();
+        break;
+      }
       if (shaderContainsRAND && !options.fixRandSeed) updateRandomSeed();
       timestep();
     }
@@ -2533,13 +2693,13 @@ function setDisplayColourAndType() {
     );
     setOverlayUniforms();
   }
+  overlayLine.visible = options.overlay && options.plotType == "line";
   shader += fiveColourDisplayBot();
   displayMaterial.fragmentShader = shader;
   displayMaterial.needsUpdate = true;
   postMaterial.needsUpdate = true;
   colourmapEndpoints = colourmap.map((x) => x[3]);
   colourmap = colourmap.map((x) => x.slice(0, -1));
-  render();
 }
 
 function selectColourspecInShaderStr(shaderStr) {
@@ -2699,17 +2859,31 @@ function render() {
     for (let i = 0; i < buffer.length; i += 4) {
       scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
       // Set the height.
-      yDisplayDomainCoords[ind++] = scaledValue.clamp(-0.5, 0.5);
+      yDisplayDomainCoords[ind++] = (scaledValue * domainHeight) / maxDim;
     }
-    // Use spline-smoothed points to use for plotting.
-    const curve = new THREE.SplineCurve(
+    // Use spline-smoothed points for plotting.
+    let curve = new THREE.SplineCurve(
       xDisplayDomainCoords.map(
         (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
       )
     );
-    const points = curve.getSpacedPoints(numPointsInLine);
-    setLineXY(points);
-    setLineColour(points);
+    let points = curve.getSpacedPoints(numPointsInLine);
+    setLineXY(line, points);
+    setLineColour(line, points);
+    if (options.overlay) {
+      ind = 0;
+      for (let i = 2; i < 4 * nXDisc; i += 4) {
+        scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
+        yDisplayDomainCoords[ind++] = (scaledValue * domainHeight) / maxDim;
+      }
+      curve = new THREE.SplineCurve(
+        xDisplayDomainCoords.map(
+          (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
+        )
+      );
+      points = curve.getSpacedPoints(numPointsInLine);
+      setLineXY(overlayLine, points);
+    }
   }
 
   // If a vector field is requested, update arrows. They will already be set as visible.
@@ -2908,6 +3082,7 @@ function playSim() {
 function resetSim() {
   clearTextures();
   uniforms.t.value = 0.0;
+  canAutoPause = true;
   updateTimeDisplay();
   render();
   // Start a timer that checks for NaNs every second.
@@ -3086,24 +3261,11 @@ function parseShaderString(str) {
 
   // Replace powers with safepow, including nested powers.
   str = replaceBinOperator(str, "^", function (m, p1, p2) {
-    switch (p2) {
-      case "0":
-        return "1";
-      case "1":
-        return "(" + p1 + ")";
-      case "2":
-        return "((" + p1 + ")*(" + p1 + "))";
-      case "3":
-        return "((" + p1 + ")*(" + p1 + ")*(" + p1 + "))";
-      case "4":
-        return "((" + p1 + ")*(" + p1 + ")*(" + p1 + ")*(" + p1 + "))";
-      case "5":
-        return (
-          "((" + p1 + ")*(" + p1 + ")*(" + p1 + ")*(" + p1 + ")*(" + p1 + "))"
-        );
-      default:
-        return "safepow(" + p1 + "," + p2 + ")";
-    }
+    if (p2 == "0") return "1";
+    const exp = Number(p2);
+    if (Number.isInteger(exp && exp > 0 && exp < 101)) {
+      return "((" + p1 + ")" + ("*(" + p1 + ")").repeat(exp - 1) + ")";
+    } else return "safepow(" + p1 + "," + p2 + ")";
   });
   // Replace species with uvwq.[rgba].
   str = str.replaceAll(
@@ -3114,9 +3276,11 @@ function parseShaderString(str) {
   );
 
   // Replace species_x, species_y etc with uvwqX.r and uvwqY.r, etc.
+  // Allow for specifying forward or backward difference.
   str = str.replaceAll(
-    RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_([xy])\\b", "g"),
+    RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_([xy][fb]?2?)\\b", "g"),
     function (m, d1, d2) {
+      if (d2.includes("2")) d2 = d2.slice(0, -1).repeat(2);
       return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
     }
   );
@@ -3133,7 +3297,7 @@ function parseShaderString(str) {
   str = sanitise(str);
 
   // Replace images evaluated at coordinates with appropriate shader expressions.
-  str = enableImageLookupInShader(str, "I_TR");
+  str = enableImageLookupInShader(str);
 
   // Replace integers with floats.
   while (
@@ -3512,7 +3676,9 @@ function loadPreset(preset) {
   if (options.threeD != undefined) {
     if (options.threeD) {
       options.dimension = 2;
-      options.plotType = "surface";
+      if (options.plotType == undefined) {
+        options.plotType = "surface";
+      }
     }
     delete options.threeD;
   }
@@ -3609,11 +3775,11 @@ function loadOptions(preset) {
   // Loop through newOptions and overwrite anything already present.
   Object.assign(options, newOptions);
 
-  // Set custom species names and reaction names.
-  setCustomNames(true);
-
   // Check if the simulation should be running on load.
   isRunning = options.runningOnLoad;
+
+  // Set custom species names and reaction names.
+  setCustomNames();
 
   // Ensure that the correct play/pause button is showing.
   isRunning ? playSim() : pauseSim();
@@ -3995,7 +4161,6 @@ function updateWhatToPlot() {
   }
   configureColourbar();
   configureIntegralDisplay();
-  render();
 }
 
 function showVGUIPanels() {
@@ -4127,6 +4292,11 @@ function setPostFunFragShader() {
       parseShaderString(options.domainIndicatorFun)
     );
   }
+  shaderStr = shaderStr.replaceAll(
+    "OVERLAYEXPR",
+    parseShaderString(options.overlayExpr)
+  );
+  setOverlayUniforms();
   postMaterial.fragmentShader = shaderStr + postGenericShaderBot();
   postMaterial.needsUpdate = true;
 }
@@ -4276,9 +4446,7 @@ function configureGUI() {
 
   // Configure the controller names.
   // We'll set the generic names then alter any algebraic ones.
-  if (options.numSpecies == 1) {
-    setGUIControllerName(DuuController, TeXStrings["D"], tooltip);
-  } else if (options.crossDiffusion) {
+  if (options.crossDiffusion) {
     setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
     setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
     setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
@@ -4394,6 +4562,7 @@ function configureGUI() {
     hideGUIController(cameraPhiController);
     hideGUIController(cameraZoomController);
   }
+  if (options.dimension == 1) $("#vectorFieldButton").hide();
   configureColourbar();
   configureTimeDisplay();
   configureIntegralDisplay();
@@ -4424,6 +4593,19 @@ function configureGUI() {
   );
   // Update emboss sliders.
   updateViewSliders();
+  // Show/hide the autoPauseAt controller.
+  if (options.autoPause) {
+    showGUIController(autoPauseAtController);
+  } else {
+    hideGUIController(autoPauseAtController);
+  }
+  if (options.plotType == "line") {
+    hideGUIController(overlayEpsilonController);
+    showGUIController(overlayLineWidthMulController);
+  } else {
+    showGUIController(overlayEpsilonController);
+    hideGUIController(overlayLineWidthMulController);
+  }
   // Update all toggle buttons.
   $(".toggle_button").each(function () {
     updateToggle(this);
@@ -4626,7 +4808,6 @@ function updateProblem() {
   setKineticUniforms();
   updateShaders();
   setEquationDisplayType();
-  resetSim();
 }
 
 function setEquationDisplayType() {
@@ -4637,7 +4818,6 @@ function setEquationDisplayType() {
   let regex;
   // Define a list of strings that will be used to make regexes.
   const regexes = {};
-  regexes["D"] = /\b(D) (\\vnabla u)/g;
   regexes["U"] = /\b(D_{u}) (\\vnabla u)/g;
   regexes["UU"] = /\b(D_{u u}) (\\vnabla u)/g;
   regexes["V"] = /\b(D_{v}) (\\vnabla v)/g;
@@ -4666,7 +4846,6 @@ function setEquationDisplayType() {
   if (options.typesetCustomEqs) {
     // We'll work using the default notation, then convert at the end.
     let associatedStrs = {};
-    associatedStrs["D"] = options.diffusionStrUU;
     associatedStrs["U"] = options.diffusionStrUU;
     associatedStrs["UU"] = options.diffusionStrUU;
     associatedStrs["V"] = options.diffusionStrVV;
@@ -4701,7 +4880,12 @@ function setEquationDisplayType() {
 
     // Convert all the associated strings back to default notation.
     function toDefault(s) {
-      return replaceSymbolsInStr(s, listOfSpecies, defaultSpecies, "_[xy]");
+      return replaceSymbolsInStr(
+        s,
+        listOfSpecies,
+        defaultSpecies,
+        "_(?:[xy][xybf]?)"
+      );
     }
 
     Object.keys(associatedStrs).forEach(function (key) {
@@ -4757,7 +4941,7 @@ function setEquationDisplayType() {
 
     // Look for div(const * grad(blah)), and move the constant outside the bracket.
     // By this point, a single word (with no square brackets) in the divergence must be a single expression.
-    // If it's not x,y,u,v,w,q move it outside the brackets.
+    // If it's not x,y,u,v,w,q, I_T, I_S, move it outside the brackets.
     // First, if it's just a diffusion coefficient, move it outside, as they have already been checked for
     // constancy.
     regex =
@@ -4765,7 +4949,7 @@ function setEquationDisplayType() {
     str = str.replaceAll(regex, "$1 \\lap $2");
     regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}\*\^]*)\s*\\vnabla\s*([uvwq])\s*\)/g;
     str = str.replaceAll(regex, function (match, g1, g2) {
-      const innerRegex = /\b[xy]|[uvwq]\b/g;
+      const innerRegex = /\b[xy]|[uvwq]|(?:I_[ST][RGBA]?)\b/g;
       if (!innerRegex.test(g1)) {
         return g1 + " \\lap " + g2;
       } else {
@@ -4774,7 +4958,7 @@ function setEquationDisplayType() {
     });
 
     // Replace u_x, u_y etc with \pd{u}{x} etc. Add parentheses if followed by ^.
-    regex = /(\(?)\b([uvwq])_([xy])\s*(\)?)\s*(\^?)\b/g;
+    regex = /(\(?)\b([uvwq])_([xy])[fb]?2?\s*(\)?)\s*(\^?)\b/g;
     str = str.replaceAll(regex, function (match, g1, g2, g3, g4, g5) {
       let base =
         g1 + "\\textstyle \\pd{" + g2 + "}{" + g3 + "\\vphantom{y}}" + g4;
@@ -4819,8 +5003,7 @@ function setEquationDisplayType() {
     str = replaceSymbolsInStr(
       str,
       ["UFUN", "VFUN", "WFUN", "QFUN"],
-      listOfReactions,
-      "_[xy]"
+      defaultReactions
     );
   }
 
@@ -4834,11 +5017,12 @@ function setEquationDisplayType() {
   }
 
   // Swap out all default symbols for new species and reactions.
+  // This will also swap out strange parameter names that are 'reactionName_x', which isn't desirable.
   str = replaceSymbolsInStr(
     str,
     defaultSpecies.concat(defaultReactions),
     listOfSpecies.concat(listOfReactions),
-    "_[xy]"
+    "_(?:[xy][xybf]?)"
   );
 
   str = parseStringToTEX(str);
@@ -5223,8 +5407,10 @@ function createParameterController(label, isNextParam) {
         // We record the name of the parameter in the controller.
         const match = str.match(/\s*(\w+)\s*=/);
         if (match) {
-          newController.lastName = match[1];
-          kineticNameToCont[newController.lastName] = newController;
+          let name = match[1];
+          validateParamName(name);
+          newController.lastName = name;
+          kineticNameToCont[name] = newController;
         }
         kineticParamsCounter += 1;
         let newLabel = "params" + kineticParamsCounter;
@@ -5245,8 +5431,10 @@ function createParameterController(label, isNextParam) {
     controller.domElement.classList.add("params");
     const match = kineticParamsStrs[label].match(/\s*(\w+)\s*=/);
     if (match) {
-      controller.lastName = match[1];
-      kineticNameToCont[controller.lastName] = controller;
+      let name = match[1];
+      validateParamName(name);
+      controller.lastName = name;
+      kineticNameToCont[name] = controller;
     }
     controller.onFinishChange(function () {
       // Remove excess whitespace.
@@ -5280,15 +5468,18 @@ function createParameterController(label, isNextParam) {
         createSlider();
         // Check if we need to update the parameter name and remove a redundant uniform.
         const match = replaceDigitsWithWords(str).match(/\s*(\w+)\s*=/);
-        if (
-          match &&
-          controller.hasOwnProperty("lastName") &&
-          controller.lastName != match[1] &&
-          !isReservedName(controller.lastName)
-        ) {
-          delete uniforms[controller.lastName];
-          controller.lastName = match[1];
-          kineticNameToCont[controller.lastName] = controller;
+        if (match) {
+          let name = match[1];
+          validateParamName(name);
+          if (
+            controller.hasOwnProperty("lastName") &&
+            controller.lastName != name &&
+            !isReservedName(controller.lastName)
+          ) {
+            delete uniforms[controller.lastName];
+            controller.lastName = name;
+            kineticNameToCont[name] = controller;
+          }
         }
       }
       setKineticStringFromParams();
@@ -5637,7 +5828,6 @@ function configureManualInterpolation() {
     interpolationTexture.texture.magFilter = THREE.LinearFilter;
   }
   configureGUI();
-  render();
 }
 
 function isManuallyInterpolating() {
@@ -5753,6 +5943,7 @@ function configurePlotType() {
       $("#simCanvas").css("outline", "");
     }
   }
+  overlayLine.visible = options.overlay && options.plotType == "line";
   setDisplayColourAndType();
   configureCameraAndClicks();
   configureGUI();
@@ -5760,13 +5951,18 @@ function configurePlotType() {
 
 function configureDimension() {
   // Configure the dimension of the equations.
-  if (options.dimension != 1 && options.plotType == "line") {
-    options.plotType = "plane";
-    configurePlotType();
-  }
-  if (options.dimension == 1 && options.plotType != "line") {
-    options.plotType = "line";
-    configurePlotType();
+  if (!isLoading) {
+    if (options.dimension != 1 && options.plotType == "line") {
+      options.plotType = "plane";
+      updateView("plotType");
+      configurePlotType();
+    }
+    if (options.dimension == 1 && options.plotType != "line") {
+      options.plotType = "line";
+      options.vectorField = false;
+      updateView("plotType");
+      configurePlotType();
+    }
   }
   resize();
   setRDEquations();
@@ -5813,11 +6009,17 @@ function sanitise(str) {
 
 function getKineticParamNames() {
   // Return a list of parsed kinetic parameter names.
-  const regex = /(\w+)\s*=/;
-  return getKineticParamDefs()
+  const regex = /^\s*(\w+)\b/;
+  let names = [];
+  getKineticParamDefs()
     .split(";")
     .filter((x) => x.length > 0)
-    .map((x) => x.match(regex)[1].trim());
+    .forEach(function (x) {
+      if (x.match(regex)) {
+        names.push(x.match(regex)[1].trim());
+      }
+    });
+  return names;
 }
 
 function setKineticUniforms() {
@@ -5842,7 +6044,7 @@ function setKineticUniforms() {
   let encounteredError = false;
   for (const nameVal of nameVals) {
     let [uniformFlag, errorFlag] = setKineticUniform(nameVal[0], nameVal[1]);
-    addingNewUniform |= addingNewUniform;
+    addingNewUniform |= uniformFlag;
     encounteredError |= errorFlag;
   }
   return addingNewUniform && !encounteredError;
@@ -6057,7 +6259,7 @@ function updateGUIDropdown(controller, labels, values) {
   controller.domElement.children[0].innerHTML = innerHTMLStr;
 }
 
-function setCustomNames(onLoading) {
+function setCustomNames() {
   let oldListOfSpecies;
   if (listOfSpecies != undefined) {
     oldListOfSpecies = listOfSpecies;
@@ -6068,38 +6270,22 @@ function setCustomNames(onLoading) {
     .split(" ")
     .slice(0, defaultSpecies.length);
 
-  const newReactions = options.reactionNames
-    .replaceAll(/\W+/g, " ")
-    .trim()
-    .split(" ")
-    .slice(0, defaultReactions.length);
-
-  // If not enough species or reactions have been provided, add placeholders for those remaining.
+  // If not enough species have been provided, add placeholders for those remaining.
   const tempListOfSpecies = newSpecies.concat(
     placeholderSp.slice(newSpecies.length)
-  );
-  const tempListOfReactions = newReactions.concat(
-    placeholderRe.slice(newReactions.length)
   );
 
   // Check if any reserved names have been used, and stop if so.
   const kinParamNames = getKineticParamNames();
   let message;
   for (var ind = 0; ind < tempListOfSpecies.length; ind++) {
-    if (
-      isReservedName(
-        tempListOfSpecies[ind],
-        kinParamNames.concat(tempListOfReactions)
-      )
-    ) {
+    if (isReservedName(tempListOfSpecies[ind], kinParamNames)) {
       if (kinParamNames.includes(tempListOfSpecies[ind])) {
         message = "as a parameter";
-      } else if (tempListOfReactions.includes(tempListOfSpecies[ind])) {
-        message = "as a reaction";
       } else {
         message = "under the hood";
       }
-      alert(
+      throwError(
         "The name '" +
           tempListOfSpecies[ind] +
           "' is used " +
@@ -6111,36 +6297,10 @@ function setCustomNames(onLoading) {
       return;
     }
   }
-  for (var ind = 0; ind < tempListOfReactions.length; ind++) {
-    if (
-      isReservedName(
-        tempListOfReactions[ind],
-        kinParamNames.concat(tempListOfSpecies[ind])
-      )
-    ) {
-      if (kinParamNames.includes(tempListOfReactions[ind])) {
-        message = "as a parameter";
-      } else if (tempListOfSpecies.includes(tempListOfReactions[ind])) {
-        message = "as a reaction";
-      } else {
-        message = "under the hood";
-      }
-      throwError(
-        "The name '" +
-          tempListOfReactions[ind] +
-          "' is used " +
-          message +
-          ", so can't be used as a function name. Please use a different name for " +
-          tempListOfReactions[ind] +
-          "."
-      );
-      return;
-    }
-  }
 
   // Now that we know all the names are valid, assign the names to the global variables.
   listOfSpecies = tempListOfSpecies;
-  listOfReactions = tempListOfReactions;
+  listOfReactions = listOfSpecies.map((x) => "f_{" + x + "}");
 
   // Define non-capturing strings that are equivalent to the old [uvwq], [vwq] etc in regexes.
   genAnySpeciesRegexStrs();
@@ -6156,7 +6316,7 @@ function setCustomNames(onLoading) {
         defaultStrings[key],
         defaultSpecies,
         listOfSpecies,
-        "_[xy]"
+        "_(?:[xy][xybf]?)"
       )
     );
   });
@@ -6175,7 +6335,7 @@ function setCustomNames(onLoading) {
   });
 
   // Don't update the problem if we're just loading in, as this will be done as part of loading.
-  if (onLoading) return;
+  if (isLoading) return;
 
   // If we're not loading in, go through options and replace the old species with the new ones.
   Object.keys(options).forEach(function (key) {
@@ -6184,7 +6344,7 @@ function setCustomNames(onLoading) {
         options[key],
         oldListOfSpecies,
         listOfSpecies,
-        "_[xy]"
+        "_(?:[xy][xybf]?)"
       );
     }
   });
@@ -6197,7 +6357,7 @@ function setCustomNames(onLoading) {
           view[key],
           oldListOfSpecies,
           listOfSpecies,
-          "_[xy]"
+          "_(?:[xy][xybf]?)"
         );
       }
     });
@@ -6210,7 +6370,7 @@ function setCustomNames(onLoading) {
         savedOptions[key],
         oldListOfSpecies,
         listOfSpecies,
-        "_[xy]"
+        "_(?:[xy][xybf]?)"
       );
     }
   });
@@ -6223,7 +6383,7 @@ function setCustomNames(onLoading) {
           view[key],
           oldListOfSpecies,
           listOfSpecies,
-          "_[xy]"
+          "_(?:[xy][xybf]?)"
         );
       }
     });
@@ -6279,10 +6439,10 @@ function replaceSymbolsInStr(str, originals, replacements, optional) {
   return str;
 }
 
-function setLineXY(xy) {
+function setLineXY(lineObj, xy) {
   // Set the xy coordinates of the display line, scaling y by options.threeDHeightScale.
-  let start = line.geometry.attributes.instanceStart;
-  let end = line.geometry.attributes.instanceEnd;
+  let start = lineObj.geometry.attributes.instanceStart;
+  let end = lineObj.geometry.attributes.instanceEnd;
   let coord;
   for (let i = 0; i < xy.length; i++) {
     coord = xy[i].toArray();
@@ -6294,11 +6454,11 @@ function setLineXY(xy) {
   end.needsUpdate = true;
 }
 
-function setLineColour(xy) {
+function setLineColour(lineObj, xy) {
   // Set the display line colour from the xy coordinates, noting that y in [-0.5,0.5].
   // The colour is given simply by the y coordinate.
-  let start = line.geometry.attributes.instanceColorStart;
-  let end = line.geometry.attributes.instanceColorEnd;
+  let start = lineObj.geometry.attributes.instanceColorStart;
+  let end = lineObj.geometry.attributes.instanceColorEnd;
   let colour;
   for (let i = 0; i < xy.length; i++) {
     colour = colourFromValue(xy[i].toArray()[1] + 0.5);
@@ -6344,7 +6504,9 @@ function lerp(a, b, t) {
 
 function setLineWidth() {
   lineMaterial.linewidth = 0.01 * options.lineWidthMul;
+  overlayLineMaterial.linewidth = 0.01 * options.overlayLineWidthMul;
   lineMaterial.needsUpdate = true;
+  overlayLineMaterial.needsUpdate = true;
 }
 
 function setOnfocus(cont, fun, args) {
@@ -6493,6 +6655,9 @@ function setDefaultRenderSize() {
 
 function throwError(message) {
   pauseSim();
+  // If we're loading in, don't overwrite previous errors.
+  if (isLoading && hasErrored) return;
+  hasErrored = true;
   // If an error is already being displayed, just update the message.
   if ($("#error").is(":visible")) {
     $("#error_description").html(message);
@@ -6822,7 +6987,11 @@ function addNewline(parent) {
 
 function copyConfigAsJSON() {
   // Encode the current simulation configuration as raw JSON and put it on the clipboard.
-  let objDiff = diffObjects(options, getPreset("default"));
+  const parentOptions = Object.assign(
+    getPreset("default"),
+    getPreset(options.parent)
+  );
+  let objDiff = diffObjects(options, parentOptions);
   // If there's only one view and it has the default name, remove the view from the preset.
   if (options.views.length == 1 && options.views[0].name == "1") {
     delete objDiff.views;
@@ -6838,12 +7007,12 @@ function copyConfigAsJSON() {
 
   objDiff.preset = "PRESETNAME";
   let str = JSON.stringify(objDiff)
-    .replaceAll(/\s*,\s*([^0-9-\.\s])/g, ",\n\t$1")
+    .replaceAll(/(:[^:]*),/g, "$1,\n\t")
     .replaceAll(":", ": ")
     .replaceAll("  ", " ")
-    .replace("{", "{\n\t")
-    .replace("}", ",\n}");
-  str = 'case "PRESETNAME":\n\toptions = ' + str + ";\nbreak;";
+    .replaceAll("{", "{\n\t")
+    .replaceAll("}", ",\n}");
+  str = 'listOfPresets["PRESETNAME"] = ' + str + ";\n";
 
   navigator.clipboard.writeText(str);
 }
@@ -7058,6 +7227,9 @@ function setContourUniforms() {
 function setOverlayUniforms() {
   uniforms.overlayColour.value = new THREE.Color(options.overlayColour);
   uniforms.overlayEpsilon.value = options.overlayEpsilon;
+  uniforms.overlayLine.value = options.overlay && options.plotType == "line";
+  overlayLineMaterial.color = new THREE.Color(options.overlayColour);
+  overlayLineMaterial.needsUpdate = true;
 }
 
 function renderIfNotRunning() {
@@ -7122,7 +7294,7 @@ function createArrows() {
   scene.add(arrowGroup);
   const maxDisc = Math.max(nXDisc, nYDisc);
   const denom = Math.round(
-    lerp(3, smallScreen() ? 20 : 32, options.arrowDensity)
+    lerp(3, smallScreen() ? 20 : 64, options.arrowDensity)
   );
   let stride = Math.max(Math.floor(maxDisc / denom), 1);
   const xNum = Math.floor(nXDisc / stride);
@@ -7192,4 +7364,33 @@ function configureVectorField() {
 
 function updateArrowColour() {
   arrowMaterial.color = new THREE.Color(options.arrowColour);
+}
+
+function getSpecAndReacNames() {
+  return listOfSpecies.concat(listOfReactions);
+}
+
+function validateParamName(name) {
+  const val = isReservedName(name, getSpecAndReacNames());
+  if (val) {
+    throwError(
+      "The name '" +
+        name +
+        "' is already in use, so can't be used as a parameter name. Please use a different name for " +
+        name +
+        "."
+    );
+  }
+  return !val;
+}
+
+function sortObject(obj) {
+  return Object.keys(obj)
+    .sort(function (a, b) {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    })
+    .reduce(function (result, key) {
+      result[key] = obj[key];
+      return result;
+    }, {});
 }
