@@ -392,7 +392,6 @@ export function getListOfPresets() {
     kineticParams: "kappa = 1 in [-5, 5];D = 1;c = 10;",
     maxColourValue: 1,
     minColourValue: 0,
-    timesteppingScheme: "Mid",
     numTimestepsPerFrame: 400,
     plotType: "line",
     preset: "NonlinearSchrodingerSoliton",
@@ -401,6 +400,7 @@ export function getListOfPresets() {
     reactionStrW: "0",
     spatialStep: 0.1,
     suppressTryClickingPopup: true,
+    timesteppingScheme: "Mid",	  
     typeOfBrush: "vline",
     views: [
       {
@@ -668,7 +668,6 @@ export function getListOfPresets() {
     kineticParams: "",
     maxColourValue: 2.1,
     minColourValue: -0.1,
-    timesteppingScheme: "Mid",
     numSpecies: "2",
     numTimestepsPerFrame: 400,
     plotType: "line",
@@ -680,6 +679,7 @@ export function getListOfPresets() {
     speciesNames: "phi v",
     suppressTryClickingPopup: true,
     timeDisplay: true,
+    timesteppingScheme: "Mid",	  
     typeOfBrush: "vline",
     whatToDraw: "phi",
     whatToPlot: "phi",
@@ -2421,6 +2421,7 @@ export function getListOfPresets() {
     reactionStrW: "0",
     squareCanvas: true,
     spatialStep: 0.5,
+    timesteppingScheme: "Mid",	  
     views: [
       {
         name: "$\\lvert \\psi\\rvert^2$",
@@ -2467,6 +2468,7 @@ export function getListOfPresets() {
     reactionStrW: "0",
     spatialStep: 0.5,
     squareCanvas: true,
+    timesteppingScheme: "Mid",	  
     whatToDraw: "u",
     whatToPlot: "u^2+v^2",
   };
