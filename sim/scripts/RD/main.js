@@ -201,7 +201,6 @@ import {
 import {
   computeDisplayFunShaderTop,
   computeDisplayFunShaderMid,
-  computeMaxSpeciesShaderMid,
   postGenericShaderBot,
   postShaderDomainIndicator,
   interpolationShader,
