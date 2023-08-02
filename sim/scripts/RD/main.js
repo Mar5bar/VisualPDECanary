@@ -2852,14 +2852,13 @@ function render() {
   if (options.plotType == "line") {
     // Get the output from the buffer, in the form of (value,0,0,1).
     fillBuffer();
-    let scaledValue,
-      ind = 0;
+    let ind = 0;
     var range = options.maxColourValue - options.minColourValue;
     range = range == 0 ? 0.5 : range;
     for (let i = 0; i < buffer.length; i += 4) {
-      scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
       // Set the height.
-      yDisplayDomainCoords[ind++] = (scaledValue * domainHeight) / maxDim;
+      yDisplayDomainCoords[ind++] =
+        (buffer[i] - options.minColourValue) / range - 0.5;
     }
     // Use spline-smoothed points for plotting.
     let curve = new THREE.SplineCurve(
@@ -2873,8 +2872,8 @@ function render() {
     if (options.overlay) {
       ind = 0;
       for (let i = 2; i < 4 * nXDisc; i += 4) {
-        scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
-        yDisplayDomainCoords[ind++] = (scaledValue * domainHeight) / maxDim;
+        yDisplayDomainCoords[ind++] =
+          (buffer[i] - options.minColourValue) / range - 0.5;
       }
       curve = new THREE.SplineCurve(
         xDisplayDomainCoords.map(
@@ -6435,7 +6434,7 @@ function setLineXY(lineObj, xy) {
   let coord;
   for (let i = 0; i < xy.length; i++) {
     coord = xy[i].toArray();
-    coord[1] *= options.threeDHeightScale;
+    coord[1] *= (options.threeDHeightScale * domainHeight) / maxDim;
     if (i < xy.length) start.setXYZ(i, coord[0], coord[1], 0);
     if (i > 0) end.setXYZ(i - 1, coord[0], coord[1], 0);
   }
