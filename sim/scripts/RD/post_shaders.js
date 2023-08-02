@@ -113,26 +113,6 @@ export function computeDisplayFunShaderMid() {
         gl_FragColor = vec4(value, 0.0, height, yVecComp);`;
 }
 
-export function computeMaxSpeciesShaderMid() {
-  return `varying vec2 textureCoords;
-    uniform sampler2D textureSource;
-
-    void main()
-    {
-        float value = 0.0;
-        vec4 uvwq = texture2D(textureSource, textureCoords);
-        if (uvwq.r >= uvwq.g && uvwq.r >= uvwq.b) {
-            value = 0.0;
-        }
-        else if (uvwq.g >= uvwq.r && uvwq.g >= uvwq.b) {
-            value = 0.5;
-        }
-        else if (uvwq.b >= uvwq.r && uvwq.b >= uvwq.g) {
-            value = 1.0;
-        }
-        gl_FragColor = vec4(value, 0.0, 0.0, 1.0);`;
-}
-
 export function postShaderDomainIndicator() {
   return `
   gl_FragColor.g = float(float(indicatorFun) <= 0.0);`

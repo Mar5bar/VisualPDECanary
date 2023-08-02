@@ -4158,21 +4158,11 @@ function createImageControllers() {
 }
 
 function updateWhatToPlot() {
-  if (options.whatToPlot == "MAX") {
-    setPostFunMaxFragShader();
-    hideGUIController(minColourValueController);
-    hideGUIController(maxColourValueController);
-    hideGUIController(setColourRangeController);
-    hideGUIController(autoSetColourRangeController);
-    options.autoSetColourRange = false;
-    refreshGUI(rightGUI);
-  } else {
-    setPostFunFragShader();
-    showGUIController(minColourValueController);
-    showGUIController(maxColourValueController);
-    showGUIController(setColourRangeController);
-    showGUIController(autoSetColourRangeController);
-  }
+  setPostFunFragShader();
+  showGUIController(minColourValueController);
+  showGUIController(maxColourValueController);
+  showGUIController(setColourRangeController);
+  showGUIController(autoSetColourRangeController);
   configureColourbar();
   configureIntegralDisplay();
 }
@@ -4313,20 +4303,6 @@ function setPostFunFragShader() {
   setOverlayUniforms();
   postMaterial.fragmentShader = shaderStr + postGenericShaderBot();
   postMaterial.needsUpdate = true;
-}
-
-function setPostFunMaxFragShader() {
-  postMaterial.fragmentShader =
-    computeMaxSpeciesShaderMid() +
-    postShaderDomainIndicator().replace(
-      /indicatorFun/g,
-      parseShaderString(options.domainIndicatorFun)
-    ) +
-    postGenericShaderBot();
-  postMaterial.needsUpdate = true;
-  options.minColourValue = 0.0;
-  options.maxColourValue = 1.0;
-  updateUniforms();
 }
 
 function setAlgebraicVarsFromOptions() {
