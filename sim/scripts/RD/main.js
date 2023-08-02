@@ -36,7 +36,7 @@ let leftGUI,
   rightGUI,
   viewsGUI,
   root,
-  typeOfBrushController,
+  brushTypeController,
   fController,
   gController,
   hController,
@@ -74,10 +74,10 @@ let leftGUI,
   setColourRangeController,
   autoSetColourRangeController,
   embossControllers = [],
-  clearValueUController,
-  clearValueVController,
-  clearValueWController,
-  clearValueQController,
+  initCond_1Controller,
+  initCond_2Controller,
+  initCond_3Controller,
+  initCond_4Controller,
   uBCsController,
   vBCsController,
   wBCsController,
@@ -201,7 +201,6 @@ import {
 import {
   computeDisplayFunShaderTop,
   computeDisplayFunShaderMid,
-  computeMaxSpeciesShaderMid,
   postGenericShaderBot,
   postShaderDomainIndicator,
   interpolationShader,
@@ -244,6 +243,7 @@ import {
   getUserTextFields,
   getFieldsInView,
   getListOfPresets,
+  getOldPresetFieldsToNew,
 } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import * as THREE from "../three.module.min.js";
@@ -1341,8 +1341,8 @@ function initGUI(startOpen) {
       document.activeElement.blur();
     });
 
-  typeOfBrushController = root
-    .add(options, "typeOfBrush", {
+  brushTypeController = root
+    .add(options, "brushType", {
       Disk: "circle",
       "Horizontal line": "hline",
       "Vertical line": "vline",
@@ -1548,7 +1548,7 @@ function initGUI(startOpen) {
   );
 
   DuuController = root
-    .add(options, "diffusionStrUU")
+    .add(options, "diffusionStr_1_1")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1557,7 +1557,7 @@ function initGUI(startOpen) {
   setOnblur(DuuController, deselectTeX, ["U", "UU"]);
 
   DuvController = root
-    .add(options, "diffusionStrUV")
+    .add(options, "diffusionStr_1_2")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1566,7 +1566,7 @@ function initGUI(startOpen) {
   setOnblur(DuvController, deselectTeX, ["UV"]);
 
   DuwController = root
-    .add(options, "diffusionStrUW")
+    .add(options, "diffusionStr_1_3")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1575,7 +1575,7 @@ function initGUI(startOpen) {
   setOnblur(DuwController, deselectTeX, ["UW"]);
 
   DuqController = root
-    .add(options, "diffusionStrUQ")
+    .add(options, "diffusionStr_1_4")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1584,7 +1584,7 @@ function initGUI(startOpen) {
   setOnblur(DuqController, deselectTeX, ["UQ"]);
 
   DvuController = root
-    .add(options, "diffusionStrVU")
+    .add(options, "diffusionStr_2_1")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1593,7 +1593,7 @@ function initGUI(startOpen) {
   setOnblur(DvuController, deselectTeX, ["VU"]);
 
   DvvController = root
-    .add(options, "diffusionStrVV")
+    .add(options, "diffusionStr_2_2")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1602,7 +1602,7 @@ function initGUI(startOpen) {
   setOnblur(DvvController, deselectTeX, ["V", "VV"]);
 
   DvwController = root
-    .add(options, "diffusionStrVW")
+    .add(options, "diffusionStr_2_3")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1611,7 +1611,7 @@ function initGUI(startOpen) {
   setOnblur(DvwController, deselectTeX, ["VW"]);
 
   DvqController = root
-    .add(options, "diffusionStrVQ")
+    .add(options, "diffusionStr_2_4")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1620,7 +1620,7 @@ function initGUI(startOpen) {
   setOnblur(DvqController, deselectTeX, ["VQ"]);
 
   DwuController = root
-    .add(options, "diffusionStrWU")
+    .add(options, "diffusionStr_3_1")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1629,7 +1629,7 @@ function initGUI(startOpen) {
   setOnblur(DwuController, deselectTeX, ["WU"]);
 
   DwvController = root
-    .add(options, "diffusionStrWV")
+    .add(options, "diffusionStr_3_2")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1638,7 +1638,7 @@ function initGUI(startOpen) {
   setOnblur(DwvController, deselectTeX, ["WV"]);
 
   DwwController = root
-    .add(options, "diffusionStrWW")
+    .add(options, "diffusionStr_3_3")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1647,7 +1647,7 @@ function initGUI(startOpen) {
   setOnblur(DwwController, deselectTeX, ["W", "WW"]);
 
   DwqController = root
-    .add(options, "diffusionStrWQ")
+    .add(options, "diffusionStr_3_4")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1656,7 +1656,7 @@ function initGUI(startOpen) {
   setOnblur(DwqController, deselectTeX, ["WQ"]);
 
   DquController = root
-    .add(options, "diffusionStrQU")
+    .add(options, "diffusionStr_4_1")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1665,7 +1665,7 @@ function initGUI(startOpen) {
   setOnblur(DquController, deselectTeX, ["QU"]);
 
   DqvController = root
-    .add(options, "diffusionStrQV")
+    .add(options, "diffusionStr_4_2")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1674,7 +1674,7 @@ function initGUI(startOpen) {
   setOnblur(DqvController, deselectTeX, ["QV"]);
 
   DqwController = root
-    .add(options, "diffusionStrQW")
+    .add(options, "diffusionStr_4_3")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1683,7 +1683,7 @@ function initGUI(startOpen) {
   setOnblur(DqwController, deselectTeX, ["QW"]);
 
   DqqController = root
-    .add(options, "diffusionStrQQ")
+    .add(options, "diffusionStr_4_4")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
@@ -1692,28 +1692,28 @@ function initGUI(startOpen) {
   setOnblur(DqqController, deselectTeX, ["Q", "QQ"]);
 
   // Custom f(u,v) and g(u,v).
-  fController = root.add(options, "reactionStrU").onFinishChange(function () {
+  fController = root.add(options, "reactionStr_1").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
   setOnfocus(fController, selectTeX, ["UFUN"]);
   setOnblur(fController, deselectTeX, ["UFUN"]);
 
-  gController = root.add(options, "reactionStrV").onFinishChange(function () {
+  gController = root.add(options, "reactionStr_2").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
   setOnfocus(gController, selectTeX, ["VFUN"]);
   setOnblur(gController, deselectTeX, ["VFUN"]);
 
-  hController = root.add(options, "reactionStrW").onFinishChange(function () {
+  hController = root.add(options, "reactionStr_3").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
   setOnfocus(hController, selectTeX, ["WFUN"]);
   setOnblur(hController, deselectTeX, ["WFUN"]);
 
-  jController = root.add(options, "reactionStrQ").onFinishChange(function () {
+  jController = root.add(options, "reactionStr_4").onFinishChange(function () {
     setRDEquations();
     setEquationDisplayType();
   });
@@ -1727,7 +1727,7 @@ function initGUI(startOpen) {
   root = leftGUI.addFolder("Boundary conditions");
 
   uBCsController = root
-    .add(options, "boundaryConditionsU", {
+    .add(options, "boundaryConditions_1", {
       Periodic: "periodic",
       Dirichlet: "dirichlet",
       Neumann: "neumann",
@@ -1741,24 +1741,24 @@ function initGUI(startOpen) {
     });
 
   dirichletUController = root
-    .add(options, "dirichletStrU")
+    .add(options, "dirichletStr_1")
     .onFinishChange(setRDEquations);
 
   neumannUController = root
-    .add(options, "neumannStrU")
+    .add(options, "neumannStr_1")
     .onFinishChange(setRDEquations);
 
   robinUController = root
-    .add(options, "robinStrU")
+    .add(options, "robinStr_1")
     .onFinishChange(setRDEquations);
 
   comboUController = root
-    .add(options, "comboStrU")
+    .add(options, "comboStr_1")
     .name("Details")
     .onFinishChange(setRDEquations);
 
   vBCsController = root
-    .add(options, "boundaryConditionsV", {
+    .add(options, "boundaryConditions_2", {
       Periodic: "periodic",
       Dirichlet: "dirichlet",
       Neumann: "neumann",
@@ -1772,24 +1772,24 @@ function initGUI(startOpen) {
     });
 
   dirichletVController = root
-    .add(options, "dirichletStrV")
+    .add(options, "dirichletStr_2")
     .onFinishChange(setRDEquations);
 
   neumannVController = root
-    .add(options, "neumannStrV")
+    .add(options, "neumannStr_2")
     .onFinishChange(setRDEquations);
 
   robinVController = root
-    .add(options, "robinStrV")
+    .add(options, "robinStr_2")
     .onFinishChange(setRDEquations);
 
   comboVController = root
-    .add(options, "comboStrV")
+    .add(options, "comboStr_2")
     .name("Details")
     .onFinishChange(setRDEquations);
 
   wBCsController = root
-    .add(options, "boundaryConditionsW", {
+    .add(options, "boundaryConditions_3", {
       Periodic: "periodic",
       Dirichlet: "dirichlet",
       Neumann: "neumann",
@@ -1803,24 +1803,24 @@ function initGUI(startOpen) {
     });
 
   dirichletWController = root
-    .add(options, "dirichletStrW")
+    .add(options, "dirichletStr_3")
     .onFinishChange(setRDEquations);
 
   neumannWController = root
-    .add(options, "neumannStrW")
+    .add(options, "neumannStr_3")
     .onFinishChange(setRDEquations);
 
   robinWController = root
-    .add(options, "robinStrW")
+    .add(options, "robinStr_3")
     .onFinishChange(setRDEquations);
 
   comboWController = root
-    .add(options, "comboStrW")
+    .add(options, "comboStr_3")
     .name("Details")
     .onFinishChange(setRDEquations);
 
   qBCsController = root
-    .add(options, "boundaryConditionsQ", {
+    .add(options, "boundaryConditions_4", {
       Periodic: "periodic",
       Dirichlet: "dirichlet",
       Neumann: "neumann",
@@ -1835,39 +1835,39 @@ function initGUI(startOpen) {
     });
 
   dirichletQController = root
-    .add(options, "dirichletStrQ")
+    .add(options, "dirichletStr_4")
     .onFinishChange(setRDEquations);
 
   neumannQController = root
-    .add(options, "neumannStrQ")
+    .add(options, "neumannStr_4")
     .onFinishChange(setRDEquations);
 
   robinQController = root
-    .add(options, "robinStrQ")
+    .add(options, "robinStr_4")
     .onFinishChange(setRDEquations);
 
   comboQController = root
-    .add(options, "comboStrQ")
+    .add(options, "comboStr_4")
     .name("Details")
     .onFinishChange(setRDEquations);
 
   // Initial conditions folder.
   root = leftGUI.addFolder("Initial conditions");
 
-  clearValueUController = root
-    .add(options, "clearValueU")
+  initCond_1Controller = root
+    .add(options, "initCond_1")
     .onFinishChange(setClearShader);
 
-  clearValueVController = root
-    .add(options, "clearValueV")
+  initCond_2Controller = root
+    .add(options, "initCond_2")
     .onFinishChange(setClearShader);
 
-  clearValueWController = root
-    .add(options, "clearValueW")
+  initCond_3Controller = root
+    .add(options, "initCond_3")
     .onFinishChange(setClearShader);
 
-  clearValueQController = root
-    .add(options, "clearValueQ")
+  initCond_4Controller = root
+    .add(options, "initCond_4")
     .onFinishChange(setClearShader);
 
   // Images folder.
@@ -2629,7 +2629,7 @@ function setBrushType() {
 
   // Configure the shape of the brush.
   shaderStr += radiusStr;
-  switch (options.typeOfBrush) {
+  switch (options.brushType) {
     case "circle":
       shaderStr += drawShaderShapeDisc();
       break;
@@ -2852,14 +2852,13 @@ function render() {
   if (options.plotType == "line") {
     // Get the output from the buffer, in the form of (value,0,0,1).
     fillBuffer();
-    let scaledValue,
-      ind = 0;
+    let ind = 0;
     var range = options.maxColourValue - options.minColourValue;
     range = range == 0 ? 0.5 : range;
     for (let i = 0; i < buffer.length; i += 4) {
-      scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
       // Set the height.
-      yDisplayDomainCoords[ind++] = (scaledValue * domainHeight) / maxDim;
+      yDisplayDomainCoords[ind++] =
+        (buffer[i] - options.minColourValue) / range - 0.5;
     }
     // Use spline-smoothed points for plotting.
     let curve = new THREE.SplineCurve(
@@ -2873,8 +2872,8 @@ function render() {
     if (options.overlay) {
       ind = 0;
       for (let i = 2; i < 4 * nXDisc; i += 4) {
-        scaledValue = (buffer[i] - options.minColourValue) / range - 0.5;
-        yDisplayDomainCoords[ind++] = (scaledValue * domainHeight) / maxDim;
+        yDisplayDomainCoords[ind++] =
+          (buffer[i] - options.minColourValue) / range - 0.5;
       }
       curve = new THREE.SplineCurve(
         xDisplayDomainCoords.map(
@@ -3095,13 +3094,13 @@ function parseReactionStrings() {
   // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
   let out = "";
   // Prepare the UFUN string.
-  out += "float UFUN = " + parseShaderString(options.reactionStrU) + ";\n";
+  out += "float UFUN = " + parseShaderString(options.reactionStr_1) + ";\n";
   // Prepare the VFUN string.
-  out += "float VFUN = " + parseShaderString(options.reactionStrV) + ";\n";
+  out += "float VFUN = " + parseShaderString(options.reactionStr_2) + ";\n";
   // Prepare the WFUN string.
-  out += "float WFUN = " + parseShaderString(options.reactionStrW) + ";\n";
+  out += "float WFUN = " + parseShaderString(options.reactionStr_3) + ";\n";
   // Prepare the QFUN string.
-  out += "float QFUN = " + parseShaderString(options.reactionStrQ) + ";\n";
+  out += "float QFUN = " + parseShaderString(options.reactionStr_4) + ";\n";
 
   return out;
 }
@@ -3112,25 +3111,25 @@ function parseNormalDiffusionStrings() {
 
   // Prepare Duu, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrUU) + ";\n",
+    parseShaderString(options.diffusionStr_1_1) + ";\n",
     "uu"
   );
 
   // Prepare Dvv, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrVV) + ";\n",
+    parseShaderString(options.diffusionStr_2_2) + ";\n",
     "vv"
   );
 
   // Prepare Dww, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrWW) + ";\n",
+    parseShaderString(options.diffusionStr_3_3) + ";\n",
     "ww"
   );
 
   // Prepare Dqq, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrQQ) + ";\n",
+    parseShaderString(options.diffusionStr_4_4) + ";\n",
     "qq"
   );
 
@@ -3143,73 +3142,73 @@ function parseCrossDiffusionStrings() {
 
   // Prepare Duv, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrUV) + ";\n",
+    parseShaderString(options.diffusionStr_1_2) + ";\n",
     "uv"
   );
 
   // Prepare Duw, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrUW) + ";\n",
+    parseShaderString(options.diffusionStr_1_3) + ";\n",
     "uw"
   );
 
   // Prepare Duq, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrUQ) + ";\n",
+    parseShaderString(options.diffusionStr_1_4) + ";\n",
     "uq"
   );
 
   // Prepare Dvu, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrVU) + ";\n",
+    parseShaderString(options.diffusionStr_2_1) + ";\n",
     "vu"
   );
 
   // Prepare Dvw, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrVW) + ";\n",
+    parseShaderString(options.diffusionStr_2_3) + ";\n",
     "vw"
   );
 
   // Prepare Dvq, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrVQ) + ";\n",
+    parseShaderString(options.diffusionStr_2_4) + ";\n",
     "vq"
   );
 
   // Prepare Dwu, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrWU) + ";\n",
+    parseShaderString(options.diffusionStr_3_1) + ";\n",
     "wu"
   );
 
   // Prepare Dwv, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrWV) + ";\n",
+    parseShaderString(options.diffusionStr_3_2) + ";\n",
     "wv"
   );
 
   // Prepare Dwq, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrWQ) + ";\n",
+    parseShaderString(options.diffusionStr_3_4) + ";\n",
     "wq"
   );
 
   // Prepare Dqu, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrQU) + ";\n",
+    parseShaderString(options.diffusionStr_4_1) + ";\n",
     "qu"
   );
 
   // Prepare Dqv, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrQV) + ";\n",
+    parseShaderString(options.diffusionStr_4_2) + ";\n",
     "qv"
   );
 
   // Prepare Dqw, evaluating it at five points.
   out += nonConstantDiffusionEvaluateInSpaceStr(
-    parseShaderString(options.diffusionStrQW) + ";\n",
+    parseShaderString(options.diffusionStr_4_3) + ";\n",
     "qw"
   );
 
@@ -3347,34 +3346,34 @@ function setRDEquations() {
   let algebraicShader = "";
 
   const BCStrs = [
-    options.boundaryConditionsU,
-    options.boundaryConditionsV,
-    options.boundaryConditionsW,
-    options.boundaryConditionsQ,
+    options.boundaryConditions_1,
+    options.boundaryConditions_2,
+    options.boundaryConditions_3,
+    options.boundaryConditions_4,
   ];
   const NStrs = [
-    options.neumannStrU,
-    options.neumannStrV,
-    options.neumannStrW,
-    options.neumannStrQ,
+    options.neumannStr_1,
+    options.neumannStr_2,
+    options.neumannStr_3,
+    options.neumannStr_4,
   ];
   const MStrs = [
-    options.comboStrU,
-    options.comboStrV,
-    options.comboStrW,
-    options.comboStrQ,
+    options.comboStr_1,
+    options.comboStr_2,
+    options.comboStr_3,
+    options.comboStr_4,
   ].map((s) => s + ";");
   const DStrs = [
-    options.dirichletStrU,
-    options.dirichletStrV,
-    options.dirichletStrW,
-    options.dirichletStrQ,
+    options.dirichletStr_1,
+    options.dirichletStr_2,
+    options.dirichletStr_3,
+    options.dirichletStr_4,
   ];
   const RStrs = [
-    options.robinStrU,
-    options.robinStrV,
-    options.robinStrW,
-    options.robinStrQ,
+    options.robinStr_1,
+    options.robinStr_2,
+    options.robinStr_3,
+    options.robinStr_4,
   ];
 
   // Create a Neumann shader block for each species separately, which is just a special case of Robin.
@@ -3621,14 +3620,14 @@ function setRDEquations() {
 function checkForAnyDirichletBCs() {
   anyDirichletBCs =
     options.domainViaIndicatorFun ||
-    options.boundaryConditionsU == "dirichlet" ||
-    options.boundaryConditionsV == "dirichlet" ||
-    options.boundaryConditionsW == "dirichlet" ||
-    options.boundaryConditionsQ == "dirichlet" ||
-    /Dirichlet/.test(options.comboStrU) ||
-    /Dirichlet/.test(options.comboStrV) ||
-    /Dirichlet/.test(options.comboStrW) ||
-    /Dirichlet/.test(options.comboStrQ);
+    options.boundaryConditions_1 == "dirichlet" ||
+    options.boundaryConditions_2 == "dirichlet" ||
+    options.boundaryConditions_3 == "dirichlet" ||
+    options.boundaryConditions_4 == "dirichlet" ||
+    /Dirichlet/.test(options.comboStr_1) ||
+    /Dirichlet/.test(options.comboStr_2) ||
+    /Dirichlet/.test(options.comboStr_3) ||
+    /Dirichlet/.test(options.comboStr_4);
 }
 
 function parseRobinRHS(string, species, side) {
@@ -3816,6 +3815,19 @@ function loadOptions(preset) {
   delete options.algebraicW;
   delete options.algebraicQ;
 
+  // Renaming of U/V/W/Q fields.
+  // Map old to new.
+  const oldToNewMap = getOldPresetFieldsToNew();
+  Object.keys(oldToNewMap).forEach(function (x) {
+    if (options.hasOwnProperty(x)) {
+      // If there isn't already a property of the new name in newOptions, rename the old field.
+      if (!newOptions.hasOwnProperty(oldToNewMap[x])) {
+        options[oldToNewMap[x]] = options[x];
+      }
+      delete options[x];
+    }
+  });
+
   // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
   if (options.minColourValue == null) options.minColourValue = 0;
   if (options.maxColourValue == null) options.maxColourValue = 1;
@@ -3831,47 +3843,47 @@ function loadOptions(preset) {
   // If either of the images are used in the simulation, ensure that the simulation resets when the images are
   // actually loaded in.
   let str = [
-    options.clearValueU,
-    options.clearValueV,
-    options.clearValueW,
-    options.clearValueQ,
+    options.initCond_1,
+    options.initCond_2,
+    options.initCond_3,
+    options.initCond_4,
     options.domainIndicatorFun,
-    options.reactionStrU,
-    options.reactionStrV,
-    options.reactionStrW,
-    options.reactionStrQ,
-    options.diffusionStrUU,
-    options.diffusionStrUV,
-    options.diffusionStrUW,
-    options.diffusionStrUQ,
-    options.diffusionStrVU,
-    options.diffusionStrVV,
-    options.diffusionStrVW,
-    options.diffusionStrVQ,
-    options.diffusionStrWU,
-    options.diffusionStrWV,
-    options.diffusionStrWW,
-    options.diffusionStrWQ,
-    options.diffusionStrQU,
-    options.diffusionStrQV,
-    options.diffusionStrQW,
-    options.diffusionStrQQ,
-    options.dirichletStrU,
-    options.dirichletStrV,
-    options.dirichletStrW,
-    options.dirichletStrQ,
-    options.robinStrU,
-    options.robinStrV,
-    options.robinStrW,
-    options.robinStrQ,
-    options.comboStrU,
-    options.comboStrV,
-    options.comboStrW,
-    options.comboStrQ,
-    options.neumannStrU,
-    options.neumannStrV,
-    options.neumannStrW,
-    options.neumannStrQ,
+    options.reactionStr_1,
+    options.reactionStr_2,
+    options.reactionStr_3,
+    options.reactionStr_4,
+    options.diffusionStr_1_1,
+    options.diffusionStr_1_2,
+    options.diffusionStr_1_3,
+    options.diffusionStr_1_4,
+    options.diffusionStr_2_1,
+    options.diffusionStr_2_2,
+    options.diffusionStr_2_3,
+    options.diffusionStr_2_4,
+    options.diffusionStr_3_1,
+    options.diffusionStr_3_2,
+    options.diffusionStr_3_3,
+    options.diffusionStr_3_4,
+    options.diffusionStr_4_1,
+    options.diffusionStr_4_2,
+    options.diffusionStr_4_3,
+    options.diffusionStr_4_4,
+    options.dirichletStr_1,
+    options.dirichletStr_2,
+    options.dirichletStr_3,
+    options.dirichletStr_4,
+    options.robinStr_1,
+    options.robinStr_2,
+    options.robinStr_3,
+    options.robinStr_4,
+    options.comboStr_1,
+    options.comboStr_2,
+    options.comboStr_3,
+    options.comboStr_4,
+    options.neumannStr_1,
+    options.neumannStr_2,
+    options.neumannStr_3,
+    options.neumannStr_4,
     options.brushValue,
     options.whatToPlot,
   ].join(" ");
@@ -3973,85 +3985,85 @@ function speciesToChannelInd(speciesStr) {
 
 function setBCsGUI() {
   // Update the GUI.
-  if (options.boundaryConditionsU == "dirichlet") {
+  if (options.boundaryConditions_1 == "dirichlet") {
     showGUIController(dirichletUController);
   } else {
     hideGUIController(dirichletUController);
   }
-  if (options.boundaryConditionsV == "dirichlet") {
+  if (options.boundaryConditions_2 == "dirichlet") {
     showGUIController(dirichletVController);
   } else {
     hideGUIController(dirichletVController);
   }
-  if (options.boundaryConditionsW == "dirichlet") {
+  if (options.boundaryConditions_3 == "dirichlet") {
     showGUIController(dirichletWController);
   } else {
     hideGUIController(dirichletWController);
   }
-  if (options.boundaryConditionsQ == "dirichlet") {
+  if (options.boundaryConditions_4 == "dirichlet") {
     showGUIController(dirichletQController);
   } else {
     hideGUIController(dirichletQController);
   }
 
-  if (options.boundaryConditionsU == "neumann") {
+  if (options.boundaryConditions_1 == "neumann") {
     showGUIController(neumannUController);
   } else {
     hideGUIController(neumannUController);
   }
-  if (options.boundaryConditionsV == "neumann") {
+  if (options.boundaryConditions_2 == "neumann") {
     showGUIController(neumannVController);
   } else {
     hideGUIController(neumannVController);
   }
-  if (options.boundaryConditionsW == "neumann") {
+  if (options.boundaryConditions_3 == "neumann") {
     showGUIController(neumannWController);
   } else {
     hideGUIController(neumannWController);
   }
-  if (options.boundaryConditionsQ == "neumann") {
+  if (options.boundaryConditions_4 == "neumann") {
     showGUIController(neumannQController);
   } else {
     hideGUIController(neumannQController);
   }
 
-  if (options.boundaryConditionsU == "robin") {
+  if (options.boundaryConditions_1 == "robin") {
     showGUIController(robinUController);
   } else {
     hideGUIController(robinUController);
   }
-  if (options.boundaryConditionsV == "robin") {
+  if (options.boundaryConditions_2 == "robin") {
     showGUIController(robinVController);
   } else {
     hideGUIController(robinVController);
   }
-  if (options.boundaryConditionsW == "robin") {
+  if (options.boundaryConditions_3 == "robin") {
     showGUIController(robinWController);
   } else {
     hideGUIController(robinWController);
   }
-  if (options.boundaryConditionsQ == "robin") {
+  if (options.boundaryConditions_4 == "robin") {
     showGUIController(robinQController);
   } else {
     hideGUIController(robinQController);
   }
 
-  if (options.boundaryConditionsU == "combo") {
+  if (options.boundaryConditions_1 == "combo") {
     showGUIController(comboUController);
   } else {
     hideGUIController(comboUController);
   }
-  if (options.boundaryConditionsV == "combo") {
+  if (options.boundaryConditions_2 == "combo") {
     showGUIController(comboVController);
   } else {
     hideGUIController(comboVController);
   }
-  if (options.boundaryConditionsW == "combo") {
+  if (options.boundaryConditions_3 == "combo") {
     showGUIController(comboWController);
   } else {
     hideGUIController(comboWController);
   }
-  if (options.boundaryConditionsQ == "combo") {
+  if (options.boundaryConditions_4 == "combo") {
     showGUIController(comboQController);
   } else {
     hideGUIController(comboQController);
@@ -4076,10 +4088,10 @@ function setClearShader() {
   // Insert any user-defined kinetic parameters, as uniforms.
   let shaderStr = kineticUniformsForShader() + clearShaderTop();
   let allClearShaders = [
-    options.clearValueU,
-    options.clearValueV,
-    options.clearValueW,
-    options.clearValueQ,
+    options.initCond_1,
+    options.initCond_2,
+    options.initCond_3,
+    options.initCond_4,
   ].join(" ");
   if (/\bRAND\b/.test(allClearShaders)) {
     shaderStr += randShader();
@@ -4087,10 +4099,10 @@ function setClearShader() {
   if (/\bRANDN\b/.test(allClearShaders)) {
     shaderStr += randNShader();
   }
-  shaderStr += "float u = " + parseShaderString(options.clearValueU) + ";\n";
-  shaderStr += "float v = " + parseShaderString(options.clearValueV) + ";\n";
-  shaderStr += "float w = " + parseShaderString(options.clearValueW) + ";\n";
-  shaderStr += "float q = " + parseShaderString(options.clearValueQ) + ";\n";
+  shaderStr += "float u = " + parseShaderString(options.initCond_1) + ";\n";
+  shaderStr += "float v = " + parseShaderString(options.initCond_2) + ";\n";
+  shaderStr += "float w = " + parseShaderString(options.initCond_3) + ";\n";
+  shaderStr += "float q = " + parseShaderString(options.initCond_4) + ";\n";
   shaderStr += clearShaderBot();
   clearMaterial.fragmentShader = shaderStr;
   clearMaterial.needsUpdate = true;
@@ -4144,21 +4156,11 @@ function createImageControllers() {
 }
 
 function updateWhatToPlot() {
-  if (options.whatToPlot == "MAX") {
-    setPostFunMaxFragShader();
-    hideGUIController(minColourValueController);
-    hideGUIController(maxColourValueController);
-    hideGUIController(setColourRangeController);
-    hideGUIController(autoSetColourRangeController);
-    options.autoSetColourRange = false;
-    refreshGUI(rightGUI);
-  } else {
-    setPostFunFragShader();
-    showGUIController(minColourValueController);
-    showGUIController(maxColourValueController);
-    showGUIController(setColourRangeController);
-    showGUIController(autoSetColourRangeController);
-  }
+  setPostFunFragShader();
+  showGUIController(minColourValueController);
+  showGUIController(maxColourValueController);
+  showGUIController(setColourRangeController);
+  showGUIController(autoSetColourRangeController);
   configureColourbar();
   configureIntegralDisplay();
 }
@@ -4173,7 +4175,7 @@ function showVGUIPanels() {
   }
   showGUIController(DvvController);
   showGUIController(gController);
-  showGUIController(clearValueVController);
+  showGUIController(initCond_2Controller);
   showGUIController(vBCsController);
 }
 
@@ -4191,7 +4193,7 @@ function showWGUIPanels() {
   }
   showGUIController(DwwController);
   showGUIController(hController);
-  showGUIController(clearValueWController);
+  showGUIController(initCond_3Controller);
   showGUIController(wBCsController);
 }
 
@@ -4213,7 +4215,7 @@ function showQGUIPanels() {
   }
   showGUIController(DqqController);
   showGUIController(jController);
-  showGUIController(clearValueQController);
+  showGUIController(initCond_4Controller);
   showGUIController(qBCsController);
 }
 
@@ -4222,7 +4224,7 @@ function hideVGUIPanels() {
   hideGUIController(DvuController);
   hideGUIController(DvvController);
   hideGUIController(gController);
-  hideGUIController(clearValueVController);
+  hideGUIController(initCond_2Controller);
   hideGUIController(vBCsController);
 }
 
@@ -4233,7 +4235,7 @@ function hideWGUIPanels() {
   hideGUIController(DwvController);
   hideGUIController(DwwController);
   hideGUIController(hController);
-  hideGUIController(clearValueWController);
+  hideGUIController(initCond_3Controller);
   hideGUIController(wBCsController);
 }
 
@@ -4246,7 +4248,7 @@ function hideQGUIPanels() {
   hideGUIController(DqwController);
   hideGUIController(DqqController);
   hideGUIController(jController);
-  hideGUIController(clearValueQController);
+  hideGUIController(initCond_4Controller);
   hideGUIController(qBCsController);
 }
 
@@ -4299,20 +4301,6 @@ function setPostFunFragShader() {
   setOverlayUniforms();
   postMaterial.fragmentShader = shaderStr + postGenericShaderBot();
   postMaterial.needsUpdate = true;
-}
-
-function setPostFunMaxFragShader() {
-  postMaterial.fragmentShader =
-    computeMaxSpeciesShaderMid() +
-    postShaderDomainIndicator().replace(
-      /indicatorFun/g,
-      parseShaderString(options.domainIndicatorFun)
-    ) +
-    postGenericShaderBot();
-  postMaterial.needsUpdate = true;
-  options.minColourValue = 0.0;
-  options.maxColourValue = 1.0;
-  updateUniforms();
 }
 
 function setAlgebraicVarsFromOptions() {
@@ -4514,10 +4502,10 @@ function configureGUI() {
   setGUIControllerName(robinVController, TeXStrings["vN"]);
   setGUIControllerName(robinWController, TeXStrings["wN"]);
   setGUIControllerName(robinQController, TeXStrings["qN"]);
-  setGUIControllerName(clearValueUController, TeXStrings["uInit"]);
-  setGUIControllerName(clearValueVController, TeXStrings["vInit"]);
-  setGUIControllerName(clearValueWController, TeXStrings["wInit"]);
-  setGUIControllerName(clearValueQController, TeXStrings["qInit"]);
+  setGUIControllerName(initCond_1Controller, TeXStrings["uInit"]);
+  setGUIControllerName(initCond_2Controller, TeXStrings["vInit"]);
+  setGUIControllerName(initCond_3Controller, TeXStrings["wInit"]);
+  setGUIControllerName(initCond_4Controller, TeXStrings["qInit"]);
 
   // Show/hide the indicator function controller.
   if (options.domainViaIndicatorFun) {
@@ -4570,10 +4558,10 @@ function configureGUI() {
   configureCustomSurfaceControllers();
   // Show/hide/modify GUI elements that depend on dimension.
   if (options.plotType == "line") {
-    hideGUIController(typeOfBrushController);
+    hideGUIController(brushTypeController);
     $(":root").css("--ui-button-outline", "black");
   } else {
-    showGUIController(typeOfBrushController);
+    showGUIController(brushTypeController);
     $(":root").css("--ui-button-outline", "white");
   }
   if (manualInterpolationNeeded) {
@@ -4626,10 +4614,10 @@ function configureOptions() {
 
   if (options.domainViaIndicatorFun) {
     // Only allow Dirichlet conditions.
-    options.boundaryConditionsU = "dirichlet";
-    options.boundaryConditionsV = "dirichlet";
-    options.boundaryConditionsW = "dirichlet";
-    options.boundaryConditionsQ = "dirichlet";
+    options.boundaryConditions_1 = "dirichlet";
+    options.boundaryConditions_2 = "dirichlet";
+    options.boundaryConditions_3 = "dirichlet";
+    options.boundaryConditions_4 = "dirichlet";
   }
 
   // Set options that only depend on the number of species.
@@ -4642,37 +4630,37 @@ function configureOptions() {
       options.whatToPlot = listOfSpecies[0];
 
       // Set the diffusion of v and w to zero to prevent them from causing numerical instability.
-      options.diffusionStrUV = "0";
-      options.diffusionStrUW = "0";
-      options.diffusionStrUQ = "0";
-      options.diffusionStrVU = "0";
-      options.diffusionStrVV = "0";
-      options.diffusionStrVW = "0";
-      options.diffusionStrVQ = "0";
-      options.diffusionStrWU = "0";
-      options.diffusionStrWV = "0";
-      options.diffusionStrWW = "0";
-      options.diffusionStrWQ = "0";
-      options.diffusionStrQU = "0";
-      options.diffusionStrQV = "0";
-      options.diffusionStrQW = "0";
-      options.diffusionStrQQ = "0";
+      options.diffusionStr_1_2 = "0";
+      options.diffusionStr_1_3 = "0";
+      options.diffusionStr_1_4 = "0";
+      options.diffusionStr_2_1 = "0";
+      options.diffusionStr_2_2 = "0";
+      options.diffusionStr_2_3 = "0";
+      options.diffusionStr_2_4 = "0";
+      options.diffusionStr_3_1 = "0";
+      options.diffusionStr_3_2 = "0";
+      options.diffusionStr_3_3 = "0";
+      options.diffusionStr_3_4 = "0";
+      options.diffusionStr_4_1 = "0";
+      options.diffusionStr_4_2 = "0";
+      options.diffusionStr_4_3 = "0";
+      options.diffusionStr_4_4 = "0";
 
       // Set v,w, and q to be periodic to reduce computational overhead.
-      options.boundaryConditionsV = "periodic";
-      options.clearValueV = "0";
-      options.reactionStrV = "0";
-      options.boundaryConditionsW = "periodic";
-      options.clearValueW = "0";
-      options.reactionStrW = "0";
-      options.boundaryConditionsQ = "periodic";
-      options.clearValueQ = "0";
-      options.reactionStrQ = "0";
+      options.boundaryConditions_2 = "periodic";
+      options.initCond_2 = "0";
+      options.reactionStr_2 = "0";
+      options.boundaryConditions_3 = "periodic";
+      options.initCond_3 = "0";
+      options.reactionStr_3 = "0";
+      options.boundaryConditions_4 = "periodic";
+      options.initCond_4 = "0";
+      options.reactionStr_4 = "0";
 
       // If the f string contains any v,w, or q references, clear it.
       regex = new RegExp("\\b(" + anySpeciesRegexStrs[1] + ")\\b");
-      if (regex.test(options.reactionStrU)) {
-        options.reactionStrU = "0";
+      if (regex.test(options.reactionStr_1)) {
+        options.reactionStr_1 = "0";
       }
       break;
     case 2:
@@ -4691,35 +4679,35 @@ function configureOptions() {
       }
 
       // Set the diffusion of w and q to zero to prevent them from causing numerical instability.
-      options.diffusionStrUW = "0";
-      options.diffusionStrUQ = "0";
-      options.diffusionStrVW = "0";
-      options.diffusionStrVQ = "0";
-      options.diffusionStrWU = "0";
-      options.diffusionStrWV = "0";
-      options.diffusionStrWW = "0";
-      options.diffusionStrWQ = "0";
-      options.diffusionStrQU = "0";
-      options.diffusionStrQV = "0";
-      options.diffusionStrQW = "0";
-      options.diffusionStrQQ = "0";
+      options.diffusionStr_1_3 = "0";
+      options.diffusionStr_1_4 = "0";
+      options.diffusionStr_2_3 = "0";
+      options.diffusionStr_2_4 = "0";
+      options.diffusionStr_3_1 = "0";
+      options.diffusionStr_3_2 = "0";
+      options.diffusionStr_3_3 = "0";
+      options.diffusionStr_3_4 = "0";
+      options.diffusionStr_4_1 = "0";
+      options.diffusionStr_4_2 = "0";
+      options.diffusionStr_4_3 = "0";
+      options.diffusionStr_4_4 = "0";
 
       // Set w and q to be periodic to reduce computational overhead.
-      options.boundaryConditionsW = "periodic";
-      options.clearValueW = "0";
-      options.reactionStrW = "0";
+      options.boundaryConditions_3 = "periodic";
+      options.initCond_3 = "0";
+      options.reactionStr_3 = "0";
 
-      options.boundaryConditionsQ = "periodic";
-      options.clearValueQ = "0";
-      options.reactionStrQ = "0";
+      options.boundaryConditions_4 = "periodic";
+      options.initCond_4 = "0";
+      options.reactionStr_4 = "0";
 
       // If the f or g strings contains any w or q references, clear them.
       regex = new RegExp("\\b(" + anySpeciesRegexStrs[2] + ")\\b");
-      if (regex.test(options.reactionStrU)) {
-        options.reactionStrU = "0";
+      if (regex.test(options.reactionStr_1)) {
+        options.reactionStr_1 = "0";
       }
-      if (regex.test(options.reactionStrV)) {
-        options.reactionStrV = "0";
+      if (regex.test(options.reactionStr_2)) {
+        options.reactionStr_2 = "0";
       }
       break;
     case 3:
@@ -4732,29 +4720,29 @@ function configureOptions() {
       }
 
       // Set the diffusion of q to zero to prevent it from causing numerical instability.
-      options.diffusionStrUQ = "0";
-      options.diffusionStrVQ = "0";
-      options.diffusionStrWQ = "0";
-      options.diffusionStrQU = "0";
-      options.diffusionStrQV = "0";
-      options.diffusionStrQW = "0";
-      options.diffusionStrQQ = "0";
+      options.diffusionStr_1_4 = "0";
+      options.diffusionStr_2_4 = "0";
+      options.diffusionStr_3_4 = "0";
+      options.diffusionStr_4_1 = "0";
+      options.diffusionStr_4_2 = "0";
+      options.diffusionStr_4_3 = "0";
+      options.diffusionStr_4_4 = "0";
 
       // Set q to be periodic to reduce computational overhead.
-      options.boundaryConditionsQ = "periodic";
-      options.clearValueQ = "0";
-      options.reactionStrQ = "0";
+      options.boundaryConditions_4 = "periodic";
+      options.initCond_4 = "0";
+      options.reactionStr_4 = "0";
 
       // If the f, g, or h strings contains any q references, clear them.
       regex = new RegExp("\\b(" + anySpeciesRegexStrs[3] + ")\\b");
-      if (regex.test(options.reactionStrU)) {
-        options.reactionStrU = "0";
+      if (regex.test(options.reactionStr_1)) {
+        options.reactionStr_1 = "0";
       }
-      if (regex.test(options.reactionStrV)) {
-        options.reactionStrV = "0";
+      if (regex.test(options.reactionStr_2)) {
+        options.reactionStr_2 = "0";
       }
-      if (regex.test(options.reactionStrW)) {
-        options.reactionStrW = "0";
+      if (regex.test(options.reactionStr_3)) {
+        options.reactionStr_3 = "0";
       }
       break;
     case 4:
@@ -4765,31 +4753,31 @@ function configureOptions() {
   switch (equationType) {
     case 3:
       // 2SpeciesCrossDiffusionAlgebraicV
-      options.diffusionStrVV = "0";
+      options.diffusionStr_2_2 = "0";
       break;
     case 6:
       // 3SpeciesCrossDiffusionAlgebraicW
-      options.diffusionStrWW = "0";
+      options.diffusionStr_3_3 = "0";
       break;
     case 7:
       // 3SpeciesCrossDiffusionAlgebraicVW
-      options.diffusionStrVV = "0";
-      options.diffusionStrWW = "0";
+      options.diffusionStr_2_2 = "0";
+      options.diffusionStr_3_3 = "0";
       break;
     case 10:
       // 4SpeciesCrossDiffusionAlgebraicQ
-      options.diffusionStrQQ = "0";
+      options.diffusionStr_4_4 = "0";
       break;
     case 11:
       // 4SpeciesCrossDiffusionAlgebraicWQ
-      options.diffusionStrWW = "0";
-      options.diffusionStrQQ = "0";
+      options.diffusionStr_3_3 = "0";
+      options.diffusionStr_4_4 = "0";
       break;
     case 12:
       // 4SpeciesCrossDiffusionAlgebraicVWQ
-      options.diffusionStrVV = "0";
-      options.diffusionStrWW = "0";
-      options.diffusionStrQQ = "0";
+      options.diffusionStr_2_2 = "0";
+      options.diffusionStr_3_3 = "0";
+      options.diffusionStr_4_4 = "0";
       break;
   }
 
@@ -4846,30 +4834,30 @@ function setEquationDisplayType() {
   if (options.typesetCustomEqs) {
     // We'll work using the default notation, then convert at the end.
     let associatedStrs = {};
-    associatedStrs["U"] = options.diffusionStrUU;
-    associatedStrs["UU"] = options.diffusionStrUU;
-    associatedStrs["V"] = options.diffusionStrVV;
-    associatedStrs["VV"] = options.diffusionStrVV;
-    associatedStrs["W"] = options.diffusionStrWW;
-    associatedStrs["WW"] = options.diffusionStrWW;
-    associatedStrs["Q"] = options.diffusionStrQQ;
-    associatedStrs["QQ"] = options.diffusionStrQQ;
-    associatedStrs["UV"] = options.diffusionStrUV;
-    associatedStrs["UW"] = options.diffusionStrUW;
-    associatedStrs["UQ"] = options.diffusionStrUQ;
-    associatedStrs["VU"] = options.diffusionStrVU;
-    associatedStrs["VW"] = options.diffusionStrVW;
-    associatedStrs["VQ"] = options.diffusionStrVQ;
-    associatedStrs["WU"] = options.diffusionStrWU;
-    associatedStrs["WV"] = options.diffusionStrWV;
-    associatedStrs["WQ"] = options.diffusionStrWQ;
-    associatedStrs["QU"] = options.diffusionStrQU;
-    associatedStrs["QV"] = options.diffusionStrQV;
-    associatedStrs["QW"] = options.diffusionStrQW;
-    associatedStrs["UFUN"] = options.reactionStrU;
-    associatedStrs["VFUN"] = options.reactionStrV;
-    associatedStrs["WFUN"] = options.reactionStrW;
-    associatedStrs["QFUN"] = options.reactionStrQ;
+    associatedStrs["U"] = options.diffusionStr_1_1;
+    associatedStrs["UU"] = options.diffusionStr_1_1;
+    associatedStrs["V"] = options.diffusionStr_2_2;
+    associatedStrs["VV"] = options.diffusionStr_2_2;
+    associatedStrs["W"] = options.diffusionStr_3_3;
+    associatedStrs["WW"] = options.diffusionStr_3_3;
+    associatedStrs["Q"] = options.diffusionStr_4_4;
+    associatedStrs["QQ"] = options.diffusionStr_4_4;
+    associatedStrs["UV"] = options.diffusionStr_1_2;
+    associatedStrs["UW"] = options.diffusionStr_1_3;
+    associatedStrs["UQ"] = options.diffusionStr_1_4;
+    associatedStrs["VU"] = options.diffusionStr_2_1;
+    associatedStrs["VW"] = options.diffusionStr_2_3;
+    associatedStrs["VQ"] = options.diffusionStr_2_4;
+    associatedStrs["WU"] = options.diffusionStr_3_1;
+    associatedStrs["WV"] = options.diffusionStr_3_2;
+    associatedStrs["WQ"] = options.diffusionStr_3_4;
+    associatedStrs["QU"] = options.diffusionStr_4_1;
+    associatedStrs["QV"] = options.diffusionStr_4_2;
+    associatedStrs["QW"] = options.diffusionStr_4_3;
+    associatedStrs["UFUN"] = options.reactionStr_1;
+    associatedStrs["VFUN"] = options.reactionStr_2;
+    associatedStrs["WFUN"] = options.reactionStr_3;
+    associatedStrs["QFUN"] = options.reactionStr_4;
 
     // Check associatedStrs for basic syntax validity, and return without updating the TeX if there are issues.
     var badSyntax = false;
@@ -5919,7 +5907,7 @@ function configurePlotType() {
   // Configure the simulation to plot the solution as requested.
   if (options.plotType == "line") {
     setLineWidth();
-    options.typeOfBrush = "vline";
+    options.brushType = "vline";
     setBrushType();
     refreshGUI(rightGUI);
     domain.visible = false;
@@ -6446,7 +6434,7 @@ function setLineXY(lineObj, xy) {
   let coord;
   for (let i = 0; i < xy.length; i++) {
     coord = xy[i].toArray();
-    coord[1] *= options.threeDHeightScale;
+    coord[1] *= (options.threeDHeightScale * domainHeight) / maxDim;
     if (i < xy.length) start.setXYZ(i, coord[0], coord[1], 0);
     if (i > 0) end.setXYZ(i - 1, coord[0], coord[1], 0);
   }
