@@ -436,7 +436,6 @@ export function getListOfPresets() {
     reactionStr_3: "0",
     runningOnLoad: false,
     spatialStep: "0.2",
-    squareCanvas: true,
     timeDisplay: true,
     tryClickingText: "Press play!",
     whatToDraw: "u",
