@@ -65,6 +65,7 @@ let leftGUI,
   lineWidthMulController,
   threeDHeightScaleController,
   surfaceFunController,
+  surfaceButtons,
   cameraThetaController,
   cameraPhiController,
   cameraZoomController,
@@ -1019,11 +1020,11 @@ function setSizes() {
   uniforms.nXDisc.value = nXDisc;
   uniforms.nYDisc.value = nYDisc;
   // Set an array of XDisplayDomainCoords for plotting lines. Note that these simply go between -0.5 and 0.5,
-  // and do not correspond to x in the simulation. Cap at 10000.
+  // and do not correspond to x in the simulation.
   xDisplayDomainCoords = new Array(nXDisc);
   yDisplayDomainCoords = new Array(nXDisc);
   let val = -0.5,
-    step = 1 / nXDisc;
+    step = nXDisc > 1 ? 1 / (nXDisc - 1) : 0.5;
   for (let i = 0; i < xDisplayDomainCoords.length; i++) {
     xDisplayDomainCoords[i] = val;
     val += step;
@@ -2411,7 +2412,7 @@ function initGUI(startOpen) {
   linesAnd3DFolder = editViewFolder.addFolder("3D");
   root = linesAnd3DFolder;
 
-  const surfaceButtons = addButtonList(root);
+  surfaceButtons = addButtonList(root);
 
   addToggle(
     surfaceButtons,
@@ -2424,7 +2425,7 @@ function initGUI(startOpen) {
       renderIfNotRunning();
       updateView("customSurface");
     },
-    "customSurfaceToggle",
+    null,
     "Plot the solution on a custom surface"
   );
 
@@ -4522,7 +4523,6 @@ function configureGUI() {
     $("#vectorFieldButton").hide();
     linesAnd3DFolder.name = "3D options";
     linesAnd3DFolder.domElement.classList.remove("hidden");
-    if (options.customSurface) showGUIController(surfaceFunController);
     hideGUIController(lineWidthMulController);
     showGUIController(threeDHeightScaleController);
     showGUIController(cameraThetaController);
@@ -7256,7 +7256,7 @@ function setSurfaceShader() {
 
 function configureCustomSurfaceControllers() {
   if (options.plotType == "surface") {
-    $("#customSurfaceToggle").show();
+    $(surfaceButtons).show();
     if (options.customSurface) {
       showGUIController(surfaceFunController);
       hideGUIController(threeDHeightScaleController);
@@ -7265,7 +7265,7 @@ function configureCustomSurfaceControllers() {
       showGUIController(threeDHeightScaleController);
     }
   } else {
-    $("#customSurfaceToggle").hide();
+    $(surfaceButtons).hide();
     hideGUIController(surfaceFunController);
   }
 }

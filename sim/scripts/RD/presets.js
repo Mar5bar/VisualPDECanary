@@ -2153,6 +2153,7 @@ export function getListOfPresets() {
   };
 
   listOfPresets["heatEquation1DValidity"] = {
+    backgroundColour: 14606046,
     brushEnabled: false,
     initCond_1: "1/sqrt(t_0)*exp(-(x-L_x/2)^2/(4*t_0))",
     colourbar: true,
@@ -2160,6 +2161,7 @@ export function getListOfPresets() {
     maxColourValue: 0.32,
     minColourValue: 0,
     overlay: true,
+    overlayColour: 16777215,
     overlayExpr: "1/sqrt(t+t_0)*exp(-(x-L_x/2)^2/(4*(t+t_0)))",
     overlayLineWidthMul: 0.2,
     parent: "heatEquation1D",
@@ -2245,6 +2247,7 @@ export function getListOfPresets() {
   };
 
   listOfPresets["waveEquation1DValidity"] = {
+    backgroundColour: 14606046,
     boundaryConditions_1: "periodic",
     boundaryConditions_2: "periodic",
     brushRadius: "5",
@@ -2252,7 +2255,7 @@ export function getListOfPresets() {
     dimension: 1,
     kineticParams: "D = 1;C = 0.001",
     overlay: true,
-    overlayColour: 5621,
+    overlayColour: 16777215,
     overlayExpr:
       "(exp(-(35*pi)*(mod(x+D*t,L_x)/100-0.5)^2)+exp(-(35*pi)*(mod(x-D*t,L_x)/100-0.5)^2))/2",
     overlayLineWidthMul: 0.2,
