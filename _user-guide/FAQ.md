@@ -32,7 +32,7 @@ Yes you can! Clicking {{ layout.share }} and then 'Embed' will put an [iframe](h
 In principle, you can have as many embedded simulations on your site as you want. In practice, having lots of simulations running at once might cause stuttering on some devices. You can mitigate this by pausing simulations (VisualPDE consumes very few resources when paused) or by only showing a limited number of simulations onscreen at any one time (simulations that are out of view are automatically paused by your browser). You can also make your simulations less computationally demanding by reducing the number of timesteps per frame or the domain size.
 
 ### How do I cite VisualPDE in my article?
-We're currently preparing a manuscript that you'll be able to cite – watch this space!
+The VisualPDE preprint is out! You can cite it as [arXiv:2308.01245](https://doi.org/10.48550/arXiv.2308.01245).
 
 ---
 
