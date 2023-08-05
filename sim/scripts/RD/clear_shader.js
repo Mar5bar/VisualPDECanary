@@ -11,6 +11,8 @@ export function clearShaderTop() {
     uniform float L_x;
     uniform float L_y;
     uniform float L_min;
+    uniform float minX;
+    uniform float minY;
     uniform int nXDisc;
     uniform int nYDisc;
     uniform float seed;
@@ -59,8 +61,8 @@ export function clearShaderTop() {
 
     void main()
     {
-        float x = textureCoords.x * float(nXDisc) * dx;
-        float y = textureCoords.y * float(nYDisc) * dy;
+        float x = minX + textureCoords.x * float(nXDisc) * dx;
+        float y = minY + textureCoords.y * float(nYDisc) * dy;
         vec4 Svec = texture2D(imageSourceOne, textureCoords);
         float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
         float I_SR = Svec.r;

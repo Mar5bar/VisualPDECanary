@@ -42,6 +42,7 @@ let leftGUI,
   hController,
   jController,
   algebraicSpeciesController,
+  minYController,
   domainIndicatorFunController,
   DuuController,
   DuvController,
@@ -936,6 +937,8 @@ function updateUniforms() {
   uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
+  uniforms.minX.value = options.minX;
+  uniforms.minY.value = options.minY;
   uniforms.customSurface.value = options.customSurface;
   uniforms.vectorField.value = options.vectorField;
   setEmbossUniforms();
@@ -1245,6 +1248,14 @@ function initUniforms() {
       type: "f",
       value: 0.0,
     },
+    minX: {
+      type: "f",
+      value: 0.0,
+    },
+    minY: {
+      type: "f",
+      value: 0.0,
+    },
     nXDisc: {
       type: "i",
     },
@@ -1385,6 +1396,22 @@ function initGUI(startOpen) {
     .name("Space step")
     .onFinishChange(function () {
       resize();
+      renderIfNotRunning();
+    });
+
+  root
+    .add(options, "minX")
+    .name("Min. $x$")
+    .onChange(function () {
+      updateUniforms();
+      renderIfNotRunning();
+    });
+
+  minYController = root
+    .add(options, "minY")
+    .name("Min. $y$")
+    .onChange(function () {
+      updateUniforms();
       renderIfNotRunning();
     });
 
@@ -4401,7 +4428,12 @@ function configureGUI() {
   let Qtooltip = tooltip.replace(" " + listOfSpecies[2] + ",", "");
   let Wtooltip = tooltip.replace(" " + listOfSpecies[3] + ",", "");
 
-  if (options.dimension == 1) tooltip = tooltip.replace(" y,", "");
+  if (options.dimension == 1) {
+    tooltip = tooltip.replace(" y,", "");
+    hideGUIController(minYController);
+  } else {
+    showGUIController(minYController);
+  }
   if (options.crossDiffusion && parseInt(options.numSpecies) > 1) {
     if (!updatingAlgebraicSpecies) {
       updateGUIDropdown(
