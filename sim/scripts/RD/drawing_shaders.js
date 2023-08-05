@@ -10,8 +10,6 @@ export function drawShaderTop() {
     uniform float L_x;
     uniform float L_y;
     uniform float L_min;
-    uniform float minX;
-    uniform float minY;
     uniform float seed;
     uniform float t;
     uniform float dx;
@@ -91,8 +89,8 @@ export function drawShaderTop() {
         float I_TBrushA = TBrushvec.a;
 
         ivec2 texSize = textureSize(textureSource,0);
-        float x = minX + textureCoords.x * L_x;
-        float y = minY + textureCoords.y * L_y;
+        float x = MINX + textureCoords.x * L_x;
+        float y = MINY + textureCoords.y * L_y;
         vec2 diff = textureCoords - brushCoords;\n`;
 }
 

@@ -937,8 +937,6 @@ function updateUniforms() {
   uniforms.heightScale.value = options.threeDHeightScale;
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
-  uniforms.minX.value = options.minX;
-  uniforms.minY.value = options.minY;
   uniforms.customSurface.value = options.customSurface;
   uniforms.vectorField.value = options.vectorField;
   setEmbossUniforms();
@@ -1248,14 +1246,6 @@ function initUniforms() {
       type: "f",
       value: 0.0,
     },
-    minX: {
-      type: "f",
-      value: 0.0,
-    },
-    minY: {
-      type: "f",
-      value: 0.0,
-    },
     nXDisc: {
       type: "i",
     },
@@ -1402,16 +1392,16 @@ function initGUI(startOpen) {
   root
     .add(options, "minX")
     .name("Min. $x$")
-    .onChange(function () {
-      updateUniforms();
+    .onFinishChange(function () {
+      updateProblem();
       renderIfNotRunning();
     });
 
   minYController = root
     .add(options, "minY")
     .name("Min. $y$")
-    .onChange(function () {
-      updateUniforms();
+    .onFinishChange(function () {
+      updateProblem();
       renderIfNotRunning();
     });
 
@@ -2633,6 +2623,7 @@ function setBrushType() {
   // Insert any user-defined kinetic parameters, given as a string that needs parsing.
   // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
   let shaderStr = kineticUniformsForShader() + drawShaderTop();
+  shaderStr = replaceMINXMINY(shaderStr);
   let radiusStr =
     "float brushRadius = " +
     parseShaderString(options.brushRadius.toString()) +
@@ -2719,6 +2710,7 @@ function setDisplayColourAndType() {
       "OVERLAYEXPR",
       parseShaderString(options.overlayExpr)
     );
+    shader = replaceMINXMINY(shader);
     setOverlayUniforms();
   }
   overlayLine.visible = options.overlay && options.plotType == "line";
@@ -3559,43 +3551,39 @@ function setRDEquations() {
   let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
   let type = "FE";
-  simMaterials[type].fragmentShader = [
-    kineticStr,
-    RDShaderTop(type),
-    middle,
-    RDShaderMain(type),
-    bot,
-  ].join(" ");
+  simMaterials[type].fragmentShader = replaceMINXMINY(
+    [kineticStr, RDShaderTop(type), middle, RDShaderMain(type), bot].join(" ")
+  );
 
   type = "AB2";
-  simMaterials[type].fragmentShader = [
-    kineticStr,
-    RDShaderTop(type),
-    middle,
-    RDShaderMain(type),
-    bot,
-  ].join(" ");
+  simMaterials[type].fragmentShader = replaceMINXMINY(
+    [kineticStr, RDShaderTop(type), middle, RDShaderMain(type), bot].join(" ")
+  );
 
   type = "Mid";
   for (let ind = 1; ind < 3; ind++) {
-    simMaterials[type + ind.toString()].fragmentShader = [
-      kineticStr,
-      RDShaderTop(type + ind.toString()),
-      middle,
-      RDShaderMain(type + ind.toString()),
-      bot,
-    ].join(" ");
+    simMaterials[type + ind.toString()].fragmentShader = replaceMINXMINY(
+      [
+        kineticStr,
+        RDShaderTop(type + ind.toString()),
+        middle,
+        RDShaderMain(type + ind.toString()),
+        bot,
+      ].join(" ")
+    );
   }
 
   type = "RK4";
   for (let ind = 1; ind < 5; ind++) {
-    simMaterials[type + ind.toString()].fragmentShader = [
-      kineticStr,
-      RDShaderTop(type + ind.toString()),
-      middle,
-      RDShaderMain(type + ind.toString()),
-      bot,
-    ].join(" ");
+    simMaterials[type + ind.toString()].fragmentShader = replaceMINXMINY(
+      [
+        kineticStr,
+        RDShaderTop(type + ind.toString()),
+        middle,
+        RDShaderMain(type + ind.toString()),
+        bot,
+      ].join(" ")
+    );
   }
 
   Object.keys(simMaterials).forEach(
@@ -3640,6 +3628,7 @@ function setRDEquations() {
       });
     }
     dirichletShader += "}";
+    dirichletShader = replaceMINXMINY(dirichletShader);
     dirichletMaterial.fragmentShader = dirichletShader;
     dirichletMaterial.needsUpdate = true;
   }
@@ -4132,6 +4121,7 @@ function setClearShader() {
   shaderStr += "float w = " + parseShaderString(options.initCond_3) + ";\n";
   shaderStr += "float q = " + parseShaderString(options.initCond_4) + ";\n";
   shaderStr += clearShaderBot();
+  shaderStr = replaceMINXMINY(shaderStr);
   clearMaterial.fragmentShader = shaderStr;
   clearMaterial.needsUpdate = true;
 }
@@ -4326,6 +4316,7 @@ function setPostFunFragShader() {
     "OVERLAYEXPR",
     parseShaderString(options.overlayExpr)
   );
+  shaderStr = replaceMINXMINY(shaderStr);
   setOverlayUniforms();
   postMaterial.fragmentShader = shaderStr + postGenericShaderBot();
   postMaterial.needsUpdate = true;
@@ -7413,4 +7404,10 @@ function sortObject(obj) {
       result[key] = obj[key];
       return result;
     }, {});
+}
+
+function replaceMINXMINY(str) {
+  str = str.replaceAll(/\bMINX\b/g, () => parseShaderString(options.minX));
+  str = str.replaceAll(/\bMINY\b/g, () => parseShaderString(options.minY));
+  return str;
 }

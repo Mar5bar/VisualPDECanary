@@ -249,6 +249,9 @@ Change the largest side $L$ of the domain. Must be a mathematical expression tha
 * ***Space step***\
 Set the space step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the space step (as discussed [here](/user-guide/solver#timestepping)). Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
 
+* ***Min. $x$, $y$***\
+Set the minimum values of $x$ and $y$ in the simulation. This amounts to translating the simulation domain by $(x_{min}, y_{min})$. A common use of this is to centre the simulation domain at $(0,0)$ rather than $(L_x/2, L_y/2)$. Can be a function of $L_x$, $L_y$ and any of the user-defined parameters.
+
 * ***Square***\
 Toggle whether or not the domain is forced to be square, independent of the aspect ratio of your device/window.
 

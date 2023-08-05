@@ -44,8 +44,6 @@ export function RDShaderTop(type) {
     uniform float L_x;
     uniform float L_y;
     uniform float L_min;
-    uniform float minX;
-    uniform float minY;
     uniform float t;
     uniform float seed;
     uniform sampler2D imageSourceOne;
@@ -98,8 +96,8 @@ export function RDShaderTop(type) {
         ivec2 texSize = textureSize(textureSource,0);
         float step_x = 1.0 / float(texSize.x);
         float step_y = 1.0 / float(texSize.y);
-        float x = minX + textureCoords.x * L_x;
-        float y = minY + textureCoords.y * L_y;
+        float x = MINX + textureCoords.x * L_x;
+        float y = MINY + textureCoords.y * L_y;
         vec2 textureCoordsL = textureCoords + vec2(-step_x, 0.0);
         vec2 textureCoordsLL = textureCoordsL + vec2(-step_x, 0.0);
         vec2 textureCoordsR = textureCoords + vec2(+step_x, 0.0);
@@ -246,8 +244,8 @@ export function RDShaderMain(type) {
       ivec2 texSize = textureSize(textureSource,0);
       float step_x = 1.0 / float(texSize.x);
       float step_y = 1.0 / float(texSize.y);
-      float x = minX + textureCoords.x * L_x;
-      float y = minY + textureCoords.y * L_y;
+      float x = MINX + textureCoords.x * L_x;
+      float y = MINY + textureCoords.y * L_y;
       vec4 Svec = texture2D(imageSourceOne, textureCoords);
       float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
       float I_SR = Svec.r;
@@ -525,8 +523,6 @@ export function RDShaderEnforceDirichletTop() {
     uniform float L_x;
     uniform float L_y;
     uniform float L_min;
-    uniform float minX;
-    uniform float minY;
     uniform float t;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
@@ -578,8 +574,8 @@ export function RDShaderEnforceDirichletTop() {
         ivec2 texSize = textureSize(textureSource,0);
         float step_x = 1.0 / float(texSize.x);
         float step_y = 1.0 / float(texSize.y);
-        float x = minX + textureCoords.x * L_x;
-        float y = minY + textureCoords.y * L_y;
+        float x = MINX + textureCoords.x * L_x;
+        float y = MINY + textureCoords.y * L_y;
 
         vec4 uvwq = texture2D(textureSource, textureCoords);
         gl_FragColor = uvwq;
