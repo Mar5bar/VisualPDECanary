@@ -15,6 +15,9 @@ Jump to:
 
 ## Sharing and citing <a id='sharing'>
 
+### How do I cite VisualPDE in my article?
+The VisualPDE preprint is out! You can cite it as [arXiv:2308.01245](https://doi.org/10.48550/arXiv.2308.01245).
+
 ### Am I allowed to make and share content using VisualPDE.com?
 Yes! We would love to see you making and sharing content using VisualPDE. We ask that any content you create somehow points back to [VisualPDE.com](https://visualpde.com) – a great way to do this is to share a link directly to your simulation! Feel free to use VisualPDE in articles, images, videos, scientific works, social media posts, etc.
 
@@ -30,9 +33,6 @@ Screenshots are simple in VisualPDE. Simply open the share sheet by clicking {{ 
 Yes you can! Clicking {{ layout.share }} and then 'Embed' will put an [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) element on your clipboard that points to the current simulation. You can specify the complexity of the user interface that you want to be visible, selecting from the full experience, the minimal interface used in our [Visual Stories](/visual-stories), or no user interface at all. If you do this, we'd love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com) so we can check out your site and your simulation!
 
 In principle, you can have as many embedded simulations on your site as you want. In practice, having lots of simulations running at once might cause stuttering on some devices. You can mitigate this by pausing simulations (VisualPDE consumes very few resources when paused) or by only showing a limited number of simulations onscreen at any one time (simulations that are out of view are automatically paused by your browser). You can also make your simulations less computationally demanding by reducing the number of timesteps per frame or the domain size.
-
-### How do I cite VisualPDE in my article?
-The VisualPDE preprint is out! You can cite it as [arXiv:2308.01245](https://doi.org/10.48550/arXiv.2308.01245).
 
 ---
 
