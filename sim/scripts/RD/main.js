@@ -1394,7 +1394,7 @@ function initGUI(startOpen) {
     .name("Min. $x$")
     .onFinishChange(function () {
       updateProblem();
-      renderIfNotRunning();
+      resetSim();
     });
 
   minYController = root
@@ -1402,7 +1402,7 @@ function initGUI(startOpen) {
     .name("Min. $y$")
     .onFinishChange(function () {
       updateProblem();
-      renderIfNotRunning();
+      resetSim();
     });
 
   const domainButtonList = addButtonList(root);
