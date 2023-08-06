@@ -5975,6 +5975,7 @@ function configureDimension() {
       configurePlotType();
     }
   }
+  if (options.dimension == 1) options.minY = "0.0";
   resize();
   setRDEquations();
   setEquationDisplayType();
