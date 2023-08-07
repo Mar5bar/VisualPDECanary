@@ -3493,6 +3493,52 @@ function setRDEquations() {
     diffusionShader += RDShaderUpdateNormal();
   }
 
+  // If 2 or more variables are algebraic, check that we don't have any cyclic dependencies.
+  if (options.numAlgebraicSpecies >= 2) {
+    const start = options.numSpecies - options.numAlgebraicSpecies;
+    // Check what each algebraic species depends on.
+    let allDependencies = {};
+    for (let ind = start; ind < options.numSpecies; ind++) {
+      let dependencies = [];
+      for (let specInd = start; specInd < options.numSpecies; specInd++) {
+        let regex = new RegExp("\\b" + listOfSpecies[specInd]);
+        if (
+          regex.test(options["reactionStr_" + (ind + 1).toString()]) ||
+          options[
+            "diffusionStr_" +
+              (ind + 1).toString() +
+              "_" +
+              (specInd + 1).toString()
+          ] != "0"
+        ) {
+          dependencies.push(listOfSpecies[specInd]);
+        }
+      }
+      if (dependencies != [])
+        allDependencies[listOfSpecies[ind]] = dependencies;
+    }
+    // Now we have all the dependencies, check if we have any loops.
+    let doneDict = {};
+    let stack = [];
+    let badNames = [];
+    for (let name of listOfSpecies.slice(start)) {
+      checkForCyclicDependencies(
+        name,
+        doneDict,
+        stack,
+        allDependencies,
+        badNames
+      );
+    }
+    if (badNames.length > 0) {
+      throwError(
+        "Cyclic variables detected. Please check the definition(s) of " +
+          badNames.join(", ") +
+          "."
+      );
+    }
+  }
+
   // If v should be algebraic, append this to the normal update shader.
   if (algebraicV && options.crossDiffusion) {
     algebraicShader += selectSpeciesInShaderStr(
@@ -6155,7 +6201,7 @@ function evaluateParam(name, strDict, valDict, stack, names, badNames) {
       valDict[otherName] = 0.0;
       strDict[otherName] = "0";
       strDict[name] = "0";
-      badNames.push(otherName);
+      badNames.push(stack.slice(stack.indexOf(otherName)));
     } else {
       // Otherwise, try and evaluate the parameter and substitute the value into the expression.
       [valDict, , badNames] = evaluateParam(
@@ -7411,4 +7457,36 @@ function replaceMINXMINY(str) {
   str = str.replaceAll(/\bMINX\b/g, () => parseShaderString(options.minX));
   str = str.replaceAll(/\bMINY\b/g, () => parseShaderString(options.minY));
   return str;
+}
+
+function checkForCyclicDependencies(
+  name,
+  doneDict,
+  stack,
+  dependencies,
+  badNames
+) {
+  // If we know the name is safe already, don't do anything.
+  if (name in doneDict) return [doneDict, stack.slice(0, -1), badNames];
+  // Find any names and check them.
+  for (const otherName of dependencies[name]) {
+    // Check if it's something we're already trying to evaluate.
+    if (stack.includes(otherName)) {
+      // We've hit a quantity that we're already trying to evaluate - cyclic!
+      // Record the name as bad so that we can throw an error.
+      badNames.push(stack.slice(stack.indexOf(otherName)));
+    } else {
+      // Otherwise, check for its dependencies.
+      [doneDict, , badNames] = checkForCyclicDependencies(
+        otherName,
+        doneDict,
+        [...stack, otherName],
+        dependencies,
+        badNames
+      );
+    }
+  }
+  // Record that we've done this name.
+  doneDict[name] = true;
+  return [doneDict, stack.slice(0, -1), badNames];
 }
