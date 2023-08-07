@@ -3513,7 +3513,11 @@ function setRDEquations() {
         ].join(" ");
       }
       for (let specInd = start; specInd < options.numSpecies; specInd++) {
-        let regex = new RegExp("\\b" + listOfSpecies[specInd]);
+        let regex = new RegExp(
+          "\\b" +
+            listOfSpecies[specInd] +
+            "(_(x|xb|xf|xb2|xf2|xx|y|yb|yf|yb2|yf2|yy))?\\b"
+        );
         if (
           regex.test(strToTest) ||
           options[
