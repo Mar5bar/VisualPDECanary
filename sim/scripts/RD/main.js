@@ -3521,7 +3521,7 @@ function setRDEquations() {
     let doneDict = {};
     let stack = [];
     let badNames = [];
-    for (let name of listOfSpecies.slice(start)) {
+    for (let name of listOfSpecies.slice(start, options.numSpecies)) {
       checkForCyclicDependencies(
         name,
         doneDict,
