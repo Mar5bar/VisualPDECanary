@@ -3500,10 +3500,22 @@ function setRDEquations() {
     let allDependencies = {};
     for (let ind = start; ind < options.numSpecies; ind++) {
       let dependencies = [];
+      let strToTest = options["reactionStr_" + (ind + 1).toString()];
+      for (let specInd = start; specInd < options.numSpecies; specInd++) {
+        strToTest = [
+          strToTest,
+          options[
+            "diffusionStr_" +
+              (ind + 1).toString() +
+              "_" +
+              (specInd + 1).toString()
+          ],
+        ].join(" ");
+      }
       for (let specInd = start; specInd < options.numSpecies; specInd++) {
         let regex = new RegExp("\\b" + listOfSpecies[specInd]);
         if (
-          regex.test(options["reactionStr_" + (ind + 1).toString()]) ||
+          regex.test(strToTest) ||
           options[
             "diffusionStr_" +
               (ind + 1).toString() +
