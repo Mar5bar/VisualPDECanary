@@ -3536,6 +3536,7 @@ function setRDEquations() {
           badNames.join(", ") +
           "."
       );
+      return;
     }
   }
 
