@@ -365,7 +365,10 @@ console.error = function (error) {
   console.log(errorStr);
   let regex = /ERROR.*/;
   regex.test(errorStr) ? (errorStr = errorStr.match(regex)) : {};
-  throwError(errorStr);
+  throwError(
+    errorStr.toString().trim() +
+      ". Click <a href='/user-guide/FAQ#undeclared' target='blank'>here</a> for more information."
+  );
 };
 
 // Remove the logo if we're from an internal link.
@@ -559,7 +562,13 @@ $("#views").click(function () {
   if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
     toggleLeftUI();
   }
-  // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
+});
+$("#error_close_button").click(function () {
+  fadeout("#error");
+});
+$("#oops_hit_nan_close").click(function () {
+  fadeout("#oops_hit_nan");
+  shouldCheckNaN = true;
 });
 
 // New, rename, delete
@@ -3550,7 +3559,7 @@ function setRDEquations() {
       throwError(
         "Cyclic variables detected. Please check the definition(s) of " +
           badNames.join(", ") +
-          "."
+          ". Click <a href='/user-guide/FAQ#cyclic' target='blank'>here</a> for more information."
       );
       return;
     }
@@ -5828,10 +5837,6 @@ function checkForNaN() {
     shouldCheckNaN = false;
     fadein("#oops_hit_nan");
     pauseSim();
-    $("#oops_hit_nan").one("click", function () {
-      fadeout("#oops_hit_nan");
-      shouldCheckNaN = true;
-    });
     $("#erase").one("pointerdown", function () {
       fadeout("#oops_hit_nan");
       shouldCheckNaN = true;
@@ -6196,7 +6201,7 @@ function evaluateParamVals(strs) {
     throwError(
       "Cyclic parameters detected. Please check the definition(s) of " +
         badNames.join(", ") +
-        "."
+        ". Click <a href='/user-guide/FAQ#cyclic' target='blank'>here</a> for more information."
     );
   }
   return Object.keys(valDict).map((x) => [x, valDict[x]]);
@@ -6740,9 +6745,6 @@ function throwError(message) {
     // Otherwise, create a new error message.
     $("#error_description").html(message);
     fadein("#error");
-    $("#error").one("click", function () {
-      fadeout("#error");
-    });
   }
 }
 
