@@ -1334,7 +1334,7 @@ function initGUI(startOpen) {
     brushButtonList,
     "brushEnabled",
     '<i class="fa-regular fa-brush"></i> Enable brush',
-    null,
+    setBrushType,
     null,
     "Toggle the brush on or off"
   );
@@ -1359,7 +1359,10 @@ function initGUI(startOpen) {
       "Vertical line": "vline",
     })
     .name("Shape")
-    .onChange(setBrushType);
+    .onChange(function () {
+      setBrushType();
+      document.activeElement.blur();
+    });
 
   root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
 
@@ -2660,13 +2663,28 @@ function setBrushType() {
   switch (options.brushType) {
     case "circle":
       shaderStr += drawShaderShapeDisc();
+      $("#simCanvas").css(
+        "cursor",
+        "url('images/cursor-circle.svg') 12 12, auto"
+      );
       break;
     case "hline":
       shaderStr += drawShaderShapeHLine();
+      $("#simCanvas").css(
+        "cursor",
+        "url('images/cursor-hline.svg') 32 32, auto"
+      );
       break;
     case "vline":
       shaderStr += drawShaderShapeVLine();
+      $("#simCanvas").css(
+        "cursor",
+        "url('images/cursor-vline.svg') 32 32, auto"
+      );
       break;
+  }
+  if (!options.brushEnabled) {
+    $("#simCanvas").css("cursor", "url('images/cursor-none.svg') 12 12, auto");
   }
   // Configure the action of the brush.
   switch (options.brushAction) {
