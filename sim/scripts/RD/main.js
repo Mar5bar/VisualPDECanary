@@ -7518,28 +7518,16 @@ function checkForCyclicDependencies(
 
 function configureCursorDisplay() {
   // Default cursor.
-  if (!options.brushEnabled || options.plotType == "surface") {
-    $("#simCanvas").css("cursor", "auto");
+  $("#simCanvas").css("cursor", "auto");
+  if (
+    !options.brushEnabled ||
+    options.plotType == "surface" ||
+    options.plotType == "line"
+  ) {
     return;
   }
 
-  // If it's a line plot, use a special icon.
-  if (options.plotType == "line") {
-    if (options.brushAction.includes("smooth")) {
-      $("#simCanvas").css(
-        "cursor",
-        "url('images/cursor-bump.svg') 20 20, auto"
-      );
-    } else {
-      $("#simCanvas").css(
-        "cursor",
-        "url('images/cursor-jump.svg') 20 20, auto"
-      );
-    }
-    return;
-  }
-
-  // If we're simulating in 2D and looking at a plane plot, match the brush.
+  // If we're looking at a plane plot, match the brush type.
   switch (options.brushType) {
     case "circle":
       $("#simCanvas").css(
