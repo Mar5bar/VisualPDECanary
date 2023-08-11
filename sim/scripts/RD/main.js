@@ -1334,7 +1334,7 @@ function initGUI(startOpen) {
     brushButtonList,
     "brushEnabled",
     '<i class="fa-regular fa-brush"></i> Enable brush',
-    setBrushType,
+    configureCursorDisplay,
     null,
     "Toggle the brush on or off"
   );
@@ -2663,28 +2663,13 @@ function setBrushType() {
   switch (options.brushType) {
     case "circle":
       shaderStr += drawShaderShapeDisc();
-      $("#simCanvas").css(
-        "cursor",
-        "url('images/cursor-circle.svg') 12 12, auto"
-      );
       break;
     case "hline":
       shaderStr += drawShaderShapeHLine();
-      $("#simCanvas").css(
-        "cursor",
-        "url('images/cursor-hline.svg') 32 32, auto"
-      );
       break;
     case "vline":
       shaderStr += drawShaderShapeVLine();
-      $("#simCanvas").css(
-        "cursor",
-        "url('images/cursor-vline.svg') 32 32, auto"
-      );
       break;
-  }
-  if (!options.brushEnabled) {
-    $("#simCanvas").css("cursor", "url('images/cursor-none.svg') 12 12, auto");
   }
   // Configure the action of the brush.
   switch (options.brushAction) {
@@ -2705,6 +2690,8 @@ function setBrushType() {
       shaderStr += drawShaderBotAdd();
       break;
   }
+  // Configure the displayed cursor.
+  configureCursorDisplay();
   // Substitute in the correct colour code.
   shaderStr = selectColourspecInShaderStr(shaderStr);
   drawMaterial.fragmentShader = shaderStr;
@@ -6044,6 +6031,7 @@ function configurePlotType() {
   setDisplayColourAndType();
   configureCameraAndClicks();
   configureGUI();
+  configureCursorDisplay();
 }
 
 function configureDimension() {
@@ -7526,4 +7514,50 @@ function checkForCyclicDependencies(
   // Record that we've done this name.
   doneDict[name] = true;
   return [doneDict, stack.slice(0, -1), badNames];
+}
+
+function configureCursorDisplay() {
+  // Default cursor.
+  if (!options.brushEnabled || options.plotType == "surface") {
+    $("#simCanvas").css("cursor", "auto");
+    return;
+  }
+
+  // If it's a line plot, use a special icon.
+  if (options.plotType == "line") {
+    if (options.brushAction.includes("smooth")) {
+      $("#simCanvas").css(
+        "cursor",
+        "url('images/cursor-bump.svg') 20 20, auto"
+      );
+    } else {
+      $("#simCanvas").css(
+        "cursor",
+        "url('images/cursor-jump.svg') 20 20, auto"
+      );
+    }
+    return;
+  }
+
+  // If we're simulating in 2D and looking at a plane plot, match the brush.
+  switch (options.brushType) {
+    case "circle":
+      $("#simCanvas").css(
+        "cursor",
+        "url('images/cursor-circle.svg') 12 12, auto"
+      );
+      break;
+    case "hline":
+      $("#simCanvas").css(
+        "cursor",
+        "url('images/cursor-hline.svg') 32 32, auto"
+      );
+      break;
+    case "vline":
+      $("#simCanvas").css(
+        "cursor",
+        "url('images/cursor-vline.svg') 32 32, auto"
+      );
+      break;
+  }
 }
