@@ -255,7 +255,7 @@ Set the minimum values of $x$ and $y$ in the simulation. This amounts to transla
 * ***Square***\
 Toggle whether or not the domain is forced to be square, independent of the aspect ratio of your device/window.
 
-* ***Implicit***\
+* ***Custom***\
 Toggle the use of a custom domain $\domain$ that is determined implicitly from a user-set expression.
 
 * ***Ind. fun (indicator function)***\

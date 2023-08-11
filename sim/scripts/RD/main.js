@@ -1436,7 +1436,7 @@ function initGUI(startOpen) {
   addToggle(
     domainButtonList,
     "domainViaIndicatorFun",
-    '<i class="fa-regular fa-circle"></i> Implicit',
+    '<i class="fa-regular fa-circle"></i> Custom',
     function () {
       configureOptions();
       configureGUI();
@@ -1445,7 +1445,7 @@ function initGUI(startOpen) {
       renderIfNotRunning();
     },
     null,
-    "Determine the domain implicitly"
+    "Specify a custom domain"
   );
 
   domainIndicatorFunController = root
