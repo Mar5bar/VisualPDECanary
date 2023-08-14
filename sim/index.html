@@ -102,7 +102,6 @@
 <div class="ui hidden ui_button" id="erase" title="Restart (R)"><i class="fa-solid fa-arrow-rotate-left"></i></div>
 <div class="ui hidden ui_button" id="share" title="Share"><i class="fa-solid fa-share-from-square"></i></div>
 <div class="message" id="link_copied"><p>Copied to clipboard</p></div>
-<!-- <a href="../user-guide" target="_blank"><div class="ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div></a> -->
 <div class="ui hidden ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div>
 <div class="ui hidden ui_button" id="views" title="Views"><i class="fa-solid fa-layer-group"></i></div>
 
@@ -115,14 +114,14 @@
     <div class="error_infinity"><i class="fa-sharp fa-solid fa-infinity"></i></div>
     <p class="error_para"><strong>Oops!</strong> It looks like things have spiralled off to infinity, or the numerical solver is unstable.</p>
     <p class="error_para">Check the equations, or try reducing the timestep, and restart the simulation.</p>
-    <button class="btn-primary warning_dismiss"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
+    <button class="btn-primary warning_dismiss" id="oops_hit_nan_close"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
 <div class="message" id="error">
     <div class="error_infinity"><i class="fa-solid fa-clipboard-question"></i></div>
     <p class="error_para"><strong>Hmmm...</strong> VisualPDE is throwing an error, most likely as a result of the definitions and parameters.</p>
     <p class="error_para">Check for syntax errors, and reload the page if the interface is unresponsive.</p>
     <p class="error_para" id='error_description'></p>
-    <button class="btn-primary warning_dismiss"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
+    <button class="btn-primary warning_dismiss" id="error_close_button"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
 
 <div id="right_ui" class="ui hidden">
@@ -191,7 +190,6 @@
 <input id="checkpointInput" type="file" style="visibility:hidden">
 
 <body>
-    <!-- This is a generic reaction-diffusion solver. -->
 </body>
 
 </html>

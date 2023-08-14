@@ -1176,23 +1176,26 @@ export function getListOfPresets() {
   };
 
   listOfPresets["bistableSurvival"] = {
-    boundaryConditions_1: "neumann",
-    brushRadius: 1,
-    initCond_1: "0",
-    colourmap: "water",
-    diffusionStr_1_1: "D",
-    diffusionStr_2_2: "0",
-    diffusionStr_3_3: "0",
-    dt: 0.005,
-    kineticParams: "a=0.4 in [0,1]; D=1 in [0,2]",
-    numSpecies: 1,
-    preset: "bistableSurvival",
-    reactionStr_1: "u*(u-a)*(1-u)",
-    reactionStr_2: "0",
-    reactionStr_3: "0",
-    whatToDraw: "u",
-    whatToPlot: "u",
-  };
+	"boundaryConditions_1": "neumann",
+	"brushAction": "smoothreplace",
+	"brushRadius": "R",
+	"colourmap": "water",
+	"diffusionStr_1_1": "D",
+	"diffusionStr_2_2": "0",
+	"diffusionStr_3_3": "0",
+	"dt": 0.005,
+	"initCond_1": "0",
+	"kineticParams": "a = 0.3 in [0, 1];D = 1 in [0, 2];R = 6 in [0,10];",
+	"numSpecies": 1,
+	"preset": "bistableSurvival",
+	"reactionStr_1": "u*(u-a)*(1-u)",
+	"reactionStr_2": "0",
+	"reactionStr_3": "0",
+	"spatialStep": "0.5",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+
 
   listOfPresets["brusselator"] = {
     initCond_1: "a",
@@ -2671,6 +2674,8 @@ export function getListOfPresets() {
     lineWidthMul: 1,
     maxColourValue: 1.0,
     minColourValue: 0.0,
+    minX: "0.0",
+    minY: "0.0",
     neumannStr_1: "0",
     neumannStr_2: "0",
     neumannStr_3: "0",

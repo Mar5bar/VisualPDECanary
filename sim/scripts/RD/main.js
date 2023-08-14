@@ -42,6 +42,7 @@ let leftGUI,
   hController,
   jController,
   algebraicSpeciesController,
+  minYController,
   domainIndicatorFunController,
   DuuController,
   DuvController,
@@ -364,7 +365,10 @@ console.error = function (error) {
   console.log(errorStr);
   let regex = /ERROR.*/;
   regex.test(errorStr) ? (errorStr = errorStr.match(regex)) : {};
-  throwError(errorStr);
+  throwError(
+    errorStr.toString().trim() +
+      ". Click <a href='/user-guide/FAQ#undeclared' target='blank'>here</a> for more information."
+  );
 };
 
 // Remove the logo if we're from an internal link.
@@ -558,7 +562,13 @@ $("#views").click(function () {
   if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
     toggleLeftUI();
   }
-  // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
+});
+$("#error_close_button").click(function () {
+  fadeout("#error");
+});
+$("#oops_hit_nan_close").click(function () {
+  fadeout("#oops_hit_nan");
+  shouldCheckNaN = true;
 });
 
 // New, rename, delete
@@ -1324,7 +1334,7 @@ function initGUI(startOpen) {
     brushButtonList,
     "brushEnabled",
     '<i class="fa-regular fa-brush"></i> Enable brush',
-    null,
+    configureCursorDisplay,
     null,
     "Toggle the brush on or off"
   );
@@ -1349,7 +1359,10 @@ function initGUI(startOpen) {
       "Vertical line": "vline",
     })
     .name("Shape")
-    .onChange(setBrushType);
+    .onChange(function () {
+      setBrushType();
+      document.activeElement.blur();
+    });
 
   root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
 
@@ -1388,6 +1401,22 @@ function initGUI(startOpen) {
       renderIfNotRunning();
     });
 
+  root
+    .add(options, "minX")
+    .name("Min. $x$")
+    .onFinishChange(function () {
+      updateProblem();
+      resetSim();
+    });
+
+  minYController = root
+    .add(options, "minY")
+    .name("Min. $y$")
+    .onFinishChange(function () {
+      updateProblem();
+      resetSim();
+    });
+
   const domainButtonList = addButtonList(root);
 
   addToggle(
@@ -1407,7 +1436,7 @@ function initGUI(startOpen) {
   addToggle(
     domainButtonList,
     "domainViaIndicatorFun",
-    '<i class="fa-regular fa-circle"></i> Implicit',
+    '<i class="fa-regular fa-circle"></i> Custom',
     function () {
       configureOptions();
       configureGUI();
@@ -1416,7 +1445,7 @@ function initGUI(startOpen) {
       renderIfNotRunning();
     },
     null,
-    "Determine the domain implicitly"
+    "Specify a custom domain"
   );
 
   domainIndicatorFunController = root
@@ -2606,6 +2635,7 @@ function setBrushType() {
   // Insert any user-defined kinetic parameters, given as a string that needs parsing.
   // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
   let shaderStr = kineticUniformsForShader() + drawShaderTop();
+  shaderStr = replaceMINXMINY(shaderStr);
   let radiusStr =
     "float brushRadius = " +
     parseShaderString(options.brushRadius.toString()) +
@@ -2660,6 +2690,8 @@ function setBrushType() {
       shaderStr += drawShaderBotAdd();
       break;
   }
+  // Configure the displayed cursor.
+  configureCursorDisplay();
   // Substitute in the correct colour code.
   shaderStr = selectColourspecInShaderStr(shaderStr);
   drawMaterial.fragmentShader = shaderStr;
@@ -2692,6 +2724,7 @@ function setDisplayColourAndType() {
       "OVERLAYEXPR",
       parseShaderString(options.overlayExpr)
     );
+    shader = replaceMINXMINY(shader);
     setOverlayUniforms();
   }
   overlayLine.visible = options.overlay && options.plotType == "line";
@@ -3474,6 +3507,69 @@ function setRDEquations() {
     diffusionShader += RDShaderUpdateNormal();
   }
 
+  // If 2 or more variables are algebraic, check that we don't have any cyclic dependencies.
+  if (options.numAlgebraicSpecies >= 2) {
+    const start = options.numSpecies - options.numAlgebraicSpecies;
+    // Check what each algebraic species depends on.
+    let allDependencies = {};
+    for (let ind = start; ind < options.numSpecies; ind++) {
+      let dependencies = [];
+      let strToTest = options["reactionStr_" + (ind + 1).toString()];
+      for (let specInd = start; specInd < options.numSpecies; specInd++) {
+        strToTest = [
+          strToTest,
+          options[
+            "diffusionStr_" +
+              (ind + 1).toString() +
+              "_" +
+              (specInd + 1).toString()
+          ],
+        ].join(" ");
+      }
+      for (let specInd = start; specInd < options.numSpecies; specInd++) {
+        let regex = new RegExp(
+          "\\b" +
+            listOfSpecies[specInd] +
+            "(_(x|xb|xf|xb2|xf2|xx|y|yb|yf|yb2|yf2|yy))?\\b"
+        );
+        if (
+          regex.test(strToTest) ||
+          options[
+            "diffusionStr_" +
+              (ind + 1).toString() +
+              "_" +
+              (specInd + 1).toString()
+          ] != "0"
+        ) {
+          dependencies.push(listOfSpecies[specInd]);
+        }
+      }
+      if (dependencies != [])
+        allDependencies[listOfSpecies[ind]] = dependencies;
+    }
+    // Now we have all the dependencies, check if we have any loops.
+    let doneDict = {};
+    let stack = [];
+    let badNames = [];
+    for (let name of listOfSpecies.slice(start, options.numSpecies)) {
+      checkForCyclicDependencies(
+        name,
+        doneDict,
+        stack,
+        allDependencies,
+        badNames
+      );
+    }
+    if (badNames.length > 0) {
+      throwError(
+        "Cyclic variables detected. Please check the definition(s) of " +
+          badNames.join(", ") +
+          ". Click <a href='/user-guide/FAQ#cyclic' target='blank'>here</a> for more information."
+      );
+      return;
+    }
+  }
+
   // If v should be algebraic, append this to the normal update shader.
   if (algebraicV && options.crossDiffusion) {
     algebraicShader += selectSpeciesInShaderStr(
@@ -3532,43 +3628,39 @@ function setRDEquations() {
   let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
   let type = "FE";
-  simMaterials[type].fragmentShader = [
-    kineticStr,
-    RDShaderTop(type),
-    middle,
-    RDShaderMain(type),
-    bot,
-  ].join(" ");
+  simMaterials[type].fragmentShader = replaceMINXMINY(
+    [kineticStr, RDShaderTop(type), middle, RDShaderMain(type), bot].join(" ")
+  );
 
   type = "AB2";
-  simMaterials[type].fragmentShader = [
-    kineticStr,
-    RDShaderTop(type),
-    middle,
-    RDShaderMain(type),
-    bot,
-  ].join(" ");
+  simMaterials[type].fragmentShader = replaceMINXMINY(
+    [kineticStr, RDShaderTop(type), middle, RDShaderMain(type), bot].join(" ")
+  );
 
   type = "Mid";
   for (let ind = 1; ind < 3; ind++) {
-    simMaterials[type + ind.toString()].fragmentShader = [
-      kineticStr,
-      RDShaderTop(type + ind.toString()),
-      middle,
-      RDShaderMain(type + ind.toString()),
-      bot,
-    ].join(" ");
+    simMaterials[type + ind.toString()].fragmentShader = replaceMINXMINY(
+      [
+        kineticStr,
+        RDShaderTop(type + ind.toString()),
+        middle,
+        RDShaderMain(type + ind.toString()),
+        bot,
+      ].join(" ")
+    );
   }
 
   type = "RK4";
   for (let ind = 1; ind < 5; ind++) {
-    simMaterials[type + ind.toString()].fragmentShader = [
-      kineticStr,
-      RDShaderTop(type + ind.toString()),
-      middle,
-      RDShaderMain(type + ind.toString()),
-      bot,
-    ].join(" ");
+    simMaterials[type + ind.toString()].fragmentShader = replaceMINXMINY(
+      [
+        kineticStr,
+        RDShaderTop(type + ind.toString()),
+        middle,
+        RDShaderMain(type + ind.toString()),
+        bot,
+      ].join(" ")
+    );
   }
 
   Object.keys(simMaterials).forEach(
@@ -3613,6 +3705,7 @@ function setRDEquations() {
       });
     }
     dirichletShader += "}";
+    dirichletShader = replaceMINXMINY(dirichletShader);
     dirichletMaterial.fragmentShader = dirichletShader;
     dirichletMaterial.needsUpdate = true;
   }
@@ -4105,6 +4198,7 @@ function setClearShader() {
   shaderStr += "float w = " + parseShaderString(options.initCond_3) + ";\n";
   shaderStr += "float q = " + parseShaderString(options.initCond_4) + ";\n";
   shaderStr += clearShaderBot();
+  shaderStr = replaceMINXMINY(shaderStr);
   clearMaterial.fragmentShader = shaderStr;
   clearMaterial.needsUpdate = true;
 }
@@ -4299,6 +4393,7 @@ function setPostFunFragShader() {
     "OVERLAYEXPR",
     parseShaderString(options.overlayExpr)
   );
+  shaderStr = replaceMINXMINY(shaderStr);
   setOverlayUniforms();
   postMaterial.fragmentShader = shaderStr + postGenericShaderBot();
   postMaterial.needsUpdate = true;
@@ -4401,7 +4496,12 @@ function configureGUI() {
   let Qtooltip = tooltip.replace(" " + listOfSpecies[2] + ",", "");
   let Wtooltip = tooltip.replace(" " + listOfSpecies[3] + ",", "");
 
-  if (options.dimension == 1) tooltip = tooltip.replace(" y,", "");
+  if (options.dimension == 1) {
+    tooltip = tooltip.replace(" y,", "");
+    hideGUIController(minYController);
+  } else {
+    showGUIController(minYController);
+  }
   if (options.crossDiffusion && parseInt(options.numSpecies) > 1) {
     if (!updatingAlgebraicSpecies) {
       updateGUIDropdown(
@@ -5742,10 +5842,6 @@ function checkForNaN() {
     shouldCheckNaN = false;
     fadein("#oops_hit_nan");
     pauseSim();
-    $("#oops_hit_nan").one("click", function () {
-      fadeout("#oops_hit_nan");
-      shouldCheckNaN = true;
-    });
     $("#erase").one("pointerdown", function () {
       fadeout("#oops_hit_nan");
       shouldCheckNaN = true;
@@ -5935,6 +6031,7 @@ function configurePlotType() {
   setDisplayColourAndType();
   configureCameraAndClicks();
   configureGUI();
+  configureCursorDisplay();
 }
 
 function configureDimension() {
@@ -5952,6 +6049,7 @@ function configureDimension() {
       configurePlotType();
     }
   }
+  if (options.dimension == 1) options.minY = "0.0";
   resize();
   setRDEquations();
   setEquationDisplayType();
@@ -6109,7 +6207,7 @@ function evaluateParamVals(strs) {
     throwError(
       "Cyclic parameters detected. Please check the definition(s) of " +
         badNames.join(", ") +
-        "."
+        ". Click <a href='/user-guide/FAQ#cyclic' target='blank'>here</a> for more information."
     );
   }
   return Object.keys(valDict).map((x) => [x, valDict[x]]);
@@ -6131,7 +6229,7 @@ function evaluateParam(name, strDict, valDict, stack, names, badNames) {
       valDict[otherName] = 0.0;
       strDict[otherName] = "0";
       strDict[name] = "0";
-      badNames.push(otherName);
+      badNames.push(stack.slice(stack.indexOf(otherName)));
     } else {
       // Otherwise, try and evaluate the parameter and substitute the value into the expression.
       [valDict, , badNames] = evaluateParam(
@@ -6653,9 +6751,6 @@ function throwError(message) {
     // Otherwise, create a new error message.
     $("#error_description").html(message);
     fadein("#error");
-    $("#error").one("click", function () {
-      fadeout("#error");
-    });
   }
 }
 
@@ -7381,4 +7476,76 @@ function sortObject(obj) {
       result[key] = obj[key];
       return result;
     }, {});
+}
+
+function replaceMINXMINY(str) {
+  str = str.replaceAll(/\bMINX\b/g, () => parseShaderString(options.minX));
+  str = str.replaceAll(/\bMINY\b/g, () => parseShaderString(options.minY));
+  return str;
+}
+
+function checkForCyclicDependencies(
+  name,
+  doneDict,
+  stack,
+  dependencies,
+  badNames
+) {
+  // If we know the name is safe already, don't do anything.
+  if (name in doneDict) return [doneDict, stack.slice(0, -1), badNames];
+  // Find any names and check them.
+  for (const otherName of dependencies[name]) {
+    // Check if it's something we're already trying to evaluate.
+    if (stack.includes(otherName)) {
+      // We've hit a quantity that we're already trying to evaluate - cyclic!
+      // Record the name as bad so that we can throw an error.
+      badNames.push(stack.slice(stack.indexOf(otherName)));
+    } else {
+      // Otherwise, check for its dependencies.
+      [doneDict, , badNames] = checkForCyclicDependencies(
+        otherName,
+        doneDict,
+        [...stack, otherName],
+        dependencies,
+        badNames
+      );
+    }
+  }
+  // Record that we've done this name.
+  doneDict[name] = true;
+  return [doneDict, stack.slice(0, -1), badNames];
+}
+
+function configureCursorDisplay() {
+  // Default cursor.
+  $("#simCanvas").css("cursor", "auto");
+  if (
+    !options.brushEnabled ||
+    options.plotType == "surface" ||
+    options.plotType == "line"
+  ) {
+    return;
+  }
+
+  // If we're looking at a plane plot, match the brush type.
+  switch (options.brushType) {
+    case "circle":
+      $("#simCanvas").css(
+        "cursor",
+        "url('images/cursor-circle.svg') 12 12, auto"
+      );
+      break;
+    case "hline":
+      $("#simCanvas").css(
+        "cursor",
+        "url('images/cursor-hline.svg') 32 32, auto"
+      );
+      break;
+    case "vline":
+      $("#simCanvas").css(
+        "cursor",
+        "url('images/cursor-vline.svg') 32 32, auto"
+      );
+      break;
+  }
 }

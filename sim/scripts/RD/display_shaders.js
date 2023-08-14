@@ -145,8 +145,8 @@ export function contourShader() {
 }
 
 export function overlayShader() {
-  return `float x = textureCoords.x * L_x / dxUpscaledScale;
-  float y = textureCoords.y * L_y / dyUpscaledScale;
+  return `float x = MINX + textureCoords.x * L_x / dxUpscaledScale;
+  float y = MINY + textureCoords.y * L_y / dyUpscaledScale;
   vec4 uvwq = texture2D(textureSource1, textureCoords);
   vec4 uvwqL = texture2D(textureSource1, textureCoords + vec2(-step_x, 0.0));
   vec4 uvwqR = texture2D(textureSource1, textureCoords + vec2(+step_x, 0.0));

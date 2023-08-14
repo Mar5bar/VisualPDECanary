@@ -430,6 +430,11 @@ canvas {
 
 p.error_para {
   margin-bottom: 0.9rem;
+  -webkit-user-select: auto;
+  -khtml-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
 }
 
 i.icon_on_text_button {
