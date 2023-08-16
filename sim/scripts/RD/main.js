@@ -6095,7 +6095,7 @@ function sanitise(str) {
 
 function getKineticParamNames() {
   // Return a list of parsed kinetic parameter names.
-  const regex = /^\s*(\w+)\b/;
+  const regex = /^\s*([a-zA-Z]\w*)\b/;
   let names = [];
   getKineticParamDefs()
     .split(";")
@@ -6106,6 +6106,28 @@ function getKineticParamNames() {
       }
     });
   return names;
+}
+
+function getKineticParamNameVals() {
+  // Return a list of pairs of kinetic parameter names and value strings.
+  const regex = /^\s*([a-zA-Z]\w*)\b\s*=\s*(.*)/;
+  let nameVals = [];
+  getKineticParamDefs()
+    .split(";")
+    .filter((x) => x.length > 0)
+    .forEach(function (x) {
+      const m = x.match(regex);
+      if (m) {
+        nameVals.push([m[1].trim(), m[2].trim()]);
+      } else {
+        throwError(
+          "Unable to evaluate the parameter definition '" +
+            x +
+            "'. Please check for syntax errors."
+        );
+      }
+    });
+  return nameVals;
 }
 
 function setKineticUniforms() {
@@ -6181,12 +6203,9 @@ function evaluateParamVals(strs) {
   let strDict = {};
   let valDict = {};
   let badNames = [];
-  strs.forEach(function (str) {
-    const [name, valStr] = str.split("=").map((x) => x.trim());
-    strDict[name] = valStr;
-  });
-  const nameVals = strs.map((x) => x.split("=").map((y) => y.trim()));
+  const nameVals = getKineticParamNameVals();
   const names = nameVals.map((x) => x[0]);
+  nameVals.forEach((x) => (strDict[x[0]] = x[1]));
   for (const nameVal of nameVals) {
     // Evaluate each parameter.
     let [name, val] = nameVal;
