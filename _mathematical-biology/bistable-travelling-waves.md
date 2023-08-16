@@ -37,9 +37,11 @@ In the above simulations, we considered $a$ near the boundary, and initial waves
 
 * Click within the domain to set the value of $u$ to 1 in some small region. You should notice that the initial population dies out quickly despite $u=1$ being locally stable. Diffusion is spreading the population too quickly.
 
-* Try pausing the simulation {{ layout.pause }}, painting a larger initial region of $u=1$, and then pressing {{ layout.play }} to set it in motion. You will notice that, for sufficiently large initial regions, the steady state $u=1$ can invade the steady state $u=0$. 
+* The parameter $R$ determines the size of the initial population. Increasing it slightly (e.g. setting $R=6.5$), allows the initial population to grow and overcome this diffusion-induced decay.
 
-* It is difficult to analytically determine conditions for when an invasion is successful or not, as it can depend on both the size and shape of the perturbation, as well as the parameters $a$ and $D$. You can explore different values of these parameters and how they influence the success or failure of a population to persist in a new environment. 
+* Alternatively, for smaller values of $R$, try pausing the simulation {{ layout.pause }}, painting a larger initial region of $u=1$, and then pressing {{ layout.play }} to set it in motion. You will notice that, for sufficiently large initial regions, the steady state $u=1$ can invade the steady state $u=0$. 
+
+* The precise quantities and geometry of these initial conditions can influence persistence. It is difficult to analytically determine conditions for when an invasion is successful or not, as it can depend on both the size and shape of the initial perturbation, as well as the parameters $a$ and $D$. You can explore different values of these parameters and how they influence the success or failure of a population to persist in a new environment. 
 
 # Advection & spatial Allee effects
 
