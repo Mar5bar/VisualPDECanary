@@ -907,8 +907,6 @@ function configureCameraAndClicks() {
   computeCanvasSizesAndAspect();
   switch (options.plotType) {
     case "line":
-      options.cameraTheta = 0;
-      options.cameraPhi = 0;
       controls.enabled = false;
       camera.zoom = 1;
       setCameraPos();
@@ -6058,10 +6056,12 @@ function configureDimension() {
 }
 
 function setCameraPos() {
+  const theta = options.plotType == "line" ? 0 : options.cameraTheta;
+  const phi = options.plotType == "line" ? 0 : options.cameraPhi;
   const pos = new THREE.Vector3().setFromSphericalCoords(
     1,
-    Math.PI / 2 - (options.cameraTheta * Math.PI) / 180,
-    -(options.cameraPhi * Math.PI) / 180
+    Math.PI / 2 - (theta * Math.PI) / 180,
+    -(phi * Math.PI) / 180
   );
   camera.position.set(pos.x, pos.y, pos.z);
   camera.lookAt(0, 0, 0);
