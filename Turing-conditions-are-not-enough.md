@@ -9,8 +9,8 @@ $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+u-v-eu^3,\\ \pd{v}{t}&=D\nabla^2 v+ a v(v
 * The [Keller-Segel chemotaxis simulation](/sim/?preset=TuringNotEnoughKellerSegel) corresponging to the equations
 
 $$
-\pd{u}{t} &=  \nabla^2 u - c\nabla \cdot(u\nabla v) +u(b - u)(u - d),\\
-\pd{v}{t} &= D \nabla^2 v + u-av.
+\begin{aligned}\pd{u}{t} &=  \nabla^2 u - c\vnabla \cdot(u\vnabla v) +u(b - u)(u - d),\\
+\pd{v}{t} &= D \nabla^2 v + u-av.\end{aligned}
 $$
 
 * The [Biharmonic simulation](/sim/?preset=TuringNotEnoughBiharmonic) given by the equation,
