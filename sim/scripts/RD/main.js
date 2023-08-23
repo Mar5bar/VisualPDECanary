@@ -5873,7 +5873,7 @@ function fillBuffer() {
 
 function checkColourbarPosition() {
   // If there's a potential overlap of the data display and the colourbar, move the former up.
-  if (options.colourbar && options.integrate | options.timeDisplay) {
+  if (options.colourbar && (options.integrate || options.timeDisplay)) {
     let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
     let bottomElm;
     options.integrate
