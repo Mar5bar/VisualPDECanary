@@ -4,22 +4,21 @@ export function getListOfPresets() {
   let listOfPresets = {};
 
   listOfPresets["TuringNotEnoughRD"] = {
-    arrowDensity: 1,
     brushRadius: "5",
     brushValue: "0.1",
     colourbar: true,
+    contours: true,
+    contourEpsilon: 0.001,
     diffusionStr_1_1: "1",
     diffusionStr_2_2: "D",
     diffusionStr_3_3: "0",
-    domainScale: "100",
     dt: 0.002,
     fixRandSeed: true,
-    initCond_1: "0.01*RANDN",
-    initCond_2: "0.01*RANDN",
+    initCond_1: "0.05*RANDN",
+    initCond_2: "0.05*RANDN",
     kineticParams: "a = 1.75;b = 18;c = 2;d = 5;e = 0.02;D = 30;",
     maxColourValue: 2.8,
     minColourValue: -0.5,
-    numTimestepsPerFrame: 100,
     preset: "TuringNotEnoughRD",
     reactionStr_1: "u-v-e*u^3",
     reactionStr_2: "a*v*(v+c)*(v-d)+b*u-e*v^3",
@@ -33,7 +32,6 @@ export function getListOfPresets() {
   };
 
   listOfPresets["TuringNotEnoughKellerSegel"] = {
-    arrowDensity: 1,
     brushRadius: "2",
     brushValue: "0.9*b",
     colourbar: true,
@@ -47,9 +45,8 @@ export function getListOfPresets() {
     fixRandSeed: true,
     initCond_1: "b+0.01*RANDN",
     initCond_2: "b/a",
-    kineticParams: "c = 3;D = 1;a = 1;b = 1;d = 0.8 in [0, 1];",
+    kineticParams: "c = 3;D = 1;a = 1;b = 1;d = 0.8 in [0, 1]",
     maxColourValue: 2,
-    minColourValue: 0,
     preset: "TuringNotEnoughKellerSegel",
     reactionStr_1: "u*(b-u)*(u-d)",
     reactionStr_2: "u-a*v",
@@ -62,7 +59,6 @@ export function getListOfPresets() {
   };
 
   listOfPresets["TuringNotEnoughBiharmonic"] = {
-    arrowDensity: 1,
     brushRadius: "2",
     brushValue: "0.9*c",
     colourbar: true,
@@ -75,7 +71,7 @@ export function getListOfPresets() {
     dt: 0.001,
     fixRandSeed: true,
     initCond_1: "c+0.01*RANDN",
-    kineticParams: "a = 5 ;b = 0.9 in [-2, 0.1, 2];c = 1;D = 1.45;",
+    kineticParams: "a = 5;b = 0.9 in [-2, 0.1, 2];c = 1;D = 1.45",
     maxColourValue: 1.2,
     minColourValue: -0.2,
     numAlgebraicSpecies: 1,
@@ -2682,7 +2678,7 @@ export function getListOfPresets() {
     boundaryConditions_4: "periodic",
     brushAction: "replace",
     brushEnabled: true,
-    brushRadius: 5,
+    brushRadius: "5",
     brushType: "circle",
     brushValue: "1",
     cameraPhi: 30,
