@@ -7,8 +7,6 @@ export function getListOfPresets() {
     brushRadius: "5",
     brushValue: "0.1",
     colourbar: true,
-    contours: true,
-    contourEpsilon: 0.001,
     diffusionStr_1_1: "1",
     diffusionStr_2_2: "D",
     diffusionStr_3_3: "0",
