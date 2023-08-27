@@ -79,7 +79,6 @@ export function getListOfPresets() {
     reactionStr_2: "0",
     reactionStr_3: "0",
     spatialStep: "0.5",
-    squareCanvas: true,
     threeDHeightScale: 0.3,
     timeDisplay: true,
     timesteppingScheme: "Mid",
