@@ -156,7 +156,7 @@ export function getListOfPresets() {
     reactionStr_2: "q",
     reactionStr_3: "(u - a*u^3 + v - b - w)/tau",
     reactionStr_4: "(b - u - 3*a*v - q)/tau",
-    spatialStep: "0.5",
+    spatialStep: "0.1",
     brushType: "vline",
     whatToDraw: "u",
     whatToPlot: "u",
