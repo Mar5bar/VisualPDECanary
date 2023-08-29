@@ -12,11 +12,11 @@ Here are some examples of a PDE solutions on a domain based on a [heart-shaped c
 
 Models like [FitzHugh–Nagumo](/mathematical-biology/fitzhugh-nagumo) are the basis for a lot of work in cardiac electrophysiology and related areas. So let's solve these PDEs in a heart!
 
-* Load the [interactive simulation](/sim/?preset=FHNBeatingHeart) and enjoy. You can click {{ layout.views }} and select **3D** to get a 3D view of the beating heart. Try [this simulation](/sim?preset=FHNGrowingHeart) for a crude implementation of these equations on a growing domain.
+* Load the [interactive simulation](/sim/?preset=FHNBeatingHeart) and enjoy. You can click {{ layout.views }} and select **3D** to get a 3D view of the beating heart. Try [this simulation](/sim/?preset=FHNGrowingHeart) for a crude implementation of these equations on a growing domain.
 
 # Chemotaxis
 
-The next example is based on the [Keller--Segel model for chemotaxis](/mathematical-biology/keller-segel). Load the [interactive simulation](/sim/?preset=KellerSegelHeart) and enjoy! Try [this simulation](/sim?preset=KellerSegelGrowingHeart) for a crude implementation of these equations on a growing domain.
+The next example is based on the [Keller--Segel model for chemotaxis](/mathematical-biology/keller-segel). Load the [interactive simulation](/sim/?preset=KellerSegelHeart) and enjoy! Try [this simulation](/sim/?preset=KellerSegelGrowingHeart) for a crude implementation of these equations on a growing domain.
 
 # Warm hearted
 
