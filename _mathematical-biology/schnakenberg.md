@@ -21,3 +21,5 @@ where we need $D>1$ to form patterns, and typically take $a,b>0$.
 * With $D=100$, the system forms spot-like patterns. If you reduce to $D=30$, instead stripe-like patterns will be formed. 
 
 * The homogeneous equilibrium can undergo Hopf bifurcations for small values of $1 > b > a \geq 0$. In this regime, one can find Turing patterns, homogeneous oscillations, and complex spatiotemporal interactions of Turing and Hopf instabilities. One example is [this simulation](/sim/?preset=SchnakenbergHopf), but you can find others by tweaking the parameters.
+
+* Check out [this simulation](/sim/?preset=SchnakenbergGrowingDisk) for a crude implementation of the Schnakenberg system on a growing domain with Dirichlet boundary conditions.
