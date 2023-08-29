@@ -1346,9 +1346,9 @@ export function getListOfPresets() {
   listOfPresets["FHNGrowingHeart"] = {
     brushRadius: "5.5",
     domainIndicatorFun:
-      "(min(L/50 + 0.3*t,L_min/3))^5*(((x-L_x/2)/(min(L/50 + 0.3*t,L_min/3)))^2 + ((y-L_y/2)/(min(L/50 + 0.3*t,L_min/3)))^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
+      "(min(L/50 + 0.3*ts*t,L_min/3))^5*(((x-L_x/2)/(min(L/50 + 0.3*ts*t,L_min/3)))^2 + ((y-L_y/2)/(min(L/50 + 0.3*ts*t,L_min/3)))^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
     dt: 0.002,
-    kineticParams: "e_v = 0.5;a_v = .01;a_z = -0.1;ts = 0.2",
+    kineticParams: "e_v = 0.5;a_v = .01;a_z = -0.1;ts = 1.0",
     parent: "FHNBeatingHeart",
     preset: "FHNGrowingHeart",
     spatialStep: "0.3",
@@ -1874,8 +1874,8 @@ export function getListOfPresets() {
   listOfPresets["KellerSegelGrowingHeart"] = {
     brushRadius: "5.5",
     domainIndicatorFun:
-      "(min(L/50 + 0.5*t,L_min/3))^5*(((x-L_x/2)/(min(L/50 + 0.5*t,L_min/3)))^2 + ((y-L_y/2)/(min(L/50 + 0.5*t,L_min/3)))^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
-    kineticParams: "c = 4;a = 0.1;ts = 0.5",
+      "(min(L/50 + 0.5*ts*t,L_min/3))^5*(((x-L_x/2)/(min(L/50 + 0.5*ts*t,L_min/3)))^2 + ((y-L_y/2)/(min(L/50 + 0.5*ts*t,L_min/3)))^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
+    kineticParams: "c = 4;a = 0.1;ts = 1.0",
     parent: "KellerSegelHeart",
     preset: "KellerSegelGrowingHeart",
     spatialStep: "0.3",
@@ -2445,12 +2445,12 @@ export function getListOfPresets() {
     boundaryConditions_1: "dirichlet",
     boundaryConditions_2: "dirichlet",
     brushRadius: "2",
-    domainIndicatorFun: "min((15+t),L_min/2)^2 - ((x-L_x/2)^2 + (y-L_y/2)^2)",
+    domainIndicatorFun: "min((15+ts*t),L_min/2)^2 - ((x-L_x/2)^2 + (y-L_y/2)^2)",
     domainScale: "400",
     domainViaIndicatorFun: true,
     dt: 0.001,
     initCond_1: "a + b+RANDN",
-    kineticParams: "D_v = 100 in [0, 100];a = 0.01;b = 2",
+    kineticParams: "D_v = 100 in [0, 100];a = 0.01;b = 2;ts=1.0",
     numTimestepsPerFrame: 100,
     parent: "Schnakenberg",
     preset: "SchnakenbergGrowingDisk",
