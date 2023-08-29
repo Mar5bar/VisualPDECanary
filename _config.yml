@@ -60,6 +60,9 @@ collections:
   numerical-methods:
     output: true
     title: Numerical Methods
+  research:
+    output: true
+    title: Research
 
 defaults:
   -

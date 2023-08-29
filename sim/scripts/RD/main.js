@@ -907,8 +907,6 @@ function configureCameraAndClicks() {
   computeCanvasSizesAndAspect();
   switch (options.plotType) {
     case "line":
-      options.cameraTheta = 0;
-      options.cameraPhi = 0;
       controls.enabled = false;
       camera.zoom = 1;
       setCameraPos();
@@ -4997,7 +4995,7 @@ function setEquationDisplayType() {
     str = replaceUserDefReac(str, regexes["WFUN"], associatedStrs["WFUN"]);
     str = replaceUserDefReac(str, regexes["QFUN"], associatedStrs["QFUN"]);
 
-    // Look through the string for any open brackets ( or [ followed by a + or -.
+    // Look through the string for any open brackets ( or [ followed by a +.
     regex = /\(\s*\+/g;
     while (str != (str = str.replace(regex, "(")));
     regex = /\[\s*\+/g;
@@ -5024,22 +5022,21 @@ function setEquationDisplayType() {
 
     // If we have [-blah] inside a divergence operator, move the minus sign outside.
     regex =
-      /(\\vnabla\s*\\cdot\s*\()\[-([\w\{\}]*)\]\s*(\\vnabla\s*([uvwq])\s*\))/g;
+      /(\\vnabla\s*\\cdot\s*\()\[-([\w\{\}\(\)]*)\]\s*(\\vnabla\s*([uvwq])\s*\))/g;
     str = str.replaceAll(regex, "-$1$2$3");
 
+    // Look for div(grad(blah)) and replace it with lap.
+    regex = /\\vnabla\s*\\cdot\s*\(\s*\\vnabla\s*([uvwq])\s*\)/g;
+    str = str.replaceAll(regex, "\\lap $1");
+
     // Look for div(const * grad(blah)), and move the constant outside the bracket.
-    // By this point, a single word (with no square brackets) in the divergence must be a single expression.
-    // If it's not x,y,u,v,w,q, I_T, I_S, move it outside the brackets.
-    // First, if it's just a diffusion coefficient, move it outside, as they have already been checked for
-    // constancy.
+    // Constant in space <=> it doesn't contain [xy], [uvwq](?:_[x|y|xx|yy])?, (?:I_[ST][RGBA]?).
     regex =
-      /\\vnabla\s*\\cdot\s*\((D_\{\w+(?: \w+)?\})\s*\\vnabla\s*([uvwq])\s*\)/g;
-    str = str.replaceAll(regex, "$1 \\lap $2");
-    regex = /\\vnabla\s*\\cdot\s*\(([\w\{\}\*\^]*)\s*\\vnabla\s*([uvwq])\s*\)/g;
+      /\\vnabla\s*\\cdot\s*\(\s*((?!\\vnabla).*)\s*\\vnabla\s*([uvwq])\s*\)/g;
     str = str.replaceAll(regex, function (match, g1, g2) {
-      const innerRegex = /\b[xy]|[uvwq]|(?:I_[ST][RGBA]?)\b/g;
+      const innerRegex = /\b(?:[xy]|[uvwq](?:_[xy])?|(?:I_[ST][RGBA]?))\b/g;
       if (!innerRegex.test(g1)) {
-        return g1 + " \\lap " + g2;
+        return g1.trim() + " \\lap " + g2;
       } else {
         return match;
       }
@@ -5875,7 +5872,7 @@ function fillBuffer() {
 
 function checkColourbarPosition() {
   // If there's a potential overlap of the data display and the colourbar, move the former up.
-  if (options.colourbar && options.integrate | options.timeDisplay) {
+  if (options.colourbar && (options.integrate || options.timeDisplay)) {
     let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
     let bottomElm;
     options.integrate
@@ -5979,24 +5976,20 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
   // E.g. str = some TeX, regex = /(D_{uu}) (\\vnabla u)/g; input = "2*a"; delimiters = " ";
   // If the input is 0, just remove the original from str.
   let trimmed = input.replace(/\s+/g, "  ").trim();
-  if (trimmed == "0" || trimmed == "0.0") return str.replaceAll(regex, "");
+  if (["0", "0.0", "-0", "-0.0", "+0", "+0.0"].includes(trimmed))
+    return str.replaceAll(regex, "");
   if (trimmed == "1" || trimmed == "1.0") return str.replaceAll(regex, "$2");
-  if (trimmed == "-1" || trimmed == "-1.0") return str.replaceAll(regex, "-$2");
-  // If the input contains letters (like parameters), insert it with delimiters.
-  if (input.match(/[a-zA-Z]/)) {
-    if (input.match(/[\+-]/) && delimiters != undefined) {
-      // If it needs delimiting.
-      return str.replaceAll(
-        regex,
-        delimiters[0] + input + delimiters[1] + "$2"
-      );
-    } else {
-      // If it doesn't need delimiting.
-      return str.replaceAll(regex, input + "$2");
-    }
+  if (trimmed == "-1" || trimmed == "-1.0")
+    return str.replaceAll(regex, delimiters[0] + "-" + delimiters[1] + "$2");
+  // If the input contains + or - without anything before them, insert it with delimiters.
+  if (
+    input.match(/(?<!^)(?<!\\selected\{\s*)[\+-]/) &&
+    delimiters != undefined
+  ) {
+    return str.replaceAll(regex, delimiters[0] + input + delimiters[1] + "$2");
+  } else {
+    return str.replaceAll(regex, input + "$2");
   }
-  // If it's just a scalar, keep the original.
-  return str;
 }
 
 function configurePlotType() {
@@ -6058,10 +6051,12 @@ function configureDimension() {
 }
 
 function setCameraPos() {
+  const theta = options.plotType == "line" ? 0 : options.cameraTheta;
+  const phi = options.plotType == "line" ? 0 : options.cameraPhi;
   const pos = new THREE.Vector3().setFromSphericalCoords(
     1,
-    Math.PI / 2 - (options.cameraTheta * Math.PI) / 180,
-    -(options.cameraPhi * Math.PI) / 180
+    Math.PI / 2 - (theta * Math.PI) / 180,
+    -(phi * Math.PI) / 180
   );
   camera.position.set(pos.x, pos.y, pos.z);
   camera.lookAt(0, 0, 0);
@@ -6095,7 +6090,7 @@ function sanitise(str) {
 
 function getKineticParamNames() {
   // Return a list of parsed kinetic parameter names.
-  const regex = /^\s*(\w+)\b/;
+  const regex = /^\s*([a-zA-Z]\w*)\b/;
   let names = [];
   getKineticParamDefs()
     .split(";")
@@ -6106,6 +6101,28 @@ function getKineticParamNames() {
       }
     });
   return names;
+}
+
+function getKineticParamNameVals() {
+  // Return a list of pairs of kinetic parameter names and value strings.
+  const regex = /^\s*([a-zA-Z]\w*)\b\s*=\s*(.*)/;
+  let nameVals = [];
+  getKineticParamDefs()
+    .split(";")
+    .filter((x) => x.length > 0)
+    .forEach(function (x) {
+      const m = x.match(regex);
+      if (m) {
+        nameVals.push([m[1].trim(), m[2].trim()]);
+      } else {
+        throwError(
+          "Unable to evaluate the parameter definition '" +
+            x +
+            "'. Please check for syntax errors."
+        );
+      }
+    });
+  return nameVals;
 }
 
 function setKineticUniforms() {
@@ -6181,12 +6198,9 @@ function evaluateParamVals(strs) {
   let strDict = {};
   let valDict = {};
   let badNames = [];
-  strs.forEach(function (str) {
-    const [name, valStr] = str.split("=").map((x) => x.trim());
-    strDict[name] = valStr;
-  });
-  const nameVals = strs.map((x) => x.split("=").map((y) => y.trim()));
+  const nameVals = getKineticParamNameVals();
   const names = nameVals.map((x) => x[0]);
+  nameVals.forEach((x) => (strDict[x[0]] = x[1]));
   for (const nameVal of nameVals) {
     // Evaluate each parameter.
     let [name, val] = nameVal;

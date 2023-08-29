@@ -2,6 +2,90 @@
 
 export function getListOfPresets() {
   let listOfPresets = {};
+
+  listOfPresets["TuringNotEnoughRD"] = {
+    brushRadius: "5",
+    brushValue: "0.1",
+    colourbar: true,
+    diffusionStr_1_1: "1",
+    diffusionStr_2_2: "D",
+    diffusionStr_3_3: "0",
+    dt: 0.002,
+    fixRandSeed: true,
+    initCond_1: "0.05*RANDN",
+    initCond_2: "0.05*RANDN",
+    kineticParams: "a = 1.75;b = 18;c = 2;d = 5;e = 0.02;D = 30;",
+    maxColourValue: 2.8,
+    minColourValue: -0.5,
+    preset: "TuringNotEnoughRD",
+    reactionStr_1: "u-v-e*u^3",
+    reactionStr_2: "a*v*(v+c)*(v-d)+b*u-e*v^3",
+    reactionStr_3: "0",
+    spatialStep: "0.5",
+    threeDHeightScale: 0.3,
+    timeDisplay: true,
+    timesteppingScheme: "Mid",
+    whatToDraw: "u",
+    whatToPlot: "u",
+  };
+
+  listOfPresets["TuringNotEnoughKellerSegel"] = {
+    brushRadius: "2",
+    brushValue: "0.9*b",
+    colourbar: true,
+    crossDiffusion: true,
+    diffusionStr_1_1: "1",
+    diffusionStr_1_2: "-c*u",
+    diffusionStr_2_2: "D",
+    diffusionStr_3_3: "0",
+    domainScale: "80",
+    dt: 0.002,
+    fixRandSeed: true,
+    initCond_1: "b+0.01*RANDN",
+    initCond_2: "b/a",
+    kineticParams: "c = 3;D = 1;a = 1;b = 1;d = 0.8 in [0, 1]",
+    maxColourValue: 2,
+    preset: "TuringNotEnoughKellerSegel",
+    reactionStr_1: "u*(b-u)*(u-d)",
+    reactionStr_2: "u-a*v",
+    reactionStr_3: "0",
+    spatialStep: "0.2",
+    suppressTryClickingPopup: true,
+    threeDHeightScale: 0.3,
+    whatToDraw: "u",
+    whatToPlot: "u",
+  };
+
+  listOfPresets["TuringNotEnoughBiharmonic"] = {
+    brushRadius: "2",
+    brushValue: "0.9*c",
+    colourbar: true,
+    crossDiffusion: true,
+    diffusionStr_1_1: "-D",
+    diffusionStr_1_2: "-1",
+    diffusionStr_2_1: "1",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    dt: 0.001,
+    fixRandSeed: true,
+    initCond_1: "c+0.01*RANDN",
+    kineticParams: "a = 5;b = 0.9 in [-2, 0.1, 2];c = 1;D = 1.45",
+    maxColourValue: 1.2,
+    minColourValue: -0.2,
+    numAlgebraicSpecies: 1,
+    numTimestepsPerFrame: 200,
+    preset: "TuringNotEnoughBiharmonic",
+    reactionStr_1: "a*u*(c-u)*(u-b)",
+    reactionStr_2: "0",
+    reactionStr_3: "0",
+    spatialStep: "0.5",
+    threeDHeightScale: 0.3,
+    timeDisplay: true,
+    timesteppingScheme: "Mid",
+    whatToDraw: "u",
+    whatToPlot: "u",
+  };
+
   listOfPresets["InhomogeneousFisherKPP"] = {
     arrowDensity: 1,
     boundaryConditions_1: "dirichlet",
@@ -40,8 +124,6 @@ export function getListOfPresets() {
 
   listOfPresets["TuringWaveFHN"] = {
     brushRadius: "2",
-    cameraPhi: 0,
-    cameraTheta: 0,
     initCond_1: "0.816682 + 0.05*RAND",
     initCond_2: "4.35762",
     colourbar: true,
@@ -74,7 +156,7 @@ export function getListOfPresets() {
     reactionStr_2: "q",
     reactionStr_3: "(u - a*u^3 + v - b - w)/tau",
     reactionStr_4: "(b - u - 3*a*v - q)/tau",
-    spatialStep: "0.5",
+    spatialStep: "0.1",
     brushType: "vline",
     whatToDraw: "u",
     whatToPlot: "u",
@@ -85,8 +167,6 @@ export function getListOfPresets() {
     autoPauseAt: 200,
     brushEnabled: false,
     brushRadius: "5",
-    cameraPhi: 0,
-    cameraTheta: 0,
     initCond_1: "1/cosh(x-L_x/10)^2",
     diffusionStr_1_1: "0",
     diffusionStr_2_2: "0",
@@ -120,8 +200,6 @@ export function getListOfPresets() {
     boundaryConditions_4: "neumann",
     brushEnabled: false,
     brushRadius: "5",
-    cameraPhi: 0,
-    cameraTheta: 0,
     initCond_1: "a*(1+0.2*cos(x*pi/L_x))",
     initCond_2: "b/a",
     colourbar: true,
@@ -160,8 +238,6 @@ export function getListOfPresets() {
     boundaryConditions_4: "neumann",
     brushAction: "smoothadd",
     brushRadius: "0.2",
-    cameraPhi: 0,
-    cameraTheta: 0,
     initCond_1: "a",
     initCond_2: "b/a",
     colourbar: true,
@@ -652,7 +728,6 @@ export function getListOfPresets() {
     algebraicV: true,
     brushEnabled: false,
     cameraTheta: 0.5,
-    cameraPhi: 0,
     initCond_1: "2/((cosh(x-L_x/4))^2)+2*(0.75)^2/((cosh(0.75*(x-0.4*L_x)))^2)",
     initCond_2:
       "-4/((cosh(x-L_x/4))^3)*(sinh(x-L_x/4))-4*(0.75)^3/(cosh(0.75*(x-0.4*L_x))^3)*sinh(0.75*(x-0.4*L_x))",
@@ -1176,26 +1251,25 @@ export function getListOfPresets() {
   };
 
   listOfPresets["bistableSurvival"] = {
-	"boundaryConditions_1": "neumann",
-	"brushAction": "smoothreplace",
-	"brushRadius": "R",
-	"colourmap": "water",
-	"diffusionStr_1_1": "D",
-	"diffusionStr_2_2": "0",
-	"diffusionStr_3_3": "0",
-	"dt": 0.005,
-	"initCond_1": "0",
-	"kineticParams": "a = 0.3 in [0, 1];D = 1 in [0, 2];R = 6 in [0,10];",
-	"numSpecies": 1,
-	"preset": "bistableSurvival",
-	"reactionStr_1": "u*(u-a)*(1-u)",
-	"reactionStr_2": "0",
-	"reactionStr_3": "0",
-	"spatialStep": "0.5",
-	"whatToDraw": "u",
-	"whatToPlot": "u",
-};
-
+    boundaryConditions_1: "neumann",
+    brushAction: "smoothreplace",
+    brushRadius: "R",
+    colourmap: "water",
+    diffusionStr_1_1: "D",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    dt: 0.005,
+    initCond_1: "0",
+    kineticParams: "a = 0.3 in [0, 1];D = 1 in [0, 2];R = 6 in [0,10];",
+    numSpecies: 1,
+    preset: "bistableSurvival",
+    reactionStr_1: "u*(u-a)*(1-u)",
+    reactionStr_2: "0",
+    reactionStr_3: "0",
+    spatialStep: "0.5",
+    whatToDraw: "u",
+    whatToPlot: "u",
+  };
 
   listOfPresets["brusselator"] = {
     initCond_1: "a",
@@ -1267,6 +1341,19 @@ export function getListOfPresets() {
     views: [{ name: "Default" }, { name: "3D", plotType: "surface" }],
     whatToDraw: "u",
     whatToPlot: "u",
+  };
+
+  listOfPresets["FHNGrowingHeart"] = {
+    brushRadius: "5.5",
+    domainIndicatorFun:
+      "(min(L/50 + 0.3*t,L_min/3))^5*(((x-L_x/2)/(min(L/50 + 0.3*t,L_min/3)))^2 + ((y-L_y/2)/(min(L/50 + 0.3*t,L_min/3)))^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
+    dt: 0.002,
+    kineticParams: "e_v = 0.5;a_v = .01;a_z = -0.1;ts = 0.2",
+    parent: "FHNBeatingHeart",
+    preset: "FHNGrowingHeart",
+    spatialStep: "0.3",
+    squareCanvas: false,
+    timesteppingScheme: "Mid",
   };
 
   listOfPresets["CahnHilliard"] = {
@@ -1784,6 +1871,19 @@ export function getListOfPresets() {
     whatToPlot: "u",
   };
 
+  listOfPresets["KellerSegelGrowingHeart"] = {
+    brushRadius: "5.5",
+    domainIndicatorFun:
+      "(min(L/50 + 0.5*t,L_min/3))^5*(((x-L_x/2)/(min(L/50 + 0.5*t,L_min/3)))^2 + ((y-L_y/2)/(min(L/50 + 0.5*t,L_min/3)))^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
+    kineticParams: "c = 4;a = 0.1;ts = 0.5",
+    parent: "KellerSegelHeart",
+    preset: "KellerSegelGrowingHeart",
+    spatialStep: "0.3",
+    squareCanvas: false,
+    timeDisplay: true,
+    timesteppingScheme: "Mid",
+  };
+
   listOfPresets["KuramotoSivashinsky"] = {
     autoSetColourRange: true,
     brushValue: "-44",
@@ -2017,7 +2117,6 @@ export function getListOfPresets() {
   listOfPresets["travellingWave1D"] = {
     boundaryConditions_1: "neumann",
     cameraTheta: 0.5,
-    cameraPhi: 0,
     initCond_1: "K*(1+tanh(90*(0.05-x/100)))/2",
     colourbar: true,
     diffusionStr_1_1: "1",
@@ -2131,7 +2230,6 @@ export function getListOfPresets() {
     boundaryConditions_1: "neumann",
     brushRadius: 20,
     cameraTheta: 0.5,
-    cameraPhi: 0,
     cameraZoom: 1,
     initCond_1: "cos(m*pi*x/320)",
     diffusionStr_1_1: "1",
@@ -2222,8 +2320,6 @@ export function getListOfPresets() {
     arrowDensity: 1,
     brushAction: "smoothreplace",
     brushRadius: "5",
-    cameraPhi: 0,
-    cameraTheta: 0,
     initCond_1: "exp(-(35*pi)*(x/100-0.5)^2)",
     crossDiffusion: true,
     diffusionStr_1_1: "0",
@@ -2343,6 +2439,23 @@ export function getListOfPresets() {
     spatialStep: 0.5,
     whatToDraw: "u",
     whatToPlot: "u",
+  };
+
+  listOfPresets["SchnakenbergGrowingDisk"] = {
+    boundaryConditions_1: "dirichlet",
+    boundaryConditions_2: "dirichlet",
+    brushRadius: "2",
+    domainIndicatorFun: "min((15+t),L_min/2)^2 - ((x-L_x/2)^2 + (y-L_y/2)^2)",
+    domainScale: "400",
+    domainViaIndicatorFun: true,
+    dt: 0.001,
+    initCond_1: "a + b+RANDN",
+    kineticParams: "D_v = 100 in [0, 100];a = 0.01;b = 2",
+    numTimestepsPerFrame: 100,
+    parent: "Schnakenberg",
+    preset: "SchnakenbergGrowingDisk",
+    spatialStep: "0.8",
+    timesteppingScheme: "Mid",
   };
 
   listOfPresets["plateEquation"] = {
@@ -2485,8 +2598,6 @@ export function getListOfPresets() {
     boundaryConditions_2: "dirichlet",
     brushEnabled: false,
     brushRadius: "5",
-    cameraPhi: 0,
-    cameraTheta: 0,
     initCond_1: "exp(-(0.5*pi/s^2)*(x/100-x0)^2)*cos(a*x)/N",
     initCond_2: "exp(-(0.5*pi/s^2)*(x/100-x0)^2)*sin(a*x)/N",
     crossDiffusion: true,
@@ -2607,7 +2718,7 @@ export function getListOfPresets() {
     boundaryConditions_4: "periodic",
     brushAction: "replace",
     brushEnabled: true,
-    brushRadius: 5,
+    brushRadius: "5",
     brushType: "circle",
     brushValue: "1",
     cameraPhi: 30,
