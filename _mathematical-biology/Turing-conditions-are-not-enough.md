@@ -6,7 +6,7 @@ thumbnail: /assets/images/TuringNotEnough.webp
 extract: Beyond the limits of linear theory
 ---
 
-Linear stability theory is often used to predict regions of pattern-forming (or 'Turing') instabilities. However, in the presence of multiple homogeneous equilibria, these instabilities do not guarantee that a system develops a pattern. Here, we implement interactive versions of three local models in the paper "Turing instabilities are not enough to ensure pattern formation."
+Linear stability theory is often used to predict regions of pattern-forming (or 'Turing') instabilities. However, in the presence of multiple homogeneous equilibria, these instabilities do not guarantee that a system develops a pattern. Here, we implement interactive versions of three local models in the paper ["Turing instabilities are not enough to ensure pattern formation."](https://arxiv.org/abs/2308.15311)
 
 In each case, the default is a 2D spatial domain with periodic boundary conditions. The boundary conditions can be modified by clicking {{ layout.equations }} → **Boundary conditions**, and the domain can be changed to a 1D interval by clicking {{ layout.settings }} → **Domain** and setting the dimension to be 1. By default an initial small random perturbation of a homogeneous equilibrium is used to generate a Turing instability which eventually leads to the solution approaching a different homogeneous equilibrium. You can alternatively click to introduce a localised perturbation, or directly input a different initial condition. Importantly all parameters and functional forms can also be changed. Below we highlight specific parameters that give different dynamics.
 
