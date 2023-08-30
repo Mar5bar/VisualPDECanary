@@ -923,7 +923,7 @@ export function getListOfPresets() {
     numTimestepsPerFrame: 400,
     plotType: "line",
     preset: "BurgersEquation",
-    reactionStr_1: "- u * u_x",
+    reactionStr_1: "- u * u_xb",
     reactionStr_2: "0",
     reactionStr_3: "0",
     spatialStep: 2,
