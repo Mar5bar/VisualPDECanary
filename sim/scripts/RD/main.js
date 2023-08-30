@@ -6438,14 +6438,23 @@ function setCustomNames() {
   if (isLoading) return;
 
   // If we're not loading in, go through options and replace the old species with the new ones.
+  const excludes = [
+    "initCond_1",
+    "initCond_2",
+    "initCond_3",
+    "initCond_4",
+    "kineticParams",
+  ];
   Object.keys(options).forEach(function (key) {
     if (userTextFields.includes(key)) {
-      options[key] = replaceSymbolsInStr(
-        options[key],
-        oldListOfSpecies,
-        listOfSpecies,
-        "_(?:[xy][xybf]?)"
-      );
+      if (!excludes.includes(key)) {
+        options[key] = replaceSymbolsInStr(
+          options[key],
+          oldListOfSpecies,
+          listOfSpecies,
+          "_(?:[xy][xybf]?)"
+        );
+      }
     }
   });
   options.views = options.views.map(function (view) {
@@ -6466,12 +6475,14 @@ function setCustomNames() {
   // Do the same for savedOptions.
   Object.keys(savedOptions).forEach(function (key) {
     if (userTextFields.includes(key)) {
-      savedOptions[key] = replaceSymbolsInStr(
-        savedOptions[key],
-        oldListOfSpecies,
-        listOfSpecies,
-        "_(?:[xy][xybf]?)"
-      );
+      if (!excludes.includes(key)) {
+        savedOptions[key] = replaceSymbolsInStr(
+          savedOptions[key],
+          oldListOfSpecies,
+          listOfSpecies,
+          "_(?:[xy][xybf]?)"
+        );
+      }
     }
   });
   savedOptions.views = savedOptions.views.map(function (view) {
