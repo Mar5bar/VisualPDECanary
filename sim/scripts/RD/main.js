@@ -3335,6 +3335,9 @@ function parseShaderString(str) {
     str != (str = str.replace(/([^.0-9a-zA-Z])(\d+)([^.0-9])/g, "$1$2.$3"))
   );
 
+  // Replace 'ind' with 'float' to cast the argument as a float.
+  str = str.replaceAll(/\bind\b/g, "float");
+
   return str;
 }
 
@@ -5142,6 +5145,7 @@ function parseStringToTEX(str) {
   str = replaceFunctionInTeX(str, "tanh", true);
   str = replaceFunctionInTeX(str, "max", true);
   str = replaceFunctionInTeX(str, "min", true);
+  str = replaceFunctionInTeX(str, "ind", true);
 
   // Remove *.
   str = str.replaceAll(/\*/g, " ");
@@ -5167,6 +5171,13 @@ function parseStringToTEX(str) {
 
   // If letters are followed by only numbers, assume that the numbers are a subscript.
   str = str.replaceAll(/\b([a-zA-Z]+)([0-9]+)\b/g, "$1_{$2}");
+
+  // Swap out weak inequalities for \geq \leq, with spaces.
+  str = str.replaceAll(/<=/g, " leq ");
+  str = str.replaceAll(/>=/g, " geq ");
+
+  // Add spaces around strict inequalities.
+  str = str.replaceAll(/([<>])/g, " $1 ");
 
   return str;
 }
