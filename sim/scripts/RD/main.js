@@ -2858,6 +2858,9 @@ function enforceDirichlet() {
 }
 
 function render() {
+  // Perform any postprocessing on the last computed values.
+  postprocess();
+
   // If selected, set the colour range.
   if (options.autoSetColourRange) {
     setColourRange();
@@ -2876,9 +2879,6 @@ function render() {
     clickDomain.position.y = options.threeDHeightScale * val;
     clickDomain.updateWorldMatrix();
   }
-
-  // Perform any postprocessing on the last computed values.
-  postprocess();
 
   // If this is a line plot, modify the line positions and colours before rendering.
   if (options.plotType == "line") {
@@ -4252,6 +4252,8 @@ function createImageControllers() {
 }
 
 function updateWhatToPlot() {
+  // Invalidate the solution buffer.
+  bufferFilled = false;
   setPostFunFragShader();
   showGUIController(minColourValueController);
   showGUIController(maxColourValueController);
