@@ -216,6 +216,8 @@ import {
   RDShaderDirichletIndicatorFun,
   RDShaderRobinX,
   RDShaderRobinY,
+  RDShaderRobinCustomDomainX,
+  RDShaderRobinCustomDomainY,
   RDShaderUpdateNormal,
   RDShaderUpdateCross,
   RDShaderAlgebraicSpecies,
@@ -1755,13 +1757,7 @@ function initGUI(startOpen) {
   root = leftGUI.addFolder("Boundary conditions");
 
   uBCsController = root
-    .add(options, "boundaryConditions_1", {
-      Periodic: "periodic",
-      Dirichlet: "dirichlet",
-      Neumann: "neumann",
-      Robin: "robin",
-      Combination: "combo",
-    })
+    .add(options, "boundaryConditions_1", {})
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
@@ -1786,13 +1782,7 @@ function initGUI(startOpen) {
     .onFinishChange(setRDEquations);
 
   vBCsController = root
-    .add(options, "boundaryConditions_2", {
-      Periodic: "periodic",
-      Dirichlet: "dirichlet",
-      Neumann: "neumann",
-      Robin: "robin",
-      Combination: "combo",
-    })
+    .add(options, "boundaryConditions_2", {})
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
@@ -1817,13 +1807,7 @@ function initGUI(startOpen) {
     .onFinishChange(setRDEquations);
 
   wBCsController = root
-    .add(options, "boundaryConditions_3", {
-      Periodic: "periodic",
-      Dirichlet: "dirichlet",
-      Neumann: "neumann",
-      Robin: "robin",
-      Combination: "combo",
-    })
+    .add(options, "boundaryConditions_3", {})
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
@@ -1848,13 +1832,7 @@ function initGUI(startOpen) {
     .onFinishChange(setRDEquations);
 
   qBCsController = root
-    .add(options, "boundaryConditions_4", {
-      Periodic: "periodic",
-      Dirichlet: "dirichlet",
-      Neumann: "neumann",
-      Robin: "robin",
-      Combination: "combo",
-    })
+    .add(options, "boundaryConditions_4", {})
     .name("$q$")
     .onChange(function () {
       setRDEquations();
@@ -3415,7 +3393,11 @@ function setRDEquations() {
   BCStrs.forEach(function (str, ind) {
     if (str == "neumann") {
       neumannShader += parseRobinRHS(NStrs[ind], listOfSpecies[ind]);
-      neumannShader += neumannUpdateShader(ind);
+      if (!options.domainViaIndicatorFun) {
+        neumannShader += neumannUpdateShader(ind);
+      } else {
+        neumannShader += neumannUpdateShaderCustomDomain(ind);
+      }
     } else if (str == "combo") {
       [
         ...MStrs[ind].matchAll(
@@ -3444,36 +3426,43 @@ function setRDEquations() {
   });
 
   // Create Dirichlet shaders.
-  if (options.domainViaIndicatorFun) {
-    // If the domain is being set by an indicator function, Dirichlet is the only allowable BC.
-    let str = RDShaderDirichletIndicatorFun().replace(
-      /indicatorFun/g,
-      parseShaderString(options.domainIndicatorFun)
-    );
-    DStrs.forEach(function (D, ind) {
-      dirichletShader +=
-        selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
-        parseShaderString(D) +
-        ";\n}\n";
-    });
-  } else {
-    BCStrs.forEach(function (str, ind) {
-      if (str == "dirichlet") {
+  BCStrs.forEach(function (str, ind) {
+    if (str == "dirichlet") {
+      if (!options.domainViaIndicatorFun) {
         dirichletShader += parseDirichletRHS(DStrs[ind], listOfSpecies[ind]);
         dirichletShader += dirichletUpdateShader(ind);
-      } else if (str == "combo") {
-        [
-          ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g
-          ),
-        ].forEach(function (m) {
-          const side = m[1][0].toUpperCase();
-          dirichletShader += parseDirichletRHS(m[2], listOfSpecies[ind], side);
-          dirichletShader += dirichletUpdateShader(ind, side);
-        });
+      } else {
+        let baseStr = RDShaderDirichletIndicatorFun().replace(
+          /indicatorFun/g,
+          parseShaderString(options.domainIndicatorFun)
+        );
+        dirichletShader +=
+          selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
+          parseShaderString(DStrs[ind]) +
+          ";\n}\n";
       }
-    });
-  }
+    } else if (str == "combo") {
+      [
+        ...MStrs[ind].matchAll(
+          /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g
+        ),
+      ].forEach(function (m) {
+        const side = m[1][0].toUpperCase();
+        dirichletShader += parseDirichletRHS(m[2], listOfSpecies[ind], side);
+        dirichletShader += dirichletUpdateShader(ind, side);
+      });
+    } else if (options.domainViaIndicatorFun) {
+      // Zero-out anything outside of the domain if we're using an indicator function.
+      let baseStr = RDShaderDirichletIndicatorFun().replace(
+        /indicatorFun/g,
+        parseShaderString(options.domainIndicatorFun)
+      );
+      dirichletShader +=
+        selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
+        "0.0" +
+        ";\n}\n";
+    }
+  });
 
   // Create a Robin shader block for each species separately.
   BCStrs.forEach(function (str, ind) {
@@ -3678,10 +3667,17 @@ function setRDEquations() {
         .replace(/indicatorFun/g, parseShaderString(options.domainIndicatorFun))
         .replace(/updated/g, "gl_FragColor");
       DStrs.forEach(function (D, ind) {
-        dirichletShader +=
-          selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
-          parseShaderString(D) +
-          ";\n}\n";
+        if (BCStrs[ind] == "dirichlet") {
+          dirichletShader +=
+            selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
+            parseShaderString(D) +
+            ";\n}\n";
+        } else {
+          dirichletShader +=
+            selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
+            "0.0" +
+            ";\n}\n";
+        }
       });
     } else {
       BCStrs.forEach(function (str, ind) {
@@ -3714,7 +3710,6 @@ function setRDEquations() {
 
 function checkForAnyDirichletBCs() {
   anyDirichletBCs =
-    options.domainViaIndicatorFun ||
     options.boundaryConditions_1 == "dirichlet" ||
     options.boundaryConditions_2 == "dirichlet" ||
     options.boundaryConditions_3 == "dirichlet" ||
@@ -4164,13 +4159,28 @@ function setBCsGUI() {
     hideGUIController(comboQController);
   }
 
+  const BCsControllers = [
+    uBCsController,
+    vBCsController,
+    wBCsController,
+    qBCsController,
+  ];
   if (options.domainViaIndicatorFun) {
-    hideGUIController(uBCsController);
-    hideGUIController(vBCsController);
-    hideGUIController(wBCsController);
-    hideGUIController(qBCsController);
+    BCsControllers.forEach((cont) =>
+      updateGUIDropdown(
+        cont,
+        ["Dirichlet", "Neumann"],
+        ["dirichlet", "neumann"]
+      )
+    );
   } else {
-    showGUIController(uBCsController);
+    BCsControllers.forEach((cont) =>
+      updateGUIDropdown(
+        cont,
+        ["Periodic", "Dirichlet", "Neumann", "Robin", "Combination"],
+        ["periodic", "dirichlet", "neumann", "robin", "combo"]
+      )
+    );
   }
 }
 
@@ -4716,11 +4726,15 @@ function configureOptions() {
   setAlgebraicVarsFromOptions();
 
   if (options.domainViaIndicatorFun) {
-    // Only allow Dirichlet conditions.
-    options.boundaryConditions_1 = "dirichlet";
-    options.boundaryConditions_2 = "dirichlet";
-    options.boundaryConditions_3 = "dirichlet";
-    options.boundaryConditions_4 = "dirichlet";
+    // Only allow Dirichlet or Neumann conditions.
+    if (!["dirichlet", "neumann"].includes(options.boundaryConditions_1))
+      options.boundaryConditions_1 = "dirichlet";
+    if (!["dirichlet", "neumann"].includes(options.boundaryConditions_2))
+      options.boundaryConditions_2 = "dirichlet";
+    if (!["dirichlet", "neumann"].includes(options.boundaryConditions_3))
+      options.boundaryConditions_3 = "dirichlet";
+    if (!["dirichlet", "neumann"].includes(options.boundaryConditions_4))
+      options.boundaryConditions_4 = "dirichlet";
   }
 
   // Set options that only depend on the number of species.
@@ -6976,6 +6990,27 @@ function neumannUpdateShader(speciesInd, side) {
   if (options.dimension > 1) {
     str += selectSpeciesInShaderStr(
       RDShaderRobinY(side),
+      listOfSpecies[speciesInd]
+    );
+  }
+  return str;
+}
+
+function neumannUpdateShaderCustomDomain(speciesInd, side) {
+  let str = "";
+  str += selectSpeciesInShaderStr(
+    RDShaderRobinCustomDomainX(
+      side,
+      parseShaderString(options.domainIndicatorFun)
+    ),
+    listOfSpecies[speciesInd]
+  );
+  if (options.dimension > 1) {
+    str += selectSpeciesInShaderStr(
+      RDShaderRobinCustomDomainY(
+        side,
+        parseShaderString(options.domainIndicatorFun)
+      ),
       listOfSpecies[speciesInd]
     );
   }
