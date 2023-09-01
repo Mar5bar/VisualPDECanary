@@ -3710,6 +3710,7 @@ function setRDEquations() {
 
 function checkForAnyDirichletBCs() {
   anyDirichletBCs =
+    options.domainViaIndicatorFun ||
     options.boundaryConditions_1 == "dirichlet" ||
     options.boundaryConditions_2 == "dirichlet" ||
     options.boundaryConditions_3 == "dirichlet" ||
@@ -5851,7 +5852,7 @@ function updateIntegralDisplay() {
     }
     let total = 0;
     for (let i = 0; i < buffer.length; i += 4) {
-      total += buffer[i];
+      total += buffer[i] * (1 - buffer[i + 1]);
     }
     total *= dA;
     $("#integralValue").html(formatLabelNum(total, 4));
