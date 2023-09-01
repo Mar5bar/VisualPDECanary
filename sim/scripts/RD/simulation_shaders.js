@@ -364,12 +364,12 @@ export function RDShaderRobinCustomDomainX(LR,fun) {
     if (indicatorFunL <= 0.0) {
         uvwqL.SPECIES = uvwqR.SPECIES + 2.0 * dx * robinRHSSPECIESL;
     }
-    `.replace(/indicatorFunL/,fun.replaceAll(/\bx\b/g,"(x-10.0*dx)"));
+    `.replace(/indicatorFunL/,fun.replaceAll(/\bx\b/g,"(x-dx)"));
   const R = `
     if (indicatorFunR <= 0.0) {
         uvwqR.SPECIES = uvwqL.SPECIES + 2.0 * dx * robinRHSSPECIESR;
     }
-    `.replace(/indicatorFunR/,fun.replaceAll(/\bx\b/g,"(x+10.0*dx)"));
+    `.replace(/indicatorFunR/,fun.replaceAll(/\bx\b/g,"(x+dx)"));
   if (LR == undefined) return L + R;
   if (LR == "L") return L;
   if (LR == "R") return R;
@@ -381,12 +381,12 @@ export function RDShaderRobinCustomDomainY(TB,fun) {
     if (indicatorFunT <= 0.0){
         uvwqT.SPECIES = uvwqB.SPECIES + 2.0 * dy * robinRHSSPECIEST;
     }
-    `.replace(/indicatorFunT/,fun.replaceAll(/\by\b/g,"(y+10.0*dy)"));
+    `.replace(/indicatorFunT/,fun.replaceAll(/\by\b/g,"(y+dy)"));
   const B = `
     if (indicatorFunB <= 0.0) {
         uvwqB.SPECIES = uvwqT.SPECIES + 2.0 * dy * robinRHSSPECIESB;
     }
-    `.replace(/indicatorFunB/,fun.replaceAll(/\by\b/g,"(y-10.0*dy)"));
+    `.replace(/indicatorFunB/,fun.replaceAll(/\by\b/g,"(y-dy)"));
   if (TB == undefined) return T + B;
   if (TB == "T") return T;
   if (TB == "B") return B;
