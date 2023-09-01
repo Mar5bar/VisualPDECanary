@@ -3394,9 +3394,9 @@ function setRDEquations() {
     if (str == "neumann") {
       neumannShader += parseRobinRHS(NStrs[ind], listOfSpecies[ind]);
       if (!options.domainViaIndicatorFun) {
-        neumannShader += neumannUpdateShader(ind);
+        neumannShader += robinUpdateShader(ind);
       } else {
-        neumannShader += neumannUpdateShaderCustomDomain(ind);
+        neumannShader += robinUpdateShaderCustomDomain(ind);
       }
     } else if (str == "combo") {
       [
@@ -3406,7 +3406,7 @@ function setRDEquations() {
       ].forEach(function (m) {
         const side = m[1][0].toUpperCase();
         neumannShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
-        neumannShader += neumannUpdateShader(ind, side);
+        neumannShader += robinUpdateShader(ind, side);
       });
     }
   });
@@ -3468,7 +3468,11 @@ function setRDEquations() {
   BCStrs.forEach(function (str, ind) {
     if (str == "robin") {
       robinShader += parseRobinRHS(RStrs[ind], listOfSpecies[ind]);
-      robinShader += robinUpdateShader(ind);
+      if (!options.domainViaIndicatorFun) {
+        robinShader += robinUpdateShader(ind);
+      } else {
+        robinShader += robinUpdateShaderCustomDomain(ind);
+      }
     } else if (str == "combo") {
       [
         ...MStrs[ind].matchAll(
@@ -4170,8 +4174,8 @@ function setBCsGUI() {
     BCsControllers.forEach((cont) =>
       updateGUIDropdown(
         cont,
-        ["Dirichlet", "Neumann"],
-        ["dirichlet", "neumann"]
+        ["Dirichlet", "Neumann", "Robin"],
+        ["dirichlet", "neumann", "robin"]
       )
     );
   } else {
@@ -4183,6 +4187,7 @@ function setBCsGUI() {
       )
     );
   }
+  refreshGUI(leftGUI);
 }
 
 function updateRandomSeed() {
@@ -6982,42 +6987,6 @@ function updateView(property) {
     options.views[options.activeViewInd][property] = options[property];
 }
 
-function neumannUpdateShader(speciesInd, side) {
-  let str = "";
-  str += selectSpeciesInShaderStr(
-    RDShaderRobinX(side),
-    listOfSpecies[speciesInd]
-  );
-  if (options.dimension > 1) {
-    str += selectSpeciesInShaderStr(
-      RDShaderRobinY(side),
-      listOfSpecies[speciesInd]
-    );
-  }
-  return str;
-}
-
-function neumannUpdateShaderCustomDomain(speciesInd, side) {
-  let str = "";
-  str += selectSpeciesInShaderStr(
-    RDShaderRobinCustomDomainX(
-      side,
-      parseShaderString(options.domainIndicatorFun)
-    ),
-    listOfSpecies[speciesInd]
-  );
-  if (options.dimension > 1) {
-    str += selectSpeciesInShaderStr(
-      RDShaderRobinCustomDomainY(
-        side,
-        parseShaderString(options.domainIndicatorFun)
-      ),
-      listOfSpecies[speciesInd]
-    );
-  }
-  return str;
-}
-
 function ghostUpdateShader(speciesInd, side, valStr) {
   let str = "";
   str += selectSpeciesInShaderStr(
@@ -7059,6 +7028,27 @@ function robinUpdateShader(speciesInd, side) {
   if (options.dimension > 1) {
     str += selectSpeciesInShaderStr(
       RDShaderRobinY(side),
+      listOfSpecies[speciesInd]
+    );
+  }
+  return str;
+}
+
+function robinUpdateShaderCustomDomain(speciesInd, side) {
+  let str = "";
+  str += selectSpeciesInShaderStr(
+    RDShaderRobinCustomDomainX(
+      side,
+      parseShaderString(options.domainIndicatorFun)
+    ),
+    listOfSpecies[speciesInd]
+  );
+  if (options.dimension > 1) {
+    str += selectSpeciesInShaderStr(
+      RDShaderRobinCustomDomainY(
+        side,
+        parseShaderString(options.domainIndicatorFun)
+      ),
       listOfSpecies[speciesInd]
     );
   }
