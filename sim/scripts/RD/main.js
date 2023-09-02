@@ -3795,12 +3795,11 @@ function loadPreset(preset) {
   initGUI();
 
   // Apply any specified view.
-  if (options.activeViewInd < options.views.length) {
-    applyView(options.views[options.activeViewInd], false, false);
-  } else {
-    // No valid view has been specified, so apply an empty view that can be customised.
-    applyView({}, true, false);
+  if (options.activeViewInd >= options.views.length) {
+    // No valid view has been specified, so apply the last view.
+    options.activeViewInd = options.views.length - 1;
   }
+  applyView(options.views[options.activeViewInd], false);
 
   // Update the equations, setup and GUI in line with new options.
   updateProblem();
