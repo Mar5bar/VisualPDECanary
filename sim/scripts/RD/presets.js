@@ -3,6 +3,46 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["GeneralisedWavePinningModel"] = {
+	"boundaryConditions_1": "neumann",
+	"boundaryConditions_2": "neumann",
+	"boundaryConditions_3": "neumann",
+	"brushRadius": "2",
+	"colourbar": true,
+	"colourmap": "midnight",
+	"diffusionStr_1_1": "delta",
+	"diffusionStr_2_2": "1",
+	"diffusionStr_3_3": "0",
+	"domainIndicatorFun": "I_T<0.8",
+	"domainScale": "5",
+	"domainViaIndicatorFun": true,
+	"dt": 0.00002,
+	"emboss": true,
+	"embossPhi": 0.9,
+	"embossSmoothness": 0.3,
+	"fixRandSeed": true,
+	"initCond_1": "0.1*RANDN+10*1/cosh(5*((x-L_x/2)^2+(y-L_y/2)^2))",
+	"initCond_2": "1",
+	"initCond_3": "1",
+  "imagePathTwo": "./images/Cardioid.png",
+	"kineticParams": "eta = 15*Ls^2;gamma = 30*Ls^2;s = 10*Ls^2;k = 1.5*Ls^2;n = 2;k_n = 24*Ls^2;k_s = 7.5*Ls^2;alpha = 1.5*Ls^2;theta = 4.5*Ls^2;c = 0.05 in [0, 1];delta=0.01;epsilon=0.1;Ls = 5;",
+	"maxColourValue": 1.8,
+	"numSpecies": "3",
+	"numTimestepsPerFrame": 200,
+	"preset": "GeneralisedWavePinningModel",
+	"reactionStr_1": "(k+gamma*u^n/(1+u^n))*v-(eta+s*F/(1+F))*u-c*theta*u",
+	"reactionStr_2": "-(k+gamma*u^n/(1+u^n))*v+(eta+s*F/(1+F))*u+c*alpha",
+	"reactionStr_3": "epsilon*(k_n*u-k_s*F)",
+	"spatialStep": "0.01",
+	"speciesNames": "u v F q",
+	"squareCanvas": true,
+	"timeDisplay": true,
+	"timesteppingScheme": "Mid",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+
+
   listOfPresets["urticaria"] = {
     brushRadius: "0.05",
     colourbar: true,
