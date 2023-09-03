@@ -3671,8 +3671,8 @@ function setRDEquations() {
     dirichletShader = kineticStr + RDShaderEnforceDirichletTop();
     if (options.domainViaIndicatorFun) {
       let str = RDShaderDirichletIndicatorFun()
-        .replace(/indicatorFun/g, parseShaderString(options.domainIndicatorFun))
-        .replace(/updated/g, "gl_FragColor");
+        .replace(/indicatorFun/, parseShaderString(options.domainIndicatorFun))
+        .replace(/updated/, "gl_FragColor");
       DStrs.forEach(function (D, ind) {
         if (BCStrs[ind] == "dirichlet") {
           dirichletShader +=
