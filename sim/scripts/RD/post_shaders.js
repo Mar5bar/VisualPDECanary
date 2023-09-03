@@ -77,19 +77,6 @@ export function computeDisplayFunShaderMid() {
         vec4 uvwqT = texture2D(textureSource, textureCoords + vec2(0.0, +step_y));
         vec4 uvwqB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y));
 
-        vec4 Svec = texture2D(imageSourceOne, textureCoords);
-        float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
-        float I_SR = Svec.r;
-        float I_SG = Svec.g;
-        float I_SB = Svec.b;
-        float I_SA = Svec.a;
-        vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
-        float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
-        float I_TR = Tvec.r;
-        float I_TG = Tvec.g;
-        float I_TB = Tvec.b;
-        float I_TA = Tvec.a;
-
         vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
         vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
         vec4 uvwqXF = (uvwqR - uvwq) / dx;

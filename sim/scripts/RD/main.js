@@ -2611,7 +2611,6 @@ function setBrushType() {
   // Insert any user-defined kinetic parameters, given as a string that needs parsing.
   // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
   let shaderStr = kineticUniformsForShader() + drawShaderTop();
-  shaderStr = replaceMINXMINY(shaderStr);
   let radiusStr =
     "float brushRadius = " +
     parseShaderString(options.brushRadius.toString()) +
@@ -2670,6 +2669,7 @@ function setBrushType() {
   configureCursorDisplay();
   // Substitute in the correct colour code.
   shaderStr = selectColourspecInShaderStr(shaderStr);
+  shaderStr = replaceMINXMINY(shaderStr);
   drawMaterial.fragmentShader = shaderStr;
   drawMaterial.needsUpdate = true;
 }
@@ -3305,6 +3305,9 @@ function parseShaderString(str) {
   // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
   str = sanitise(str);
 
+  // Replace images with function-evaluation notation, e.g. I_T -> I_T(x,y).
+  str = str.replaceAll(/\b(I_[ST][RBGA]?\b)\s*(?!\()/g, "$1(x,y) ");
+
   // Replace images evaluated at coordinates with appropriate shader expressions.
   str = enableImageLookupInShader(str);
 
@@ -3668,8 +3671,8 @@ function setRDEquations() {
     dirichletShader = kineticStr + RDShaderEnforceDirichletTop();
     if (options.domainViaIndicatorFun) {
       let str = RDShaderDirichletIndicatorFun()
-        .replace(/indicatorFun/g, parseShaderString(options.domainIndicatorFun))
-        .replace(/updated/g, "gl_FragColor");
+        .replace(/indicatorFun/, parseShaderString(options.domainIndicatorFun))
+        .replace(/updated/, "gl_FragColor");
       DStrs.forEach(function (D, ind) {
         if (BCStrs[ind] == "dirichlet") {
           dirichletShader +=
@@ -5194,8 +5197,8 @@ function parseStringToTEX(str) {
   str = str.replaceAll(/\b([a-zA-Z]+)([0-9]+)\b/g, "$1_{$2}");
 
   // Swap out weak inequalities for \geq \leq, with spaces.
-  str = str.replaceAll(/<=/g, " leq ");
-  str = str.replaceAll(/>=/g, " geq ");
+  str = str.replaceAll(/<=/g, " \\leq ");
+  str = str.replaceAll(/>=/g, " \\geq ");
 
   // Add spaces around strict inequalities.
   str = str.replaceAll(/([<>])/g, " $1 ");
@@ -5258,7 +5261,7 @@ function replaceFunctionInTeX(str, func, withBrackets) {
 function enableImageLookupInShader(str) {
   // Enable function evaluation in shaders.
   var newStr = str;
-  const matches = str.matchAll(/\bI_([TS])([RGBA])\b/g);
+  const matches = str.matchAll(/\bI_([TS])([RGBA])?\b/g);
   let funcInd,
     startInd,
     endInd,
@@ -5268,16 +5271,16 @@ function enableImageLookupInShader(str) {
     depth,
     foundBracket,
     ind,
+    toAddPart,
     toAdd,
     imNum,
     component,
     offset = 0;
   const imageLookup = { S: "One", T: "Two" };
-  const componentLookup = { R: "x", G: "y", B: "z", A: "w" };
+  const componentLookup = { R: "r", G: "g", B: "b", A: "a" };
   for (const match of matches) {
     funcInd = match.index;
     imNum = imageLookup[match[1]];
-    component = componentLookup[match[2]];
     startInd = funcInd + match[0].length;
     subStr = str.slice(startInd);
     ind = 0;
@@ -5303,15 +5306,17 @@ function enableImageLookupInShader(str) {
       args = argStr.split(",");
       // If the second argument is empty, put a zero in its place.
       if (args.length == 1 || args[1].trim().length == 0) args[1] = "0";
-      args[0] = "(" + args[0] + ")/L_x";
-      args[1] = "(" + args[1] + ")/L_y";
-      toAdd =
-        "texture(imageSource" +
-        imNum +
-        ",vec2(" +
-        args.join(",") +
-        "))." +
-        component;
+      args[0] = "(" + args[0] + "-MINX)/L_x";
+      args[1] = "(" + args[1] + "-MINY)/L_y";
+      toAddPart =
+        "texture(imageSource" + imNum + ",vec2(" + args.join(",") + ")).";
+      if (match[2] != undefined) {
+        component = componentLookup[match[2]];
+        toAdd = toAddPart + component;
+      } else {
+        component = ["r", "g", "b"];
+        toAdd = "(" + component.map((c) => toAddPart + c).join("+") + ")/3.0 ";
+      }
 
       newStr = replaceStrAtIndex(
         newStr,
@@ -5979,7 +5984,21 @@ function getReservedStrs(exclusions) {
   // Load an RD shader and find floats, vecs, and ivecs.
   let regex = /(?:float|vec\d|ivec\d|function|void)\b\s+(\w+)\b/g;
   let str = RDShaderTop() + RDShaderUpdateCross();
-  let reserved = [...str.matchAll(regex)].map((x) => x[1]).concat(exclusions);
+  let reserved = [...str.matchAll(regex)]
+    .map((x) => x[1])
+    .concat(exclusions)
+    .concat([
+      "I_T",
+      "I_TR",
+      "I_TG",
+      "I_TB",
+      "I_TA",
+      "I_S",
+      "I_SR",
+      "I_SG",
+      "I_SB",
+      "I_SA",
+    ]);
   return reserved;
 }
 

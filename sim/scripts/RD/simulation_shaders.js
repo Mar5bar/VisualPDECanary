@@ -108,19 +108,6 @@ export function RDShaderTop(type) {
         vec2 textureCoordsB = textureCoords + vec2(0.0, -step_y);
         vec2 textureCoordsBB = textureCoordsB + vec2(0.0, -step_y);
 
-        vec4 Svec = texture2D(imageSourceOne, textureCoords);
-        float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
-        float I_SR = Svec.r;
-        float I_SG = Svec.g;
-        float I_SB = Svec.b;
-        float I_SA = Svec.a;
-        vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
-        float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
-        float I_TR = Tvec.r;
-        float I_TG = Tvec.g;
-        float I_TB = Tvec.b;
-        float I_TA = Tvec.a;
-
         vec4 uvwq = uvwqIn;
         vec4 uvwqL = uvwqLIn;
         vec4 uvwqLL = uvwqLLIn;
@@ -247,18 +234,6 @@ export function RDShaderMain(type) {
       float step_y = 1.0 / float(texSize.y);
       float x = MINX + textureCoords.x * L_x;
       float y = MINY + textureCoords.y * L_y;
-      vec4 Svec = texture2D(imageSourceOne, textureCoords);
-      float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
-      float I_SR = Svec.r;
-      float I_SG = Svec.g;
-      float I_SB = Svec.b;
-      float I_SA = Svec.a;
-      vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
-      float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
-      float I_TR = Tvec.r;
-      float I_TG = Tvec.g;
-      float I_TB = Tvec.b;
-      float I_TA = Tvec.a;
 
       vec2 textureCoordsL = textureCoords + vec2(-step_x, 0.0);
       vec2 textureCoordsLL = textureCoordsL + vec2(-step_x, 0.0);
@@ -269,7 +244,6 @@ export function RDShaderMain(type) {
       vec2 textureCoordsB = textureCoords + vec2(0.0, -step_y);
       vec2 textureCoordsBB = textureCoordsB + vec2(0.0, -step_y);
       
-
       vec4 RHS;
       vec4 RHS1;
       vec4 RHS2;
@@ -365,12 +339,18 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
     if (float(indicatorFunL) <= 0.0 || textureCoords.x - step_x < 0.0) {
         uvwqL.SPECIES = uvwqR.SPECIES + 2.0 * dx * robinRHSSPECIESL;
     }
-    `.replace(/indicatorFunL/, fun.replaceAll(/\bx\b/g, "(x-dx)"));
+    `.replace(
+    /indicatorFunL/,
+    fun.replaceAll(/\bx\b/g, "(x-dx)").replaceAll(/\buvwq\./g, "uvwqL.")
+  );
   const R = `
     if (float(indicatorFunR) <= 0.0 || textureCoords.x + step_x > 1.0) {
         uvwqR.SPECIES = uvwqL.SPECIES + 2.0 * dx * robinRHSSPECIESR;
     }
-    `.replace(/indicatorFunR/, fun.replaceAll(/\bx\b/g, "(x+dx)"));
+    `.replace(
+    /indicatorFunR/,
+    fun.replaceAll(/\bx\b/g, "(x+dx)").replaceAll(/\buvwq\./g, "uvwqR.")
+  );
   if (LR == undefined) return L + R;
   if (LR == "L") return L;
   if (LR == "R") return R;
@@ -382,12 +362,18 @@ export function RDShaderRobinCustomDomainY(TB, fun) {
     if (float(indicatorFunT) <= 0.0 || textureCoords.y + step_y > 1.0){
         uvwqT.SPECIES = uvwqB.SPECIES + 2.0 * dy * robinRHSSPECIEST;
     }
-    `.replace(/indicatorFunT/, fun.replaceAll(/\by\b/g, "(y+dy)"));
+    `.replace(
+    /indicatorFunT/,
+    fun.replaceAll(/\by\b/g, "(y+dy)").replaceAll(/\buvwq\./g, "uvwqT.")
+  );
   const B = `
     if (float(indicatorFunB) <= 0.0 || textureCoords.y - step_y < 0.0) {
         uvwqB.SPECIES = uvwqT.SPECIES + 2.0 * dy * robinRHSSPECIESB;
     }
-    `.replace(/indicatorFunB/, fun.replaceAll(/\by\b/g, "(y-dy)"));
+    `.replace(
+    /indicatorFunB/,
+    fun.replaceAll(/\by\b/g, "(y-dy)").replaceAll(/\buvwq\./g, "uvwqB.")
+  );
   if (TB == undefined) return T + B;
   if (TB == "T") return T;
   if (TB == "B") return B;
@@ -614,18 +600,5 @@ export function RDShaderEnforceDirichletTop() {
 
         vec4 uvwq = texture2D(textureSource, textureCoords);
         gl_FragColor = uvwq;
-
-        vec4 Svec = texture2D(imageSourceOne, textureCoords);
-        float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
-        float I_SR = Svec.r;
-        float I_SG = Svec.g;
-        float I_SB = Svec.b;
-        float I_SA = Svec.a;
-        vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
-        float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
-        float I_TR = Tvec.r;
-        float I_TG = Tvec.g;
-        float I_TB = Tvec.b;
-        float I_TA = Tvec.a;
     `;
 }
