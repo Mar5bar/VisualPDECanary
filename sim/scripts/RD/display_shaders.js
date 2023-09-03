@@ -158,18 +158,6 @@ export function overlayShader() {
   vec4 uvwqYF = (uvwqT - uvwq) / dy * dyUpscaledScale;
   vec4 uvwqXB = (uvwq - uvwqL) / dx * dxUpscaledScale;
   vec4 uvwqYB = (uvwq - uvwqB) / dy * dyUpscaledScale;
-  vec4 Svec = texture2D(imageSourceOne, textureCoords);
-  float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
-  float I_SR = Svec.r;
-  float I_SG = Svec.g;
-  float I_SB = Svec.b;
-  float I_SA = Svec.a;
-  vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
-  float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
-  float I_TR = Tvec.r;
-  float I_TG = Tvec.g;
-  float I_TB = Tvec.b;
-  float I_TA = Tvec.a;
   float overlayExpr = OVERLAYEXPR;
   col = mix(col, overlayColour, float(abs(overlayExpr) < overlayEpsilon));`;
 }

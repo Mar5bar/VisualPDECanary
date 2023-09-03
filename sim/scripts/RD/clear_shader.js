@@ -62,18 +62,6 @@ export function clearShaderTop() {
     {
         float x = MINX + textureCoords.x * float(nXDisc) * dx;
         float y = MINY + textureCoords.y * float(nYDisc) * dy;
-        vec4 Svec = texture2D(imageSourceOne, textureCoords);
-        float I_S = (Svec.x + Svec.y + Svec.z) / 3.0;
-        float I_SR = Svec.r;
-        float I_SG = Svec.g;
-        float I_SB = Svec.b;
-        float I_SA = Svec.a;
-        vec4 Tvec = texture2D(imageSourceTwo, textureCoords);
-        float I_T = (Tvec.x + Tvec.y + Tvec.z) / 3.0;
-        float I_TR = Tvec.r;
-        float I_TG = Tvec.g;
-        float I_TB = Tvec.b;
-        float I_TA = Tvec.a;
     `;
 }
 
