@@ -10,7 +10,7 @@ export function getListOfPresets() {
 	"brushRadius": "1",
 	"brushValue": "2",
 	"diffusionStr_1_1": "0.01",
-	"diffusionStr_2_2": "0.5",
+	"diffusionStr_2_2": "0.7",
 	"diffusionStr_3_3": "0",
 	"domainIndicatorFun": "I_T<0.99",
 	"domainViaIndicatorFun": true,
