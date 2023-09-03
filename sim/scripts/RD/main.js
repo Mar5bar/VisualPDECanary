@@ -5197,8 +5197,8 @@ function parseStringToTEX(str) {
   str = str.replaceAll(/\b([a-zA-Z]+)([0-9]+)\b/g, "$1_{$2}");
 
   // Swap out weak inequalities for \geq \leq, with spaces.
-  str = str.replaceAll(/<=/g, " leq ");
-  str = str.replaceAll(/>=/g, " geq ");
+  str = str.replaceAll(/<=/g, " \\leq ");
+  str = str.replaceAll(/>=/g, " \\geq ");
 
   // Add spaces around strict inequalities.
   str = str.replaceAll(/([<>])/g, " $1 ");
