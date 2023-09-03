@@ -25,7 +25,7 @@ export function getListOfPresets() {
 	"reactionStr_1": "a*u-(u+c*v)*(u^2+v^2)",
 	"reactionStr_2": "a*v+(c*u-v)*(u^2+v^2)",
 	"reactionStr_3": "0",
-	"spatialStep": "0.05",
+	"spatialStep": "0.1",
 	"timesteppingScheme": "Mid",
 	"views": [{
 	"colourmap": "turbo",
