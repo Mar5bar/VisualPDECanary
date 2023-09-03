@@ -6007,21 +6007,16 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
   // Insert user-defined input into str in place of original, surrounded by delimiters.
   // E.g. str = some TeX, regex = /(D_{uu}) (\\vnabla u)/g; input = "2*a"; delimiters = " ";
   // If the input is 0, just remove the original from str.
+  if (delimiters == undefined) delimiters = "  ";
+  // Special cases.
   let trimmed = input.replace(/\s+/g, "  ").trim();
   if (["0", "0.0", "-0", "-0.0", "+0", "+0.0"].includes(trimmed))
     return str.replaceAll(regex, "");
   if (trimmed == "1" || trimmed == "1.0") return str.replaceAll(regex, "$2");
   if (trimmed == "-1" || trimmed == "-1.0")
     return str.replaceAll(regex, delimiters[0] + "-" + delimiters[1] + "$2");
-  // If the input contains + or - without anything before them, insert it with delimiters.
-  if (
-    input.match(/(?<!^)(?<!\\selected\{\s*)[\+-]/) &&
-    delimiters != undefined
-  ) {
-    return str.replaceAll(regex, delimiters[0] + input + delimiters[1] + "$2");
-  } else {
-    return str.replaceAll(regex, input + "$2");
-  }
+  // Otherwise, just do the substitution.
+  return str.replaceAll(regex, delimiters[0] + input + delimiters[1] + "$2");
 }
 
 function configurePlotType() {
