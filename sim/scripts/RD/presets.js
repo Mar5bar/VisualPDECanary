@@ -3,6 +3,57 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+	listOfPresets["RainbowASHBI"] = {
+	"activeViewInd": 1,
+	"boundaryConditions_1": "neumann",
+	"boundaryConditions_2": "neumann",
+	"brushRadius": "1",
+	"brushValue": "2",
+	"diffusionStr_1_1": "0.1",
+	"diffusionStr_2_2": "1",
+	"diffusionStr_3_3": "0",
+	"domainIndicatorFun": "I_T<0.99",
+	"domainViaIndicatorFun": true,
+	"dt": 0.0005,
+	"fixRandSeed": true,
+	"initCond_1": "RANDN",
+	"imagePathTwo": "./images/ASHBI.png",
+	"kineticParams": "a = 3;c = -1;n = 0;m = 0;",
+	"maxColourValue": 3.1266896724700928,
+	"numTimestepsPerFrame": 50,
+	"preset": "RainbowASHBI",
+	"reactionStr_1": "a*u-(u+c*v)*(u^2+v^2)",
+	"reactionStr_2": "a*v+(c*u-v)*(u^2+v^2)",
+	"reactionStr_3": "0",
+	"spatialStep": "0.05",
+	"timesteppingScheme": "Mid",
+	"views": [{
+	"colourmap": "turbo",
+	"emboss": true,
+	"maxColourValue": 3.1,
+	"whatToPlot": "u^2+v^2",
+	"name": "1",
+},
+	{
+	"colourmap": "turbo",
+	"emboss": false,
+	"maxColourValue": 3.1266896724700928,
+	"whatToPlot": "u^2",
+	"name": 2,
+},
+	{
+	"colourmap": "BlackGreenYellowRedWhite",
+	"emboss": true,
+	"maxColourValue": 3.1,
+	"whatToPlot": "u^2+v^2",
+	"name": 3,
+}],
+	"whatToDraw": "u",
+	"whatToPlot": "u^2",
+	"constantDiffusion": false,
+};
+
+
   listOfPresets["GeneralisedWavePinningModel"] = {
 	"boundaryConditions_1": "neumann",
 	"boundaryConditions_2": "neumann",
