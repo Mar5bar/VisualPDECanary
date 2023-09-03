@@ -115,11 +115,11 @@ export function computeDisplayFunShaderMid() {
 
 export function postShaderDomainIndicator() {
   return `
-  gl_FragColor.g = float(float(indicatorFun) <= 0.0);`
+  gl_FragColor.g = float(float(indicatorFun) <= 0.0);`;
 }
 
 export function postGenericShaderBot() {
-  return `}`
+  return `}`;
 }
 
 export function interpolationShader() {

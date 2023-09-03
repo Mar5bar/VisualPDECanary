@@ -29,7 +29,8 @@ export function RDShaderTop(type) {
       break;
   }
   let parts = [];
-  parts[0] = "precision highp float; precision highp sampler2D; varying vec2 textureCoords;";
+  parts[0] =
+    "precision highp float; precision highp sampler2D; varying vec2 textureCoords;";
   parts[1] = "uniform sampler2D textureSource;";
   parts[2] = "uniform sampler2D textureSource1;";
   parts[3] = "uniform sampler2D textureSource2;";
@@ -353,6 +354,40 @@ export function RDShaderRobinY(TB) {
         uvwqB.SPECIES = uvwqT.SPECIES + 2.0 * dy * robinRHSSPECIESB;
     }
     `;
+  if (TB == undefined) return T + B;
+  if (TB == "T") return T;
+  if (TB == "B") return B;
+  return "";
+}
+
+export function RDShaderRobinCustomDomainX(LR, fun) {
+  const L = `
+    if (float(indicatorFunL) <= 0.0 || textureCoords.x - step_x < 0.0) {
+        uvwqL.SPECIES = uvwqR.SPECIES + 2.0 * dx * robinRHSSPECIESL;
+    }
+    `.replace(/indicatorFunL/, fun.replaceAll(/\bx\b/g, "(x-dx)"));
+  const R = `
+    if (float(indicatorFunR) <= 0.0 || textureCoords.x + step_x > 1.0) {
+        uvwqR.SPECIES = uvwqL.SPECIES + 2.0 * dx * robinRHSSPECIESR;
+    }
+    `.replace(/indicatorFunR/, fun.replaceAll(/\bx\b/g, "(x+dx)"));
+  if (LR == undefined) return L + R;
+  if (LR == "L") return L;
+  if (LR == "R") return R;
+  return "";
+}
+
+export function RDShaderRobinCustomDomainY(TB, fun) {
+  const T = `
+    if (float(indicatorFunT) <= 0.0 || textureCoords.y + step_y > 1.0){
+        uvwqT.SPECIES = uvwqB.SPECIES + 2.0 * dy * robinRHSSPECIEST;
+    }
+    `.replace(/indicatorFunT/, fun.replaceAll(/\by\b/g, "(y+dy)"));
+  const B = `
+    if (float(indicatorFunB) <= 0.0 || textureCoords.y - step_y < 0.0) {
+        uvwqB.SPECIES = uvwqT.SPECIES + 2.0 * dy * robinRHSSPECIESB;
+    }
+    `.replace(/indicatorFunB/, fun.replaceAll(/\by\b/g, "(y-dy)"));
   if (TB == undefined) return T + B;
   if (TB == "T") return T;
   if (TB == "B") return B;

@@ -373,7 +373,7 @@ export function getListOfPresets() {
   };
 
   listOfPresets["heatHeart"] = {
-    activeViewInd: 1,
+    activeViewInd: 0,
     arrowLengthMax: "0.04",
     arrowScale: "relative",
     arrowX: "-T_x",

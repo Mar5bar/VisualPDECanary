@@ -216,6 +216,8 @@ import {
   RDShaderDirichletIndicatorFun,
   RDShaderRobinX,
   RDShaderRobinY,
+  RDShaderRobinCustomDomainX,
+  RDShaderRobinCustomDomainY,
   RDShaderUpdateNormal,
   RDShaderUpdateCross,
   RDShaderAlgebraicSpecies,
@@ -1755,13 +1757,7 @@ function initGUI(startOpen) {
   root = leftGUI.addFolder("Boundary conditions");
 
   uBCsController = root
-    .add(options, "boundaryConditions_1", {
-      Periodic: "periodic",
-      Dirichlet: "dirichlet",
-      Neumann: "neumann",
-      Robin: "robin",
-      Combination: "combo",
-    })
+    .add(options, "boundaryConditions_1", {})
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
@@ -1786,13 +1782,7 @@ function initGUI(startOpen) {
     .onFinishChange(setRDEquations);
 
   vBCsController = root
-    .add(options, "boundaryConditions_2", {
-      Periodic: "periodic",
-      Dirichlet: "dirichlet",
-      Neumann: "neumann",
-      Robin: "robin",
-      Combination: "combo",
-    })
+    .add(options, "boundaryConditions_2", {})
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
@@ -1817,13 +1807,7 @@ function initGUI(startOpen) {
     .onFinishChange(setRDEquations);
 
   wBCsController = root
-    .add(options, "boundaryConditions_3", {
-      Periodic: "periodic",
-      Dirichlet: "dirichlet",
-      Neumann: "neumann",
-      Robin: "robin",
-      Combination: "combo",
-    })
+    .add(options, "boundaryConditions_3", {})
     .onChange(function () {
       setRDEquations();
       setBCsGUI();
@@ -1848,13 +1832,7 @@ function initGUI(startOpen) {
     .onFinishChange(setRDEquations);
 
   qBCsController = root
-    .add(options, "boundaryConditions_4", {
-      Periodic: "periodic",
-      Dirichlet: "dirichlet",
-      Neumann: "neumann",
-      Robin: "robin",
-      Combination: "combo",
-    })
+    .add(options, "boundaryConditions_4", {})
     .name("$q$")
     .onChange(function () {
       setRDEquations();
@@ -2858,6 +2836,9 @@ function enforceDirichlet() {
 }
 
 function render() {
+  // Perform any postprocessing on the last computed values.
+  postprocess();
+
   // If selected, set the colour range.
   if (options.autoSetColourRange) {
     setColourRange();
@@ -2876,9 +2857,6 @@ function render() {
     clickDomain.position.y = options.threeDHeightScale * val;
     clickDomain.updateWorldMatrix();
   }
-
-  // Perform any postprocessing on the last computed values.
-  postprocess();
 
   // If this is a line plot, modify the line positions and colours before rendering.
   if (options.plotType == "line") {
@@ -3335,6 +3313,9 @@ function parseShaderString(str) {
     str != (str = str.replace(/([^.0-9a-zA-Z])(\d+)([^.0-9])/g, "$1$2.$3"))
   );
 
+  // Replace 'ind' with 'float' to cast the argument as a float.
+  str = str.replaceAll(/\bind\b/g, "float");
+
   return str;
 }
 
@@ -3412,7 +3393,11 @@ function setRDEquations() {
   BCStrs.forEach(function (str, ind) {
     if (str == "neumann") {
       neumannShader += parseRobinRHS(NStrs[ind], listOfSpecies[ind]);
-      neumannShader += neumannUpdateShader(ind);
+      if (!options.domainViaIndicatorFun) {
+        neumannShader += robinUpdateShader(ind);
+      } else {
+        neumannShader += robinUpdateShaderCustomDomain(ind);
+      }
     } else if (str == "combo") {
       [
         ...MStrs[ind].matchAll(
@@ -3421,7 +3406,7 @@ function setRDEquations() {
       ].forEach(function (m) {
         const side = m[1][0].toUpperCase();
         neumannShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
-        neumannShader += neumannUpdateShader(ind, side);
+        neumannShader += robinUpdateShader(ind, side);
       });
     }
   });
@@ -3441,42 +3426,53 @@ function setRDEquations() {
   });
 
   // Create Dirichlet shaders.
-  if (options.domainViaIndicatorFun) {
-    // If the domain is being set by an indicator function, Dirichlet is the only allowable BC.
-    let str = RDShaderDirichletIndicatorFun().replace(
-      /indicatorFun/g,
-      parseShaderString(options.domainIndicatorFun)
-    );
-    DStrs.forEach(function (D, ind) {
-      dirichletShader +=
-        selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
-        parseShaderString(D) +
-        ";\n}\n";
-    });
-  } else {
-    BCStrs.forEach(function (str, ind) {
-      if (str == "dirichlet") {
+  BCStrs.forEach(function (str, ind) {
+    if (str == "dirichlet") {
+      if (!options.domainViaIndicatorFun) {
         dirichletShader += parseDirichletRHS(DStrs[ind], listOfSpecies[ind]);
         dirichletShader += dirichletUpdateShader(ind);
-      } else if (str == "combo") {
-        [
-          ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g
-          ),
-        ].forEach(function (m) {
-          const side = m[1][0].toUpperCase();
-          dirichletShader += parseDirichletRHS(m[2], listOfSpecies[ind], side);
-          dirichletShader += dirichletUpdateShader(ind, side);
-        });
+      } else {
+        let baseStr = RDShaderDirichletIndicatorFun().replace(
+          /indicatorFun/g,
+          parseShaderString(options.domainIndicatorFun)
+        );
+        dirichletShader +=
+          selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
+          parseShaderString(DStrs[ind]) +
+          ";\n}\n";
       }
-    });
-  }
+    } else if (str == "combo") {
+      [
+        ...MStrs[ind].matchAll(
+          /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g
+        ),
+      ].forEach(function (m) {
+        const side = m[1][0].toUpperCase();
+        dirichletShader += parseDirichletRHS(m[2], listOfSpecies[ind], side);
+        dirichletShader += dirichletUpdateShader(ind, side);
+      });
+    } else if (options.domainViaIndicatorFun) {
+      // Zero-out anything outside of the domain if we're using an indicator function.
+      let baseStr = RDShaderDirichletIndicatorFun().replace(
+        /indicatorFun/g,
+        parseShaderString(options.domainIndicatorFun)
+      );
+      dirichletShader +=
+        selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
+        "0.0" +
+        ";\n}\n";
+    }
+  });
 
   // Create a Robin shader block for each species separately.
   BCStrs.forEach(function (str, ind) {
     if (str == "robin") {
       robinShader += parseRobinRHS(RStrs[ind], listOfSpecies[ind]);
-      robinShader += robinUpdateShader(ind);
+      if (!options.domainViaIndicatorFun) {
+        robinShader += robinUpdateShader(ind);
+      } else {
+        robinShader += robinUpdateShaderCustomDomain(ind);
+      }
     } else if (str == "combo") {
       [
         ...MStrs[ind].matchAll(
@@ -3675,10 +3671,17 @@ function setRDEquations() {
         .replace(/indicatorFun/g, parseShaderString(options.domainIndicatorFun))
         .replace(/updated/g, "gl_FragColor");
       DStrs.forEach(function (D, ind) {
-        dirichletShader +=
-          selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
-          parseShaderString(D) +
-          ";\n}\n";
+        if (BCStrs[ind] == "dirichlet") {
+          dirichletShader +=
+            selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
+            parseShaderString(D) +
+            ";\n}\n";
+        } else {
+          dirichletShader +=
+            selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
+            "0.0" +
+            ";\n}\n";
+        }
       });
     } else {
       BCStrs.forEach(function (str, ind) {
@@ -3792,12 +3795,11 @@ function loadPreset(preset) {
   initGUI();
 
   // Apply any specified view.
-  if (options.activeViewInd < options.views.length) {
-    applyView(options.views[options.activeViewInd], false, false);
-  } else {
-    // No valid view has been specified, so apply an empty view that can be customised.
-    applyView({}, true, false);
+  if (options.activeViewInd >= options.views.length) {
+    // No valid view has been specified, so apply the last view.
+    options.activeViewInd = options.views.length - 1;
   }
+  applyView(options.views[options.activeViewInd], false);
 
   // Update the equations, setup and GUI in line with new options.
   updateProblem();
@@ -4161,14 +4163,30 @@ function setBCsGUI() {
     hideGUIController(comboQController);
   }
 
+  const BCsControllers = [
+    uBCsController,
+    vBCsController,
+    wBCsController,
+    qBCsController,
+  ];
   if (options.domainViaIndicatorFun) {
-    hideGUIController(uBCsController);
-    hideGUIController(vBCsController);
-    hideGUIController(wBCsController);
-    hideGUIController(qBCsController);
+    BCsControllers.forEach((cont) =>
+      updateGUIDropdown(
+        cont,
+        ["Dirichlet", "Neumann", "Robin"],
+        ["dirichlet", "neumann", "robin"]
+      )
+    );
   } else {
-    showGUIController(uBCsController);
+    BCsControllers.forEach((cont) =>
+      updateGUIDropdown(
+        cont,
+        ["Periodic", "Dirichlet", "Neumann", "Robin", "Combination"],
+        ["periodic", "dirichlet", "neumann", "robin", "combo"]
+      )
+    );
   }
+  refreshGUI(leftGUI);
 }
 
 function updateRandomSeed() {
@@ -4249,6 +4267,8 @@ function createImageControllers() {
 }
 
 function updateWhatToPlot() {
+  // Invalidate the solution buffer.
+  bufferFilled = false;
   setPostFunFragShader();
   showGUIController(minColourValueController);
   showGUIController(maxColourValueController);
@@ -4711,11 +4731,15 @@ function configureOptions() {
   setAlgebraicVarsFromOptions();
 
   if (options.domainViaIndicatorFun) {
-    // Only allow Dirichlet conditions.
-    options.boundaryConditions_1 = "dirichlet";
-    options.boundaryConditions_2 = "dirichlet";
-    options.boundaryConditions_3 = "dirichlet";
-    options.boundaryConditions_4 = "dirichlet";
+    // Only allow Dirichlet or Neumann conditions.
+    if (!["dirichlet", "neumann"].includes(options.boundaryConditions_1))
+      options.boundaryConditions_1 = "dirichlet";
+    if (!["dirichlet", "neumann"].includes(options.boundaryConditions_2))
+      options.boundaryConditions_2 = "dirichlet";
+    if (!["dirichlet", "neumann"].includes(options.boundaryConditions_3))
+      options.boundaryConditions_3 = "dirichlet";
+    if (!["dirichlet", "neumann"].includes(options.boundaryConditions_4))
+      options.boundaryConditions_4 = "dirichlet";
   }
 
   // Set options that only depend on the number of species.
@@ -5142,6 +5166,7 @@ function parseStringToTEX(str) {
   str = replaceFunctionInTeX(str, "tanh", true);
   str = replaceFunctionInTeX(str, "max", true);
   str = replaceFunctionInTeX(str, "min", true);
+  str = replaceFunctionInTeX(str, "ind", true);
 
   // Remove *.
   str = str.replaceAll(/\*/g, " ");
@@ -5167,6 +5192,13 @@ function parseStringToTEX(str) {
 
   // If letters are followed by only numbers, assume that the numbers are a subscript.
   str = str.replaceAll(/\b([a-zA-Z]+)([0-9]+)\b/g, "$1_{$2}");
+
+  // Swap out weak inequalities for \geq \leq, with spaces.
+  str = str.replaceAll(/<=/g, " leq ");
+  str = str.replaceAll(/>=/g, " geq ");
+
+  // Add spaces around strict inequalities.
+  str = str.replaceAll(/([<>])/g, " $1 ");
 
   return str;
 }
@@ -5824,7 +5856,7 @@ function updateIntegralDisplay() {
     }
     let total = 0;
     for (let i = 0; i < buffer.length; i += 4) {
-      total += buffer[i];
+      total += buffer[i] * (1 - buffer[i + 1]);
     }
     total *= dA;
     $("#integralValue").html(formatLabelNum(total, 4));
@@ -5975,21 +6007,16 @@ function replaceUserDefDiff(str, regex, input, delimiters) {
   // Insert user-defined input into str in place of original, surrounded by delimiters.
   // E.g. str = some TeX, regex = /(D_{uu}) (\\vnabla u)/g; input = "2*a"; delimiters = " ";
   // If the input is 0, just remove the original from str.
+  if (delimiters == undefined) delimiters = "  ";
+  // Special cases.
   let trimmed = input.replace(/\s+/g, "  ").trim();
   if (["0", "0.0", "-0", "-0.0", "+0", "+0.0"].includes(trimmed))
     return str.replaceAll(regex, "");
   if (trimmed == "1" || trimmed == "1.0") return str.replaceAll(regex, "$2");
   if (trimmed == "-1" || trimmed == "-1.0")
     return str.replaceAll(regex, delimiters[0] + "-" + delimiters[1] + "$2");
-  // If the input contains + or - without anything before them, insert it with delimiters.
-  if (
-    input.match(/(?<!^)(?<!\\selected\{\s*)[\+-]/) &&
-    delimiters != undefined
-  ) {
-    return str.replaceAll(regex, delimiters[0] + input + delimiters[1] + "$2");
-  } else {
-    return str.replaceAll(regex, input + "$2");
-  }
+  // Otherwise, just do the substitution.
+  return str.replaceAll(regex, delimiters[0] + input + delimiters[1] + "$2");
 }
 
 function configurePlotType() {
@@ -6438,14 +6465,23 @@ function setCustomNames() {
   if (isLoading) return;
 
   // If we're not loading in, go through options and replace the old species with the new ones.
+  const excludes = [
+    "initCond_1",
+    "initCond_2",
+    "initCond_3",
+    "initCond_4",
+    "kineticParams",
+  ];
   Object.keys(options).forEach(function (key) {
     if (userTextFields.includes(key)) {
-      options[key] = replaceSymbolsInStr(
-        options[key],
-        oldListOfSpecies,
-        listOfSpecies,
-        "_(?:[xy][xybf]?)"
-      );
+      if (!excludes.includes(key)) {
+        options[key] = replaceSymbolsInStr(
+          options[key],
+          oldListOfSpecies,
+          listOfSpecies,
+          "_(?:[xy][xybf]?)"
+        );
+      }
     }
   });
   options.views = options.views.map(function (view) {
@@ -6466,12 +6502,14 @@ function setCustomNames() {
   // Do the same for savedOptions.
   Object.keys(savedOptions).forEach(function (key) {
     if (userTextFields.includes(key)) {
-      savedOptions[key] = replaceSymbolsInStr(
-        savedOptions[key],
-        oldListOfSpecies,
-        listOfSpecies,
-        "_(?:[xy][xybf]?)"
-      );
+      if (!excludes.includes(key)) {
+        savedOptions[key] = replaceSymbolsInStr(
+          savedOptions[key],
+          oldListOfSpecies,
+          listOfSpecies,
+          "_(?:[xy][xybf]?)"
+        );
+      }
     }
   });
   savedOptions.views = savedOptions.views.map(function (view) {
@@ -6943,21 +6981,6 @@ function updateView(property) {
     options.views[options.activeViewInd][property] = options[property];
 }
 
-function neumannUpdateShader(speciesInd, side) {
-  let str = "";
-  str += selectSpeciesInShaderStr(
-    RDShaderRobinX(side),
-    listOfSpecies[speciesInd]
-  );
-  if (options.dimension > 1) {
-    str += selectSpeciesInShaderStr(
-      RDShaderRobinY(side),
-      listOfSpecies[speciesInd]
-    );
-  }
-  return str;
-}
-
 function ghostUpdateShader(speciesInd, side, valStr) {
   let str = "";
   str += selectSpeciesInShaderStr(
@@ -6999,6 +7022,27 @@ function robinUpdateShader(speciesInd, side) {
   if (options.dimension > 1) {
     str += selectSpeciesInShaderStr(
       RDShaderRobinY(side),
+      listOfSpecies[speciesInd]
+    );
+  }
+  return str;
+}
+
+function robinUpdateShaderCustomDomain(speciesInd, side) {
+  let str = "";
+  str += selectSpeciesInShaderStr(
+    RDShaderRobinCustomDomainX(
+      side,
+      parseShaderString(options.domainIndicatorFun)
+    ),
+    listOfSpecies[speciesInd]
+  );
+  if (options.dimension > 1) {
+    str += selectSpeciesInShaderStr(
+      RDShaderRobinCustomDomainY(
+        side,
+        parseShaderString(options.domainIndicatorFun)
+      ),
       listOfSpecies[speciesInd]
     );
   }
