@@ -3,6 +3,42 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["urticaria"] = {
+    brushRadius: "0.05",
+    colourbar: true,
+    diffusionStr_1_1: "D_u",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    domainScale: "1",
+    dt: 0.0005,
+    initCond_1: "RAND*sin(4*pi*x/L_x)*sin(4*pi*y/L_y)",
+    kineticParams:
+      "D_u = 4.7*10^(-6);mu = 1.5;alpha_0 = 0.7;alpha_1 = 0.4;alpha_2 = 4.5;gamma = 4;U_t = 150",
+    maxColourValue: 120,
+    numSpecies: "2",
+    preset: "urticaria",
+    reactionStr_1:
+      "gamma*u*ind(U<=U_t) - alpha_2*u/(alpha_1 + u^2) + mu - alpha_0*u",
+    reactionStr_2: "gamma*u*ind(U<=U_t)",
+    reactionStr_3: "0",
+    spatialStep: "0.0025",
+    speciesNames: "u U",
+    views: [
+      {
+        maxColourValue: 120,
+        whatToPlot: "u",
+        name: "$u$",
+      },
+      {
+        maxColourValue: 150,
+        whatToPlot: "U",
+        name: "$\\int_0^t\\gamma u \\mathrm{d}t$",
+      },
+    ],
+    whatToDraw: "u",
+    whatToPlot: "u",
+  };
+
   listOfPresets["TuringNotEnoughRD"] = {
     brushRadius: "5",
     brushValue: "0.1",
@@ -2445,7 +2481,8 @@ export function getListOfPresets() {
     boundaryConditions_1: "dirichlet",
     boundaryConditions_2: "dirichlet",
     brushRadius: "2",
-    domainIndicatorFun: "min((15+ts*t),L_min/2)^2 - ((x-L_x/2)^2 + (y-L_y/2)^2)",
+    domainIndicatorFun:
+      "min((15+ts*t),L_min/2)^2 - ((x-L_x/2)^2 + (y-L_y/2)^2)",
     domainScale: "400",
     domainViaIndicatorFun: true,
     dt: 0.001,
