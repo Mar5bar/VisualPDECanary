@@ -769,6 +769,7 @@ function init() {
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
   simDomain = new THREE.Mesh(simPlane, simMaterials[0]);
   simDomain.position.z = 0;
+  simDomain.matrixWorldAutoUpdate = false;
   simScene.add(simDomain);
 
   // Set sizes and create the display domains.
