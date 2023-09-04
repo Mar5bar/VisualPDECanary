@@ -76,7 +76,7 @@ export function getListOfPresets() {
     initCond_1: "0.1*RANDN+10*1/cosh(5*((x-L_x/2)^2+(y-L_y/2)^2))",
     initCond_2: "1",
     initCond_3: "1",
-    imagePathTwo: "./images/Cardioid.png",
+    imagePathTwo: "./images/Flower.png",
     kineticParams:
       "eta = 15*Ls^2;gamma = 30*Ls^2;s = 10*Ls^2;k = 1.5*Ls^2;n = 2;k_n = 24*Ls^2;k_s = 7.5*Ls^2;alpha = 1.5*Ls^2;theta = 4.5*Ls^2;c = 0.05 in [0, 1];delta=0.01;epsilon=0.1;Ls = 5;",
     maxColourValue: 1.8,
