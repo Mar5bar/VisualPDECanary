@@ -3092,6 +3092,7 @@ function playSim() {
 function resetSim() {
   clearTextures();
   uniforms.t.value = 0.0;
+  uniforms.seed.value = 0.0;
   canAutoPause = true;
   updateTimeDisplay();
   render();
