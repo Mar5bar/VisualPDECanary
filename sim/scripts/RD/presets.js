@@ -2949,6 +2949,7 @@ export function getListOfPresets() {
     parent: null,
     plotType: "plane",
     preset: "default",
+    randSeed: 0,
     resetFromCheckpoints: true,
     resetOnImageLoad: false,
     resizeCheckpoints: "stretch",

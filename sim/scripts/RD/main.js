@@ -62,6 +62,7 @@ let leftGUI,
   DqqController,
   dtController,
   autoPauseAtController,
+  randSeedController,
   whatToDrawController,
   lineWidthMulController,
   threeDHeightScaleController,
@@ -950,9 +951,7 @@ function updateUniforms() {
   uniforms.customSurface.value = options.customSurface;
   uniforms.vectorField.value = options.vectorField;
   setEmbossUniforms();
-  if (!options.fixRandSeed) {
-    updateRandomSeed();
-  }
+  updateRandomSeed();
 }
 
 function computeCanvasSizesAndAspect() {
@@ -1974,10 +1973,18 @@ function initGUI(startOpen) {
     miscButtons,
     "fixRandSeed",
     '<i class="fa-regular fa-shuffle"></i> Fix seed',
-    null,
+    function () {
+      configureGUI();
+      updateRandomSeed();
+    },
     null,
     "Fix the random seed"
   );
+
+  randSeedController = root
+    .add(options, "randSeed")
+    .name("Random seed")
+    .onChange(updateRandomSeed);
 
   root = root.addFolder("Dev");
   // Dev.
@@ -3092,7 +3099,7 @@ function playSim() {
 function resetSim() {
   clearTextures();
   uniforms.t.value = 0.0;
-  uniforms.seed.value = 0.0;
+  updateRandomSeed();
   canAutoPause = true;
   updateTimeDisplay();
   render();
@@ -4196,7 +4203,8 @@ function setBCsGUI() {
 
 function updateRandomSeed() {
   // Update the random seed used in the shaders.
-  uniforms.seed.value = (performance.now() % 1000000) / 1000000;
+  const seed = options.fixRandSeed ? options.randSeed : performance.now();
+  uniforms.seed.value = (seed % 1000000) / 1000000;
 }
 
 function setClearShader() {
@@ -4716,6 +4724,11 @@ function configureGUI() {
   } else {
     showGUIController(overlayEpsilonController);
     hideGUIController(overlayLineWidthMulController);
+  }
+  if (options.fixRandSeed) {
+    showGUIController(randSeedController);
+  } else {
+    hideGUIController(randSeedController);
   }
   // Update all toggle buttons.
   $(".toggle_button").each(function () {
