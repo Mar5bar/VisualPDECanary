@@ -133,7 +133,7 @@ let isRunning,
   checkpointExists = false,
   savedViews,
   nextViewNumber = 0,
-  seed = 0,
+  seed = performance.now(),
   updatingAlgebraicSpecies = false,
   viewUIOffsetInit;
 let spatialStepValue,
