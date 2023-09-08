@@ -3098,7 +3098,9 @@ function playSim() {
 }
 
 function resetSim() {
-  seed = options.setSeed ? options.randSeed : performance.now();
+  if (options.setSeed) {
+    seed = options.randSeed;
+  }
   updateRandomSeed();
   uniforms.t.value = 0.0;
   canAutoPause = true;
@@ -4205,7 +4207,7 @@ function setBCsGUI() {
 
 function updateRandomSeed() {
   // Update the random seed used in the shaders.
-  seed = (seed + 1) % 1000000000;
+  seed = (seed + 123456789) % 1000000000;
   uniforms.seed.value = seed / 1000000;
 }
 
