@@ -133,6 +133,7 @@ let isRunning,
   checkpointExists = false,
   savedViews,
   nextViewNumber = 0,
+  seed = 0,
   updatingAlgebraicSpecies = false,
   viewUIOffsetInit;
 let spatialStepValue,
@@ -1974,8 +1975,9 @@ function initGUI(startOpen) {
     "fixRandSeed",
     '<i class="fa-regular fa-shuffle"></i> Fix seed',
     function () {
-      configureGUI();
+      if (options.fixRandSeed) options.randSeed = seed;
       updateRandomSeed();
+      configureGUI();
     },
     null,
     "Fix the random seed"
@@ -1984,7 +1986,9 @@ function initGUI(startOpen) {
   randSeedController = root
     .add(options, "randSeed")
     .name("Random seed")
-    .onChange(updateRandomSeed);
+    .onFinishChange(function () {
+      updateRandomSeed();
+    });
 
   root = root.addFolder("Dev");
   // Dev.
@@ -3061,9 +3065,6 @@ function setBrushCoords(event, container) {
 
 function clearTextures() {
   setRenderSizeToDisc();
-  if (!options.fixRandSeed) {
-    updateRandomSeed();
-  }
   if (checkpointExists && options.resetFromCheckpoints) {
     simDomain.material = checkpointMaterial;
   } else {
@@ -3097,11 +3098,11 @@ function playSim() {
 }
 
 function resetSim() {
-  clearTextures();
-  uniforms.t.value = 0.0;
   updateRandomSeed();
+  uniforms.t.value = 0.0;
   canAutoPause = true;
   updateTimeDisplay();
+  clearTextures();
   render();
   // Start a timer that checks for NaNs every second.
   shouldCheckNaN = true;
@@ -4203,7 +4204,7 @@ function setBCsGUI() {
 
 function updateRandomSeed() {
   // Update the random seed used in the shaders.
-  const seed = options.fixRandSeed ? options.randSeed : performance.now();
+  seed = options.fixRandSeed ? options.randSeed : performance.now();
   uniforms.seed.value = (seed % 1000000) / 1000000;
 }
 

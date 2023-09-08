@@ -2982,9 +2982,18 @@ export function getListOfPresets() {
 }
 
 export function getPreset(id) {
-  const listOfPresets = getListOfPresets();
+  // Case insensitive lookup.
+  id = id.toLowerCase();
+  const listOfPresets = lowerCaseKeys(getListOfPresets());
   if (listOfPresets.hasOwnProperty(id)) return listOfPresets[id];
   return listOfPresets["default"];
+}
+
+function lowerCaseKeys(obj) {
+  return Object.entries(obj).reduce((carry, [key, value]) => {
+    carry[key.toLowerCase()] = value;
+    return carry;
+  }, {});
 }
 
 export function getUserTextFields() {
