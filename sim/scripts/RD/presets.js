@@ -3126,6 +3126,7 @@ export function getOldPresetFieldsToNew() {
     dirichletStrV: "dirichletStr_2",
     dirichletStrW: "dirichletStr_3",
     dirichletStrQ: "dirichletStr_4",
+    fixRandSeed: "setSeed",
     neumannStrU: "neumannStr_1",
     neumannStrV: "neumannStr_2",
     neumannStrW: "neumannStr_3",

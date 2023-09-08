@@ -1972,15 +1972,15 @@ function initGUI(startOpen) {
 
   addToggle(
     miscButtons,
-    "fixRandSeed",
-    '<i class="fa-regular fa-shuffle"></i> Fix seed',
+    "setSeed",
+    '<i class="fa-regular fa-shuffle"></i> Set seed',
     function () {
-      if (options.fixRandSeed) options.randSeed = seed;
+      if (options.setSeed) seed = options.randSeed;
       updateRandomSeed();
       configureGUI();
     },
     null,
-    "Fix the random seed"
+    "Set the seed for random number generation"
   );
 
   randSeedController = root
@@ -2593,7 +2593,7 @@ function animate() {
         pauseSim();
         break;
       }
-      if (shaderContainsRAND && !options.fixRandSeed) updateRandomSeed();
+      if (shaderContainsRAND && !options.setSeed) updateRandomSeed();
       timestep();
     }
   }
@@ -2743,7 +2743,7 @@ function setDisplayFunInShader(shaderStr) {
 
 function draw() {
   // Update the random seed if we're drawing using random.
-  if (!options.fixRandSeed && options.brushValue.includes("RAND")) {
+  if (!options.setSeed && options.brushValue.includes("RAND")) {
     updateRandomSeed();
   }
 
@@ -3098,6 +3098,7 @@ function playSim() {
 }
 
 function resetSim() {
+  seed = options.setSeed ? options.randSeed : performance.now();
   updateRandomSeed();
   uniforms.t.value = 0.0;
   canAutoPause = true;
@@ -4204,8 +4205,8 @@ function setBCsGUI() {
 
 function updateRandomSeed() {
   // Update the random seed used in the shaders.
-  seed = options.fixRandSeed ? options.randSeed : performance.now();
-  uniforms.seed.value = (seed % 1000000) / 1000000;
+  seed = (seed + 1) % 1000000000;
+  uniforms.seed.value = seed / 1000000;
 }
 
 function setClearShader() {
@@ -4726,7 +4727,7 @@ function configureGUI() {
     showGUIController(overlayEpsilonController);
     hideGUIController(overlayLineWidthMulController);
   }
-  if (options.fixRandSeed) {
+  if (options.setSeed) {
     showGUIController(randSeedController);
   } else {
     hideGUIController(randSeedController);
