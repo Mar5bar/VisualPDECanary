@@ -14,3 +14,9 @@ $$\begin{aligned}\pd{w}{t} &= a-w -wn^2+v\pd{w}{x} + \nabla^2w,\\ \pd{n}{t} &= w
 * Load the [interactive simulation](/sim/?preset=KlausmeierModel). Note that this model always has a plant-extinction state being stable.
 
 * The simulation starts in a parameter regime where pure stripes (regular patterns) of plants are favoured over time. If you instead set $a=0.4$, $m=0.4$, the environment will be much harsher, leading to less regular patterns. However, this also makes the extinction state more stable, so you may have to brush sufficient initial data to overcome this Allee-like effect.
+
+# Localised solutions
+
+Similarly to the [localised patterns in Swift-Hohenberg](/nonlinear-physics/swift-hohenberg), Dan Hill has also provided examples of dihedrally symmetric localised patterns in this model.
+
+You can find initial conditions which simulate such patterns at [this interactive simulation](/sim/?preset=LocalisedVegetationPatterns), and more information about the rigorous theory underlying them in [this paper](https://arxiv.org/abs/2309.02956)
