@@ -3,14 +3,8 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
-  listOfPresets["RainbowASHBi"] = {
-    parent: "RainbowASHBI",
-    preset: "RainbowASHBi",
-  };
-
 	listOfPresets["LocalisedVegetation"] = {
-	"activeViewInd": 1,
-	"brushAction": "smoothreplace",
+	"activeViewInd": 0,
 	"brushEnabled": false,
 	"cameraPhi": 37.11878377408648,
 	"cameraTheta": 32.9363974671775,
@@ -39,9 +33,6 @@ export function getListOfPresets() {
 	"threeDHeightScale": 0.05999999999999967,
 	"timeDisplay": true,
 	"views": [{
-	"cameraTheta": 59.468415199029295,
-	"cameraPhi": -13.74672418908227,
-	"cameraZoom": 1.4500000000000006,
 	"colourmap": "foliage",
 	"embossAmbient": 0.5,
 	"embossDiffuse": 0.6,
@@ -49,7 +40,7 @@ export function getListOfPresets() {
 	"embossSpecular": 0.1,
 	"embossTheta": 0.2,
 	"maxColourValue": 1.5143697261810303,
-	"threeDHeightScale": 0.12999999999999973,
+		"plotType": "plane",
 	"whatToPlot": "n",
 	"name": "Foliage",
 	"minColourValue": 0.007567491848021746,
