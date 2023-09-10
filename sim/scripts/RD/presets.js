@@ -6,9 +6,6 @@ export function getListOfPresets() {
 	listOfPresets["LocalisedVegetation"] = {
 	"activeViewInd": 0,
 	"brushEnabled": false,
-	"cameraPhi": 37.11878377408648,
-	"cameraTheta": 32.9363974671775,
-	"cameraZoom": 0.77615,
 	"colourmap": "water",
 	"diffusionStr_2_2": "7.2",
 	"domainScale": "300",
@@ -39,11 +36,11 @@ export function getListOfPresets() {
 	"embossPhi": 1.5708,
 	"embossSpecular": 0.1,
 	"embossTheta": 0.2,
-	"maxColourValue": 1.5143697261810303,
+	"maxColourValue": 1.5,
 		"plotType": "plane",
 	"whatToPlot": "n",
 	"name": "Foliage",
-	"minColourValue": 0.007567491848021746,
+	"minColourValue": 0.0,
 },
 	{
 	"cameraTheta": 32.9363974671775,
