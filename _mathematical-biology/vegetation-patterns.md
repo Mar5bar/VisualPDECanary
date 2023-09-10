@@ -17,6 +17,6 @@ $$\begin{aligned}\pd{w}{t} &= a-w -wn^2+v\pd{w}{x} + \nabla^2w,\\ \pd{n}{t} &= w
 
 # Localised solutions
 
-Similarly to the [localised patterns in Swift-Hohenberg](/nonlinear-physics/swift-hohenberg), Dan Hill has also provided examples of dihedrally symmetric localised patterns in this model.
+Similarly to the [localised patterns in Swift-Hohenberg](/nonlinear-physics/swift-hohenberg), Dan Hill has provided examples of dihedrally symmetric localised patterns in this model.
 
-You can find initial conditions which simulate such patterns at [this interactive simulation](/sim/?preset=LocalisedVegetation), and more information about the rigorous theory underlying them in [this paper](https://arxiv.org/abs/2309.02956)
+You can find initial conditions that simulate such patterns at [this interactive simulation](/sim/?preset=LocalisedVegetation), and more information about the rigorous theory underlying them in [this paper](https://arxiv.org/abs/2309.02956).
