@@ -3,6 +3,204 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+	listOfPresets["LocalisedVegetation"] = {
+	"activeViewInd": 0,
+	"brushEnabled": false,
+	"colourmap": "water",
+	"diffusionStr_2_2": "7.2",
+	"domainScale": "300",
+	"emboss": true,
+	"embossAmbient": 0.479,
+	"embossDiffuse": 0.882,
+	"embossPhi": 1.593,
+	"embossSpecular": 0.438,
+	"embossTheta": 0.195,
+	"initCond_1": "1.07-0.4*(cos(0.331*x)+cos(0.331*(x-sqrt(3)*y)/2)+cos(0.331*(x+sqrt(3)*y)/2))*exp(-0.1*sqrt(x^2+y^2))",
+	"initCond_2": "0.467-0.4*(cos(0.331*x)+cos(0.331*(x-sqrt(3)*y)/2)+cos(0.331*(x+sqrt(3)*y)/2))*exp(-0.1*sqrt(x^2+y^2))",
+	"kineticParams": "a = 1.005 in [0.01, 0.01, 10];m = 0.500 in [0.2, 0.01, 1];V = 50",
+	"maxColourValue": 0.33,
+	"minColourValue": 0.007567491848021746,
+	"minX": "-L_x/2",
+	"minY": "-L_y/2",
+	"parent": "KlausmeierModel",
+	"plotType": "surface",
+	"preset": "LocalisedVegetation",
+	"reactionStr_2": "a-w-w*n^2",
+	"spatialStep": "0.375",
+	"threeDHeightScale": 0.05999999999999967,
+	"timeDisplay": true,
+	"views": [{
+	"colourmap": "foliage",
+	"embossAmbient": 0.5,
+	"embossDiffuse": 0.6,
+	"embossPhi": 1.5708,
+	"embossSpecular": 0.1,
+	"embossTheta": 0.2,
+	"maxColourValue": 1.5,
+		"plotType": "plane",
+	"whatToPlot": "n",
+	"name": "Foliage",
+	"minColourValue": 0.0,
+},
+	{
+	"cameraTheta": 32.9363974671775,
+	"cameraPhi": 37.11878377408648,
+	"cameraZoom": 0.77615,
+	"colourmap": "water",
+	"embossAmbient": 0.479,
+	"embossDiffuse": 0.882,
+	"embossPhi": 1.593,
+	"embossSpecular": 0.438,
+	"embossTheta": 0.195,
+	"maxColourValue": 0.33,
+	"threeDHeightScale": 0.05999999999999967,
+	"whatToPlot": "w",
+	"name": "Water",
+}],
+	"whatToPlot": "w",
+};
+
+
+  listOfPresets["RainbowASHBI"] = {
+    activeViewInd: 0,
+    boundaryConditions_1: "neumann",
+    boundaryConditions_2: "neumann",
+    brushRadius: "1",
+    brushValue: "2",
+    colourmap: "blue-magenta",
+    diffusionStr_1_1: "0.01",
+    diffusionStr_2_2: "0.7",
+    diffusionStr_3_3: "0",
+    domainIndicatorFun: "I_T<0.95",
+    domainViaIndicatorFun: true,
+    dt: 0.0005,
+    fixRandSeed: true,
+    imagePathTwo: "./images/ASHBi.webp",
+    initCond_1: "RANDN",
+    kineticParams: "a = 3;c = -1;n = 0;m = 0",
+    maxColourValue: 3.1,
+    numTimestepsPerFrame: 50,
+    preset: "RainbowASHBI",
+    resetOnImageLoad: true,
+    reactionStr_1: "a*u-(u+c*v)*(u^2+v^2)",
+    reactionStr_2: "a*v+(c*u-v)*(u^2+v^2)",
+    reactionStr_3: "0",
+    spatialStep: "0.1",
+    squareCanvas: true,
+    suppressTryClickingPopup: true,
+    timesteppingScheme: "Mid",
+    views: [
+      {
+        colourmap: "midnight",
+        emboss: false,
+        maxColourValue: 9.5,
+        minColourValue: -5,
+        whatToPlot: "u^2+v^2",
+        name: "1",
+      },
+      {
+        colourmap: "turbo",
+        emboss: false,
+        maxColourValue: 3.1,
+        whatToPlot: "u^2",
+        name: 2,
+      },
+      {
+        colourmap: "BlackGreenYellowRedWhite",
+        emboss: true,
+        maxColourValue: 3.1,
+        whatToPlot: "u^2+v^2",
+        name: 3,
+      },
+      {
+        colourmap: "blue-magenta",
+        emboss: false,
+        maxColourValue: 3.1,
+        whatToPlot: "u^2",
+        name: 4,
+      },
+    ],
+    whatToDraw: "u",
+    whatToPlot: "u^2+v^2",
+    constantDiffusion: false,
+  };
+
+  listOfPresets["GeneralisedWavePinningModel"] = {
+    boundaryConditions_1: "neumann",
+    boundaryConditions_2: "neumann",
+    boundaryConditions_3: "neumann",
+    brushRadius: "0.1",
+    colourbar: true,
+    colourmap: "midnight",
+    diffusionStr_1_1: "delta",
+    diffusionStr_2_2: "1",
+    diffusionStr_3_3: "0",
+    domainIndicatorFun: "I_T<0.6",
+    domainScale: "5",
+    domainViaIndicatorFun: true,
+    dt: 0.00002,
+    emboss: true,
+    embossPhi: 0.9,
+    embossSmoothness: 0.3,
+    fixRandSeed: true,
+    initCond_1: "0.1*RANDN+10*1/cosh(5*((x-L_x/2)^2+(y-L_y/2)^2))",
+    initCond_2: "1",
+    initCond_3: "1",
+    imagePathTwo: "./images/Flower.webp",
+    kineticParams:
+      "eta = 15*Ls^2;gamma = 30*Ls^2;s = 10*Ls^2;k = 1.5*Ls^2;n = 2;k_n = 24*Ls^2;k_s = 7.5*Ls^2;alpha = 1.5*Ls^2;theta = 4.5*Ls^2;c = 0.05 in [0, 1];delta=0.01;epsilon=0.1;Ls = 5;",
+    maxColourValue: 1.8,
+    numSpecies: "3",
+    numTimestepsPerFrame: 150,
+    preset: "GeneralisedWavePinningModel",
+    reactionStr_1: "(k+gamma*u^n/(1+u^n))*v-(eta+s*F/(1+F))*u-c*theta*u",
+    reactionStr_2: "-(k+gamma*u^n/(1+u^n))*v+(eta+s*F/(1+F))*u+c*alpha",
+    reactionStr_3: "epsilon*(k_n*u-k_s*F)",
+    spatialStep: "0.01",
+    speciesNames: "u v F q",
+    squareCanvas: true,
+    timeDisplay: true,
+    timesteppingScheme: "Euler",
+    whatToDraw: "u",
+    whatToPlot: "u",
+  };
+
+  listOfPresets["urticaria"] = {
+    brushRadius: "0.05",
+    colourbar: true,
+    diffusionStr_1_1: "D_u",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    domainScale: "1",
+    dt: 0.0005,
+    initCond_1: "RAND*sin(4*pi*x/L_x)*sin(4*pi*y/L_y)",
+    kineticParams:
+      "D_u = 4.7*10^(-6);mu = 1.5;alpha_0 = 0.7;alpha_1 = 0.4;alpha_2 = 4.5;gamma = 4;U_t = 150",
+    maxColourValue: 120,
+    numSpecies: "2",
+    preset: "urticaria",
+    reactionStr_1:
+      "gamma*u*ind(U<=U_t) - alpha_2*u/(alpha_1 + u^2) + mu - alpha_0*u",
+    reactionStr_2: "gamma*u*ind(U<=U_t)",
+    reactionStr_3: "0",
+    spatialStep: "0.0025",
+    speciesNames: "u U",
+    views: [
+      {
+        maxColourValue: 120,
+        whatToPlot: "u",
+        name: "$u$",
+      },
+      {
+        maxColourValue: 150,
+        whatToPlot: "U",
+        name: "$\\int_0^t\\gamma u \\mathrm{d}t$",
+      },
+    ],
+    whatToDraw: "u",
+    whatToPlot: "u",
+  };
+
   listOfPresets["TuringNotEnoughRD"] = {
     brushRadius: "5",
     brushValue: "0.1",
@@ -502,7 +700,7 @@ export function getListOfPresets() {
     dt: 0.0002,
     embossSpecular: 0.6,
     imagePathOne: "./images/AperiodicTiling.webp",
-    imagePathTwo: "./images/Oksendal.png",
+    imagePathTwo: "./images/Oksendal.webp",
     kineticParams: "D = 5;sigma = 1 in [0, 2]",
     numAlgebraicSpecies: 1,
     preset: "PeronaMalik",
@@ -2445,7 +2643,8 @@ export function getListOfPresets() {
     boundaryConditions_1: "dirichlet",
     boundaryConditions_2: "dirichlet",
     brushRadius: "2",
-    domainIndicatorFun: "min((15+ts*t),L_min/2)^2 - ((x-L_x/2)^2 + (y-L_y/2)^2)",
+    domainIndicatorFun:
+      "min((15+ts*t),L_min/2)^2 - ((x-L_x/2)^2 + (y-L_y/2)^2)",
     domainScale: "400",
     domainViaIndicatorFun: true,
     dt: 0.001,
@@ -2803,6 +3002,7 @@ export function getListOfPresets() {
     parent: null,
     plotType: "plane",
     preset: "default",
+    randSeed: 0,
     resetFromCheckpoints: true,
     resetOnImageLoad: false,
     resizeCheckpoints: "stretch",
@@ -2835,9 +3035,18 @@ export function getListOfPresets() {
 }
 
 export function getPreset(id) {
-  const listOfPresets = getListOfPresets();
+  // Case insensitive lookup.
+  id = id.toLowerCase();
+  const listOfPresets = lowerCaseKeys(getListOfPresets());
   if (listOfPresets.hasOwnProperty(id)) return listOfPresets[id];
   return listOfPresets["default"];
+}
+
+function lowerCaseKeys(obj) {
+  return Object.entries(obj).reduce((carry, [key, value]) => {
+    carry[key.toLowerCase()] = value;
+    return carry;
+  }, {});
 }
 
 export function getUserTextFields() {
@@ -2970,6 +3179,7 @@ export function getOldPresetFieldsToNew() {
     dirichletStrV: "dirichletStr_2",
     dirichletStrW: "dirichletStr_3",
     dirichletStrQ: "dirichletStr_4",
+    fixRandSeed: "setSeed",
     neumannStrU: "neumannStr_1",
     neumannStrV: "neumannStr_2",
     neumannStrW: "neumannStr_3",

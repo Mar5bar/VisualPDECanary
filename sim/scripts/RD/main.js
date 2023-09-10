@@ -62,6 +62,7 @@ let leftGUI,
   DqqController,
   dtController,
   autoPauseAtController,
+  randSeedController,
   whatToDrawController,
   lineWidthMulController,
   threeDHeightScaleController,
@@ -132,6 +133,7 @@ let isRunning,
   checkpointExists = false,
   savedViews,
   nextViewNumber = 0,
+  seed = performance.now(),
   updatingAlgebraicSpecies = false,
   viewUIOffsetInit;
 let spatialStepValue,
@@ -769,6 +771,7 @@ function init() {
   const simPlane = new THREE.PlaneGeometry(1.0, 1.0);
   simDomain = new THREE.Mesh(simPlane, simMaterials[0]);
   simDomain.position.z = 0;
+  simDomain.matrixWorldAutoUpdate = false;
   simScene.add(simDomain);
 
   // Set sizes and create the display domains.
@@ -949,9 +952,7 @@ function updateUniforms() {
   uniforms.customSurface.value = options.customSurface;
   uniforms.vectorField.value = options.vectorField;
   setEmbossUniforms();
-  if (!options.fixRandSeed) {
-    updateRandomSeed();
-  }
+  updateRandomSeed();
 }
 
 function computeCanvasSizesAndAspect() {
@@ -1971,12 +1972,23 @@ function initGUI(startOpen) {
 
   addToggle(
     miscButtons,
-    "fixRandSeed",
-    '<i class="fa-regular fa-shuffle"></i> Fix seed',
+    "setSeed",
+    '<i class="fa-regular fa-shuffle"></i> Set seed',
+    function () {
+      if (options.setSeed) seed = options.randSeed;
+      updateRandomSeed();
+      configureGUI();
+    },
     null,
-    null,
-    "Fix the random seed"
+    "Set the seed for random number generation"
   );
+
+  randSeedController = root
+    .add(options, "randSeed")
+    .name("Random seed")
+    .onFinishChange(function () {
+      updateRandomSeed();
+    });
 
   root = root.addFolder("Dev");
   // Dev.
@@ -2581,7 +2593,7 @@ function animate() {
         pauseSim();
         break;
       }
-      if (shaderContainsRAND && !options.fixRandSeed) updateRandomSeed();
+      if (shaderContainsRAND && !options.setSeed) updateRandomSeed();
       timestep();
     }
   }
@@ -2731,7 +2743,7 @@ function setDisplayFunInShader(shaderStr) {
 
 function draw() {
   // Update the random seed if we're drawing using random.
-  if (!options.fixRandSeed && options.brushValue.includes("RAND")) {
+  if (!options.setSeed && options.brushValue.includes("RAND")) {
     updateRandomSeed();
   }
 
@@ -3053,9 +3065,6 @@ function setBrushCoords(event, container) {
 
 function clearTextures() {
   setRenderSizeToDisc();
-  if (!options.fixRandSeed) {
-    updateRandomSeed();
-  }
   if (checkpointExists && options.resetFromCheckpoints) {
     simDomain.material = checkpointMaterial;
   } else {
@@ -3089,10 +3098,14 @@ function playSim() {
 }
 
 function resetSim() {
-  clearTextures();
+  if (options.setSeed) {
+    seed = options.randSeed;
+  }
+  updateRandomSeed();
   uniforms.t.value = 0.0;
   canAutoPause = true;
   updateTimeDisplay();
+  clearTextures();
   render();
   // Start a timer that checks for NaNs every second.
   shouldCheckNaN = true;
@@ -4194,7 +4207,8 @@ function setBCsGUI() {
 
 function updateRandomSeed() {
   // Update the random seed used in the shaders.
-  uniforms.seed.value = (performance.now() % 1000000) / 1000000;
+  seed = (seed + 123456789) % 1000000000;
+  uniforms.seed.value = seed / 1000000;
 }
 
 function setClearShader() {
@@ -4714,6 +4728,11 @@ function configureGUI() {
   } else {
     showGUIController(overlayEpsilonController);
     hideGUIController(overlayLineWidthMulController);
+  }
+  if (options.setSeed) {
+    showGUIController(randSeedController);
+  } else {
+    hideGUIController(randSeedController);
   }
   // Update all toggle buttons.
   $(".toggle_button").each(function () {

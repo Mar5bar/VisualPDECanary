@@ -97,8 +97,8 @@ export function RDShaderTop(type) {
         ivec2 texSize = textureSize(textureSource,0);
         float step_x = 1.0 / float(texSize.x);
         float step_y = 1.0 / float(texSize.y);
-        float x = MINX + textureCoords.x * L_x;
-        float y = MINY + textureCoords.y * L_y;
+        float x = textureCoords.x * L_x + MINX;
+        float y = textureCoords.y * L_y + MINY;
         vec2 textureCoordsL = textureCoords + vec2(-step_x, 0.0);
         vec2 textureCoordsLL = textureCoordsL + vec2(-step_x, 0.0);
         vec2 textureCoordsR = textureCoords + vec2(+step_x, 0.0);
@@ -133,7 +133,7 @@ export function RDShaderMain(type) {
     uvwqTT = texture2D(textureSource, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
-    updated = texture2D(textureSource, textureCoords) + dt * RHS;`;
+    updated = dt * RHS + texture2D(textureSource, textureCoords);`;
   update.AB2 = `uvwq = texture2D(textureSource, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL);
     uvwqR = texture2D(textureSource, textureCoordsR);
@@ -155,7 +155,7 @@ export function RDShaderMain(type) {
     uvwqBB = texture2D(textureSource1, textureCoordsBB);
     computeRHS(textureSource1, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS2);
     RHS = 1.5 * RHS1 - 0.5 * RHS2;
-    updated = texture2D(textureSource, textureCoords) + dt * RHS;`;
+    updated = dt * RHS + texture2D(textureSource, textureCoords);`;
   update.Mid1 = `uvwq = texture2D(textureSource, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL);
     uvwqR = texture2D(textureSource, textureCoordsR);
@@ -178,7 +178,7 @@ export function RDShaderMain(type) {
     uvwqTT = texture2D(textureSource, textureCoordsTT) + 0.5*dt*texture2D(textureSource1, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB) + 0.5*dt*texture2D(textureSource1, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
-    updated = uvwqLast + dt * RHS;`;
+    updated = dt * RHS + uvwqLast;`;
   update.RK41 = `uvwq = texture2D(textureSource, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL);
     uvwqR = texture2D(textureSource, textureCoordsR);
@@ -224,7 +224,7 @@ export function RDShaderMain(type) {
     uvwqBB = texture2D(textureSource, textureCoordsBB) + dt*texture2D(textureSource3, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS1);
     RHS = (texture2D(textureSource1, textureCoords) + 2.0*(texture2D(textureSource2, textureCoords) + texture2D(textureSource3, textureCoords)) + RHS1) / 6.0;
-    updated = uvwqLast + dt * RHS;`;
+    updated = dt * RHS + uvwqLast;`;
   return (
     `
   void main()
@@ -232,8 +232,8 @@ export function RDShaderMain(type) {
       ivec2 texSize = textureSize(textureSource,0);
       float step_x = 1.0 / float(texSize.x);
       float step_y = 1.0 / float(texSize.y);
-      float x = MINX + textureCoords.x * L_x;
-      float y = MINY + textureCoords.y * L_y;
+      float x = textureCoords.x * L_x + MINX;
+      float y = textureCoords.y * L_y + MINY;
 
       vec2 textureCoordsL = textureCoords + vec2(-step_x, 0.0);
       vec2 textureCoordsLL = textureCoordsL + vec2(-step_x, 0.0);
@@ -303,12 +303,12 @@ export function RDShaderGhostY(TB) {
 export function RDShaderRobinX(LR) {
   const L = `
     if (textureCoords.x - step_x < 0.0) {
-        uvwqL.SPECIES = uvwqR.SPECIES + 2.0 * dx * robinRHSSPECIESL;
+        uvwqL.SPECIES = 2.0 * (dx * robinRHSSPECIESL) + uvwqR.SPECIES;
     }
     `;
   const R = `
     if (textureCoords.x + step_x > 1.0) {
-        uvwqR.SPECIES = uvwqL.SPECIES + 2.0 * dx * robinRHSSPECIESR;
+        uvwqR.SPECIES = 2.0 * (dx * robinRHSSPECIESR) + uvwqL.SPECIES;
     }
     `;
   if (LR == undefined) return L + R;
@@ -320,12 +320,12 @@ export function RDShaderRobinX(LR) {
 export function RDShaderRobinY(TB) {
   const T = `
     if (textureCoords.y + step_y > 1.0){
-        uvwqT.SPECIES = uvwqB.SPECIES + 2.0 * dy * robinRHSSPECIEST;
+        uvwqT.SPECIES = 2.0 * (dy * robinRHSSPECIEST) + uvwqB.SPECIES;
     }
     `;
   const B = `
     if (textureCoords.y - step_y < 0.0) {
-        uvwqB.SPECIES = uvwqT.SPECIES + 2.0 * dy * robinRHSSPECIESB;
+        uvwqB.SPECIES = 2.0 * (dy * robinRHSSPECIESB) + uvwqT.SPECIES;
     }
     `;
   if (TB == undefined) return T + B;
@@ -337,7 +337,7 @@ export function RDShaderRobinY(TB) {
 export function RDShaderRobinCustomDomainX(LR, fun) {
   const L = `
     if (float(indicatorFunL) <= 0.0 || textureCoords.x - step_x < 0.0) {
-        uvwqL.SPECIES = uvwqR.SPECIES + 2.0 * dx * robinRHSSPECIESL;
+        uvwqL.SPECIES = 2.0 * (dx * robinRHSSPECIESL) + uvwqR.SPECIES;
     }
     `.replace(
     /indicatorFunL/,
@@ -345,7 +345,7 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
   );
   const R = `
     if (float(indicatorFunR) <= 0.0 || textureCoords.x + step_x > 1.0) {
-        uvwqR.SPECIES = uvwqL.SPECIES + 2.0 * dx * robinRHSSPECIESR;
+        uvwqR.SPECIES = 2.0 * (dx * robinRHSSPECIESR) + uvwqL.SPECIES;
     }
     `.replace(
     /indicatorFunR/,
@@ -360,7 +360,7 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
 export function RDShaderRobinCustomDomainY(TB, fun) {
   const T = `
     if (float(indicatorFunT) <= 0.0 || textureCoords.y + step_y > 1.0){
-        uvwqT.SPECIES = uvwqB.SPECIES + 2.0 * dy * robinRHSSPECIEST;
+        uvwqT.SPECIES = 2.0 * (dy * robinRHSSPECIEST) + uvwqB.SPECIES;
     }
     `.replace(
     /indicatorFunT/,
@@ -368,7 +368,7 @@ export function RDShaderRobinCustomDomainY(TB, fun) {
   );
   const B = `
     if (float(indicatorFunB) <= 0.0 || textureCoords.y - step_y < 0.0) {
-        uvwqB.SPECIES = uvwqT.SPECIES + 2.0 * dy * robinRHSSPECIESB;
+        uvwqB.SPECIES =2.0 * (dy * robinRHSSPECIESB) + uvwqT.SPECIES;
     }
     `.replace(
     /indicatorFunB/,
@@ -595,8 +595,8 @@ export function RDShaderEnforceDirichletTop() {
         ivec2 texSize = textureSize(textureSource,0);
         float step_x = 1.0 / float(texSize.x);
         float step_y = 1.0 / float(texSize.y);
-        float x = MINX + textureCoords.x * L_x;
-        float y = MINY + textureCoords.y * L_y;
+        float x = textureCoords.x * L_x + MINX;
+        float y = textureCoords.y * L_y + MINY;
 
         vec4 uvwq = texture2D(textureSource, textureCoords);
         gl_FragColor = uvwq;

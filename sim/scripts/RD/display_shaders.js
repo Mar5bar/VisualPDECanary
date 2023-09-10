@@ -108,7 +108,7 @@ export function fiveColourDisplayTop() {
         float step_y = 1.0 / float(texSize.y);
 
         vec2 values = texture2D(textureSource, textureCoords).rg;
-        if (values.g > 0.5)
+        if (values.g > 0.0)
         {
             gl_FragColor = vec4(0);
             return;

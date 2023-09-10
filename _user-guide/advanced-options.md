@@ -322,8 +322,8 @@ Display the integral of **Expression** over the domain. This integral is coarsel
 * ***Interpolate***\
 Use this option to force the use of manual, unoptimised filtering in place of device-default interplation of displayed colours. This toggle is not available on devices that do not support interpolation by default; in this case, manual interpolation is always enabled.
 
-* ***Fix seed***\
-Fix the seed of the (pseudo)random number generator used to assign values to 'RAND' and 'RANDN' in all free-text fields in the VisualPDE interface. Note that 'RAND' and 'RANDN' always vary in space.
+* ***Set seed***\
+Set the seed of the (pseudo)random number generator used to assign values to 'RAND' and 'RANDN' in all free-text fields in the VisualPDE interface. Note that 'RAND' and 'RANDN' always vary in space. A specific random seed in the form of a numerical value can be configured (default 0).
 
 * ***Dev***\
 Tools intended for the development of VisualPDE. 
