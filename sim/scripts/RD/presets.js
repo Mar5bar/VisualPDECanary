@@ -11,7 +11,7 @@ export function getListOfPresets() {
 	"cameraZoom": 0.77615,
 	"colourmap": "water",
 	"diffusionStr_2_2": "7.2",
-	"domainScale": "200",
+	"domainScale": "300",
 	"emboss": true,
 	"embossAmbient": 0.479,
 	"embossDiffuse": 0.882,
@@ -29,7 +29,7 @@ export function getListOfPresets() {
 	"plotType": "surface",
 	"preset": "LocalisedVegetation",
 	"reactionStr_2": "a-w-w*n^2",
-	"spatialStep": "0.25",
+	"spatialStep": "0.375",
 	"threeDHeightScale": 0.05999999999999967,
 	"timeDisplay": true,
 	"views": [{
