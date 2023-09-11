@@ -36,6 +36,7 @@ let leftGUI,
   rightGUI,
   viewsGUI,
   root,
+  controllers = [],
   brushTypeController,
   fController,
   gController,
@@ -74,8 +75,6 @@ let leftGUI,
   contoursControllers = [],
   minColourValueController,
   maxColourValueController,
-  setColourRangeController,
-  autoSetColourRangeController,
   embossControllers = [],
   initCond_1Controller,
   initCond_2Controller,
@@ -113,7 +112,6 @@ let leftGUI,
   linesAnd3DFolder,
   vectorFieldFolder,
   whatToPlotController,
-  deleteViewController,
   selectedEntries = new Set();
 let isRunning,
   isLoading = true,
@@ -4048,18 +4046,6 @@ function deleteGUI(folder, topLevel) {
   }
 }
 
-function hideGUIController(cont) {
-  if (cont != undefined) {
-    cont.__li.style.display = "none";
-  }
-}
-
-function showGUIController(cont) {
-  if (cont != undefined) {
-    cont.__li.style.display = "";
-  }
-}
-
 function setGUIControllerName(cont, str, title) {
   if (cont != undefined) {
     cont.name(str);
@@ -4096,87 +4082,87 @@ function speciesToChannelInd(speciesStr) {
 function setBCsGUI() {
   // Update the GUI.
   if (options.boundaryConditions_1 == "dirichlet") {
-    showGUIController(dirichletUController);
+    dirichletUController.show();
   } else {
-    hideGUIController(dirichletUController);
+    dirichletUController.hide();
   }
   if (options.boundaryConditions_2 == "dirichlet") {
-    showGUIController(dirichletVController);
+    dirichletVController.show();
   } else {
-    hideGUIController(dirichletVController);
+    dirichletVController.hide();
   }
   if (options.boundaryConditions_3 == "dirichlet") {
-    showGUIController(dirichletWController);
+    dirichletWController.show();
   } else {
-    hideGUIController(dirichletWController);
+    dirichletWController.hide();
   }
   if (options.boundaryConditions_4 == "dirichlet") {
-    showGUIController(dirichletQController);
+    dirichletQController.show();
   } else {
-    hideGUIController(dirichletQController);
+    dirichletQController.hide();
   }
 
   if (options.boundaryConditions_1 == "neumann") {
-    showGUIController(neumannUController);
+    neumannUController.show();
   } else {
-    hideGUIController(neumannUController);
+    neumannUController.hide();
   }
   if (options.boundaryConditions_2 == "neumann") {
-    showGUIController(neumannVController);
+    neumannVController.show();
   } else {
-    hideGUIController(neumannVController);
+    neumannVController.hide();
   }
   if (options.boundaryConditions_3 == "neumann") {
-    showGUIController(neumannWController);
+    neumannWController.show();
   } else {
-    hideGUIController(neumannWController);
+    neumannWController.hide();
   }
   if (options.boundaryConditions_4 == "neumann") {
-    showGUIController(neumannQController);
+    neumannQController.show();
   } else {
-    hideGUIController(neumannQController);
+    neumannQController.hide();
   }
 
   if (options.boundaryConditions_1 == "robin") {
-    showGUIController(robinUController);
+    robinUController.show();
   } else {
-    hideGUIController(robinUController);
+    robinUController.hide();
   }
   if (options.boundaryConditions_2 == "robin") {
-    showGUIController(robinVController);
+    robinVController.show();
   } else {
-    hideGUIController(robinVController);
+    robinVController.hide();
   }
   if (options.boundaryConditions_3 == "robin") {
-    showGUIController(robinWController);
+    robinWController.show();
   } else {
-    hideGUIController(robinWController);
+    robinWController.hide();
   }
   if (options.boundaryConditions_4 == "robin") {
-    showGUIController(robinQController);
+    robinQController.show();
   } else {
-    hideGUIController(robinQController);
+    robinQController.hide();
   }
 
   if (options.boundaryConditions_1 == "combo") {
-    showGUIController(comboUController);
+    comboUController.show();
   } else {
-    hideGUIController(comboUController);
+    comboUController.hide();
   }
   if (options.boundaryConditions_2 == "combo") {
-    showGUIController(comboVController);
+    comboVController.show();
   } else {
-    hideGUIController(comboVController);
+    comboVController.hide();
   }
   if (options.boundaryConditions_3 == "combo") {
-    showGUIController(comboWController);
+    comboWController.show();
   } else {
-    hideGUIController(comboWController);
+    comboWController.hide();
   }
   if (options.boundaryConditions_4 == "combo") {
-    showGUIController(comboQController);
+    comboQController.show();
   } else {
-    hideGUIController(comboQController);
+    comboQController.hide();
   }
 
   const BCsControllers = [
@@ -4287,99 +4273,97 @@ function updateWhatToPlot() {
   // Invalidate the solution buffer.
   bufferFilled = false;
   setPostFunFragShader();
-  showGUIController(minColourValueController);
-  showGUIController(maxColourValueController);
-  showGUIController(setColourRangeController);
-  showGUIController(autoSetColourRangeController);
+  minColourValueController.show();
+  maxColourValueController.show();
   configureColourbar();
   configureIntegralDisplay();
 }
 
 function showVGUIPanels() {
   if (options.crossDiffusion) {
-    showGUIController(DuvController);
-    showGUIController(DvuController);
+    DuvController.show();
+    DvuController.show();
   } else {
-    hideGUIController(DuvController);
-    hideGUIController(DvuController);
+    DuvController.hide();
+    DvuController.hide();
   }
-  showGUIController(DvvController);
-  showGUIController(gController);
-  showGUIController(initCond_2Controller);
-  showGUIController(vBCsController);
+  DvvController.show();
+  gController.show();
+  initCond_2Controller.show();
+  vBCsController.show();
 }
 
 function showWGUIPanels() {
   if (options.crossDiffusion) {
-    showGUIController(DuwController);
-    showGUIController(DvwController);
-    showGUIController(DwuController);
-    showGUIController(DwvController);
+    DuwController.show();
+    DvwController.show();
+    DwuController.show();
+    DwvController.show();
   } else {
-    hideGUIController(DuwController);
-    hideGUIController(DvwController);
-    hideGUIController(DwuController);
-    hideGUIController(DwvController);
+    DuwController.hide();
+    DvwController.hide();
+    DwuController.hide();
+    DwvController.hide();
   }
-  showGUIController(DwwController);
-  showGUIController(hController);
-  showGUIController(initCond_3Controller);
-  showGUIController(wBCsController);
+  DwwController.show();
+  hController.show();
+  initCond_3Controller.show();
+  wBCsController.show();
 }
 
 function showQGUIPanels() {
   if (options.crossDiffusion) {
-    showGUIController(DuqController);
-    showGUIController(DvqController);
-    showGUIController(DwqController);
-    showGUIController(DquController);
-    showGUIController(DqvController);
-    showGUIController(DqwController);
+    DuqController.show();
+    DvqController.show();
+    DwqController.show();
+    DquController.show();
+    DqvController.show();
+    DqwController.show();
   } else {
-    hideGUIController(DwqController);
-    hideGUIController(DquController);
-    hideGUIController(DvqController);
-    hideGUIController(DuqController);
-    hideGUIController(DqvController);
-    hideGUIController(DqwController);
+    DwqController.hide();
+    DquController.hide();
+    DvqController.hide();
+    DuqController.hide();
+    DqvController.hide();
+    DqwController.hide();
   }
-  showGUIController(DqqController);
-  showGUIController(jController);
-  showGUIController(initCond_4Controller);
-  showGUIController(qBCsController);
+  DqqController.show();
+  jController.show();
+  initCond_4Controller.show();
+  qBCsController.show();
 }
 
 function hideVGUIPanels() {
-  hideGUIController(DuvController);
-  hideGUIController(DvuController);
-  hideGUIController(DvvController);
-  hideGUIController(gController);
-  hideGUIController(initCond_2Controller);
-  hideGUIController(vBCsController);
+  DuvController.hide();
+  DvuController.hide();
+  DvvController.hide();
+  gController.hide();
+  initCond_2Controller.hide();
+  vBCsController.hide();
 }
 
 function hideWGUIPanels() {
-  hideGUIController(DuwController);
-  hideGUIController(DvwController);
-  hideGUIController(DwuController);
-  hideGUIController(DwvController);
-  hideGUIController(DwwController);
-  hideGUIController(hController);
-  hideGUIController(initCond_3Controller);
-  hideGUIController(wBCsController);
+  DuwController.hide();
+  DvwController.hide();
+  DwuController.hide();
+  DwvController.hide();
+  DwwController.hide();
+  hController.hide();
+  initCond_3Controller.hide();
+  wBCsController.hide();
 }
 
 function hideQGUIPanels() {
-  hideGUIController(DuqController);
-  hideGUIController(DvqController);
-  hideGUIController(DwqController);
-  hideGUIController(DquController);
-  hideGUIController(DqvController);
-  hideGUIController(DqwController);
-  hideGUIController(DqqController);
-  hideGUIController(jController);
-  hideGUIController(initCond_4Controller);
-  hideGUIController(qBCsController);
+  DuqController.hide();
+  DvqController.hide();
+  DwqController.hide();
+  DquController.hide();
+  DqvController.hide();
+  DqwController.hide();
+  DqqController.hide();
+  jController.hide();
+  initCond_4Controller.hide();
+  qBCsController.hide();
 }
 
 function diffObjects(o1, o2) {
@@ -4533,9 +4517,9 @@ function configureGUI() {
 
   if (options.dimension == 1) {
     tooltip = tooltip.replace(" y,", "");
-    hideGUIController(minYController);
+    minYController.hide();
   } else {
-    showGUIController(minYController);
+    minYController.show();
   }
   if (options.crossDiffusion && parseInt(options.numSpecies) > 1) {
     if (!updatingAlgebraicSpecies) {
@@ -4544,9 +4528,9 @@ function configureGUI() {
         Array.from(Array(parseInt(options.numSpecies)).keys())
       );
     }
-    showGUIController(algebraicSpeciesController);
+    algebraicSpeciesController.show();
   } else {
-    hideGUIController(algebraicSpeciesController);
+    algebraicSpeciesController.hide();
   }
 
   if (options.numSpecies > 1) {
@@ -4604,21 +4588,21 @@ function configureGUI() {
     setGUIControllerName(DvwController, TeXStrings["Dvw"], Vtooltip);
     setGUIControllerName(DvqController, TeXStrings["Dvq"], Vtooltip);
     setGUIControllerName(gController, TeXStrings["VFUN"], Vtooltip);
-    hideGUIController(DvvController);
+    DvvController.hide();
   }
   if (algebraicW) {
     setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
     setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
     setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
     setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
-    hideGUIController(DwwController);
+    DwwController.hide();
   }
   if (algebraicQ) {
     setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
     setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
     setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
     setGUIControllerName(jController, TeXStrings["QFUN"], Qtooltip);
-    hideGUIController(DqqController);
+    DqqController.hide();
   }
 
   // Set the names of the BCs and ICs controllers.
@@ -4645,9 +4629,9 @@ function configureGUI() {
 
   // Show/hide the indicator function controller.
   if (options.domainViaIndicatorFun) {
-    showGUIController(domainIndicatorFunController);
+    domainIndicatorFunController.show();
   } else {
-    hideGUIController(domainIndicatorFunController);
+    domainIndicatorFunController.hide();
   }
   // Hide or show GUI elements that depend on the BCs.
   setBCsGUI();
@@ -4658,32 +4642,32 @@ function configureGUI() {
     $("#vectorFieldButton").hide();
     linesAnd3DFolder.name = "3D options";
     linesAnd3DFolder.domElement.classList.remove("hidden");
-    hideGUIController(lineWidthMulController);
-    showGUIController(threeDHeightScaleController);
-    showGUIController(cameraThetaController);
-    showGUIController(cameraPhiController);
-    showGUIController(cameraZoomController);
+    lineWidthMulController.hide();
+    threeDHeightScaleController.show();
+    cameraThetaController.show();
+    cameraPhiController.show();
+    cameraZoomController.show();
   } else if (options.plotType == "line") {
     $("#contourButton").hide();
     $("#embossButton").hide();
     $("#vectorFieldButton").hide();
     linesAnd3DFolder.name = "Line options";
     linesAnd3DFolder.domElement.classList.remove("hidden");
-    showGUIController(lineWidthMulController);
-    showGUIController(threeDHeightScaleController);
-    hideGUIController(cameraThetaController);
-    hideGUIController(cameraPhiController);
-    hideGUIController(cameraZoomController);
+    lineWidthMulController.show();
+    threeDHeightScaleController.show();
+    cameraThetaController.hide();
+    cameraPhiController.hide();
+    cameraZoomController.hide();
   } else {
     $("#contourButton").show();
     $("#embossButton").show();
     $("#vectorFieldButton").show();
     linesAnd3DFolder.domElement.classList.add("hidden");
-    hideGUIController(lineWidthMulController);
-    hideGUIController(threeDHeightScaleController);
-    hideGUIController(cameraThetaController);
-    hideGUIController(cameraPhiController);
-    hideGUIController(cameraZoomController);
+    lineWidthMulController.hide();
+    threeDHeightScaleController.hide();
+    cameraThetaController.hide();
+    cameraPhiController.hide();
+    cameraZoomController.hide();
   }
   if (options.dimension == 1) $("#vectorFieldButton").hide();
   configureColourbar();
@@ -4693,10 +4677,10 @@ function configureGUI() {
   configureCustomSurfaceControllers();
   // Show/hide/modify GUI elements that depend on dimension.
   if (options.plotType == "line") {
-    hideGUIController(brushTypeController);
+    brushTypeController.hide();
     $(":root").css("--ui-button-outline", "black");
   } else {
-    showGUIController(brushTypeController);
+    brushTypeController.show();
     $(":root").css("--ui-button-outline", "white");
   }
   if (manualInterpolationNeeded) {
@@ -4705,9 +4689,9 @@ function configureGUI() {
     $("#interpController").show();
   }
   if (options.arrowScale == "relative") {
-    showGUIController(arrowLengthMaxController);
+    arrowLengthMaxController.show();
   } else {
-    hideGUIController(arrowLengthMaxController);
+    arrowLengthMaxController.hide();
   }
   // Update the options available in whatToDraw based on the number of species.
   updateGUIDropdown(
@@ -4718,21 +4702,21 @@ function configureGUI() {
   updateViewSliders();
   // Show/hide the autoPauseAt controller.
   if (options.autoPause) {
-    showGUIController(autoPauseAtController);
+    autoPauseAtController.show();
   } else {
-    hideGUIController(autoPauseAtController);
+    autoPauseAtController.hide();
   }
   if (options.plotType == "line") {
-    hideGUIController(overlayEpsilonController);
-    showGUIController(overlayLineWidthMulController);
+    overlayEpsilonController.hide();
+    overlayLineWidthMulController.show();
   } else {
-    showGUIController(overlayEpsilonController);
-    hideGUIController(overlayLineWidthMulController);
+    overlayEpsilonController.show();
+    overlayLineWidthMulController.hide();
   }
   if (options.setSeed) {
-    showGUIController(randSeedController);
+    randSeedController.show();
   } else {
-    hideGUIController(randSeedController);
+    randSeedController.hide();
   }
   // Update all toggle buttons.
   $(".toggle_button").each(function () {
@@ -7454,15 +7438,15 @@ function configureCustomSurfaceControllers() {
   if (options.plotType == "surface") {
     $(surfaceButtons).show();
     if (options.customSurface) {
-      showGUIController(surfaceFunController);
-      hideGUIController(threeDHeightScaleController);
+      surfaceFunController.show();
+      threeDHeightScaleController.hide();
     } else {
-      hideGUIController(surfaceFunController);
-      showGUIController(threeDHeightScaleController);
+      surfaceFunController.hide();
+      threeDHeightScaleController.show();
     }
   } else {
     $(surfaceButtons).hide();
-    hideGUIController(surfaceFunController);
+    surfaceFunController.hide();
   }
 }
 
