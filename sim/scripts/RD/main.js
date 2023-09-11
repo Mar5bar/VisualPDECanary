@@ -3274,7 +3274,7 @@ function parseShaderString(str) {
   str = " " + str + " ";
 
   // Perform a syntax check.
-  if (!isValidSyntax(str)) {
+  if (!isValidSyntax(str) || isEmptyString(str)) {
     return " 0.0 ";
   }
 
@@ -5002,6 +5002,11 @@ function setEquationDisplayType() {
     associatedStrs["VFUN"] = options.reactionStr_2;
     associatedStrs["WFUN"] = options.reactionStr_3;
     associatedStrs["QFUN"] = options.reactionStr_4;
+
+    // Map empty strings to 0.
+    Object.keys(associatedStrs).forEach(function (key) {
+      if (isEmptyString(associatedStrs[key])) associatedStrs[key] = "0";
+    });
 
     // Check associatedStrs for basic syntax validity, and return without updating the TeX if there are issues.
     var badSyntax = false;
@@ -7644,4 +7649,8 @@ function configureCursorDisplay() {
       );
       break;
   }
+}
+
+function isEmptyString(str) {
+  return /^\s*$/.test(str);
 }
