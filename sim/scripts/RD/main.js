@@ -37,81 +37,15 @@ let leftGUI,
   viewsGUI,
   root,
   controllers = [],
-  brushTypeController,
-  fController,
-  gController,
-  hController,
-  jController,
-  algebraicSpeciesController,
-  minYController,
-  domainIndicatorFunController,
-  DuuController,
-  DuvController,
-  DuwController,
-  DuqController,
-  DvuController,
-  DvvController,
-  DvwController,
-  DvqController,
-  DwuController,
-  DwvController,
-  DwwController,
-  DwqController,
-  DquController,
-  DqvController,
-  DqwController,
-  DqqController,
-  dtController,
-  autoPauseAtController,
-  randSeedController,
-  whatToDrawController,
-  lineWidthMulController,
-  threeDHeightScaleController,
-  surfaceFunController,
-  surfaceButtons,
-  cameraThetaController,
-  cameraPhiController,
-  cameraZoomController,
   contoursControllers = [],
-  minColourValueController,
-  maxColourValueController,
   embossControllers = [],
-  initCond_1Controller,
-  initCond_2Controller,
-  initCond_3Controller,
-  initCond_4Controller,
-  uBCsController,
-  vBCsController,
-  wBCsController,
-  qBCsController,
-  dirichletUController,
-  dirichletVController,
-  dirichletWController,
-  dirichletQController,
-  comboUController,
-  comboVController,
-  comboWController,
-  comboQController,
-  neumannUController,
-  neumannVController,
-  neumannWController,
-  neumannQController,
-  numTimestepsPerFrameController,
-  robinUController,
-  robinVController,
-  robinWController,
-  robinQController,
+  surfaceButtons,
   fIm,
   imControllerOne,
   imControllerTwo,
-  arrowDensityController,
-  arrowLengthMaxController,
-  overlayEpsilonController,
-  overlayLineWidthMulController,
   editViewFolder,
   linesAnd3DFolder,
   vectorFieldFolder,
-  whatToPlotController,
   selectedEntries = new Set();
 let isRunning,
   isLoading = true,
@@ -129,7 +63,6 @@ let isRunning,
   topMessageTimer,
   uiHidden = false,
   checkpointExists = false,
-  savedViews,
   nextViewNumber = 0,
   seed = performance.now(),
   updatingAlgebraicSpecies = false,
@@ -155,7 +88,6 @@ let parametersFolder,
 const defaultSpecies = ["u", "v", "w", "q"];
 const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
 const placeholderSp = ["SPECIES1", "SPECIES2", "SPECIES3", "SPECIES4"];
-const placeholderRe = ["REACT1", "REACT2", "REACT3", "REACT4"];
 const listOfTypes = [
   "1Species", // 0
   "2Species", // 1
@@ -171,7 +103,7 @@ const listOfTypes = [
   "4SpeciesCrossDiffusionAlgebraicWQ", // 11
   "4SpeciesCrossDiffusionAlgebraicVWQ", // 12
 ];
-let equationType, savedHTML, algebraicV, algebraicW, algebraicQ;
+let equationType, algebraicV, algebraicW, algebraicQ;
 let takeAScreenshot = false;
 let buffer,
   stateBuffer,
@@ -309,9 +241,6 @@ funsObj = {
       checkpointExists = false;
     }
   },
-  restoreCurrentView: function () {
-    restoreCurrentView();
-  },
 };
 
 // Define a handy countDecimals function.
@@ -350,11 +279,6 @@ Array.prototype.rotate = (function () {
     return this;
   };
 })();
-
-// Define a handy 'last' function to return the last element.
-Array.prototype.last = function () {
-  return this[this.length - 1];
-};
 
 // Get the canvas to draw on, as specified by the html.
 canvas = document.getElementById("simCanvas");
@@ -1338,7 +1262,7 @@ function initGUI(startOpen) {
     "Toggle the brush on or off"
   );
 
-  const brushActionController = root
+  controllers["brushAction"] = root
     .add(options, "brushAction", {
       Replace: "replace",
       Add: "add",
@@ -1351,7 +1275,7 @@ function initGUI(startOpen) {
       document.activeElement.blur();
     });
 
-  brushTypeController = root
+  controllers["brushType"] = root
     .add(options, "brushType", {
       Disk: "circle",
       "Horizontal line": "hline",
@@ -1367,7 +1291,7 @@ function initGUI(startOpen) {
 
   root.add(options, "brushRadius").name("Radius").onFinishChange(setBrushType);
 
-  whatToDrawController = root
+  controllers["whatToDraw"] = root
     .add(options, "whatToDraw", listOfSpecies)
     .name("Species")
     .onChange(setBrushType);
@@ -1408,7 +1332,7 @@ function initGUI(startOpen) {
       resetSim();
     });
 
-  minYController = root
+  controllers["minY"] = root
     .add(options, "minY")
     .name("Min. $y$")
     .onFinishChange(function () {
@@ -1447,7 +1371,7 @@ function initGUI(startOpen) {
     "Specify a custom domain"
   );
 
-  domainIndicatorFunController = root
+  controllers["domainIndicatorFun"] = root
     .add(options, "domainIndicatorFun")
     .name("Ind. fun")
     .onFinishChange(function () {
@@ -1461,20 +1385,20 @@ function initGUI(startOpen) {
   // Timestepping folder.
   root = rightGUI.addFolder("Timestepping");
 
-  numTimestepsPerFrameController = root
+  controllers["numTimestepsPerFrame"] = root
     .add(options, "numTimestepsPerFrame", 1, 1000, 1)
     .name("Steps/frame");
-  createOptionSlider(numTimestepsPerFrameController, 1, 400, 1);
+  createOptionSlider(controllers["numTimestepsPerFrame"], 1, 400, 1);
 
-  dtController = root
+  controllers["dt"] = root
     .add(options, "dt")
     .name("Timestep")
     .onChange(function () {
       updateUniforms();
     });
-  dtController.__precision = 12;
-  dtController.min(0);
-  dtController.updateDisplay();
+  controllers["dt"].__precision = 12;
+  controllers["dt"].min(0);
+  controllers["dt"].updateDisplay();
 
   root
     .add(options, "timesteppingScheme", {
@@ -1510,12 +1434,12 @@ function initGUI(startOpen) {
     "Toggle automatic pausing"
   );
 
-  autoPauseAtController = root
+  controllers["autoPauseAt"] = root
     .add(options, "autoPauseAt")
     .name("Pause at $t=$")
     .onFinishChange(function () {
       canAutoPause = uniforms.t.value < options.autoPauseAt;
-      autoPauseAtController.domElement.blur();
+      controllers["autoPauseAt"].domElement.blur();
     });
 
   // Equations folder.
@@ -1532,7 +1456,7 @@ function initGUI(startOpen) {
     });
 
   // Number of algebraic species.
-  algebraicSpeciesController = root
+  controllers["algebraicSpecies"] = root
     .add(options, "numAlgebraicSpecies", { 0: 0, 1: 1, 2: 2, 3: 3 })
     .name("No. algebraic")
     .onChange(function () {
@@ -1576,178 +1500,186 @@ function initGUI(startOpen) {
     "Typeset the specified equations"
   );
 
-  DuuController = root
+  controllers["Duu"] = root
     .add(options, "diffusionStr_1_1")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DuuController, selectTeX, ["U", "UU"]);
-  setOnblur(DuuController, deselectTeX, ["U", "UU"]);
+  setOnfocus(controllers["Duu"], selectTeX, ["U", "UU"]);
+  setOnblur(controllers["Duu"], deselectTeX, ["U", "UU"]);
 
-  DuvController = root
+  controllers["Duv"] = root
     .add(options, "diffusionStr_1_2")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DuvController, selectTeX, ["UV"]);
-  setOnblur(DuvController, deselectTeX, ["UV"]);
+  setOnfocus(controllers["Duv"], selectTeX, ["UV"]);
+  setOnblur(controllers["Duv"], deselectTeX, ["UV"]);
 
-  DuwController = root
+  controllers["Duw"] = root
     .add(options, "diffusionStr_1_3")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DuwController, selectTeX, ["UW"]);
-  setOnblur(DuwController, deselectTeX, ["UW"]);
+  setOnfocus(controllers["Duw"], selectTeX, ["UW"]);
+  setOnblur(controllers["Duw"], deselectTeX, ["UW"]);
 
-  DuqController = root
+  controllers["Duq"] = root
     .add(options, "diffusionStr_1_4")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DuqController, selectTeX, ["UQ"]);
-  setOnblur(DuqController, deselectTeX, ["UQ"]);
+  setOnfocus(controllers["Duq"], selectTeX, ["UQ"]);
+  setOnblur(controllers["Duq"], deselectTeX, ["UQ"]);
 
-  DvuController = root
+  controllers["Dvu"] = root
     .add(options, "diffusionStr_2_1")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DvuController, selectTeX, ["VU"]);
-  setOnblur(DvuController, deselectTeX, ["VU"]);
+  setOnfocus(controllers["Dvu"], selectTeX, ["VU"]);
+  setOnblur(controllers["Dvu"], deselectTeX, ["VU"]);
 
-  DvvController = root
+  controllers["Dvv"] = root
     .add(options, "diffusionStr_2_2")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DvvController, selectTeX, ["V", "VV"]);
-  setOnblur(DvvController, deselectTeX, ["V", "VV"]);
+  setOnfocus(controllers["Dvv"], selectTeX, ["V", "VV"]);
+  setOnblur(controllers["Dvv"], deselectTeX, ["V", "VV"]);
 
-  DvwController = root
+  controllers["Dvw"] = root
     .add(options, "diffusionStr_2_3")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DvwController, selectTeX, ["VW"]);
-  setOnblur(DvwController, deselectTeX, ["VW"]);
+  setOnfocus(controllers["Dvw"], selectTeX, ["VW"]);
+  setOnblur(controllers["Dvw"], deselectTeX, ["VW"]);
 
-  DvqController = root
+  controllers["Dvq"] = root
     .add(options, "diffusionStr_2_4")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DvqController, selectTeX, ["VQ"]);
-  setOnblur(DvqController, deselectTeX, ["VQ"]);
+  setOnfocus(controllers["Dvq"], selectTeX, ["VQ"]);
+  setOnblur(controllers["Dvq"], deselectTeX, ["VQ"]);
 
-  DwuController = root
+  controllers["Dwu"] = root
     .add(options, "diffusionStr_3_1")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DwuController, selectTeX, ["WU"]);
-  setOnblur(DwuController, deselectTeX, ["WU"]);
+  setOnfocus(controllers["Dwu"], selectTeX, ["WU"]);
+  setOnblur(controllers["Dwu"], deselectTeX, ["WU"]);
 
-  DwvController = root
+  controllers["Dwv"] = root
     .add(options, "diffusionStr_3_2")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DwvController, selectTeX, ["WV"]);
-  setOnblur(DwvController, deselectTeX, ["WV"]);
+  setOnfocus(controllers["Dwv"], selectTeX, ["WV"]);
+  setOnblur(controllers["Dwv"], deselectTeX, ["WV"]);
 
-  DwwController = root
+  controllers["Dww"] = root
     .add(options, "diffusionStr_3_3")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DwwController, selectTeX, ["W", "WW"]);
-  setOnblur(DwwController, deselectTeX, ["W", "WW"]);
+  setOnfocus(controllers["Dww"], selectTeX, ["W", "WW"]);
+  setOnblur(controllers["Dww"], deselectTeX, ["W", "WW"]);
 
-  DwqController = root
+  controllers["Dwq"] = root
     .add(options, "diffusionStr_3_4")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DwqController, selectTeX, ["WQ"]);
-  setOnblur(DwqController, deselectTeX, ["WQ"]);
+  setOnfocus(controllers["Dwq"], selectTeX, ["WQ"]);
+  setOnblur(controllers["Dwq"], deselectTeX, ["WQ"]);
 
-  DquController = root
+  controllers["Dqu"] = root
     .add(options, "diffusionStr_4_1")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DquController, selectTeX, ["QU"]);
-  setOnblur(DquController, deselectTeX, ["QU"]);
+  setOnfocus(controllers["Dqu"], selectTeX, ["QU"]);
+  setOnblur(controllers["Dqu"], deselectTeX, ["QU"]);
 
-  DqvController = root
+  controllers["Dqv"] = root
     .add(options, "diffusionStr_4_2")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DqvController, selectTeX, ["QV"]);
-  setOnblur(DqvController, deselectTeX, ["QV"]);
+  setOnfocus(controllers["Dqv"], selectTeX, ["QV"]);
+  setOnblur(controllers["Dqv"], deselectTeX, ["QV"]);
 
-  DqwController = root
+  controllers["Dqw"] = root
     .add(options, "diffusionStr_4_3")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DqwController, selectTeX, ["QW"]);
-  setOnblur(DqwController, deselectTeX, ["QW"]);
+  setOnfocus(controllers["Dqw"], selectTeX, ["QW"]);
+  setOnblur(controllers["Dqw"], deselectTeX, ["QW"]);
 
-  DqqController = root
+  controllers["Dqq"] = root
     .add(options, "diffusionStr_4_4")
     .onFinishChange(function () {
       setRDEquations();
       setEquationDisplayType();
     });
-  setOnfocus(DqqController, selectTeX, ["Q", "QQ"]);
-  setOnblur(DqqController, deselectTeX, ["Q", "QQ"]);
+  setOnfocus(controllers["Dqq"], selectTeX, ["Q", "QQ"]);
+  setOnblur(controllers["Dqq"], deselectTeX, ["Q", "QQ"]);
 
   // Custom f(u,v) and g(u,v).
-  fController = root.add(options, "reactionStr_1").onFinishChange(function () {
-    setRDEquations();
-    setEquationDisplayType();
-  });
-  setOnfocus(fController, selectTeX, ["UFUN"]);
-  setOnblur(fController, deselectTeX, ["UFUN"]);
+  controllers["f"] = root
+    .add(options, "reactionStr_1")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+  setOnfocus(controllers["f"], selectTeX, ["UFUN"]);
+  setOnblur(controllers["f"], deselectTeX, ["UFUN"]);
 
-  gController = root.add(options, "reactionStr_2").onFinishChange(function () {
-    setRDEquations();
-    setEquationDisplayType();
-  });
-  setOnfocus(gController, selectTeX, ["VFUN"]);
-  setOnblur(gController, deselectTeX, ["VFUN"]);
+  controllers["g"] = root
+    .add(options, "reactionStr_2")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+  setOnfocus(controllers["g"], selectTeX, ["VFUN"]);
+  setOnblur(controllers["g"], deselectTeX, ["VFUN"]);
 
-  hController = root.add(options, "reactionStr_3").onFinishChange(function () {
-    setRDEquations();
-    setEquationDisplayType();
-  });
-  setOnfocus(hController, selectTeX, ["WFUN"]);
-  setOnblur(hController, deselectTeX, ["WFUN"]);
+  controllers["h"] = root
+    .add(options, "reactionStr_3")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+  setOnfocus(controllers["h"], selectTeX, ["WFUN"]);
+  setOnblur(controllers["h"], deselectTeX, ["WFUN"]);
 
-  jController = root.add(options, "reactionStr_4").onFinishChange(function () {
-    setRDEquations();
-    setEquationDisplayType();
-  });
-  setOnfocus(jController, selectTeX, ["QFUN"]);
-  setOnblur(jController, deselectTeX, ["QFUN"]);
+  controllers["j"] = root
+    .add(options, "reactionStr_4")
+    .onFinishChange(function () {
+      setRDEquations();
+      setEquationDisplayType();
+    });
+  setOnfocus(controllers["j"], selectTeX, ["QFUN"]);
+  setOnblur(controllers["j"], deselectTeX, ["QFUN"]);
 
   parametersFolder = leftGUI.addFolder("Parameters");
   setParamsFromKineticString();
@@ -1755,7 +1687,7 @@ function initGUI(startOpen) {
   // Boundary conditions folder.
   root = leftGUI.addFolder("Boundary conditions");
 
-  uBCsController = root
+  controllers["uBCs"] = root
     .add(options, "boundaryConditions_1", {})
     .onChange(function () {
       setRDEquations();
@@ -1763,24 +1695,24 @@ function initGUI(startOpen) {
       document.activeElement.blur();
     });
 
-  dirichletUController = root
+  controllers["dirichletU"] = root
     .add(options, "dirichletStr_1")
     .onFinishChange(setRDEquations);
 
-  neumannUController = root
+  controllers["neumannU"] = root
     .add(options, "neumannStr_1")
     .onFinishChange(setRDEquations);
 
-  robinUController = root
+  controllers["robinU"] = root
     .add(options, "robinStr_1")
     .onFinishChange(setRDEquations);
 
-  comboUController = root
+  controllers["comboU"] = root
     .add(options, "comboStr_1")
     .name("Details")
     .onFinishChange(setRDEquations);
 
-  vBCsController = root
+  controllers["vBCs"] = root
     .add(options, "boundaryConditions_2", {})
     .onChange(function () {
       setRDEquations();
@@ -1788,24 +1720,24 @@ function initGUI(startOpen) {
       document.activeElement.blur();
     });
 
-  dirichletVController = root
+  controllers["dirichletV"] = root
     .add(options, "dirichletStr_2")
     .onFinishChange(setRDEquations);
 
-  neumannVController = root
+  controllers["neumannV"] = root
     .add(options, "neumannStr_2")
     .onFinishChange(setRDEquations);
 
-  robinVController = root
+  controllers["robinV"] = root
     .add(options, "robinStr_2")
     .onFinishChange(setRDEquations);
 
-  comboVController = root
+  controllers["comboV"] = root
     .add(options, "comboStr_2")
     .name("Details")
     .onFinishChange(setRDEquations);
 
-  wBCsController = root
+  controllers["wBCs"] = root
     .add(options, "boundaryConditions_3", {})
     .onChange(function () {
       setRDEquations();
@@ -1813,24 +1745,24 @@ function initGUI(startOpen) {
       document.activeElement.blur();
     });
 
-  dirichletWController = root
+  controllers["dirichletW"] = root
     .add(options, "dirichletStr_3")
     .onFinishChange(setRDEquations);
 
-  neumannWController = root
+  controllers["neumannW"] = root
     .add(options, "neumannStr_3")
     .onFinishChange(setRDEquations);
 
-  robinWController = root
+  controllers["robinW"] = root
     .add(options, "robinStr_3")
     .onFinishChange(setRDEquations);
 
-  comboWController = root
+  controllers["comboW"] = root
     .add(options, "comboStr_3")
     .name("Details")
     .onFinishChange(setRDEquations);
 
-  qBCsController = root
+  controllers["qBCs"] = root
     .add(options, "boundaryConditions_4", {})
     .name("$q$")
     .onChange(function () {
@@ -1839,19 +1771,19 @@ function initGUI(startOpen) {
       document.activeElement.blur();
     });
 
-  dirichletQController = root
+  controllers["dirichletQ"] = root
     .add(options, "dirichletStr_4")
     .onFinishChange(setRDEquations);
 
-  neumannQController = root
+  controllers["neumannQ"] = root
     .add(options, "neumannStr_4")
     .onFinishChange(setRDEquations);
 
-  robinQController = root
+  controllers["robinQ"] = root
     .add(options, "robinStr_4")
     .onFinishChange(setRDEquations);
 
-  comboQController = root
+  controllers["comboQ"] = root
     .add(options, "comboStr_4")
     .name("Details")
     .onFinishChange(setRDEquations);
@@ -1859,19 +1791,19 @@ function initGUI(startOpen) {
   // Initial conditions folder.
   root = leftGUI.addFolder("Initial conditions");
 
-  initCond_1Controller = root
+  controllers["initCond_1"] = root
     .add(options, "initCond_1")
     .onFinishChange(setClearShader);
 
-  initCond_2Controller = root
+  controllers["initCond_2"] = root
     .add(options, "initCond_2")
     .onFinishChange(setClearShader);
 
-  initCond_3Controller = root
+  controllers["initCond_3"] = root
     .add(options, "initCond_3")
     .onFinishChange(setClearShader);
 
-  initCond_4Controller = root
+  controllers["initCond_4"] = root
     .add(options, "initCond_4")
     .onFinishChange(setClearShader);
 
@@ -1981,7 +1913,7 @@ function initGUI(startOpen) {
     "Set the seed for random number generation"
   );
 
-  randSeedController = root
+  controllers["randSeed"] = root
     .add(options, "randSeed")
     .name("Random seed")
     .onFinishChange(function () {
@@ -2065,7 +1997,7 @@ function initGUI(startOpen) {
     "Delete view"
   ); // Delete
 
-  whatToPlotController = root
+  controllers["whatToPlot"] = root
     .add(options, "whatToPlot")
     .name("Expression: ")
     .onFinishChange(function () {
@@ -2115,7 +2047,7 @@ function initGUI(startOpen) {
     })
     .name("Colour map");
 
-  minColourValueController = root
+  controllers["minColourValue"] = root
     .add(options, "minColourValue")
     .name("Min value")
     .onChange(function () {
@@ -2124,9 +2056,9 @@ function initGUI(startOpen) {
       renderIfNotRunning();
       updateView(this.property);
     });
-  minColourValueController.__precision = 2;
+  controllers["minColourValue"].__precision = 2;
 
-  maxColourValueController = root
+  controllers["maxColourValue"] = root
     .add(options, "maxColourValue")
     .name("Max value")
     .onChange(function () {
@@ -2135,7 +2067,7 @@ function initGUI(startOpen) {
       renderIfNotRunning();
       updateView(this.property);
     });
-  maxColourValueController.__precision = 2;
+  controllers["maxColourValue"].__precision = 2;
 
   const effectsButtons = addButtonList(root, "colour_map_buttons");
 
@@ -2264,7 +2196,7 @@ function initGUI(startOpen) {
   root = editViewFolder.addFolder("Contours");
   root.domElement.id = "contoursFolder";
 
-  root
+  controllers["contourColour"] = root
     .addColor(options, "contourColour")
     .name("Colour")
     .onChange(function () {
@@ -2273,116 +2205,107 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
-  contoursControllers.push(
-    root
-      .add(options, "contourNum")
-      .name("Number")
-      .onChange(function () {
-        setContourUniforms();
-        renderIfNotRunning();
-        updateView(this.property);
-      })
-  );
-  createOptionSlider(contoursControllers.last(), 1, 20, 1);
+  controllers["contourNum"] = root
+    .add(options, "contourNum")
+    .name("Number")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+  createOptionSlider(controllers["contourNum"], 1, 20, 1);
+  contoursControllers.push(controllers["contourNum"]);
 
-  contoursControllers.push(
-    root
-      .add(options, "contourEpsilon")
-      .name("Threshold")
-      .onChange(function () {
-        setContourUniforms();
-        renderIfNotRunning();
-        updateView(this.property);
-      })
-  );
-  createOptionSlider(contoursControllers.last(), 0.001, 0.05, 0.001);
+  controllers["contourEpsilon"] = root
+    .add(options, "contourEpsilon")
+    .name("Threshold")
+    .onChange(function () {
+      setContourUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+  createOptionSlider(controllers["contourEpsilon"], 0.001, 0.05, 0.001);
+  contoursControllers.push(controllers["contourEpsilon"]);
 
   root = editViewFolder.addFolder("Lighting");
   root.domElement.id = "embossFolder";
 
-  embossControllers.push(
-    root
-      .add(options, "embossSmoothness")
-      .name("Smoothness")
-      .onChange(function () {
-        setEmbossUniforms();
-        renderIfNotRunning();
-        updateView(this.property);
-      })
-  );
-  createOptionSlider(embossControllers.last(), 0, 2, 0.001);
+  controllers["embossSmoothness"] = root
+    .add(options, "embossSmoothness")
+    .name("Smoothness")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+  createOptionSlider(controllers["embossSmoothness"], 0, 2, 0.001);
+  embossControllers.push(controllers["embossSmoothness"]);
 
-  embossControllers.push(
-    root
-      .add(options, "embossAmbient")
-      .name("Ambient")
-      .onChange(function () {
-        setEmbossUniforms();
-        renderIfNotRunning();
-        updateView(this.property);
-      })
-  );
-  createOptionSlider(embossControllers.last(), 0, 1, 0.001);
+  controllers["embossAmbient"] = root
+    .add(options, "embossAmbient")
+    .name("Ambient")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+  createOptionSlider(controllers["embossAmbient"], 0, 1, 0.001);
+  embossControllers.push(controllers["embossAmbient"]);
 
-  embossControllers.push(
-    root
-      .add(options, "embossDiffuse")
-      .name("Diffuse")
-      .onChange(function () {
-        setEmbossUniforms();
-        renderIfNotRunning();
-        updateView(this.property);
-      })
-  );
-  createOptionSlider(embossControllers.last(), 0, 1, 0.001);
+  controllers["embossDiffuse"] = root
+    .add(options, "embossDiffuse")
+    .name("Diffuse")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+  createOptionSlider(controllers["embossDiffuse"], 0, 1, 0.001);
+  embossControllers.push(controllers["embossDiffuse"]);
 
-  embossControllers.push(
-    root
-      .add(options, "embossSpecular")
-      .name("Specular")
-      .onChange(function () {
-        setEmbossUniforms();
-        renderIfNotRunning();
-        updateView(this.property);
-      })
-  );
-  createOptionSlider(embossControllers.last(), 0, 1, 0.001);
+  controllers["embossSpecular"] = root
+    .add(options, "embossSpecular")
+    .name("Specular")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+  createOptionSlider(controllers["embossSpecular"], 0, 1, 0.001);
+  embossControllers.push(controllers["embossSpecular"]);
 
-  embossControllers.push(
-    root
-      .add(options, "embossShiny")
-      .name("Precision")
-      .onChange(function () {
-        setEmbossUniforms();
-        renderIfNotRunning();
-        updateView(this.property);
-      })
-  );
-  createOptionSlider(embossControllers.last(), 0, 100, 1);
+  controllers["embossShiny"] = root
+    .add(options, "embossShiny")
+    .name("Precision")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+  createOptionSlider(controllers["embossShiny"], 0, 100, 1);
+  embossControllers.push(controllers["embossShiny"]);
 
-  embossControllers.push(
-    root
-      .add(options, "embossTheta")
-      .name("Inclination")
-      .onChange(function () {
-        setEmbossUniforms();
-        renderIfNotRunning();
-        updateView(this.property);
-      })
-  );
-  createOptionSlider(embossControllers.last(), 0, 1.5708, 0.001);
+  controllers["embossTheta"] = root
+    .add(options, "embossTheta")
+    .name("Inclination")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+  createOptionSlider(controllers["embossTheta"], 0, 1.5708, 0.001);
+  embossControllers.push(controllers["embossTheta"]);
 
-  embossControllers.push(
-    root
-      .add(options, "embossPhi")
-      .name("Direction")
-      .onChange(function () {
-        setEmbossUniforms();
-        renderIfNotRunning();
-        updateView(this.property);
-      })
-  );
-  createOptionSlider(embossControllers.last(), 0, 3.1456, 0.001);
+  controllers["embossPhi"] = root
+    .add(options, "embossPhi")
+    .name("Direction")
+    .onChange(function () {
+      setEmbossUniforms();
+      renderIfNotRunning();
+      updateView(this.property);
+    });
+  createOptionSlider(controllers["embossPhi"], 0, 3.1456, 0.001);
+  embossControllers.push(controllers["embossPhi"]);
 
   root = editViewFolder.addFolder("Overlay");
   root.domElement.id = "overlayFolder";
@@ -2406,7 +2329,7 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
-  overlayEpsilonController = root
+  controllers["overlayEpsilon"] = root
     .add(options, "overlayEpsilon")
     .name("Threshold")
     .onChange(function () {
@@ -2415,7 +2338,7 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
-  overlayLineWidthMulController = root
+  controllers["overlayLineWidthMul"] = root
     .add(options, "overlayLineWidthMul", 0.1, 2)
     .name("Thickness")
     .onChange(function () {
@@ -2444,7 +2367,7 @@ function initGUI(startOpen) {
     "Plot the solution on a custom surface"
   );
 
-  surfaceFunController = root
+  controllers["surfaceFun"] = root
     .add(options, "surfaceFun")
     .name("Surface $z=$ ")
     .onFinishChange(function () {
@@ -2453,7 +2376,7 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
-  threeDHeightScaleController = root
+  controllers["threeDHeightScale"] = root
     .add(options, "threeDHeightScale")
     .name("Height scale")
     .onChange(function () {
@@ -2462,7 +2385,7 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
-  cameraThetaController = root
+  controllers["cameraTheta"] = root
     .add(options, "cameraTheta")
     .name("View $\\theta$")
     .onChange(function () {
@@ -2471,7 +2394,7 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
-  cameraPhiController = root
+  controllers["cameraPhi"] = root
     .add(options, "cameraPhi")
     .name("View $\\phi$")
     .onChange(function () {
@@ -2480,7 +2403,7 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
-  cameraZoomController = root
+  controllers["cameraZoom"] = root
     .add(options, "cameraZoom")
     .name("Zoom")
     .onChange(function () {
@@ -2489,7 +2412,7 @@ function initGUI(startOpen) {
       updateView(this.property);
     });
 
-  lineWidthMulController = root
+  controllers["lineWidthMul"] = root
     .add(options, "lineWidthMul", 0.1, 2)
     .name("Thickness")
     .onChange(function () {
@@ -2529,7 +2452,7 @@ function initGUI(startOpen) {
     })
     .name("$y$ component");
 
-  arrowDensityController = root
+  controllers["arrowDensity"] = root
     .add(options, "arrowDensity")
     .onChange(function () {
       configureVectorField();
@@ -2537,8 +2460,8 @@ function initGUI(startOpen) {
       updateView(this.property);
     })
     .name("Density");
-  arrowDensityController.__precision = 2;
-  createOptionSlider(arrowDensityController, 0, 1, 0.001);
+  controllers["arrowDensity"].__precision = 2;
+  createOptionSlider(controllers["arrowDensity"], 0, 1, 0.001);
 
   root
     .add(options, "arrowScale", {
@@ -2553,7 +2476,7 @@ function initGUI(startOpen) {
     })
     .name("Scaling");
 
-  arrowLengthMaxController = root
+  controllers["arrowLengthMax"] = root
     .add(options, "arrowLengthMax")
     .onFinishChange(function () {
       configureVectorField();
@@ -4082,94 +4005,94 @@ function speciesToChannelInd(speciesStr) {
 function setBCsGUI() {
   // Update the GUI.
   if (options.boundaryConditions_1 == "dirichlet") {
-    dirichletUController.show();
+    controllers["dirichletU"].show();
   } else {
-    dirichletUController.hide();
+    controllers["dirichletU"].hide();
   }
   if (options.boundaryConditions_2 == "dirichlet") {
-    dirichletVController.show();
+    controllers["dirichletV"].show();
   } else {
-    dirichletVController.hide();
+    controllers["dirichletV"].hide();
   }
   if (options.boundaryConditions_3 == "dirichlet") {
-    dirichletWController.show();
+    controllers["dirichletW"].show();
   } else {
-    dirichletWController.hide();
+    controllers["dirichletW"].hide();
   }
   if (options.boundaryConditions_4 == "dirichlet") {
-    dirichletQController.show();
+    controllers["dirichletQ"].show();
   } else {
-    dirichletQController.hide();
+    controllers["dirichletQ"].hide();
   }
 
   if (options.boundaryConditions_1 == "neumann") {
-    neumannUController.show();
+    controllers["neumannU"].show();
   } else {
-    neumannUController.hide();
+    controllers["neumannU"].hide();
   }
   if (options.boundaryConditions_2 == "neumann") {
-    neumannVController.show();
+    controllers["neumannV"].show();
   } else {
-    neumannVController.hide();
+    controllers["neumannV"].hide();
   }
   if (options.boundaryConditions_3 == "neumann") {
-    neumannWController.show();
+    controllers["neumannW"].show();
   } else {
-    neumannWController.hide();
+    controllers["neumannW"].hide();
   }
   if (options.boundaryConditions_4 == "neumann") {
-    neumannQController.show();
+    controllers["neumannQ"].show();
   } else {
-    neumannQController.hide();
+    controllers["neumannQ"].hide();
   }
 
   if (options.boundaryConditions_1 == "robin") {
-    robinUController.show();
+    controllers["robinU"].show();
   } else {
-    robinUController.hide();
+    controllers["robinU"].hide();
   }
   if (options.boundaryConditions_2 == "robin") {
-    robinVController.show();
+    controllers["robinV"].show();
   } else {
-    robinVController.hide();
+    controllers["robinV"].hide();
   }
   if (options.boundaryConditions_3 == "robin") {
-    robinWController.show();
+    controllers["robinW"].show();
   } else {
-    robinWController.hide();
+    controllers["robinW"].hide();
   }
   if (options.boundaryConditions_4 == "robin") {
-    robinQController.show();
+    controllers["robinQ"].show();
   } else {
-    robinQController.hide();
+    controllers["robinQ"].hide();
   }
 
   if (options.boundaryConditions_1 == "combo") {
-    comboUController.show();
+    controllers["comboU"].show();
   } else {
-    comboUController.hide();
+    controllers["comboU"].hide();
   }
   if (options.boundaryConditions_2 == "combo") {
-    comboVController.show();
+    controllers["comboV"].show();
   } else {
-    comboVController.hide();
+    controllers["comboV"].hide();
   }
   if (options.boundaryConditions_3 == "combo") {
-    comboWController.show();
+    controllers["comboW"].show();
   } else {
-    comboWController.hide();
+    controllers["comboW"].hide();
   }
   if (options.boundaryConditions_4 == "combo") {
-    comboQController.show();
+    controllers["comboQ"].show();
   } else {
-    comboQController.hide();
+    controllers["comboQ"].hide();
   }
 
   const BCsControllers = [
-    uBCsController,
-    vBCsController,
-    wBCsController,
-    qBCsController,
+    controllers["uBCs"],
+    controllers["vBCs"],
+    controllers["wBCs"],
+    controllers["qBCs"],
   ];
   if (options.domainViaIndicatorFun) {
     BCsControllers.forEach((cont) =>
@@ -4273,97 +4196,97 @@ function updateWhatToPlot() {
   // Invalidate the solution buffer.
   bufferFilled = false;
   setPostFunFragShader();
-  minColourValueController.show();
-  maxColourValueController.show();
+  controllers["minColourValue"].show();
+  controllers["maxColourValue"].show();
   configureColourbar();
   configureIntegralDisplay();
 }
 
 function showVGUIPanels() {
   if (options.crossDiffusion) {
-    DuvController.show();
-    DvuController.show();
+    controllers["Duv"].show();
+    controllers["Dvu"].show();
   } else {
-    DuvController.hide();
-    DvuController.hide();
+    controllers["Duv"].hide();
+    controllers["Dvu"].hide();
   }
-  DvvController.show();
-  gController.show();
-  initCond_2Controller.show();
-  vBCsController.show();
+  controllers["Dvv"].show();
+  controllers["g"].show();
+  controllers["initCond_2"].show();
+  controllers["vBCs"].show();
 }
 
 function showWGUIPanels() {
   if (options.crossDiffusion) {
-    DuwController.show();
-    DvwController.show();
-    DwuController.show();
-    DwvController.show();
+    controllers["Duw"].show();
+    controllers["Dvw"].show();
+    controllers["Dwu"].show();
+    controllers["Dwv"].show();
   } else {
-    DuwController.hide();
-    DvwController.hide();
-    DwuController.hide();
-    DwvController.hide();
+    controllers["Duw"].hide();
+    controllers["Dvw"].hide();
+    controllers["Dwu"].hide();
+    controllers["Dwv"].hide();
   }
-  DwwController.show();
-  hController.show();
-  initCond_3Controller.show();
-  wBCsController.show();
+  controllers["Dww"].show();
+  controllers["h"].show();
+  controllers["initCond_3"].show();
+  controllers["wBCs"].show();
 }
 
 function showQGUIPanels() {
   if (options.crossDiffusion) {
-    DuqController.show();
-    DvqController.show();
-    DwqController.show();
-    DquController.show();
-    DqvController.show();
-    DqwController.show();
+    controllers["Duq"].show();
+    controllers["Dvq"].show();
+    controllers["Dwq"].show();
+    controllers["Dqu"].show();
+    controllers["Dqv"].show();
+    controllers["Dqw"].show();
   } else {
-    DwqController.hide();
-    DquController.hide();
-    DvqController.hide();
-    DuqController.hide();
-    DqvController.hide();
-    DqwController.hide();
+    controllers["Dwq"].hide();
+    controllers["Dqu"].hide();
+    controllers["Dvq"].hide();
+    controllers["Duq"].hide();
+    controllers["Dqv"].hide();
+    controllers["Dqw"].hide();
   }
-  DqqController.show();
-  jController.show();
-  initCond_4Controller.show();
-  qBCsController.show();
+  controllers["Dqq"].show();
+  controllers["j"].show();
+  controllers["initCond_4"].show();
+  controllers["qBCs"].show();
 }
 
 function hideVGUIPanels() {
-  DuvController.hide();
-  DvuController.hide();
-  DvvController.hide();
-  gController.hide();
-  initCond_2Controller.hide();
-  vBCsController.hide();
+  controllers["Duv"].hide();
+  controllers["Dvu"].hide();
+  controllers["Dvv"].hide();
+  controllers["g"].hide();
+  controllers["initCond_2"].hide();
+  controllers["vBCs"].hide();
 }
 
 function hideWGUIPanels() {
-  DuwController.hide();
-  DvwController.hide();
-  DwuController.hide();
-  DwvController.hide();
-  DwwController.hide();
-  hController.hide();
-  initCond_3Controller.hide();
-  wBCsController.hide();
+  controllers["Duw"].hide();
+  controllers["Dvw"].hide();
+  controllers["Dwu"].hide();
+  controllers["Dwv"].hide();
+  controllers["Dww"].hide();
+  controllers["h"].hide();
+  controllers["initCond_3"].hide();
+  controllers["wBCs"].hide();
 }
 
 function hideQGUIPanels() {
-  DuqController.hide();
-  DvqController.hide();
-  DwqController.hide();
-  DquController.hide();
-  DqvController.hide();
-  DqwController.hide();
-  DqqController.hide();
-  jController.hide();
-  initCond_4Controller.hide();
-  qBCsController.hide();
+  controllers["Duq"].hide();
+  controllers["Dvq"].hide();
+  controllers["Dwq"].hide();
+  controllers["Dqu"].hide();
+  controllers["Dqv"].hide();
+  controllers["Dqw"].hide();
+  controllers["Dqq"].hide();
+  controllers["j"].hide();
+  controllers["initCond_4"].hide();
+  controllers["qBCs"].hide();
 }
 
 function diffObjects(o1, o2) {
@@ -4517,20 +4440,20 @@ function configureGUI() {
 
   if (options.dimension == 1) {
     tooltip = tooltip.replace(" y,", "");
-    minYController.hide();
+    controllers["minY"].hide();
   } else {
-    minYController.show();
+    controllers["minY"].show();
   }
   if (options.crossDiffusion && parseInt(options.numSpecies) > 1) {
     if (!updatingAlgebraicSpecies) {
       updateGUIDropdown(
-        algebraicSpeciesController,
+        controllers["algebraicSpecies"],
         Array.from(Array(parseInt(options.numSpecies)).keys())
       );
     }
-    algebraicSpeciesController.show();
+    controllers["algebraicSpecies"].show();
   } else {
-    algebraicSpeciesController.hide();
+    controllers["algebraicSpecies"].hide();
   }
 
   if (options.numSpecies > 1) {
@@ -4555,83 +4478,83 @@ function configureGUI() {
   // Configure the controller names.
   // We'll set the generic names then alter any algebraic ones.
   if (options.crossDiffusion) {
-    setGUIControllerName(DuuController, TeXStrings["Duu"], tooltip);
-    setGUIControllerName(DuvController, TeXStrings["Duv"], tooltip);
-    setGUIControllerName(DuwController, TeXStrings["Duw"], tooltip);
-    setGUIControllerName(DuqController, TeXStrings["Duq"], tooltip);
-    setGUIControllerName(DvuController, TeXStrings["Dvu"], tooltip);
-    setGUIControllerName(DvvController, TeXStrings["Dvv"], tooltip);
-    setGUIControllerName(DvwController, TeXStrings["Dvw"], tooltip);
-    setGUIControllerName(DvqController, TeXStrings["Dvq"], tooltip);
-    setGUIControllerName(DwuController, TeXStrings["Dwu"], tooltip);
-    setGUIControllerName(DwvController, TeXStrings["Dwv"], tooltip);
-    setGUIControllerName(DwwController, TeXStrings["Dww"], tooltip);
-    setGUIControllerName(DwqController, TeXStrings["Dwq"], tooltip);
-    setGUIControllerName(DquController, TeXStrings["Dqu"], tooltip);
-    setGUIControllerName(DqvController, TeXStrings["Dqv"], tooltip);
-    setGUIControllerName(DqwController, TeXStrings["Dqw"], tooltip);
-    setGUIControllerName(DqqController, TeXStrings["Dqq"], tooltip);
+    setGUIControllerName(controllers["Duu"], TeXStrings["Duu"], tooltip);
+    setGUIControllerName(controllers["Duv"], TeXStrings["Duv"], tooltip);
+    setGUIControllerName(controllers["Duw"], TeXStrings["Duw"], tooltip);
+    setGUIControllerName(controllers["Duq"], TeXStrings["Duq"], tooltip);
+    setGUIControllerName(controllers["Dvu"], TeXStrings["Dvu"], tooltip);
+    setGUIControllerName(controllers["Dvv"], TeXStrings["Dvv"], tooltip);
+    setGUIControllerName(controllers["Dvw"], TeXStrings["Dvw"], tooltip);
+    setGUIControllerName(controllers["Dvq"], TeXStrings["Dvq"], tooltip);
+    setGUIControllerName(controllers["Dwu"], TeXStrings["Dwu"], tooltip);
+    setGUIControllerName(controllers["Dwv"], TeXStrings["Dwv"], tooltip);
+    setGUIControllerName(controllers["Dww"], TeXStrings["Dww"], tooltip);
+    setGUIControllerName(controllers["Dwq"], TeXStrings["Dwq"], tooltip);
+    setGUIControllerName(controllers["Dqu"], TeXStrings["Dqu"], tooltip);
+    setGUIControllerName(controllers["Dqv"], TeXStrings["Dqv"], tooltip);
+    setGUIControllerName(controllers["Dqw"], TeXStrings["Dqw"], tooltip);
+    setGUIControllerName(controllers["Dqq"], TeXStrings["Dqq"], tooltip);
   } else {
-    setGUIControllerName(DuuController, TeXStrings["Du"], tooltip);
-    setGUIControllerName(DvvController, TeXStrings["Dv"], tooltip);
-    setGUIControllerName(DwwController, TeXStrings["Dw"], tooltip);
-    setGUIControllerName(DqqController, TeXStrings["Dq"], tooltip);
+    setGUIControllerName(controllers["Duu"], TeXStrings["Du"], tooltip);
+    setGUIControllerName(controllers["Dvv"], TeXStrings["Dv"], tooltip);
+    setGUIControllerName(controllers["Dww"], TeXStrings["Dw"], tooltip);
+    setGUIControllerName(controllers["Dqq"], TeXStrings["Dq"], tooltip);
   }
-  setGUIControllerName(fController, TeXStrings["UFUN"], tooltip);
-  setGUIControllerName(gController, TeXStrings["VFUN"], tooltip);
-  setGUIControllerName(hController, TeXStrings["WFUN"], tooltip);
-  setGUIControllerName(jController, TeXStrings["QFUN"], tooltip);
+  setGUIControllerName(controllers["f"], TeXStrings["UFUN"], tooltip);
+  setGUIControllerName(controllers["g"], TeXStrings["VFUN"], tooltip);
+  setGUIControllerName(controllers["h"], TeXStrings["WFUN"], tooltip);
+  setGUIControllerName(controllers["j"], TeXStrings["QFUN"], tooltip);
 
   // Configure the names of algebraic controllers.
   if (algebraicV) {
-    setGUIControllerName(DvuController, TeXStrings["Dvu"], Vtooltip);
-    setGUIControllerName(DvwController, TeXStrings["Dvw"], Vtooltip);
-    setGUIControllerName(DvqController, TeXStrings["Dvq"], Vtooltip);
-    setGUIControllerName(gController, TeXStrings["VFUN"], Vtooltip);
-    DvvController.hide();
+    setGUIControllerName(controllers["Dvu"], TeXStrings["Dvu"], Vtooltip);
+    setGUIControllerName(controllers["Dvw"], TeXStrings["Dvw"], Vtooltip);
+    setGUIControllerName(controllers["Dvq"], TeXStrings["Dvq"], Vtooltip);
+    setGUIControllerName(controllers["g"], TeXStrings["VFUN"], Vtooltip);
+    controllers["Dvv"].hide();
   }
   if (algebraicW) {
-    setGUIControllerName(DwuController, TeXStrings["Dwu"], Wtooltip);
-    setGUIControllerName(DwvController, TeXStrings["Dwv"], Wtooltip);
-    setGUIControllerName(DwqController, TeXStrings["Dwq"], Wtooltip);
-    setGUIControllerName(hController, TeXStrings["WFUN"], Wtooltip);
-    DwwController.hide();
+    setGUIControllerName(controllers["Dwu"], TeXStrings["Dwu"], Wtooltip);
+    setGUIControllerName(controllers["Dwv"], TeXStrings["Dwv"], Wtooltip);
+    setGUIControllerName(controllers["Dwq"], TeXStrings["Dwq"], Wtooltip);
+    setGUIControllerName(controllers["h"], TeXStrings["WFUN"], Wtooltip);
+    controllers["Dww"].hide();
   }
   if (algebraicQ) {
-    setGUIControllerName(DquController, TeXStrings["Dqu"], Qtooltip);
-    setGUIControllerName(DqvController, TeXStrings["Dqv"], Qtooltip);
-    setGUIControllerName(DqwController, TeXStrings["Dqw"], Qtooltip);
-    setGUIControllerName(jController, TeXStrings["QFUN"], Qtooltip);
-    DqqController.hide();
+    setGUIControllerName(controllers["Dqu"], TeXStrings["Dqu"], Qtooltip);
+    setGUIControllerName(controllers["Dqv"], TeXStrings["Dqv"], Qtooltip);
+    setGUIControllerName(controllers["Dqw"], TeXStrings["Dqw"], Qtooltip);
+    setGUIControllerName(controllers["j"], TeXStrings["QFUN"], Qtooltip);
+    controllers["Dqq"].hide();
   }
 
   // Set the names of the BCs and ICs controllers.
-  setGUIControllerName(uBCsController, TeXStrings["u"]);
-  setGUIControllerName(vBCsController, TeXStrings["v"]);
-  setGUIControllerName(wBCsController, TeXStrings["w"]);
-  setGUIControllerName(qBCsController, TeXStrings["q"]);
-  setGUIControllerName(dirichletUController, TeXStrings["uD"]);
-  setGUIControllerName(dirichletVController, TeXStrings["vD"]);
-  setGUIControllerName(dirichletWController, TeXStrings["wD"]);
-  setGUIControllerName(dirichletQController, TeXStrings["qD"]);
-  setGUIControllerName(neumannUController, TeXStrings["uN"]);
-  setGUIControllerName(neumannVController, TeXStrings["vN"]);
-  setGUIControllerName(neumannWController, TeXStrings["wN"]);
-  setGUIControllerName(neumannQController, TeXStrings["qN"]);
-  setGUIControllerName(robinUController, TeXStrings["uN"]);
-  setGUIControllerName(robinVController, TeXStrings["vN"]);
-  setGUIControllerName(robinWController, TeXStrings["wN"]);
-  setGUIControllerName(robinQController, TeXStrings["qN"]);
-  setGUIControllerName(initCond_1Controller, TeXStrings["uInit"]);
-  setGUIControllerName(initCond_2Controller, TeXStrings["vInit"]);
-  setGUIControllerName(initCond_3Controller, TeXStrings["wInit"]);
-  setGUIControllerName(initCond_4Controller, TeXStrings["qInit"]);
+  setGUIControllerName(controllers["uBCs"], TeXStrings["u"]);
+  setGUIControllerName(controllers["vBCs"], TeXStrings["v"]);
+  setGUIControllerName(controllers["wBCs"], TeXStrings["w"]);
+  setGUIControllerName(controllers["qBCs"], TeXStrings["q"]);
+  setGUIControllerName(controllers["dirichletU"], TeXStrings["uD"]);
+  setGUIControllerName(controllers["dirichletV"], TeXStrings["vD"]);
+  setGUIControllerName(controllers["dirichletW"], TeXStrings["wD"]);
+  setGUIControllerName(controllers["dirichletQ"], TeXStrings["qD"]);
+  setGUIControllerName(controllers["neumannU"], TeXStrings["uN"]);
+  setGUIControllerName(controllers["neumannV"], TeXStrings["vN"]);
+  setGUIControllerName(controllers["neumannW"], TeXStrings["wN"]);
+  setGUIControllerName(controllers["neumannQ"], TeXStrings["qN"]);
+  setGUIControllerName(controllers["robinU"], TeXStrings["uN"]);
+  setGUIControllerName(controllers["robinV"], TeXStrings["vN"]);
+  setGUIControllerName(controllers["robinW"], TeXStrings["wN"]);
+  setGUIControllerName(controllers["robinQ"], TeXStrings["qN"]);
+  setGUIControllerName(controllers["initCond_1"], TeXStrings["uInit"]);
+  setGUIControllerName(controllers["initCond_2"], TeXStrings["vInit"]);
+  setGUIControllerName(controllers["initCond_3"], TeXStrings["wInit"]);
+  setGUIControllerName(controllers["initCond_4"], TeXStrings["qInit"]);
 
   // Show/hide the indicator function controller.
   if (options.domainViaIndicatorFun) {
-    domainIndicatorFunController.show();
+    controllers["domainIndicatorFun"].show();
   } else {
-    domainIndicatorFunController.hide();
+    controllers["domainIndicatorFun"].hide();
   }
   // Hide or show GUI elements that depend on the BCs.
   setBCsGUI();
@@ -4642,32 +4565,32 @@ function configureGUI() {
     $("#vectorFieldButton").hide();
     linesAnd3DFolder.name = "3D options";
     linesAnd3DFolder.domElement.classList.remove("hidden");
-    lineWidthMulController.hide();
-    threeDHeightScaleController.show();
-    cameraThetaController.show();
-    cameraPhiController.show();
-    cameraZoomController.show();
+    controllers["lineWidthMul"].hide();
+    controllers["threeDHeightScale"].show();
+    controllers["cameraTheta"].show();
+    controllers["cameraPhi"].show();
+    controllers["cameraZoom"].show();
   } else if (options.plotType == "line") {
     $("#contourButton").hide();
     $("#embossButton").hide();
     $("#vectorFieldButton").hide();
     linesAnd3DFolder.name = "Line options";
     linesAnd3DFolder.domElement.classList.remove("hidden");
-    lineWidthMulController.show();
-    threeDHeightScaleController.show();
-    cameraThetaController.hide();
-    cameraPhiController.hide();
-    cameraZoomController.hide();
+    controllers["lineWidthMul"].show();
+    controllers["threeDHeightScale"].show();
+    controllers["cameraTheta"].hide();
+    controllers["cameraPhi"].hide();
+    controllers["cameraZoom"].hide();
   } else {
     $("#contourButton").show();
     $("#embossButton").show();
     $("#vectorFieldButton").show();
     linesAnd3DFolder.domElement.classList.add("hidden");
-    lineWidthMulController.hide();
-    threeDHeightScaleController.hide();
-    cameraThetaController.hide();
-    cameraPhiController.hide();
-    cameraZoomController.hide();
+    controllers["lineWidthMul"].hide();
+    controllers["threeDHeightScale"].hide();
+    controllers["cameraTheta"].hide();
+    controllers["cameraPhi"].hide();
+    controllers["cameraZoom"].hide();
   }
   if (options.dimension == 1) $("#vectorFieldButton").hide();
   configureColourbar();
@@ -4677,10 +4600,10 @@ function configureGUI() {
   configureCustomSurfaceControllers();
   // Show/hide/modify GUI elements that depend on dimension.
   if (options.plotType == "line") {
-    brushTypeController.hide();
+    controllers["brushType"].hide();
     $(":root").css("--ui-button-outline", "black");
   } else {
-    brushTypeController.show();
+    controllers["brushType"].show();
     $(":root").css("--ui-button-outline", "white");
   }
   if (manualInterpolationNeeded) {
@@ -4689,34 +4612,34 @@ function configureGUI() {
     $("#interpController").show();
   }
   if (options.arrowScale == "relative") {
-    arrowLengthMaxController.show();
+    controllers["arrowLengthMax"].show();
   } else {
-    arrowLengthMaxController.hide();
+    controllers["arrowLengthMax"].hide();
   }
   // Update the options available in whatToDraw based on the number of species.
   updateGUIDropdown(
-    whatToDrawController,
+    controllers["whatToDraw"],
     listOfSpecies.slice(0, options.numSpecies)
   );
   // Update emboss sliders.
   updateViewSliders();
   // Show/hide the autoPauseAt controller.
   if (options.autoPause) {
-    autoPauseAtController.show();
+    controllers["autoPauseAt"].show();
   } else {
-    autoPauseAtController.hide();
+    controllers["autoPauseAt"].hide();
   }
   if (options.plotType == "line") {
-    overlayEpsilonController.hide();
-    overlayLineWidthMulController.show();
+    controllers["overlayEpsilon"].hide();
+    controllers["overlayLineWidthMul"].show();
   } else {
-    overlayEpsilonController.show();
-    overlayLineWidthMulController.hide();
+    controllers["overlayEpsilon"].show();
+    controllers["overlayLineWidthMul"].hide();
   }
   if (options.setSeed) {
-    randSeedController.show();
+    controllers["randSeed"].show();
   } else {
-    randSeedController.hide();
+    controllers["randSeed"].hide();
   }
   // Update all toggle buttons.
   $(".toggle_button").each(function () {
@@ -6390,8 +6313,8 @@ function setColourRange() {
   options.maxColourValue = valRange[1];
   uniforms.maxColourValue.value = options.maxColourValue;
   uniforms.minColourValue.value = options.minColourValue;
-  maxColourValueController.updateDisplay();
-  minColourValueController.updateDisplay();
+  controllers["maxColourValue"].updateDisplay();
+  controllers["minColourValue"].updateDisplay();
   updateColourbarLims();
 }
 
@@ -6882,9 +6805,6 @@ function configureViews() {
       return newView;
     });
   }
-
-  // Now that all views are built, save them so that we can restore them later.
-  savedViews = options.views;
 }
 
 function configureViewsGUI() {
@@ -6989,17 +6909,6 @@ function buildViewFromOptions() {
     view[key] = savedOptions[key];
   });
   return view;
-}
-
-function restoreView(ind) {
-  // Restore the view at index ind to the saved state.
-  options.views[ind] = savedViews[ind];
-  applyView(options.views[ind]);
-}
-
-function restoreCurrentView() {
-  if (options.activeViewInd < options.views.length)
-    restoreView(options.activeViewInd);
 }
 
 function updateView(property) {
@@ -7438,15 +7347,15 @@ function configureCustomSurfaceControllers() {
   if (options.plotType == "surface") {
     $(surfaceButtons).show();
     if (options.customSurface) {
-      surfaceFunController.show();
-      threeDHeightScaleController.hide();
+      controllers["surfaceFun"].show();
+      controllers["threeDHeightScale"].hide();
     } else {
-      surfaceFunController.hide();
-      threeDHeightScaleController.show();
+      controllers["surfaceFun"].hide();
+      controllers["threeDHeightScale"].show();
     }
   } else {
     $(surfaceButtons).hide();
-    surfaceFunController.hide();
+    controllers["surfaceFun"].hide();
   }
 }
 
