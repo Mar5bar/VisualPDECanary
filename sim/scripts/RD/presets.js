@@ -4,6 +4,9 @@ export function getListOfPresets() {
   let listOfPresets = {};
 
   listOfPresets["TaylorGreen"] = {
+    arrowColour: 9605778,
+    arrowX: "u",
+    arrowY: "v",
     brushAction: "smoothadd",
     brushRadius: "50",
     colourbar: true,
@@ -16,7 +19,6 @@ export function getListOfPresets() {
     initCond_1: "0",
     initCond_2: "1",
     kineticParams: "a = 2.0 in [0, 1, 10];b = 2.0 in [0, 1, 10]",
-    maxColourValue: 1,
     numAlgebraicSpecies: 2,
     numSpecies: "3",
     preset: "TaylorGreen",
@@ -3047,6 +3049,7 @@ export function getListOfPresets() {
     robinStr_3: "0",
     robinStr_4: "0",
     runningOnLoad: true,
+    setSeed: false,
     spatialStep: 1 / 2,
     speciesNames: "u v w q",
     squareCanvas: false,
@@ -3067,8 +3070,9 @@ export function getListOfPresets() {
 
 export function getPreset(id) {
   // Case insensitive lookup.
-  id = id.toLowerCase();
   const listOfPresets = lowerCaseKeys(getListOfPresets());
+  if (id == null || id == undefined) return listOfPresets["default"];
+  id = id.toLowerCase();
   if (listOfPresets.hasOwnProperty(id)) return listOfPresets[id];
   return listOfPresets["default"];
 }
