@@ -4703,9 +4703,17 @@ import {
       case 1:
         options.crossDiffusion = false;
 
-        // Ensure that u is being displayed on the screen (and the brush target).
+        // Ensure that u is the brush target and that the no other species is in options.whatToPlot.
         options.whatToDraw = listOfSpecies[0];
-        options.whatToPlot = listOfSpecies[0];
+        if (
+          anySpeciesRegexStrs
+            .slice(1)
+            .some((r) =>
+              new RegExp("\\b(" + r + ")\\b").test(options.whatToPlot)
+            )
+        ) {
+          options.whatToPlot = listOfSpecies[0];
+        }
 
         // Set the diffusion of v and w to zero to prevent them from causing numerical instability.
         options.diffusionStr_1_2 = "0";
@@ -4750,8 +4758,11 @@ import {
           options.whatToDraw = listOfSpecies[0];
         }
         if (
-          (options.whatToPlot == listOfSpecies[2]) |
-          (options.whatToPlot == listOfSpecies[3])
+          anySpeciesRegexStrs
+            .slice(2)
+            .some((r) =>
+              new RegExp("\\b(" + r + ")\\b").test(options.whatToPlot)
+            )
         ) {
           options.whatToPlot = listOfSpecies[0];
         }
@@ -4793,7 +4804,13 @@ import {
         if (options.whatToDraw == listOfSpecies[3]) {
           options.whatToDraw = listOfSpecies[0];
         }
-        if (options.whatToPlot == listOfSpecies[3]) {
+        if (
+          anySpeciesRegexStrs
+            .slice(3)
+            .some((r) =>
+              new RegExp("\\b(" + r + ")\\b").test(options.whatToPlot)
+            )
+        ) {
           options.whatToPlot = listOfSpecies[0];
         }
 
