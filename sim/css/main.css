@@ -59,6 +59,7 @@ canvas {
   top: 50vh;
 	top: 50dvh;
 	transform: translateY(-50%);
+  position: absolute;
 }
 
 .dg .a {
