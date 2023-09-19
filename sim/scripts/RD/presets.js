@@ -680,6 +680,7 @@ export function getListOfPresets() {
       },
     ],
     whatToDraw: "v_1",
+    whatToPlot: "u_2^2+v_2^2",
   };
 
   listOfPresets["NonlinearSchrodingerSoliton"] = {
