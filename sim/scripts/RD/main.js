@@ -4706,11 +4706,9 @@ import {
         // Ensure that u is the brush target and that the no other species is in options.whatToPlot.
         options.whatToDraw = listOfSpecies[0];
         if (
-          anySpeciesRegexStrs
-            .slice(1)
-            .some((r) =>
-              new RegExp("\\b(" + r + ")\\b").test(options.whatToPlot)
-            )
+          new RegExp("\\b(" + anySpeciesRegexStrs[1] + ")\\b").test(
+            options.whatToPlot
+          )
         ) {
           options.whatToPlot = listOfSpecies[0];
         }
@@ -4758,11 +4756,9 @@ import {
           options.whatToDraw = listOfSpecies[0];
         }
         if (
-          anySpeciesRegexStrs
-            .slice(2)
-            .some((r) =>
-              new RegExp("\\b(" + r + ")\\b").test(options.whatToPlot)
-            )
+          new RegExp("\\b(" + anySpeciesRegexStrs[2] + ")\\b").test(
+            options.whatToPlot
+          )
         ) {
           options.whatToPlot = listOfSpecies[0];
         }
@@ -4805,11 +4801,9 @@ import {
           options.whatToDraw = listOfSpecies[0];
         }
         if (
-          anySpeciesRegexStrs
-            .slice(3)
-            .some((r) =>
-              new RegExp("\\b(" + r + ")\\b").test(options.whatToPlot)
-            )
+          new RegExp("\\b(" + anySpeciesRegexStrs[3] + ")\\b").test(
+            options.whatToPlot
+          )
         ) {
           options.whatToPlot = listOfSpecies[0];
         }
@@ -5493,7 +5487,7 @@ import {
       kineticParamsLabels.push(label);
       kineticParamsStrs[label] = "";
       controller = parametersFolder.add(kineticParamsStrs, label).name("");
-      disableAutocorrect(controller.domElement);
+      disableAutocorrect(controller.domElement.firstChild);
       controller.domElement.classList.add("params");
       controller.onFinishChange(function () {
         const index = kineticParamsLabels.indexOf(label);
@@ -5533,7 +5527,7 @@ import {
       });
     } else {
       controller = parametersFolder.add(kineticParamsStrs, label).name("");
-      disableAutocorrect(controller.domElement);
+      disableAutocorrect(controller.domElement.firstChild);
       controller.domElement.classList.add("params");
       const match = kineticParamsStrs[label].match(/\s*(\w+)\s*=/);
       if (match) {
@@ -5590,20 +5584,18 @@ import {
             }
           }
         }
+        // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
         if (setKineticUniforms()) {
           updateShaders();
         }
       });
-      // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
-      setKineticStringFromParams();
-      if (setKineticUniforms()) {
-        updateShaders();
-      }
     }
     // Now that we've made the required controller, check the current string to see if
     // the user has requested that we make other types of controller (e.g. a slider).
     createSlider();
+    // Disable autocorrect on the controller.
+    disableAutocorrect(controller.domElement.firstChild);
     // Return the controller in case it is needed.
     return controller;
   }
