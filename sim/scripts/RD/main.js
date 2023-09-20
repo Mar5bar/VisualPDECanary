@@ -5487,7 +5487,7 @@ import {
       kineticParamsLabels.push(label);
       kineticParamsStrs[label] = "";
       controller = parametersFolder.add(kineticParamsStrs, label).name("");
-      disableAutocorrect(controller.domElement);
+      disableAutocorrect(controller.domElement.firstChild);
       controller.domElement.classList.add("params");
       controller.onFinishChange(function () {
         const index = kineticParamsLabels.indexOf(label);
@@ -5527,7 +5527,7 @@ import {
       });
     } else {
       controller = parametersFolder.add(kineticParamsStrs, label).name("");
-      disableAutocorrect(controller.domElement);
+      disableAutocorrect(controller.domElement.firstChild);
       controller.domElement.classList.add("params");
       const match = kineticParamsStrs[label].match(/\s*(\w+)\s*=/);
       if (match) {
@@ -5594,6 +5594,8 @@ import {
     // Now that we've made the required controller, check the current string to see if
     // the user has requested that we make other types of controller (e.g. a slider).
     createSlider();
+    // Disable autocorrect on the controller.
+    disableAutocorrect(controller.domElement.firstChild);
     // Return the controller in case it is needed.
     return controller;
   }
