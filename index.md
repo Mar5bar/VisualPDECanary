@@ -9,6 +9,6 @@ See the solution to PDEs evolve before your eyes. Paint the canvas with initial 
 
 Find an example below or press [Play!](/sim/) to provide your own PDE.
 
-Don't know what a [PDE](https://en.wikipedia.org/wiki/Partial_differential_equation) is? Try our collection of [Visual stories](/visual-stories) for a maths-free way to engage with VisualPDE. 
+Don't know what a [PDE](https://en.wikipedia.org/wiki/Partial_differential_equation) is? Take a look at the [Chalkdust article desciribng VisualPDE](https://chalkdustmagazine.com/regulars/on-the-cover/visual-pde/). You can also try our collection of [Visual stories](/visual-stories) for a layperson-friendly way to play with these models. 
 
 A project by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/) and [Andrew Krause](https://www.andrewkrause.org/). Read the preprint [here](https://doi.org/10.48550/arXiv.2308.01245).
