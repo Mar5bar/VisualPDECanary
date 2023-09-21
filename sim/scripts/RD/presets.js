@@ -3,6 +3,62 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["SofyaCGLEChaos"] = {
+	"autoSetColourRange": false,
+	"domainIndicatorFun": "I_S",
+	"domainScale": "500",
+	"initCond_1": "0.1",
+	"initCond_2": "0.1",
+	"kineticParams": "b_i = -1.5 in [-5, 5];D_r = 0.1;D_i = 15;a_r = -2;a_i = 1;b_r = -40;",
+	"maxColourValue": 6.6,
+	"minColourValue": 0,
+	"parent": "complexGinzburgLandau",
+	"reactionStr_1": "(a_r*u-a_i*v)+(b_r*u*(1.05-I_S)-b_i*v)*(u^2+v^2)",
+	"reactionStr_2": "(a_r*v+a_i*u)+(b_r*v*(1.05-I_S)+b_i*u)*(u^2+v^2)",
+	"spatialStep": "1",
+	"squareCanvas": true,
+	"preset": "SofyaCGLEChaos",
+};
+
+  listOfPresets["SofyaCGLEFireflies"] = {
+	"autoSetColourRange": false,
+	"colourmap": "thermal",
+	"domainIndicatorFun": "I_S",
+	"domainScale": "500",
+	"initCond_1": "0.1+0.01*RANDN",
+	"initCond_2": "0.1+0.01*RANDN",
+	"kineticParams": "b_i = 0.5 in [-5, 5];D_r = 0.5;D_i = 15;a_r = 1;a_i = 1;b_r = -0.5;n = 10;m = 10;",
+	"maxColourValue": 9,
+	"minColourValue": 0,
+	"parent": "complexGinzburgLandau",
+	"preset": "SofyaCGLEFireflies",
+	"resetOnImageLoad": true,
+	"reactionStr_1": "(a_r*u-a_i*v)+(b_r*u-b_i*v)*(I_S+1)*(u^2+v^2)",
+	"reactionStr_2": "(a_r*v+a_i*u)+(b_r*v+b_i*u)*(I_S+1)*(u^2+v^2)",
+	"spatialStep": "1",
+	"squareCanvas": true,
+};
+
+  listOfPresets["SofyaCGLEDuckPinning"] = {
+	"autoSetColourRange": false,
+	"colourmap": "thermal",
+	"domainIndicatorFun": "I_S",
+	"domainScale": "500",
+	"initCond_1": "0.1+0.01*RANDN",
+	"initCond_2": "0.1+0.01*RANDN",
+	"kineticParams": "b_i = 0 in [-5, 5];D_r = 0.5;D_i = 15;a_r = 8;a_i = -1;b_r = -1;n = 10;m = 10;",
+	"maxColourValue": 18,
+	"minColourValue": 0,
+	"parent": "complexGinzburgLandau",
+	"preset": "SofyaCGLEDuckPinning",
+	"resetOnImageLoad": true,
+	"reactionStr_1": "a_r*u*(1-I_S)-a_i*v+(b_r*u-b_i*v)*(u^2+v^2)",
+	"reactionStr_2": "a_r*v*(1-I_S)+a_i*u+(b_r*v+b_i*u)*(u^2+v^2)",
+	"spatialStep": "1",
+	"squareCanvas": true,
+};
+
+
   listOfPresets["TaylorGreen"] = {
     arrowColour: 9605778,
     arrowX: "u",
