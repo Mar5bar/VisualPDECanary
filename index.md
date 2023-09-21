@@ -5,7 +5,7 @@
 layout: home
 ---
 
-See the solution to PDEs evolve before your eyes. Paint the canvas with initial conditions and see what happens. 
+See the solution to partial differential equations (PDEs) evolve before your eyes. Paint the canvas with initial conditions and see what happens. 
 
 Find an example below or press [Play!](/sim/) to provide your own PDE.
 
