@@ -58,7 +58,8 @@ canvas {
   max-height: 100vw;
   top: 50vh;
 	top: 50dvh;
-	transform: translateY(-50%);
+  left: 50vw;
+	transform: translateX(-50%) translateY(-50%);
   position: absolute;
 }
 
