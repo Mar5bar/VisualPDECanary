@@ -43,15 +43,15 @@ export function getListOfPresets() {
 
   listOfPresets["SofyaCGLEDuckPinning"] = {
     autoSetColourRange: false,
-    colourmap: "thermal",
+    colourmap: "greyscale",
     domainIndicatorFun: "I_S",
     domainScale: "500",
     initCond_1: "0.1+0.01*RANDN",
     initCond_2: "0.1+0.01*RANDN",
     kineticParams:
       "b_i = 0 in [-5, 5];D_r = 0.5;D_i = 15;a_r = 8;a_i = -1;b_r = -1;n = 10;m = 10;",
-    maxColourValue: 18,
-    minColourValue: 0,
+    maxColourValue: 10,
+    minColourValue: 2,
     parent: "complexGinzburgLandau",
     preset: "SofyaCGLEDuckPinning",
     resetOnImageLoad: true,
