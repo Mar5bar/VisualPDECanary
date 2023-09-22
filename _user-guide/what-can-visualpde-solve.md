@@ -14,21 +14,21 @@ $$\pd{u}{t} = \vnabla \cdot (D_u \vnabla u) + f_u,$$
 
 where $D_u$ and $f_u$ are functions of $u$, $t$, and space that you can choose. For example, if $f_u=0$ and $D_u$ is a constant, you have [the heat equation](/basic-pdes/heat-equation). 
 
-The most complicated type is a system of PDEs in four unknowns, $u$, $v$, $w$ and $q$:
+The most complicated type is a coupled system of PDEs in four unknowns, $u$, $v$, $w$ and $q$:
 
 $$\begin{aligned}
 \pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_{uq}\vnabla q) + f_u,\\
-\text{or}\left\{\begin{matrix}\displaystyle\pd{v}{t} \\ v\end{matrix}\right. & 
+\text{one of}\left\{\begin{matrix}\displaystyle\pd{v}{t} \\ v\end{matrix}\right. & 
 \begin{aligned}
     &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + f_v \vphantom{\displaystyle\pd{v}{t}}, \\
     &= \vnabla \cdot(D_{vu}\vnabla u+D_{vw}\vnabla w+D_{vq}\vnabla q) + f_v,
 \end{aligned}\\
-\text{or}\left\{\begin{matrix}\displaystyle\pd{w}{t} \\ w\end{matrix}\right. & 
+\text{one of}\left\{\begin{matrix}\displaystyle\pd{w}{t} \\ w\end{matrix}\right. & 
 \begin{aligned}
     &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w+D_{wq}\vnabla q) + f_w \vphantom{\displaystyle\pd{w}{t}}, \\
     &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{wq}\vnabla q) + f_w,
 \end{aligned}\\
-\text{or}\left\{\begin{matrix}\displaystyle\pd{q}{t} \\ q\end{matrix}\right. & 
+\text{one of}\left\{\begin{matrix}\displaystyle\pd{q}{t} \\ q\end{matrix}\right. & 
 \begin{aligned}
     &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w+D_{qq}\vnabla q) + f_q \vphantom{\displaystyle\pd{q}{t}}, \\
     &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w) + f_q,
