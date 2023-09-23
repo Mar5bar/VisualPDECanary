@@ -330,20 +330,6 @@ import {
     }
   }
 
-  // Warn the user about flashing images and ask for cookie permission to store this.
-  if (!warningCookieExists() && !uiHidden) {
-    // Display the warning message.
-    $("#warning").css("display", "block");
-    const permission = await Promise.race([
-      waitListener(document.getElementById("warning_ok"), "click", true),
-      waitListener(document.getElementById("warning_no"), "click", false),
-    ]);
-    if (permission) {
-      setWarningCookie();
-    }
-    $("#warning").css("display", "none");
-  }
-
   // Load default options.
   loadOptions("default");
 
@@ -508,6 +494,32 @@ import {
   $(document).on("click", "#add_view", function () {
     addView();
   });
+
+  // Create the welcome tour.
+  const tour = new Shepherd.Tour({
+    useModalOverlay: true,
+    defaultStepOptions: {
+      classes: "shadow-md bg-purple-dark",
+      scrollTo: true,
+    },
+  });
+
+  // Warn the user about flashing images and ask for cookie permission to store this.
+  if (!warningCookieExists() && !uiHidden) {
+    let restart = isRunning;
+    pauseSim();
+    // Display the warning message.
+    $("#warning").css("display", "block");
+    const permission = await Promise.race([
+      waitListener(document.getElementById("warning_ok"), "click", true),
+      waitListener(document.getElementById("warning_no"), "click", false),
+    ]);
+    if (permission) {
+      setWarningCookie();
+    }
+    $("#warning").css("display", "none");
+    if (restart) playSim();
+  }
 
   // Begin the simulation.
   isLoading = false;
