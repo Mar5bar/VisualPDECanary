@@ -470,7 +470,7 @@ import {
     fadeout("#oops_hit_nan");
     shouldCheckNaN = true;
   });
-  $("#start_tour").click(function() {
+  $("#start_tour").click(function () {
     $("#welcome").css("display", "none");
     tour.start();
   });
@@ -509,14 +509,32 @@ import {
         show() {
           const currentStep = Shepherd.activeTour?.getCurrentStep();
           const currentStepElement = currentStep?.getElement();
-          const header = currentStepElement?.querySelector('.shepherd-header');
-          const progress = document.createElement('span');
+          const header = currentStepElement?.querySelector(".shepherd-header");
+          const progress = document.createElement("span");
           progress.classList.add("shepherd-progress");
-          progress.innerText = `${Shepherd.activeTour?.steps.indexOf(currentStep) + 1} / ${Shepherd.activeTour?.steps.length}`;
-          header?.insertBefore(progress, currentStepElement.querySelector('.shepherd-cancel-icon'));        
-        }
-      }
+          progress.innerText = `${
+            Shepherd.activeTour?.steps.indexOf(currentStep) + 1
+          } / ${Shepherd.activeTour?.steps.length}`;
+          header?.insertBefore(
+            progress,
+            currentStepElement.querySelector(".shepherd-cancel-icon")
+          );
+        },
+      },
     },
+  });
+
+  tour.addStep({
+    title: "Playing with PDEs",
+    text: `Interactivity is at the heart of VisualPDE. In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop width="128" style="margin-top:10px"><source src='../assets/ani/click.webm'/></video><br>This can even kick-start pattern formation or other exciting phenomena.`,
+    buttons: [
+      {
+        action() {
+          return this.next();
+        },
+        text: "Next",
+      },
+    ],
   });
 
   tour.addStep({
@@ -526,14 +544,6 @@ import {
       element: "#equations",
       on: "right",
     },
-    buttons: [
-      {
-        action() {
-          return this.next();
-        },
-        text: "Next",
-      },
-    ],
   });
 
   tour.addStep({
@@ -611,19 +621,19 @@ import {
     ],
   });
 
-  // Warn the user about flashing images and ask for cookie permission to store this.
+  // Welcome message.
   if (true || (!returningCookieExists() && !uiHidden)) {
     let restart = isRunning;
     pauseSim();
-    // Display the warning message.
+    // Display the welcome message.
     $("#welcome").css("display", "block");
     const wantsTour = await Promise.race([
       waitListener(document.getElementById("welcome_ok"), "click", true),
       waitListener(document.getElementById("welcome_no"), "click", false),
     ]);
     $("#welcome").css("display", "none");
+    setReturningCookie();
     if (wantsTour) {
-      // setReturningCookie();
       await new Promise(function (resolve) {
         ["complete", "cancel"].forEach(function (event) {
           Shepherd.once(event, () => resolve());
@@ -632,7 +642,7 @@ import {
       });
     }
     $("#get_help").fadeIn(1000);
-        setTimeout(() => $("#get_help").fadeOut(1000), 4000);
+    setTimeout(() => $("#get_help").fadeOut(1000), 4000);
     if (restart) playSim();
   }
 
@@ -646,7 +656,7 @@ import {
     options.brushEnabled
   ) {
     $("#top_message").html("<p>" + options.tryClickingText + "</p>");
-    fadein("#top_message",1000);
+    fadein("#top_message", 1000);
     // Fadeout either after the user clicks on the canvas or 5s passes.
     setTimeout(() => fadeout("#top_message"), 5000);
     $("#simCanvas").one("pointerdown touchstart", () =>
