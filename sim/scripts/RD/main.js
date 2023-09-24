@@ -524,9 +524,13 @@ import {
     },
   });
 
+  let interactiveStr = `Interactivity is at the heart of VisualPDE. In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop width="128" style="margin-top:10px"><source src='../assets/ani/click.webm'/></video><br>This can even kick-start pattern formation or other exciting phenomena.`;
+  if (onMobile()) {
+    interactiveStr = interactiveStr.replaceAll("clicking", "tapping");
+  }
   tour.addStep({
     title: "Playing with PDEs",
-    text: `Interactivity is at the heart of VisualPDE. In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop width="128" style="margin-top:10px"><source src='../assets/ani/click.webm'/></video><br>This can even kick-start pattern formation or other exciting phenomena.`,
+    text: interactiveStr,
     buttons: [
       {
         action() {
