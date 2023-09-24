@@ -507,18 +507,7 @@ import {
       ],
       when: {
         show() {
-          const currentStep = Shepherd.activeTour?.getCurrentStep();
-          const currentStepElement = currentStep?.getElement();
-          const header = currentStepElement?.querySelector(".shepherd-header");
-          const progress = document.createElement("span");
-          progress.classList.add("shepherd-progress");
-          progress.innerText = `${
-            Shepherd.activeTour?.steps.indexOf(currentStep) + 1
-          } / ${Shepherd.activeTour?.steps.length}`;
-          header?.insertBefore(
-            progress,
-            currentStepElement.querySelector(".shepherd-cancel-icon")
-          );
+          addStepCounter();
         },
       },
     },
@@ -548,12 +537,17 @@ import {
       element: "#equations",
       on: "right",
     },
+    when: {
+      show() {
+        addStepCounter();
+        addMoreInfoLink("/user-guide/advanced-options.html#equations");
+      },
+    },
   });
 
   tour.addStep({
-    title: "Creating a Shepherd Tour",
-    text: `Creating a Shepherd tour is easy. too!\
-    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    title: "Play/pause",
+    text: `Play and pause the simulation. You can still draw when paused.`,
     attachTo: {
       element: "#play_pause_placeholder",
       on: "right",
@@ -561,51 +555,67 @@ import {
   });
 
   tour.addStep({
-    title: "Creating a Shepherd Tour",
-    text: `Creating a Shepherd tour is easy. too!\
-    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    title: "Reset",
+    text: `Restart the simulation from the specified initial conditions (editable in the Equations menu).`,
     attachTo: {
       element: "#erase",
       on: "right",
     },
+    when: {
+      show() {
+        addStepCounter();
+        addMoreInfoLink(
+          "/user-guide/advanced-options.html#checkpoints",
+          "Advanced use"
+        );
+      },
+    },
   });
 
   tour.addStep({
-    title: "Creating a Shepherd Tour",
-    text: `Creating a Shepherd tour is easy. too!\
-    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    title: "Views",
+    text: `There are countless ways to view solutions in VisualPDE. The Views menu lets you customise every last detail, from contours to colour schemes.`,
     attachTo: {
       element: "#views",
       on: "right",
     },
+    when: {
+      show() {
+        addStepCounter();
+        addMoreInfoLink("/user-guide/advanced-options.html#views");
+      },
+    },
   });
 
   tour.addStep({
-    title: "Creating a Shepherd Tour",
-    text: `Creating a Shepherd tour is easy. too!\
-    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    title: "Settings",
+    text: `Dive under the hood of VisualPDE to tweak a range of advanced settings. Popular options include the equation type, the domain resolution and the timestepping scheme.`,
     attachTo: {
       element: "#settings",
       on: "right",
     },
+    when: {
+      show() {
+        addStepCounter();
+        addMoreInfoLink("/user-guide/advanced-options.html#settings");
+      },
+    },
   });
 
   tour.addStep({
-    title: "Creating a Shepherd Tour",
-    text: `Creating a Shepherd tour is easy. too!\
-    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    title: "Sharing",
+    text: `VisualPDE is built for sharing. Copy a link to your clipboard that leads straight to the current simulation, download snapshots of your solution and even embed your simulation in your own site.`,
     attachTo: {
-      element: "#help",
+      element: "#share",
       on: "right",
     },
   });
 
   tour.addStep({
-    title: "Creating a Shepherd Tour",
-    text: `Creating a Shepherd tour is easy. too!\
-    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    title: "Help",
+    text: `Access FAQs, detailed documentation and guides explaining how to do everything that's possible in VisualPDE. You can even restart this tour.`,
     attachTo: {
-      element: "#share",
+      element: "#help",
       on: "right",
     },
     buttons: [
@@ -626,7 +636,7 @@ import {
   });
 
   // Welcome message.
-  if (true || (!returningCookieExists() && !uiHidden)) {
+  if (!returningCookieExists() && !uiHidden) {
     let restart = isRunning;
     pauseSim();
     // Display the welcome message.
@@ -7755,5 +7765,30 @@ import {
 
   function isEmptyString(str) {
     return /^\s*$/.test(str);
+  }
+
+  function addStepCounter() {
+    const currentStep = Shepherd.activeTour?.getCurrentStep();
+    const currentStepElement = currentStep?.getElement();
+    const header = currentStepElement?.querySelector(".shepherd-header");
+    const progress = document.createElement("span");
+    progress.classList.add("shepherd-progress");
+    progress.innerText = `${
+      Shepherd.activeTour?.steps.indexOf(currentStep) + 1
+    } / ${Shepherd.activeTour?.steps.length}`;
+    header?.insertBefore(
+      progress,
+      currentStepElement.querySelector(".shepherd-cancel-icon")
+    );
+  }
+  function addMoreInfoLink(link, label) {
+    const currentStep = Shepherd.activeTour?.getCurrentStep();
+    const currentStepElement = currentStep?.getElement();
+    const footer = currentStepElement?.querySelector(".shepherd-footer");
+    const moreInfo = document.createElement("a");
+    moreInfo.setAttribute("href", link);
+    moreInfo.classList.add("shepherd-more-info");
+    moreInfo.innerText = label ? label : `More info.`;
+    footer?.insertBefore(moreInfo, footer.firstChild);
   }
 })();

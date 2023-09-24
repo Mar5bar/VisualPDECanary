@@ -368,7 +368,7 @@ canvas {
 #error {
   display: none;
   top: 50%;
-  max-width: min(60vw, calc(100vw - 210px));
+  max-width: min(60vw, calc(100vw - 160px));
   width: 20rem;
   left: 50%;
   position: absolute;

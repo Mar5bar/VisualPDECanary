@@ -116,7 +116,7 @@
   outline: none;
   transition: opacity 0.5s, visibility 0.5s;
   visibility: hidden;
-  width: 300px;
+  width: max(50%,300px);
   z-index: 9999;
   background-color: white;
   border: 1px rgba(27, 31, 36, 0.15) solid;
@@ -196,4 +196,15 @@
 }
 .shepherd-modal-overlay-container.shepherd-modal-is-visible path {
   pointer-events: all;
+}
+.shepherd-more-info {
+  bottom: 10px;
+  font-size: 0.7rem;
+  left: 10px;
+  position: absolute;
+}
+@media screen and (max-width: 374px) {
+  .shepherd-title, .shepherd-text {
+    font-size: 0.7rem;
+  }
 }
