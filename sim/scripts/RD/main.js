@@ -500,8 +500,112 @@ import {
     useModalOverlay: true,
     defaultStepOptions: {
       classes: "shadow-md bg-purple-dark",
-      scrollTo: true,
+      scrollTo: false,
+      canClickTarget: false,
+      cancelIcon: {
+        enabled: true,
+      },
+      buttons: [
+        {
+          action() {
+            return this.back();
+          },
+          classes: "shepherd-button-secondary",
+          text: "Back",
+        },
+        {
+          action() {
+            return this.next();
+          },
+          text: "Next",
+        },
+      ],
     },
+  });
+
+  tour.addStep({
+    title: "Creating a Shepherd Tour",
+    text: `Creating a Shepherd tour is easy. too!\
+    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    attachTo: {
+      element: "#equations",
+      on: "right",
+    },
+  });
+
+  tour.addStep({
+    title: "Creating a Shepherd Tour",
+    text: `Creating a Shepherd tour is easy. too!\
+    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    attachTo: {
+      element: "#play_pause_placeholder",
+      on: "right",
+    },
+  });
+
+  tour.addStep({
+    title: "Creating a Shepherd Tour",
+    text: `Creating a Shepherd tour is easy. too!\
+    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    attachTo: {
+      element: "#erase",
+      on: "right",
+    },
+  });
+
+  tour.addStep({
+    title: "Creating a Shepherd Tour",
+    text: `Creating a Shepherd tour is easy. too!\
+    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    attachTo: {
+      element: "#views",
+      on: "right",
+    },
+  });
+
+  tour.addStep({
+    title: "Creating a Shepherd Tour",
+    text: `Creating a Shepherd tour is easy. too!\
+    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    attachTo: {
+      element: "#settings",
+      on: "right",
+    },
+  });
+
+  tour.addStep({
+    title: "Creating a Shepherd Tour",
+    text: `Creating a Shepherd tour is easy. too!\
+    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    attachTo: {
+      element: "#help",
+      on: "right",
+    },
+  });
+
+  tour.addStep({
+    title: "Creating a Shepherd Tour",
+    text: `Creating a Shepherd tour is easy. too!\
+    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    attachTo: {
+      element: "#share",
+      on: "right",
+    },
+    buttons: [
+      {
+        action() {
+          return this.back();
+        },
+        classes: "shepherd-button-secondary",
+        text: "Back",
+      },
+      {
+        action() {
+          return this.complete();
+        },
+        text: "Finish tour",
+      },
+    ],
   });
 
   // Warn the user about flashing images and ask for cookie permission to store this.
@@ -515,9 +619,13 @@ import {
       waitListener(document.getElementById("warning_no"), "click", false),
     ]);
     if (permission) {
-      setWarningCookie();
+      // setWarningCookie();
+      $("#warning").css("display", "none");
+      await new Promise(function (resolve) {
+        Shepherd.once("complete", () => resolve());
+        tour.start();
+      });
     }
-    $("#warning").css("display", "none");
     if (restart) playSim();
   }
 

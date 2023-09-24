@@ -254,6 +254,11 @@ canvas {
   left: var(--ui-button-h-gap);
 }
 
+#play_pause_placeholder {
+  top: 50px;
+  left: var(--ui-button-h-gap);
+}
+
 #erase {
   top: 90px;
   left: var(--ui-button-h-gap);
