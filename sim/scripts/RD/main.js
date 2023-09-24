@@ -637,11 +637,11 @@ import {
   });
 
   // Welcome message.
-  if (!returningCookieExists() && !uiHidden) {
+  if (!returningCookieExists()) {
     let restart = isRunning;
     pauseSim();
     let noButtonId = "welcome_no";
-    if (isStory) {
+    if (isStory || uiHidden) {
       $("#tour_question").hide();
       $("#lets_go_cont").show();
       noButtonId = "lets_go";
@@ -662,7 +662,7 @@ import {
         tour.start();
       });
     }
-    if (!isStory) {
+    if (!isStory && !uiHidden) {
       $("#get_help").fadeIn(1000);
       setTimeout(() => $("#get_help").fadeOut(1000), 4000);
     }
