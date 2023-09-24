@@ -374,6 +374,7 @@ import {
 
     $("#play").css("top", "-=50");
     $("#pause").css("top", "-=50");
+    $("#play_pause_placeholder").css("top", "-=50");
     $("#erase").css("top", "-=50");
     $("#views").css("top", "-=50");
     $("#views_ui").css("top", "-=50");
@@ -639,11 +640,17 @@ import {
   if (!returningCookieExists() && !uiHidden) {
     let restart = isRunning;
     pauseSim();
+    let noButtonId = "welcome_no";
+    if (isStory) {
+      $("#tour_question").hide();
+      $("#lets_go_cont").show();
+      noButtonId = "lets_go";
+    }
     // Display the welcome message.
     $("#welcome").css("display", "block");
     const wantsTour = await Promise.race([
       waitListener(document.getElementById("welcome_ok"), "click", true),
-      waitListener(document.getElementById("welcome_no"), "click", false),
+      waitListener(document.getElementById(noButtonId), "click", false),
     ]);
     $("#welcome").css("display", "none");
     setReturningCookie();
@@ -655,8 +662,10 @@ import {
         tour.start();
       });
     }
-    $("#get_help").fadeIn(1000);
-    setTimeout(() => $("#get_help").fadeOut(1000), 4000);
+    if (!isStory) {
+      $("#get_help").fadeIn(1000);
+      setTimeout(() => $("#get_help").fadeOut(1000), 4000);
+    }
     if (restart) playSim();
   }
 

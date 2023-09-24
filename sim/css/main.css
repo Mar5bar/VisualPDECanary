@@ -394,6 +394,7 @@ canvas {
 
 #welcome_ok,
 #welcome_no,
+#lets_go,
 .warning_dismiss {
   font-size: 1rem;
   margin-bottom: 0.5rem;
@@ -410,13 +411,13 @@ canvas {
   transition-duration: 80ms;
 }
 
-#welcome_ok {
+#welcome_ok, #lets_go {
   background-color: #1756a9;
   color: white !important;
 }
 
 @media (hover: hover) {
-  #welcome_ok:hover {
+  #welcome_ok:hover, #lets_go:hover {
     background-color: #134484;
     cursor: pointer;
   }
