@@ -57,9 +57,9 @@ canvas {
   max-width: 100dvh;
   max-height: 100vw;
   top: 50vh;
-	top: 50dvh;
+  top: 50dvh;
   left: 50vw;
-	transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
   position: absolute;
 }
 
@@ -294,17 +294,24 @@ canvas {
   right: var(--ui-button-h-gap);
 }
 
-#link_copied {
+#link_copied,
+#get_help {
   position: absolute;
-  top: 112.5px;
   right: 50px;
   transform: translateY(-50%);
   opacity: 100;
   display: none;
 }
 
-#link_copied p {
+#link_copied {
+  top: 112.5px;
+}
+#link_copied,#get_help p {
   font-size: 0.8rem;
+}
+
+#get_help {
+  top: 74px;
 }
 
 #equation_display div mjx-container {
@@ -356,12 +363,12 @@ canvas {
   margin-right: 5px;
 }
 
-#warning,
+#welcome,
 #oops_hit_nan,
 #error {
   display: none;
   top: 50%;
-  max-width: 60vw;
+  max-width: min(60vw, calc(100vw - 210px));
   width: 20rem;
   left: 50%;
   position: absolute;
@@ -373,7 +380,7 @@ canvas {
   border-radius: 6px;
 }
 
-#warning p,
+#welcome p,
 #oops_hit_nan p,
 #error p {
   color: #111;
@@ -385,8 +392,8 @@ canvas {
   font-size: small;
 }
 
-#warning_ok,
-#warning_no,
+#welcome_ok,
+#welcome_no,
 .warning_dismiss {
   font-size: 1rem;
   margin-bottom: 0.5rem;
@@ -395,7 +402,7 @@ canvas {
   max-width: 100%;
   border: 1px solid;
   border-radius: 6px;
-  border-color: rgba(27, 31, 36, 0.15);
+  border-color: #000;
   padding: 5px 16px;
   box-shadow: rgba(27, 31, 36, 0.1) 0px 1px 0px 0px,
     rgba(255, 255, 255, 0.03) 0px 1px 0px 0px inset;
@@ -403,26 +410,26 @@ canvas {
   transition-duration: 80ms;
 }
 
-#warning_ok {
+#welcome_ok {
   background-color: #1756a9;
   color: white !important;
 }
 
 @media (hover: hover) {
-  #warning_ok:hover {
+  #welcome_ok:hover {
     background-color: #134484;
     cursor: pointer;
   }
 }
 
-#warning_no,
+#welcome_no,
 .warning_dismiss {
   background-color: #e9e9ed;
   color: #111;
 }
 
 @media (hover: hover) {
-  #warning_no:hover,
+  #welcome_no:hover,
   .warning_dismiss:hover {
     background-color: #ddd;
     cursor: pointer;
@@ -826,7 +833,7 @@ a#add_view {
 }
 
 .dg :not(.closed) > .button_list {
-    height: fit-content !important;
+  height: fit-content !important;
 }
 
 .dg .closed li:not(.title) {
@@ -961,7 +968,7 @@ select {
   border-radius: 0.5rem;
   height: 1.1rem;
   width: 1.1rem;
-  margin-right: 5px;
+  margin-right: 6px;
   padding: 6px;
   vertical-align: middle;
 }

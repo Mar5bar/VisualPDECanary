@@ -381,24 +381,6 @@ import {
     $(":root").css("--views-ui-offset", "-=50");
   }
 
-  // If the "Try clicking!" popup is allowed, show it iff we're from an external link
-  // or have loaded the default simulation.
-  if (
-    (fromExternalLink() ||
-      shouldLoadDefault ||
-      options.forceTryClickingPopup) &&
-    !options.suppressTryClickingPopup &&
-    options.brushEnabled
-  ) {
-    $("#top_message").html("<p>" + options.tryClickingText + "</p>");
-    fadein("#top_message");
-    // Fadeout either after the user clicks on the canvas or 5s passes.
-    setTimeout(() => fadeout("#top_message"), 5000);
-    $("#simCanvas").one("pointerdown touchstart", () =>
-      fadeout("#top_message")
-    );
-  }
-
   /* GUI settings and equations buttons */
   $("#settings").click(function () {
     toggleRightUI();
@@ -488,6 +470,10 @@ import {
     fadeout("#oops_hit_nan");
     shouldCheckNaN = true;
   });
+  $("#start_tour").click(function() {
+    $("#welcome").css("display", "none");
+    tour.start();
+  });
 
   // New, rename, delete
   // (Dynamically created buttons, like the +, can't use .click())
@@ -501,7 +487,6 @@ import {
     defaultStepOptions: {
       classes: "shadow-md bg-purple-dark",
       scrollTo: false,
-      canClickTarget: false,
       cancelIcon: {
         enabled: true,
       },
@@ -520,17 +505,35 @@ import {
           text: "Next",
         },
       ],
+      when: {
+        show() {
+          const currentStep = Shepherd.activeTour?.getCurrentStep();
+          const currentStepElement = currentStep?.getElement();
+          const header = currentStepElement?.querySelector('.shepherd-header');
+          const progress = document.createElement('span');
+          progress.classList.add("shepherd-progress");
+          progress.innerText = `${Shepherd.activeTour?.steps.indexOf(currentStep) + 1} / ${Shepherd.activeTour?.steps.length}`;
+          header?.insertBefore(progress, currentStepElement.querySelector('.shepherd-cancel-icon'));        
+        }
+      }
     },
   });
 
   tour.addStep({
-    title: "Creating a Shepherd Tour",
-    text: `Creating a Shepherd tour is easy. too!\
-    Just create a \`Tour\` instance, and add as many steps as you want.`,
+    title: "Equations and definitions",
+    text: `View and customise the equations, parameters, boundary and initial conditions of the simulation.`,
     attachTo: {
       element: "#equations",
       on: "right",
     },
+    buttons: [
+      {
+        action() {
+          return this.next();
+        },
+        text: "Next",
+      },
+    ],
   });
 
   tour.addStep({
@@ -603,30 +606,52 @@ import {
         action() {
           return this.complete();
         },
-        text: "Finish tour",
+        text: "Finish",
       },
     ],
   });
 
   // Warn the user about flashing images and ask for cookie permission to store this.
-  if (!warningCookieExists() && !uiHidden) {
+  if (true || (!returningCookieExists() && !uiHidden)) {
     let restart = isRunning;
     pauseSim();
     // Display the warning message.
-    $("#warning").css("display", "block");
-    const permission = await Promise.race([
-      waitListener(document.getElementById("warning_ok"), "click", true),
-      waitListener(document.getElementById("warning_no"), "click", false),
+    $("#welcome").css("display", "block");
+    const wantsTour = await Promise.race([
+      waitListener(document.getElementById("welcome_ok"), "click", true),
+      waitListener(document.getElementById("welcome_no"), "click", false),
     ]);
-    if (permission) {
-      // setWarningCookie();
-      $("#warning").css("display", "none");
+    $("#welcome").css("display", "none");
+    if (wantsTour) {
+      // setReturningCookie();
       await new Promise(function (resolve) {
-        Shepherd.once("complete", () => resolve());
+        ["complete", "cancel"].forEach(function (event) {
+          Shepherd.once(event, () => resolve());
+        });
         tour.start();
       });
     }
+    $("#get_help").fadeIn(1000);
+        setTimeout(() => $("#get_help").fadeOut(1000), 4000);
     if (restart) playSim();
+  }
+
+  // If the "Try clicking!" popup is allowed, show it iff we're from an external link
+  // or have loaded the default simulation.
+  if (
+    (fromExternalLink() ||
+      shouldLoadDefault ||
+      options.forceTryClickingPopup) &&
+    !options.suppressTryClickingPopup &&
+    options.brushEnabled
+  ) {
+    $("#top_message").html("<p>" + options.tryClickingText + "</p>");
+    fadein("#top_message",1000);
+    // Fadeout either after the user clicks on the canvas or 5s passes.
+    setTimeout(() => fadeout("#top_message"), 5000);
+    $("#simCanvas").one("pointerdown touchstart", () =>
+      fadeout("#top_message")
+    );
   }
 
   // Begin the simulation.
@@ -6051,22 +6076,22 @@ import {
     return manualInterpolationNeeded || options.forceManualInterpolation;
   }
 
-  function warningCookieExists() {
+  function returningCookieExists() {
     var cookieArr = document.cookie.split(";");
     for (var i = 0; i < cookieArr.length; i++) {
       var cookiePair = cookieArr[i].split("=");
-      if ("warning" == cookiePair[0].trim()) {
+      if ("returning" == cookiePair[0].trim()) {
         return true;
       }
     }
     return false;
   }
 
-  function setWarningCookie() {
+  function setReturningCookie() {
     const d = new Date();
     d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
     let expires = "expires=" + d.toUTCString();
-    document.cookie = "warning" + "=" + "true" + ";" + expires + ";path=/";
+    document.cookie = "returning" + "=" + "true" + ";" + expires + ";path=/";
   }
 
   function waitListener(element, listenerName, val) {

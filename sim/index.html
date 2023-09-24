@@ -58,8 +58,9 @@
         src="../assets/js/mathjax/es5/tex-chtml-full.js">
     </script>
     <script type="module" src="../assets/js/shepherd.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="../assets/css/shepherd.css">
     <script type="module" src="./scripts/dat_gui_mods.js"></script>
-    <script type="module" src="./scripts/RD/main.js"></script>
+    <script type="module" src="./scripts/RD/main.min.js"></script>
     <script src="./scripts/fitty.min.js"></script>
     <script src="./scripts/expr-eval.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"></script>
@@ -88,23 +89,26 @@
     <canvas id="simCanvas"></canvas>
 </div>
 
-<div class="message" id="warning">
+<div class="message" id="welcome">
     <p><img src='../assets/favicons/android-chrome-192x192.webp' width="48" height="48"></p>
-    <p>Some simulations on VisualPDE.com may contain flashing images and patterns.</p>
+    <p>Welcome to VisualPDE!</p>
     <br>
-    <button id="warning_ok" class="btn-primary">Don't remind me again</button>
+    <p>There is so much to explore. Would you like a tour?</p>
     <br>
-    <button id="warning_no" class="btn-primary">Remind me next time</button>
-    <p style="font-size: small;">Choosing not to be reminded places a cookie on your device</p>
+    <button id="welcome_ok" class="btn-primary">Yes, show me around!</button>
+    <br>
+    <button id="welcome_no" class="btn-primary">No, let me jump in!</button>
+    <p style="font-size: small;">Some simulations on VisualPDE.com may contain flashing images and patterns.</p>
 </div>
 
 <div class="ui hidden ui_button" id="settings" title="Settings"><i class="fa-solid fa-wrench"></i></div>
-
+<div class="ui hidden ui_button" id="play_pause_placeholder"></div>
 <div class="ui hidden ui_button" id="play" title="Play (space)"><i class="fa-solid fa-play"></i></div>
 <div class="ui hidden ui_button" id="pause" title="Pause (space)"><i class="fa-solid fa-pause"></i></div>
 <div class="ui hidden ui_button" id="erase" title="Restart (R)"><i class="fa-solid fa-arrow-rotate-left"></i></div>
 <div class="ui hidden ui_button" id="share" title="Share"><i class="fa-solid fa-share-from-square"></i></div>
 <div class="message" id="link_copied"><p>Copied to clipboard</p></div>
+<div class="message" id="get_help"><p>Get help here anytime</p></div>
 <div class="ui hidden ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div>
 <div class="ui hidden ui_button" id="views" title="Views"><i class="fa-solid fa-layer-group"></i></div>
 
@@ -165,9 +169,10 @@
 <div id="help_panel" class="ui hidden popout_panel">
     <div class="container">
         <div id='title'>Help</div>
-        <a href='/user-guide/quick-start' target="_blank"><div id='quick_start' class='button'><i class="share-icon fa-solid fa-question"></i>Quick start</div></a>
-        <a href='/user-guide/FAQ' target="_blank"><div id='faqs' class='button'><i class="share-icon fa-solid fa-question"></i>FAQs</div></a>
-        <a href='/user-guide/advanced-options' target="_blank"><div id='advanced' class='button'><i class="share-icon fa-solid fa-question"></i>Advanced options</div></a>
+        <a><div id='start_tour' class='button'><i class="share-icon fa-solid fa-route"></i>Give me the tour</div></a>
+        <a href='/user-guide/quick-start' target="_blank"><div id='quick_start' class='button'><i class="share-icon fa-solid fa-forward"></i>Quick start</div></a>
+        <a href='/user-guide/FAQ' target="_blank"><div id='faqs' class='button'><i class="share-icon fa-solid fa-clipboard-question"></i>FAQs</div></a>
+        <a href='/user-guide/advanced-options' target="_blank"><div id='advanced' class='button'><i class="share-icon fa-solid fa-gears"></i>Advanced options</div></a>
         <a href='/user-guide' target="_blank"><div id='more' class='button'><i class="share-icon fa-solid fa-question"></i>More...</div></a>
     </div>
     <div class="arrow"></div>

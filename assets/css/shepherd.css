@@ -1,16 +1,18 @@
 .shepherd-button {
-	font-size: 1rem;
+  background-color: #1756a9;
+  color: white;
+  font-size: 0.8rem;
   margin-bottom: 0.5rem;
+  margin-inline: 0.2rem;
   text-align: center;
-  width: 13rem;
   max-width: 100%;
   border: 1px solid;
   border-radius: 6px;
-  border-color: rgba(27, 31, 36, 0.15);
+  border-color: #000;
   padding: 5px 16px;
   box-shadow: rgba(27, 31, 36, 0.1) 0px 1px 0px 0px,
-	rgba(255, 255, 255, 0.03) 0px 1px 0px 0px inset;
-	cursor: pointer;
+    rgba(255, 255, 255, 0.03) 0px 1px 0px 0px inset;
+  cursor: pointer;
   transition: all 0.5s ease;
 }
 .shepherd-button:not(:disabled):hover {
@@ -33,7 +35,8 @@
   border-bottom-right-radius: 5px;
   display: flex;
   justify-content: flex-end;
-  padding: 0 0.75rem 0.75rem;
+  align-content: center;
+  padding-right: 0.75rem;
 }
 .shepherd-footer .shepherd-button:last-child {
   margin-right: 0;
@@ -43,10 +46,13 @@
   border: none;
   color: hsla(0, 0%, 50%, 0.75);
   cursor: pointer;
-  font-size: 2em;
+  font-size: 1.1em;
   font-weight: 400;
   margin: 0;
   padding: 0;
+  position: relative;
+  right: 8px;
+  top: 0px;
   transition: color 0.5s ease;
 }
 .shepherd-cancel-icon:hover {
@@ -71,19 +77,24 @@
   align-items: center;
   border-top-left-radius: 5px;
   border-top-right-radius: 5px;
+  border-bottom: 0.5px #111 solid;
   display: flex;
   justify-content: flex-end;
   line-height: 2em;
-  padding: 0.75rem 0.75rem 0;
+  padding-left: 0.5rem;
 }
 .shepherd-has-title .shepherd-content .shepherd-header {
-  background: #e6e6e6;
-  padding: 1em;
+  background: #fff;
+}
+.shepherd-progress {
+  font-size: 0.7rem;
+  margin-right: 20px;
 }
 .shepherd-text {
-  color: rgba(0, 0, 0, 0.75);
-  font-size: 1rem;
-  line-height: 1.3em;
+  margin: 0;
+  padding: 0;
+  color: #111;
+  font-size: small;
   padding: 0.75em;
 }
 .shepherd-text p {
@@ -100,27 +111,20 @@
 .shepherd-element {
   margin-left: 10px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-  max-width: 40%;
+  max-width: calc(100vw - 110px);
   opacity: 0;
   outline: none;
-  transition: opacity 0.3s, visibility 0.3s;
+  transition: opacity 0.5s, visibility 0.5s;
   visibility: hidden;
-  width: 100%;
+  width: 300px;
   z-index: 9999;
-	padding: 1.5rem 3rem 1.5rem 3rem;
   background-color: white;
   border: 1px rgba(27, 31, 36, 0.15) solid;
   border-radius: 6px;
   text-align: center;
 }
-.shepherd-element p {
-	margin: 0;
-  padding: 0;
-  color: #111;
-  font-size: medium;
-}
 .shepherd-element[data-popper-placement="left"] {
-    transform: translateX(-20px);
+  transform: translateX(-20px);
 }
 .shepherd-enabled.shepherd-element {
   opacity: 1;
@@ -150,16 +154,16 @@
   transform: rotate(45deg);
 }
 .shepherd-element[data-popper-placement^="top"] > .shepherd-arrow {
-  bottom: -8px;
+  bottom: -16px;
 }
 .shepherd-element[data-popper-placement^="bottom"] > .shepherd-arrow {
-  top: -8px;
+  top: -16px;
 }
 .shepherd-element[data-popper-placement^="left"] > .shepherd-arrow {
-  right: -8px;
+  right: -0px;
 }
 .shepherd-element[data-popper-placement^="right"] > .shepherd-arrow {
-  left: -8px;
+  left: -16px;
 }
 .shepherd-element.shepherd-centered > .shepherd-arrow {
   opacity: 0;
