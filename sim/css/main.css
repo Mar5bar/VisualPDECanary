@@ -301,13 +301,13 @@ canvas {
   transform: translateY(-50%);
   opacity: 100;
   display: none;
+  & p {
+    font-size: 0.8rem;
+  }
 }
 
 #link_copied {
   top: 112.5px;
-}
-#link_copied,#get_help p {
-  font-size: 0.8rem;
 }
 
 #get_help {

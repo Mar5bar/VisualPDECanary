@@ -636,12 +636,13 @@ import {
     ],
   });
 
-  // Welcome message.
-  if (!returningCookieExists()) {
+  // Welcome message. Display if someone is not a returning user, or if they haven't seen the full welcome message.
+  const viewFullWelcome = !(isStory || uiHidden);
+  if (!isReturningUser() || (viewFullWelcome && !seenFullWelcomeUser())) {
     let restart = isRunning;
     pauseSim();
     let noButtonId = "welcome_no";
-    if (isStory || uiHidden) {
+    if (!viewFullWelcome) {
       $("#tour_question").hide();
       $("#lets_go_cont").show();
       noButtonId = "lets_go";
@@ -653,7 +654,10 @@ import {
       waitListener(document.getElementById(noButtonId), "click", false),
     ]);
     $("#welcome").css("display", "none");
-    setReturningCookie();
+    // If they've interacted with anything, note that they have visited the site.
+    setReturningUser();
+    // If someone hasn't seen the full welcome, don't stop them from seeing it next time.
+    if (viewFullWelcome) setSeenFullWelcomeUser();
     if (wantsTour) {
       await new Promise(function (resolve) {
         ["complete", "cancel"].forEach(function (event) {
@@ -662,7 +666,7 @@ import {
         tour.start();
       });
     }
-    if (!isStory && !uiHidden) {
+    if ($("#help").is(":visible")) {
       $("#get_help").fadeIn(1000);
       setTimeout(() => $("#get_help").fadeOut(1000), 4000);
     }
@@ -6109,22 +6113,41 @@ import {
     return manualInterpolationNeeded || options.forceManualInterpolation;
   }
 
-  function returningCookieExists() {
+  function isReturningUser() {
     var cookieArr = document.cookie.split(";");
     for (var i = 0; i < cookieArr.length; i++) {
       var cookiePair = cookieArr[i].split("=");
-      if ("returning" == cookiePair[0].trim()) {
+      if ("visited" == cookiePair[0].trim()) {
         return true;
       }
     }
     return false;
   }
 
-  function setReturningCookie() {
+  function setReturningUser() {
     const d = new Date();
     d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
     let expires = "expires=" + d.toUTCString();
-    document.cookie = "returning" + "=" + "true" + ";" + expires + ";path=/";
+    document.cookie = "visited" + "=" + "true" + ";" + expires + ";path=/";
+  }
+
+  function seenFullWelcomeUser() {
+    var cookieArr = document.cookie.split(";");
+    for (var i = 0; i < cookieArr.length; i++) {
+      var cookiePair = cookieArr[i].split("=");
+      if ("seenFullWelcome" == cookiePair[0].trim()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function setSeenFullWelcomeUser() {
+    const d = new Date();
+    d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
+    let expires = "expires=" + d.toUTCString();
+    document.cookie =
+      "seenFullWelcome" + "=" + "true" + ";" + expires + ";path=/";
   }
 
   function waitListener(element, listenerName, val) {
@@ -7796,6 +7819,7 @@ import {
     const footer = currentStepElement?.querySelector(".shepherd-footer");
     const moreInfo = document.createElement("a");
     moreInfo.setAttribute("href", link);
+    moreInfo.setAttribute("target", "_blank");
     moreInfo.classList.add("shepherd-more-info");
     moreInfo.innerText = label ? label : `More info.`;
     footer?.insertBefore(moreInfo, footer.firstChild);
