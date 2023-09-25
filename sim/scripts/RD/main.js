@@ -575,7 +575,7 @@ import {
 
   tour.addStep({
     title: "Views",
-    text: `There are countless ways to view solutions in VisualPDE. The Views menu lets you customise every last detail, from contours to colour schemes.`,
+    text: `There are countless ways to visualise solutions in VisualPDE. The Views menu lets you customise every last detail, from contours to colour schemes.`,
     attachTo: {
       element: "#views",
       on: "right",
@@ -590,7 +590,7 @@ import {
 
   tour.addStep({
     title: "Settings",
-    text: `Dive under the hood of VisualPDE to tweak a range of advanced settings. Popular options include the equation type, the domain resolution and the timestepping scheme.`,
+    text: `Tweak advanced settings such as the equation type, the domain resolution and the timestepping scheme.`,
     attachTo: {
       element: "#settings",
       on: "right",
