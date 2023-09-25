@@ -57,9 +57,9 @@ canvas {
   max-width: 100dvh;
   max-height: 100vw;
   top: 50vh;
-	top: 50dvh;
+  top: 50dvh;
   left: 50vw;
-	transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
   position: absolute;
 }
 
@@ -201,6 +201,7 @@ canvas {
 #leftGUI ul li div ul li div .property-name {
   width: 27%;
 }
+
 #leftGUI ul li div ul li div div.c {
   width: 73%;
 }
@@ -209,10 +210,8 @@ canvas {
   position: absolute;
   display: flex;
   z-index: 3;
-
   margin: 5px;
-
-  background-color: #ededed;
+  background-color: #ffffff;
   color: #606060;
   font-size: 1.1rem;
   height: 35px;
@@ -220,7 +219,7 @@ canvas {
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.8);
   border-radius: 5px;
   cursor: pointer;
   text-shadow: 0 1px #fff;
@@ -252,6 +251,11 @@ canvas {
 }
 
 #play {
+  top: 50px;
+  left: var(--ui-button-h-gap);
+}
+
+#play_pause_placeholder {
   top: 50px;
   left: var(--ui-button-h-gap);
 }
@@ -291,17 +295,24 @@ canvas {
   right: var(--ui-button-h-gap);
 }
 
-#link_copied {
+#link_copied,
+#get_help {
   position: absolute;
-  top: 112.5px;
   right: 50px;
   transform: translateY(-50%);
   opacity: 100;
   display: none;
+  & p {
+    font-size: 0.8rem;
+  }
 }
 
-#link_copied p {
-  font-size: 0.8rem;
+#link_copied {
+  top: 112.5px;
+}
+
+#get_help {
+  top: 74px;
 }
 
 #equation_display div mjx-container {
@@ -353,12 +364,12 @@ canvas {
   margin-right: 5px;
 }
 
-#warning,
+#welcome,
 #oops_hit_nan,
 #error {
   display: none;
   top: 50%;
-  max-width: 60vw;
+  max-width: min(60vw, calc(100vw - 160px));
   width: 20rem;
   left: 50%;
   position: absolute;
@@ -370,7 +381,7 @@ canvas {
   border-radius: 6px;
 }
 
-#warning p,
+#welcome p,
 #oops_hit_nan p,
 #error p {
   color: #111;
@@ -382,8 +393,9 @@ canvas {
   font-size: small;
 }
 
-#warning_ok,
-#warning_no,
+#welcome_ok,
+#welcome_no,
+#lets_go,
 .warning_dismiss {
   font-size: 1rem;
   margin-bottom: 0.5rem;
@@ -392,7 +404,7 @@ canvas {
   max-width: 100%;
   border: 1px solid;
   border-radius: 6px;
-  border-color: rgba(27, 31, 36, 0.15);
+  border-color: #000;
   padding: 5px 16px;
   box-shadow: rgba(27, 31, 36, 0.1) 0px 1px 0px 0px,
     rgba(255, 255, 255, 0.03) 0px 1px 0px 0px inset;
@@ -400,26 +412,26 @@ canvas {
   transition-duration: 80ms;
 }
 
-#warning_ok {
+#welcome_ok, #lets_go {
   background-color: #1756a9;
   color: white !important;
 }
 
 @media (hover: hover) {
-  #warning_ok:hover {
+  #welcome_ok:hover, #lets_go:hover {
     background-color: #134484;
     cursor: pointer;
   }
 }
 
-#warning_no,
+#welcome_no,
 .warning_dismiss {
   background-color: #e9e9ed;
   color: #111;
 }
 
 @media (hover: hover) {
-  #warning_no:hover,
+  #welcome_no:hover,
   .warning_dismiss:hover {
     background-color: #ddd;
     cursor: pointer;
@@ -709,24 +721,24 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 #equations {
-  background: url("/assets/images/function-button-grey.webp") no-repeat;
+  background: url("/assets/images/function-button-grey-white.webp") no-repeat;
   background-size: 80%;
   background-position: center;
-  background-color: #ededed;
+  background-color: #ffffff;
 }
 
 @media (hover: hover) {
   #equations:hover {
-    background: url("/assets/images/function-button-black.webp") no-repeat;
+    background: url("/assets/images/function-button-black-white.webp") no-repeat;
     background-size: 80%;
     background-position: center;
-    background-color: #ededed;
+    background-color: #ffffff;
   }
 }
 
 #equations::after {
   /* Preload the hovered function button to stop flickering */
-  content: url("/assets/images/function-button-black.webp");
+  content: url("/assets/images/function-button-black-white.webp");
   height: 0;
   overflow: hidden;
   position: absolute;
@@ -823,7 +835,7 @@ a#add_view {
 }
 
 .dg :not(.closed) > .button_list {
-    height: fit-content !important;
+  height: fit-content !important;
 }
 
 .dg .closed li:not(.title) {
@@ -958,7 +970,7 @@ select {
   border-radius: 0.5rem;
   height: 1.1rem;
   width: 1.1rem;
-  margin-right: 5px;
+  margin-right: 6px;
   padding: 6px;
   vertical-align: middle;
 }
@@ -1113,4 +1125,18 @@ select {
 .break {
   flex-basis: 100%;
   height: 0;
+}
+
+.views_pics {
+  padding-top: 10px;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.views_pics img {
+  height: 80px;
+  width: 80px;
+  object-fit: cover;
+  border: 1px solid black;
+  border-radius: 5px;
 }

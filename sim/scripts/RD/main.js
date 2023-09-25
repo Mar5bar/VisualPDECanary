@@ -330,20 +330,6 @@ import {
     }
   }
 
-  // Warn the user about flashing images and ask for cookie permission to store this.
-  if (!warningCookieExists() && !uiHidden) {
-    // Display the warning message.
-    $("#warning").css("display", "block");
-    const permission = await Promise.race([
-      waitListener(document.getElementById("warning_ok"), "click", true),
-      waitListener(document.getElementById("warning_no"), "click", false),
-    ]);
-    if (permission) {
-      setWarningCookie();
-    }
-    $("#warning").css("display", "none");
-  }
-
   // Load default options.
   loadOptions("default");
 
@@ -388,29 +374,12 @@ import {
 
     $("#play").css("top", "-=50");
     $("#pause").css("top", "-=50");
+    $("#play_pause_placeholder").css("top", "-=50");
     $("#erase").css("top", "-=50");
     $("#views").css("top", "-=50");
     $("#views_ui").css("top", "-=50");
     viewUIOffsetInit = $(":root").css("--views-ui-offset");
     $(":root").css("--views-ui-offset", "-=50");
-  }
-
-  // If the "Try clicking!" popup is allowed, show it iff we're from an external link
-  // or have loaded the default simulation.
-  if (
-    (fromExternalLink() ||
-      shouldLoadDefault ||
-      options.forceTryClickingPopup) &&
-    !options.suppressTryClickingPopup &&
-    options.brushEnabled
-  ) {
-    $("#top_message").html("<p>" + options.tryClickingText + "</p>");
-    fadein("#top_message");
-    // Fadeout either after the user clicks on the canvas or 5s passes.
-    setTimeout(() => fadeout("#top_message"), 5000);
-    $("#simCanvas").one("pointerdown touchstart", () =>
-      fadeout("#top_message")
-    );
   }
 
   /* GUI settings and equations buttons */
@@ -502,12 +471,231 @@ import {
     fadeout("#oops_hit_nan");
     shouldCheckNaN = true;
   });
+  $("#start_tour").click(function () {
+    $("#welcome").css("display", "none");
+    tour.start();
+  });
 
   // New, rename, delete
   // (Dynamically created buttons, like the +, can't use .click())
   $(document).on("click", "#add_view", function () {
     addView();
   });
+
+  // Create the welcome tour.
+  const tour = new Shepherd.Tour({
+    useModalOverlay: true,
+    defaultStepOptions: {
+      classes: "shadow-md bg-purple-dark",
+      scrollTo: false,
+      cancelIcon: {
+        enabled: true,
+      },
+      buttons: [
+        {
+          action() {
+            return this.back();
+          },
+          classes: "shepherd-button-secondary",
+          text: "Back",
+        },
+        {
+          action() {
+            return this.next();
+          },
+          text: "Next",
+        },
+      ],
+      when: {
+        show() {
+          addStepCounter();
+        },
+      },
+    },
+  });
+
+  let interactiveStr = `Interactivity is at the heart of VisualPDE. In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop playsinline muted disableRemotePlayback poster="../assets/images/demo.webp" width="128" style="margin-top:10px"><source src='../assets/ani/demo.mp4' type='video/mp4'><source src='../assets/ani/demo.webm' type='video/webm'></video><br>This can even kickstart pattern formation or other exciting phenomena.`;
+  if (onMobile()) {
+    interactiveStr = interactiveStr.replaceAll("clicking", "tapping");
+    interactiveStr = interactiveStr.replaceAll("click", "tap");
+    interactiveStr = interactiveStr.replaceAll("Clicking", "Tapping");
+    interactiveStr = interactiveStr.replaceAll("Click", "Tap");
+  }
+  tour.addStep({
+    title: "Playing with PDEs",
+    text: interactiveStr,
+    buttons: [
+      {
+        action() {
+          return this.next();
+        },
+        text: "Next",
+      },
+    ],
+  });
+
+  tour.addStep({
+    title: "Equations and definitions",
+    text: `View and customise the equations, parameters, boundary and initial conditions of the simulation.`,
+    attachTo: {
+      element: "#equations",
+      on: "right",
+    },
+    when: {
+      show() {
+        addStepCounter();
+        addMoreInfoLink("/user-guide/advanced-options.html#equations");
+      },
+    },
+  });
+
+  tour.addStep({
+    title: "Play/pause",
+    text: `Play or pause the simulation. You can still draw when paused.`,
+    attachTo: {
+      element: "#play_pause_placeholder",
+      on: "right",
+    },
+  });
+
+  tour.addStep({
+    title: "Reset",
+    text: `Click to restart the simulation. You can change the initial conditions in the equations menu.`,
+    attachTo: {
+      element: "#erase",
+      on: "right",
+    },
+    when: {
+      show() {
+        addStepCounter();
+        addMoreInfoLink(
+          "/user-guide/advanced-options.html#checkpoints",
+          "Advanced"
+        );
+      },
+    },
+  });
+
+  tour.addStep({
+    title: "Views",
+    text: `The Views menu lets you customise your view of the solution. This includes everything from contours to colour bars.<br><div class=views_pics><img src='../assets/images/FHNTuringWave.webp'><img src='../assets/images/midnight_soliton.webp'><img src='../assets/images/complexGinzburgLandau.webp'></div>`,
+    attachTo: {
+      element: "#views",
+      on: "right",
+    },
+    when: {
+      show() {
+        addStepCounter();
+        addMoreInfoLink("/user-guide/advanced-options.html#views");
+      },
+    },
+  });
+
+  tour.addStep({
+    title: "Settings",
+    text: `Tweak advanced options such as the equation type, the domain resolution and the timestepping scheme.`,
+    attachTo: {
+      element: "#settings",
+      on: "right",
+    },
+    when: {
+      show() {
+        addStepCounter();
+        addMoreInfoLink("/user-guide/advanced-options.html#settings");
+      },
+    },
+  });
+
+  tour.addStep({
+    title: "Sharing",
+    text: `VisualPDE is built for sharing. Copy a link that leads straight to the current simulation, download snapshots of your solution or even embed your simulation in your own site.`,
+    attachTo: {
+      element: "#share",
+      on: "right",
+    },
+  });
+
+  tour.addStep({
+    title: "Help",
+    text: `Help is always at hand. Access FAQs, detailed documentation and guides explaining how to do everything that's possible in VisualPDE. You can even restart this tour.`,
+    attachTo: {
+      element: "#help",
+      on: "right",
+    },
+    buttons: [
+      {
+        action() {
+          return this.back();
+        },
+        classes: "shepherd-button-secondary",
+        text: "Back",
+      },
+      {
+        action() {
+          return this.complete();
+        },
+        text: "Finish",
+      },
+    ],
+  });
+
+  // Welcome message. Display if someone is not a returning user, or if they haven't seen the full welcome message.
+  const viewFullWelcome = !(isStory || uiHidden);
+  if (
+    (!isReturningUser() || (viewFullWelcome && !seenFullWelcomeUser())) &&
+    options.preset != "Banner"
+  ) {
+    let restart = isRunning;
+    pauseSim();
+    let noButtonId = "welcome_no";
+    if (!viewFullWelcome) {
+      $("#tour_question").hide();
+      $("#lets_go_cont").show();
+      noButtonId = "lets_go";
+    }
+    // Display the welcome message.
+    $("#welcome").css("display", "block");
+    const wantsTour = await Promise.race([
+      waitListener(document.getElementById("welcome_ok"), "click", true),
+      waitListener(document.getElementById(noButtonId), "click", false),
+    ]);
+    $("#welcome").css("display", "none");
+    // If they've interacted with anything, note that they have visited the site.
+    setReturningUser();
+    // If someone hasn't seen the full welcome, don't stop them from seeing it next time.
+    if (viewFullWelcome) setSeenFullWelcomeUser();
+    if (wantsTour) {
+      await new Promise(function (resolve) {
+        ["complete", "cancel"].forEach(function (event) {
+          Shepherd.once(event, () => resolve());
+        });
+        tour.start();
+      });
+    }
+    if ($("#help").is(":visible")) {
+      $("#get_help").fadeIn(1000);
+      setTimeout(() => $("#get_help").fadeOut(1000), 4000);
+    }
+    if (restart) playSim();
+  }
+
+  // If the "Try clicking!" popup is allowed, show it iff we're from an external link
+  // or have loaded the default simulation.
+  if (
+    (fromExternalLink() ||
+      shouldLoadDefault ||
+      options.forceTryClickingPopup) &&
+    !options.suppressTryClickingPopup &&
+    options.brushEnabled
+  ) {
+    $("#top_message").html("<p>" + options.tryClickingText + "</p>");
+    fadein("#top_message", 1000);
+    // Fadeout either after the user clicks on the canvas or 5s passes.
+    setTimeout(() => fadeout("#top_message"), 5000);
+    $("#simCanvas").one("pointerdown touchstart", () =>
+      fadeout("#top_message")
+    );
+  }
 
   // Begin the simulation.
   isLoading = false;
@@ -5931,22 +6119,41 @@ import {
     return manualInterpolationNeeded || options.forceManualInterpolation;
   }
 
-  function warningCookieExists() {
+  function isReturningUser() {
     var cookieArr = document.cookie.split(";");
     for (var i = 0; i < cookieArr.length; i++) {
       var cookiePair = cookieArr[i].split("=");
-      if ("warning" == cookiePair[0].trim()) {
+      if ("visited" == cookiePair[0].trim()) {
         return true;
       }
     }
     return false;
   }
 
-  function setWarningCookie() {
+  function setReturningUser() {
     const d = new Date();
     d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
     let expires = "expires=" + d.toUTCString();
-    document.cookie = "warning" + "=" + "true" + ";" + expires + ";path=/";
+    document.cookie = "visited" + "=" + "true" + ";" + expires + ";path=/";
+  }
+
+  function seenFullWelcomeUser() {
+    var cookieArr = document.cookie.split(";");
+    for (var i = 0; i < cookieArr.length; i++) {
+      var cookiePair = cookieArr[i].split("=");
+      if ("seenFullWelcome" == cookiePair[0].trim()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function setSeenFullWelcomeUser() {
+    const d = new Date();
+    d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
+    let expires = "expires=" + d.toUTCString();
+    document.cookie =
+      "seenFullWelcome" + "=" + "true" + ";" + expires + ";path=/";
   }
 
   function waitListener(element, listenerName, val) {
@@ -7596,5 +7803,31 @@ import {
 
   function isEmptyString(str) {
     return /^\s*$/.test(str);
+  }
+
+  function addStepCounter() {
+    const currentStep = Shepherd.activeTour?.getCurrentStep();
+    const currentStepElement = currentStep?.getElement();
+    const header = currentStepElement?.querySelector(".shepherd-header");
+    const progress = document.createElement("span");
+    progress.classList.add("shepherd-progress");
+    progress.innerText = `${
+      Shepherd.activeTour?.steps.indexOf(currentStep) + 1
+    } / ${Shepherd.activeTour?.steps.length}`;
+    header?.insertBefore(
+      progress,
+      currentStepElement.querySelector(".shepherd-cancel-icon")
+    );
+  }
+  function addMoreInfoLink(link, label) {
+    const currentStep = Shepherd.activeTour?.getCurrentStep();
+    const currentStepElement = currentStep?.getElement();
+    const footer = currentStepElement?.querySelector(".shepherd-footer");
+    const moreInfo = document.createElement("a");
+    moreInfo.setAttribute("href", link);
+    moreInfo.setAttribute("target", "_blank");
+    moreInfo.classList.add("shepherd-more-info");
+    moreInfo.innerText = label ? label : `More info.`;
+    footer?.insertBefore(moreInfo, footer.firstChild);
   }
 })();
