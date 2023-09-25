@@ -638,7 +638,10 @@ import {
 
   // Welcome message. Display if someone is not a returning user, or if they haven't seen the full welcome message.
   const viewFullWelcome = !(isStory || uiHidden);
-  if (!isReturningUser() || (viewFullWelcome && !seenFullWelcomeUser())) {
+  if (
+    (!isReturningUser() || (viewFullWelcome && !seenFullWelcomeUser())) &&
+    options.preset != "Banner"
+  ) {
     let restart = isRunning;
     pauseSim();
     let noButtonId = "welcome_no";
