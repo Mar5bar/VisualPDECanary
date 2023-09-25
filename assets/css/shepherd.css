@@ -15,6 +15,7 @@
   cursor: pointer;
   transition: all 0.5s ease;
 }
+
 .shepherd-button:not(:disabled):hover {
   background: #196fcc;
   color: hsla(0, 0%, 100%, 0.75);
