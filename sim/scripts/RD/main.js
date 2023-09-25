@@ -514,7 +514,7 @@ import {
     },
   });
 
-  let interactiveStr = `In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop playsinline width="128" style="margin-top:10px"><source src='../assets/ani/click.mp4' type='video/mp4'><source src='../assets/ani/click.webm' type='video/webm'></video><br>This can even kick-start pattern formation or other exciting phenomena.`;
+  let interactiveStr = `Interactivity is at the heart of VisualPDE. In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop playsinline width="128" style="margin-top:10px"><source src='../assets/ani/click.mp4' type='video/mp4'><source src='../assets/ani/click.webm' type='video/webm'></video><br>This can even kick-start pattern formation or other exciting phenomena.`;
   if (onMobile()) {
     interactiveStr = interactiveStr.replaceAll("clicking", "tapping");
   }
@@ -557,7 +557,7 @@ import {
 
   tour.addStep({
     title: "Reset",
-    text: `Restart the simulation from the specified initial conditions (editable in the Equations menu).`,
+    text: `Restart the simulation from the specified initial conditions.`,
     attachTo: {
       element: "#erase",
       on: "right",
@@ -590,7 +590,7 @@ import {
 
   tour.addStep({
     title: "Settings",
-    text: `Tweak advanced settings such as the equation type, the domain resolution and the timestepping scheme.`,
+    text: `Dive under the hood and tweak advanced settings such as the equation type, the domain resolution and the timestepping scheme.`,
     attachTo: {
       element: "#settings",
       on: "right",
@@ -605,7 +605,7 @@ import {
 
   tour.addStep({
     title: "Sharing",
-    text: `Copy a link that leads straight to the current simulation, download snapshots of your solution or even embed your simulation in your own site.`,
+    text: `VisualPDE is built for sharing. Copy a link that leads straight to the current simulation, download snapshots of your solution or even embed your simulation in your own site.`,
     attachTo: {
       element: "#share",
       on: "right",
@@ -614,7 +614,7 @@ import {
 
   tour.addStep({
     title: "Help",
-    text: `Access FAQs, detailed documentation and guides explaining how to do everything that's possible in VisualPDE. You can even restart this tour.`,
+    text: `Help is always at hand. Access FAQs, detailed documentation and guides explaining how to do everything that's possible in VisualPDE. You can even restart this tour.`,
     attachTo: {
       element: "#help",
       on: "right",
