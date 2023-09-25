@@ -5,7 +5,7 @@
 layout: home
 ---
 
-See the solution to partial differential equations (PDEs) evolve before your eyes by pressing [Play!](/sim/). Explore examples below or type in your own PDE.
+See solutions to partial differential equations (PDEs) evolve before your eyes by pressing [Play!](/sim/). Explore examples below or type in your own PDE.
 
 New to [PDE](https://en.wikipedia.org/wiki/Partial_differential_equation)s? Take a look at the [Chalkdust article](https://chalkdustmagazine.com/regulars/on-the-cover/visual-pde/) or try our collection of [Visual stories](/visual-stories). 
 
