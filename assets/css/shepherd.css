@@ -116,7 +116,7 @@
   outline: none;
   transition: opacity 0.5s, visibility 0.5s;
   visibility: hidden;
-  width: max(50%,300px);
+  width: max(30%,300px);
   z-index: 9999;
   background-color: white;
   border: 1px rgba(27, 31, 36, 0.15) solid;
@@ -198,9 +198,9 @@
   pointer-events: all;
 }
 .shepherd-more-info {
-  bottom: 10px;
+  bottom: 11px;
   font-size: 0.7rem;
-  left: 10px;
+  left: 8px;
   position: absolute;
 }
 @media screen and (max-width: 374px) {

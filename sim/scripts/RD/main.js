@@ -514,7 +514,7 @@ import {
     },
   });
 
-  let interactiveStr = `Interactivity is at the heart of VisualPDE. In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop playsinline width="128" style="margin-top:10px"><source src='../assets/ani/click.mp4' type='video/mp4'><source src='../assets/ani/click.webm' type='video/webm'></video><br>This can even kick-start pattern formation or other exciting phenomena.`;
+  let interactiveStr = `In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop playsinline width="128" style="margin-top:10px"><source src='../assets/ani/click.mp4' type='video/mp4'><source src='../assets/ani/click.webm' type='video/webm'></video><br>This can even kick-start pattern formation or other exciting phenomena.`;
   if (onMobile()) {
     interactiveStr = interactiveStr.replaceAll("clicking", "tapping");
   }
@@ -567,7 +567,7 @@ import {
         addStepCounter();
         addMoreInfoLink(
           "/user-guide/advanced-options.html#checkpoints",
-          "Advanced use"
+          "Advanced"
         );
       },
     },
@@ -605,7 +605,7 @@ import {
 
   tour.addStep({
     title: "Sharing",
-    text: `VisualPDE is built for sharing. Copy a link to your clipboard that leads straight to the current simulation, download snapshots of your solution and even embed your simulation in your own site.`,
+    text: `Copy a link that leads straight to the current simulation, download snapshots of your solution or even embed your simulation in your own site.`,
     attachTo: {
       element: "#share",
       on: "right",
