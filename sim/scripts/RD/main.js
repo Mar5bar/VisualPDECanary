@@ -514,7 +514,7 @@ import {
     },
   });
 
-  let interactiveStr = `Interactivity is at the heart of VisualPDE. In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop playsinline muted poster="../assets/images/click.webp" width="128" style="margin-top:10px"><source src='../assets/ani/click.mp4' type='video/mp4'><source src='../assets/ani/click.webm' type='video/webm'></video><br>This can even kickstart pattern formation or other exciting phenomena.`;
+  let interactiveStr = `Interactivity is at the heart of VisualPDE. In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop playsinline muted poster="../assets/images/demo.webp" width="128" style="margin-top:10px"><source src='../assets/ani/demo.mp4' type='video/mp4'><source src='../assets/ani/demo.webm' type='video/webm'></video><br>This can even kickstart pattern formation or other exciting phenomena.`;
   if (onMobile()) {
     interactiveStr = interactiveStr.replaceAll("clicking", "tapping");
     interactiveStr = interactiveStr.replaceAll("click", "tap");
