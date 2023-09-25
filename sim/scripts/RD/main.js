@@ -514,9 +514,12 @@ import {
     },
   });
 
-  let interactiveStr = `Interactivity is at the heart of VisualPDE. In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop playsinline muted poster="../assets/images/click.webp" width="128" style="margin-top:10px"><source src='../assets/ani/click.mp4' type='video/mp4'><source src='../assets/ani/click.webm' type='video/webm'></video><br>This can even kick-start pattern formation or other exciting phenomena.`;
+  let interactiveStr = `Interactivity is at the heart of VisualPDE. In most simulations, clicking on the screen allows you to interact directly with the solution.<br><video autoplay loop playsinline muted poster="../assets/images/click.webp" width="128" style="margin-top:10px"><source src='../assets/ani/click.mp4' type='video/mp4'><source src='../assets/ani/click.webm' type='video/webm'></video><br>This can even kickstart pattern formation or other exciting phenomena.`;
   if (onMobile()) {
     interactiveStr = interactiveStr.replaceAll("clicking", "tapping");
+    interactiveStr = interactiveStr.replaceAll("click", "tap");
+    interactiveStr = interactiveStr.replaceAll("Clicking", "Tapping");
+    interactiveStr = interactiveStr.replaceAll("Click", "Tap");
   }
   tour.addStep({
     title: "Playing with PDEs",
@@ -548,7 +551,7 @@ import {
 
   tour.addStep({
     title: "Play/pause",
-    text: `Play and pause the simulation. You can still draw when paused.`,
+    text: `Play or pause the simulation. You can still draw when paused.`,
     attachTo: {
       element: "#play_pause_placeholder",
       on: "right",
@@ -557,7 +560,7 @@ import {
 
   tour.addStep({
     title: "Reset",
-    text: `Restart the simulation from the specified initial conditions.`,
+    text: `Click to restart the simulation. You can change the initial conditions in the equations menu.`,
     attachTo: {
       element: "#erase",
       on: "right",
@@ -575,7 +578,7 @@ import {
 
   tour.addStep({
     title: "Views",
-    text: `There are countless ways to visualise solutions in VisualPDE. The Views menu lets you customise every last detail, from contours to colour schemes.`,
+    text: `The Views menu lets you customise your view of the solution. This includes everything from contours to colour bars.<br><div class=views_pics><img src='../assets/images/FHNTuringWave.webp'><img src='../assets/images/midnight_soliton.webp'><img src='../assets/images/complexGinzburgLandau.webp'></div>`,
     attachTo: {
       element: "#views",
       on: "right",
@@ -590,7 +593,7 @@ import {
 
   tour.addStep({
     title: "Settings",
-    text: `Dive under the hood and tweak advanced settings such as the equation type, the domain resolution and the timestepping scheme.`,
+    text: `Tweak advanced options such as the equation type, the domain resolution and the timestepping scheme.`,
     attachTo: {
       element: "#settings",
       on: "right",
