@@ -5,10 +5,8 @@
 layout: home
 ---
 
-See the solution to partial differential equations (PDEs) evolve before your eyes. Paint the canvas with initial conditions and see what happens. 
+See solutions to partial differential equations (PDEs) evolve before your eyes by pressing [Play!](/sim/). Explore examples below or type in your own PDE.
 
-Find an example below or press [Play!](/sim/) to provide your own PDE.
+New to [PDE](https://en.wikipedia.org/wiki/Partial_differential_equation)s? Take a look at the [Chalkdust article](https://chalkdustmagazine.com/regulars/on-the-cover/visual-pde/) or try our collection of [Visual stories](/visual-stories). 
 
-Don't know what a [PDE](https://en.wikipedia.org/wiki/Partial_differential_equation) is? Take a look at the [Chalkdust article](https://chalkdustmagazine.com/regulars/on-the-cover/visual-pde/) describing VisualPDE. You can also try our collection of [Visual stories](/visual-stories) for a layperson-friendly way to play with these models. 
-
-A project by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/) and [Andrew Krause](https://www.andrewkrause.org/). Read the preprint [here](https://doi.org/10.48550/arXiv.2308.01245).
+A project by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/) and [Andrew Krause](https://www.andrewkrause.org/). [Read the preprint](https://doi.org/10.48550/arXiv.2308.01245).
