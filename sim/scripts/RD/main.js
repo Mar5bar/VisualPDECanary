@@ -315,7 +315,8 @@ import {
     $(".ui").removeClass("hidden");
   }
 
-  if (params.has("logo_only")) {
+  const logo_only = params.has("logo_only");
+  if (logo_only) {
     // Hide all ui except the logo.
     $(".ui").addClass("hidden");
     $("#logo").removeClass("hidden");
@@ -649,7 +650,8 @@ import {
   const viewFullWelcome = !(isStory || uiHidden);
   if (
     (!isReturningUser() || (viewFullWelcome && !seenFullWelcomeUser())) &&
-    options.preset != "Banner"
+    options.preset != "Banner" &&
+    !logo_only
   ) {
     let restart = isRunning;
     pauseSim();
