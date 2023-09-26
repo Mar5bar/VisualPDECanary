@@ -536,7 +536,7 @@ import {
 
   tour.addStep({
     title: "Equations and definitions",
-    text: `View and customise the equations, parameters, boundary and initial conditions of the simulation.`,
+    text: `Customise the equations, parameters, boundary and initial conditions of the simulation.<br><video autoplay loop playsinline muted disableRemotePlayback width="216" style="margin-top:10px"><source src='../assets/ani/params.mp4' type='video/mp4'><source src='../assets/ani/params.webm' type='video/webm'></video>`,
     attachTo: {
       element: "#equations",
       on: "right",
@@ -612,6 +612,12 @@ import {
     attachTo: {
       element: "#share",
       on: "right",
+    },
+    when: {
+      show() {
+        addStepCounter();
+        addMoreInfoLink("/user-guide/FAQ.html#sharing");
+      },
     },
   });
 
