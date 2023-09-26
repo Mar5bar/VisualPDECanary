@@ -29,6 +29,7 @@ body {
 }
 
 canvas {
+  background: black;
   display: block;
   margin: auto;
   touch-action: none;
