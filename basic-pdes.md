@@ -3,7 +3,7 @@
 # To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 
 layout: topic
-title: Basic PDEs
+title: Introductory PDEs
 collection_to_list: basic-pdes
 ---
 
