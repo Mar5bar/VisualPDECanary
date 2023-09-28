@@ -3,6 +3,54 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["snail-trail"] = {
+    boundaryConditions_1: "dirichlet",
+    boundaryConditions_2: "dirichlet",
+    boundaryConditions_3: "dirichlet",
+    brushRadius: "20",
+    crossDiffusion: true,
+    diffusionStr_1_1: "D",
+    diffusionStr_1_3: "-n*chi",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    dirichletStr_3: "(x/L_x)^2",
+    domainScale: "1000",
+    initCond_1: "0",
+    initCond_3: "(x/L_x)^2",
+    kineticParams:
+      "D = 0.04;lambda = 0;beta_e = 0;beta_n = 0;chi = 10;kappa=0.01",
+    numAlgebraicSpecies: 1,
+    numSpecies: "3",
+    preset: "snail-trail",
+    reactionStr_1: "lambda*n*c - beta_e*n*e - beta_n*n^2",
+    reactionStr_2: "kappa*sqrt((chi*n*c_x - D*c_x)^2 + (chi*n*c_y - D*c_y)^2)",
+    reactionStr_3: "(x/L_x)^2",
+    spatialStep: "3",
+    speciesNames: "n e c",
+    views: [
+      {
+        autoSetColourRange: false,
+        maxColourValue: 1,
+        whatToPlot: "n",
+        name: "n",
+      },
+      {
+        autoSetColourRange: true,
+        maxColourValue: 0.16559255123138428,
+        whatToPlot: "e",
+        name: "e",
+      },
+      {
+        autoSetColourRange: false,
+        maxColourValue: 1,
+        whatToPlot: "c",
+        name: "c",
+      },
+    ],
+    whatToDraw: "n",
+    whatToPlot: "n",
+  };
+
   listOfPresets["SofyaCGLEChaos"] = {
     autoSetColourRange: false,
     domainIndicatorFun: "I_S",
