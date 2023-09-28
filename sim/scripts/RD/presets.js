@@ -3177,10 +3177,14 @@ export function getListOfPresets() {
 export function getPreset(id) {
   // Case insensitive lookup.
   const listOfPresets = lowerCaseKeys(getListOfPresets());
-  if (id == null || id == undefined) return listOfPresets["default"];
+  if (id == null || id == undefined) return listOfPresets["GrayScott"];
   id = id.toLowerCase();
   if (listOfPresets.hasOwnProperty(id)) return listOfPresets[id];
-  return listOfPresets["default"];
+  return listOfPresets["GrayScott"];
+}
+
+export function getListOfPresetNames() {
+  return Object.keys(getListOfPresets());
 }
 
 function lowerCaseKeys(obj) {

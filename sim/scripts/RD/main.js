@@ -56,6 +56,7 @@ import {
   getFieldsInView,
   getListOfPresets,
   getOldPresetFieldsToNew,
+  getListOfPresetNames,
 } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import * as THREE from "../three.module.min.js";
@@ -161,6 +162,7 @@ import {
     kineticParamsLabels = [],
     kineticNameToCont = {},
     kineticParamsCounter = 0;
+  const defaultPreset = "GrayScott";
   const defaultSpecies = ["u", "v", "w", "q"];
   const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
   const placeholderSp = ["SPECIES1", "SPECIES2", "SPECIES3", "SPECIES4"];
@@ -359,7 +361,7 @@ import {
   }
   if (shouldLoadDefault) {
     // Load a specific preset as the default.
-    loadPreset("GrayScott");
+    loadPreset(defaultPreset);
   }
 
   // If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
@@ -4001,18 +4003,32 @@ import {
 
   function loadOptions(preset) {
     let newOptions;
+    const listOfPresetNames = getListOfPresetNames().map((x) =>
+      x.toLowerCase()
+    );
     if (preset == undefined) {
       // If no argument is given, load whatever is set in options.preset.
       newOptions = getPreset(options.preset);
     } else if (typeof preset == "string") {
       // If an argument is given and it's a string, try to load the corresponding preset.
-      newOptions = getPreset(preset);
+      if (listOfPresetNames.includes(preset.toLowerCase())) {
+        newOptions = getPreset(preset);
+      } else {
+        // Display an error if the preset doesn't exist.
+        throwError(
+          "The preset '" +
+            preset +
+            "' does not exist. Please check the URL and try again."
+        );
+        // Load the default preset.
+        newOptions = getPreset(defaultPreset);
+      }
     } else if (typeof preset == "object") {
       // If the argument is an object, then assume it is an options object.
       newOptions = preset;
     } else {
       // Otherwise, fall back to default.
-      newOptions = getPreset("default");
+      newOptions = getPreset(defaultPreset);
     }
 
     // If newOptions specifies a parent, first load the options of the parent.
