@@ -73,6 +73,7 @@ import {
   getDefaultTeXLabelsBCsICs,
   substituteGreek,
 } from "./TEX.js";
+import { closestMatch } from "../../../assets/js/closest-match.js";
 
 (async function () {
   let canvas, gl, manualInterpolationNeeded;
@@ -468,6 +469,9 @@ import {
     }
   });
   $("#error_close_button").click(function () {
+    fadeout("#error");
+  });
+  $("#preset_error_close_button").click(function () {
     fadeout("#error");
   });
   $("#oops_hit_nan_close").click(function () {
@@ -4003,7 +4007,8 @@ import {
 
   function loadOptions(preset) {
     let newOptions;
-    const listOfPresetNames = getListOfPresetNames().map((x) =>
+    const listOfPresetNames = getListOfPresetNames();
+    const listOfPresetNamesLower = listOfPresetNames.map((x) =>
       x.toLowerCase()
     );
     if (preset == undefined) {
@@ -4011,17 +4016,22 @@ import {
       newOptions = getPreset(options.preset);
     } else if (typeof preset == "string") {
       // If an argument is given and it's a string, try to load the corresponding preset.
-      if (listOfPresetNames.includes(preset.toLowerCase())) {
+      if (listOfPresetNamesLower.includes(preset.toLowerCase())) {
         newOptions = getPreset(preset);
       } else {
+        const closest = closestMatch(preset, listOfPresetNames, false);
         // Display an error if the preset doesn't exist.
-        throwError(
-          "The preset '" +
+        throwPresetError(
+          "We couldn't find a preset called '" +
             preset +
-            "' does not exist. Please check the URL and try again."
+            "'." +
+            (closest != null
+              ? " We've loaded the closest match, '" + closest + "'."
+              : "") +
+            " Please check the preset specified in the URL."
         );
-        // Load the default preset.
-        newOptions = getPreset(defaultPreset);
+        // Load the default preset or the closest match.
+        newOptions = getPreset(closest ? closest : defaultPreset);
       }
     } else if (typeof preset == "object") {
       // If the argument is an object, then assume it is an options object.
@@ -7035,6 +7045,12 @@ import {
       $("#error_description").html(message);
       fadein("#error");
     }
+  }
+
+  function throwPresetError(message) {
+    pauseSim();
+    $("#preset_description").html(message);
+    fadein("#bad_preset");
   }
 
   function isValidSyntax(str) {
