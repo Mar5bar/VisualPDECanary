@@ -472,7 +472,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     fadeout("#error");
   });
   $("#preset_error_close_button").click(function () {
-    fadeout("#error");
+    fadeout("#bad_preset");
   });
   $("#oops_hit_nan_close").click(function () {
     fadeout("#oops_hit_nan");
