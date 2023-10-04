@@ -1,0 +1,86 @@
+<script src="/assets/js/lunr.js"></script>
+
+<form id="lunrsearchform"
+onSubmit="return lunr_search(document.getElementById('lunrsearchinput').value);"
+>
+<p>
+    <label for="lunrsearchinput" id="search-button" title="Search"><i class="fa-solid fa-magnifying-glass"></i></label>
+    <div id="lunrsearchbar" tabindex="0">
+    <input
+      type="text"
+      id="lunrsearchinput"
+      name="q"
+      maxlength="255"
+      value=""
+      placeholder="Search"
+      onfocus="document.getElementById('lunrsearchform').onsubmit();"
+      oninput="document.getElementById('lunrsearchform').onsubmit();"
+      />
+      <div id="lunrsearchresults">
+        <ul></ul>
+      </div>
+    </div>
+  </p>
+</form>
+
+<script>
+  {% assign counter = 0 %}
+  var documents = [{% for page in site.mathematical-biology %}{
+      "id": {{ counter }},
+      "url": "{{ site.url }}{{ page.url }}",
+      "title": "{{ page.title }}",
+      "tags": "{{ page.tags }}",
+      "extract": "{{ page.extract }}",
+      "img": "{{ page.thumbnail }}",
+      "body": "{{ page.date | date: "%Y/%m/%d" }} - {{ page.content | markdownify | replace: '.', '. ' | replace: '</h2>', ': ' | replace: '</h3>', ': ' | replace: '</h4>', ': ' | replace: '</p>', ' ' | strip_html | strip_newlines | replace: '  ', ' ' | replace: '"', ' ' }}"{% assign counter = counter | plus: 1 %},
+      }{% if forloop.last %}{% else %}, {% endif %}{% endfor %}];
+
+  var idx = lunr(function () {
+      this.ref('id')
+      this.field('title')
+      this.field('extract')
+      this.field('body')
+      this.field('tags')
+      this.field('img')
+
+      documents.forEach(function (doc) {
+          this.add(doc)
+      }, this)
+  });
+  console.log(JSON.stringify(idx));
+  window.addEventListener('blur', () => {
+    document.getElementById('lunrsearchresults').style.display = 'none';
+  });
+  function lunr_search(term) {
+      document.getElementById('lunrsearchresults').innerHTML = '<ul></ul>';
+      if(term) {
+          document.getElementById('lunrsearchresults').style.display = '';
+          //put results on the screen.
+          var results = idx.search('title:'+term+'^10~2' + 'tags:'+term+'^8~2' + "extract:" + term + '^5~2' + "body:" + term + '^1~2');
+
+          if(results.length>0){
+              //console.log(idx.search(term));
+              //if results
+              for (var i = 0; i < results.length; i++) {
+                  // more statements
+                  var ref = results[i]['ref'];
+                  var url = documents[ref]['url'];
+                  var title = documents[ref]['title'];
+                  var extract = documents[ref]['extract'];
+                  var img = documents[ref]['img'];
+                  title = extract ? title + ': ' : title;
+                  var item = document.querySelectorAll('#lunrsearchresults ul')[0];
+                  var html = "";
+                  html += img ? "<img src='" + img + "'/>" : "";
+                  html += "<span class='title'>" + title + "</span><span class='body'>"+ extract +"</span>";
+                  item.innerHTML = item.innerHTML + "<li class='lunrsearchresult'><a href='" + url + "'>" + html + "</a></li>";
+              }
+          } else {
+              document.querySelectorAll('#lunrsearchresults ul')[0].innerHTML = "<li class='lunrsearchresult'>No results found</li>";
+          }
+      } else {
+        document.getElementById('lunrsearchresults').style.display = 'none';
+      }
+      return false;
+  }
+</script>
