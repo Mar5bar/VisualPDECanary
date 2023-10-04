@@ -580,6 +580,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   vertical-align: middle;
   transition: all 0.5s ease;
   right: 49px;
+  font-size: medium;
 }
 #lunrsearchinput:focus {
   width: 79%;
@@ -634,6 +635,9 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   margin-right: 0.5rem;
   border: 1px solid black;
   border-radius: 5px;
+  background-color: black;
+  object-fit: cover;
+  
 }
 #lunrsearchbar:focus-within > #lunrsearchresults {
   display: unset;

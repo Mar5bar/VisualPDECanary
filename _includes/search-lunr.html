@@ -26,14 +26,79 @@ onSubmit="return lunr_search(document.getElementById('lunrsearchinput').value);"
 <script>
   {% assign counter = 0 %}
   var documents = [{% for page in site.mathematical-biology %}{
-      "id": {{ counter }},
-      "url": "{{ site.url }}{{ page.url }}",
-      "title": "{{ page.title }}",
-      "tags": "{{ page.tags }}",
-      "extract": "{{ page.extract }}",
-      "img": "{{ page.thumbnail }}",
-      "body": "{{ page.date | date: "%Y/%m/%d" }} - {{ page.content | markdownify | replace: '.', '. ' | replace: '</h2>', ': ' | replace: '</h3>', ': ' | replace: '</h4>', ': ' | replace: '</p>', ' ' | strip_html | strip_newlines | replace: '  ', ' ' | replace: '"', ' ' }}"{% assign counter = counter | plus: 1 %},
-      }{% if forloop.last %}{% else %}, {% endif %}{% endfor %}];
+        "id": {{ counter }},
+        "url": "{{ site.url }}{{ page.url }}",
+        "title": "{{ page.title }}",
+        "tags": "{{ page.tags }}",
+        "extract": "{{ page.extract }}",
+        "img": "{{ page.thumbnail }}",
+        "body": "{{ page.date | date: "%Y/%m/%d" }} - {{ page.content | markdownify | replace: '.', '. ' | replace: '</h2>', ': ' | replace: '</h3>', ': ' | replace: '</h4>', ': ' | replace: '</p>', ' ' | strip_html | strip_newlines | replace: '  ', ' ' | replace: '"', ' ' }}"{% assign counter = counter | plus: 1 %},
+        }{% if forloop.last %}{% else %}, {% endif %}{% endfor %},
+        {% for page in site.nonlinear-physics %}{
+        "id": {{ counter }},
+        "url": "{{ site.url }}{{ page.url }}",
+        "title": "{{ page.title }}",
+        "tags": "{{ page.tags }}",
+        "extract": "{{ page.extract }}",
+        "img": "{{ page.thumbnail }}",
+        "body": "{{ page.date | date: "%Y/%m/%d" }} - {{ page.content | markdownify | replace: '.', '. ' | replace: '</h2>', ': ' | replace: '</h3>', ': ' | replace: '</h4>', ': ' | replace: '</p>', ' ' | strip_html | strip_newlines | replace: '  ', ' ' | replace: '"', ' ' }}"{% assign counter = counter | plus: 1 %},
+        }{% if forloop.last %}{% else %}, {% endif %}{% endfor %},
+        {% for page in site.numerical-methods %}{
+        "id": {{ counter }},
+        "url": "{{ site.url }}{{ page.url }}",
+        "title": "{{ page.title }}",
+        "tags": "{{ page.tags }}",
+        "extract": "{{ page.extract }}",
+        "img": "{{ page.thumbnail }}",
+        "body": "{{ page.date | date: "%Y/%m/%d" }} - {{ page.content | markdownify | replace: '.', '. ' | replace: '</h2>', ': ' | replace: '</h3>', ': ' | replace: '</h4>', ': ' | replace: '</p>', ' ' | strip_html | strip_newlines | replace: '  ', ' ' | replace: '"', ' ' }}"{% assign counter = counter | plus: 1 %},
+        }{% if forloop.last %}{% else %}, {% endif %}{% endfor %},
+        {% for page in site.art-pdes %}{
+        "id": {{ counter }},
+        "url": "{{ site.url }}{{ page.url }}",
+        "title": "{{ page.title }}",
+        "tags": "{{ page.tags }}",
+        "extract": "{{ page.extract }}",
+        "img": "{{ page.thumbnail }}",
+        "body": "{{ page.date | date: "%Y/%m/%d" }} - {{ page.content | markdownify | replace: '.', '. ' | replace: '</h2>', ': ' | replace: '</h3>', ': ' | replace: '</h4>', ': ' | replace: '</p>', ' ' | strip_html | strip_newlines | replace: '  ', ' ' | replace: '"', ' ' }}"{% assign counter = counter | plus: 1 %},
+        }{% if forloop.last %}{% else %}, {% endif %}{% endfor %},
+        {% for page in site.basic-pdes %}{
+            "id": {{ counter }},
+            "url": "{{ site.url }}{{ page.url }}",
+            "title": "{{ page.title }}",
+            "tags": "{{ page.tags }}",
+            "extract": "{{ page.extract }}",
+            "img": "{{ page.thumbnail }}",
+            "body": "{{ page.date | date: "%Y/%m/%d" }} - {{ page.content | markdownify | replace: '.', '. ' | replace: '</h2>', ': ' | replace: '</h3>', ': ' | replace: '</h4>', ': ' | replace: '</p>', ' ' | strip_html | strip_newlines | replace: '  ', ' ' | replace: '"', ' ' }}"{% assign counter = counter | plus: 1 %},
+            }{% if forloop.last %}{% else %}, {% endif %}{% endfor %},
+        {% for page in site.visual-stories %}{
+            "id": {{ counter }},
+            "url": "{{ site.url }}{{ page.url }}",
+            "title": "{{ page.title }}",
+            "tags": "{{ page.tags }}",
+            "extract": "{{ page.extract }}",
+            "img": "{{ page.thumbnail }}",
+            "body": "{{ page.date | date: "%Y/%m/%d" }} - {{ page.content | markdownify | replace: '.', '. ' | replace: '</h2>', ': ' | replace: '</h3>', ': ' | replace: '</h4>', ': ' | replace: '</p>', ' ' | strip_html | strip_newlines | replace: '  ', ' ' | replace: '"', ' ' }}"{% assign counter = counter | plus: 1 %},
+            }{% if forloop.last %}{% else %}, {% endif %}{% endfor %},
+        {% for page in site.user-guide %}{
+            "id": {{ counter }},
+            "url": "{{ site.url }}{{ page.url }}",
+            "title": "{{ page.title }}",
+            "tags": "{{ page.tags }}",
+            "extract": "{{ page.extract }}",
+            "img": "{{ page.thumbnail }}",
+            "body": "{{ page.date | date: "%Y/%m/%d" }} - {{ page.content | markdownify | replace: '.', '. ' | replace: '</h2>', ': ' | replace: '</h3>', ': ' | replace: '</h4>', ': ' | replace: '</p>', ' ' | strip_html | strip_newlines | replace: '  ', ' ' | replace: '"', ' ' }}"{% assign counter = counter | plus: 1 %},
+            }{% if forloop.last %}{% else %}, {% endif %}{% endfor %}
+      ];
+
+    // Define a function that will skip a pipeline function for a specified field
+    var skipField = function (fieldName, fn) {
+        return function (token, i, tokens) {
+            if (token.metadata["fields"].indexOf(fieldName) >= 0) {
+            return token
+        }
+        return fn(token, i, tokens)
+        }
+    }
 
   var idx = lunr(function () {
       this.ref('id')
@@ -42,12 +107,13 @@ onSubmit="return lunr_search(document.getElementById('lunrsearchinput').value);"
       this.field('body')
       this.field('tags')
       this.field('img')
+      this.pipeline.remove(lunr.stemmer);
+      this.pipeline.add(skipField('title', lunr.stemmer))
 
       documents.forEach(function (doc) {
           this.add(doc)
       }, this)
   });
-  console.log(JSON.stringify(idx));
   window.addEventListener('blur', () => {
     document.getElementById('lunrsearchresults').style.display = 'none';
   });
@@ -56,11 +122,14 @@ onSubmit="return lunr_search(document.getElementById('lunrsearchinput').value);"
       if(term) {
           document.getElementById('lunrsearchresults').style.display = '';
           //put results on the screen.
-          var results = idx.search('title:'+term+'^10~2' + 'tags:'+term+'^8~2' + "extract:" + term + '^5~2' + "body:" + term + '^1~2');
+          var searchterm = '';
+          term.split(' ').filter(e => e).forEach((str) => {
+            str += '\*';
+            searchterm += 'title:' + str + '^1000 tags:' + str + ' extract:' + str + '^10 body:' + str + '^0.0001 ';
+          });
+          var results = idx.search(searchterm);
 
           if(results.length>0){
-              //console.log(idx.search(term));
-              //if results
               for (var i = 0; i < results.length; i++) {
                   // more statements
                   var ref = results[i]['ref'];
@@ -74,7 +143,8 @@ onSubmit="return lunr_search(document.getElementById('lunrsearchinput').value);"
                   html += img ? "<img src='" + img + "'/>" : "";
                   html += "<span class='title'>" + title + "</span><span class='body'>"+ extract +"</span>";
                   item.innerHTML = item.innerHTML + "<li class='lunrsearchresult'><a href='" + url + "'>" + html + "</a></li>";
-              }
+                }
+                return results;
           } else {
               document.querySelectorAll('#lunrsearchresults ul')[0].innerHTML = "<li class='lunrsearchresult'>No results found</li>";
           }
