@@ -1,0 +1,17 @@
+{
+  "name": "build_index",
+  "version": "1.0.0",
+  "description": "",
+  "main": "build_index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node build_index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "front-matter": "^4.0.2",
+    "fs": "^0.0.1-security"
+  }
+}

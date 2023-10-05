@@ -573,7 +573,8 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   }
 }
 #lunrsearchinput {
-  border: 0;
+  border: none;
+  background: none;
   outline: none;
   position: absolute;
   top: 50%;
