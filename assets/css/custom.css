@@ -544,9 +544,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   display: flex;
   float: right;
   line-height: 54px;
-  margin: 8px 5px 0;
-  margin-top: 8px;
-  margin-bottom: 0;
+  margin: 10px 5px 0 0;
   height: 35px;
   width: 35px;
   font-size: 0.9rem;
