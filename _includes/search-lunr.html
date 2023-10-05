@@ -5,7 +5,7 @@ onSubmit="return lunr_search(document.getElementById('lunrsearchinput').value);"
 >
 <p>
     <label for="lunrsearchinput" id="search-button" title="Search"><i class="fa-solid fa-magnifying-glass"></i></label>
-    <div id="lunrsearchbar" tabindex="0">
+    <div id="lunrsearchbar">
     <input
       type="text"
       id="lunrsearchinput"
@@ -16,7 +16,7 @@ onSubmit="return lunr_search(document.getElementById('lunrsearchinput').value);"
       onfocus="document.getElementById('lunrsearchform').onsubmit();"
       oninput="document.getElementById('lunrsearchform').onsubmit();"
       />
-      <div id="lunrsearchresults">
+      <div id="lunrsearchresults" tabindex="0">
         <ul></ul>
       </div>
     </div>
