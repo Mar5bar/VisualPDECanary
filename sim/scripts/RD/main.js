@@ -3275,30 +3275,39 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   function parseNormalDiffusionStrings() {
     // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
     let out = "";
+    const tuples = [
+      [options.diffusionStr_1_1, "uu"],
+      [options.diffusionStr_2_2, "vv"],
+      [options.diffusionStr_3_3, "ww"],
+      [options.diffusionStr_4_4, "qq"],
+    ];
 
-    // Prepare Duu, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_1_1) + ";\n",
-      "uu"
-    );
-
-    // Prepare Dvv, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_2_2) + ";\n",
-      "vv"
-    );
-
-    // Prepare Dww, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_3_3) + ";\n",
-      "ww"
-    );
-
-    // Prepare Dqq, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_4_4) + ";\n",
-      "qq"
-    );
+    // Loop over the tuples.
+    for (let [str, label] of tuples) {
+      let stry;
+      // Check if we have a separate y diffusion coefficient.
+      if (str.includes(";")) {
+        let parts = str.split(";").filter((x) => x);
+        str = parts[0];
+        if (parts.length > 1 && options.dimension > 1) {
+          stry = parts[1];
+        }
+      }
+      // Add in the x diffusion coefficient.
+      out += nonConstantDiffusionEvaluateInSpaceStr(
+        parseShaderString(str) + ";\n",
+        label + "x"
+      );
+      // Add in the y diffusion coefficients.
+      if (!stry) {
+        out += setEqualYDiffusionCoefficientsShader(label);
+      } else {
+        out += nonConstantDiffusionEvaluateInSpaceStr(
+          parseShaderString(stry) + ";\n",
+          label + "y"
+        );
+      }
+    }
 
     return out;
   }
@@ -3307,77 +3316,47 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
     let out = "";
 
-    // Prepare Duv, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_1_2) + ";\n",
-      "uv"
-    );
+    const tuples = [
+      [options.diffusionStr_1_2, "uv"],
+      [options.diffusionStr_1_3, "uw"],
+      [options.diffusionStr_1_4, "uq"],
+      [options.diffusionStr_2_1, "vu"],
+      [options.diffusionStr_2_3, "vw"],
+      [options.diffusionStr_2_4, "vq"],
+      [options.diffusionStr_3_1, "wu"],
+      [options.diffusionStr_3_2, "wv"],
+      [options.diffusionStr_3_4, "wq"],
+      [options.diffusionStr_4_1, "qu"],
+      [options.diffusionStr_4_2, "qv"],
+      [options.diffusionStr_4_3, "qw"],
+    ];
 
-    // Prepare Duw, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_1_3) + ";\n",
-      "uw"
-    );
-
-    // Prepare Duq, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_1_4) + ";\n",
-      "uq"
-    );
-
-    // Prepare Dvu, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_2_1) + ";\n",
-      "vu"
-    );
-
-    // Prepare Dvw, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_2_3) + ";\n",
-      "vw"
-    );
-
-    // Prepare Dvq, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_2_4) + ";\n",
-      "vq"
-    );
-
-    // Prepare Dwu, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_3_1) + ";\n",
-      "wu"
-    );
-
-    // Prepare Dwv, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_3_2) + ";\n",
-      "wv"
-    );
-
-    // Prepare Dwq, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_3_4) + ";\n",
-      "wq"
-    );
-
-    // Prepare Dqu, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_4_1) + ";\n",
-      "qu"
-    );
-
-    // Prepare Dqv, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_4_2) + ";\n",
-      "qv"
-    );
-
-    // Prepare Dqw, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_4_3) + ";\n",
-      "qw"
-    );
+    // Loop over the tuples.
+    for (let [str, label] of tuples) {
+      let stry;
+      // Check if we have a separate y diffusion coefficient.
+      if (str.includes(";")) {
+        let parts = str.split(";").filter((x) => x);
+        str = parts[0];
+        if (parts.length > 1 && options.dimension > 1) {
+          stry = parts[1];
+        }
+      }
+      // Add in the x diffusion coefficient.
+      out += nonConstantDiffusionEvaluateInSpaceStr(
+        parseShaderString(str) + ";\n",
+        label + "x"
+      );
+      // Add in the y diffusion coefficients.
+      if (!stry) {
+        out += setEqualYDiffusionCoefficientsShader(label);
+      } else {
+        out += nonConstantDiffusionEvaluateInSpaceStr(
+          parseShaderString(stry) + ";\n",
+          label + "y"
+        );
+      }
+    }
 
     return out;
   }
@@ -3409,6 +3388,17 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       label +
       "B = " +
       str.replaceAll(yRegex, "(y-dy)").replaceAll(uvwqRegex, "uvwqB.");
+    return out;
+  }
+
+  // Set the y diffusion coefficients to be equal to the x counterparts.
+  function setEqualYDiffusionCoefficientsShader(label) {
+    let out = "";
+    out += "float D" + label + "y = D" + label + "x;\n";
+    out += "float D" + label + "yL = D" + label + "xL;\n";
+    out += "float D" + label + "yR = D" + label + "xR;\n";
+    out += "float D" + label + "yT = D" + label + "xT;\n";
+    out += "float D" + label + "yB = D" + label + "xB;\n";
     return out;
   }
 
@@ -5196,6 +5186,21 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
         associatedStrs[key] = toDefault(associatedStrs[key]);
       });
 
+      // If a diffusion string contains a semicolon, treat it as a diagonal matrix, and typeset as such.
+      Object.keys(associatedStrs).forEach(function (key) {
+        if (!defaultReactions.includes(key)) {
+          if (associatedStrs[key].includes(";")) {
+            let parts = associatedStrs[key].split(";").filter((x) => x);
+            if (parts.length > 1 && options.dimension > 1) {
+              associatedStrs[key] =
+                "\\dmat{" + parts.slice(0, 2).join("}{") + "}";
+            } else {
+              associatedStrs[key] = parts[0];
+            }
+          }
+        }
+      });
+
       // Add in \selected{} to any selected entry.
       selectedEntries.forEach(function (x) {
         associatedStrs[x] = "\\selected{ " + associatedStrs[x] + " }";
@@ -5203,13 +5208,15 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 
       // For each diffusion string, replace it with the value in associatedStrs.
       Object.keys(associatedStrs).forEach(function (key) {
-        if (!defaultReactions.includes(key))
+        if (!defaultReactions.includes(key)) {
+          let delims = associatedStrs[key].includes("\\dmat") ? "  " : "[]";
           str = replaceUserDefDiff(
             str,
             regexes[key],
             associatedStrs[key],
-            "[]"
+            delims
           );
+        }
       });
 
       // Replace the reaction strings, converting everything back to default notation.
@@ -5254,11 +5261,12 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 
       // Look for div(const * grad(blah)), and move the constant outside the bracket.
       // Constant in space <=> it doesn't contain [xy], [uvwq](?:_[x|y|xx|yy])?, (?:I_[ST][RGBA]?).
+      // We'll also treat matrices as non-constants for typesetting.
       regex =
         /\\vnabla\s*\\cdot\s*\(\s*((?!\\vnabla).*)\s*\\vnabla\s*([uvwq])\s*\)/g;
       str = str.replaceAll(regex, function (match, g1, g2) {
         const innerRegex = /\b(?:[xy]|[uvwq](?:_[xy])?|(?:I_[ST][RGBA]?))\b/g;
-        if (!innerRegex.test(g1)) {
+        if (!innerRegex.test(g1) && !g1.includes("\\dmat")) {
           return g1.trim() + " \\lap " + g2;
         } else {
           return match;

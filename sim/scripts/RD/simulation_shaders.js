@@ -426,10 +426,10 @@ export function RDShaderDiffusionPostBC() {
 
 export function RDShaderUpdateNormal() {
   return `
-    float LDuuU = 0.5*((Duu*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DuuR*(uvwqR.r - uvwq.r) + DuuL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Duu*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DuuT*(uvwqT.r - uvwq.r) + DuuB*(uvwqB.r - uvwq.r)) / dy) / dy;
-    float LDvvV = 0.5*((Dvv*(uvwqR.g + uvwqL.g - 2.0*uvwq.g) + DvvR*(uvwqR.g - uvwq.g) + DvvL*(uvwqL.g - uvwq.g)) / dx) / dx +  0.5*((Dvv*(uvwqT.g + uvwqB.g - 2.0*uvwq.g) + DvvT*(uvwqT.g - uvwq.g) + DvvB*(uvwqB.g - uvwq.g)) / dy) / dy;
-    float LDwwW = 0.5*((Dww*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DwwR*(uvwqR.b - uvwq.b) + DwwL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dww*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DwwT*(uvwqT.b - uvwq.b) + DwwB*(uvwqB.b - uvwq.b)) / dy) / dy;
-    float LDqqQ = 0.5*((Dqq*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DqqR*(uvwqR.a - uvwq.a) + DqqL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Dqq*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DqqT*(uvwqT.a - uvwq.a) + DqqB*(uvwqB.a - uvwq.a)) / dy) / dy;
+    float LDuuU = 0.5*((Duux*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DuuxR*(uvwqR.r - uvwq.r) + DuuxL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Duuy*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DuuyT*(uvwqT.r - uvwq.r) + DuuyB*(uvwqB.r - uvwq.r)) / dy) / dy;
+    float LDvvV = 0.5*((Dvvx*(uvwqR.g + uvwqL.g - 2.0*uvwq.g) + DvvxR*(uvwqR.g - uvwq.g) + DvvxL*(uvwqL.g - uvwq.g)) / dx) / dx +  0.5*((Dvvy*(uvwqT.g + uvwqB.g - 2.0*uvwq.g) + DvvyT*(uvwqT.g - uvwq.g) + DvvyB*(uvwqB.g - uvwq.g)) / dy) / dy;
+    float LDwwW = 0.5*((Dwwx*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DwwxR*(uvwqR.b - uvwq.b) + DwwxL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dwwy*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DwwyT*(uvwqT.b - uvwq.b) + DwwyB*(uvwqB.b - uvwq.b)) / dy) / dy;
+    float LDqqQ = 0.5*((Dqqx*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DqqxR*(uvwqR.a - uvwq.a) + DqqxL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Dqqy*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DqqyT*(uvwqT.a - uvwq.a) + DqqyB*(uvwqB.a - uvwq.a)) / dy) / dy;
 
     float du = LDuuU + UFUN;
     float dv = LDvvV + VFUN;
@@ -441,22 +441,22 @@ export function RDShaderUpdateNormal() {
 
 export function RDShaderUpdateCross() {
   return `
-    float LDuuU = 0.5*((Duu*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DuuR*(uvwqR.r - uvwq.r) + DuuL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Duu*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DuuT*(uvwqT.r - uvwq.r) + DuuB*(uvwqB.r - uvwq.r)) / dy) / dy;
-    float LDuvV = 0.5*((Duv*(uvwqR.g + uvwqL.g - 2.0*uvwq.g) + DuvR*(uvwqR.g - uvwq.g) + DuvL*(uvwqL.g - uvwq.g)) / dx) / dx +  0.5*((Duv*(uvwqT.g + uvwqB.g - 2.0*uvwq.g) + DuvT*(uvwqT.g - uvwq.g) + DuvB*(uvwqB.g - uvwq.g)) / dy) / dy;
-    float LDuwW = 0.5*((Duw*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DuwR*(uvwqR.b - uvwq.b) + DuwL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Duw*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DuwT*(uvwqT.b - uvwq.b) + DuwB*(uvwqB.b - uvwq.b)) / dy) / dy;
-    float LDuqQ = 0.5*((Duq*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DuqR*(uvwqR.a - uvwq.a) + DuqL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Duq*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DuqT*(uvwqT.a - uvwq.a) + DuqB*(uvwqB.a - uvwq.a)) / dy) / dy;
-    float LDvuU = 0.5*((Dvu*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DvuR*(uvwqR.r - uvwq.r) + DvuL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Dvu*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DvuT*(uvwqT.r - uvwq.r) + DvuB*(uvwqB.r - uvwq.r)) / dy) / dy;
-    float LDvvV = 0.5*((Dvv*(uvwqR.g + uvwqL.g - 2.0*uvwq.g) + DvvR*(uvwqR.g - uvwq.g) + DvvL*(uvwqL.g - uvwq.g)) / dx) / dx +  0.5*((Dvv*(uvwqT.g + uvwqB.g - 2.0*uvwq.g) + DvvT*(uvwqT.g - uvwq.g) + DvvB*(uvwqB.g - uvwq.g)) / dy) / dy;
-    float LDvwW = 0.5*((Dvw*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DvwR*(uvwqR.b - uvwq.b) + DvwL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dvw*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DvwT*(uvwqT.b - uvwq.b) + DvwB*(uvwqB.b - uvwq.b)) / dy) / dy;
-    float LDvqQ = 0.5*((Dvq*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DvqR*(uvwqR.a - uvwq.a) + DvqL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Dvq*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DvqT*(uvwqT.a - uvwq.a) + DvqB*(uvwqB.a - uvwq.a)) / dy) / dy;
-    float LDwuU = 0.5*((Dwu*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DwuR*(uvwqR.r - uvwq.r) + DwuL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Dwu*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DwuT*(uvwqT.r - uvwq.r) + DwuB*(uvwqB.r - uvwq.r)) / dy) / dy;
-    float LDwvV = 0.5*((Dwv*(uvwqR.g + uvwqL.g - 2.0*uvwq.g) + DwvR*(uvwqR.g - uvwq.g) + DwvL*(uvwqL.g - uvwq.g)) / dx) / dx +  0.5*((Dwv*(uvwqT.g + uvwqB.g - 2.0*uvwq.g) + DwvT*(uvwqT.g - uvwq.g) + DwvB*(uvwqB.g - uvwq.g)) / dy) / dy;
-    float LDwwW = 0.5*((Dww*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DwwR*(uvwqR.b - uvwq.b) + DwwL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dww*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DwwT*(uvwqT.b - uvwq.b) + DwwB*(uvwqB.b - uvwq.b)) / dy) / dy;
-    float LDwqQ = 0.5*((Dwq*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DwqR*(uvwqR.a - uvwq.a) + DwqL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Dwq*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DwqT*(uvwqT.a - uvwq.a) + DwqB*(uvwqB.a - uvwq.a)) / dy) / dy;
-    float LDquU = 0.5*((Dqu*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DquR*(uvwqR.r - uvwq.r) + DquL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Dqu*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DquT*(uvwqT.r - uvwq.r) + DquB*(uvwqB.r - uvwq.r)) / dy) / dy;
-    float LDqvV = 0.5*((Dqv*(uvwqR.g + uvwqL.g - 2.0*uvwq.g) + DqvR*(uvwqR.g - uvwq.g) + DqvL*(uvwqL.g - uvwq.g)) / dx) / dx +  0.5*((Dqv*(uvwqT.g + uvwqB.g - 2.0*uvwq.g) + DqvT*(uvwqT.g - uvwq.g) + DqvB*(uvwqB.g - uvwq.g)) / dy) / dy;
-    float LDqwW = 0.5*((Dqw*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DqwR*(uvwqR.b - uvwq.b) + DqwL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dqw*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DqwT*(uvwqT.b - uvwq.b) + DqwB*(uvwqB.b - uvwq.b)) / dy) / dy;
-    float LDqqQ = 0.5*((Dqq*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DqqR*(uvwqR.a - uvwq.a) + DqqL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Dqq*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DqqT*(uvwqT.a - uvwq.a) + DqqB*(uvwqB.a - uvwq.a)) / dy) / dy;
+    float LDuuU = 0.5*((Duux*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DuuxR*(uvwqR.r - uvwq.r) + DuuxL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Duuy*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DuuyT*(uvwqT.r - uvwq.r) + DuuyB*(uvwqB.r - uvwq.r)) / dy) / dy;
+    float LDuvV = 0.5*((Duvx*(uvwqR.g + uvwqL.g - 2.0*uvwq.g) + DuvxR*(uvwqR.g - uvwq.g) + DuvxL*(uvwqL.g - uvwq.g)) / dx) / dx +  0.5*((Duvy*(uvwqT.g + uvwqB.g - 2.0*uvwq.g) + DuvyT*(uvwqT.g - uvwq.g) + DuvyB*(uvwqB.g - uvwq.g)) / dy) / dy;
+    float LDuwW = 0.5*((Duwx*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DuwxR*(uvwqR.b - uvwq.b) + DuwxL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Duwy*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DuwyT*(uvwqT.b - uvwq.b) + DuwyB*(uvwqB.b - uvwq.b)) / dy) / dy;
+    float LDuqQ = 0.5*((Duqx*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DuqxR*(uvwqR.a - uvwq.a) + DuqxL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Duqy*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DuqyT*(uvwqT.a - uvwq.a) + DuqyB*(uvwqB.a - uvwq.a)) / dy) / dy;
+    float LDvuU = 0.5*((Dvux*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DvuxR*(uvwqR.r - uvwq.r) + DvuxL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Dvuy*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DvuyT*(uvwqT.r - uvwq.r) + DvuyB*(uvwqB.r - uvwq.r)) / dy) / dy;
+    float LDvvV = 0.5*((Dvvx*(uvwqR.g + uvwqL.g - 2.0*uvwq.g) + DvvxR*(uvwqR.g - uvwq.g) + DvvxL*(uvwqL.g - uvwq.g)) / dx) / dx +  0.5*((Dvvy*(uvwqT.g + uvwqB.g - 2.0*uvwq.g) + DvvyT*(uvwqT.g - uvwq.g) + DvvyB*(uvwqB.g - uvwq.g)) / dy) / dy;
+    float LDvwW = 0.5*((Dvwx*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DvwxR*(uvwqR.b - uvwq.b) + DvwxL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dvwy*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DvwyT*(uvwqT.b - uvwq.b) + DvwyB*(uvwqB.b - uvwq.b)) / dy) / dy;
+    float LDvqQ = 0.5*((Dvqx*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DvqxR*(uvwqR.a - uvwq.a) + DvqxL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Dvqy*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DvqyT*(uvwqT.a - uvwq.a) + DvqyB*(uvwqB.a - uvwq.a)) / dy) / dy;
+    float LDwuU = 0.5*((Dwux*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DwuxR*(uvwqR.r - uvwq.r) + DwuxL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Dwuy*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DwuyT*(uvwqT.r - uvwq.r) + DwuyB*(uvwqB.r - uvwq.r)) / dy) / dy;
+    float LDwvV = 0.5*((Dwvx*(uvwqR.g + uvwqL.g - 2.0*uvwq.g) + DwvxR*(uvwqR.g - uvwq.g) + DwvxL*(uvwqL.g - uvwq.g)) / dx) / dx +  0.5*((Dwvy*(uvwqT.g + uvwqB.g - 2.0*uvwq.g) + DwvyT*(uvwqT.g - uvwq.g) + DwvyB*(uvwqB.g - uvwq.g)) / dy) / dy;
+    float LDwwW = 0.5*((Dwwx*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DwwxR*(uvwqR.b - uvwq.b) + DwwxL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dwwy*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DwwyT*(uvwqT.b - uvwq.b) + DwwyB*(uvwqB.b - uvwq.b)) / dy) / dy;
+    float LDwqQ = 0.5*((Dwqx*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DwqxR*(uvwqR.a - uvwq.a) + DwqxL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Dwqy*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DwqyT*(uvwqT.a - uvwq.a) + DwqyB*(uvwqB.a - uvwq.a)) / dy) / dy;
+    float LDquU = 0.5*((Dqux*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DquxR*(uvwqR.r - uvwq.r) + DquxL*(uvwqL.r - uvwq.r)) / dx) / dx +  0.5*((Dquy*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DquyT*(uvwqT.r - uvwq.r) + DquyB*(uvwqB.r - uvwq.r)) / dy) / dy;
+    float LDqvV = 0.5*((Dqvx*(uvwqR.g + uvwqL.g - 2.0*uvwq.g) + DqvxR*(uvwqR.g - uvwq.g) + DqvxL*(uvwqL.g - uvwq.g)) / dx) / dx +  0.5*((Dqvy*(uvwqT.g + uvwqB.g - 2.0*uvwq.g) + DqvyT*(uvwqT.g - uvwq.g) + DqvyB*(uvwqB.g - uvwq.g)) / dy) / dy;
+    float LDqwW = 0.5*((Dqwx*(uvwqR.b + uvwqL.b - 2.0*uvwq.b) + DqwxR*(uvwqR.b - uvwq.b) + DqwxL*(uvwqL.b - uvwq.b)) / dx) / dx +  0.5*((Dqwy*(uvwqT.b + uvwqB.b - 2.0*uvwq.b) + DqwyT*(uvwqT.b - uvwq.b) + DqwyB*(uvwqB.b - uvwq.b)) / dy) / dy;
+    float LDqqQ = 0.5*((Dqqx*(uvwqR.a + uvwqL.a - 2.0*uvwq.a) + DqqxR*(uvwqR.a - uvwq.a) + DqqxL*(uvwqL.a - uvwq.a)) / dx) / dx +  0.5*((Dqqy*(uvwqT.a + uvwqB.a - 2.0*uvwq.a) + DqqyT*(uvwqT.a - uvwq.a) + DqqyB*(uvwqB.a - uvwq.a)) / dy) / dy;
 
     float du = LDuuU + LDuvV + LDuwW + LDuqQ + UFUN;
     float dv = LDvuU + LDvvV + LDvwW + LDvqQ + VFUN;
