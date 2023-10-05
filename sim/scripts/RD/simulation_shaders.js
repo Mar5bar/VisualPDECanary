@@ -337,20 +337,38 @@ export function RDShaderRobinY(TB) {
 export function RDShaderRobinCustomDomainX(LR, fun) {
   const L = `
     if (float(indicatorFunL) <= 0.0 || textureCoords.x - step_x < 0.0) {
+      if (float(indicatorFunR) <= 0.0) {
+        uvwqL.SPECIES = dx * robinRHSSPECIESL + uvwq.SPECIES;
+      } else {
         uvwqL.SPECIES = 2.0 * (dx * robinRHSSPECIESL) + uvwqR.SPECIES;
+      }
     }
-    `.replace(
-    /indicatorFunL/,
-    fun.replaceAll(/\bx\b/g, "(x-dx)").replaceAll(/\buvwq\./g, "uvwqL.")
-  );
+    `
+    .replace(
+      /indicatorFunL/,
+      fun.replaceAll(/\bx\b/g, "(x-dx)").replaceAll(/\buvwq\./g, "uvwqL.")
+    )
+    .replace(
+      /indicatorFunR/,
+      fun.replaceAll(/\bx\b/g, "(x+dx)").replaceAll(/\buvwq\./g, "uvwqR.")
+    );
   const R = `
     if (float(indicatorFunR) <= 0.0 || textureCoords.x + step_x > 1.0) {
+      if (float(indicatorFunL) <= 0.0) {
+        uvwqR.SPECIES = dx * robinRHSSPECIESR + uvwq.SPECIES;
+      } else {
         uvwqR.SPECIES = 2.0 * (dx * robinRHSSPECIESR) + uvwqL.SPECIES;
+      }
     }
-    `.replace(
-    /indicatorFunR/,
-    fun.replaceAll(/\bx\b/g, "(x+dx)").replaceAll(/\buvwq\./g, "uvwqR.")
-  );
+    `
+    .replace(
+      /indicatorFunR/,
+      fun.replaceAll(/\bx\b/g, "(x+dx)").replaceAll(/\buvwq\./g, "uvwqR.")
+    )
+    .replace(
+      /indicatorFunL/,
+      fun.replaceAll(/\bx\b/g, "(x-dx)").replaceAll(/\buvwq\./g, "uvwqL.")
+    );
   if (LR == undefined) return L + R;
   if (LR == "L") return L;
   if (LR == "R") return R;
@@ -360,20 +378,38 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
 export function RDShaderRobinCustomDomainY(TB, fun) {
   const T = `
     if (float(indicatorFunT) <= 0.0 || textureCoords.y + step_y > 1.0){
+      if (float(indicatorFunB) <= 0.0) {
+        uvwqT.SPECIES = dy * robinRHSSPECIEST + uvwq.SPECIES;
+      } else {
         uvwqT.SPECIES = 2.0 * (dy * robinRHSSPECIEST) + uvwqB.SPECIES;
+      }
     }
-    `.replace(
-    /indicatorFunT/,
-    fun.replaceAll(/\by\b/g, "(y+dy)").replaceAll(/\buvwq\./g, "uvwqT.")
-  );
+    `
+    .replace(
+      /indicatorFunT/,
+      fun.replaceAll(/\by\b/g, "(y+dy)").replaceAll(/\buvwq\./g, "uvwqT.")
+    )
+    .replace(
+      /indicatorFunB/,
+      fun.replaceAll(/\by\b/g, "(y-dy)").replaceAll(/\buvwq\./g, "uvwqB.")
+    );
   const B = `
     if (float(indicatorFunB) <= 0.0 || textureCoords.y - step_y < 0.0) {
-        uvwqB.SPECIES =2.0 * (dy * robinRHSSPECIESB) + uvwqT.SPECIES;
+      if (float(indicatorFunT) <= 0.0) {
+        uvwqB.SPECIES = dy * robinRHSSPECIESB + uvwq.SPECIES;
+      } else {
+        uvwqB.SPECIES = 2.0 * (dy * robinRHSSPECIESB) + uvwqT.SPECIES;
+      }
     }
-    `.replace(
-    /indicatorFunB/,
-    fun.replaceAll(/\by\b/g, "(y-dy)").replaceAll(/\buvwq\./g, "uvwqB.")
-  );
+    `
+    .replace(
+      /indicatorFunB/,
+      fun.replaceAll(/\by\b/g, "(y-dy)").replaceAll(/\buvwq\./g, "uvwqB.")
+    )
+    .replace(
+      /indicatorFunT/,
+      fun.replaceAll(/\by\b/g, "(y+dy)").replaceAll(/\buvwq\./g, "uvwqT.")
+    );
   if (TB == undefined) return T + B;
   if (TB == "T") return T;
   if (TB == "B") return B;

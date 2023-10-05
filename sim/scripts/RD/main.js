@@ -4388,6 +4388,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     let image = new Image();
     image.src = imControllerOne.__image.src;
     let texture = new THREE.Texture();
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
     texture.image = image;
     image.onload = function () {
       texture.needsUpdate = true;
@@ -4402,6 +4404,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     let image = new Image();
     image.src = imControllerTwo.__image.src;
     let texture = new THREE.Texture();
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
     texture.image = image;
     image.onload = function () {
       texture.needsUpdate = true;
