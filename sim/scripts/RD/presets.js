@@ -3,6 +3,34 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["RedGreyInvasionUK"] = {
+	"boundaryConditions_1": "neumann",
+	"boundaryConditions_2": "neumann",
+	"diffusionStr_1_1": "1",
+	"diffusionStr_2_2": "1",
+	"diffusionStr_3_3": "0",
+	"domainIndicatorFun": "0.5-I_T",
+	"domainViaIndicatorFun": true,
+	"dt": 0.001,
+	"initCond_1": "1",
+	"initCond_2": "1/cosh(0.5*sqrt((x-L_x/10)^2+(y+0.8*L_y/2)^2))^2",
+  	"imagePathTwo": "./images/gb.png",
+	"kineticParams": "c_RR = 1;c_GG = 1;c_RG = 1.1;c_GR = 1;",
+	"maxColourValue": 0.5,
+	"minX": "-L_x/2",
+	"minY": "-L_y/2",
+	"preset": "RedGreyInvasionUK",
+	"reactionStr_1": "R*(1-c_RR*R-c_RG*G)",
+	"reactionStr_2": "R*(1-c_GR*R-c_GG*G)",
+	"reactionStr_3": "0",
+	"spatialStep": "0.2",
+	"speciesNames": "R G",
+	"squareCanvas": true,
+	"whatToDraw": "R",
+	"whatToPlot": "G",
+};
+
+
   listOfPresets["snail-trail"] = {
     boundaryConditions_1: "dirichlet",
     boundaryConditions_2: "dirichlet",
