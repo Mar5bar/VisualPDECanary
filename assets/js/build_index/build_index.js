@@ -16,7 +16,7 @@ try {
         const obj = matter.attributes;
         obj.body = matter.body;
         const parsedPath = path.parse(file.slice(2));
-        obj.url = parsedPath.dir.replaceAll(/\/_/g,"/") + "/" + parsedPath.name + ".html";
+        obj.url = parsedPath.dir.replaceAll(/\/_/g,"/") + "/" + parsedPath.name;
         obj.url = path.normalize(obj.url);
         obj.tags = obj.tags || "";
         obj.extract = obj.extract || "";

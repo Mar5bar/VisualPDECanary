@@ -5,4 +5,6 @@
 layout: topic
 title: Mathematical biology
 collection_to_list: mathematical-biology
+thumbnail: /assets/images/squirrel.webp
+extract: Squirrels, waves and patterns
 ---

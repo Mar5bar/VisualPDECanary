@@ -20,8 +20,10 @@ async function setupSearch() {
       };
     };
 
-    const pipelineFunction = skipField("title", lunr.stemmer);
-    lunr.Pipeline.registerFunction(pipelineFunction, "skipField");
+    const skipStopWordFilter = skipField("title", lunr.stopWordFilter);
+    lunr.Pipeline.registerFunction(skipStopWordFilter, "skipStopWordFilter");
+    const skipStemmer = skipField("title", lunr.stemmer);
+    lunr.Pipeline.registerFunction(skipStemmer, "skipStemmer");
 
     index = lunr(function () {
       this.ref("id");
@@ -29,8 +31,10 @@ async function setupSearch() {
       this.field("extract");
       this.field("body");
       this.field("tags");
+      this.pipeline.remove(lunr.stopWordFilter);
       this.pipeline.remove(lunr.stemmer);
-      this.pipeline.add(pipelineFunction);
+      this.pipeline.add(skipStopWordFilter);
+      this.pipeline.add(skipStemmer);
 
       documents.forEach(function (doc) {
         this.add(doc);
