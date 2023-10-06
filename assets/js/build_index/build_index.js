@@ -6,7 +6,7 @@ try {
   // Loop through all the markdown files in the site.
   let docs = [];
   counter = 0;
-  var files = getFiles("./").filter((fn) => fn.endsWith(".md"));
+  var files = getFiles("../../../").filter((fn) => fn.endsWith(".md"));
   files.forEach((file) => {
     // Read the file and extract the front matter.
     var content = fs.readFileSync(file, "utf8");
@@ -27,7 +27,7 @@ try {
     }
   });
   // Write docs to disk.
-  fs.writeFileSync("./doclist.json", JSON.stringify(docs));
+  fs.writeFileSync("../../../doclist.json", JSON.stringify(docs));
   // console.log(docs);
 } catch (error) {}
 
