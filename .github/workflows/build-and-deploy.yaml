@@ -21,6 +21,11 @@ jobs:
           npm install
           node build_index.js
         working-directory: assets/js/build_index
+      - name: Commit doclist.json
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: doclist.json
+          message: "Update doclist.json"
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
