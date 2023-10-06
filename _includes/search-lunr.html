@@ -1,7 +1,7 @@
 <script src="/assets/js/lunr.js"></script>
 
 <form id="lunrsearchform"
-onSubmit="return lunr_search(document.getElementById('lunrsearchinput').value);"
+onSubmit="lunr_search(document.getElementById('lunrsearchinput').value); return false;"
 >
 <p>
     <label for="lunrsearchinput" id="search-button" title="Search"><i class="fa-solid fa-magnifying-glass"></i></label>
