@@ -12,7 +12,7 @@ export function getListOfPresets() {
 	"maxColourValue": 1,
 	"parent": "GrayScottPearsonClassification",
 	"preset": "GrayScottPearsonClassificationRescaled",
-	"reactionStr_1": "u^2*v - (0.001+0.069*(y/L_y)^(s)+0.01+0.06*(x/L_x)^(1/s))*u",
+	"reactionStr_1": "u^2*v - (0.001+0.069*(y/L_y)^(s)+0.01+0.056*(x/L_x)^(1/s))*u",
 	"reactionStr_2": "-u^2*v + (0.001+0.069*(y/L_y)^(s))*(1 - v)",
 	"reactionStr_3": "0",
 	"views": [{
