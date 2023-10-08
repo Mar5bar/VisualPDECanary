@@ -8,6 +8,7 @@ export function getListOfPresets() {
 	"boundaryConditions_2": "neumann",
 	"colourmap": "BlackGreenYellowRedWhite",
 	"domainScale": "3500",
+	"dt": 0.2,
 	"emboss": true,
 	"initCond_1": "1/cosh(0.01*((x-L_x/5)^2+(y-0.8*L_y)^2))",
 	"kineticParams": "",
