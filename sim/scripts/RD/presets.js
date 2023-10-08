@@ -3,6 +3,22 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["GrayScottPearsonClassification"] = {
+	"boundaryConditions_1": "neumann",
+	"boundaryConditions_2": "neumann",
+	"colourmap": "BlackGreenYellowRedWhite",
+	"domainScale": "3500",
+	"emboss": true,
+	"initCond_1": "1/cosh(0.01*((x-L_x/5)^2+(y-0.8*L_y)^2))",
+	"kineticParams": "",
+	"maxColourValue": 0.65,
+	"parent": "GrayScott",
+	"reactionStr_1": "u^2*v - (0.07*y/L_y+0.02+0.048*x/L_x)*u",
+	"reactionStr_2": "-u^2*v + 0.07*y/L_y*(1 - v)",
+	"spatialStep": "5",
+	"preset": "GrayScottPearsonClassification",
+};
+	
   listOfPresets["RedGreyInvasionUK"] = {
 	"boundaryConditions_1": "neumann",
 	"boundaryConditions_2": "neumann",
