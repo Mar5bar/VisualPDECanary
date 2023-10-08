@@ -3,6 +3,32 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+	listOfPresets["GrayScottPearsonClassificationRescaled"] = {
+	"diffusionStr_1_1": "1",
+	"diffusionStr_2_2": "D",
+	"diffusionStr_3_3": "0",
+	"initCond_2": "1",
+	"kineticParams": "s = 2;D = 2;",
+	"maxColourValue": 1,
+	"parent": "GrayScottPearsonClassification",
+	"preset": "GrayScottPearsonClassificationRescaled",
+	"reactionStr_1": "u^2*v - (0.001+0.069*(y/L_y)^(s)+0.01+0.06*(x/L_x)^(1/s))*u",
+	"reactionStr_2": "-u^2*v + (0.001+0.069*(y/L_y)^(s))*(1 - v)",
+	"reactionStr_3": "0",
+	"views": [{
+	"maxColourValue": 1,
+	"whatToPlot": "v",
+	"name": "$$v$$",
+},
+	{
+	"maxColourValue": 0.65,
+	"whatToPlot": "u",
+	"name": "$$u$$",
+}],
+	"whatToDraw": "u",
+};
+
+
   listOfPresets["GrayScottPearsonClassification"] = {
 	"boundaryConditions_1": "neumann",
 	"boundaryConditions_2": "neumann",
