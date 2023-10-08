@@ -597,7 +597,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   transition: opacity 0.5s ease;
   z-index: 1;
 }
-.wrapper:focus-within .site-title {
+.wrapper:focus-within .site-title:not(:focus) {
   opacity: 0;
   pointer-events: none;
 }
