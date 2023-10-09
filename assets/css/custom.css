@@ -656,7 +656,8 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   color: silver;
 }
 .lunrsearchresult a {
-  display: block;
+  display: flex;
+  align-items: center;
   color: #777;
   text-decoration: none !important;
 }
