@@ -5190,6 +5190,11 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
         associatedStrs[key] = toDefault(associatedStrs[key]);
       });
 
+      // Trim associated strings.
+      Object.keys(associatedStrs).forEach(function (key) {
+        associatedStrs[key] = associatedStrs[key].trim();
+      });
+
       // If a diffusion string contains a semicolon, treat it as a diagonal matrix, and typeset as such.
       Object.keys(associatedStrs).forEach(function (key) {
         if (!defaultReactions.includes(key)) {
@@ -5207,7 +5212,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 
       // Add in \selected{} to any selected entry.
       selectedEntries.forEach(function (x) {
-        associatedStrs[x] = "\\selected{ " + associatedStrs[x] + " }";
+        associatedStrs[x] = "\\selected{" + associatedStrs[x] + "}";
       });
 
       // For each diffusion string, replace it with the value in associatedStrs.
@@ -5314,9 +5319,9 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       // Even if we're not customising the typesetting, add in \selected{} to any selected entry.
       selectedEntries.forEach(function (x) {
         str = str.replaceAll(regexes[x], function (match, g1, g2) {
-          let val = "\\selected{ " + g1 + " ";
+          let val = "\\selected{" + g1 + " ";
           if (typeof g2 == "string") val += g2;
-          return val + " }";
+          return val + "}";
         });
       });
       // Replace fFUN, gFUN etc with the reaction names.
@@ -5355,8 +5360,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 
   function parseStringToTEX(str) {
     // Parse a string into valid TEX by replacing * and ^.
-    // Look through the string for any [+-blah] and replace it with +- blah.
-    str = str.replaceAll(/\[([\+-]?[\w\{\}]*)\]/g, "$1");
+    // If the string is surrounded by [] but doesn't contain +, -, or /, remove the brackets.
+    str = str.replaceAll(/\[([^\+\/\[\]-]*)\]/g, "$1");
 
     // Look through the string and replace any + + with +.
     while (str != (str = str.replace(/\+\s*\+/g, "+")));
