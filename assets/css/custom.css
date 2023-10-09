@@ -567,6 +567,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   justify-content: center;
   cursor: pointer;
   text-shadow: 0 1px #fff;
+  color: #606060;
 }
 
 @media (hover: hover) {
@@ -578,7 +579,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 #lunrsearchform {
   position: absolute;
   left: 20px;
-  right: 255px;
+  right: 262px;
   height: 54px;
   vertical-align: middle;
   & p {
@@ -655,7 +656,8 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   color: silver;
 }
 .lunrsearchresult a {
-  display: block;
+  display: flex;
+  align-items: center;
   color: #777;
   text-decoration: none !important;
 }

@@ -99,11 +99,11 @@ function lunr_search(term) {
         var html = "";
         html += img ? "<img src='" + img + "'/>" : "";
         html +=
-          "<span class='title'>" +
+          "<p><span class='title'>" +
           title +
           "</span><span class='body'>" +
           extract +
-          "</span>";
+          "</span></p>";
         item.innerHTML =
           item.innerHTML +
           "<li class='lunrsearchresult'><a href='" +
