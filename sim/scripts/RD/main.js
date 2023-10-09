@@ -56,6 +56,7 @@ import {
   getFieldsInView,
   getListOfPresets,
   getOldPresetFieldsToNew,
+  getListOfPresetNames,
 } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import * as THREE from "../three.module.min.js";
@@ -72,6 +73,7 @@ import {
   getDefaultTeXLabelsBCsICs,
   substituteGreek,
 } from "./TEX.js";
+import { closestMatch } from "../../../assets/js/closest-match.js";
 
 (async function () {
   let canvas, gl, manualInterpolationNeeded;
@@ -161,6 +163,7 @@ import {
     kineticParamsLabels = [],
     kineticNameToCont = {},
     kineticParamsCounter = 0;
+  const defaultPreset = "GrayScott";
   const defaultSpecies = ["u", "v", "w", "q"];
   const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
   const placeholderSp = ["SPECIES1", "SPECIES2", "SPECIES3", "SPECIES4"];
@@ -359,7 +362,7 @@ import {
   }
   if (shouldLoadDefault) {
     // Load a specific preset as the default.
-    loadPreset("GrayScott");
+    loadPreset(defaultPreset);
   }
 
   // If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
@@ -467,6 +470,9 @@ import {
   });
   $("#error_close_button").click(function () {
     fadeout("#error");
+  });
+  $("#preset_error_close_button").click(function () {
+    fadeout("#bad_preset");
   });
   $("#oops_hit_nan_close").click(function () {
     fadeout("#oops_hit_nan");
@@ -3269,30 +3275,39 @@ import {
   function parseNormalDiffusionStrings() {
     // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
     let out = "";
+    const tuples = [
+      [options.diffusionStr_1_1, "uu"],
+      [options.diffusionStr_2_2, "vv"],
+      [options.diffusionStr_3_3, "ww"],
+      [options.diffusionStr_4_4, "qq"],
+    ];
 
-    // Prepare Duu, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_1_1) + ";\n",
-      "uu"
-    );
-
-    // Prepare Dvv, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_2_2) + ";\n",
-      "vv"
-    );
-
-    // Prepare Dww, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_3_3) + ";\n",
-      "ww"
-    );
-
-    // Prepare Dqq, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_4_4) + ";\n",
-      "qq"
-    );
+    // Loop over the tuples.
+    for (let [str, label] of tuples) {
+      let stry;
+      // Check if we have a separate y diffusion coefficient.
+      if (str.includes(";")) {
+        let parts = str.split(";").filter((x) => x);
+        str = parts[0];
+        if (parts.length > 1 && options.dimension > 1) {
+          stry = parts[1];
+        }
+      }
+      // Add in the x diffusion coefficient.
+      out += nonConstantDiffusionEvaluateInSpaceStr(
+        parseShaderString(str) + ";\n",
+        label + "x"
+      );
+      // Add in the y diffusion coefficients.
+      if (!stry) {
+        out += setEqualYDiffusionCoefficientsShader(label);
+      } else {
+        out += nonConstantDiffusionEvaluateInSpaceStr(
+          parseShaderString(stry) + ";\n",
+          label + "y"
+        );
+      }
+    }
 
     return out;
   }
@@ -3301,77 +3316,47 @@ import {
     // Parse the user-defined shader strings into valid GLSL and output their concatenation. We won't worry about code injection.
     let out = "";
 
-    // Prepare Duv, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_1_2) + ";\n",
-      "uv"
-    );
+    const tuples = [
+      [options.diffusionStr_1_2, "uv"],
+      [options.diffusionStr_1_3, "uw"],
+      [options.diffusionStr_1_4, "uq"],
+      [options.diffusionStr_2_1, "vu"],
+      [options.diffusionStr_2_3, "vw"],
+      [options.diffusionStr_2_4, "vq"],
+      [options.diffusionStr_3_1, "wu"],
+      [options.diffusionStr_3_2, "wv"],
+      [options.diffusionStr_3_4, "wq"],
+      [options.diffusionStr_4_1, "qu"],
+      [options.diffusionStr_4_2, "qv"],
+      [options.diffusionStr_4_3, "qw"],
+    ];
 
-    // Prepare Duw, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_1_3) + ";\n",
-      "uw"
-    );
-
-    // Prepare Duq, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_1_4) + ";\n",
-      "uq"
-    );
-
-    // Prepare Dvu, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_2_1) + ";\n",
-      "vu"
-    );
-
-    // Prepare Dvw, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_2_3) + ";\n",
-      "vw"
-    );
-
-    // Prepare Dvq, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_2_4) + ";\n",
-      "vq"
-    );
-
-    // Prepare Dwu, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_3_1) + ";\n",
-      "wu"
-    );
-
-    // Prepare Dwv, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_3_2) + ";\n",
-      "wv"
-    );
-
-    // Prepare Dwq, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_3_4) + ";\n",
-      "wq"
-    );
-
-    // Prepare Dqu, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_4_1) + ";\n",
-      "qu"
-    );
-
-    // Prepare Dqv, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_4_2) + ";\n",
-      "qv"
-    );
-
-    // Prepare Dqw, evaluating it at five points.
-    out += nonConstantDiffusionEvaluateInSpaceStr(
-      parseShaderString(options.diffusionStr_4_3) + ";\n",
-      "qw"
-    );
+    // Loop over the tuples.
+    for (let [str, label] of tuples) {
+      let stry;
+      // Check if we have a separate y diffusion coefficient.
+      if (str.includes(";")) {
+        let parts = str.split(";").filter((x) => x);
+        str = parts[0];
+        if (parts.length > 1 && options.dimension > 1) {
+          stry = parts[1];
+        }
+      }
+      // Add in the x diffusion coefficient.
+      out += nonConstantDiffusionEvaluateInSpaceStr(
+        parseShaderString(str) + ";\n",
+        label + "x"
+      );
+      // Add in the y diffusion coefficients.
+      if (!stry) {
+        out += setEqualYDiffusionCoefficientsShader(label);
+      } else {
+        out += nonConstantDiffusionEvaluateInSpaceStr(
+          parseShaderString(stry) + ";\n",
+          label + "y"
+        );
+      }
+    }
 
     return out;
   }
@@ -3403,6 +3388,17 @@ import {
       label +
       "B = " +
       str.replaceAll(yRegex, "(y-dy)").replaceAll(uvwqRegex, "uvwqB.");
+    return out;
+  }
+
+  // Set the y diffusion coefficients to be equal to the x counterparts.
+  function setEqualYDiffusionCoefficientsShader(label) {
+    let out = "";
+    out += "float D" + label + "y = D" + label + "x;\n";
+    out += "float D" + label + "yL = D" + label + "xL;\n";
+    out += "float D" + label + "yR = D" + label + "xR;\n";
+    out += "float D" + label + "yT = D" + label + "xT;\n";
+    out += "float D" + label + "yB = D" + label + "xB;\n";
     return out;
   }
 
@@ -4001,18 +3997,38 @@ import {
 
   function loadOptions(preset) {
     let newOptions;
+    const listOfPresetNames = getListOfPresetNames();
+    const listOfPresetNamesLower = listOfPresetNames.map((x) =>
+      x.toLowerCase()
+    );
     if (preset == undefined) {
       // If no argument is given, load whatever is set in options.preset.
       newOptions = getPreset(options.preset);
     } else if (typeof preset == "string") {
       // If an argument is given and it's a string, try to load the corresponding preset.
-      newOptions = getPreset(preset);
+      if (listOfPresetNamesLower.includes(preset.toLowerCase())) {
+        newOptions = getPreset(preset);
+      } else {
+        const closest = closestMatch(preset, listOfPresetNames, false);
+        // Display an error if the preset doesn't exist.
+        throwPresetError(
+          "We couldn't find a preset called '" +
+            preset +
+            "'." +
+            (closest != null
+              ? " We've loaded the closest match, '" + closest + "'."
+              : "") +
+            " Please check the preset specified in the URL."
+        );
+        // Load the default preset or the closest match.
+        newOptions = getPreset(closest ? closest : defaultPreset);
+      }
     } else if (typeof preset == "object") {
       // If the argument is an object, then assume it is an options object.
       newOptions = preset;
     } else {
       // Otherwise, fall back to default.
-      newOptions = getPreset("default");
+      newOptions = getPreset(defaultPreset);
     }
 
     // If newOptions specifies a parent, first load the options of the parent.
@@ -4372,6 +4388,8 @@ import {
     let image = new Image();
     image.src = imControllerOne.__image.src;
     let texture = new THREE.Texture();
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
     texture.image = image;
     image.onload = function () {
       texture.needsUpdate = true;
@@ -4386,6 +4404,8 @@ import {
     let image = new Image();
     image.src = imControllerTwo.__image.src;
     let texture = new THREE.Texture();
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
     texture.image = image;
     image.onload = function () {
       texture.needsUpdate = true;
@@ -5170,6 +5190,21 @@ import {
         associatedStrs[key] = toDefault(associatedStrs[key]);
       });
 
+      // If a diffusion string contains a semicolon, treat it as a diagonal matrix, and typeset as such.
+      Object.keys(associatedStrs).forEach(function (key) {
+        if (!defaultReactions.includes(key)) {
+          if (associatedStrs[key].includes(";")) {
+            let parts = associatedStrs[key].split(";").filter((x) => x);
+            if (parts.length > 1 && options.dimension > 1) {
+              associatedStrs[key] =
+                "\\dmat{" + parts.slice(0, 2).join("}{") + "}";
+            } else {
+              associatedStrs[key] = parts[0];
+            }
+          }
+        }
+      });
+
       // Add in \selected{} to any selected entry.
       selectedEntries.forEach(function (x) {
         associatedStrs[x] = "\\selected{ " + associatedStrs[x] + " }";
@@ -5177,13 +5212,15 @@ import {
 
       // For each diffusion string, replace it with the value in associatedStrs.
       Object.keys(associatedStrs).forEach(function (key) {
-        if (!defaultReactions.includes(key))
+        if (!defaultReactions.includes(key)) {
+          let delims = associatedStrs[key].includes("\\dmat") ? "  " : "[]";
           str = replaceUserDefDiff(
             str,
             regexes[key],
             associatedStrs[key],
-            "[]"
+            delims
           );
+        }
       });
 
       // Replace the reaction strings, converting everything back to default notation.
@@ -5228,11 +5265,12 @@ import {
 
       // Look for div(const * grad(blah)), and move the constant outside the bracket.
       // Constant in space <=> it doesn't contain [xy], [uvwq](?:_[x|y|xx|yy])?, (?:I_[ST][RGBA]?).
+      // We'll also treat matrices as non-constants for typesetting.
       regex =
         /\\vnabla\s*\\cdot\s*\(\s*((?!\\vnabla).*)\s*\\vnabla\s*([uvwq])\s*\)/g;
       str = str.replaceAll(regex, function (match, g1, g2) {
         const innerRegex = /\b(?:[xy]|[uvwq](?:_[xy])?|(?:I_[ST][RGBA]?))\b/g;
-        if (!innerRegex.test(g1)) {
+        if (!innerRegex.test(g1) && !g1.includes("\\dmat")) {
           return g1.trim() + " \\lap " + g2;
         } else {
           return match;
@@ -7019,6 +7057,12 @@ import {
       $("#error_description").html(message);
       fadein("#error");
     }
+  }
+
+  function throwPresetError(message) {
+    pauseSim();
+    $("#preset_description").html(message);
+    fadein("#bad_preset");
   }
 
   function isValidSyntax(str) {

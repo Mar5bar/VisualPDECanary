@@ -1,0 +1,26 @@
+<script src="/assets/js/lunr.js"></script>
+
+<form id="lunrsearchform"
+onSubmit="lunr_search(document.getElementById('lunrsearchinput').value); return false;"
+>
+<p>
+    <label for="lunrsearchinput" id="search-button" title="Search"><i class="fa-solid fa-magnifying-glass"></i></label>
+    <div id="lunrsearchbar">
+    <input
+      type="text"
+      id="lunrsearchinput"
+      name="q"
+      maxlength="255"
+      value=""
+      placeholder="Search"
+      onfocus="document.getElementById('lunrsearchform').onsubmit();"
+      oninput="document.getElementById('lunrsearchform').onsubmit();"
+      />
+      <div id="lunrsearchresults" tabindex="0">
+        <ul></ul>
+      </div>
+    </div>
+  </p>
+</form>
+
+<script src="/assets/js/search.js" async></script>

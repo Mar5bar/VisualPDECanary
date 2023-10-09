@@ -5,4 +5,6 @@
 layout: topic
 title: User guide
 collection_to_list: user-guide
+thumbnail: /assets/images/squirrel-question.webp
+extract: Everything there is to know about VisualPDE
 ---

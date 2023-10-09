@@ -3,6 +3,125 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+	listOfPresets["GrayScottPearsonClassificationRescaled"] = {
+	"diffusionStr_1_1": "1",
+	"diffusionStr_2_2": "D",
+	"diffusionStr_3_3": "0",
+	"initCond_2": "1",
+	"kineticParams": "s = 2;D = 2;",
+	"maxColourValue": 1,
+	"parent": "GrayScottPearsonClassification",
+	"preset": "GrayScottPearsonClassificationRescaled",
+	"reactionStr_1": "u^2*v - (0.001+0.069*(y/L_y)^(s)+0.01+0.057*(x/L_x)^(1/s))*u",
+	"reactionStr_2": "-u^2*v + (0.001+0.069*(y/L_y)^(s))*(1 - v)",
+	"reactionStr_3": "0",
+	"views": [{
+	"maxColourValue": 1,
+	"whatToPlot": "v",
+	"name": "$$v$$",
+},
+	{
+	"maxColourValue": 0.65,
+	"whatToPlot": "u",
+	"name": "$$u$$",
+}],
+	"whatToDraw": "u",
+};
+
+
+  listOfPresets["GrayScottPearsonClassification"] = {
+	"boundaryConditions_1": "neumann",
+	"boundaryConditions_2": "neumann",
+	"colourmap": "BlackGreenYellowRedWhite",
+	"domainScale": "3500",
+	"dt": 0.2,
+	"emboss": true,
+	"initCond_1": "1/cosh(0.01*((x-L_x/5)^2+(y-0.8*L_y)^2))",
+	"kineticParams": "",
+	"maxColourValue": 0.65,
+	"parent": "GrayScott",
+	"reactionStr_1": "u^2*v - (0.07*y/L_y+0.02+0.048*x/L_x)*u",
+	"reactionStr_2": "-u^2*v + 0.07*y/L_y*(1 - v)",
+	"spatialStep": "5",
+	"preset": "GrayScottPearsonClassification",
+};
+	
+  listOfPresets["RedGreyInvasionUK"] = {
+	"boundaryConditions_1": "neumann",
+	"boundaryConditions_2": "neumann",
+	"diffusionStr_1_1": "1",
+	"diffusionStr_2_2": "1",
+	"diffusionStr_3_3": "0",
+	"domainIndicatorFun": "0.5-I_T",
+	"domainViaIndicatorFun": true,
+	"dt": 0.001,
+	"initCond_1": "1",
+	"initCond_2": "1/cosh(0.5*sqrt((x-L_x/10)^2+(y+0.8*L_y/2)^2))^2",
+  	"imagePathTwo": "./images/gb.png",
+	"kineticParams": "c_RR = 1;c_GG = 1;c_RG = 1.1;c_GR = 1;",
+	"maxColourValue": 0.5,
+	"minX": "-L_x/2",
+	"minY": "-L_y/2",
+	"preset": "RedGreyInvasionUK",
+	"reactionStr_1": "R*(1-c_RR*R-c_RG*G)",
+	"reactionStr_2": "R*(1-c_GR*R-c_GG*G)",
+	"reactionStr_3": "0",
+	"spatialStep": "0.2",
+	"speciesNames": "R G",
+	"squareCanvas": true,
+	"whatToDraw": "R",
+	"whatToPlot": "G",
+};
+
+
+  listOfPresets["snail-trail"] = {
+    boundaryConditions_1: "dirichlet",
+    boundaryConditions_2: "dirichlet",
+    boundaryConditions_3: "dirichlet",
+    brushRadius: "20",
+    crossDiffusion: true,
+    diffusionStr_1_1: "D",
+    diffusionStr_1_3: "-n*chi",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    dirichletStr_3: "(x/L_x)^2",
+    domainScale: "1000",
+    initCond_1: "0",
+    initCond_3: "(x/L_x)^2",
+    kineticParams:
+      "D = 0.04;lambda = 0;beta_e = 0;beta_n = 0;chi = 10;kappa=0.01",
+    numAlgebraicSpecies: 1,
+    numSpecies: "3",
+    preset: "snail-trail",
+    reactionStr_1: "lambda*n*c - beta_e*n*e - beta_n*n^2",
+    reactionStr_2: "kappa*sqrt((chi*n*c_x - D*c_x)^2 + (chi*n*c_y - D*c_y)^2)",
+    reactionStr_3: "(x/L_x)^2",
+    spatialStep: "3",
+    speciesNames: "n e c",
+    views: [
+      {
+        autoSetColourRange: false,
+        maxColourValue: 1,
+        whatToPlot: "n",
+        name: "n",
+      },
+      {
+        autoSetColourRange: true,
+        maxColourValue: 0.16559255123138428,
+        whatToPlot: "e",
+        name: "e",
+      },
+      {
+        autoSetColourRange: false,
+        maxColourValue: 1,
+        whatToPlot: "c",
+        name: "c",
+      },
+    ],
+    whatToDraw: "n",
+    whatToPlot: "n",
+  };
+
   listOfPresets["SofyaCGLEChaos"] = {
     autoSetColourRange: false,
     domainIndicatorFun: "I_S",
@@ -3129,10 +3248,14 @@ export function getListOfPresets() {
 export function getPreset(id) {
   // Case insensitive lookup.
   const listOfPresets = lowerCaseKeys(getListOfPresets());
-  if (id == null || id == undefined) return listOfPresets["default"];
+  if (id == null || id == undefined) return listOfPresets["GrayScott"];
   id = id.toLowerCase();
   if (listOfPresets.hasOwnProperty(id)) return listOfPresets[id];
-  return listOfPresets["default"];
+  return listOfPresets["GrayScott"];
+}
+
+export function getListOfPresetNames() {
+  return Object.keys(getListOfPresets());
 }
 
 function lowerCaseKeys(obj) {

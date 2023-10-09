@@ -367,7 +367,8 @@ canvas {
 
 #welcome,
 #oops_hit_nan,
-#error {
+#error,
+#bad_preset {
   display: none;
   top: 50%;
   max-width: min(60vw, calc(100vw - 160px));
@@ -384,7 +385,8 @@ canvas {
 
 #welcome p,
 #oops_hit_nan p,
-#error p {
+#error p,
+#bad_preset p {
   color: #111;
   font-size: medium;
 }
@@ -413,13 +415,15 @@ canvas {
   transition-duration: 80ms;
 }
 
-#welcome_ok, #lets_go {
+#welcome_ok,
+#lets_go {
   background-color: #1756a9;
   color: white !important;
 }
 
 @media (hover: hover) {
-  #welcome_ok:hover, #lets_go:hover {
+  #welcome_ok:hover,
+  #lets_go:hover {
     background-color: #134484;
     cursor: pointer;
   }

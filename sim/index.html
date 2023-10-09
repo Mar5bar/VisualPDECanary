@@ -42,6 +42,7 @@
                     selected: ["{\\bbox[GreenYellow]{#1}}", 1],
                     floor: ["\\left\\lfloor#1\\right\\rfloor", 1],
                     ind: ["\\mathbb{1}_{#1}", 1],
+                    dmat: ["\\begin{bmatrix}#1&0\\\\0&#2\\end{bmatrix}", 2],
                 },
                 inlineMath: [['$', '$'], ['\\(', '\\)']]
             },
@@ -135,6 +136,12 @@
     <p class="error_para">Check for syntax errors, and reload the page if the interface is unresponsive.</p>
     <p class="error_para" id='error_description'></p>
     <button class="btn-primary warning_dismiss" id="error_close_button"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
+</div>
+<div class="message" id="bad_preset">
+    <div class="error_infinity"><i class="fa-solid fa-clipboard-question"></i></div>
+    <p class="error_para"><strong>Hmmm...</strong></p>
+    <p class="error_para" id='preset_description'></p>
+    <button class="btn-primary warning_dismiss" id="preset_error_close_button"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
 
 <div id="right_ui" class="ui hidden">

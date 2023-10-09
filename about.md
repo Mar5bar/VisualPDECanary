@@ -2,6 +2,8 @@
 layout: page
 title: About
 permalink: /about/
+thumbnail: /assets/images/question-marks.webp
+extract: What is VisualPDE, where did it come from and who is behind it?
 ---
 
 VisualPDE is a website designed to bring the world of partial differential equations to a wider audience through the use of real-time interactive web-based simulations usable on almost any device. 
