@@ -92,7 +92,9 @@ function lunr_search(term) {
         var title = documents[ref]["title"];
         var extract = documents[ref]["extract"];
         var img = documents[ref]["img"];
-        title = extract ? title + ": " : title;
+        if (extract) {
+          title += /[\?\!\.]/.test(title.trim().slice(-1)) ? " " : ": ";
+        }
         var item = document.querySelectorAll("#lunrsearchresults ul")[0];
         var html = "";
         html += img ? "<img src='" + img + "'/>" : "";
