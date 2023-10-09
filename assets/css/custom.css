@@ -308,10 +308,25 @@ a.collection::after {
 }
 
 .ui_button_documentation#equations {
-  background: url("/assets/images/function-button-grey.webp") no-repeat;
+  background: url("/assets/images/function-button-grey-white.webp") no-repeat;
   background-size: 80%;
   background-position: center;
-  background-color: #ededed;
+  background-color: #ffffff;
+  color: #606060;
+}
+
+li .ui_button_documentation {
+  position: relative;
+  top: 4px;
+}
+
+li .ui_button_documentation#equations {
+  top: 2px;
+}
+
+a .ui_button_documentation#equations {
+  position: relative;
+  top: -3px;
 }
 
 .post-content h2,
