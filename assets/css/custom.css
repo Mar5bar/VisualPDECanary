@@ -7,6 +7,15 @@ html {
   scroll-behavior: smooth;
 }
 
+.no-select {
+  cursor: default;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 .wrapper {
   position: relative;
 }
@@ -74,6 +83,7 @@ div.home-banner-content {
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  pointer-events: none;
 }
 
 div.home-banner-subtitle,
@@ -82,6 +92,7 @@ div.home-banner-title {
   color: white;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
+  pointer-events: all;
 }
 
 div.home-banner iframe {
