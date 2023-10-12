@@ -16,7 +16,9 @@ Jump to:
 ## Sharing and citing <a id='sharing'>
 
 ### How do I cite VisualPDE in my article?
-The VisualPDE preprint is out! You can cite it as [arXiv:2308.01245](https://doi.org/10.48550/arXiv.2308.01245).
+The VisualPDE paper is out! You can find it [online](https://doi.org/10.1007/s11538-023-01218-4){:target="_blank"} for free and cite it as 
+
+Walker, B.J., Townsend, A.K., Chudasama, A.K. et al. VisualPDE: Rapid interactive simulations of partial differential equations. Bulletin of Mathematical Biology 85, 113 (2023).
 
 ### Am I allowed to make and share content using VisualPDE.com?
 Yes! We would love to see you making and sharing content using VisualPDE. We ask that any content you create somehow points back to [VisualPDE.com](https://visualpde.com) – a great way to do this is to share a link directly to your simulation! Feel free to use VisualPDE in articles, images, videos, scientific works, social media posts, etc.
