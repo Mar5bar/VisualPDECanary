@@ -4545,9 +4545,11 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     fillBuffer();
     let minVal = Infinity;
     let maxVal = -Infinity;
+    let v;
     for (let i = 0; i < buffer.length; i += 4) {
-      minVal = Math.min(minVal, buffer[i]);
-      maxVal = Math.max(maxVal, buffer[i]);
+      v = buffer[i];
+      minVal = minVal < v ? minVal : v;
+      maxVal = maxVal > v ? maxVal : v;
     }
     return [minVal, maxVal];
   }
