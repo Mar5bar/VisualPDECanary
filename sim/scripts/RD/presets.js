@@ -3238,6 +3238,7 @@ export function getListOfPresets() {
     robinStr_4: "0",
     runningOnLoad: true,
     setSeed: false,
+    showStats: false,
     spatialStep: 1 / 2,
     speciesNames: "u v w q",
     squareCanvas: false,

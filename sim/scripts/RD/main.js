@@ -14,6 +14,7 @@ import {
   postGenericShaderBot,
   postShaderDomainIndicator,
   interpolationShader,
+  minMaxShader,
 } from "./post_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import {
@@ -74,6 +75,7 @@ import {
   substituteGreek,
 } from "./TEX.js";
 import { closestMatch } from "../../../assets/js/closest-match.js";
+import { Stats } from "../stats.min.js";
 
 (async function () {
   let canvas, gl, manualInterpolationNeeded;
@@ -90,6 +92,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     postTexture,
     interpolationTexture,
     simTextureOpts,
+    minMaxTextures = [],
     checkpointTexture;
   let basicMaterial,
     displayMaterial,
@@ -104,12 +107,13 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     arrowMaterial,
     interpolationMaterial,
     checkpointMaterial,
+    minMaxMaterial,
     tailGeometry,
     headGeometry;
   let domain, simDomain, clickDomain, line, overlayLine;
   let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
   let colourmap, colourmapEndpoints;
-  let options, uniforms, funsObj, savedOptions;
+  let options, uniforms, minMaxUniforms, funsObj, savedOptions;
   let leftGUI,
     rightGUI,
     viewsGUI,
@@ -144,6 +148,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     nextViewNumber = 0,
     seed = performance.now(),
     updatingAlgebraicSpecies = false,
+    valueRange = null,
     viewUIOffsetInit;
   let spatialStepValue,
     nXDisc,
@@ -214,6 +219,11 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   parser.consts.pi = Math.PI;
   parser.consts.Pi = Math.PI;
   parser.consts.e = Math.exp(1.0);
+
+  const stats = new Stats();
+  stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+  stats.dom.id = "stats";
+  document.body.appendChild(stats.dom);
 
   // Setup some configurable options.
   options = {};
@@ -894,6 +904,11 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       side: THREE.DoubleSide,
     });
     checkpointMaterial = new THREE.MeshBasicMaterial();
+    minMaxMaterial = new THREE.ShaderMaterial({
+      uniforms: minMaxUniforms,
+      vertexShader: genericVertexShader(),
+      fragmentShader: minMaxShader(),
+    });
 
     // Geometry for arrows.
     tailGeometry = new THREE.CylinderGeometry(0.008, 0.008, 0.1);
@@ -1276,6 +1291,27 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 
     postTexture.setSize(nXDisc, nYDisc);
     postprocess();
+
+    // Dispose of and create new minmax textures.
+    minMaxTextures.forEach((tex) => tex.dispose());
+    minMaxTextures = [];
+    let w = nXDisc,
+      h = nYDisc;
+    const minmaxTextureOpts = {
+      format: THREE.RGBAFormat,
+      type: THREE.FloatType,
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+      wrapS: THREE.ClampToEdgeWrapping,
+      wrapT: THREE.ClampToEdgeWrapping,
+    };
+    // Create a number of minmax textures, each half the size of the previous.
+    while (w > 1 || h > 1) {
+      w = Math.max(1, Math.ceil(w / 2));
+      h = Math.max(1, Math.ceil(h / 2));
+      minMaxTextures.push(new THREE.WebGLRenderTarget(w, h, minmaxTextureOpts));
+    }
+
     // The interpolationTexture will match the number of pixels in the display.
     interpolationTexture.setSize(
       Math.round(devicePixelRatio * canvasWidth),
@@ -1428,6 +1464,17 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       vectorField: {
         type: "bool",
         value: false,
+      },
+    };
+    minMaxUniforms = {
+      firstFlag: {
+        type: "bool",
+      },
+      srcResolution: {
+        type: "v2",
+      },
+      textureSource: {
+        type: "t",
       },
     };
   }
@@ -2159,6 +2206,17 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       "Copy debug information to the clipboard"
     );
 
+    addToggle(
+      devButtons,
+      "showStats",
+      '<i class="fa-regular fa-chart-line"></i> Show stats',
+      function () {
+        configureStatsGUI();
+      },
+      "interpController",
+      "Show performance statistics"
+    );
+
     // Populate list of presets for parent selection.
     let listOfPresets = getListOfPresets();
     Object.keys(listOfPresets).forEach(function (key) {
@@ -2708,7 +2766,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   }
 
   function animate() {
-    requestAnimationFrame(animate);
+    if (options.showStats) stats.begin();
 
     hasDrawn = isDrawing;
     // Draw on any input from the user, which can happen even if timestepping is not running.
@@ -2741,6 +2799,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     if (hasDrawn || isRunning) {
       render();
     }
+    if (options.showStats) stats.end();
+    requestAnimationFrame(animate);
   }
 
   function setDrawAndDisplayShaders() {
@@ -3139,6 +3199,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   }
 
   function postprocess() {
+    valueRange = null;
     simDomain.material = postMaterial;
     uniforms.textureSource.value = simTextures[1].texture;
     renderer.setRenderTarget(postTexture);
@@ -4541,7 +4602,6 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   }
 
   function getMinMaxVal() {
-    // Return the min and max values in the simulation textures in channel channelInd.
     fillBuffer();
     let minVal = Infinity;
     let maxVal = -Infinity;
@@ -4555,7 +4615,6 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   }
 
   function getMeanVal() {
-    // Return the mean values in the simulation textures in channel channelInd.
     fillBuffer();
     let total = 0;
     for (let i = 0; i < buffer.length; i += 4) {
@@ -4892,6 +4951,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     });
     // Configure the Views GUI from options.views.
     configureViewsGUI();
+    // Configure the stats display.
+    configureStatsGUI();
     // Refresh the GUI displays.
     refreshGUI(leftGUI);
     refreshGUI(rightGUI);
@@ -6091,8 +6152,14 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 
   function checkForNaN() {
     // Check to see if a NaN value is in the first entry of the simulation array, which would mean that we've hit overflow or instability.
-    let vals = getMinMaxVal();
-    if (shouldCheckNaN && (!isFinite(vals[0]) || !isFinite(vals[1]))) {
+    setMinMaxValGPU();
+    if (
+      (shouldCheckNaN &&
+        (!isFinite(valueRange[0]) ||
+          Math.abs(valueRange[0]) > 1e37 ||
+          !isFinite(valueRange[1]))) ||
+      Math.abs(valueRange[1]) > 1e37
+    ) {
       shouldCheckNaN = false;
       fadein("#oops_hit_nan");
       pauseSim();
@@ -6124,6 +6191,40 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
         );
       }
       bufferFilled = true;
+    }
+  }
+
+  function setMinMaxValGPU() {
+    // Get the min and max vals in postTexture, using a shader to compute min and max on the GPU.
+    simDomain.material = minMaxMaterial;
+    minMaxUniforms.textureSource.value = postTexture.texture;
+    minMaxUniforms.srcResolution.value = new THREE.Vector2(nXDisc, nYDisc);
+    minMaxUniforms.firstFlag.value = true;
+    for (const curTex of minMaxTextures) {
+      renderer.setRenderTarget(curTex);
+      renderer.render(simDomain, simCamera);
+      minMaxUniforms.textureSource.value = curTex.texture;
+      minMaxUniforms.srcResolution.value = new THREE.Vector2(
+        curTex.width,
+        curTex.height
+      );
+      minMaxUniforms.firstFlag.value = false;
+    }
+    try {
+      const smallBuffer = new Float32Array(4);
+      renderer.readRenderTargetPixels(
+        minMaxTextures.slice(-1)[0],
+        0,
+        0,
+        1,
+        1,
+        smallBuffer
+      );
+      valueRange = [smallBuffer[0], smallBuffer[1]];
+    } catch {
+      alert(
+        "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!"
+      );
     }
   }
 
@@ -6618,9 +6719,9 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 
   function setColourRange() {
     // Set the range of the colour axis based on the extremes of the computed values.
-    let valRange = getMinMaxVal();
-    options.minColourValue = valRange[0];
-    options.maxColourValue = valRange[1];
+    setMinMaxValGPU();
+    options.minColourValue = valueRange[0];
+    options.maxColourValue = valueRange[1];
     uniforms.maxColourValue.value = options.maxColourValue;
     uniforms.minColourValue.value = options.minColourValue;
     controllers["maxColourValue"].updateDisplay();
@@ -7424,6 +7525,14 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       canvas: canvas.getBoundingClientRect(),
     });
     navigator.clipboard.writeText(str);
+  }
+
+  function configureStatsGUI() {
+    if (options.showStats) {
+      stats.domElement.style.visibility = "";
+    } else {
+      stats.domElement.style.visibility = "hidden";
+    }
   }
 
   function toggleRightUI() {
