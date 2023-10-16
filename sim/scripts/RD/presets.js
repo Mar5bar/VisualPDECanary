@@ -3,6 +3,49 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["Benchmarking"] = {
+    activeViewInd: 0,
+    arrowScale: "none",
+    boundaryConditions_1: "neumann",
+    brushRadius: "20",
+    brushValue: "10",
+    contourEpsilon: 0.001,
+    contourNum: 7,
+    diffusionStr_1_1: "0",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    domainScale: "320",
+    dt: 0.01,
+    initCond_1: "floor(10*x/L_x)",
+    maxColourValue: 9,
+    numSpecies: 1,
+    overlay: true,
+    overlayEpsilon: 5,
+    overlayExpr: "mod(x-t,L_x)",
+    preset: "Benchmarking",
+    reactionStr_1: "0.02*(floor(10*x/L_x) - T)",
+    reactionStr_2: "0",
+    reactionStr_3: "0",
+    showStats: true,
+    spatialStep: "1.5",
+    speciesNames: "T",
+    vectorField: true,
+    views: [
+      {
+        arrowScale: "auto",
+        vectorField: false,
+        name: "Baseline",
+      },
+      {
+        arrowScale: "none",
+        vectorField: true,
+        name: "Vectors",
+      },
+    ],
+    whatToDraw: "T",
+    whatToPlot: "T",
+  };
+
   listOfPresets["GrayScottPearsonClassificationRescaled"] = {
     diffusionStr_1_1: "1",
     diffusionStr_2_2: "D",
