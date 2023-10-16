@@ -3,12 +3,33 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["BenchmarkingHighResFast"] = {
+    numTimestepsPerFrame: 400,
+    parent: "BenchmarkingHighRes",
+    preset: "BenchmarkingHighResFast",
+  };
+
+  listOfPresets["BenchmarkingFast"] = {
+    numTimestepsPerFrame: 400,
+    parent: "Benchmarking",
+    preset: "BenchmarkingFast",
+  };
+
+  listOfPresets["BenchmarkingHighRes"] = {
+    domainScale: "500",
+    parent: "Benchmarking",
+    spatialStep: "1",
+    preset: "BenchmarkingHighRes",
+  };
+
   listOfPresets["Benchmarking"] = {
     activeViewInd: 0,
     arrowScale: "none",
+    autoSetColourRange: true,
     boundaryConditions_1: "neumann",
     brushRadius: "20",
     brushValue: "10",
+    colourbar: true,
     contourEpsilon: 0.001,
     contourNum: 7,
     diffusionStr_1_1: "0",
@@ -29,17 +50,25 @@ export function getListOfPresets() {
     showStats: true,
     spatialStep: "1.5",
     speciesNames: "T",
-    vectorField: true,
     views: [
       {
         arrowScale: "auto",
+        autoSetColourRange: false,
+        colourbar: false,
         vectorField: false,
         name: "Baseline",
       },
       {
-        arrowScale: "none",
+        autoSetColourRange: false,
+        colourbar: false,
         vectorField: true,
         name: "Vectors",
+      },
+      {
+        autoSetColourRange: true,
+        colourbar: true,
+        vectorField: false,
+        name: "Auto snap",
       },
     ],
     whatToDraw: "T",
