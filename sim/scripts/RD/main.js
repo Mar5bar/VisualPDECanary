@@ -146,6 +146,7 @@ import { Stats } from "../stats.min.js";
     uiHidden = false,
     checkpointExists = false,
     nextViewNumber = 0,
+    frameCount = 0,
     seed = performance.now(),
     updatingAlgebraicSpecies = false,
     valueRange = null,
@@ -2230,6 +2231,8 @@ import { Stats } from "../stats.min.js";
         document.activeElement.blur();
       });
 
+    root.add(options, "guiUpdatePeriod").name("GUI update period)");
+
     // Add a title to the rightGUI.
     const settingsTitle = document.createElement("div");
     settingsTitle.innerHTML = "Settings";
@@ -3053,7 +3056,7 @@ import { Stats } from "../stats.min.js";
     postprocess();
 
     // If selected, set the colour range.
-    if (options.autoSetColourRange) {
+    if (options.autoSetColourRange && !(frameCount % options.guiUpdatePeriod)) {
       setColourRange();
     }
 
@@ -3109,7 +3112,11 @@ import { Stats } from "../stats.min.js";
     }
 
     // If a vector field is requested, update arrows. They will already be set as visible.
-    if (options.vectorField && arrowGroup) {
+    if (
+      options.vectorField &&
+      arrowGroup &&
+      !(frameCount % options.guiUpdatePeriod)
+    ) {
       // Update the direction of each arrow using the b and a components of postTexture.
       getPostState();
       let ind,
@@ -3157,12 +3164,12 @@ import { Stats } from "../stats.min.js";
     }
 
     // If selected, update the time display.
-    if (options.timeDisplay) {
+    if (options.timeDisplay && !(frameCount % options.guiUpdatePeriod)) {
       updateTimeDisplay();
     }
 
     // If selected, update the integral display.
-    if (options.integrate) {
+    if (options.integrate && !(frameCount % options.guiUpdatePeriod)) {
       updateIntegralDisplay();
     }
 
@@ -3196,6 +3203,8 @@ import { Stats } from "../stats.min.js";
       setSizes();
       render();
     }
+
+    frameCount = (frameCount + 1) % options.guiUpdatePeriod;
   }
 
   function postprocess() {

@@ -3193,6 +3193,7 @@ export function getListOfPresets() {
     flippedColourmap: false,
     forceManualInterpolation: false,
     forceTryClickingPopup: false,
+    guiUpdatePeriod: 2,
     imagePathOne: "./images/Sofya.webp",
     imagePathTwo: "./images/Alan.webp",
     initialState: "",
