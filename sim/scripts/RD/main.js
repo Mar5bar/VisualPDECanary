@@ -7335,7 +7335,7 @@ import { Stats } from "../stats.min.js";
   function buildViewFromOptions() {
     let view = {};
     fieldsInView.forEach(function (key) {
-      view[key] = savedOptions[key];
+      view[key] = options[key];
     });
     return view;
   }
