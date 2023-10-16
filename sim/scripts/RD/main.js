@@ -4124,7 +4124,9 @@ import { Stats } from "../stats.min.js";
     isRunning ? playSim() : pauseSim();
 
     // If we're on mobile, replace 'clicking' with 'tapping' in tryClickingText if it exists.
+    // Also, make sure that guiUpdatePeriod is at least 3.
     if (onMobile()) {
+      options.guiUpdatePeriod = Math.max(options.guiUpdatePeriod, 3);
       options.tryClickingText = options.tryClickingText.replaceAll(
         "clicking",
         "tapping"
@@ -7744,6 +7746,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function renderIfNotRunning() {
+    frameCount = 0;
     if (!isRunning) render();
   }
 
