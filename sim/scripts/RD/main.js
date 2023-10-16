@@ -743,7 +743,16 @@ import { Stats } from "../stats.min.js";
     clampedCoords = new THREE.Vector2();
 
     // Create a renderer.
-    createRenderer(false);
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      preserveDrawingBuffer: true,
+      powerPreference: "high-performance",
+      antialias: false,
+      alpha: true,
+      premultipliedAlpha: false,
+      stencilBuffer: false,
+    });
+    renderer.autoClear = true;
     gl = renderer.getContext();
     maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
@@ -7866,11 +7875,6 @@ import { Stats } from "../stats.min.js";
     } else {
       deleteArrows();
     }
-    // Check if we need a new renderer (toggling on/off antialiasing).
-    const needAntiAlias = options.vectorField && !onMobile();
-    if (needAntiAlias != renderer.antialias) {
-      createRenderer(needAntiAlias);
-    }
   }
 
   function updateArrowColour() {
@@ -8006,21 +8010,5 @@ import { Stats } from "../stats.min.js";
     moreInfo.classList.add("shepherd-more-info");
     moreInfo.innerText = label ? label : `More info.`;
     footer?.insertBefore(moreInfo, footer.firstChild);
-  }
-
-  function createRenderer(antialias) {
-    // Create the renderer.
-    renderer?.dispose();
-    renderer = new THREE.WebGLRenderer({
-      canvas: canvas,
-      preserveDrawingBuffer: true,
-      powerPreference: "high-performance",
-      antialias: antialias,
-      alpha: true,
-      premultipliedAlpha: false,
-      stencilBuffer: false,
-    });
-    renderer.autoClear = true;
-    gl = renderer.getContext();
   }
 })();
