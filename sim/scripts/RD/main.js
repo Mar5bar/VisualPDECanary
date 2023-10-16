@@ -3298,6 +3298,7 @@ import { Stats } from "../stats.min.js";
       $("#play").show();
     }
     isRunning = false;
+    renderIfNotRunning();
   }
 
   function playSim() {
