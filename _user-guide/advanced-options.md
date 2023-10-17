@@ -326,11 +326,15 @@ Use this option to force the use of manual, unoptimised filtering in place of de
 Set the seed of the (pseudo)random number generator used to assign values to 'RAND' and 'RANDN' in all free-text fields in the VisualPDE interface. Note that 'RAND' and 'RANDN' always vary in space. A specific random seed in the form of a numerical value can be configured (default 0).
 
 * ***Dev***\
-Tools intended for the development of VisualPDE. 
+Tools intended for the development and benchmarking of VisualPDE. 
 
     ***Copy code*** will copy a verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples. It will base the example on the selected 'parent' preset, which can be useful if you're making multiple slightly different versions of a simulation. 
 
     ***Copy debug*** will copy a selection of configuration information to your clipboard (handy when reporting bugs).
+
+    ***Show stats*** will toggle the display of performance statistics in the lower left corner of the display. We use this to benchmark performance impacts of new features and optimisations.
+
+    ***Antialias*** will toggle the use of antialiasing when displaying the simulation. Antialiasing in VisualPDE smooths out the jagged edges of displayed vector fields, though always causes a slight device-dependent performance loss. This is off by default for mobile devices, but can be overridden. Toggle requires a page reload.
 
 ---
 

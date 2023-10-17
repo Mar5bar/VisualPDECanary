@@ -113,7 +113,12 @@ import { Stats } from "../stats.min.js";
   let domain, simDomain, clickDomain, line, overlayLine;
   let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
   let colourmap, colourmapEndpoints;
-  let options, uniforms, minMaxUniforms, funsObj, savedOptions;
+  let options,
+    uniforms,
+    minMaxUniforms,
+    funsObj,
+    savedOptions,
+    localOpts = {};
   let leftGUI,
     rightGUI,
     viewsGUI,
@@ -242,7 +247,7 @@ import { Stats } from "../stats.min.js";
     },
     copyConfigAsURL: function () {
       let str = getSimURL();
-      copyLinkToClipboard(str);
+      copyToClipboard(str);
     },
     saveSimState: function () {
       saveSimState();
@@ -742,12 +747,19 @@ import { Stats } from "../stats.min.js";
     // Initialise a vector of grid-clamped coordinates.
     clampedCoords = new THREE.Vector2();
 
+    // Check local storage to see if antialiasing has been specified.
+    // If not, default to on for desktop, off for mobile.
+    const antialias = localStorage.getItem("AA")
+      ? localStorage.getItem("AA") == "true"
+      : !onMobile() && devicePixelRatio < 3;
+    localOpts.antialias = antialias;
+
     // Create a renderer.
     renderer = new THREE.WebGLRenderer({
       canvas: canvas,
       preserveDrawingBuffer: true,
       powerPreference: "high-performance",
-      antialias: false,
+      antialias: antialias,
       alpha: true,
       premultipliedAlpha: false,
       stencilBuffer: false,
@@ -2216,6 +2228,24 @@ import { Stats } from "../stats.min.js";
       },
       "interpController",
       "Show performance statistics"
+    );
+
+    addToggle(
+      devButtons,
+      "antialias",
+      '<i class="fa-regular fa-display"></i> Antialias',
+      function () {
+        localStorage.setItem("AA", localOpts.antialias);
+        funsObj.copyConfigAsURL();
+        alert(
+          "Toggling antialiasing requires a page reload. We've copied the current simulation link to your clipboard."
+        );
+      },
+      undefined,
+      "Antialias the display (useful for vector fields on low-res displays). Requires page reload.",
+      undefined,
+      undefined,
+      localOpts
     );
 
     // Populate list of presets for parent selection.
@@ -7459,15 +7489,18 @@ import { Stats } from "../stats.min.js";
     id,
     title,
     folderID,
-    classes
+    classes,
+    obj
   ) {
     const toggle = document.createElement("a");
+    if (obj == undefined) obj = options;
+    toggle.obj = obj;
     toggle.classList.add("toggle_button");
     toggle.setAttribute("property", property);
     if (onclick == undefined) onclick = () => {};
     toggle.onclick = function () {
-      options[toggle.getAttribute("property")] =
-        !options[toggle.getAttribute("property")];
+      toggle.obj[toggle.getAttribute("property")] =
+        !toggle.obj[toggle.getAttribute("property")];
       updateToggle(toggle);
       onclick();
     };
@@ -7520,7 +7553,7 @@ import { Stats } from "../stats.min.js";
       .replaceAll("}", ",\n}");
     str = 'listOfPresets["PRESETNAME"] = ' + str + ";\n";
 
-    navigator.clipboard.writeText(str);
+    copyToClipboard(str);
   }
 
   function copyDebug() {
@@ -7536,7 +7569,7 @@ import { Stats } from "../stats.min.js";
       aspectRatio: aspectRatio,
       canvas: canvas.getBoundingClientRect(),
     });
-    navigator.clipboard.writeText(str);
+    copyToClipboard(str);
   }
 
   function configureStatsGUI() {
@@ -7601,7 +7634,7 @@ import { Stats } from "../stats.min.js";
       '<iframe style="border:0;width:100%;height:100%;" src="' +
       url +
       '" frameborder="0"></iframe>';
-    copyLinkToClipboard(str);
+    copyToClipboard(str);
   }
 
   function getSimURL() {
@@ -7618,7 +7651,7 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
-  function copyLinkToClipboard(str) {
+  function copyToClipboard(str) {
     navigator.clipboard.writeText(str).then(
       () => {
         // Success.
@@ -7627,6 +7660,9 @@ import { Stats } from "../stats.min.js";
       },
       () => {
         // Failure.
+        throwError(
+          "For some reason, we couldn't copy to your device's clipboard. You might not be using HTTPS or there's something wrong on our end - sorry!"
+        );
       }
     );
   }
@@ -7752,7 +7788,8 @@ import { Stats } from "../stats.min.js";
   }
 
   function updateToggle(toggle) {
-    if (options[toggle.getAttribute("property")]) {
+    const obj = toggle.obj;
+    if (obj[toggle.getAttribute("property")]) {
       toggle.classList.add("toggled_on");
       if (toggle.getAttribute("folderID")) {
         $("#" + toggle.getAttribute("folderID")).removeClass("hidden");
