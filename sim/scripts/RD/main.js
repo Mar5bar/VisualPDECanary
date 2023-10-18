@@ -38,6 +38,7 @@ import {
   RDShaderGhostX,
   RDShaderGhostY,
   RDShaderMain,
+  clampSpeciesToEdgeShader,
 } from "./simulation_shaders.js";
 import { randShader, randNShader } from "../rand_shader.js";
 import {
@@ -803,6 +804,7 @@ import { Stats } from "../stats.min.js";
     interpolationTexture = simTextures[0].clone();
 
     // Periodic boundary conditions (for now).
+
     simTextures.forEach((simTex) => {
       simTex.texture.wrapS = THREE.RepeatWrapping;
       simTex.texture.wrapT = THREE.RepeatWrapping;
@@ -3608,6 +3610,16 @@ import { Stats } from "../stats.min.js";
     let robinShader = "";
     let diffusionShader = "";
     let algebraicShader = "";
+    let clampShader = "";
+
+    let edgeClampSpeciesH = [false, false, false, false];
+    let edgeClampSpeciesV = [false, false, false, false];
+
+    // Initially set all simulation textures to repeat wrapping for periodicity.
+    simTextures.forEach((simTex) => {
+      simTex.texture.wrapS = THREE.RepeatWrapping;
+      simTex.texture.wrapT = THREE.RepeatWrapping;
+    });
 
     const BCStrs = [
       options.boundaryConditions_1,
@@ -3643,6 +3655,8 @@ import { Stats } from "../stats.min.js";
     // Create a Neumann shader block for each species separately, which is just a special case of Robin.
     BCStrs.forEach(function (str, ind) {
       if (str == "neumann") {
+        edgeClampSpeciesH[ind] = true;
+        edgeClampSpeciesV[ind] = true;
         neumannShader += parseRobinRHS(NStrs[ind], listOfSpecies[ind]);
         if (!options.domainViaIndicatorFun) {
           neumannShader += robinUpdateShader(ind);
@@ -3658,6 +3672,8 @@ import { Stats } from "../stats.min.js";
           const side = m[1][0].toUpperCase();
           neumannShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
           neumannShader += robinUpdateShader(ind, side);
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
         });
       }
     });
@@ -3672,6 +3688,8 @@ import { Stats } from "../stats.min.js";
         ].forEach(function (m) {
           const side = m[1][0].toUpperCase();
           ghostShader += ghostUpdateShader(ind, side, parseShaderString(m[2]));
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
         });
       }
     });
@@ -3679,6 +3697,8 @@ import { Stats } from "../stats.min.js";
     // Create Dirichlet shaders.
     BCStrs.forEach(function (str, ind) {
       if (str == "dirichlet") {
+        edgeClampSpeciesH[ind] = true;
+        edgeClampSpeciesV[ind] = true;
         if (!options.domainViaIndicatorFun) {
           dirichletShader += parseDirichletRHS(DStrs[ind], listOfSpecies[ind]);
           dirichletShader += dirichletUpdateShader(ind);
@@ -3701,6 +3721,8 @@ import { Stats } from "../stats.min.js";
           const side = m[1][0].toUpperCase();
           dirichletShader += parseDirichletRHS(m[2], listOfSpecies[ind], side);
           dirichletShader += dirichletUpdateShader(ind, side);
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
         });
       } else if (options.domainViaIndicatorFun) {
         // Zero-out anything outside of the domain if we're using an indicator function.
@@ -3718,6 +3740,8 @@ import { Stats } from "../stats.min.js";
     // Create a Robin shader block for each species separately.
     BCStrs.forEach(function (str, ind) {
       if (str == "robin") {
+        edgeClampSpeciesH[ind] = true;
+        edgeClampSpeciesV[ind] = true;
         robinShader += parseRobinRHS(RStrs[ind], listOfSpecies[ind]);
         if (!options.domainViaIndicatorFun) {
           robinShader += robinUpdateShader(ind);
@@ -3733,6 +3757,8 @@ import { Stats } from "../stats.min.js";
           const side = m[1][0].toUpperCase();
           robinShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
           robinShader += robinUpdateShader(ind, side);
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
         });
       }
     });
@@ -3849,8 +3875,38 @@ import { Stats } from "../stats.min.js";
       return;
     }
 
+    // Edge clamp all the simulation textures if every species needs clamping.
+    if (edgeClampSpeciesH.every((x) => x)) {
+      simTextures.forEach((simTex) => {
+        simTex.texture.wrapS = THREE.ClampToEdgeWrapping;
+      });
+    } else {
+      // If only some species need clamping, we'll do it in the shader.
+      let channels = "";
+      edgeClampSpeciesH.forEach((x, ind) => {
+        if (x) channels += speciesToChannelChar(listOfSpecies[ind]);
+      });
+      clampShader += channels
+        ? clampSpeciesToEdgeShader("H").replaceAll(/\bSPECIES\b/g, channels)
+        : "";
+    }
+    if (edgeClampSpeciesV.every((x) => x)) {
+      simTextures.forEach((simTex) => {
+        simTex.texture.wrapT = THREE.ClampToEdgeWrapping;
+      });
+    } else {
+      let channels = "";
+      edgeClampSpeciesV.forEach((x, ind) => {
+        if (x) channels += speciesToChannelChar(listOfSpecies[ind]);
+      });
+      clampShader += channels
+        ? clampSpeciesToEdgeShader("V").replaceAll(/\bSPECIES\b/g, channels)
+        : "";
+    }
+
     // Using the constructed shader parts, we'll form fragment shaders for every possible timestepping scheme.
     let middle = [
+      clampShader,
       RDShaderAdvectionPreBC(),
       RDShaderDiffusionPreBC(),
       neumannShader,

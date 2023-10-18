@@ -638,3 +638,26 @@ export function RDShaderEnforceDirichletTop() {
         gl_FragColor = uvwq;
     `;
 }
+
+export function clampSpeciesToEdgeShader(direction) {
+  let out = "";
+  if (direction.includes("H")) {
+    out += `
+    if (textureCoords.x - step_x < 0.0) {
+      uvwqL.SPECIES = uvwq.SPECIES;
+    }
+    if (textureCoords.x + step_x > 1.0) {
+      uvwqR.SPECIES = uvwq.SPECIES;
+    }`;
+  }
+  if (direction.includes("V")) {
+    out += `
+    if (textureCoords.y + step_y > 1.0) {
+      uvwqT.SPECIES = uvwq.SPECIES;
+    }
+    if (textureCoords.y - step_y < 0.0) {
+      uvwqB.SPECIES = uvwq.SPECIES;
+    }`;
+  }
+  return out;
+}
