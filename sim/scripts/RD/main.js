@@ -3383,7 +3383,7 @@ import { Stats } from "../stats.min.js";
       [options.diffusionStr_2_2, "vv"],
       [options.diffusionStr_3_3, "ww"],
       [options.diffusionStr_4_4, "qq"],
-    ];
+    ].slice(0, options.numSpecies);
 
     // Loop over the tuples.
     for (let [str, label] of tuples) {
@@ -3420,19 +3420,29 @@ import { Stats } from "../stats.min.js";
     let out = "";
 
     const tuples = [
-      [options.diffusionStr_1_2, "uv"],
-      [options.diffusionStr_1_3, "uw"],
-      [options.diffusionStr_1_4, "uq"],
-      [options.diffusionStr_2_1, "vu"],
-      [options.diffusionStr_2_3, "vw"],
-      [options.diffusionStr_2_4, "vq"],
-      [options.diffusionStr_3_1, "wu"],
-      [options.diffusionStr_3_2, "wv"],
-      [options.diffusionStr_3_4, "wq"],
-      [options.diffusionStr_4_1, "qu"],
-      [options.diffusionStr_4_2, "qv"],
-      [options.diffusionStr_4_3, "qw"],
-    ];
+      [
+        [options.diffusionStr_1_2, "uv"],
+        [options.diffusionStr_1_3, "uw"],
+        [options.diffusionStr_1_4, "uq"],
+      ].slice(0, options.numSpecies - 1),
+      [
+        [options.diffusionStr_2_1, "vu"],
+        [options.diffusionStr_2_3, "vw"],
+        [options.diffusionStr_2_4, "vq"],
+      ].slice(0, options.numSpecies - 1),
+      [
+        [options.diffusionStr_3_1, "wu"],
+        [options.diffusionStr_3_2, "wv"],
+        [options.diffusionStr_3_4, "wq"],
+      ].slice(0, options.numSpecies - 1),
+      [
+        [options.diffusionStr_4_1, "qu"],
+        [options.diffusionStr_4_2, "qv"],
+        [options.diffusionStr_4_3, "qw"],
+      ].slice(0, options.numSpecies - 1),
+    ]
+      .slice(0, (options.numSpecies - 1) * options.numSpecies)
+      .flat(1);
 
     // Loop over the tuples.
     for (let [str, label] of tuples) {
@@ -3773,9 +3783,11 @@ import { Stats } from "../stats.min.js";
     diffusionShader = parseNormalDiffusionStrings() + "\n";
     if (options.crossDiffusion) {
       diffusionShader +=
-        parseCrossDiffusionStrings() + "\n" + RDShaderUpdateCross();
+        parseCrossDiffusionStrings() +
+        "\n" +
+        RDShaderUpdateCross(options.numSpecies);
     } else {
-      diffusionShader += RDShaderUpdateNormal();
+      diffusionShader += RDShaderUpdateNormal(options.numSpecies);
     }
 
     // If 2 or more variables are algebraic, check that we don't have any cyclic dependencies.
