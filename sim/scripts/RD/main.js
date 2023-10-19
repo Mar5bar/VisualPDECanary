@@ -7264,8 +7264,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function setDefaultRenderSize() {
-    let scaleFactor = devicePixelRatio;
-    if (options.performanceMode) scaleFactor = 0.6;
+    let scaleFactor = options.performanceMode ? 0.6 : devicePixelRatio;
     renderer.setSize(
       Math.round(scaleFactor * canvasWidth),
       Math.round(scaleFactor * canvasHeight),
