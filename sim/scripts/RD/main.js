@@ -765,7 +765,7 @@ import { Stats } from "../stats.min.js";
       premultipliedAlpha: false,
       stencilBuffer: false,
     });
-    renderer.autoClear = true;
+    renderer.autoClear = false;
     gl = renderer.getContext();
     maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
