@@ -1714,6 +1714,15 @@ import { Stats } from "../stats.min.js";
       "Toggle automatic pausing"
     );
 
+    addToggle(
+      timeButtonList,
+      "performanceMode",
+      '<i class="fa-regular fa-gauge-high"></i> Performance mode',
+      setDefaultRenderSize,
+      null,
+      "Toggle performance mode, which lowers display quality to boost simulation speed"
+    );
+
     controllers["autoPauseAt"] = root
       .add(options, "autoPauseAt")
       .name("Pause at $t=$")
@@ -3507,11 +3516,11 @@ import { Stats } from "../stats.min.js";
   // Set the y diffusion coefficients to be equal to the x counterparts.
   function setEqualYDiffusionCoefficientsShader(label) {
     let out = "";
-    out += "float D" + label + "y = D" + label + "x;\n";
-    out += "float D" + label + "yL = D" + label + "xL;\n";
-    out += "float D" + label + "yR = D" + label + "xR;\n";
-    out += "float D" + label + "yT = D" + label + "xT;\n";
-    out += "float D" + label + "yB = D" + label + "xB;\n";
+    out += "#define D" + label + "y D" + label + "x\n";
+    out += "#define D" + label + "yL D" + label + "xL\n";
+    out += "#define D" + label + "yR D" + label + "xR\n";
+    out += "#define D" + label + "yT D" + label + "xT\n";
+    out += "#define D" + label + "yB D" + label + "xB\n";
     return out;
   }
 
@@ -3785,9 +3794,9 @@ import { Stats } from "../stats.min.js";
       diffusionShader +=
         parseCrossDiffusionStrings() +
         "\n" +
-        RDShaderUpdateCross(options.numSpecies);
+        RDShaderUpdateCross(Number(options.numSpecies));
     } else {
-      diffusionShader += RDShaderUpdateNormal(options.numSpecies);
+      diffusionShader += RDShaderUpdateNormal(Number(options.numSpecies));
     }
 
     // If 2 or more variables are algebraic, check that we don't have any cyclic dependencies.
@@ -7255,9 +7264,11 @@ import { Stats } from "../stats.min.js";
   }
 
   function setDefaultRenderSize() {
+    let scaleFactor = devicePixelRatio;
+    if (options.performanceMode) scaleFactor = 0.4;
     renderer.setSize(
-      Math.round(devicePixelRatio * canvasWidth),
-      Math.round(devicePixelRatio * canvasHeight),
+      Math.round(scaleFactor * canvasWidth),
+      Math.round(scaleFactor * canvasHeight),
       false
     );
   }

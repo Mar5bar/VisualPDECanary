@@ -3294,6 +3294,7 @@ export function getListOfPresets() {
     overlayExpr: "1",
     overlayLineWidthMul: 1,
     parent: null,
+    performanceMode: false,
     plotType: "plane",
     preset: "default",
     randSeed: 0,
