@@ -2662,7 +2662,6 @@ export function getListOfPresets() {
     domainScale: "100",
     dt: 0.001,
     maxColourValue: 2.3,
-    numTimestepsPerFrame: 200,
     preset: "Alan",
     renderSize: 652,
     reactionStr_1: "(1-I_T) - u + u^2*v",
