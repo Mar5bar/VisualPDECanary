@@ -28,7 +28,7 @@ jobs:
           message: "Update doclist.json"
       - name: Install terser
         run: npm install -g terser
-      - name: Run terser on RD scripts
+      - name: Run terser on sim/scripts
         run: |
           find . -name "*.js" | while read file; do
             terser --compress --mangle --module --output "$file" -- "$file"
