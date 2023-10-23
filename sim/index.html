@@ -114,6 +114,7 @@
 <div class="ui hidden ui_button" id="pause" title="Pause (space)"><i class="fa-solid fa-pause"></i></div>
 <div class="ui hidden ui_button" id="erase" title="Restart (R)"><i class="fa-solid fa-arrow-rotate-left"></i></div>
 <div class="ui hidden ui_button" id="share" title="Share"><i class="fa-solid fa-share-from-square"></i></div>
+<div style="display:none" class="ui hidden ui_button" id="stop_recording" title="Stop recording"><i class="fa-solid fa-video-slash"></i></div>
 <div class="message" id="link_copied"><p>Copied to clipboard</p></div>
 <div class="message" id="get_help"><p>Get help here anytime</p></div>
 <div class="ui hidden ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div>
@@ -169,12 +170,13 @@
         <div id='title'>Share your simulation</div>
         <div id='link' class='button'><i class="share-icon fa-solid fa-link"></i>Copy link</div>
         <div id='screenshot' class='button'><i class="share-icon fa-solid fa-camera"></i>Save image</div>
-            <div id='embed' class='button'><i class="share-icon fa-solid fa-code"></i>Embed</div>
-            <select id="embed_ui_type">
-                <option value="full">Full UI</option>
-                <option value="story">Basic UI</option>
-                <option value="none">No UI</option>
-            </select>
+        <div id='record' class='button'><i class="share-icon fa-solid fa-video"></i>Record clip</div>
+        <div id='embed' class='button'><i class="share-icon fa-solid fa-code"></i>Embed</div>
+        <select id="embed_ui_type">
+            <option value="full">Full UI</option>
+            <option value="story">Basic UI</option>
+            <option value="none">No UI</option>
+        </select>
     </div>
     <div class="arrow"></div>
 </div>

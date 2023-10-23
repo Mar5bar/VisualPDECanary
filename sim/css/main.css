@@ -231,12 +231,6 @@ canvas {
   outline-color: var(--ui-button-outline);
 }
 
-@media (hover: hover) {
-  .ui_button:hover {
-    color: black;
-  }
-}
-
 .ui_button.top {
   top: 0px !important;
 }
@@ -276,6 +270,12 @@ canvas {
   right: var(--ui-button-h-gap);
 }
 
+#stop_recording {
+  top: 130px;
+  right: var(--ui-button-h-gap);
+  color: #ff0000;
+}
+
 #equations {
   top: 0px;
   left: var(--ui-button-h-gap);
@@ -294,6 +294,15 @@ canvas {
 #link {
   top: 130px;
   right: var(--ui-button-h-gap);
+}
+
+@media (hover: hover) {
+  .ui_button:hover {
+    color: black;
+  }
+  #stop_recording:hover {
+    color: #e00000;
+  } 
 }
 
 #link_copied,

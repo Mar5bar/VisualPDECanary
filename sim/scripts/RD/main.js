@@ -137,6 +137,7 @@ import { Stats } from "../stats.min.js";
     selectedEntries = new Set();
   let isRunning,
     isLoading = true,
+    isRecording = false,
     hasErrored = false,
     canAutoPause = true,
     isDrawing,
@@ -149,6 +150,7 @@ import { Stats } from "../stats.min.js";
     compileErrorOccurred = false,
     NaNTimer,
     topMessageTimer,
+    recordingTimer,
     uiHidden = false,
     checkpointExists = false,
     nextViewNumber = 0,
@@ -195,7 +197,9 @@ import { Stats } from "../stats.min.js";
     "4SpeciesCrossDiffusionAlgebraicVWQ", // 12
   ];
   let equationType, algebraicV, algebraicW, algebraicQ;
-  let takeAScreenshot = false;
+  let takeAScreenshot = false,
+    mediaRecorder,
+    videoChunks;
   let buffer,
     stateBuffer,
     postBuffer,
@@ -457,6 +461,15 @@ import { Stats } from "../stats.min.js";
     takeAScreenshot = true;
     render();
     toggleSharePanel();
+  });
+  $("#record").click(function () {
+    // Record a video of the simulation.
+    startRecording();
+    toggleSharePanel();
+  });
+  $("#stop_recording").click(function () {
+    // Stop recording a video of the simulation.
+    stopRecording();
   });
   $("#link").click(function () {
     funsObj.copyConfigAsURL();
@@ -3339,6 +3352,7 @@ import { Stats } from "../stats.min.js";
       $("#play").show();
     }
     isRunning = false;
+    stopRecording();
     renderIfNotRunning();
   }
 
@@ -8125,5 +8139,94 @@ import { Stats } from "../stats.min.js";
     moreInfo.classList.add("shepherd-more-info");
     moreInfo.innerText = label ? label : `More info.`;
     footer?.insertBefore(moreInfo, footer.firstChild);
+  }
+
+  function startRecording() {
+    if (isRecording) return;
+    isRecording = true;
+    videoChunks = [];
+    const type = getBestVideoType();
+    if (!type) {
+      isRecording = false;
+      throwError("Your browser doesn't support recording video. Sorry!");
+      return;
+    }
+    // Capture a stream of at most 30fps from the canvas.
+    var stream = canvas.captureStream(30);
+    mediaRecorder = new MediaRecorder(stream, {
+      mimeType: type,
+    });
+    mediaRecorder.ondataavailable = (evt) => {
+      videoChunks.push(evt.data);
+    };
+    // When stopping, create and download the video.
+    mediaRecorder.onstop = function (e) {
+      var blob = new Blob(videoChunks, { type: type });
+      const recording_url = URL.createObjectURL(blob);
+      // Attach the object URL to an <a> element, setting the download file name
+      const a = document.createElement("a");
+      a.style = "display: none;";
+      a.href = recording_url;
+      a.download = "VisualPDERecording";
+      document.body.appendChild(a);
+      // Trigger the file download
+      a.click();
+      setTimeout(() => {
+        // Clean up. Firefox demands it be on a timeout.
+        URL.revokeObjectURL(recording_url);
+        document.body.removeChild(a);
+      }, 100);
+    };
+
+    mediaRecorder.start();
+    $("#stop_recording").show();
+    // Stop recording automatically after 60s.
+    window.clearTimeout(recordingTimer);
+    recordingTimer = setTimeout(stopRecording, 60000);
+  }
+
+  function stopRecording() {
+    if (!isRecording) return;
+    mediaRecorder.stop();
+    $("#stop_recording").hide();
+    isRecording = false;
+  }
+
+  function getBestVideoType() {
+    const media = "video";
+    const types = ["webm", "ogg", "mp4", "x-matroska"];
+    const codecs = [
+      "should-not-be-supported",
+      "vp9",
+      "vp9.0",
+      "vp8",
+      "vp8.0",
+      "avc1",
+      "av1",
+      "h265",
+      "h.265",
+      "h264",
+      "h.264",
+      "opus",
+      "pcm",
+      "aac",
+      "mpeg",
+      "mp4a",
+    ];
+    const isSupported = MediaRecorder.isTypeSupported;
+    const supported = [];
+    types.forEach((type) => {
+      const mimeType = `${media}/${type}`;
+      codecs.forEach((codec) =>
+        [
+          `${mimeType};codecs=${codec}`,
+          `${mimeType};codecs=${codec.toUpperCase()}`,
+        ].forEach((variation) => {
+          if (isSupported(variation)) supported.push(variation);
+        })
+      );
+      if (isSupported(mimeType)) supported.push(mimeType);
+    });
+    return supported.length ? supported[0] : false;
   }
 })();
