@@ -343,7 +343,8 @@ canvas {
   right: auto;
   transform: translateX(-50%);
   padding-right: 33px;
-  border-radius: 5px 0 0 5px;
+  border-radius: 5px;
+  border-right: none;
 }
 
 #recording p {
