@@ -1,6 +1,13 @@
 export function getColours(sel) {
   let colours = [];
   switch (sel) {
+    case "retro" :
+      colours.push([0.69, 0.79, 0.73, 0.0]);
+      colours.push([0.69, 0.79, 0.73, 0.5]);
+      colours.push([0.69, 0.79, 0.73, 0.5]);
+      colours.push([0.31, 0.33, 0.31, 0.5]);
+      colours.push([0.31, 0.33, 0.31, 1]);
+      break;
     case "greyscale":
       colours.push([0.0, 0.0, 0.0, 0.0]);
       colours.push([0.25, 0.25, 0.25, 0.25]);

@@ -2366,6 +2366,7 @@ import { Stats } from "../stats.min.js";
         "Lava flow": "lavaflow",
         Midnight: "midnight",
         Pastels: "pastels",
+        Retro: "retro",
         "Simply blue": "blue",
         "Snow Ghost": "snowghost",
         Thermal: "thermal",
