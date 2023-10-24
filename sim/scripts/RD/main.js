@@ -464,6 +464,7 @@ import { Stats } from "../stats.min.js";
   });
   $("#record").click(function () {
     // Record a video of the simulation.
+    stopRecording();
     startRecording();
     toggleSharePanel();
   });
@@ -8179,7 +8180,7 @@ import { Stats } from "../stats.min.js";
     };
 
     mediaRecorder.start();
-    $("#stop_recording").show();
+    $("#recording").show();
     // Stop recording automatically after 60s.
     window.clearTimeout(recordingTimer);
     recordingTimer = setTimeout(stopRecording, 60000);
@@ -8187,8 +8188,9 @@ import { Stats } from "../stats.min.js";
 
   function stopRecording() {
     if (!isRecording) return;
+    window.clearTimeout(recordingTimer);
     mediaRecorder.stop();
-    $("#stop_recording").hide();
+    $("#recording").hide();
     isRecording = false;
   }
 

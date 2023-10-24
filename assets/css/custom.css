@@ -328,6 +328,8 @@ a.collection::after {
 
 .ui_button_documentation#stop_recording {
   color: #ff0000;
+  width: 30px;
+  height: 24px;
 }
 
 li .ui_button_documentation {

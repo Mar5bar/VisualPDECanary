@@ -271,9 +271,20 @@ canvas {
 }
 
 #stop_recording {
-  top: 130px;
-  right: var(--ui-button-h-gap);
   color: #ff0000;
+  display: inline-flex;
+  font-size: 0.9rem;
+  height: 100%;
+  width: 28px;
+  margin: 0;
+  margin-left: 5px;
+  pointer-events: all;
+  vertical-align: middle;
+  border: 0px;
+  border-radius: 0 5px 5px 0;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  top: -2px;
 }
 
 #equations {
@@ -306,7 +317,8 @@ canvas {
 }
 
 #link_copied,
-#get_help {
+#get_help, 
+#recording {
   position: absolute;
   right: 50px;
   transform: translateY(-50%);
@@ -323,6 +335,49 @@ canvas {
 
 #get_help {
   top: 74px;
+}
+
+#recording {
+  top: 5px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  margin-right: 25px;
+  border-radius: 5px 0 0 5px;
+}
+
+#recording p {
+  display: inline;
+}
+
+.circle, .circle::before {
+  display: inline-block;
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 5px;
+  transition: all 0.3s;
+  background-color: #FF0055;
+}
+
+.circle::before {
+  animation: blink 2s infinite;
+  position: absolute;
+  margin-left: 5px;
+  left: 0px;
+  background-color: #00FF00
+}
+
+@keyframes blink {
+  50%   {
+    transform: scale(2);
+    opacity: 0
+  }
+  100%   {
+    transform: scale(2);
+    opacity: 0
+  }
 }
 
 #equation_display div mjx-container {
