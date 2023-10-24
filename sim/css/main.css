@@ -342,7 +342,7 @@ canvas {
   left: 50%;
   right: auto;
   transform: translateX(-50%);
-  margin-right: 25px;
+  padding-right: 33px;
   border-radius: 5px 0 0 5px;
 }
 
