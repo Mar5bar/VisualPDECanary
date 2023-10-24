@@ -151,6 +151,7 @@ import { Stats } from "../stats.min.js";
     NaNTimer,
     topMessageTimer,
     recordingTimer,
+    recordingTextInterval,
     uiHidden = false,
     checkpointExists = false,
     nextViewNumber = 0,
@@ -8184,6 +8185,15 @@ import { Stats } from "../stats.min.js";
     // Stop recording automatically after 60s.
     window.clearTimeout(recordingTimer);
     recordingTimer = setTimeout(stopRecording, 60000);
+    const startTime = new Date().getTime();
+    // Update the recording display to include a timer.
+    recordingTextInterval = setInterval(function () {
+      var now = new Date().getTime();
+      var distance = now - startTime;
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      document.getElementById("recording_time").innerHTML =
+        "(" + seconds + "s)";
+    }, 1000);
   }
 
   function stopRecording() {
@@ -8191,6 +8201,8 @@ import { Stats } from "../stats.min.js";
     window.clearTimeout(recordingTimer);
     mediaRecorder.stop();
     $("#recording").hide();
+    clearInterval(recordingTextInterval);
+    document.getElementById("recording_time").innerHTML = "";
     isRecording = false;
   }
 

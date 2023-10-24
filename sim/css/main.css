@@ -350,6 +350,10 @@ canvas {
   display: inline;
 }
 
+#recording_time {
+  font-family: monospace;
+}
+
 .circle, .circle::before {
   display: inline-block;
   content: "";
