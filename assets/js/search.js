@@ -83,7 +83,7 @@ function lunr_search(term) {
           "^0.0001 ";
       });
     var results = index.search(searchterm);
-
+    
     if (results.length > 0) {
       for (var i = 0; i < results.length; i++) {
         // more statements

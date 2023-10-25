@@ -13,7 +13,7 @@ onSubmit="lunr_search(document.getElementById('lunrsearchinput').value); return 
       maxlength="255"
       value=""
       placeholder="Search"
-      onfocus="document.getElementById('lunrsearchform').onsubmit();"
+      onfocus="document.getElementById('lunrsearchform').onsubmit();window.gtag?.('event', 'site_search');"
       oninput="document.getElementById('lunrsearchform').onsubmit();"
       />
       <div id="lunrsearchresults" tabindex="0">
