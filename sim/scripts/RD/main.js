@@ -3369,7 +3369,6 @@ import { Stats } from "../stats.min.js";
       $("#play").show();
     }
     isRunning = false;
-    stopRecording();
     renderIfNotRunning();
   }
 
