@@ -3124,6 +3124,11 @@ export function getListOfPresets() {
     timesteppingScheme: "Euler",
   };
 
+  listOfPresets["Subcriticality"] = {
+    preset: "Subcriticality",
+    parent: "subcriticalGS",
+  };
+
   listOfPresets["subcriticalGS"] = {
     preset: "subcriticalGS",
     reactionStr_1: "-u*v^2 + 0.037*(1.0 - u)",
