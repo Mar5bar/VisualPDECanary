@@ -372,6 +372,7 @@ import { Stats } from "../stats.min.js";
   }
   if (params.has("options")) {
     // If options have been provided, apply them on top of loaded options.
+    window.gtag?.("event", "custom_link_followed");
     var newParams = JSON.parse(
       LZString.decompressFromEncodedURIComponent(params.get("options"))
     );
@@ -410,7 +411,7 @@ import { Stats } from "../stats.min.js";
 
   /* GUI settings and equations buttons */
   $("#settings").click(function () {
-    window.gtag?.('event', 'settings_open');
+    window.gtag?.("event", "settings_open");
     toggleRightUI();
     if ($("#right_ui").is(":visible") && $("#help_panel").is(":visible")) {
       toggleHelpPanel();
@@ -425,7 +426,7 @@ import { Stats } from "../stats.min.js";
     if ($("#left_ui").is(":visible")) resizeEquationDisplay();
   });
   $("#equations").click(function () {
-    window.gtag?.('event', 'equations_open');
+    window.gtag?.("event", "equations_open");
     toggleLeftUI();
     resizeEquationDisplay();
     if (
@@ -446,32 +447,32 @@ import { Stats } from "../stats.min.js";
     playSim();
   });
   $("#erase").click(function () {
-    window.gtag?.('event', 'sim_reset');
+    window.gtag?.("event", "sim_reset");
     resetSim();
   });
   $("#share").click(function () {
-    window.gtag?.('event', 'share_menu_open');
+    window.gtag?.("event", "share_menu_open");
     toggleSharePanel();
     if ($("#help_panel").is(":visible")) {
       toggleHelpPanel();
     }
   });
   $("#help").click(function () {
-    window.gtag?.('event', 'help_menu_open');
+    window.gtag?.("event", "help_menu_open");
     toggleHelpPanel();
     if ($("#share_panel").is(":visible")) {
       toggleSharePanel();
     }
   });
   $("#screenshot").click(function () {
-    window.gtag?.('event', 'screenshot');
+    window.gtag?.("event", "screenshot");
     takeAScreenshot = true;
     render();
     toggleSharePanel();
   });
   $("#record").click(function () {
     // Record a video of the simulation.
-    window.gtag?.('event', 'recording_started');
+    window.gtag?.("event", "recording_started");
     stopRecording();
     startRecording();
     toggleSharePanel();
@@ -481,12 +482,12 @@ import { Stats } from "../stats.min.js";
     stopRecording();
   });
   $("#link").click(function () {
-    window.gtag?.('event', 'link_copied');
+    window.gtag?.("event", "link_copied");
     funsObj.copyConfigAsURL();
     toggleSharePanel();
   });
   $("#embed").click(function () {
-    window.gtag?.('event', 'embed');
+    window.gtag?.("event", "embed");
     copyIframe();
     toggleSharePanel();
   });
@@ -497,7 +498,7 @@ import { Stats } from "../stats.min.js";
     toggleHelpPanel();
   });
   $("#views").click(function () {
-    window.gtag?.('event', 'views_open');
+    window.gtag?.("event", "views_open");
     toggleViewsUI();
     if (
       window.innerWidth < 629 &&
@@ -523,7 +524,7 @@ import { Stats } from "../stats.min.js";
   $("#start_tour").click(function () {
     $("#welcome").css("display", "none");
     tour.start();
-    window.gtag?.('event', 'manual_intro_tour');
+    window.gtag?.("event", "manual_intro_tour");
   });
 
   // New, rename, delete
@@ -727,10 +728,10 @@ import { Stats } from "../stats.min.js";
           Shepherd.once(event, () => resolve());
         });
         tour.start();
-        window.gtag?.('event', 'intro_tour');
+        window.gtag?.("event", "intro_tour");
       });
     } else {
-      window.gtag?.('event', 'skip_intro_tour');
+      window.gtag?.("event", "skip_intro_tour");
     }
     if ($("#help").is(":visible")) {
       $("#get_help").fadeIn(1000);
