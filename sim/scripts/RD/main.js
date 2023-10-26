@@ -2277,9 +2277,8 @@ import { Stats } from "../stats.min.js";
       '<i class="fa-regular fa-display"></i> Antialias',
       function () {
         localStorage.setItem("AA", localOpts.antialias);
-        funsObj.copyConfigAsURL();
         alert(
-          "Toggling antialiasing requires a page reload. We've copied the current simulation link to your clipboard."
+          "Toggling antialiasing requires a page reload. We recommend generating a link to the current simulation if you've modified anything."
         );
       },
       undefined,
