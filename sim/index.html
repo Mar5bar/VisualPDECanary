@@ -69,8 +69,11 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-ZDK91GRY6Y');
+        // If we're on localhost, disable GA.
+        if ((location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+            window['ga-disable-G-ZDK91GRY6Y'] = true;
+          }
     </script>
 
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.webp">
