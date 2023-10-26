@@ -8222,15 +8222,9 @@ import { Stats } from "../stats.min.js";
 
   function getBestVideoType() {
     const media = "video";
-    const types = ["mp4", "x-matroska"];
+    const types = ["mp4"];
     const codecs = [
       "should-not-be-supported",
-      "vp9",
-      "vp9.0",
-      "vp8",
-      "vp8.0",
-      "avc1",
-      "av1",
       "h265",
       "h.265",
       "h264",
