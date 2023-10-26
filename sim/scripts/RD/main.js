@@ -8171,6 +8171,7 @@ import { Stats } from "../stats.min.js";
     var stream = canvas.captureStream(30);
     mediaRecorder = new MediaRecorder(stream, {
       mimeType: type,
+      videoBitsPerSecond: 8000000,
     });
     mediaRecorder.ondataavailable = (evt) => {
       videoChunks.push(evt.data);
