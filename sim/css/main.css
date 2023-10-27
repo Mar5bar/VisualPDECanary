@@ -1184,11 +1184,16 @@ select {
   display: none;
 }
 
-#embed {
+#embed,
+#record {
   display: inline-block;
 }
 
 #embed_ui_type {
+  margin-left: 14px;
+}
+
+#video_quality {
   margin-left: 5px;
 }
 

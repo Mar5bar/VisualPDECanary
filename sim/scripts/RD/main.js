@@ -481,6 +481,9 @@ import { Stats } from "../stats.min.js";
     // Stop recording a video of the simulation.
     stopRecording();
   });
+  $("#video_quality").change(function () {
+    $("#video_quality").blur();
+  });
   $("#link").click(function () {
     window.gtag?.("event", "link_copied");
     funsObj.copyConfigAsURL();
@@ -8167,11 +8170,23 @@ import { Stats } from "../stats.min.js";
       throwError("Your browser doesn't support recording video. Sorry!");
       return;
     }
+    let quality = 8000000;
+    switch (document.getElementById("video_quality").value) {
+      case "SD":
+        quality = 2000000;
+        break;
+      case "HD":
+        quality = 8000000;
+        break;
+      case "UHD":
+        quality = 32000000;
+        break;
+    }
     // Capture a stream of at most 30fps from the canvas.
     var stream = canvas.captureStream(30);
     mediaRecorder = new MediaRecorder(stream, {
       mimeType: type,
-      videoBitsPerSecond: 8000000,
+      videoBitsPerSecond: quality,
     });
     mediaRecorder.ondataavailable = (evt) => {
       videoChunks.push(evt.data);
