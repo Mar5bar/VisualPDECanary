@@ -367,6 +367,7 @@ import { Stats } from "../stats.min.js";
   let shouldLoadDefault = true;
   if (params.has("preset")) {
     // If a preset is specified, load it.
+    window.gtag?.("event", "preset: " + params.get("preset"));
     loadPreset(params.get("preset"));
     shouldLoadDefault = false;
   }
