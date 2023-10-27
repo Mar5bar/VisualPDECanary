@@ -277,6 +277,9 @@ Show/hide the elapsed time since the simulation was loaded/reset.
 * ***Auto pause***\
 Set the simulation to be automatically paused when the time ($t$) passes a custom threshold, which can be configured when this option is enabled. You can resume an auto-paused simulation by pressing {{ layout.play }}
 
+* ***Performance mode***\
+Reduces the quality of the display in order to boost simulation performance. Different simulations and devices will benefit differently from this setting. On average, we see an increase of around 6fps on a Mac Mini M1 on the 'BenchmarkingFast' preset in 4K resolution.
+
 ### Equations <a id='equations_sub'>
 * ***No. species***\
 Specify the number of unknowns (1, 2, 3, or 4) in the simulation.
@@ -326,11 +329,15 @@ Use this option to force the use of manual, unoptimised filtering in place of de
 Set the seed of the (pseudo)random number generator used to assign values to 'RAND' and 'RANDN' in all free-text fields in the VisualPDE interface. Note that 'RAND' and 'RANDN' always vary in space. A specific random seed in the form of a numerical value can be configured (default 0).
 
 * ***Dev***\
-Tools intended for the development of VisualPDE. 
+Tools intended for the development and benchmarking of VisualPDE. 
 
     ***Copy code*** will copy a verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples. It will base the example on the selected 'parent' preset, which can be useful if you're making multiple slightly different versions of a simulation. 
 
     ***Copy debug*** will copy a selection of configuration information to your clipboard (handy when reporting bugs).
+
+    ***Show stats*** will toggle the display of performance statistics in the lower left corner of the display. We use this to benchmark performance impacts of new features and optimisations.
+
+    ***Antialias*** will toggle the use of antialiasing when displaying the simulation. Antialiasing in VisualPDE smooths out the jagged edges of displayed vector fields, though always causes a slight device-dependent performance loss. This is off by default for mobile devices, but can be overridden. Toggle requires a page reload.
 
 ---
 

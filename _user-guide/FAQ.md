@@ -28,8 +28,8 @@ VisualPDE is designed for sharing. Whether you've fallen in love with one of our
 
 These links can be quite long, so we recommend using a (free) shortening service like [tinyURL.com](https://tinyurl.com/app) if you want a concise link for sharing.
 
-### How do I take a pretty screenshot without all the user interface showing up?
-Screenshots are simple in VisualPDE. Simply open the share sheet by clicking {{ layout.share }} and click 'Save image' to download a screenshot to your device.
+### How do I take a pretty screenshot or video without all the user interface showing up?
+Screenshots and videos are simple in VisualPDE. Simply open the share sheet by clicking {{ layout.share }} and click 'Save image' to download a screenshot to your device, or 'Record clip' to begin a recording that will download to your device when done. Recordings can be up to 60s long and will stop before then if you pause the simulation or click {{ layout.stop_recording }}
 
 ### Can I embed VisualPDE in my own site?
 Yes you can! Clicking {{ layout.share }} and then 'Embed' will put an [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) element on your clipboard that points to the current simulation. You can specify the complexity of the user interface that you want to be visible, selecting from the full experience, the minimal interface used in our [Visual Stories](/visual-stories), or no user interface at all. If you do this, we'd love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com) so we can check out your site and your simulation!

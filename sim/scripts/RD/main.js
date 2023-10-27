@@ -14,6 +14,7 @@ import {
   postGenericShaderBot,
   postShaderDomainIndicator,
   interpolationShader,
+  minMaxShader,
 } from "./post_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import {
@@ -37,6 +38,7 @@ import {
   RDShaderGhostX,
   RDShaderGhostY,
   RDShaderMain,
+  clampSpeciesToEdgeShader,
 } from "./simulation_shaders.js";
 import { randShader, randNShader } from "../rand_shader.js";
 import {
@@ -74,6 +76,7 @@ import {
   substituteGreek,
 } from "./TEX.js";
 import { closestMatch } from "../../../assets/js/closest-match.js";
+import { Stats } from "../stats.min.js";
 
 (async function () {
   let canvas, gl, manualInterpolationNeeded;
@@ -90,6 +93,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     postTexture,
     interpolationTexture,
     simTextureOpts,
+    minMaxTextures = [],
     checkpointTexture;
   let basicMaterial,
     displayMaterial,
@@ -104,12 +108,18 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     arrowMaterial,
     interpolationMaterial,
     checkpointMaterial,
+    minMaxMaterial,
     tailGeometry,
     headGeometry;
   let domain, simDomain, clickDomain, line, overlayLine;
   let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
   let colourmap, colourmapEndpoints;
-  let options, uniforms, funsObj, savedOptions;
+  let options,
+    uniforms,
+    minMaxUniforms,
+    funsObj,
+    savedOptions,
+    localOpts = {};
   let leftGUI,
     rightGUI,
     viewsGUI,
@@ -127,6 +137,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     selectedEntries = new Set();
   let isRunning,
     isLoading = true,
+    isRecording = false,
     hasErrored = false,
     canAutoPause = true,
     isDrawing,
@@ -139,11 +150,15 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     compileErrorOccurred = false,
     NaNTimer,
     topMessageTimer,
+    recordingTimer,
+    recordingTextInterval,
     uiHidden = false,
     checkpointExists = false,
     nextViewNumber = 0,
+    frameCount = 0,
     seed = performance.now(),
     updatingAlgebraicSpecies = false,
+    valueRange = null,
     viewUIOffsetInit;
   let spatialStepValue,
     nXDisc,
@@ -183,7 +198,9 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     "4SpeciesCrossDiffusionAlgebraicVWQ", // 12
   ];
   let equationType, algebraicV, algebraicW, algebraicQ;
-  let takeAScreenshot = false;
+  let takeAScreenshot = false,
+    mediaRecorder,
+    videoChunks;
   let buffer,
     stateBuffer,
     postBuffer,
@@ -215,6 +232,11 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   parser.consts.Pi = Math.PI;
   parser.consts.e = Math.exp(1.0);
 
+  const stats = new Stats();
+  stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+  stats.dom.id = "stats";
+  document.body.appendChild(stats.dom);
+
   // Setup some configurable options.
   options = {};
 
@@ -231,7 +253,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     },
     copyConfigAsURL: function () {
       let str = getSimURL();
-      copyLinkToClipboard(str);
+      copyToClipboard(str);
     },
     saveSimState: function () {
       saveSimState();
@@ -350,6 +372,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   }
   if (params.has("options")) {
     // If options have been provided, apply them on top of loaded options.
+    window.gtag?.("event", "custom_link_followed");
     var newParams = JSON.parse(
       LZString.decompressFromEncodedURIComponent(params.get("options"))
     );
@@ -388,6 +411,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 
   /* GUI settings and equations buttons */
   $("#settings").click(function () {
+    window.gtag?.("event", "settings_open");
     toggleRightUI();
     if ($("#right_ui").is(":visible") && $("#help_panel").is(":visible")) {
       toggleHelpPanel();
@@ -402,6 +426,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     if ($("#left_ui").is(":visible")) resizeEquationDisplay();
   });
   $("#equations").click(function () {
+    window.gtag?.("event", "equations_open");
     toggleLeftUI();
     resizeEquationDisplay();
     if (
@@ -422,30 +447,50 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     playSim();
   });
   $("#erase").click(function () {
+    window.gtag?.("event", "sim_reset");
     resetSim();
   });
   $("#share").click(function () {
+    window.gtag?.("event", "share_menu_open");
     toggleSharePanel();
     if ($("#help_panel").is(":visible")) {
       toggleHelpPanel();
     }
   });
   $("#help").click(function () {
+    window.gtag?.("event", "help_menu_open");
     toggleHelpPanel();
     if ($("#share_panel").is(":visible")) {
       toggleSharePanel();
     }
   });
   $("#screenshot").click(function () {
+    window.gtag?.("event", "screenshot");
     takeAScreenshot = true;
     render();
     toggleSharePanel();
   });
+  $("#record").click(function () {
+    // Record a video of the simulation.
+    window.gtag?.("event", "recording_started");
+    stopRecording();
+    startRecording();
+    toggleSharePanel();
+  });
+  $("#stop_recording").click(function () {
+    // Stop recording a video of the simulation.
+    stopRecording();
+  });
+  $("#video_quality").change(function () {
+    $("#video_quality").blur();
+  });
   $("#link").click(function () {
+    window.gtag?.("event", "link_copied");
     funsObj.copyConfigAsURL();
     toggleSharePanel();
   });
   $("#embed").click(function () {
+    window.gtag?.("event", "embed");
     copyIframe();
     toggleSharePanel();
   });
@@ -456,6 +501,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     toggleHelpPanel();
   });
   $("#views").click(function () {
+    window.gtag?.("event", "views_open");
     toggleViewsUI();
     if (
       window.innerWidth < 629 &&
@@ -481,6 +527,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   $("#start_tour").click(function () {
     $("#welcome").css("display", "none");
     tour.start();
+    window.gtag?.("event", "manual_intro_tour");
   });
 
   // New, rename, delete
@@ -684,7 +731,10 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
           Shepherd.once(event, () => resolve());
         });
         tour.start();
+        window.gtag?.("event", "intro_tour");
       });
+    } else {
+      window.gtag?.("event", "skip_intro_tour");
     }
     if ($("#help").is(":visible")) {
       $("#get_help").fadeIn(1000);
@@ -731,17 +781,24 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     // Initialise a vector of grid-clamped coordinates.
     clampedCoords = new THREE.Vector2();
 
+    // Check local storage to see if antialiasing has been specified.
+    // If not, default to on for desktop, off for mobile.
+    const antialias = localStorage.getItem("AA")
+      ? localStorage.getItem("AA") == "true"
+      : !onMobile() && devicePixelRatio < 3;
+    localOpts.antialias = antialias;
+
     // Create a renderer.
     renderer = new THREE.WebGLRenderer({
       canvas: canvas,
       preserveDrawingBuffer: true,
       powerPreference: "high-performance",
-      antialias: false,
+      antialias: antialias,
       alpha: true,
       premultipliedAlpha: false,
       stencilBuffer: false,
     });
-    renderer.autoClear = true;
+    renderer.autoClear = false;
     gl = renderer.getContext();
     maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
@@ -780,6 +837,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     interpolationTexture = simTextures[0].clone();
 
     // Periodic boundary conditions (for now).
+
     simTextures.forEach((simTex) => {
       simTex.texture.wrapS = THREE.RepeatWrapping;
       simTex.texture.wrapT = THREE.RepeatWrapping;
@@ -894,6 +952,11 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       side: THREE.DoubleSide,
     });
     checkpointMaterial = new THREE.MeshBasicMaterial();
+    minMaxMaterial = new THREE.ShaderMaterial({
+      uniforms: minMaxUniforms,
+      vertexShader: genericVertexShader(),
+      fragmentShader: minMaxShader(),
+    });
 
     // Geometry for arrows.
     tailGeometry = new THREE.CylinderGeometry(0.008, 0.008, 0.1);
@@ -1276,6 +1339,27 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 
     postTexture.setSize(nXDisc, nYDisc);
     postprocess();
+
+    // Dispose of and create new minmax textures.
+    minMaxTextures.forEach((tex) => tex.dispose());
+    minMaxTextures = [];
+    let w = nXDisc,
+      h = nYDisc;
+    const minmaxTextureOpts = {
+      format: THREE.RGBAFormat,
+      type: THREE.FloatType,
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+      wrapS: THREE.ClampToEdgeWrapping,
+      wrapT: THREE.ClampToEdgeWrapping,
+    };
+    // Create a number of minmax textures, each half the size of the previous.
+    while (w > 1 || h > 1) {
+      w = Math.max(1, Math.ceil(w / 2));
+      h = Math.max(1, Math.ceil(h / 2));
+      minMaxTextures.push(new THREE.WebGLRenderTarget(w, h, minmaxTextureOpts));
+    }
+
     // The interpolationTexture will match the number of pixels in the display.
     interpolationTexture.setSize(
       Math.round(devicePixelRatio * canvasWidth),
@@ -1428,6 +1512,17 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       vectorField: {
         type: "bool",
         value: false,
+      },
+    };
+    minMaxUniforms = {
+      firstFlag: {
+        type: "bool",
+      },
+      srcResolution: {
+        type: "v2",
+      },
+      textureSource: {
+        type: "t",
       },
     };
   }
@@ -1650,6 +1745,15 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       },
       null,
       "Toggle automatic pausing"
+    );
+
+    addToggle(
+      timeButtonList,
+      "performanceMode",
+      '<i class="fa-regular fa-gauge-high"></i> Performance mode',
+      setDefaultRenderSize,
+      null,
+      "Toggle performance mode, which lowers display quality to boost simulation speed"
     );
 
     controllers["autoPauseAt"] = root
@@ -2159,6 +2263,34 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       "Copy debug information to the clipboard"
     );
 
+    addToggle(
+      devButtons,
+      "showStats",
+      '<i class="fa-regular fa-chart-line"></i> Show stats',
+      function () {
+        configureStatsGUI();
+      },
+      "interpController",
+      "Show performance statistics"
+    );
+
+    addToggle(
+      devButtons,
+      "antialias",
+      '<i class="fa-regular fa-display"></i> Antialias',
+      function () {
+        localStorage.setItem("AA", localOpts.antialias);
+        alert(
+          "Toggling antialiasing requires a page reload. We recommend generating a link to the current simulation if you've modified anything."
+        );
+      },
+      undefined,
+      "Antialias the display (useful for vector fields on low-res displays). Requires page reload.",
+      undefined,
+      undefined,
+      localOpts
+    );
+
     // Populate list of presets for parent selection.
     let listOfPresets = getListOfPresets();
     Object.keys(listOfPresets).forEach(function (key) {
@@ -2171,6 +2303,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       .onChange(function () {
         document.activeElement.blur();
       });
+
+    root.add(options, "guiUpdatePeriod").name("GUI update period)");
 
     // Add a title to the rightGUI.
     const settingsTitle = document.createElement("div");
@@ -2249,6 +2383,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
         "Lava flow": "lavaflow",
         Midnight: "midnight",
         Pastels: "pastels",
+        Retro: "retro",
         "Simply blue": "blue",
         "Snow Ghost": "snowghost",
         Thermal: "thermal",
@@ -2708,7 +2843,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   }
 
   function animate() {
-    requestAnimationFrame(animate);
+    if (options.showStats) stats.begin();
 
     hasDrawn = isDrawing;
     // Draw on any input from the user, which can happen even if timestepping is not running.
@@ -2741,6 +2876,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     if (hasDrawn || isRunning) {
       render();
     }
+    if (options.showStats) stats.end();
+    requestAnimationFrame(animate);
   }
 
   function setDrawAndDisplayShaders() {
@@ -2993,7 +3130,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     postprocess();
 
     // If selected, set the colour range.
-    if (options.autoSetColourRange) {
+    if (options.autoSetColourRange && !(frameCount % options.guiUpdatePeriod)) {
       setColourRange();
     }
 
@@ -3049,7 +3186,11 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     }
 
     // If a vector field is requested, update arrows. They will already be set as visible.
-    if (options.vectorField && arrowGroup) {
+    if (
+      options.vectorField &&
+      arrowGroup &&
+      !(frameCount % options.guiUpdatePeriod)
+    ) {
       // Update the direction of each arrow using the b and a components of postTexture.
       getPostState();
       let ind,
@@ -3097,12 +3238,12 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     }
 
     // If selected, update the time display.
-    if (options.timeDisplay) {
+    if (options.timeDisplay && !(frameCount % options.guiUpdatePeriod)) {
       updateTimeDisplay();
     }
 
     // If selected, update the integral display.
-    if (options.integrate) {
+    if (options.integrate && !(frameCount % options.guiUpdatePeriod)) {
       updateIntegralDisplay();
     }
 
@@ -3136,9 +3277,12 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       setSizes();
       render();
     }
+
+    frameCount = (frameCount + 1) % options.guiUpdatePeriod;
   }
 
   function postprocess() {
+    valueRange = null;
     simDomain.material = postMaterial;
     uniforms.textureSource.value = simTextures[1].texture;
     renderer.setRenderTarget(postTexture);
@@ -3228,6 +3372,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       $("#play").show();
     }
     isRunning = false;
+    renderIfNotRunning();
   }
 
   function playSim() {
@@ -3280,7 +3425,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       [options.diffusionStr_2_2, "vv"],
       [options.diffusionStr_3_3, "ww"],
       [options.diffusionStr_4_4, "qq"],
-    ];
+    ].slice(0, options.numSpecies);
 
     // Loop over the tuples.
     for (let [str, label] of tuples) {
@@ -3317,19 +3462,29 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     let out = "";
 
     const tuples = [
-      [options.diffusionStr_1_2, "uv"],
-      [options.diffusionStr_1_3, "uw"],
-      [options.diffusionStr_1_4, "uq"],
-      [options.diffusionStr_2_1, "vu"],
-      [options.diffusionStr_2_3, "vw"],
-      [options.diffusionStr_2_4, "vq"],
-      [options.diffusionStr_3_1, "wu"],
-      [options.diffusionStr_3_2, "wv"],
-      [options.diffusionStr_3_4, "wq"],
-      [options.diffusionStr_4_1, "qu"],
-      [options.diffusionStr_4_2, "qv"],
-      [options.diffusionStr_4_3, "qw"],
-    ];
+      [
+        [options.diffusionStr_1_2, "uv"],
+        [options.diffusionStr_1_3, "uw"],
+        [options.diffusionStr_1_4, "uq"],
+      ].slice(0, options.numSpecies - 1),
+      [
+        [options.diffusionStr_2_1, "vu"],
+        [options.diffusionStr_2_3, "vw"],
+        [options.diffusionStr_2_4, "vq"],
+      ].slice(0, options.numSpecies - 1),
+      [
+        [options.diffusionStr_3_1, "wu"],
+        [options.diffusionStr_3_2, "wv"],
+        [options.diffusionStr_3_4, "wq"],
+      ].slice(0, options.numSpecies - 1),
+      [
+        [options.diffusionStr_4_1, "qu"],
+        [options.diffusionStr_4_2, "qv"],
+        [options.diffusionStr_4_3, "qw"],
+      ].slice(0, options.numSpecies - 1),
+    ]
+      .slice(0, (options.numSpecies - 1) * options.numSpecies)
+      .flat(1);
 
     // Loop over the tuples.
     for (let [str, label] of tuples) {
@@ -3394,11 +3549,11 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   // Set the y diffusion coefficients to be equal to the x counterparts.
   function setEqualYDiffusionCoefficientsShader(label) {
     let out = "";
-    out += "float D" + label + "y = D" + label + "x;\n";
-    out += "float D" + label + "yL = D" + label + "xL;\n";
-    out += "float D" + label + "yR = D" + label + "xR;\n";
-    out += "float D" + label + "yT = D" + label + "xT;\n";
-    out += "float D" + label + "yB = D" + label + "xB;\n";
+    out += "#define D" + label + "y D" + label + "x\n";
+    out += "#define D" + label + "yL D" + label + "xL\n";
+    out += "#define D" + label + "yR D" + label + "xR\n";
+    out += "#define D" + label + "yT D" + label + "xT\n";
+    out += "#define D" + label + "yB D" + label + "xB\n";
     return out;
   }
 
@@ -3507,6 +3662,16 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     let robinShader = "";
     let diffusionShader = "";
     let algebraicShader = "";
+    let clampShader = "";
+
+    let edgeClampSpeciesH = [false, false, false, false];
+    let edgeClampSpeciesV = [false, false, false, false];
+
+    // Initially set all simulation textures to repeat wrapping for periodicity.
+    simTextures.forEach((simTex) => {
+      simTex.texture.wrapS = THREE.RepeatWrapping;
+      simTex.texture.wrapT = THREE.RepeatWrapping;
+    });
 
     const BCStrs = [
       options.boundaryConditions_1,
@@ -3542,6 +3707,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     // Create a Neumann shader block for each species separately, which is just a special case of Robin.
     BCStrs.forEach(function (str, ind) {
       if (str == "neumann") {
+        edgeClampSpeciesH[ind] = true;
+        edgeClampSpeciesV[ind] = true;
         neumannShader += parseRobinRHS(NStrs[ind], listOfSpecies[ind]);
         if (!options.domainViaIndicatorFun) {
           neumannShader += robinUpdateShader(ind);
@@ -3557,6 +3724,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
           const side = m[1][0].toUpperCase();
           neumannShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
           neumannShader += robinUpdateShader(ind, side);
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
         });
       }
     });
@@ -3571,6 +3740,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
         ].forEach(function (m) {
           const side = m[1][0].toUpperCase();
           ghostShader += ghostUpdateShader(ind, side, parseShaderString(m[2]));
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
         });
       }
     });
@@ -3578,6 +3749,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     // Create Dirichlet shaders.
     BCStrs.forEach(function (str, ind) {
       if (str == "dirichlet") {
+        edgeClampSpeciesH[ind] = true;
+        edgeClampSpeciesV[ind] = true;
         if (!options.domainViaIndicatorFun) {
           dirichletShader += parseDirichletRHS(DStrs[ind], listOfSpecies[ind]);
           dirichletShader += dirichletUpdateShader(ind);
@@ -3600,6 +3773,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
           const side = m[1][0].toUpperCase();
           dirichletShader += parseDirichletRHS(m[2], listOfSpecies[ind], side);
           dirichletShader += dirichletUpdateShader(ind, side);
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
         });
       } else if (options.domainViaIndicatorFun) {
         // Zero-out anything outside of the domain if we're using an indicator function.
@@ -3617,6 +3792,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     // Create a Robin shader block for each species separately.
     BCStrs.forEach(function (str, ind) {
       if (str == "robin") {
+        edgeClampSpeciesH[ind] = true;
+        edgeClampSpeciesV[ind] = true;
         robinShader += parseRobinRHS(RStrs[ind], listOfSpecies[ind]);
         if (!options.domainViaIndicatorFun) {
           robinShader += robinUpdateShader(ind);
@@ -3632,6 +3809,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
           const side = m[1][0].toUpperCase();
           robinShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
           robinShader += robinUpdateShader(ind, side);
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
         });
       }
     });
@@ -3646,9 +3825,11 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     diffusionShader = parseNormalDiffusionStrings() + "\n";
     if (options.crossDiffusion) {
       diffusionShader +=
-        parseCrossDiffusionStrings() + "\n" + RDShaderUpdateCross();
+        parseCrossDiffusionStrings() +
+        "\n" +
+        RDShaderUpdateCross(Number(options.numSpecies));
     } else {
-      diffusionShader += RDShaderUpdateNormal();
+      diffusionShader += RDShaderUpdateNormal(Number(options.numSpecies));
     }
 
     // If 2 or more variables are algebraic, check that we don't have any cyclic dependencies.
@@ -3748,8 +3929,38 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       return;
     }
 
+    // Edge clamp all the simulation textures if every species needs clamping.
+    if (edgeClampSpeciesH.every((x) => x)) {
+      simTextures.forEach((simTex) => {
+        simTex.texture.wrapS = THREE.ClampToEdgeWrapping;
+      });
+    } else {
+      // If only some species need clamping, we'll do it in the shader.
+      let channels = "";
+      edgeClampSpeciesH.forEach((x, ind) => {
+        if (x) channels += speciesToChannelChar(listOfSpecies[ind]);
+      });
+      clampShader += channels
+        ? clampSpeciesToEdgeShader("H").replaceAll(/\bSPECIES\b/g, channels)
+        : "";
+    }
+    if (edgeClampSpeciesV.every((x) => x)) {
+      simTextures.forEach((simTex) => {
+        simTex.texture.wrapT = THREE.ClampToEdgeWrapping;
+      });
+    } else {
+      let channels = "";
+      edgeClampSpeciesV.forEach((x, ind) => {
+        if (x) channels += speciesToChannelChar(listOfSpecies[ind]);
+      });
+      clampShader += channels
+        ? clampSpeciesToEdgeShader("V").replaceAll(/\bSPECIES\b/g, channels)
+        : "";
+    }
+
     // Using the constructed shader parts, we'll form fragment shaders for every possible timestepping scheme.
     let middle = [
+      clampShader,
       RDShaderAdvectionPreBC(),
       RDShaderDiffusionPreBC(),
       neumannShader,
@@ -4054,7 +4265,9 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     isRunning ? playSim() : pauseSim();
 
     // If we're on mobile, replace 'clicking' with 'tapping' in tryClickingText if it exists.
+    // Also, make sure that guiUpdatePeriod is at least 3.
     if (onMobile()) {
+      options.guiUpdatePeriod = Math.max(options.guiUpdatePeriod, 3);
       options.tryClickingText = options.tryClickingText.replaceAll(
         "clicking",
         "tapping"
@@ -4541,19 +4754,19 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   }
 
   function getMinMaxVal() {
-    // Return the min and max values in the simulation textures in channel channelInd.
     fillBuffer();
     let minVal = Infinity;
     let maxVal = -Infinity;
+    let v;
     for (let i = 0; i < buffer.length; i += 4) {
-      minVal = Math.min(minVal, buffer[i]);
-      maxVal = Math.max(maxVal, buffer[i]);
+      v = buffer[i];
+      minVal = minVal < v ? minVal : v;
+      maxVal = maxVal > v ? maxVal : v;
     }
     return [minVal, maxVal];
   }
 
   function getMeanVal() {
-    // Return the mean values in the simulation textures in channel channelInd.
     fillBuffer();
     let total = 0;
     for (let i = 0; i < buffer.length; i += 4) {
@@ -4890,6 +5103,8 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     });
     // Configure the Views GUI from options.views.
     configureViewsGUI();
+    // Configure the stats display.
+    configureStatsGUI();
     // Refresh the GUI displays.
     refreshGUI(leftGUI);
     refreshGUI(rightGUI);
@@ -6089,8 +6304,14 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 
   function checkForNaN() {
     // Check to see if a NaN value is in the first entry of the simulation array, which would mean that we've hit overflow or instability.
-    let vals = getMinMaxVal();
-    if (shouldCheckNaN && (!isFinite(vals[0]) || !isFinite(vals[1]))) {
+    setMinMaxValGPU();
+    if (
+      (shouldCheckNaN &&
+        (!isFinite(valueRange[0]) ||
+          Math.abs(valueRange[0]) > 1e37 ||
+          !isFinite(valueRange[1]))) ||
+      Math.abs(valueRange[1]) > 1e37
+    ) {
       shouldCheckNaN = false;
       fadein("#oops_hit_nan");
       pauseSim();
@@ -6122,6 +6343,40 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
         );
       }
       bufferFilled = true;
+    }
+  }
+
+  function setMinMaxValGPU() {
+    // Get the min and max vals in postTexture, using a shader to compute min and max on the GPU.
+    simDomain.material = minMaxMaterial;
+    minMaxUniforms.textureSource.value = postTexture.texture;
+    minMaxUniforms.srcResolution.value = new THREE.Vector2(nXDisc, nYDisc);
+    minMaxUniforms.firstFlag.value = true;
+    for (const curTex of minMaxTextures) {
+      renderer.setRenderTarget(curTex);
+      renderer.render(simDomain, simCamera);
+      minMaxUniforms.textureSource.value = curTex.texture;
+      minMaxUniforms.srcResolution.value = new THREE.Vector2(
+        curTex.width,
+        curTex.height
+      );
+      minMaxUniforms.firstFlag.value = false;
+    }
+    try {
+      const smallBuffer = new Float32Array(4);
+      renderer.readRenderTargetPixels(
+        minMaxTextures.slice(-1)[0],
+        0,
+        0,
+        1,
+        1,
+        smallBuffer
+      );
+      valueRange = [smallBuffer[0], smallBuffer[1]];
+    } catch {
+      alert(
+        "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!"
+      );
     }
   }
 
@@ -6616,9 +6871,9 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 
   function setColourRange() {
     // Set the range of the colour axis based on the extremes of the computed values.
-    let valRange = getMinMaxVal();
-    options.minColourValue = valRange[0];
-    options.maxColourValue = valRange[1];
+    setMinMaxValGPU();
+    options.minColourValue = valueRange[0];
+    options.maxColourValue = valueRange[1];
     uniforms.maxColourValue.value = options.maxColourValue;
     uniforms.minColourValue.value = options.minColourValue;
     controllers["maxColourValue"].updateDisplay();
@@ -7042,9 +7297,10 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   }
 
   function setDefaultRenderSize() {
+    let scaleFactor = options.performanceMode ? 0.6 : devicePixelRatio;
     renderer.setSize(
-      Math.round(devicePixelRatio * canvasWidth),
-      Math.round(devicePixelRatio * canvasHeight),
+      Math.round(scaleFactor * canvasWidth),
+      Math.round(scaleFactor * canvasHeight),
       false
     );
   }
@@ -7220,7 +7476,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   function buildViewFromOptions() {
     let view = {};
     fieldsInView.forEach(function (key) {
-      view[key] = savedOptions[key];
+      view[key] = options[key];
     });
     return view;
   }
@@ -7344,15 +7600,18 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     id,
     title,
     folderID,
-    classes
+    classes,
+    obj
   ) {
     const toggle = document.createElement("a");
+    if (obj == undefined) obj = options;
+    toggle.obj = obj;
     toggle.classList.add("toggle_button");
     toggle.setAttribute("property", property);
     if (onclick == undefined) onclick = () => {};
     toggle.onclick = function () {
-      options[toggle.getAttribute("property")] =
-        !options[toggle.getAttribute("property")];
+      toggle.obj[toggle.getAttribute("property")] =
+        !toggle.obj[toggle.getAttribute("property")];
       updateToggle(toggle);
       onclick();
     };
@@ -7405,7 +7664,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       .replaceAll("}", ",\n}");
     str = 'listOfPresets["PRESETNAME"] = ' + str + ";\n";
 
-    navigator.clipboard.writeText(str);
+    copyToClipboard(str);
   }
 
   function copyDebug() {
@@ -7421,7 +7680,15 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       aspectRatio: aspectRatio,
       canvas: canvas.getBoundingClientRect(),
     });
-    navigator.clipboard.writeText(str);
+    copyToClipboard(str);
+  }
+
+  function configureStatsGUI() {
+    if (options.showStats) {
+      stats.domElement.style.visibility = "";
+    } else {
+      stats.domElement.style.visibility = "hidden";
+    }
   }
 
   function toggleRightUI() {
@@ -7478,7 +7745,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       '<iframe style="border:0;width:100%;height:100%;" src="' +
       url +
       '" frameborder="0"></iframe>';
-    copyLinkToClipboard(str);
+    copyToClipboard(str);
   }
 
   function getSimURL() {
@@ -7495,7 +7762,7 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     return str;
   }
 
-  function copyLinkToClipboard(str) {
+  function copyToClipboard(str) {
     navigator.clipboard.writeText(str).then(
       () => {
         // Success.
@@ -7504,6 +7771,9 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
       },
       () => {
         // Failure.
+        throwError(
+          "For some reason, we couldn't copy to your device's clipboard. You might not be using HTTPS or there's something wrong on our end - sorry!"
+        );
       }
     );
   }
@@ -7624,11 +7894,13 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
   }
 
   function renderIfNotRunning() {
+    frameCount = 0;
     if (!isRunning) render();
   }
 
   function updateToggle(toggle) {
-    if (options[toggle.getAttribute("property")]) {
+    const obj = toggle.obj;
+    if (obj[toggle.getAttribute("property")]) {
       toggle.classList.add("toggled_on");
       if (toggle.getAttribute("folderID")) {
         $("#" + toggle.getAttribute("folderID")).removeClass("hidden");
@@ -7886,5 +8158,119 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
     moreInfo.classList.add("shepherd-more-info");
     moreInfo.innerText = label ? label : `More info.`;
     footer?.insertBefore(moreInfo, footer.firstChild);
+  }
+
+  function startRecording() {
+    if (isRecording) return;
+    isRecording = true;
+    videoChunks = [];
+    const type = getBestVideoType();
+    if (!type) {
+      isRecording = false;
+      throwError("Your browser doesn't support recording video. Sorry!");
+      return;
+    }
+    let quality = 8000000;
+    switch (document.getElementById("video_quality").value) {
+      case "SD":
+        quality = 2000000;
+        break;
+      case "HD":
+        quality = 8000000;
+        break;
+      case "UHD":
+        quality = 32000000;
+        break;
+    }
+    // Capture a stream of at most 30fps from the canvas.
+    var stream = canvas.captureStream(30);
+    mediaRecorder = new MediaRecorder(stream, {
+      mimeType: type,
+      videoBitsPerSecond: quality,
+    });
+    mediaRecorder.ondataavailable = (evt) => {
+      videoChunks.push(evt.data);
+    };
+    // When stopping, create and download the video.
+    mediaRecorder.onstop = function (e) {
+      var blob = new Blob(videoChunks, { type: type });
+      const recording_url = URL.createObjectURL(blob);
+      // Attach the object URL to an <a> element, setting the download file name
+      const a = document.createElement("a");
+      a.style = "display: none;";
+      a.href = recording_url;
+      a.download = "VisualPDERecording";
+      document.body.appendChild(a);
+      // Trigger the file download
+      a.click();
+      setTimeout(() => {
+        // Clean up. Firefox demands it be on a timeout.
+        URL.revokeObjectURL(recording_url);
+        document.body.removeChild(a);
+      }, 100);
+    };
+
+    mediaRecorder.start();
+    $("#recording").show();
+    // Stop recording automatically after 60s.
+    window.clearTimeout(recordingTimer);
+    recordingTimer = setTimeout(stopRecording, 60000);
+    const startTime = new Date().getTime();
+    // Update the recording display to include a timer.
+    recordingTextInterval = setInterval(function () {
+      var now = new Date().getTime();
+      var distance = now - startTime;
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      document.getElementById("recording_time").innerHTML =
+        "(" + seconds + "s)";
+    }, 1000);
+  }
+
+  function stopRecording() {
+    if (!isRecording) return;
+    window.clearTimeout(recordingTimer);
+    mediaRecorder.stop();
+    $("#recording").hide();
+    clearInterval(recordingTextInterval);
+    document.getElementById("recording_time").innerHTML = "";
+    isRecording = false;
+  }
+
+  function getBestVideoType() {
+    const media = "video";
+    const types = ["webm", "ogg", "mp4", "x-matroska"];
+    const codecs = [
+      "should-not-be-supported",
+      "vp9",
+      "vp9.0",
+      "vp8",
+      "vp8.0",
+      "avc1",
+      "av1",
+      "h265",
+      "h.265",
+      "h264",
+      "h.264",
+      "opus",
+      "pcm",
+      "aac",
+      "mpeg",
+      "mp4a",
+    ];
+    const isSupported = MediaRecorder.isTypeSupported;
+    const supported = [];
+    types.forEach((type) => {
+      const mimeType = `${media}/${type}`;
+      codecs.forEach((codec) =>
+        [
+          `${mimeType};codecs=${codec}`,
+          `${mimeType};codecs=${codec.toUpperCase()}`,
+        ].forEach((variation) => {
+          if (isSupported(variation)) supported.push(variation);
+        })
+      );
+      if (isSupported(mimeType)) supported.push(mimeType);
+    });
+    return supported.length ? supported[0] : false;
   }
 })();

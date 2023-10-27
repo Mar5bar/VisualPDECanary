@@ -61,7 +61,7 @@
     <script type="module" src="../assets/js/shepherd.min.js"></script>
     <link type="text/css" rel="stylesheet" href="../assets/css/shepherd.css">
     <script type="module" src="./scripts/dat_gui_mods.js"></script>
-    <script type="module" src="./scripts/RD/main.min.js"></script>
+    <script type="module" src="./scripts/RD/main.js"></script>
     <script src="./scripts/fitty.min.js"></script>
     <script src="./scripts/expr-eval.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"></script>
@@ -69,8 +69,11 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-ZDK91GRY6Y');
+        // If we're on localhost, disable GA.
+        if ((location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+            window['ga-disable-G-ZDK91GRY6Y'] = true;
+          }
     </script>
 
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.webp">
@@ -116,6 +119,10 @@
 <div class="ui hidden ui_button" id="share" title="Share"><i class="fa-solid fa-share-from-square"></i></div>
 <div class="message" id="link_copied"><p>Copied to clipboard</p></div>
 <div class="message" id="get_help"><p>Get help here anytime</p></div>
+<div class="message" id="recording">
+    <div class="circle"></div><p>Recording <span id="recording_time"></span></p>
+    <div class="ui_button" id="stop_recording" title="Stop recording"><i class="fa-solid fa-video-slash"></i></div>
+</div>
 <div class="ui hidden ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div>
 <div class="ui hidden ui_button" id="views" title="Views"><i class="fa-solid fa-layer-group"></i></div>
 
@@ -169,12 +176,23 @@
         <div id='title'>Share your simulation</div>
         <div id='link' class='button'><i class="share-icon fa-solid fa-link"></i>Copy link</div>
         <div id='screenshot' class='button'><i class="share-icon fa-solid fa-camera"></i>Save image</div>
+        <div>
+            <div id='record' class='button'><i class="share-icon fa-solid fa-video"></i>Record clip</div>
+                    <select id="video_quality">
+                <option value="SD">SD</option>
+                <option value="HD" selected>HD</option>
+                <option value="UHD">UHD</option>
+            </select>
+        </div>
+        <div>
             <div id='embed' class='button'><i class="share-icon fa-solid fa-code"></i>Embed</div>
             <select id="embed_ui_type">
                 <option value="full">Full UI</option>
                 <option value="story">Basic UI</option>
                 <option value="none">No UI</option>
             </select>
+        </div>
+    </div>
     </div>
     <div class="arrow"></div>
 </div>

@@ -326,6 +326,12 @@ a.collection::after {
   color: #606060;
 }
 
+.ui_button_documentation#stop_recording {
+  color: #ff0000;
+  width: 30px;
+  height: 24px;
+}
+
 li .ui_button_documentation {
   position: relative;
   top: 4px;

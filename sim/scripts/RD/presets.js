@@ -3,6 +3,78 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["BenchmarkingHighResFast"] = {
+    numTimestepsPerFrame: 400,
+    parent: "BenchmarkingHighRes",
+    preset: "BenchmarkingHighResFast",
+  };
+
+  listOfPresets["BenchmarkingFast"] = {
+    numTimestepsPerFrame: 400,
+    parent: "Benchmarking",
+    preset: "BenchmarkingFast",
+  };
+
+  listOfPresets["BenchmarkingHighRes"] = {
+    domainScale: "500",
+    parent: "Benchmarking",
+    spatialStep: "1",
+    preset: "BenchmarkingHighRes",
+  };
+
+  listOfPresets["Benchmarking"] = {
+    activeViewInd: 0,
+    arrowScale: "none",
+    autoSetColourRange: true,
+    boundaryConditions_1: "neumann",
+    brushRadius: "20",
+    brushValue: "10",
+    colourbar: true,
+    contourEpsilon: 0.001,
+    contourNum: 7,
+    diffusionStr_1_1: "0",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    domainScale: "320",
+    dt: 0.01,
+    initCond_1: "floor(10*x/L_x)",
+    maxColourValue: 9,
+    numSpecies: 1,
+    overlay: true,
+    overlayEpsilon: 5,
+    overlayExpr: "mod(x-t,L_x)",
+    preset: "Benchmarking",
+    reactionStr_1: "0.02*(floor(10*x/L_x) - T)",
+    reactionStr_2: "0",
+    reactionStr_3: "0",
+    showStats: true,
+    spatialStep: "1.5",
+    speciesNames: "T",
+    views: [
+      {
+        arrowScale: "auto",
+        autoSetColourRange: false,
+        colourbar: false,
+        vectorField: false,
+        name: "Baseline",
+      },
+      {
+        autoSetColourRange: false,
+        colourbar: false,
+        vectorField: true,
+        name: "Vectors",
+      },
+      {
+        autoSetColourRange: true,
+        colourbar: true,
+        vectorField: false,
+        name: "Auto snap",
+      },
+    ],
+    whatToDraw: "T",
+    whatToPlot: "T",
+  };
+
   listOfPresets["GrayScottPearsonClassificationRescaled"] = {
     diffusionStr_1_1: "1",
     diffusionStr_2_2: "D",
@@ -2588,15 +2660,14 @@ export function getListOfPresets() {
     diffusionStr_1_1: "0.042",
     diffusionStr_2_2: "2",
     domainScale: "100",
-    dt: 0.001,
+    dt: 0.002,
     maxColourValue: 2.3,
-    numTimestepsPerFrame: 200,
     preset: "Alan",
     renderSize: 652,
     reactionStr_1: "(1-I_T) - u + u^2*v",
     reactionStr_2: "1 - u^2*v",
     showAllOptionsOverride: true,
-    spatialStep: 0.2,
+    spatialStep: 0.3,
     squareCanvas: true,
     suppressTryClickingPopup: true,
     whatToDraw: "u",
@@ -3053,6 +3124,11 @@ export function getListOfPresets() {
     timesteppingScheme: "Euler",
   };
 
+  listOfPresets["Subcriticality"] = {
+    preset: "Subcriticality",
+    parent: "subcriticalGS",
+  };
+
   listOfPresets["subcriticalGS"] = {
     preset: "subcriticalGS",
     reactionStr_1: "-u*v^2 + 0.037*(1.0 - u)",
@@ -3193,6 +3269,7 @@ export function getListOfPresets() {
     flippedColourmap: false,
     forceManualInterpolation: false,
     forceTryClickingPopup: false,
+    guiUpdatePeriod: 2,
     imagePathOne: "./images/Sofya.webp",
     imagePathTwo: "./images/Alan.webp",
     initialState: "",
@@ -3221,6 +3298,7 @@ export function getListOfPresets() {
     overlayExpr: "1",
     overlayLineWidthMul: 1,
     parent: null,
+    performanceMode: false,
     plotType: "plane",
     preset: "default",
     randSeed: 0,
@@ -3238,6 +3316,7 @@ export function getListOfPresets() {
     robinStr_4: "0",
     runningOnLoad: true,
     setSeed: false,
+    showStats: false,
     spatialStep: 1 / 2,
     speciesNames: "u v w q",
     squareCanvas: false,

@@ -135,3 +135,33 @@ export function interpolationShader() {
             gl_FragColor.r = value;
       }`;
 }
+
+export function minMaxShader() {
+  return `varying vec2 textureCoords; 
+    uniform sampler2D textureSource;
+    uniform vec2 srcResolution;
+    uniform bool firstFlag;
+    
+    void main()
+    {
+      // Get the min and max of the nearby pixels in the texture source.
+      // Step of one pixel in the source texture.
+      vec2 onePixel = vec2(1) / srcResolution;
+      vec2 uv = textureCoords - 0.5*onePixel;
+        
+      float minVal = 1e38;
+      float maxVal = -1e38;
+      vec2 vals;
+      for (int y = 0; y < 2; ++y) {
+        for (int x = 0; x < 2; ++x) {
+          vals = texture2D(textureSource, uv + vec2(x, y) * onePixel).rg;
+          if (firstFlag) { 
+            vals.g = vals.r;
+          }
+          minVal = min(minVal, vals.r);
+          maxVal = max(maxVal, vals.g);
+        }
+      }
+      gl_FragColor = vec4(minVal, maxVal, 0.0, 0.0);
+    }`;
+}
