@@ -3180,7 +3180,20 @@ import { Stats } from "../stats.min.js";
           (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
         )
       );
-      let points = curve.getSpacedPoints(numPointsInLine);
+      let points;
+      try {
+        points = curve.getSpacedPoints(numPointsInLine);
+      } catch (e) {
+        // If this fails, we've almost certainly hit NaN. Try to recover.
+        hitNaN();
+        yDisplayDomainCoords = yDisplayDomainCoords.map(() => 0);
+        curve = new THREE.SplineCurve(
+          xDisplayDomainCoords.map(
+            (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
+          )
+        );
+        points = curve.getSpacedPoints(numPointsInLine);
+      }
       setLineXY(line, points);
       setLineColour(line, points);
       if (options.overlay) {
@@ -6329,18 +6342,23 @@ import { Stats } from "../stats.min.js";
           !isFinite(valueRange[1]))) ||
       Math.abs(valueRange[1]) > 1e37
     ) {
-      shouldCheckNaN = false;
-      fadein("#oops_hit_nan");
-      pauseSim();
-      $("#erase").one("pointerdown", function () {
-        fadeout("#oops_hit_nan");
-        shouldCheckNaN = true;
-        window.clearTimeout(NaNTimer);
-        NaNTimer = setTimeout(checkForNaN, 1000);
-      });
+      hitNaN();
     } else {
       NaNTimer = setTimeout(checkForNaN, 1000);
     }
+  }
+
+  function hitNaN() {
+    shouldCheckNaN = false;
+    if ($("#oops_hit_nan").is(":visible")) return;
+    fadein("#oops_hit_nan");
+    pauseSim();
+    $("#erase").one("pointerdown", function () {
+      fadeout("#oops_hit_nan");
+      shouldCheckNaN = true;
+      window.clearTimeout(NaNTimer);
+      NaNTimer = setTimeout(checkForNaN, 1000);
+    });
   }
 
   function fillBuffer() {
