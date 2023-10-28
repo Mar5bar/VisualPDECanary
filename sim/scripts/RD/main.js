@@ -309,6 +309,19 @@ import { Stats } from "../stats.min.js";
 
   // Get the canvas to draw on, as specified by the html.
   canvas = document.getElementById("simCanvas");
+  // If the webgl context is lost, the user is likely encountering a Safari bug (https://developer.apple.com/forums/thread/737042).
+  document.getElementById("simCanvas").addEventListener(
+    "webglcontextlost",
+    function (event) {
+      event.preventDefault();
+      if (/iPhone|iPad/i.test(navigator.userAgent)) {
+        alert(
+          "Oops! An iOS/iPadOS bug has caused the simulation to crash. Fix this by quitting your browser and reopening the simulation (wait until the simulation has loaded before changing tab/application), and perform a software update if possible."
+        );
+      }
+    },
+    false
+  );
 
   // Warn the user if any errors occur.
   console.error = function (error) {
@@ -367,6 +380,7 @@ import { Stats } from "../stats.min.js";
   let shouldLoadDefault = true;
   if (params.has("preset")) {
     // If a preset is specified, load it.
+    window.gtag?.("event", "preset: " + params.get("preset"));
     loadPreset(params.get("preset"));
     shouldLoadDefault = false;
   }
@@ -5457,6 +5471,9 @@ import { Stats } from "../stats.min.js";
       // Look through the string for any + followed by a ).
       regex = /\+\s*\)/g;
       while (str != (str = str.replace(regex, ")")));
+      // Look through the string for any  +[-blah] or [-blah] and replace with -blah.
+      regex = /\+?\s*\[\s*(\-[^\+\-\[\]]*)\]/g;
+      while (str != (str = str.replace(regex, "$1")));
 
       // Look through the string for any empty divergence operators, and remove them if so.
       regex = /\\vnabla\s*\\cdot\s*\(\s*\)/g;
@@ -7314,6 +7331,8 @@ import { Stats } from "../stats.min.js";
     if ($("#error").is(":visible")) {
       $("#error_description").html(message);
     } else {
+      // If an input element has focus, don't display a new error as it could block input.
+      if (document.activeElement.tagName == "INPUT") return;
       // Otherwise, create a new error message.
       $("#error_description").html(message);
       fadein("#error");

@@ -463,6 +463,7 @@ canvas {
 #error_description {
   font-family: monospace;
   font-size: small;
+  font-weight: bold;
 }
 
 #welcome_ok,
