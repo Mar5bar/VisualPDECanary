@@ -5471,11 +5471,9 @@ import { Stats } from "../stats.min.js";
       // Look through the string for any + followed by a ).
       regex = /\+\s*\)/g;
       while (str != (str = str.replace(regex, ")")));
-      // Look through the string for any + (-blah) and replace with -blah.
-      regex = /\+\s*\(\s*(\-[^\+\-\(\)]*)\)/g;
+      // Look through the string for any  +[-blah] or [-blah] and replace with -blah.
+      regex = /\+?\s*\[\s*(\-[^\+\-\[\]]*)\]/g;
       while (str != (str = str.replace(regex, "$1")));
-      regex = /\(\s*\(\s*\-\s*\)/g;
-      while (str != (str = str.replace(regex, "(-")));
 
       // Look through the string for any empty divergence operators, and remove them if so.
       regex = /\\vnabla\s*\\cdot\s*\(\s*\)/g;
