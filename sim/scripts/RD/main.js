@@ -316,7 +316,7 @@ import { Stats } from "../stats.min.js";
       event.preventDefault();
       if (/iPhone|iPad/i.test(navigator.userAgent)) {
         alert(
-          "Oops! An iOS/iPadOS bug has caused the simulation to crash. Fix this by quitting your browser and reopening the simulation (wait until the simulation has loaded before changing tab/application)."
+          "Oops! An iOS/iPadOS bug has caused the simulation to crash. Fix this by quitting your browser and reopening the simulation (wait until the simulation has loaded before changing tab/application), and perform a software update if possible."
         );
       }
     },
