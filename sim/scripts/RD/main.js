@@ -7331,6 +7331,8 @@ import { Stats } from "../stats.min.js";
     if ($("#error").is(":visible")) {
       $("#error_description").html(message);
     } else {
+      // If an input element has focus, don't display a new error as it could block input.
+      if (document.activeElement.tagName == "INPUT") return;
       // Otherwise, create a new error message.
       $("#error_description").html(message);
       fadein("#error");
