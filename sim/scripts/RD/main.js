@@ -309,6 +309,19 @@ import { Stats } from "../stats.min.js";
 
   // Get the canvas to draw on, as specified by the html.
   canvas = document.getElementById("simCanvas");
+  // If the webgl context is lost, the user is likely encountering a Safari bug (https://developer.apple.com/forums/thread/737042).
+  document.getElementById("simCanvas").addEventListener(
+    "webglcontextlost",
+    function (event) {
+      event.preventDefault();
+      if (/iPhone|iPad/i.test(navigator.userAgent)) {
+        alert(
+          "Oops! An iOS/iPadOS bug has caused the simulation to crash. Fix this by quitting your browser and reopening the simulation (wait until the simulation has loaded before changing tab/application)."
+        );
+      }
+    },
+    false
+  );
 
   // Warn the user if any errors occur.
   console.error = function (error) {
