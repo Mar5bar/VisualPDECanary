@@ -2400,6 +2400,7 @@ import { Stats } from "../stats.min.js";
         Retro: "retro",
         "Simply blue": "blue",
         "Snow Ghost": "snowghost",
+        Spooky: "spooky",
         Thermal: "thermal",
         Turbo: "turbo",
         Viridis: "viridis",
