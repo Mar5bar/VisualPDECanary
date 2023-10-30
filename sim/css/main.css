@@ -348,7 +348,7 @@ canvas {
 }
 
 #recording p {
-  display: inline;
+  display: inline-block;
 }
 
 #recording_time {
