@@ -33,6 +33,16 @@
   <meta property="og:site_name" content="VisualPDE" />
 
   <script>
+    const useDark = window.matchMedia("(prefers-color-scheme: dark)");
+    function toggleDarkMode(state) {
+      document.documentElement.classList.toggle("dark-mode", state);
+    }
+    toggleDarkMode(useDark.matches);
+    // Listening for the changes in the OS settings and auto switching the mode
+    useDark.addListener((evt) => toggleDarkMode(evt.matches));
+  </script>
+
+  <script>
     // If the window is very narrow, use a smaller domain in any iframe simulations.
     if (window.innerWidth < 600) {
       window.addEventListener("DOMContentLoaded", function() {
