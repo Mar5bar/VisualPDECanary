@@ -3,6 +3,62 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["Jack"] = {
+    backgroundColour: 0,
+    boundaryConditions_1: "dirichlet",
+    boundaryConditions_2: "dirichlet",
+    colourmap: "spooky",
+    domainIndicatorFun: "I_S < 0.3",
+    domainScale: "2500",
+    domainViaIndicatorFun: true,
+    dt: 0.4,
+    imagePathOne: "./images/pumpkin.webp",
+    initCond_1:
+      "exp(-0.1*((x-0.415*L_x)^2 + (y-0.717*L_y)^2)) + exp(-0.1*((x-0.74*L_x)^2 + (y-0.9235*L_y)^2))",
+    maxColourValue: 0.3,
+    minColourValue: 0,
+    parent: "GrayScott",
+    spatialStep: "5",
+    squareCanvas: true,
+    suppressTryClickingPopup: true,
+    preset: "Jack",
+  };
+
+  listOfPresets["differentialStiffness"] = {
+    boundaryConditions_1: "combo",
+    boundaryConditions_2: "combo",
+    brushEnabled: false,
+    brushRadius: "0.5",
+    brushType: "vline",
+    brushValue: "0.01",
+    comboStr_1: "Left: Dirichlet = 0; Left: Neumann = 0.3*sin(t)",
+    comboStr_2: "Right: Dirichlet = 0; Right: Neumann = 0",
+    crossDiffusion: true,
+    diffusionStr_1_1: "0",
+    diffusionStr_1_2: "-D*((1+tanh(v/0.1))*5+1)",
+    diffusionStr_2_1: "1",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    dimension: "1",
+    domainScale: "1",
+    dt: 0.0004,
+    initCond_1: "0",
+    kineticParams: "D = 0.0001;",
+    maxColourValue: 0.005,
+    minColourValue: -0.05,
+    neumannStr_1: "0.1*sin(t/100)",
+    numAlgebraicSpecies: 1,
+    numSpecies: "2",
+    plotType: "line",
+    preset: "differentialStiffness",
+    reactionStr_1: "0",
+    reactionStr_2: "0",
+    reactionStr_3: "0",
+    spatialStep: "0.05",
+    whatToDraw: "u",
+    whatToPlot: "u",
+  };
+
   listOfPresets["BenchmarkingHighResFast"] = {
     numTimestepsPerFrame: 400,
     parent: "BenchmarkingHighRes",
@@ -137,7 +193,7 @@ export function getListOfPresets() {
     domainIndicatorFun: "0.5-I_T",
     domainViaIndicatorFun: true,
     dt: 0.005,
-    imagePathTwo: "./images/gb.png",
+    imagePathTwo: "./images/gb.webp",
     initCond_1: "1",
     initCond_2: "1/cosh(0.5*sqrt((x-L_x/10)^2+(y+0.8*L_y/2)^2))^2",
     kineticParams: "c_RR = 1;c_GG = 1;c_RG = 1.1;c_GR = 1;",
@@ -1554,7 +1610,6 @@ export function getListOfPresets() {
     brushType: "vline",
     whatToDraw: "u",
     whatToPlot: "u",
-    undefined: true,
   };
 
   listOfPresets["CovidInARoom"] = {
@@ -3009,7 +3064,6 @@ export function getListOfPresets() {
     squareCanvas: true,
     whatToDraw: "u",
     whatToPlot: "u",
-    undefined: true,
   };
 
   listOfPresets["stabilizedSchrodingerEquation"] = {

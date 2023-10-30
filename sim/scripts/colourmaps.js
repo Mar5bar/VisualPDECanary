@@ -1,7 +1,14 @@
 export function getColours(sel) {
   let colours = [];
   switch (sel) {
-    case "retro" :
+    case "spooky":
+      colours.push([0.0, 0.0, 0.0, 0.0]);
+      colours.push([0.0, 0.0, 0.0, 0.0]);
+      colours.push([0.0, 0.0, 0.0, 0.0]);
+      colours.push([0.9, 0.47, 0.21, 0.8]);
+      colours.push([0.9, 0.47, 0.21, 1.0]);
+      break;
+    case "retro":
       colours.push([0.69, 0.79, 0.73, 0.0]);
       colours.push([0.69, 0.79, 0.73, 0.5]);
       colours.push([0.69, 0.79, 0.73, 0.5]);
