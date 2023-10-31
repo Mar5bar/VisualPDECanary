@@ -37,8 +37,12 @@
     function toggleDarkMode(state) {
       document.documentElement.classList.toggle("dark-mode", state);
     }
-    toggleDarkMode(useDark.matches || localStorage.getItem("dark-mode") == "true");
-    // Listening for the changes in the OS settings and auto switching the mode
+		if (localStorage.hasOwnProperty("dark-mode")) {
+			toggleDarkMode(localStorage.getItem("dark-mode") == "true");
+		} else {
+			toggleDarkMode(useDark.matches);
+		}
+    // Listen for the changes in the OS settings, and remove preference on change.
     useDark.addListener((evt) => {toggleDarkMode(evt.matches); localStorage.removeItem("dark-mode");});
   </script>
 

@@ -3,8 +3,10 @@
 
   <div class="wrapper">
 
-    <h2 class="footer-heading">{{ site.title | escape }}<span class='darkmode-button' id="dark-on"><i class="fa-solid fa-moon"></i></span>
-        <span class='darkmode-button' id="light-on"><i class="fa-solid fa-sun"></i></span></h2>
+    <h2 class="footer-heading">{{ site.title | escape }}
+            <button class="darkmode-button" id="dark-on" onclick='{toggleDarkMode(true); localStorage.setItem("dark-mode", "true");}'><span><i class="fa-solid fa-moon"></i></span></button>
+            <button class="darkmode-button" id="light-on" onclick='{toggleDarkMode(false); localStorage.setItem("dark-mode", "false");}'><span><i class="fa-solid fa-sun"></i></span></button>
+    </h2>
 
     <div class="footer-col-wrapper">
       <div class="footer-col footer-col-1">
@@ -34,8 +36,3 @@
   </div>
 
 </footer>
-
-<script>
-    document.getElementById("dark-on").addEventListener("click", () => {toggleDarkMode(true); localStorage.setItem("dark-mode", "true");});
-    document.getElementById("light-on").addEventListener("click", () => {toggleDarkMode(false); localStorage.setItem("dark-mode", "false");});
-</script>
