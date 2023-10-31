@@ -745,7 +745,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 /* Dark mode */
 .darkmode-button {
   position: absolute;
-  right: 22px;
+  right: 37px;
   color: var(--link-color);
   cursor: pointer;
   font-size: 1.1rem;
@@ -755,7 +755,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 
 @media screen and (max-width: 600px) {
   .darkmode-button{
-    right: 15px;
+    right: 30px;
   }
 }
 
