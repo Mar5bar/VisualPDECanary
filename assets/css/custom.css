@@ -765,12 +765,10 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 
 #dark-on {
   display: inline;
-  margin-right: 18px;
 }
 
 #light-on {
   display: none;
-  margin-right: 15px;
 }
 
 .dark-mode {
