@@ -4,7 +4,27 @@
   --left-ui-v-offset: 0;
   --ui-button-h-gap: 3px;
   --ui-h-gap: 60px;
-  --ui-button-outline: white;
+  --text-color: #111111;
+  --soft-text-color: #777;
+  --link-color: #1756a9;
+  --tile-text-color: #1756a9;
+  --tile-highlight-color: #1756a9;
+  --hover-color: #134484;
+  --button-color: #1756a9;
+  --hover-background-color: #f8f8f8;
+  --background-color: #fdfdfd;
+  --play-button-color: #2da44e;
+  --play-button-hover-color: #2c794b;
+  --ui-button-color: #606060;
+  --ui-button-background-color: #ffffff;
+  --ui-button-border-color: rgba(0, 0, 0, 0.8);
+  --tile-border-color: rgba(27, 31, 36, 0.15);
+  --font-weight: 400;
+  --stop-recording-color: #ff0000;
+  --ui-background-color: var(--background-color);
+  --equation-background-color: #ededed;
+  --input-background-color: #e9e9ed;
+  --slider-fill-color: #2fa1d6;
 }
 
 html,
@@ -37,6 +57,10 @@ canvas {
   height: 100vh;
   height: 100dvh;
   image-rendering: smooth;
+}
+
+select {
+  color: var(--text-color);
 }
 
 .hidden {
@@ -111,7 +135,7 @@ canvas {
 #rightGUI,
 #viewsGUI {
   padding: 10px 6px 10px 3px;
-  background-color: white;
+  background-color: var(--background-color);
   overflow-y: auto;
   overflow-x: hidden;
   /* border: 5px white solid; */
@@ -172,7 +196,7 @@ canvas {
 #equation_display {
   padding: 5px;
   border-radius: 5px;
-  background-color: #ededed;
+  background-color: var(--equation-background-color);
   pointer-events: all;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -184,8 +208,8 @@ canvas {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #ededed;
-  color: black;
+  background-color: var(--equation-background-color);
+  color: var(--text-color);
   height: fit-content;
   border-radius: 6px;
   padding-right: 5px;
@@ -212,15 +236,15 @@ canvas {
   display: flex;
   z-index: 3;
   margin: 5px;
-  background-color: #ffffff;
-  color: #606060;
+  background-color: var(--ui-button-background-color);
+  color: var(--ui-button-color);
   font-size: 1.1rem;
   height: 35px;
   width: 35px;
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(0, 0, 0, 0.8);
+  border: 1px solid var(--ui-button-border-color);
   border-radius: 5px;
   cursor: pointer;
   text-shadow: 0 1px #fff;
@@ -228,7 +252,7 @@ canvas {
 
 .ui_button.clicked {
   outline: 3px solid rgb(255, 255, 255);
-  outline-color: var(--ui-button-outline);
+  outline-color: var(--ui-button-border-color);
 }
 
 .ui_button.top {
@@ -271,7 +295,7 @@ canvas {
 }
 
 #stop_recording {
-  color: #ff0000;
+  color: var(--stop-recording-color);
   display: inline-flex;
   font-size: 0.9rem;
   height: 100%;
@@ -312,7 +336,8 @@ canvas {
     color: black;
   }
   #stop_recording:hover {
-    color: #e00000;
+    color: var(--stop-recording-color);
+    filter: grayscale(40%);
   } 
 }
 
@@ -432,7 +457,7 @@ canvas {
 
 .btn-primary {
   width: 80px;
-  color: #000;
+  color: var(--text-color);
   font-size: 1.2rem;
   -webkit-text-size-adjust: 100%;
   -webkit-font-feature-settings: "kern" 1;
@@ -458,8 +483,8 @@ canvas {
   opacity: 100;
   pointer-events: all;
   padding: 1.5rem 3rem 1.5rem 3rem;
-  background-color: white;
-  border: 1px rgba(27, 31, 36, 0.15) solid;
+  background-color: var(--background-color);
+  border: 1px var(--tile-border-color) solid;
   border-radius: 6px;
 }
 
@@ -467,7 +492,7 @@ canvas {
 #oops_hit_nan p,
 #error p,
 #bad_preset p {
-  color: #111;
+  color: var(--text-color);
   font-size: medium;
 }
 
@@ -498,14 +523,14 @@ canvas {
 
 #welcome_ok,
 #lets_go {
-  background-color: #1756a9;
-  color: white !important;
+  background-color: var(--button-color);
+  color: var(--text-color) !important;
 }
 
 @media (hover: hover) {
   #welcome_ok:hover,
   #lets_go:hover {
-    background-color: #134484;
+    background-color: var(--hover-color);
     cursor: pointer;
   }
 }
@@ -513,7 +538,7 @@ canvas {
 #welcome_no,
 .warning_dismiss {
   background-color: #e9e9ed;
-  color: #111;
+  color: var(--text-color);
 }
 
 @media (hover: hover) {
@@ -719,11 +744,11 @@ input[type="range"].styled-slider:hover::-webkit-slider-runnable-track {
 }
 
 input[type="range"].styled-slider::-webkit-slider-thumb:active {
-  background: #2fa1d6;
+  background: var(--slider-fill-color);
 }
 
 input[type="range"].styled-slider.slider-progress::-webkit-slider-runnable-track {
-  background: linear-gradient(#2fa1d6, #2fa1d6) 0 / var(--sx) 100% no-repeat,
+  background: linear-gradient(var(--slider-fill-color), var(--slider-fill-color)) 0 / var(--sx) 100% no-repeat,
     #efefef;
 }
 
@@ -750,11 +775,11 @@ input[type="range"].styled-slider:hover::-moz-range-track {
 }
 
 input[type="range"].styled-slider::-moz-range-thumb:active {
-  background: #2fa1d6;
+  background: var(--slider-fill-color);
 }
 
 input[type="range"].styled-slider.slider-progress::-moz-range-track {
-  background: linear-gradient(#2fa1d6, #2fa1d6) 0 / var(--sx) 100% no-repeat,
+  background: linear-gradient(var(--slider-fill-color), var(--slider-fill-color)) 0 / var(--sx) 100% no-repeat,
     #efefef;
 }
 
@@ -794,14 +819,14 @@ input[type="range"].styled-slider:hover::-ms-track {
 }
 
 input[type="range"].styled-slider::-ms-thumb:active {
-  background: #2fa1d6;
+  background: var(--slider-fill-color);
 }
 
 input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   height: max(calc(1em - 1px - 1px), 0px);
   border-radius: 0.5em 0 0 0.5em;
   margin: -1px 0 -1px -1px;
-  background: #2fa1d6;
+  background: var(--slider-fill-color);
   border: 1px solid #b2b2b2;
   border-right-width: 0;
 }
@@ -930,8 +955,8 @@ a#add_view {
 }
 
 .dg li:not(.folder) {
-  background: #fff !important;
-  border-bottom: 1px solid #eee !important;
+  background: var(--background-color) !important;
+  border-bottom: 1px solid #eee;
 }
 
 ul li.folder .dg ul li.cr {
@@ -1018,7 +1043,7 @@ select {
   font-weight: 500;
   text-align: left;
   cursor: default;
-  color: black;
+  color: var(--text-color);
 }
 
 .popout_panel .arrow,
@@ -1138,10 +1163,10 @@ select {
 /* Make the dat GUI boxes white */
 .dg {
   text-shadow: none !important;
-  color: black !important;
+  color: var(--text-color) !important;
 }
 .dg li.title {
-  background: #fff !important;
+  background: var(--background-color) !important;
   overflow: hidden;
   /* background: #fff url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 13px no-repeat !important; */
 }
@@ -1165,11 +1190,11 @@ select {
   font-weight: 700;
   margin-left: -7px;
   padding-right: 6px;
-  color: #1756a9;
+  color: var(--link-color);
 }
 
 .dg .c input[type="text"] {
-  background: #e9e9ed !important;
+  background: var(--input-background-color) !important;
   margin-top: 3px !important;
   height: 21px !important;
   border-radius: 1px !important;
@@ -1181,11 +1206,11 @@ select {
 
 .dg .c input[type="text"],
 .dg .c input[type="text"]:focus {
-  color: black !important;
+  color: var(--text-color) !important;
 }
 
 .dg .c input[type="text"]:focus {
-  border: 2px solid #1756a9;
+  border: 2px solid var(--link-color);
   margin-top: 1px !important;
   width: calc(100% - 2px) !important;
   border-radius: 2px !important;
@@ -1236,4 +1261,66 @@ video {
   border: 1px solid black;
   border-radius: 5px;
   background-color: black;
+}
+
+.dark-mode {
+  --background-color: #121212;
+  --text-color: #dfdfdf;
+  --link-color: #c2a1ff;
+  --tile-text-color: #dfdfdf;
+  --tile-highlight-color: #3204ac;
+  --hover-background-color: #222222;
+  --hover-color: #3204ac;
+  --button-color: #590de4;
+  --play-button-color: var(--button-color);
+  --play-button-hover-color: var(--hover-color);
+  --soft-text-color: #dfdfdf;
+  --ui-button-color: var(--text-color);
+  --ui-button-background-color: #7a7a7a;
+  --ui-button-border-color: #e8e8e8;
+  --tile-border-color: rgba(224, 234, 247, 0.15);
+  --font-weight: 400;
+  --stop-recording-color: var(--link-color);
+  --ui-background-color: var(--hover-background-color);
+  --equation-background-color: #444444;
+  --input-background-color: #444444;
+  --slider-fill-color: var(--link-color);
+}
+
+.dark-mode #equations {
+  background: url("/assets/images/function-button-grey-white-dark.webp") no-repeat;
+  background-size: 80%;
+  background-position: center;
+  background-color: var(--ui-button-background-color);
+}
+
+.dark-mode #equations:hover {
+  background: url("/assets/images/function-button-hover-dark.webp") no-repeat;
+  background-size: 80%;
+  background-position: center;
+  background-color: var(--ui-button-background-color);
+}
+
+.dark-mode #equation_display {
+  border: none;
+  border-bottom: 5px solid var(--background-color);
+}
+
+.dark-mode #leftGUI,
+#rightGUI,
+#viewsGUI {
+  border: none;
+}
+
+.dark-mode #stop_recording:hover {
+  color: var(--hover-color);
+  filter: none;
+}
+
+.dark-mode .dg li:not(.folder) {
+  border-bottom: 1px solid #c2a1ff58;
+}
+
+.dark-mode select {
+  background-color: var(--input-background-color);
 }
