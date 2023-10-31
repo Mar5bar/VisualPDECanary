@@ -8276,7 +8276,7 @@ import { Stats } from "../stats.min.js";
 
   function getBestVideoType() {
     const media = "video";
-    const types = ["webm", "ogg", "mp4", "x-matroska"];
+    const types = ["mp4", "webm", "ogg", "x-matroska"];
     const codecs = [
       "should-not-be-supported",
       "vp9",
