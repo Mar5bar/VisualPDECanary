@@ -24,6 +24,7 @@ html {
 body {
   color: var(--text-color);
   background-color: var(--background-color);
+  transition: color 0.5s ease, background-color 0.5s ease;
 }
 
 a,
@@ -659,7 +660,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 @media screen and (max-width: 600px) {
-  .site-nav {
+  .site-nav .dark-mode {
     background-color: var(--button-color);
   }
   .site-nav .menu-icon > svg {
@@ -741,6 +742,27 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 /* Dark mode */
+.darkmode-button {
+  float: right;
+  color: var(--link-color);
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.darkmode-button:hover {
+  color: var(--hover-color);
+}
+
+#dark-on {
+  display: inline;
+  margin-right: 18px;
+}
+
+#light-on {
+  display: none;
+  margin-right: 14px;
+}
+
 .dark-mode {
   --background-color: #121212;
   --text-color: #dfdfdf;
@@ -758,6 +780,14 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   --ui-button-border-color: rgba(0, 0, 0, 0.8);
   --tile-border-color: rgba(224, 234, 247, 0.15);
   --font-weight: 300;
+}
+
+.dark-mode #dark-on {
+  display: none;
+}
+
+.dark-mode #light-on {
+  display: inline;
 }
 
 .dark-mode .home-banner {
