@@ -8250,6 +8250,17 @@ import { Stats } from "../stats.min.js";
 
     mediaRecorder.start();
     $("#recording").show();
+    // If the browser is neither Chrome nor Firefox, show a message.
+    if (
+      !/Chrome/.test(navigator.userAgent) &&
+      !/Firefox/.test(navigator.userAgent) &&
+      localStorage.getItem("shown_use_chrome") != "true"
+    ) {
+      fadein("#use_Chrome", 1000);
+      localStorage.setItem("shown_use_chrome", "true");
+      // Fadeout after 5s passes.
+      setTimeout(() => fadeout("#use_Chrome"), 5000);
+    }
     // Stop recording automatically after 60s.
     window.clearTimeout(recordingTimer);
     recordingTimer = setTimeout(stopRecording, 60000);

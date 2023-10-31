@@ -355,6 +355,17 @@ canvas {
   font-family: monospace;
 }
 
+#use_Chrome {
+  position: absolute;
+  top: 38px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  & p {
+    font-size: 0.8rem;
+  }
+}
+
 .circle, .circle::before {
   display: inline-block;
   content: "";
