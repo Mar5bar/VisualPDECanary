@@ -661,8 +661,8 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 @media screen and (max-width: 600px) {
-  .site-nav .dark-mode {
-    background-color: var(--button-color);
+  .dark-mode .site-nav {
+    background-color: var(--ui-button-background-color);
   }
   .site-nav .menu-icon > svg {
     fill: var(--text-color);
@@ -805,6 +805,9 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   -webkit-filter: brightness(70%);
 }
 
-.dark-mode .site-nav {
+.dark-mode .ui_button_documentation#equations {
+  background: url("/assets/images/function-button-grey-white-dark.webp") no-repeat;
+  background-size: 80%;
+  background-position: center;
   background-color: var(--ui-button-background-color);
 }
