@@ -18,6 +18,7 @@
   --ui-button-background-color: #ffffff;
   --ui-button-border-color: rgba(0, 0, 0, 0.4);
   --ui-button-highlight-color: #ffffff;
+  --ui-button-hover-color: #000000;
   --tile-border-color: rgba(27, 31, 36, 0.15);
   --font-weight: 400;
   --stop-recording-color: #ff0000;
@@ -342,7 +343,7 @@ canvas {
 }
 
 .ui_button:hover {
-  color: var(--text-color);
+  color: var(--ui-button-hover-color);
 }
 
 #stop_recording:hover {
@@ -1274,7 +1275,8 @@ video {
   --ui-button-color: var(--text-color);
   --ui-button-background-color: var(--background-color);
   --ui-button-border-color: #555555;
-  --ui-button-highlight-color: var(--link-color);
+  --ui-button-highlight-color: var(--text-color);
+  --ui-button-hover-color: #343434;
   --tile-border-color: rgba(224, 234, 247, 0.15);
   --font-weight: 400;
   --stop-recording-color: var(--link-color);
@@ -1444,8 +1446,4 @@ video {
 .dark-mode canvas,
 .colourbarMain {
   filter: brightness(90%);
-}
-
-.dark-mode .ui_button:hover {
-  color: var(--link-colour);
 }
