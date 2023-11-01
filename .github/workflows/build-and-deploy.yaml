@@ -34,6 +34,12 @@ jobs:
             terser --compress --mangle --module --output "$file" -- "$file"
           done
         working-directory: ./sim/scripts/
+      - name: Minify all CSS
+        run: |
+          npm install clean-css-cli -g
+          find . -name "*.css" | while read file; do
+            cleancss -o "$file" "$file"
+          done
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
