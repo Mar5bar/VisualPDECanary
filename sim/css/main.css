@@ -11,6 +11,7 @@
   --tile-highlight-color: #1756a9;
   --hover-color: #134484;
   --button-color: #1756a9;
+  --toggled-on-hover-color: #b6d4fa;
   --hover-background-color: #f8f8f8;
   --background-color: #fdfdfd;
   --ui-button-color: #606060;
@@ -57,11 +58,9 @@ a {
 
 @media (hover: hover) {
   a:hover {
-    text-decoration: underline;
+    text-decoration: none;
   }
 }
-
-
 
 canvas {
   background: black;
@@ -108,6 +107,7 @@ canvas {
 }
 
 .dg {
+  transition: color 0.5s ease, background-color 0.5s ease;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif !important;
   font-size: 0.9rem !important;
@@ -243,6 +243,7 @@ canvas {
 }
 
 .ui_button {
+  transition: color 0.5s ease, background-color 0.5s ease, background 0.5s ease;
   position: absolute;
   display: flex;
   z-index: 3;
@@ -484,7 +485,7 @@ canvas {
 }
 
 .btn-primary.highlight {
-  color: #dfdfdf;
+  color: #efefef;
   background-color: var(--button-color);
 }
 
@@ -914,6 +915,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   cursor: pointer;
   transition: 0.1s;
   line-height: 1.1;
+  color: var(--text-color);
 }
 #views_list .view_label {
   text-align: center;
@@ -964,7 +966,7 @@ a#add_view {
 
 .dg li:not(.folder) {
   background: var(--background-color) !important;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #eee !important;
 }
 
 ul li.folder .dg ul li.cr {
@@ -992,6 +994,7 @@ select {
   margin-top: 3px;
   margin-bottom: 3px;
   cursor: pointer;
+  color: var(--text-color);
 }
 
 .button_list a.wide {
@@ -1019,17 +1022,15 @@ select {
 
 .button_list .toggle_button.toggled_on {
   background-color: var(--active-button-background-color);
-  /* border: 1px solid #1756a9 !important; */
 }
 
 .button_list .toggle_button.toggled_on:hover {
-  background-color: var(--hover-color);
+  background-color: var(--toggled-on-hover-color);
 }
 
 @media (hover: hover) {
   .button_list a:hover,
   .button_list a:active {
-    background-color: #eeeeee;
     background-color: var(--views-hover-color);
   }
 }
@@ -1280,6 +1281,7 @@ video {
   --tile-highlight-color: #3204ac;
   --hover-background-color: #222222;
   --hover-color: #3204ac;
+  --toggled-on-hover-color: var(--hover-color);
   --button-color: #590de4;
   --soft-text-color: #dfdfdf;
   --ui-button-color: var(--link-color);
@@ -1299,8 +1301,7 @@ video {
 }
 
 .dark-mode #equations {
-  background: url("/assets/images/function-button-dark.webp")
-    no-repeat;
+  background: url("/assets/images/function-button-dark.webp") no-repeat;
   background-size: 80%;
   background-position: center;
   background-color: var(--ui-button-background-color);
@@ -1341,8 +1342,12 @@ video {
   filter: none;
 }
 
-.dark-mode .dg li:not(.folder) {
-  border-bottom: 1px solid #c2a1ff58;
+.dark-mode .dg > ul:not(.closed) > li:not(.folder) {
+  border-bottom: 1px solid #c2a1ff58 !important;
+}
+
+.dark-mode .dg > ul.closed > li:first-child {
+  border-bottom: 1px solid #c2a1ff58 !important;
 }
 
 .dark-mode .popout_panel .container {
@@ -1409,4 +1414,35 @@ video {
 
 .dark-mode .shepherd-has-title .shepherd-content .shepherd-cancel-icon:hover {
   color: var(--views-hover-color);
+}
+
+.darkmode-button {
+  position: absolute;
+  right: 12px;
+  top: 15px;
+  color: var(--link-color);
+  cursor: pointer;
+  font-size: 1.1rem;
+  background: none;
+  border: none;
+}
+
+.darkmode-button:hover {
+  filter: brightness(80%);
+}
+
+#dark-on {
+  display: inline;
+}
+
+#light-on {
+  display: none;
+}
+
+.dark-mode #dark-on {
+  display: none;
+}
+
+.dark-mode #light-on {
+  display: inline;
 }

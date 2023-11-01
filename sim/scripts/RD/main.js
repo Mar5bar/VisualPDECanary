@@ -2332,6 +2332,24 @@ import { Stats } from "../stats.min.js";
     equationsTitle.classList.add("ui_title");
     leftGUI.domElement.prepend(equationsTitle);
 
+    // Add the light/dark buttons to the rightGUI.
+    const darkButton = document.createElement("button");
+    darkButton.className = "darkmode-button";
+    darkButton.id = "dark-on";
+    darkButton.innerHTML = '<span><i class="fa-solid fa-moon"></i></span>';
+    darkButton.onclick = function () {
+      toggleDarkMode(true, true);
+    };
+    const lightButton = document.createElement("button");
+    lightButton.className = "darkmode-button";
+    lightButton.id = "light-on";
+    lightButton.innerHTML = '<span><i class="fa-solid fa-sun"></i></span>';
+    lightButton.onclick = function () {
+      toggleDarkMode(false, true);
+    };
+    rightGUI.domElement.prepend(lightButton);
+    rightGUI.domElement.prepend(darkButton);
+
     // Populate the viewsGUI.
     // Create a custom element for containing the view options.
     const viewsList = document.createElement("div");
