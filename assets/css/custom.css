@@ -80,7 +80,7 @@ a[href*="/sim/"] {
   border-radius: 6px;
   border-color: rgba(27, 31, 36, 0.15);
   padding: 5px 16px;
-  color: white;
+  color: #dfdfdf;
   box-shadow: rgba(27, 31, 36, 0.1) 0px 1px 0px 0px,
     rgba(255, 255, 255, 0.03) 0px 1px 0px 0px inset;
   transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
@@ -746,6 +746,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 .darkmode-button {
   position: absolute;
   right: 37px;
+  top: 1px;
   color: var(--link-color);
   cursor: pointer;
   font-size: 1.1rem;
@@ -776,18 +777,18 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 .dark-mode {
-  --background-color: #2e2e2e;
-  --text-color: #dfdfdf;
+  --background-color: #202124;
+  --text-color: #bec1c5;
   --link-color: #c2a1ff;
   --tile-text-color: #dfdfdf;
-  --tile-highlight-color: #3204ac;
-  --hover-background-color: #222222;
-  --hover-color: #3204ac;
-  --button-color: #590de4;
+  --tile-highlight-color: #6826e2;
+  --hover-background-color: #343434;
+  --hover-color: #3c13ac;
+  --button-color: #6826e2;
   --play-button-color: var(--button-color);
   --play-button-hover-color: var(--hover-color);
   --soft-text-color: #dfdfdf;
-  --ui-button-color: var(--link-color);
+  --ui-button-color: var(--text-color);
   --ui-button-background-color: var(--background-color);
   --ui-button-border-color: #555555;
   --tile-border-color: rgba(224, 234, 247, 0.15);
@@ -818,4 +819,8 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   background-size: 80%;
   background-position: center;
   background-color: var(--ui-button-background-color);
+}
+
+.dark-mode a.home_tile div.container div.title {
+  color: var(--soft-text-color);
 }

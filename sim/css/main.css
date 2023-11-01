@@ -56,10 +56,8 @@ a {
   text-decoration: none;
 }
 
-@media (hover: hover) {
-  a:hover {
-    text-decoration: none;
-  }
+a:hover {
+  text-decoration: none;
 }
 
 canvas {
@@ -107,7 +105,7 @@ canvas {
 }
 
 .dg {
-  transition: color 0.5s ease, background-color 0.5s ease;
+  transition: color 0.3s ease, background-color 0.3s ease;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif !important;
   font-size: 0.9rem !important;
@@ -243,7 +241,7 @@ canvas {
 }
 
 .ui_button {
-  transition: color 0.5s ease, background-color 0.5s ease, background 0.5s ease;
+  transition: color 0.3s ease, background-color 0.3s ease, background 0.3s ease;
   position: absolute;
   display: flex;
   z-index: 3;
@@ -343,14 +341,13 @@ canvas {
   right: var(--ui-button-h-gap);
 }
 
-@media (hover: hover) {
-  .ui_button:hover {
-    color: var(--text-color);
-  }
-  #stop_recording:hover {
-    color: var(--stop-recording-color);
-    filter: grayscale(40%);
-  }
+.ui_button:hover {
+  color: var(--text-color);
+}
+
+#stop_recording:hover {
+  color: var(--stop-recording-color);
+  filter: grayscale(40%);
 }
 
 #link_copied,
@@ -534,20 +531,16 @@ canvas {
   transition-duration: 80ms;
 }
 
-@media (hover: hover) {
-  .highlight:hover {
-    background-color: var(--hover-color);
-    cursor: pointer;
-  }
+.highlight:hover {
+  background-color: var(--hover-color);
+  cursor: pointer;
 }
 
-@media (hover: hover) {
-  #welcome_no:hover,
-  .warning_dismiss:hover {
-    background-color: var(--input-background-color);
-    cursor: pointer;
-    color: var(--text-color) !important;
-  }
+#welcome_no:hover,
+.warning_dismiss:hover {
+  background-color: var(--input-background-color);
+  cursor: pointer;
+  color: var(--text-color) !important;
 }
 
 .error_infinity {
@@ -840,24 +833,24 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 #equations {
-  background: url("/assets/images/function-button-grey-white.webp") no-repeat;
+  background: url("/assets/images/function-button.webp") no-repeat;
   background-size: 80%;
   background-position: center;
   background-color: #ffffff;
 }
 
-@media (hover: hover) {
-  #equations:hover {
-    background: url("/assets/images/function-button-black-white.webp") no-repeat;
-    background-size: 80%;
-    background-position: center;
-    background-color: #ffffff;
-  }
+#equations:hover {
+  background: url("/assets/images/function-button-hover.webp") no-repeat;
+  background-size: 80%;
+  background-position: center;
+  background-color: #ffffff;
 }
 
 #equations::after {
   /* Preload the hovered function button to stop flickering */
-  content: url("/assets/images/function-button-black-white.webp");
+  content: url("/assets/images/function-button-hover.webp")
+    url("/assets/images/function-button-hover-dark.webp")
+    url("/assets/images/function-button-dark.webp");
   height: 0;
   overflow: hidden;
   position: absolute;
@@ -935,12 +928,10 @@ a#add_view {
   cursor: pointer;
 }
 
-@media (hover: hover) {
-  #views_list a:not(.active_button):hover,
-  a#add_view:hover {
-    background-color: var(--views-hover-color);
-    transition: 0.1s;
-  }
+#views_list a:not(.active_button):hover,
+a#add_view:hover {
+  background-color: var(--views-hover-color);
+  transition: 0.1s;
 }
 
 .dg li.folder {
@@ -1028,11 +1019,9 @@ select {
   background-color: var(--toggled-on-hover-color);
 }
 
-@media (hover: hover) {
-  .button_list a:hover,
-  .button_list a:active {
-    background-color: var(--views-hover-color);
-  }
+.button_list a:hover,
+.button_list a:active {
+  background-color: var(--views-hover-color);
 }
 
 .button_list a#deleteViewButton {
@@ -1106,14 +1095,12 @@ select {
   font-size: 14.4px;
 }
 
-@media (hover: hover) {
-  .popout_panel .button:hover {
-    text-decoration: underline;
-    cursor: pointer;
-  }
-  .popout_panel .button:hover .share-icon {
-    background-color: #1756a930;
-  }
+.popout_panel .button:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.popout_panel .button:hover .share-icon {
+  background-color: #1756a930;
 }
 
 .popout_panel a,
@@ -1274,17 +1261,17 @@ video {
 }
 
 .dark-mode {
-  --background-color: #2e2e2e;
-  --text-color: #dfdfdf;
+  --background-color: #202124;
+  --text-color: #bec1c5;
   --link-color: #c2a1ff;
   --tile-text-color: #dfdfdf;
-  --tile-highlight-color: #3204ac;
-  --hover-background-color: #222222;
-  --hover-color: #3204ac;
+  --tile-highlight-color: #6826e2;
+  --hover-background-color: #343434;
+  --hover-color: #3c13ac;
   --toggled-on-hover-color: var(--hover-color);
-  --button-color: #590de4;
+  --button-color: #6826e2;
   --soft-text-color: #dfdfdf;
-  --ui-button-color: var(--link-color);
+  --ui-button-color: var(--text-color);
   --ui-button-background-color: var(--background-color);
   --ui-button-border-color: #555555;
   --ui-button-highlight-color: var(--link-color);
@@ -1293,7 +1280,7 @@ video {
   --stop-recording-color: var(--link-color);
   --ui-background-color: var(--hover-background-color);
   --equation-background-color: #444444;
-  --input-background-color: #444444;
+  --input-background-color: #303134;
   --slider-fill-color: var(--link-color);
   --active-button-background-color: var(--button-color);
   --views-hover-color: var(--input-background-color);
@@ -1307,18 +1294,18 @@ video {
   background-color: var(--ui-button-background-color);
 }
 
-@media (hover: hover) {
-  .dark-mode #equations:hover {
-    background: url("/assets/images/function-button-hover-dark.webp") no-repeat;
-    background-size: 80%;
-    background-position: center;
-    background-color: var(--ui-button-background-color);
-  }
+.dark-mode #equations:hover {
+  background: url("/assets/images/function-button-hover-dark.webp") no-repeat;
+  background-size: 80%;
+  background-position: center;
+  background-color: var(--ui-button-background-color);
 }
 
 .dark-mode #equations::after {
   /* Preload the hovered function button to stop flickering */
-  content: url("/assets/images/function-button-hover-dark.webp");
+  content: url("/assets/images/function-button-hover-dark.webp")
+    url("/assets/images/function-button.webp")
+    url("/assets/images/function-button-hover.webp");
   height: 0;
   overflow: hidden;
   position: absolute;
@@ -1354,11 +1341,9 @@ video {
   border: none;
 }
 
-@media (hover: hover) {
-  .popout_panel .button:hover .share-icon {
-    background-color: unset;
-    color: var(--text-color);
-  }
+.popout_panel .button:hover .share-icon {
+  background-color: unset;
+  color: var(--text-color);
 }
 
 .dark-mode .message {
@@ -1456,6 +1441,11 @@ video {
   display: inline;
 }
 
-.dark-mode canvas, .colourbarMain {
+.dark-mode canvas,
+.colourbarMain {
   filter: brightness(90%);
+}
+
+.dark-mode .ui_button:hover {
+  color: var(--link-colour);
 }
