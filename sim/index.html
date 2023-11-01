@@ -94,21 +94,21 @@
     <canvas id="simCanvas"></canvas>
 </div>
 
-<div class="message" id="welcome">
+<div class="message big-popup" id="welcome">
     <p><img src='../assets/favicons/android-chrome-192x192.webp' width="48" height="48"></p>
     <p>Welcome to VisualPDE!</p>
     <br>
     <div id="tour_question">
         <p>There is so much to explore. Would you like a tour?</p>
         <br>
-        <button id="welcome_ok" class="btn-primary">Yes, show me round!</button>
+        <button id="welcome_ok" class="btn-primary highlight">Yes, show me round!</button>
         <br>
         <button id="welcome_no" class="btn-primary">No, let me jump in!</button>
     </div>
     <p style="font-size: small;">Some simulations on VisualPDE.com may contain flashing images and patterns.</p>
     <div id="lets_go_cont" style="display:none">
         <br>
-        <button id="lets_go" class="btn-primary">Ok, let's go!</button>
+        <button id="lets_go" class="btn-primary highlight">Ok, let's go!</button>
     </div>
 </div>
 
@@ -133,20 +133,20 @@
 <a href='/' target="blank"><div id="logo" class="ui hidden">VisualPDE</div></a>
 
 <div class="message" id="top_message" title="Try clicking!"><p>Try clicking!</p></div>
-<div class="message" id="oops_hit_nan">
+<div class="message big-popup" id="oops_hit_nan">
     <div class="error_infinity"><i class="fa-sharp fa-solid fa-infinity"></i></div>
     <p class="error_para"><strong>Oops!</strong> It looks like things have spiralled off to infinity, or the numerical solver is unstable.</p>
     <p class="error_para">Check the equations, or try reducing the timestep, and restart the simulation.</p>
     <button class="btn-primary warning_dismiss" id="oops_hit_nan_close"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
-<div class="message" id="error">
+<div class="message big-popup" id="error">
     <div class="error_infinity"><i class="fa-solid fa-clipboard-question"></i></div>
     <p class="error_para">VisualPDE is throwing an error.</p>
     <p class="error_para" id='error_description'></p>
     <p class="error_para">Check for syntax errors, and reload the page if the interface is unresponsive.</p>
     <button class="btn-primary warning_dismiss" id="error_close_button"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
-<div class="message" id="bad_preset">
+<div class="message big-popup" id="bad_preset">
     <div class="error_infinity"><i class="fa-solid fa-clipboard-question"></i></div>
     <p class="error_para"><strong>Hmmm...</strong></p>
     <p class="error_para" id='preset_description'></p>
