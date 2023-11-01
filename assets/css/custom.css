@@ -783,9 +783,9 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   --play-button-color: var(--button-color);
   --play-button-hover-color: var(--hover-color);
   --soft-text-color: #dfdfdf;
-  --ui-button-color: var(--text-color);
-  --ui-button-background-color: #7a7a7a;
-  --ui-button-border-color: #e8e8e8;
+  --ui-button-color: var(--link-color);
+  --ui-button-background-color: var(--background-color);
+  --ui-button-border-color: #555555;
   --tile-border-color: rgba(224, 234, 247, 0.15);
   --font-weight: 400;
   --stop-recording-color: var(--link-color);
@@ -810,7 +810,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 .dark-mode .ui_button_documentation#equations {
-  background: url("/assets/images/function-button-grey-white-dark.webp") no-repeat;
+  background: url("/assets/images/function-button-dark.webp") no-repeat;
   background-size: 80%;
   background-position: center;
   background-color: var(--ui-button-background-color);
