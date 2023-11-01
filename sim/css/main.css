@@ -357,17 +357,16 @@ canvas {
   }
 }
 
-#link_copied,
-#get_help,
-#recording {
+.message.small {
   position: absolute;
   right: 50px;
   transform: translateY(-50%);
   opacity: 100;
   display: none;
-  & p {
-    font-size: 0.8rem;
-  }
+}
+
+.message.small p {
+  font-size: 0.8rem;
 }
 
 #link_copied {
@@ -402,9 +401,6 @@ canvas {
   left: 50%;
   right: auto;
   transform: translateX(-50%);
-  & p {
-    font-size: 0.8rem;
-  }
 }
 
 .circle,

@@ -628,10 +628,12 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   right: 262px;
   height: 54px;
   vertical-align: middle;
-  & p {
-    margin-bottom: 0;
-  }
 }
+
+#lunrsearchform p {
+  margin-bottom: 0;
+}
+
 #lunrsearchinput {
   border: none;
   background: none;
