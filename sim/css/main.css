@@ -50,6 +50,19 @@ body {
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif !important;
 }
 
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  a:hover {
+    text-decoration: underline;
+  }
+}
+
+
+
 canvas {
   background: black;
   display: block;
@@ -1105,7 +1118,7 @@ select {
 .popout_panel a,
 .popout_panel a:visited {
   text-decoration: none;
-  color: var(--link-color);
+  color: var(--text-color);
 }
 
 #right_ui_arrow {
@@ -1350,4 +1363,50 @@ video {
 
 .dark-mode .btn-primary .icon_on_text_button {
   color: var(--link-color);
+}
+
+.dark-mode .shepherd-content {
+  color: var(--text-color);
+  background-color: var(--background-color);
+}
+
+.dark-mode .shepherd-text {
+  color: var(--text-color);
+}
+
+.dark-mode .shepher-header {
+  background-color: var(--background-color);
+}
+
+.dark-mode .shepherd-title {
+  color: var(--text-color);
+}
+
+.dark-mode .shepherd-has-title .shepherd-content .shepherd-header {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.dark-mode .shepherd-button {
+  background-color: var(--button-color);
+  color: #dfdfdf;
+}
+
+.dark-mode .shepherd-button:not(:disabled):hover {
+  background-color: var(--hover-color);
+}
+
+.dark-mode .shepherd-button.shepherd-button-secondary {
+  background-color: var(--background-color);
+  border-color: var(--ui-button-border-color);
+}
+
+.dark-mode .shepherd-button.shepherd-button-secondary:not(:disabled):hover {
+  background-color: var(--input-background-color);
+  color: #dfdfdf;
+  border-color: var(--ui-button-border-color);
+}
+
+.dark-mode .shepherd-has-title .shepherd-content .shepherd-cancel-icon:hover {
+  color: var(--views-hover-color);
 }
