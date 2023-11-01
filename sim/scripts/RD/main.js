@@ -73,6 +73,7 @@ import {
   getDefaultTeXLabelsDiffusion,
   getDefaultTeXLabelsReaction,
   getDefaultTeXLabelsBCsICs,
+  getDefaultTeXLabelsTimescales,
   substituteGreek,
 } from "./TEX.js";
 import { closestMatch } from "../../../assets/js/closest-match.js";
@@ -181,6 +182,7 @@ import { Stats } from "../stats.min.js";
   const defaultPreset = "GrayScott";
   const defaultSpecies = ["u", "v", "w", "q"];
   const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
+  const timescaleTags = ["TU", "TV", "TW", "TQ"];
   const placeholderSp = ["SPECIES1", "SPECIES2", "SPECIES3", "SPECIES4"];
   const listOfTypes = [
     "1Species", // 0
@@ -1822,6 +1824,18 @@ import { Stats } from "../stats.min.js";
       "Toggle cross diffusion"
     );
 
+    addToggle(
+      crossDiffusionButtonList,
+      "timescales",
+      '<i class="fa-regular fa-clock"></i>Scales',
+      function () {
+        configureGUI();
+        setEquationDisplayType();
+      },
+      "timescales_controller",
+      "Toggle the use of custom timescales"
+    );
+
     // Let's put these in the left GUI.
     // Definitions folder.
     root = leftGUI.addFolder("Definitions");
@@ -1835,6 +1849,42 @@ import { Stats } from "../stats.min.js";
       null,
       "Typeset the specified equations"
     );
+
+    controllers["TU"] = root
+      .add(options, "timescale_1")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+    setOnfocus(controllers["TU"], selectTeX, ["TU"]);
+    setOnblur(controllers["TU"], deselectTeX, ["TU"]);
+
+    controllers["TV"] = root
+      .add(options, "timescale_2")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+    setOnfocus(controllers["TV"], selectTeX, ["TV"]);
+    setOnblur(controllers["TV"], deselectTeX, ["TV"]);
+
+    controllers["TW"] = root
+      .add(options, "timescale_3")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+    setOnfocus(controllers["TW"], selectTeX, ["TW"]);
+    setOnblur(controllers["TW"], deselectTeX, ["TW"]);
+
+    controllers["TQ"] = root
+      .add(options, "timescale_4")
+      .onFinishChange(function () {
+        setRDEquations();
+        setEquationDisplayType();
+      });
+    setOnfocus(controllers["TQ"], selectTeX, ["TQ"]);
+    setOnblur(controllers["TQ"], deselectTeX, ["TQ"]);
 
     controllers["Duu"] = root
       .add(options, "diffusionStr_1_1")
@@ -2336,14 +2386,16 @@ import { Stats } from "../stats.min.js";
     const darkButton = document.createElement("button");
     darkButton.className = "darkmode-button";
     darkButton.id = "dark-on";
-    darkButton.innerHTML = '<span>Dark mode<i class="fa-solid fa-moon"></i></span>';
+    darkButton.innerHTML =
+      '<span>Dark mode<i class="fa-solid fa-moon"></i></span>';
     darkButton.onclick = function () {
       toggleDarkMode(true, true);
     };
     const lightButton = document.createElement("button");
     lightButton.className = "darkmode-button";
     lightButton.id = "light-on";
-    lightButton.innerHTML = '<span>Light mode<i class="fa-solid fa-sun"></i></span>';
+    lightButton.innerHTML =
+      '<span>Light mode<i class="fa-solid fa-sun"></i></span>';
     lightButton.onclick = function () {
       toggleDarkMode(false, true);
     };
@@ -4030,12 +4082,24 @@ import { Stats } from "../stats.min.js";
 
     let type = "FE";
     simMaterials[type].fragmentShader = replaceMINXMINY(
-      [kineticStr, RDShaderTop(type), middle, RDShaderMain(type), bot].join(" ")
+      [
+        kineticStr,
+        RDShaderTop(type),
+        middle,
+        insertRates(RDShaderMain(type)),
+        bot,
+      ].join(" ")
     );
 
     type = "AB2";
     simMaterials[type].fragmentShader = replaceMINXMINY(
-      [kineticStr, RDShaderTop(type), middle, RDShaderMain(type), bot].join(" ")
+      [
+        kineticStr,
+        RDShaderTop(type),
+        middle,
+        insertRates(RDShaderMain(type)),
+        bot,
+      ].join(" ")
     );
 
     type = "Mid";
@@ -4045,7 +4109,7 @@ import { Stats } from "../stats.min.js";
           kineticStr,
           RDShaderTop(type + ind.toString()),
           middle,
-          RDShaderMain(type + ind.toString()),
+          insertRates(RDShaderMain(type + ind.toString())),
           bot,
         ].join(" ")
       );
@@ -4058,7 +4122,7 @@ import { Stats } from "../stats.min.js";
           kineticStr,
           RDShaderTop(type + ind.toString()),
           middle,
-          RDShaderMain(type + ind.toString()),
+          insertRates(RDShaderMain(type + ind.toString())),
           bot,
         ].join(" ")
       );
@@ -4705,6 +4769,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function showVGUIPanels() {
+    if (options.timescales) controllers["TV"].show();
     if (options.crossDiffusion) {
       controllers["Duv"].show();
       controllers["Dvu"].show();
@@ -4719,6 +4784,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function showWGUIPanels() {
+    if (options.timescales) controllers["TW"].show();
     if (options.crossDiffusion) {
       controllers["Duw"].show();
       controllers["Dvw"].show();
@@ -4737,6 +4803,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function showQGUIPanels() {
+    if (options.timescales) controllers["TQ"].show();
     if (options.crossDiffusion) {
       controllers["Duq"].show();
       controllers["Dvq"].show();
@@ -4759,6 +4826,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function hideVGUIPanels() {
+    controllers["TV"].hide();
     controllers["Duv"].hide();
     controllers["Dvu"].hide();
     controllers["Dvv"].hide();
@@ -4768,6 +4836,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function hideWGUIPanels() {
+    controllers["TW"].hide();
     controllers["Duw"].hide();
     controllers["Dvw"].hide();
     controllers["Dwu"].hide();
@@ -4779,6 +4848,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function hideQGUIPanels() {
+    controllers["TQ"].hide();
     controllers["Duq"].hide();
     controllers["Dvq"].hide();
     controllers["Dwq"].hide();
@@ -4964,6 +5034,9 @@ import { Stats } from "../stats.min.js";
       $("#cross_diffusion_controller").hide();
     }
 
+    // Show all timescale panels to begin with.
+    timescaleTags.forEach((tag) => controllers[tag].show());
+
     // Hide/Show VWQGUI panels.
     hideVGUIPanels();
     hideWGUIPanels();
@@ -4975,6 +5048,10 @@ import { Stats } from "../stats.min.js";
         showWGUIPanels();
       case 2:
         showVGUIPanels();
+    }
+    // Hide timescale panels if we don't need them.
+    if (!options.timescales) {
+      timescaleTags.forEach((tag) => controllers[tag].hide());
     }
 
     // Configure the controller names.
@@ -5006,6 +5083,11 @@ import { Stats } from "../stats.min.js";
     setGUIControllerName(controllers["g"], TeXStrings["VFUN"], tooltip);
     setGUIControllerName(controllers["h"], TeXStrings["WFUN"], tooltip);
     setGUIControllerName(controllers["j"], TeXStrings["QFUN"], tooltip);
+
+    setGUIControllerName(controllers["TU"], TeXStrings["TU"], tooltip);
+    setGUIControllerName(controllers["TV"], TeXStrings["TV"], tooltip);
+    setGUIControllerName(controllers["TW"], TeXStrings["TW"], tooltip);
+    setGUIControllerName(controllers["TQ"], TeXStrings["TQ"], tooltip);
 
     // Configure the names of algebraic controllers.
     if (algebraicV) {
@@ -5396,6 +5478,10 @@ import { Stats } from "../stats.min.js";
     regexes["VFUN"] = /\b(VFUN)/g;
     regexes["WFUN"] = /\b(WFUN)/g;
     regexes["QFUN"] = /\b(QFUN)/g;
+    regexes["TU"] = /\b(t_u)\b/g;
+    regexes["TV"] = /\b(t_v)\b/g;
+    regexes["TW"] = /\b(t_w)\b/g;
+    regexes["TQ"] = /\b(t_q)\b/g;
 
     if (options.typesetCustomEqs) {
       // We'll work using the default notation, then convert at the end.
@@ -5424,6 +5510,10 @@ import { Stats } from "../stats.min.js";
       associatedStrs["VFUN"] = options.reactionStr_2;
       associatedStrs["WFUN"] = options.reactionStr_3;
       associatedStrs["QFUN"] = options.reactionStr_4;
+      associatedStrs["TU"] = options.timescale_1;
+      associatedStrs["TV"] = options.timescale_2;
+      associatedStrs["TW"] = options.timescale_3;
+      associatedStrs["TQ"] = options.timescale_4;
 
       // Map empty strings to 0.
       Object.keys(associatedStrs).forEach(function (key) {
@@ -5477,23 +5567,46 @@ import { Stats } from "../stats.min.js";
       });
 
       // For each diffusion string, replace it with the value in associatedStrs.
-      Object.keys(associatedStrs).forEach(function (key) {
-        if (!defaultReactions.includes(key)) {
-          let delims = associatedStrs[key].includes("\\dmat") ? "  " : "[]";
-          str = replaceUserDefDiff(
-            str,
-            regexes[key],
-            associatedStrs[key],
-            delims
-          );
-        }
+      [
+        "U",
+        "UU",
+        "V",
+        "VV",
+        "W",
+        "WW",
+        "Q",
+        "QQ",
+        "UV",
+        "UW",
+        "UQ",
+        "VU",
+        "VW",
+        "VQ",
+        "WU",
+        "WV",
+        "WQ",
+        "QU",
+        "QV",
+        "QW",
+      ].forEach(function (key) {
+        let delims = associatedStrs[key].includes("\\dmat") ? "  " : "[]";
+        str = replaceUserDefDiff(
+          str,
+          regexes[key],
+          associatedStrs[key],
+          delims
+        );
       });
 
-      // Replace the reaction strings, converting everything back to default notation.
-      str = replaceUserDefReac(str, regexes["UFUN"], associatedStrs["UFUN"]);
-      str = replaceUserDefReac(str, regexes["VFUN"], associatedStrs["VFUN"]);
-      str = replaceUserDefReac(str, regexes["WFUN"], associatedStrs["WFUN"]);
-      str = replaceUserDefReac(str, regexes["QFUN"], associatedStrs["QFUN"]);
+      // Replace the reaction strings.
+      ["UFUN", "VFUN", "WFUN", "QFUN"].forEach(function (tag) {
+        str = replaceUserDefReac(str, regexes[tag], associatedStrs[tag]);
+      });
+
+      // Replace the timescale strings.
+      timescaleTags.forEach(function (tag) {
+        str = replaceUserDefTimescale(str, regexes[tag], associatedStrs[tag]);
+      });
 
       // Look through the string for any open brackets ( or [ followed by a +.
       regex = /\(\s*\+/g;
@@ -5594,6 +5707,13 @@ import { Stats } from "../stats.min.js";
         ["UFUN", "VFUN", "WFUN", "QFUN"],
         defaultReactions
       );
+      // Remove timescales if they're not being requested.
+      if (!options.timescales) {
+        // Replace the timescale strings.
+        timescaleTags.forEach(function (tag) {
+          str = replaceUserDefTimescale(str, regexes[tag], "");
+        });
+      }
     }
 
     // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
@@ -6568,6 +6688,17 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  function replaceUserDefTimescale(str, regex, input) {
+    if (!options.timescales) return str.replaceAll(regex, "");
+    // Special cases.
+    let trimmed = input.replace(/\s+/g, "  ").trim();
+    if (["1", "1.0"].includes(trimmed)) return str.replaceAll(regex, "");
+    if (["-1", "-1.0"].includes(trimmed)) return str.replaceAll(regex, "-");
+    // If the input contains a + or -, add parentheses.
+    if (input.match(/[\+\-]/)) input = "(" + input + ")";
+    return str.replaceAll(regex, input);
+  }
+
   function replaceUserDefDiff(str, regex, input, delimiters) {
     // Insert user-defined input into str in place of original, surrounded by delimiters.
     // E.g. str = some TeX, regex = /(D_{uu}) (\\vnabla u)/g; input = "2*a"; delimiters = " ";
@@ -7003,6 +7134,7 @@ import { Stats } from "../stats.min.js";
     let defaultStrings = {
       ...getDefaultTeXLabelsDiffusion(),
       ...getDefaultTeXLabelsBCsICs(),
+      ...getDefaultTeXLabelsTimescales(),
     };
     Object.keys(defaultStrings).forEach(function (key) {
       TeXStrings[key] = parseStringToTEX(
@@ -8339,5 +8471,20 @@ import { Stats } from "../stats.min.js";
       if (isSupported(mimeType)) supported.push(mimeType);
     });
     return supported.length ? supported[0] : false;
+  }
+
+  function insertRates(str) {
+    const toSub =
+      "vec4(" +
+      [
+        options.timescale_1,
+        options.timescale_2,
+        options.timescale_3,
+        options.timescale_4,
+      ]
+        .map(parseShaderString)
+        .join(",") +
+      ")";
+    return str.replaceAll(/TIMESCALES/g, toSub);
   }
 })();

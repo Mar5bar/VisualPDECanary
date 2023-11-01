@@ -134,7 +134,8 @@ export function RDShaderMain(type) {
     uvwqTT = texture2D(textureSource, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
-    updated = dt * RHS + uvwq;`;
+    vec4 timescales = TIMESCALES;
+    updated = dt * RHS / timescales + uvwq;`;
   update.AB2 = `uvwq = texture2D(textureSource, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL);
     uvwqR = texture2D(textureSource, textureCoordsR);
@@ -156,7 +157,8 @@ export function RDShaderMain(type) {
     uvwqBB = texture2D(textureSource1, textureCoordsBB);
     computeRHS(textureSource1, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS2);
     RHS = 1.5 * RHS1 - 0.5 * RHS2;
-    updated = dt * RHS + texture2D(textureSource, textureCoords);`;
+    vec4 timescales = TIMESCALES;
+    updated = dt * RHS / timescales + texture2D(textureSource, textureCoords);`;
   update.Mid1 = `uvwq = texture2D(textureSource, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL);
     uvwqR = texture2D(textureSource, textureCoordsR);
@@ -179,7 +181,8 @@ export function RDShaderMain(type) {
     uvwqTT = texture2D(textureSource, textureCoordsTT) + 0.5*dt*texture2D(textureSource1, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB) + 0.5*dt*texture2D(textureSource1, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
-    updated = dt * RHS + uvwqLast;`;
+    vec4 timescales = TIMESCALES;
+    updated = dt * RHS / timescales + uvwqLast;`;
   update.RK41 = `uvwq = texture2D(textureSource, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL);
     uvwqR = texture2D(textureSource, textureCoordsR);
@@ -225,7 +228,8 @@ export function RDShaderMain(type) {
     uvwqBB = texture2D(textureSource, textureCoordsBB) + dt*texture2D(textureSource3, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS1);
     RHS = (texture2D(textureSource1, textureCoords) + 2.0*(texture2D(textureSource2, textureCoords) + texture2D(textureSource3, textureCoords)) + RHS1) / 6.0;
-    updated = dt * RHS + uvwqLast;`;
+    vec4 timescales = TIMESCALES;
+    updated = dt * RHS / timescales + uvwqLast;`;
   return (
     `
   void main()

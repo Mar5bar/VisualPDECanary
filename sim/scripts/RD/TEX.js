@@ -1,66 +1,66 @@
 export function equationTEXFun() {
   let out = [];
   out[0] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + UFUN
+    \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + UFUN
     \\end{aligned}$`;
   out[1] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + UFUN\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + VFUN
+    \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + UFUN\\\\
+    \\textstyle t_v \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + VFUN
     \\end{aligned}$`;
   out[2] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot (D_{u u} \\vnabla u+D_{u v} \\vnabla v ) + UFUN\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot (D_{v u} \\vnabla u+D_{v v} \\vnabla v ) + VFUN
+    \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot (D_{u u} \\vnabla u+D_{u v} \\vnabla v ) + UFUN\\\\
+    \\textstyle t_v \\pd{v}{t} &= \\vnabla \\cdot (D_{v u} \\vnabla u+D_{v v} \\vnabla v ) + VFUN
     \\end{aligned}$`;
   out[3] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot (D_{u u} \\vnabla u+D_{u v} \\vnabla v ) + UFUN\\\\
+    \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot (D_{u u} \\vnabla u+D_{u v} \\vnabla v ) + UFUN\\\\
     v &= \\vnabla \\cdot (D_{v u} \\vnabla u) + VFUN
     \\end{aligned}$`;
   out[4] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + UFUN\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + VFUN\\\\
-    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w} \\vnabla w) + WFUN
+    \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + UFUN\\\\
+    \\textstyle t_v \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + VFUN\\\\
+    \\textstyle t_w \\pd{w}{t} &= \\vnabla \\cdot(D_{w} \\vnabla w) + WFUN
     \\end{aligned}$`;
   out[5] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w) + UFUN\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w) + VFUN\\\\
-    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w) + WFUN
+    \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w) + UFUN\\\\
+    \\textstyle t_v \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w) + VFUN\\\\
+    \\textstyle t_w \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w) + WFUN
     \\end{aligned}$`;
   out[6] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w) + UFUN\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w) + VFUN\\\\
+    \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w) + UFUN\\\\
+    \\textstyle t_v \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w) + VFUN\\\\
     w &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v) + WFUN
     \\end{aligned}$`;
   out[7] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w) + UFUN\\\\
+    \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w) + UFUN\\\\
     v &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v w} \\vnabla w) + VFUN\\\\
     w &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v) + WFUN
     \\end{aligned}$`;
   out[8] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + UFUN\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + VFUN\\\\
-    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w} \\vnabla w) + WFUN\\\\
-    \\textstyle \\pd{q}{t} &= \\vnabla \\cdot(D_{q} \\vnabla q) + QFUN
+    \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot(D_{u} \\vnabla u) + UFUN\\\\
+    \\textstyle t_v \\pd{v}{t} &= \\vnabla \\cdot(D_{v} \\vnabla v) + VFUN\\\\
+    \\textstyle t_w \\pd{w}{t} &= \\vnabla \\cdot(D_{w} \\vnabla w) + WFUN\\\\
+    \\textstyle t_q \\pd{q}{t} &= \\vnabla \\cdot(D_{q} \\vnabla q) + QFUN
     \\end{aligned}$`;
   out[9] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + UFUN\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + VFUN\\\\
-    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w+D_{w q} \\vnabla q) + WFUN\\\\
-    \\textstyle \\pd{q}{t} &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w+D_{q q} \\vnabla q) + QFUN
+    \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + UFUN\\\\
+    \\textstyle t_v \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + VFUN\\\\
+    \\textstyle t_w \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w+D_{w q} \\vnabla q) + WFUN\\\\
+    \\textstyle t_q \\pd{q}{t} &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w+D_{q q} \\vnabla q) + QFUN
     \\end{aligned}$`;
   out[10] = `$\\begin{aligned}
-    \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + UFUN\\\\
-    \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + VFUN\\\\
-    \\textstyle \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w+D_{w q} \\vnabla q) + WFUN\\\\
+    \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + UFUN\\\\
+    \\textstyle t_v \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + VFUN\\\\
+    \\textstyle t_w \\pd{w}{t} &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w w} \\vnabla w+D_{w q} \\vnabla q) + WFUN\\\\
     q &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w) + QFUN
     \\end{aligned}$`;
   out[11] = `$\\begin{aligned}
-      \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + UFUN\\\\
-      \\textstyle \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + VFUN\\\\
+      \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + UFUN\\\\
+      \\textstyle t_v \\pd{v}{t} &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v v} \\vnabla v+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + VFUN\\\\
       w &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w q} \\vnabla q) + WFUN\\\\
       q &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w) + QFUN
       \\end{aligned}$`;
   out[12] = `$\\begin{aligned}
-      \\textstyle \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + UFUN\\\\
+      \\textstyle t_u \\pd{u}{t} &= \\vnabla \\cdot(D_{u u} \\vnabla u+D_{u v} \\vnabla v+D_{u w} \\vnabla w+D_{u q} \\vnabla q) + UFUN\\\\
       v &= \\vnabla \\cdot(D_{v u} \\vnabla u+D_{v w} \\vnabla w+D_{v q} \\vnabla q) + VFUN\\\\
       w &= \\vnabla \\cdot(D_{w u} \\vnabla u+D_{w v} \\vnabla v+D_{w q} \\vnabla q) + WFUN\\\\
       q &= \\vnabla \\cdot(D_{q u} \\vnabla u+D_{q v} \\vnabla v+D_{q w} \\vnabla w) + QFUN
@@ -92,6 +92,17 @@ export function getDefaultTeXLabelsDiffusion() {
   TeXStrings["Dqv"] = "$D_{q v}$";
   TeXStrings["Dqw"] = "$D_{q w}$";
   TeXStrings["Dqq"] = "$D_{q q}$";
+
+  return TeXStrings;
+}
+
+export function getDefaultTeXLabelsTimescales() {
+  let TeXStrings = {};
+  // Strings for diffusion coefficients.
+  TeXStrings["TU"] = "$t_{u}$";
+  TeXStrings["TV"] = "$t_{v}$";
+  TeXStrings["TW"] = "$t_{w}$";
+  TeXStrings["TQ"] = "$t_{q}$";
 
   return TeXStrings;
 }
@@ -161,7 +172,7 @@ export function substituteGreek(str) {
     "varsigma",
     "vartheta",
     "varkappa",
-    "varrho"
+    "varrho",
   ];
   let regex = new RegExp("\\b(" + listOfVar.join("|") + ")(\\b|_)", "ig");
   str = str.replaceAll(regex, "var" + "$1$2");
