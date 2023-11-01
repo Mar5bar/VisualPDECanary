@@ -348,7 +348,7 @@ a.collection::after {
 }
 
 .ui_button_documentation#equations {
-  background: url("/assets/images/function-button-grey-white.webp") no-repeat;
+  background: url("/assets/images/function-button.webp") no-repeat;
   background-size: 80%;
   background-position: center;
   background-color: var(--ui-button-background-color);
