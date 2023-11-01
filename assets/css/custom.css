@@ -772,7 +772,7 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 .dark-mode {
-  --background-color: #121212;
+  --background-color: #2e2e2e;
   --text-color: #dfdfdf;
   --link-color: #c2a1ff;
   --tile-text-color: #dfdfdf;
@@ -799,14 +799,14 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
   display: inline;
 }
 
-.dark-mode .home-banner {
-  filter: grayscale(100%);
-  -webkit-filter: grayscale(100%);
+.dark-mode div.home-banner {
+  filter: brightness(90%);
+  -webkit-filter: brightness(90%);
 }
 
 .dark-mode div.topic_banner {
-  filter: brightness(70%);
-  -webkit-filter: brightness(70%);
+  filter: brightness(90%);
+  -webkit-filter: brightness(90%);
 }
 
 .dark-mode .ui_button_documentation#equations {

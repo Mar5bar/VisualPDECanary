@@ -1274,7 +1274,7 @@ video {
 }
 
 .dark-mode {
-  --background-color: #121212;
+  --background-color: #2e2e2e;
   --text-color: #dfdfdf;
   --link-color: #c2a1ff;
   --tile-text-color: #dfdfdf;
@@ -1425,10 +1425,19 @@ video {
   font-size: 1.1rem;
   background: none;
   border: none;
+  vertical-align: middle;
+}
+
+.darkmode-button .svg-inline--fa {
+  margin-right: 5px;
+}
+
+.darkmode-button span:first-child {
+  font-size: 0.9rem;
 }
 
 .darkmode-button:hover {
-  filter: brightness(80%);
+  filter: brightness(70%);
 }
 
 #dark-on {
@@ -1445,4 +1454,8 @@ video {
 
 .dark-mode #light-on {
   display: inline;
+}
+
+.dark-mode canvas, .colourbarMain {
+  filter: brightness(90%);
 }

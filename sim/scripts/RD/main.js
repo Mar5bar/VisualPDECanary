@@ -2336,14 +2336,14 @@ import { Stats } from "../stats.min.js";
     const darkButton = document.createElement("button");
     darkButton.className = "darkmode-button";
     darkButton.id = "dark-on";
-    darkButton.innerHTML = '<span><i class="fa-solid fa-moon"></i></span>';
+    darkButton.innerHTML = '<span>Dark mode<i class="fa-solid fa-moon"></i></span>';
     darkButton.onclick = function () {
       toggleDarkMode(true, true);
     };
     const lightButton = document.createElement("button");
     lightButton.className = "darkmode-button";
     lightButton.id = "light-on";
-    lightButton.innerHTML = '<span><i class="fa-solid fa-sun"></i></span>';
+    lightButton.innerHTML = '<span>Light mode<i class="fa-solid fa-sun"></i></span>';
     lightButton.onclick = function () {
       toggleDarkMode(false, true);
     };
