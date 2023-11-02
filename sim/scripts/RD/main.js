@@ -5101,6 +5101,7 @@ import { Stats } from "../stats.min.js";
       setGUIControllerName(controllers["Dvw"], TeXStrings["Dvw"], Vtooltip);
       setGUIControllerName(controllers["Dvq"], TeXStrings["Dvq"], Vtooltip);
       setGUIControllerName(controllers["g"], TeXStrings["VFUN"], Vtooltip);
+      controllers["TV"].hide();
       controllers["Dvv"].hide();
     }
     if (algebraicW) {
@@ -5108,6 +5109,7 @@ import { Stats } from "../stats.min.js";
       setGUIControllerName(controllers["Dwv"], TeXStrings["Dwv"], Wtooltip);
       setGUIControllerName(controllers["Dwq"], TeXStrings["Dwq"], Wtooltip);
       setGUIControllerName(controllers["h"], TeXStrings["WFUN"], Wtooltip);
+      controllers["TW"].hide();
       controllers["Dww"].hide();
     }
     if (algebraicQ) {
@@ -5115,6 +5117,7 @@ import { Stats } from "../stats.min.js";
       setGUIControllerName(controllers["Dqv"], TeXStrings["Dqv"], Qtooltip);
       setGUIControllerName(controllers["Dqw"], TeXStrings["Dqw"], Qtooltip);
       setGUIControllerName(controllers["j"], TeXStrings["QFUN"], Qtooltip);
+      controllers["TQ"].hide();
       controllers["Dqq"].hide();
     }
 
@@ -5484,10 +5487,10 @@ import { Stats } from "../stats.min.js";
     regexes["VFUN"] = /\b(VFUN)/g;
     regexes["WFUN"] = /\b(WFUN)/g;
     regexes["QFUN"] = /\b(QFUN)/g;
-    regexes["TU"] = /\b(t_{u})\b/g;
-    regexes["TV"] = /\b(t_{v})\b/g;
-    regexes["TW"] = /\b(t_{w})\b/g;
-    regexes["TQ"] = /\b(t_{q})\b/g;
+    regexes["TU"] = /\b(t_{u})/g;
+    regexes["TV"] = /\b(t_{v})/g;
+    regexes["TW"] = /\b(t_{w})/g;
+    regexes["TQ"] = /\b(t_{q})/g;
 
     if (options.typesetCustomEqs) {
       // We'll work using the default notation, then convert at the end.
@@ -5715,13 +5718,14 @@ import { Stats } from "../stats.min.js";
         ["UFUN", "VFUN", "WFUN", "QFUN"],
         defaultReactions
       );
-      // Remove timescales if they're not being requested.
-      if (!options.timescales) {
-        // Replace the timescale strings.
-        timescaleTags.forEach(function (tag) {
-          str = replaceUserDefTimescale(str, regexes[tag], "");
-        });
-      }
+    }
+
+    // Remove timescales if they're not being requested.
+    if (!options.timescales) {
+      // Replace the timescale strings.
+      timescaleTags.forEach(function (tag) {
+        str = replaceUserDefTimescale(str, regexes[tag], "");
+      });
     }
 
     // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
