@@ -781,6 +781,12 @@ import { Stats } from "../stats.min.js";
   isLoading = false;
   animate();
 
+  const darkOS = window.matchMedia("(prefers-color-scheme: dark)");
+  // Listen for the changes in the OS settings, and refresh equation display.
+  darkOS.addEventListener("change", (evt) => {
+    setEquationDisplayType();
+  });
+
   //---------------
 
   // Initialise all aspects of the site, including both the simulation and the GUI.
@@ -5478,10 +5484,10 @@ import { Stats } from "../stats.min.js";
     regexes["VFUN"] = /\b(VFUN)/g;
     regexes["WFUN"] = /\b(WFUN)/g;
     regexes["QFUN"] = /\b(QFUN)/g;
-    regexes["TU"] = /\b(t_u)\b/g;
-    regexes["TV"] = /\b(t_v)\b/g;
-    regexes["TW"] = /\b(t_w)\b/g;
-    regexes["TQ"] = /\b(t_q)\b/g;
+    regexes["TU"] = /\b(t_{u})\b/g;
+    regexes["TV"] = /\b(t_{v})\b/g;
+    regexes["TW"] = /\b(t_{w})\b/g;
+    regexes["TQ"] = /\b(t_{q})\b/g;
 
     if (options.typesetCustomEqs) {
       // We'll work using the default notation, then convert at the end.
@@ -5562,8 +5568,10 @@ import { Stats } from "../stats.min.js";
       });
 
       // Add in \selected{} to any selected entry.
+      const selectCommand = inDarkMode() ? "selectedDark" : "selectedLight";
       selectedEntries.forEach(function (x) {
-        associatedStrs[x] = "\\selected{" + associatedStrs[x] + "}";
+        associatedStrs[x] =
+          "\\" + selectCommand + "{" + associatedStrs[x] + "}";
       });
 
       // For each diffusion string, replace it with the value in associatedStrs.
@@ -8486,5 +8494,9 @@ import { Stats } from "../stats.min.js";
         .join(",") +
       ")";
     return str.replaceAll(/TIMESCALES/g, toSub);
+  }
+
+  function inDarkMode() {
+    return document.documentElement.classList.contains("dark-mode");
   }
 })();
