@@ -293,6 +293,11 @@ Specify custom names for the species in VisualPDE, which often default to $u$, $
 * ***Cross (diffusion)***\
 Enable cross diffusion in systems with 2 or more species, enabling simulation of a wide range of systems.
 
+* ***Scales***\
+Set per-equation timescales (multiplying any time derivatives) to enable simpler entry of some types of systems. They can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
+
+Importantly, **timescales must be non-zero**. Setting timescales to zero will result in singularities and are equivalent to large diffusion coefficients, large timesteps, or fast kinetic terms.
+
 ### Images <a id='images'>
 * ***$I_S$, $I_T$***\
 Define the scalar fields $I_S$ and $I_T$, which are derived from images that you can upload by clicking on the current image. Via the symbols 'I_S' and 'I_T' throughout VisualPDE, you can access the average RGB value of each image at each point in space, effectively treating them as greyscale. Advanced users can access the individual RGBA channels via 'I_SR', 'I_SG', etc. VisualPDE will stretch images so that they cover the domain edge-to-edge. Note that this does not respect **Implicit**. The defaults draw from images of [Sofya Kovalevskaya](https://en.wikipedia.org/wiki/Sofya_Kovalevskaya) and [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing).

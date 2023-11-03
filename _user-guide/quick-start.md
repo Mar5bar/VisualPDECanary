@@ -56,25 +56,25 @@ where $D_u$ and $f_u$ are functions of $u$, $x$, $y$, and $t$ that you can speci
 The most complicated type is a coupled system of PDEs in four unknowns, $u$, $v$, $w$ and $q$:
 
 $$\begin{aligned}
-\pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_{uq}\vnabla q) + f_u,\\
-\text{one of}\left\{\begin{matrix}\displaystyle\pd{v}{t} \\ v\end{matrix}\right. & 
+t_u\pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_{uq}\vnabla q) + f_u,\\
+\text{one of}\left\{\begin{matrix}\displaystyle t_v\pd{v}{t} \\ v\end{matrix}\right. & 
 \begin{aligned}
-    &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + f_v \vphantom{\displaystyle\pd{v}{t}}, \\
+    &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + f_v \vphantom{\displaystyle t_v\pd{v}{t}}, \\
     &= \vnabla \cdot(D_{vu}\vnabla u+D_{vw}\vnabla w+D_{vq}\vnabla q) + f_v,
 \end{aligned}\\
-\text{one of}\left\{\begin{matrix}\displaystyle\pd{w}{t} \\ w\end{matrix}\right. & 
+\text{one of}\left\{\begin{matrix}\displaystyle t_w\pd{w}{t} \\ w\end{matrix}\right. & 
 \begin{aligned}
-    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w+D_{wq}\vnabla q) + f_w \vphantom{\displaystyle\pd{w}{t}}, \\
+    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w+D_{wq}\vnabla q) + f_w \vphantom{\displaystyle t_w\pd{w}{t}}, \\
     &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{wq}\vnabla q) + f_w,
 \end{aligned}\\
-\text{one of}\left\{\begin{matrix}\displaystyle\pd{q}{t} \\ q\end{matrix}\right. & 
+\text{one of}\left\{\begin{matrix}\displaystyle t_q\pd{q}{t} \\ q\end{matrix}\right. & 
 \begin{aligned}
-    &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w+D_{qq}\vnabla q) + f_q \vphantom{\displaystyle\pd{q}{t}}, \\
+    &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w+D_{qq}\vnabla q) + f_q \vphantom{\displaystyle t_q\pd{q}{t}}, \\
     &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w) + f_q,
 \end{aligned}
 \end{aligned}$$
 
-where $D_{uu}, \dots,  D_{qq}$ and $f_u, \dots, f_q$ are functions of $u$, $v$, $w$, $q$, $x$, $y$ and $t$ that you can specify.
+where $D_{uu}, \dots,  D_{qq}$, $f_u, \dots, f_q$ and $t_u, \dots, t_q$ are functions of $u$, $v$, $w$, $q$, $x$, $y$ and $t$ that you can specify.
 
 * You can change the number of unknowns by choosing <span class='click_sequence'>{{ layout.settings }} → **Equations** → **No. species**</span>
 * In systems of multiple unknowns, you can include terms representing cross-diffusion (e.g. $D_{uv}$, $D_{vu}$) by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Cross**</span>

@@ -31,12 +31,12 @@ These links can be quite long, so we recommend using a (free) shortening service
 ### How do I take a pretty screenshot or video without all the user interface showing up?
 Screenshots and videos are simple in VisualPDE. Simply open the share sheet by clicking {{ layout.share }} and click 'Save image' to download a screenshot to your device, or 'Record clip' to begin a recording that will download to your device when done (we recommend Chrome or Firefox for this). Recordings can be up to 60s long and will stop before then if you pause the simulation or click {{ layout.stop_recording }}
 
-### My video doesn't seem to work on social media (X/Twitter) or messaging apps (Slack). Help!
+### How do I make my videos compatible with social media and messaging apps?<a id='videoHelp'>
 Different services accept different (and very specific) types of video, so compatibility is hard. Even worse, different browsers can only create certain (different) types of video, so universal video compatibility is essentially impossible for us at VisualPDE (we're trying). Fortunately, there are simple ways to convert video so that it is compatible with your favourite services.
 
-If you want a quick solution, [this website](https://webservice.online-convert.com/convert-for-twitter) can do this for you. Just drag and drop your video and hit the start button to generate a compatible video file.
+If you want a quick solution, <a href="https://ffmpeg-online.vercel.app/?inputOptions=-i&output=VisualPDERecording.mp4&outputOptions=" target="_blank">ffmpeg-online</a> will do this for you. Just drag and drop your video, ignore the rest of the boxes and hit the run button to generate a compatible video file. Even better: your video never leaves your device.
 
-If you prefer a local, command line solution, then [``ffmpeg``](https://www.ffmpeg.org) is your friend. If you have ``ffmpeg`` installed, running ``ffmpeg -i FILENAME output.mp4`` will almost certainly save a compatible copy of your video (``FILENAME``) as ``output.mp4``. Don't just take our word for it - try it out!
+If you prefer a command line solution, then [``ffmpeg``](https://www.ffmpeg.org) is once again your friend. If you have ``ffmpeg`` installed, running ``ffmpeg -i FILENAME output.mp4`` will almost certainly save a compatible copy of your video (``FILENAME``) as ``output.mp4``. Don't just take our word for it - try it out!
 
 ### Can I embed VisualPDE in my own site?
 Yes you can! Clicking {{ layout.share }} and then 'Embed' will put an [iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) element on your clipboard that points to the current simulation. You can specify the complexity of the user interface that you want to be visible, selecting from the full experience, the minimal interface used in our [Visual Stories](/visual-stories), or no user interface at all. If you do this, we'd love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com) so we can check out your site and your simulation!

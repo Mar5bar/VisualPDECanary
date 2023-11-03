@@ -42,6 +42,7 @@ body {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  background-color: var(--background-color);
 }
 
 body {
@@ -518,7 +519,7 @@ canvas {
 #welcome_ok,
 #welcome_no,
 #lets_go,
-.warning_dismiss {
+.message_dismiss {
   font-size: 1rem;
   margin-bottom: 0.5rem;
   text-align: center;
@@ -543,14 +544,14 @@ canvas {
 
 @media (hover: hover) {
   #welcome_no:hover,
-  .warning_dismiss:hover {
+  .message_dismiss:hover {
     background-color: var(--input-background-color);
     cursor: pointer;
     color: var(--text-color) !important;
   }
 }
 
-.error_infinity {
+.centre_symbol {
   text-align: center;
   color: #ff4188;
   font-size: 3rem;
