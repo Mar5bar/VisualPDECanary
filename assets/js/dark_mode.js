@@ -3,6 +3,10 @@ function toggleDarkMode(state, save) {
   document.documentElement.classList.toggle("dark-mode", state);
   localStorage.setItem("dark-mode", state);
   if (save) localStorage.setItem("dark-mode-save-time", new Date());
+  const themeColor = state ? "#202124" : "#dfdfdf";
+  document
+    .querySelector('meta[name="theme-color"]')
+    .setAttribute("content", themeColor);
 }
 if (localStorage.hasOwnProperty("dark-mode-save-time")) {
   const now = new Date();
