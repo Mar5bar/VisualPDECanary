@@ -476,6 +476,7 @@ input[type="range"] {
 input[type="range"].styled-slider {
   height: 2.2em;
   appearance: none;
+  vertical-align: middle;
   -webkit-appearance: none;
 }
 
