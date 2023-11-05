@@ -363,6 +363,13 @@ import { Stats } from "../stats.min.js";
     uiHidden = true;
   }
 
+  const cleanDisplay = params.has("clean");
+  if (cleanDisplay) {
+    $(".ui").addClass("hidden");
+    $("#logo").hide();
+    uiHidden = true;
+  }
+
   if (params.has("sf")) {
     // Set the domain scale factor from the search string.
     domainScaleFactor = parseFloat(params.get("sf"));
@@ -766,7 +773,7 @@ import { Stats } from "../stats.min.js";
       shouldLoadDefault ||
       options.forceTryClickingPopup) &&
     !options.suppressTryClickingPopup &&
-    options.brushEnabled
+    options.brushEnabled && !cleanDisplay
   ) {
     $("#top_message").html("<p>" + options.tryClickingText + "</p>");
     fadein("#top_message", 1000);
