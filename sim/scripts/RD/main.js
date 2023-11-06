@@ -773,7 +773,8 @@ import { Stats } from "../stats.min.js";
       shouldLoadDefault ||
       options.forceTryClickingPopup) &&
     !options.suppressTryClickingPopup &&
-    options.brushEnabled && !cleanDisplay
+    options.brushEnabled &&
+    !cleanDisplay
   ) {
     $("#top_message").html("<p>" + options.tryClickingText + "</p>");
     fadein("#top_message", 1000);
@@ -2473,6 +2474,8 @@ import { Stats } from "../stats.min.js";
       .add(options, "colourmap", {
         BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
         "Blue-Magenta": "blue-magenta",
+        "Chemical (green)": "chemicalGreen",
+        "Chemical (blue)": "chemicalBlue",
         Diverging: "diverging",
         Greyscale: "greyscale",
         Foliage: "foliage",

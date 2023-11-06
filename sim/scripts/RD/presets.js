@@ -3,6 +3,72 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["DecontaminationAgentOnWalls"] = {
+    activeViewInd: 1,
+    boundaryConditions_1: "neumann",
+    boundaryConditions_2: "neumann",
+    brushAction: "smoothadd",
+    brushRadius: "0.05",
+    brushValue: "1*ind(y>0.9*L_y)",
+    colourbar: true,
+    comboStr_1:
+      "Top: Dirichlet = 1; Bottom: Neumann = 0; Left: Neumann = 0; Right: Neumann = 0",
+    contourEpsilon: 0.001,
+    contourNum: 3,
+    crossDiffusion: true,
+    diffusionStr_1_1: "phi*D",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    domainScale: "1",
+    dt: 0.00005,
+    initCond_1: "0",
+    initCond_2: "0.4",
+    initCond_3: "pi*0.4^2",
+    initCond_4: "sqrt(1-4*0.4^2)",
+    kineticParams:
+      "k = 0.10 in [0,0.5];chi = 1.00 in [0, 2];R_0 = 0.1 in [0.05,0.5];D_c = 0.0500 in [0.01,0.05];",
+    numAlgebraicSpecies: 2,
+    numSpecies: "4",
+    numTimestepsPerFrame: 200,
+    preset: "DecontaminationAgentOnWalls",
+    reactionStr_1: "min(- 2*pi * R * k * (1+chi*c)*c, 0)",
+    reactionStr_2: "-chi * k * c * H(R - R_0)",
+    reactionStr_3: "pi*R^2",
+    reactionStr_4: "D_c*sqrt(max(1 - 4*R^2,0))",
+    spatialStep: "0.005",
+    speciesNames: "c R phi D",
+    timescales: true,
+    timescale_1: "phi",
+    views: [
+      {
+        colourmap: "chemicalBlue",
+        contours: false,
+        maxColourValue: 1,
+        minColourValue: 0,
+        whatToPlot: "c",
+        name: "$c$",
+      },
+      {
+        colourmap: "chemicalGreen",
+        contours: true,
+        maxColourValue: 0.4,
+        minColourValue: 0.1,
+        whatToPlot: "R",
+        name: "$R$",
+      },
+      {
+        colourmap: "turbo",
+        contours: false,
+        maxColourValue: 0.05,
+        minColourValue: 0.03,
+        whatToPlot: "D",
+        name: "$D$",
+      },
+    ],
+    whatToDraw: "c",
+    whatToPlot: "c",
+  };
+
   listOfPresets["Jack"] = {
     backgroundColour: 0,
     boundaryConditions_1: "dirichlet",
