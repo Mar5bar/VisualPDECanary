@@ -33,7 +33,7 @@ export function getListOfPresets() {
     preset: "DecontaminationAgentOnWalls",
     reactionStr_1: "min(- 2*pi * R * k * (1+chi*c)*c, 0)",
     reactionStr_2: "-chi * k * c * H(R - R_0)",
-    reactionStr_3: "pi*R^2",
+    reactionStr_3: "1-pi*R^2",
     reactionStr_4: "D_c*sqrt(max(1 - 4*R^2,0))",
     spatialStep: "0.005",
     speciesNames: "c R phi D",
