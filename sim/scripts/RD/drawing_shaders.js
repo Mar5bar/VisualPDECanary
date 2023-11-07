@@ -80,32 +80,45 @@ export function drawShaderTop() {
         ivec2 texSize = textureSize(textureSource,0);
         float x = MINX + textureCoords.x * L_x;
         float y = MINY + textureCoords.y * L_y;
-        vec2 diff = textureCoords - brushCoords;\n`;
+        float xB = MINX + brushCoords.x * L_x;
+        float yB = MINY + brushCoords.y * L_y;
+        vec2 diff = textureCoords - brushCoords;
+        float distance = 0.0;
+        float factor = 0.0;\n`;
 }
 
 export function drawShaderShapeDisc() {
-  return `float distance = length(diff * vec2(L_x, L_y));\n`;
+  return `distance = length(diff * vec2(L_x, L_y));\n`;
 }
 
 export function drawShaderShapeVLine() {
-  return `float distance = L_x * length(diff.x);\n`;
+  return `distance = L_x * length(diff.x);\n`;
 }
 
 export function drawShaderShapeHLine() {
-  return `float distance = L_y * length(diff.y);\n`;
+  return `distance = L_y * length(diff.y);\n`;
 }
 
 export function drawShaderFactorSharp() {
-  return `float factor = float(distance <= brushRadius);\n`
+  return `factor = float(distance <= brushRadius);\n`;
 }
 
 export function drawShaderFactorSmooth() {
-  return `float factor = 0.0;
-    if (distance < brushRadius) {
+  return `
+  if (distance < brushRadius) {
         factor = exp(1.0-1.0/(1.0-pow(distance / brushRadius, 2.0)));
     } else {
           factor = 0.0;
     }\n;`;
+}
+
+export function drawShaderCustom() {
+  return `
+  if (brushRadius > 0.0) {
+    factor = 1.0;
+  } else {
+    factor = 0.0;
+  }\n;`;
 }
 
 export function drawShaderBotReplace() {

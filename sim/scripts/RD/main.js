@@ -5,6 +5,7 @@ import {
   drawShaderShapeDisc,
   drawShaderShapeVLine,
   drawShaderShapeHLine,
+  drawShaderCustom,
   drawShaderFactorSharp,
   drawShaderFactorSmooth,
 } from "./drawing_shaders.js";
@@ -202,6 +203,8 @@ import { Stats } from "../stats.min.js";
     "4SpeciesCrossDiffusionAlgebraicWQ", // 11
     "4SpeciesCrossDiffusionAlgebraicVWQ", // 12
   ];
+  const brushActions = ["Replace", "Add", "Replace (smooth)", "Add (smooth)"],
+    brushActionVals = ["replace", "add", "smoothreplace", "smoothadd"];
   let equationType, algebraicV, algebraicW, algebraicQ;
   let takeAScreenshot = false,
     mediaRecorder,
@@ -1626,16 +1629,18 @@ import { Stats } from "../stats.min.js";
         Disk: "circle",
         "Horizontal line": "hline",
         "Vertical line": "vline",
+        Custom: "custom",
       })
       .name("Shape")
       .onChange(function () {
         setBrushType();
+        configureGUI();
         document.activeElement.blur();
       });
 
     root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
 
-    root
+    controllers["brushRadius"] = root
       .add(options, "brushRadius")
       .name("Radius")
       .onFinishChange(setBrushType);
@@ -3037,24 +3042,32 @@ import { Stats } from "../stats.min.js";
         shaderStr += drawShaderShapeVLine();
         break;
     }
+
     // Configure the action of the brush.
-    switch (options.brushAction) {
-      case "replace":
-        shaderStr += drawShaderFactorSharp();
-        shaderStr += drawShaderBotReplace();
-        break;
-      case "add":
-        shaderStr += drawShaderFactorSharp();
-        shaderStr += drawShaderBotAdd();
-        break;
-      case "smoothreplace":
-        shaderStr += drawShaderFactorSmooth();
-        shaderStr += drawShaderBotReplace();
-        break;
-      case "smoothadd":
-        shaderStr += drawShaderFactorSmooth();
-        shaderStr += drawShaderBotAdd();
-        break;
+    if (options.brushType == "custom") {
+      shaderStr += drawShaderCustom();
+      shaderStr += options.brushAction.includes("replace")
+        ? drawShaderBotReplace()
+        : drawShaderBotAdd();
+    } else {
+      switch (options.brushAction) {
+        case "replace":
+          shaderStr += drawShaderFactorSharp();
+          shaderStr += drawShaderBotReplace();
+          break;
+        case "add":
+          shaderStr += drawShaderFactorSharp();
+          shaderStr += drawShaderBotAdd();
+          break;
+        case "smoothreplace":
+          shaderStr += drawShaderFactorSmooth();
+          shaderStr += drawShaderBotReplace();
+          break;
+        case "smoothadd":
+          shaderStr += drawShaderFactorSmooth();
+          shaderStr += drawShaderBotAdd();
+          break;
+      }
     }
     // Configure the displayed cursor.
     configureCursorDisplay();
@@ -5041,6 +5054,27 @@ import { Stats } from "../stats.min.js";
       controllers["algebraicSpecies"].show();
     } else {
       controllers["algebraicSpecies"].hide();
+    }
+    if (options.brushType == "custom") {
+      updateGUIDropdown(
+        controllers["brushAction"],
+        brushActions.filter((x) => !x.includes("smooth")),
+        brushActionVals.filter((x) => !x.includes("smooth"))
+      );
+      if (options.brushAction.includes("smooth")) {
+        controllers["brushAction"].setValue(
+          options.brushAction.replaceAll("smooth", "")
+        );
+      }
+      // Rename the Radius field to Indicator.
+      controllers["brushRadius"].name("Indicator");
+    } else {
+      updateGUIDropdown(
+        controllers["brushAction"],
+        brushActions,
+        brushActionVals
+      );
+      controllers["brushRadius"].name("Radius");
     }
 
     if (options.numSpecies > 1) {

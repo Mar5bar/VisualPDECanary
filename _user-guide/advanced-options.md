@@ -228,7 +228,7 @@ VisualPDE allows you to interact directly with simulations via a brush by simply
 Enable or disable the brush. Most simulations will have the brush enabled by default.
 
 * ***Type***\
-Change the shape of the brush, choosing between **Disk**, **Horizontal line** and **Vertical line**.
+Change the shape of the brush, choosing between **Disk**, **Horizontal line** and **Vertical line**. A fourth option, **Custom**, allows you to define a custom shape in the ***Indicator*** field by typing in an expression. The brush will draw wherever the expression is positive. Expressions can be a function of space ($x$, $y$), the brush coordinates ($xB$, $yB$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), and the images ($I_S$, $I_T$).
 
 * ***Value***\
 Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally-distributed random number with unit variance and zero mean.

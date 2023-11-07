@@ -4,16 +4,46 @@ export function getListOfPresets() {
   let listOfPresets = {};
 
   listOfPresets["DecontaminationDemo"] = {
-    activeViewInd: 1,
-    brushValue: "1*ind(c<1)",
+    activeViewInd: 3,
+    brushType: "custom",
+    brushRadius:
+      "ind(yB<h*L_y)*(0.05^2 - ((x-xB)^2+(y-yB)^2)) + ind(yB>=h*L_y)*ind(y>=h*L_y)",
     kineticParams:
       "k = 0.10 in [0,0.5];chi = 1.00 in [0, 2];R_0 = 0.1 in [0.05,0.5];D_c = 0.0500 in [0.01,0.05];R_init = 0.4 in [0.1, 0.5];h = 0.95;",
     overlay: true,
     overlayExpr: "y-h*L_y",
     parent: "DecontaminationAgentOnWalls",
     preset: "DecontaminationDemo",
-    reactionStr_1:
-      "ind(y<h*L_y)*min(- 2*pi * R * k * (1+chi*c)*c, 0) + 1000*ind(y>h*L_y)*c*(1-c)*(c-0.4)",
+    views: [
+      {
+        colourmap: "chemicalBlue",
+        maxColourValue: 1,
+        minColourValue: 0,
+        whatToPlot: "c",
+        name: "$c$",
+      },
+      {
+        colourmap: "chemicalGreen",
+        maxColourValue: "R_init",
+        minColourValue: "R_0",
+        whatToPlot: "R*ind(y<h*L_y)",
+        name: "$R$",
+      },
+      {
+        colourmap: "turbo",
+        maxColourValue: 0.05,
+        minColourValue: 0.03,
+        whatToPlot: "D",
+        name: "$D$",
+      },
+      {
+        colourmap: "chemicalGreen",
+        maxColourValue: "pi*(R_init-R_0)^2",
+        minColourValue: "0",
+        whatToPlot: "pi*(R-R_0)^2*ind(y<h*L_y)",
+        name: "Contaminant",
+      },
+    ],
   };
 
   listOfPresets["DecontaminationAgentOnWalls"] = {
@@ -22,10 +52,11 @@ export function getListOfPresets() {
     boundaryConditions_2: "neumann",
     brushAction: "smoothadd",
     brushRadius: "0.05",
-    brushValue: "1*ind(y>0.9*L_y)",
+    brushValue: "1",
     colourbar: true,
     comboStr_1:
       "Top: Dirichlet = 1; Bottom: Neumann = 0; Left: Neumann = 0; Right: Neumann = 0",
+    contours: true,
     contourEpsilon: 0.001,
     contourNum: 3,
     crossDiffusion: true,
