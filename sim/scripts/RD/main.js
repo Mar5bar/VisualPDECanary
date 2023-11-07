@@ -114,7 +114,10 @@ import { Stats } from "../stats.min.js";
     headGeometry;
   let domain, simDomain, clickDomain, line, overlayLine;
   let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
-  let colourmap, colourmapEndpoints;
+  let colourmap,
+    colourmapEndpoints,
+    cLims = [0, 1],
+    cLimsDependOnParams = false;
   let options,
     uniforms,
     minMaxUniforms,
@@ -159,7 +162,6 @@ import { Stats } from "../stats.min.js";
     frameCount = 0,
     seed = performance.now(),
     updatingAlgebraicSpecies = false,
-    valueRange = null,
     viewUIOffsetInit;
   let spatialStepValue,
     nXDisc,
@@ -178,6 +180,7 @@ import { Stats } from "../stats.min.js";
     kineticParamsStrs = {},
     kineticParamsLabels = [],
     kineticNameToCont = {},
+    kineticParamsVals = [],
     kineticParamsCounter = 0;
   const defaultPreset = "GrayScott";
   const defaultSpecies = ["u", "v", "w", "q"];
@@ -1106,8 +1109,8 @@ import { Stats } from "../stats.min.js";
     resizeTextures();
     // Update cropping of checkpoint textures.
     setStretchOrCropTexture(checkpointTexture);
-    // Update any uniforms.
-    updateUniforms();
+    // Update any size-dependent uniforms.
+    updateSizeUniforms();
     // Create new display domains with the correct sizes.
     replaceDisplayDomains();
     // Create arrows for vector fields.
@@ -1163,20 +1166,27 @@ import { Stats } from "../stats.min.js";
   }
 
   function updateUniforms() {
+    uniforms.dt.value = options.dt;
+    uniforms.heightScale.value = options.threeDHeightScale;
+    uniforms.customSurface.value = options.customSurface;
+    uniforms.vectorField.value = options.vectorField;
+    updateSizeUniforms();
+    setColourRangeFromDef();
+    setEmbossUniforms();
+    updateRandomSeed();
+  }
+
+  function updateSizeUniforms() {
     uniforms.L.value = domainScaleValue;
     uniforms.L_y.value = domainHeight;
     uniforms.L_x.value = domainWidth;
     uniforms.L_min.value = Math.min(domainHeight, domainWidth);
-    uniforms.dt.value = options.dt;
+    parser.consts.L = uniforms.L.value;
+    parser.consts.L_y = uniforms.L_y.value;
+    parser.consts.L_x = uniforms.L_x.value;
+    parser.consts.L_min = uniforms.L_min.value;
     uniforms.dx.value = spatialStepValue;
     uniforms.dy.value = spatialStepValue;
-    uniforms.heightScale.value = options.threeDHeightScale;
-    uniforms.maxColourValue.value = options.maxColourValue;
-    uniforms.minColourValue.value = options.minColourValue;
-    uniforms.customSurface.value = options.customSurface;
-    uniforms.vectorField.value = options.vectorField;
-    setEmbossUniforms();
-    updateRandomSeed();
   }
 
   function computeCanvasSizesAndAspect() {
@@ -2504,24 +2514,20 @@ import { Stats } from "../stats.min.js";
     controllers["minColourValue"] = root
       .add(options, "minColourValue")
       .name("Min value")
-      .onChange(function () {
-        updateUniforms();
-        updateColourbarLims();
+      .onFinishChange(function () {
+        setColourRangeFromDef();
         renderIfNotRunning();
         updateView(this.property);
       });
-    controllers["minColourValue"].__precision = 2;
 
     controllers["maxColourValue"] = root
       .add(options, "maxColourValue")
       .name("Max value")
-      .onChange(function () {
-        updateUniforms();
-        updateColourbarLims();
+      .onFinishChange(function () {
+        setColourRangeFromDef();
         renderIfNotRunning();
         updateView(this.property);
       });
-    controllers["maxColourValue"].__precision = 2;
 
     const effectsButtons = addButtonList(root, "colour_map_buttons");
 
@@ -2544,7 +2550,7 @@ import { Stats } from "../stats.min.js";
       effectsButtons,
       '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap',
       function () {
-        setColourRange();
+        setColourRangeSnap();
         render();
         updateView("minColourValue");
         updateView("maxColourValue");
@@ -2576,7 +2582,7 @@ import { Stats } from "../stats.min.js";
       '<i class="fa-solid fa-wand-magic-sparkles"></i> Auto snap',
       function () {
         if (options.autoSetColourRange) {
-          setColourRange();
+          setColourRangeSnap();
           render();
         }
         updateView("autoSetColourRange");
@@ -3232,17 +3238,14 @@ import { Stats } from "../stats.min.js";
 
     // If selected, set the colour range.
     if (options.autoSetColourRange && !(frameCount % options.guiUpdatePeriod)) {
-      setColourRange();
+      setColourRangeSnap();
     }
 
     // Update the position of the click domain for easy clicking.
     if (options.brushEnabled && options.plotType == "surface") {
       let val = 0;
-      if (options.maxColourValue - options.minColourValue > 0) {
-        val =
-          (getMeanVal() - options.minColourValue) /
-            (options.maxColourValue - options.minColourValue) -
-          0.5;
+      if (cLims[1] > cLims[0]) {
+        val = (getMeanVal() - cLims[1]) / (cLims[1] - cLims[0]) - 0.5;
         val = val.clamp(-0.5, 0.5);
       }
       clickDomain.position.y = options.threeDHeightScale * val;
@@ -3254,12 +3257,11 @@ import { Stats } from "../stats.min.js";
       // Get the output from the buffer, in the form of (value,0,0,1).
       fillBuffer();
       let ind = 0;
-      var range = options.maxColourValue - options.minColourValue;
+      var range = cLims[1] - cLims[0];
       range = range == 0 ? 0.5 : range;
       for (let i = 0; i < buffer.length; i += 4) {
         // Set the height.
-        yDisplayDomainCoords[ind++] =
-          (buffer[i] - options.minColourValue) / range - 0.5;
+        yDisplayDomainCoords[ind++] = (buffer[i] - cLims[0]) / range - 0.5;
       }
       // Use spline-smoothed points for plotting.
       let curve = new THREE.SplineCurve(
@@ -3286,8 +3288,7 @@ import { Stats } from "../stats.min.js";
       if (options.overlay) {
         ind = 0;
         for (let i = 2; i < 4 * nXDisc; i += 4) {
-          yDisplayDomainCoords[ind++] =
-            (buffer[i] - options.minColourValue) / range - 0.5;
+          yDisplayDomainCoords[ind++] = (buffer[i] - cLims[0]) / range - 0.5;
         }
         curve = new THREE.SplineCurve(
           xDisplayDomainCoords.map(
@@ -3396,7 +3397,6 @@ import { Stats } from "../stats.min.js";
   }
 
   function postprocess() {
-    valueRange = null;
     simDomain.material = postMaterial;
     uniforms.textureSource.value = simTextures[1].texture;
     renderer.setRenderTarget(postTexture);
@@ -4438,8 +4438,11 @@ import { Stats } from "../stats.min.js";
     });
 
     // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
-    if (options.minColourValue == null) options.minColourValue = 0;
-    if (options.maxColourValue == null) options.maxColourValue = 1;
+    if (options.minColourValue == null) options.minColourValue = "0";
+    if (options.maxColourValue == null) options.maxColourValue = "1";
+    // Convert min and max values to strings.
+    options.minColourValue = options.minColourValue.toString();
+    options.maxColourValue = options.maxColourValue.toString();
 
     // If options.domainScale is not a string, convert it to one.
     options.domainScale = options.domainScale.toString();
@@ -5460,7 +5463,7 @@ import { Stats } from "../stats.min.js";
     configureDimension();
     configureOptions();
     configureGUI();
-    setKineticUniforms();
+    setComputedUniforms();
     updateShaders();
     setEquationDisplayType();
   }
@@ -6104,7 +6107,7 @@ import { Stats } from "../stats.min.js";
           setKineticStringFromParams();
           render();
           // Update the uniforms with this new value.
-          if (setKineticUniforms() || compileErrorOccurred) {
+          if (setComputedUniforms() || compileErrorOccurred) {
             // Reset the error flag.
             compileErrorOccurred = false;
             // If we added a new uniform, we need to remake all the shaders.
@@ -6163,7 +6166,7 @@ import { Stats } from "../stats.min.js";
           createParameterController(newLabel, true);
           // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
           setKineticStringFromParams();
-          if (setKineticUniforms() || compileErrorOccurred) {
+          if (setComputedUniforms() || compileErrorOccurred) {
             // Reset the error flag.
             compileErrorOccurred = false;
             updateShaders();
@@ -6231,7 +6234,7 @@ import { Stats } from "../stats.min.js";
         }
         // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
-        if (setKineticUniforms()) {
+        if (setComputedUniforms()) {
           updateShaders();
         }
       });
@@ -6361,10 +6364,7 @@ import { Stats } from "../stats.min.js";
     if (options.whatToPlot != "MAX") {
       // We want to display a string that is the shorter of 3 sig. fig. and 3 dec. places.
       let minStr, maxStr;
-      [minStr, maxStr] = formatColourbarLabels(
-        options.minColourValue,
-        options.maxColourValue
-      );
+      [minStr, maxStr] = formatColourbarLabels(cLims[0], cLims[1]);
       // If either strings are just zeros, simply write 0.
       const regex = /[1-9]/;
       if (!regex.test(minStr)) minStr = "0";
@@ -6495,7 +6495,7 @@ import { Stats } from "../stats.min.js";
 
   function checkForNaN() {
     // Check to see if a NaN value is in the first entry of the simulation array, which would mean that we've hit overflow or instability.
-    setMinMaxValGPU();
+    const valueRange = setMinMaxValGPU();
     if (
       (shouldCheckNaN &&
         (!isFinite(valueRange[0]) ||
@@ -6568,11 +6568,12 @@ import { Stats } from "../stats.min.js";
         1,
         smallBuffer
       );
-      valueRange = [smallBuffer[0], smallBuffer[1]];
+      return [smallBuffer[0], smallBuffer[1]];
     } catch {
       alert(
         "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!"
       );
+      return [0, 1];
     }
   }
 
@@ -6870,14 +6871,14 @@ import { Stats } from "../stats.min.js";
     return nameVals;
   }
 
-  function setKineticUniforms() {
+  function setComputedUniforms() {
     // Set uniforms based on the parameters defined in kineticParams.
     // Return true if we're adding a new uniform, which signifies that all shaders must be
     // updated to reference this new uniform.
     const paramStrs = getKineticParamDefs()
       .split(";")
       .filter((x) => x.length > 0);
-    const nameVals = evaluateParamVals(paramStrs);
+    kineticParamsVals = evaluateParamVals(paramStrs);
     // Check for any duplicated parameter names.
     const dups = getDuplicates(getKineticParamNames());
     if (dups.length > 0) {
@@ -6890,11 +6891,12 @@ import { Stats } from "../stats.min.js";
     }
     let addingNewUniform = false;
     let encounteredError = false;
-    for (const nameVal of nameVals) {
+    for (const nameVal of kineticParamsVals) {
       let [uniformFlag, errorFlag] = setKineticUniform(nameVal[0], nameVal[1]);
       addingNewUniform |= uniformFlag;
       encounteredError |= errorFlag;
     }
+    if (cLimsDependOnParams) setColourRangeFromDef();
     return addingNewUniform && !encounteredError;
   }
 
@@ -7019,6 +7021,47 @@ import { Stats } from "../stats.min.js";
     return [valDict, stack.slice(0, -1), badNames];
   }
 
+  function setColourRangeFromDef() {
+    evaluateMinMaxVals();
+    cLimsDependOnParams = doColourLimsNeedEvaluating();
+    uniforms.minColourValue.value = cLims[0];
+    uniforms.maxColourValue.value = cLims[1];
+    updateColourbarLims();
+  }
+
+  function evaluateMinMaxVals() {
+    // Using the parameter values in kineticParamsVals, evaluate expressions for min and max colours.
+    let min = options.minColourValue.toString();
+    let max = options.maxColourValue.toString();
+    let regex;
+    for (const nameVal of kineticParamsVals) {
+      regex = new RegExp("\\b" + nameVal[0] + "\\b", "g");
+      min = min.replaceAll(regex, nameVal[1]);
+      max = max.replaceAll(regex, nameVal[1]);
+    }
+    try {
+      cLims[0] = parser.evaluate(min);
+    } catch (error) {
+      throwError(
+        "Unable to evaluate the minimum colour limit. Please check the definition."
+      );
+    }
+    try {
+      cLims[1] = parser.evaluate(max);
+    } catch (error) {
+      throwError(
+        "Unable to evaluate the maximum colour limit. Please check the definition."
+      );
+    }
+  }
+
+  function doColourLimsNeedEvaluating() {
+    return (
+      /[^\.0-9\s]+/.test(options.minColourValue) ||
+      /[^\.0-9\s]+/.test(options.maxColourValue)
+    );
+  }
+
   function updateShaders() {
     // Update all the shaders that are constructed using user input.
     setRDEquations();
@@ -7076,13 +7119,13 @@ import { Stats } from "../stats.min.js";
     return col.reduce((a, b) => a + b, 0) / 3;
   }
 
-  function setColourRange() {
+  function setColourRangeSnap() {
     // Set the range of the colour axis based on the extremes of the computed values.
-    setMinMaxValGPU();
-    options.minColourValue = valueRange[0];
-    options.maxColourValue = valueRange[1];
-    uniforms.maxColourValue.value = options.maxColourValue;
-    uniforms.minColourValue.value = options.minColourValue;
+    cLims = setMinMaxValGPU();
+    options.minColourValue = String(cLims[0]);
+    options.maxColourValue = String(cLims[1]);
+    uniforms.minColourValue.value = cLims[0];
+    uniforms.maxColourValue.value = cLims[1];
     controllers["maxColourValue"].updateDisplay();
     controllers["minColourValue"].updateDisplay();
     updateColourbarLims();
