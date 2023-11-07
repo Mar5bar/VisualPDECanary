@@ -1181,10 +1181,6 @@ import { Stats } from "../stats.min.js";
     uniforms.L_y.value = domainHeight;
     uniforms.L_x.value = domainWidth;
     uniforms.L_min.value = Math.min(domainHeight, domainWidth);
-    parser.consts.L = uniforms.L.value;
-    parser.consts.L_y = uniforms.L_y.value;
-    parser.consts.L_x = uniforms.L_x.value;
-    parser.consts.L_min = uniforms.L_min.value;
     uniforms.dx.value = spatialStepValue;
     uniforms.dy.value = spatialStepValue;
   }

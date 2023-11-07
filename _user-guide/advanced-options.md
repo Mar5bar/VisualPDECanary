@@ -112,7 +112,7 @@ Set the current colour map being used to convert **Expression** into a colour va
 
 
 **Min/Max value**\
-Set the limits of the colour map that transforms  **Expression** into colour. If viewing a surface plot, this also impacts the height of the surface. These can depend on the size of the domain ($L$, $L_x$, $L_y$) and any quantities defined in **Parameters**.
+Set the limits of the colour map that transforms  **Expression** into colour. If viewing a surface plot, this also impacts the height of the surface. These can depend on any quantities defined in **Parameters**.
 
 **Flip**\
 Reverse the direction of the current colour map.

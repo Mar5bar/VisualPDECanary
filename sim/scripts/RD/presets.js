@@ -3,6 +3,19 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["DecontaminationDemo"] = {
+    activeViewInd: 1,
+    brushValue: "1*ind(c<1)",
+    kineticParams:
+      "k = 0.10 in [0,0.5];chi = 1.00 in [0, 2];R_0 = 0.1 in [0.05,0.5];D_c = 0.0500 in [0.01,0.05];R_init = 0.4 in [0.1, 0.5];h = 0.95;",
+    overlay: true,
+    overlayExpr: "y-h*L_y",
+    parent: "DecontaminationAgentOnWalls",
+    preset: "DecontaminationDemo",
+    reactionStr_1:
+      "ind(y<h*L_y)*min(- 2*pi * R * k * (1+chi*c)*c, 0) + 1000*ind(y>h*L_y)*c*(1-c)*(c-0.4)",
+  };
+
   listOfPresets["DecontaminationAgentOnWalls"] = {
     activeViewInd: 1,
     boundaryConditions_1: "neumann",
@@ -22,11 +35,11 @@ export function getListOfPresets() {
     domainScale: "1",
     dt: 0.00005,
     initCond_1: "0",
-    initCond_2: "0.4",
+    initCond_2: "R_init",
     initCond_3: "pi*0.4^2",
     initCond_4: "sqrt(1-4*0.4^2)",
     kineticParams:
-      "k = 0.10 in [0,0.5];chi = 1.00 in [0, 2];R_0 = 0.1 in [0.05,0.5];D_c = 0.0500 in [0.01,0.05];",
+      "k = 0.10 in [0,0.5];chi = 1.00 in [0, 2];R_0 = 0.1 in [0.05,0.5];D_c = 0.0500 in [0.01,0.05];R_init = 0.4 in [0.1, 0.5]",
     numAlgebraicSpecies: 2,
     numSpecies: "4",
     numTimestepsPerFrame: 200,
@@ -51,8 +64,8 @@ export function getListOfPresets() {
       {
         colourmap: "chemicalGreen",
         contours: true,
-        maxColourValue: 0.4,
-        minColourValue: 0.1,
+        maxColourValue: "R_init",
+        minColourValue: "R_0",
         whatToPlot: "R",
         name: "$R$",
       },
@@ -63,6 +76,14 @@ export function getListOfPresets() {
         minColourValue: 0.03,
         whatToPlot: "D",
         name: "$D$",
+      },
+      {
+        colourmap: "chemicalGreen",
+        contours: true,
+        maxColourValue: "pi*(R_init-R_0)^2",
+        minColourValue: "0",
+        whatToPlot: "pi*(R-R_0)^2",
+        name: "Contaminant",
       },
     ],
     whatToDraw: "c",
