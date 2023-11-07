@@ -1301,7 +1301,7 @@ video {
   --ui-button-background-color: var(--background-color);
   --ui-button-border-color: #555555;
   --ui-button-highlight-color: var(--text-color);
-  --ui-button-hover-color: #343434;
+  --ui-button-hover-color: #555555;
   --tile-border-color: rgba(224, 234, 247, 0.15);
   --font-weight: 400;
   --stop-recording-color: var(--link-color);
@@ -1312,6 +1312,10 @@ video {
   --active-button-background-color: var(--button-color);
   --views-hover-color: var(--input-background-color);
   --button-inline-icon-color: var(--link-color);
+}
+
+.dark-mode body {
+  background-color: var(--ui-background-color);
 }
 
 .dark-mode #equations {
