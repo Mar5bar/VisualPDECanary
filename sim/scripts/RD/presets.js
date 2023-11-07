@@ -3,6 +3,13 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["DecontaminationDemoSpots"] = {
+    brushRadius:
+      "ind(yB<h*L_y)*(0.05^2 - ((x-xB)^2+(y-yB)^2)) + ind(yB>=h*L_y)*(0.05^2 - ((x-xB)^2+(y-h*L_y)^2))",
+    parent: "DecontaminationDemo",
+    preset: "DecontaminationDemoSpots",
+  };
+
   listOfPresets["DecontaminationDemo"] = {
     activeViewInd: 3,
     brushType: "custom",
