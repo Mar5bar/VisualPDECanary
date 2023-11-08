@@ -154,7 +154,7 @@ import { Stats } from "../stats.min.js";
     dataNudgedUp = false,
     compileErrorOccurred = false,
     NaNTimer,
-    topMessageTimer,
+    brushDisabledTimer,
     recordingTimer,
     recordingTextInterval,
     uiHidden = false,
@@ -2497,7 +2497,7 @@ import { Stats } from "../stats.min.js";
         Retro: "retro",
         "Simply blue": "blue",
         "Snow Ghost": "snowghost",
-        "Squirrels": "squirrels",
+        Squirrels: "squirrels",
         Spooky: "spooky",
         Thermal: "thermal",
         Turbo: "turbo",
@@ -3422,15 +3422,13 @@ import { Stats } from "../stats.min.js";
       if (options.brushEnabled && options.plotType == "surface") {
         controls.enabled = false;
       } else if (!options.brushEnabled) {
-        // Display a message saying that the brush is disabled.
-        $("#top_message").html("<p>Brush disabled</p>");
-        fadein("#top_message");
-        // Fadeout after 3s passes.
-        window.clearTimeout(topMessageTimer);
-        topMessageTimer = setTimeout(function () {
-          if (!$("#top_message").hasClass("fading_out"))
-            fadeout("#top_message");
-        }, 3000);
+        // Display a message saying that the brush is disabled.")
+        $("#brush_disabled").fadeIn(1000);
+        window.clearTimeout(brushDisabledTimer);
+        brushDisabledTimer = setTimeout(
+          () => $("#brush_disabled").fadeOut(1000),
+          3000
+        );
       }
     }
   }

@@ -370,6 +370,12 @@ canvas {
   font-size: 0.8rem;
 }
 
+.message.mid {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+
 #link_copied {
   top: 112.5px;
 }
@@ -378,11 +384,12 @@ canvas {
   top: 74px;
 }
 
+#brush_disabled {
+  top: 5px;
+}
+
 #recording {
   top: 5px;
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
   padding-right: 33px;
   border-radius: 5px;
   border-right: none;
@@ -682,7 +689,7 @@ sup {
   position: absolute;
   bottom: 1ex;
   left: 1ex;
-  font-size: min(4vw,8vh,26px);
+  font-size: min(4vw, 8vh, 26px);
   font-weight: 200;
   letter-spacing: -1px;
   text-shadow: 0px 0px 6px black, 0px 0px 25px black;
