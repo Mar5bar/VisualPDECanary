@@ -1448,7 +1448,7 @@ export function getListOfPresets() {
     diffusionStr_1_1: "0.042",
     diffusionStr_2_2: "2",
     diffusionStr_3_3: "0",
-    dt: 0.0012,
+    dt: 0.001,
     flippedColourmap: true,
     imagePathOne: "./images/shell_square.webp",
     maxColourValue: 3,
