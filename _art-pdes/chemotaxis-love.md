@@ -21,7 +21,3 @@ The next example is based on the [Keller--Segel model for chemotaxis](/mathemati
 # Warm hearted
 
 By plotting vector fields on top of the solutions to PDEs, as exemplified in [the heat equation](/basic-pdes/heat-equation), we can visualise how heat flows from a source as it traces out a heart in this [interactive simulation](/sim/?preset=heatHeart).
-
-# Numerical health warning
-
-Our implementation of internal boundaries is somewhat crude, so for now we only support Dirichlet conditions on these boundaries.
