@@ -1,6 +1,13 @@
 export function getColours(sel) {
   let colours = [];
   switch (sel) {
+    case "squirrels":
+      colours.push([0.53, 0.55, 0.58, 0.0]);
+      colours.push([0.53, 0.55, 0.58, 0.0]);
+      colours.push([0.53, 0.55, 0.58, 0.0]);
+      colours.push([0.52, 0.11, 0.03, 1.0]);
+      colours.push([0.52, 0.11, 0.03, 1.0]);
+      break;
     case "chemicalBlue":
       colours.push([1.0, 1.0, 1.0, 0.0]);
       colours.push([1.0, 1.0, 1.0, 0.0]);

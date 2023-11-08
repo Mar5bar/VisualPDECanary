@@ -2497,6 +2497,7 @@ import { Stats } from "../stats.min.js";
         Retro: "retro",
         "Simply blue": "blue",
         "Snow Ghost": "snowghost",
+        "Squirrels": "squirrels",
         Spooky: "spooky",
         Thermal: "thermal",
         Turbo: "turbo",

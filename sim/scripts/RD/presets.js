@@ -3,6 +3,60 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["LavaFlow"] = {
+    boundaryConditions_1: "neumann",
+    boundaryConditions_2: "neumann",
+    brushRadius: "10",
+    brushValue: "T+1",
+    colourbar: true,
+    colourmap: "lavaflow",
+    crossDiffusion: true,
+    diffusionStr_1_1: "4*ind(q-T-epsilon)*(q-T)^3",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    domainScale: "320",
+    dt: 0.01,
+    flippedColourmap: true,
+    initCond_1: "I_S",
+    initCond_2: "I_S",
+    kineticParams: "epsilon = 0.01;",
+    maxColourValue: "1",
+    minColourValue: "-0.1",
+    numSpecies: "2",
+    preset: "LavaFlow",
+    reactionStr_1: "-(q-T)*ind(q < T)",
+    reactionStr_2: "0",
+    reactionStr_3: "0",
+    spatialStep: "1.5",
+    speciesNames: "q T",
+    views: [
+      {
+        name: "Lava",
+        whatToPlot: "q - T",
+        minColourValue: "-0.1",
+        maxColourValue: "1",
+        colourmap: "lavaflow",
+        flippedColourmap: false,
+      },
+      {
+        colourmap: "retro",
+        maxColourValue: "1",
+        minColourValue: "0",
+        whatToPlot: "T",
+        name: "Topography",
+      },
+      {
+        colourmap: "ice",
+        maxColourValue: "2",
+        minColourValue: "0",
+        whatToPlot: "q",
+        name: "Total",
+      },
+    ],
+    whatToDraw: "q",
+    whatToPlot: "q - T",
+  };
+
   listOfPresets["DecontaminationDemoSpots"] = {
     brushRadius:
       "ind(yB<h*L_y)*(0.05^2 - ((x-xB)^2+(y-yB)^2)) + ind(yB>=h*L_y)*(0.05^2 - ((x-xB)^2+(y-h*L_y)^2))",
@@ -332,6 +386,7 @@ export function getListOfPresets() {
     arrowY: "-G_y",
     boundaryConditions_1: "neumann",
     boundaryConditions_2: "neumann",
+    colourmap: "squirrels",
     contours: true,
     contourEpsilon: 0.005,
     contourNum: 1,
@@ -341,6 +396,7 @@ export function getListOfPresets() {
     domainIndicatorFun: "0.5-I_T",
     domainViaIndicatorFun: true,
     dt: 0.005,
+    flippedColourmap: true,
     imagePathTwo: "./images/gb.webp",
     initCond_1: "1",
     initCond_2: "1/cosh(0.5*sqrt((x-L_x/10)^2+(y+0.8*L_y/2)^2))^2",
