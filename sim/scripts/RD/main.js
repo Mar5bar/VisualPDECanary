@@ -237,6 +237,7 @@ import { Stats } from "../stats.min.js";
     ...getDefaultTeXLabelsDiffusion(),
     ...getDefaultTeXLabelsReaction(),
     ...getDefaultTeXLabelsBCsICs(),
+    ...getDefaultTeXLabelsTimescales(),
   };
   let listOfSpecies, listOfReactions, anySpeciesRegexStrs;
   const fieldsInView = getFieldsInView();
@@ -5528,10 +5529,10 @@ import { Stats } from "../stats.min.js";
     regexes["VFUN"] = /\b(VFUN)/g;
     regexes["WFUN"] = /\b(WFUN)/g;
     regexes["QFUN"] = /\b(QFUN)/g;
-    regexes["TU"] = /\b(t_{u})/g;
-    regexes["TV"] = /\b(t_{v})/g;
-    regexes["TW"] = /\b(t_{w})/g;
-    regexes["TQ"] = /\b(t_{q})/g;
+    regexes["TU"] = /\b(tau_{u})/g;
+    regexes["TV"] = /\b(tau_{v})/g;
+    regexes["TW"] = /\b(tau_{w})/g;
+    regexes["TQ"] = /\b(tau_{q})/g;
 
     if (options.typesetCustomEqs) {
       // We'll work using the default notation, then convert at the end.
