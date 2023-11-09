@@ -5747,9 +5747,10 @@ import { Stats } from "../stats.min.js";
       str = str.replaceAll(regex, "\\mathcal{Z}");
     } else {
       // Even if we're not customising the typesetting, add in \selected{} to any selected entry.
+      const selectCommand = inDarkMode() ? "selectedDark" : "selectedLight";
       selectedEntries.forEach(function (x) {
         str = str.replaceAll(regexes[x], function (match, g1, g2) {
-          let val = "\\selected{" + g1 + " ";
+          let val = "\\" + selectCommand + "{" + g1 + " ";
           if (typeof g2 == "string") val += g2;
           return val + "}";
         });
