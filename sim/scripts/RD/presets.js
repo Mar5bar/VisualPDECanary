@@ -215,7 +215,7 @@ export function getListOfPresets() {
     comboStr_2: "Right: Dirichlet = 0; Right: Neumann = 0",
     crossDiffusion: true,
     diffusionStr_1_1: "0",
-    diffusionStr_1_2: "-D*((1+tanh(v/0.01))*E_R+1)",
+    diffusionStr_1_2: "-D*((1+tanh(v/0.1))*E_R+1)",
     diffusionStr_2_1: "1",
     diffusionStr_2_2: "0",
     diffusionStr_3_3: "0",
