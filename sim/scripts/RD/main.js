@@ -5145,7 +5145,6 @@ import { Stats } from "../stats.min.js";
       setGUIControllerName(controllers["Dvw"], TeXStrings["Dvw"], Vtooltip);
       setGUIControllerName(controllers["Dvq"], TeXStrings["Dvq"], Vtooltip);
       setGUIControllerName(controllers["g"], TeXStrings["VFUN"], Vtooltip);
-      controllers["TV"].hide();
       controllers["Dvv"].hide();
     }
     if (algebraicW) {
@@ -5153,7 +5152,6 @@ import { Stats } from "../stats.min.js";
       setGUIControllerName(controllers["Dwv"], TeXStrings["Dwv"], Wtooltip);
       setGUIControllerName(controllers["Dwq"], TeXStrings["Dwq"], Wtooltip);
       setGUIControllerName(controllers["h"], TeXStrings["WFUN"], Wtooltip);
-      controllers["TW"].hide();
       controllers["Dww"].hide();
     }
     if (algebraicQ) {
@@ -5161,7 +5159,6 @@ import { Stats } from "../stats.min.js";
       setGUIControllerName(controllers["Dqv"], TeXStrings["Dqv"], Qtooltip);
       setGUIControllerName(controllers["Dqw"], TeXStrings["Dqw"], Qtooltip);
       setGUIControllerName(controllers["j"], TeXStrings["QFUN"], Qtooltip);
-      controllers["TQ"].hide();
       controllers["Dqq"].hide();
     }
 
