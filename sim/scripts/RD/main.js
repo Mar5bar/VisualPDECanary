@@ -3400,6 +3400,7 @@ import { Stats } from "../stats.min.js";
       takeAScreenshot = false;
       var link = document.createElement("a");
       link.download = "VisualPDEScreenshot";
+      setRenderSizeForScreenshot();
       renderer.render(scene, camera);
       link.href = renderer.domElement.toDataURL();
       document.body.appendChild(link);
@@ -6963,6 +6964,13 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Returns a list of (name,value) pairs for parameters defined in a list of strings.
+   * These can depend on each other, but not cyclically.
+   *
+   * @param {string[]} strs - The list of strings to evaluate.
+   * @returns {[string, any][]} A list of (name, value) pairs for the evaluated parameters.
+   */
   function evaluateParamVals(strs) {
     // Return a list of (name,value) pairs for parameters defined in
     // a list of strings. These can depend on each other, but not cyclically.
@@ -6998,6 +7006,16 @@ import { Stats } from "../stats.min.js";
     return Object.keys(valDict).map((x) => [x, valDict[x]]);
   }
 
+  /**
+   * Evaluates a parameter value based on its dependencies and returns the updated value dictionary, stack, and bad names.
+   * @param {string} name - The name of the parameter to evaluate.
+   * @param {Object} strDict - The dictionary of parameter names and their string representations.
+   * @param {Object} valDict - The dictionary of parameter names and their numeric values.
+   * @param {Array} stack - The stack of parameter names being evaluated.
+   * @param {Array} names - The list of parameter names.
+   * @param {Array} badNames - The list of parameter names that have cyclic dependencies.
+   * @returns {Array} - An array containing the updated value dictionary, stack, and bad names.
+   */
   function evaluateParam(name, strDict, valDict, stack, names, badNames) {
     // If we know the value already, don't do anything.
     if (name in valDict) return [valDict, stack.slice(0, -1), badNames];
@@ -7045,14 +7063,24 @@ import { Stats } from "../stats.min.js";
     return [valDict, stack.slice(0, -1), badNames];
   }
 
+  /**
+   * Sets the colour range based on the current min and max values.
+   * @name setColourRangeFromDef
+   * @returns {void}
+   */
   function setColourRangeFromDef() {
-    evaluateMinMaxVals();
+    cLims = evaluateMinMaxVals();
+    // Check if the colour limits need to be evaluated (ie do they contain non-numeric values).
     cLimsDependOnParams = doColourLimsNeedEvaluating();
     uniforms.minColourValue.value = cLims[0];
     uniforms.maxColourValue.value = cLims[1];
     updateColourbarLims();
   }
 
+  /**
+   * Evaluates expressions for min and max colours using the parameter values in kineticParamsVals.
+   * @returns {void}
+   */
   function evaluateMinMaxVals() {
     // Using the parameter values in kineticParamsVals, evaluate expressions for min and max colours.
     let min = options.minColourValue.toString();
@@ -7077,8 +7105,13 @@ import { Stats } from "../stats.min.js";
         "Unable to evaluate the maximum colour limit. Please check the definition."
       );
     }
+    return cLims;
   }
 
+  /**
+   * Checks if the color limits need to be evaluated (ie do they contain non-numeric values).
+   * @returns {boolean} Returns true if the color limits need to be evaluated, false otherwise.
+   */
   function doColourLimsNeedEvaluating() {
     return (
       /[^\.0-9\s]+/.test(options.minColourValue) ||
@@ -7086,8 +7119,11 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Updates all the shaders that are constructed using user input.
+   * @returns {void}
+   */
   function updateShaders() {
-    // Update all the shaders that are constructed using user input.
     setRDEquations();
     setClearShader();
     setBrushType();
@@ -7096,8 +7132,12 @@ import { Stats } from "../stats.min.js";
     setPostFunFragShader();
   }
 
+  /**
+   * Replaces any digits [0-9] in the input string with their word equivalents, so long as they follow at least one letter in a word.
+   * @param {string} strIn - The input string to replace digits in.
+   * @returns {string} The output string with digits replaced by their word equivalents.
+   */
   function replaceDigitsWithWords(strIn) {
-    // For any digits [0-9] in strIn, replace them with their word equivalents.
     let regex;
     let strOut = strIn;
     for (let num = 0; num < 10; num++) {
@@ -7109,17 +7149,22 @@ import { Stats } from "../stats.min.js";
     return strOut;
   }
 
+  /**
+   * Resizes the equation display to fit the screen by iteratively reducing the font size until the container
+   * no longer encroaches on the right-hand side of the screen.
+   * @returns {void}
+   */
   function resizeEquationDisplay() {
-    // Iteratively reduce the font size of the equation display until the container
-    // doesn't encroach on the RHS of the screen.
     const el = $("#equation_display div mjx-container").children("mjx-math");
-    var fz;
+    var fontSize;
+    // Reset the font size.
     el.css("font-size", "");
     var count = 0;
     if ($("#leftGUI")[0] == undefined) return;
     const rGUI = $("#rightGUI")[0];
     var rGUICorrection = 0;
     if (rGUI != undefined) rGUICorrection = rGUI.getBoundingClientRect().width;
+    // If the equation display is too wide, reduce the font size. Do this at most 20 times.
     while (
       (count < 20) &
       ($("#equation_display")[0].getBoundingClientRect().right >=
@@ -7127,8 +7172,9 @@ import { Stats } from "../stats.min.js";
       ($("#equation_display")[0].getBoundingClientRect().width >
         $("#leftGUI")[0].getBoundingClientRect().width)
     ) {
-      fz = (parseFloat(el.css("font-size")) * 0.9).toString() + "px";
-      el.css("font-size", fz);
+      // Reduce the font size by 10% each time.
+      fontSize = (parseFloat(el.css("font-size")) * 0.9).toString() + "px";
+      el.css("font-size", fontSize);
       count += 1;
     }
 
@@ -7139,12 +7185,20 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Computes the brightness of a given color represented as an array of RGB values.
+   * @param {number[]} col - An array of RGB values representing a color.
+   * @returns {number} The brightness of the color.
+   */
   function computeColourBrightness(col) {
     return col.reduce((a, b) => a + b, 0) / 3;
   }
 
+  /**
+   * Sets the range of the colour axis based on the extremes of the computed values.
+   * @returns {void}
+   */
   function setColourRangeSnap() {
-    // Set the range of the colour axis based on the extremes of the computed values.
     cLims = setMinMaxValGPU();
     options.minColourValue = String(cLims[0]);
     options.maxColourValue = String(cLims[1]);
@@ -7155,6 +7209,12 @@ import { Stats } from "../stats.min.js";
     updateColourbarLims();
   }
 
+  /**
+   * Updates the dropdown of a dat.GUI controller.
+   * @param {dat.GUIController} controller - The dat.GUI controller to update.
+   * @param {Array<string>} labels - The labels to display in the dropdown.
+   * @param {Array<string>} [values=labels] - The values to associate with each label in the dropdown. If not provided, the labels will be used as values.
+   */
   function updateGUIDropdown(controller, labels, values) {
     // Update the dropdown of a dat.GUI controller.
     if (values == undefined) {
@@ -7173,6 +7233,10 @@ import { Stats } from "../stats.min.js";
     controller.domElement.children[0].innerHTML = innerHTMLStr;
   }
 
+  /**
+   * Sets custom names for species and reactions, swapping out species in all user-editable strings.
+   * @returns {void}
+   */
   function setCustomNames() {
     let oldListOfSpecies;
     if (listOfSpecies != undefined) {
@@ -7321,6 +7385,10 @@ import { Stats } from "../stats.min.js";
     setEquationDisplayType();
   }
 
+  /**
+   * Generates an array of strings defining regular expression that are equivalent to [uvwq], [vwq], [wq], [q] but with
+   * the new species inserted. Sorts before forming regex to pick up nested species.
+   */
   function genAnySpeciesRegexStrs() {
     // Generate RegExp that is equivalent to [uvwq], [vwq], [wq], [q] but with
     // the new species inserted. Sort before forming regex to pick up nested species.
@@ -7338,9 +7406,15 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Replaces all the symbols from originals, found as whole words, with those in replacements, allowing for an optional trailing regex.
+   * @param {string} str - The string to replace symbols in.
+   * @param {string[]} originals - The original symbols to replace.
+   * @param {string[]} replacements - The replacement symbols.
+   * @param {string} [optional] - An optional trailing regex.
+   * @returns {string} The string with replaced symbols.
+   */
   function replaceSymbolsInStr(str, originals, replacements, optional) {
-    // Replace all the symbols from originals, found as whole words, with those
-    // in replacements, allowing for an optional trailing regex.
     if (optional == undefined) optional = "";
     const placeholders = new Array(originals.length)
       .fill(0)
@@ -7365,8 +7439,12 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Sets the xy coordinates of the display line, scaling y by options.threeDHeightScale.
+   * @param {Object} lineObj - The line object to set the coordinates for.
+   * @param {Array<Array<number>>} xy - The xy coordinates to set.
+   */
   function setLineXY(lineObj, xy) {
-    // Set the xy coordinates of the display line, scaling y by options.threeDHeightScale.
     let start = lineObj.geometry.attributes.instanceStart;
     let end = lineObj.geometry.attributes.instanceEnd;
     let coord;
@@ -7380,9 +7458,13 @@ import { Stats } from "../stats.min.js";
     end.needsUpdate = true;
   }
 
+  /**
+   * Sets the display line colour from the xy coordinates, noting that y in [-0.5,0.5].
+   * The colour is given simply by the y coordinate.
+   * @param {Object} lineObj - The line object to set the colour for.
+   * @param {Array} xy - The xy coordinates to use for setting the colour.
+   */
   function setLineColour(lineObj, xy) {
-    // Set the display line colour from the xy coordinates, noting that y in [-0.5,0.5].
-    // The colour is given simply by the y coordinate.
     let start = lineObj.geometry.attributes.instanceColorStart;
     let end = lineObj.geometry.attributes.instanceColorEnd;
     let colour;
@@ -7394,6 +7476,11 @@ import { Stats } from "../stats.min.js";
     start.needsUpdate = true;
   }
 
+  /**
+   * Returns a colour from a given value using a colour map.
+   * @param {number} val - The value to assign a colour to, must be between 0 and 1.
+   * @returns {Array<number>} An array of RGB values representing the colour.
+   */
   function colourFromValue(val) {
     // For val in [0,1] assign a colour using the colourmap.
     val = val.clamp(0, 1);
@@ -7413,6 +7500,14 @@ import { Stats } from "../stats.min.js";
     ).map((x) => x.clamp(0, 1));
   }
 
+  /**
+   * Linearly interpolates between two arrays v1 and v2, with t in [0,1].
+   *
+   * @param {Array} v1 - The first array to interpolate from.
+   * @param {Array} v2 - The second array to interpolate to.
+   * @param {number} t - The interpolation factor, in the range [0, 1].
+   * @returns {Array} The interpolated array.
+   */
   function lerpArrays(v1, v2, t) {
     // Linear interpolation of arrays v1 and v2, with t in [0,1].
     let res = new Array(v1.length);
@@ -7422,12 +7517,22 @@ import { Stats } from "../stats.min.js";
     return res;
   }
 
+  /**
+   * Linear interpolation between two values.
+   * @param {number} a - The starting value.
+   * @param {number} b - The ending value.
+   * @param {number} t - The interpolation factor, between 0 and 1.
+   * @returns {number} The interpolated value.
+   */
   function lerp(a, b, t) {
     // Linear interpolation between a and b, with t in [0,1].
     t = t.clamp(0, 1);
     return (1 - t) * a + t * b;
   }
 
+  /**
+   * Sets the line width for the line material and overlay line material.
+   */
   function setLineWidth() {
     lineMaterial.linewidth = 0.01 * options.lineWidthMul;
     overlayLineMaterial.linewidth = 0.01 * options.overlayLineWidthMul;
@@ -7435,16 +7540,32 @@ import { Stats } from "../stats.min.js";
     overlayLineMaterial.needsUpdate = true;
   }
 
+  /**
+   * Sets the onfocus handler of a free-text controller.
+   *
+   * @param {Object} cont - The free-text controller object.
+   * @param {Function} fun - The function to be called when the controller is focused.
+   * @param {Array} args - The arguments to be passed to the function.
+   */
   function setOnfocus(cont, fun, args) {
-    // Set the onfocus handler of a free-text controller.
     cont.domElement.firstChild.onfocus = () => fun(args);
   }
 
+  /**
+   * Sets the onblur handler of a free-text controller.
+   *
+   * @param {Object} cont - The free-text controller object.
+   * @param {Function} fun - The function to be called when the onblur event is triggered.
+   * @param {Array} args - The arguments to be passed to the function.
+   */
   function setOnblur(cont, fun, args) {
-    // Set the onblur handler of a free-text controller.
     cont.domElement.firstChild.onblur = () => fun(args);
   }
 
+  /**
+   * Selects TeX entries with the given IDs.
+   * @param {Array<string>} ids - The IDs of the TeX entries to select.
+   */
   function selectTeX(ids) {
     ids.forEach(function (id) {
       selectedEntries.add(id);
@@ -7452,6 +7573,10 @@ import { Stats } from "../stats.min.js";
     setEquationDisplayType();
   }
 
+  /**
+   * Deselects TeX entries with the given IDs.
+   * @param {Array<string>} ids - The IDs of the TeX entries to deselect.
+   */
   function deselectTeX(ids) {
     ids.forEach(function (id) {
       selectedEntries.delete(id);
@@ -7459,6 +7584,10 @@ import { Stats } from "../stats.min.js";
     setEquationDisplayType();
   }
 
+  /**
+   * Retrieves the raw state of the simulation from the renderer's render target pixels.
+   * @returns {void}
+   */
   function getRawState() {
     stateBuffer = new Float32Array(nXDisc * nYDisc * 4);
     renderer.readRenderTargetPixels(
@@ -7471,6 +7600,9 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Reads the pixel data from the post-processing texture and stores it in a Float32Array postBuffer.
+   */
   function getPostState() {
     postBuffer = new Float32Array(nXDisc * nYDisc * 4);
     renderer.readRenderTargetPixels(
@@ -7483,6 +7615,9 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Saves the current simulation state in memory as a buffer and creates a texture from it.
+   */
   function saveSimState() {
     // Save the current state in memory as a buffer.
     getRawState();
@@ -7493,6 +7628,10 @@ import { Stats } from "../stats.min.js";
     checkpointExists = true;
   }
 
+  /**
+   * Saves a checkpoint of the simulation state and downloads it as a file.
+   * If no checkpoint exists, creates one before downloading.
+   */
   function exportSimState() {
     // Save a checkpoint to file. If no checkpoint exists, create one.
     if (!checkpointExists) {
@@ -7510,6 +7649,11 @@ import { Stats } from "../stats.min.js";
     document.body.removeChild(link);
   }
 
+  /**
+   * Loads simulation state from a file.
+   *
+   * @param {File} file - The file containing the simulation state.
+   */
   function loadSimState(file) {
     const reader = new FileReader();
     reader.onload = function () {
@@ -7523,6 +7667,10 @@ import { Stats } from "../stats.min.js";
     reader.readAsArrayBuffer(file);
   }
 
+  /**
+   * Sets the repeat and offset properties of a texture based on the resizeCheckpoints option. Allows for stretching or cropping of the texture.
+   * @param {Texture} texture - The texture to set the properties for.
+   */
   function setStretchOrCropTexture(texture) {
     if (texture != null) {
       if (options.resizeCheckpoints == "crop") {
@@ -7543,6 +7691,12 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Creates a new THREE.DataTexture object from the given buffer and dimensions.
+   * If a checkpoint texture already exists, it will be disposed of before creating the new texture.
+   * @param {Float32Array} buff - The buffer to use for the texture data.
+   * @param {Array<number>} [dims=[nXDisc, nYDisc]] - The dimensions of the texture.
+   */
   function createCheckpointTexture(buff, dims) {
     if (checkpointTexture != null) {
       checkpointTexture.dispose();
@@ -7567,10 +7721,18 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Sets the size of the renderer to the dimensions of the discretisation.
+   */
   function setRenderSizeToDisc() {
     renderer.setSize(nXDisc, nYDisc, false);
   }
 
+  /**
+   * Sets the default render size based on the canvas dimensions and performance mode option.
+   
+   * @returns {void}
+   */
   function setDefaultRenderSize() {
     let scaleFactor = options.performanceMode ? 0.6 : devicePixelRatio;
     renderer.setSize(
@@ -7580,6 +7742,24 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Sets the size of the renderer for taking a screenshot, aiming for high resolution.
+   
+   * @name setRenderSizeForScreenshot
+   * @returns {void}
+   */
+  function setRenderSizeForScreenshot() {
+    renderer.setSize(Math.round)(
+      Math.max(nXDisc, Math.round(devicePixelRatio * canvasWidth)),
+      Math.max(nYDisc, Math.round(devicePixelRatio * canvasHeight)),
+      false
+    );
+  }
+
+  /**
+   * Pauses the simulation and displays an error message.
+   * @param {string} message - The error message to display.
+   */
   function throwError(message) {
     pauseSim();
     // If we're loading in, don't overwrite previous errors.
@@ -7597,15 +7777,22 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Throws an error about a preset with the given message, pauses the simulation, and displays the error message to the user.
+   * @param {string} message - The error message to display.
+   */
   function throwPresetError(message) {
     pauseSim();
     $("#preset_description").html(message);
     fadein("#bad_preset");
   }
 
+  /**
+   * Checks if the syntax of a given mathematical expression is valid.
+   * @param {string} str - The string to check.
+   * @returns {boolean} - Returns true if the syntax is valid, false otherwise.
+   */
   function isValidSyntax(str) {
-    // Return true if syntax appears correct, and false otherwise.
-
     // Empty parentheses?
     if (/\(\s*\)/.test(str)) {
       throwError("Empty parentheses in " + str.trim() + ".");
@@ -7638,6 +7825,9 @@ import { Stats } from "../stats.min.js";
     return true;
   }
 
+  /**
+   * Configures the views for the simulation, filling in unset parts of existing views.
+   */
   function configureViews() {
     // If there's no default view in options.views, add one.
     if (options.views.length == 0) {
@@ -7654,6 +7844,9 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Configures the views GUI by removing every existing list item from views_list, creating a new list item for each view, and applying the view when clicked.
+   */
   function configureViewsGUI() {
     // Remove every existing list item from views_list.
     $("#views_list").empty();
@@ -7685,6 +7878,11 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Applies the given view to the options object, updates the plot and renders it.
+   * @param {Object} view - An object of parameters that resembles options.
+   * @param {boolean} [update=true] - Whether to update what is being plotted and render.
+   */
   function applyView(view, update) {
     // Apply the view, which is an object of parameters that resembles options.
     Object.assign(options, view);
@@ -7703,7 +7901,6 @@ import { Stats } from "../stats.min.js";
       updateViewSliders();
       render();
     }
-
   }
 
   /**
@@ -7736,7 +7933,7 @@ import { Stats } from "../stats.min.js";
 
   /**
    * Removes the current view from the options.views array if there is more than one view. If there is only one view, renames it to "Custom".
-   * @function
+   
    * @returns {void}
    */
   function deleteView() {
@@ -7999,7 +8196,7 @@ import { Stats } from "../stats.min.js";
 
   /**
    * Copies the current configuration as a JSON string to the clipboard, with some modifications.
-   * @function
+   
    * @returns {void}
    */
   function copyConfigAsJSON() {
@@ -8046,7 +8243,7 @@ import { Stats } from "../stats.min.js";
 
   /**
    * Copies debugging data to the clipboard.
-   * @function
+   
    * @returns {void}
    */
   function copyDebug() {
