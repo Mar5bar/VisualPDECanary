@@ -1,3 +1,9 @@
+/**
+ * This file contains the main function that initializes the simulation and GUI, and imports various shaders and modules.
+ * It also defines various variables and constants used throughout the simulation.
+ * @file
+ * @summary Main file for the simulation.
+ */
 import {
   drawShaderTop,
   drawShaderBotReplace,
@@ -4525,12 +4531,9 @@ import { Stats } from "../stats.min.js";
       }
     }
     // Run MathJax to texify the parameter names (e.g. D_uu) that appear dynamically.
-    // No need to do this on page load (and indeed will throw an error) so check
-    // MathJax is defined first.
-    if (typeset && MathJax.typesetPromise != undefined) {
-      MathJax.typesetPromise();
+    if (typeset) {
+      runMathJax();
     }
-    // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
   }
 
   function deleteGUIs() {
@@ -4780,9 +4783,7 @@ import { Stats } from "../stats.min.js";
       .addImage(options, "imagePathTwo")
       .name("$I_T(x,y)$")
       .onChange(loadImageSourceTwo);
-    if (MathJax.typesetPromise != undefined) {
-      MathJax.typesetPromise();
-    }
+    runMathJax();
   }
 
   function updateWhatToPlot() {
@@ -5791,9 +5792,7 @@ import { Stats } from "../stats.min.js";
     str = parseStringToTEX(str);
 
     $("#typeset_equation").html(str);
-    if (MathJax.typesetPromise != undefined) {
-      MathJax.typesetPromise().then(resizeEquationDisplay);
-    }
+    runMathJax()?.then(resizeEquationDisplay);
   }
 
   function parseStringToTEX(str) {
@@ -6379,9 +6378,7 @@ import { Stats } from "../stats.min.js";
           $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
         }
       }
-      if (MathJax.typesetPromise != undefined) {
-        MathJax.typesetPromise($("#midLabel"));
-      }
+      runMathJax($("#midLabel"));
       checkColourbarLogoCollision();
       updateColourbarLims();
     } else {
@@ -6477,9 +6474,7 @@ import { Stats } from "../stats.min.js";
       str += "_{\\domain}" + parseStringToTEX(options.whatToPlot) + "\\,\\d x";
       options.dimension == 1 ? {} : (str += "\\d y");
       $("#integralLabel").html(str + " = $");
-      if (MathJax.typesetPromise != undefined) {
-        MathJax.typesetPromise($("#integralLabel"));
-      }
+      runMathJax($("#integralLabel"));
     } else {
       $("#integralDisplay").hide();
     }
@@ -7684,9 +7679,7 @@ import { Stats } from "../stats.min.js";
     } else {
       $("#deleteViewButton").addClass("hidden");
     }
-    if (MathJax.typesetPromise != undefined) {
-      MathJax.typesetPromise();
-    }
+    runMathJax();
     if (options.views.length > 0) {
       // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
     }
@@ -7711,9 +7704,12 @@ import { Stats } from "../stats.min.js";
       render();
     }
 
-    // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
   }
 
+  /**
+   * Prompts the user to enter a name for the current view and updates the view's name in the options object.
+   * If the user enters a name, the views GUI is reconfigured and MathJax typesetting is updated.
+   */
   function editCurrentViewName() {
     let name = prompt(
       "Enter a name for the current View. You can enclose mathematics in $ $.",
@@ -7722,13 +7718,13 @@ import { Stats } from "../stats.min.js";
     if (name != null) {
       options.views[options.activeViewInd].name = name;
       configureViewsGUI();
-      if (MathJax.typesetPromise != undefined) {
-        MathJax.typesetPromise();
-      }
-      // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
+      runMathJax();
     }
   }
 
+  /**
+   * Adds a new view to the options object and configures the views GUI.
+   */
   function addView() {
     // Add a new view.
     let view = buildViewFromOptions();
@@ -7738,6 +7734,11 @@ import { Stats } from "../stats.min.js";
     configureViewsGUI();
   }
 
+  /**
+   * Removes the current view from the options.views array if there is more than one view. If there is only one view, renames it to "Custom".
+   * @function
+   * @returns {void}
+   */
   function deleteView() {
     // Remove the current view if there is more than one view.
     if (options.views.length > 1) {
@@ -7755,6 +7756,10 @@ import { Stats } from "../stats.min.js";
     applyView(options.views[options.activeViewInd]);
   }
 
+  /**
+   * Builds a view object from the options object, containing only the fields specified in fieldsInView.
+   * @returns {Object} The view object.
+   */
   function buildViewFromOptions() {
     let view = {};
     fieldsInView.forEach(function (key) {
@@ -7763,12 +7768,23 @@ import { Stats } from "../stats.min.js";
     return view;
   }
 
+  /**
+   * Updates the active view with the given property.
+   * @param {string} property - The property to update the active view with.
+   */
   function updateView(property) {
     // Update the active view with options.property.
     if (options.activeViewInd < options.views.length)
       options.views[options.activeViewInd][property] = options[property];
   }
 
+  /**
+   * Updates the shader for a ghost species on a given side with a specified value.
+   * @param {number} speciesInd - The index of the species to update.
+   * @param {string} [side] - The side on which to apply the boundary condition ("L", "R", "B", "T", or undefined).
+   * @param {string} valStr - The value to update the species with.
+   * @returns {string} The updated shader string.
+   */
   function ghostUpdateShader(speciesInd, side, valStr) {
     let str = "";
     str += selectSpeciesInShaderStr(
@@ -7786,6 +7802,12 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Generates a shader string for updating a species with Dirichlet boundary conditions on a given side.
+   * @param {number} speciesInd - The index of the species to update.
+   * @param {string} [side] - The side on which to apply the boundary condition ("L", "R", "B", "T", or undefined).
+   * @returns {string} The generated shader string.
+   */
   function dirichletUpdateShader(speciesInd, side) {
     let str = "";
     str += selectSpeciesInShaderStr(
@@ -7801,6 +7823,12 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Generates a shader for including Robin boundary conditions for a given species and side.
+   * @param {number} speciesInd - The index of the species to update.
+   * @param {string} [side] - The side on which to apply the boundary condition ("L", "R", "B", "T", or undefined).
+   * @returns {string} - The updated shader string.
+   */
   function robinUpdateShader(speciesInd, side) {
     let str = "";
     str += selectSpeciesInShaderStr(
@@ -7816,6 +7844,12 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Generates a shader for including Robin boundary conditions for a given species and side in a custom domain.
+   * @param {number} speciesInd - The index of the species to update the shader for.
+   * @param {string} side - The side to update the shader for.
+   * @returns {string} - The updated shader string.
+   */
   function robinUpdateShaderCustomDomain(speciesInd, side) {
     let str = "";
     str += selectSpeciesInShaderStr(
@@ -7837,6 +7871,12 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Generates a shader string for enforcing Dirichlet boundary conditions for a given species and side.
+   * @param {number} speciesInd - The index of the species to enforce the boundary condition for.
+   * @param {string} side - The side of the boundary to enforce the condition on ("left", "right", "bottom", or "top").
+   * @returns {string} The generated shader string.
+   */
   function dirichletEnforceShader(speciesInd, side) {
     let str = "";
     str += selectSpeciesInShaderStr(
@@ -7852,6 +7892,12 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Creates a button list element and appends it to the parent element.
+   * @param {Object} parent - The parent element to append the button list to.
+   * @param {string} [id] - The id to assign to the button list element.
+   * @returns {Object} The created button list element.
+   */
   function addButtonList(parent, id) {
     const list = document.createElement("li");
     if (id != null) list.id = id;
@@ -7860,6 +7906,15 @@ import { Stats } from "../stats.min.js";
     return list;
   }
 
+  /**
+   * Creates and appends a button element to a parent element.
+   * @param {HTMLElement} parent - The parent element to append the button to.
+   * @param {string} [inner] - The inner HTML of the button.
+   * @param {function} [onclick] - The function to be executed when the button is clicked.
+   * @param {string} [id] - The ID of the button.
+   * @param {string} [title] - The title of the button.
+   * @param {Array<string>} [classes] - An array of classes to be added to the button.
+   */
   function addButton(parent, inner, onclick, id, title, classes) {
     const button = document.createElement("a");
     if (onclick != undefined) button.onclick = onclick;
@@ -7874,6 +7929,19 @@ import { Stats } from "../stats.min.js";
     parent.appendChild(button);
   }
 
+  /**
+   * Creates a toggle button and appends it to the given parent element.
+   * @param {HTMLElement} parent - The parent element to append the toggle button to.
+   * @param {string} property - The property to toggle when the button is clicked.
+   * @param {string} [inner] - The inner HTML of the toggle button.
+   * @param {function} [onclick] - The function to call when the button is clicked.
+   * @param {string} [id] - The ID to assign to the toggle button.
+   * @param {string} [title] - The title to assign to the toggle button.
+   * @param {string} [folderID] - The folder ID to assign to the toggle button.
+   * @param {string[]} [classes] - An array of classes to assign to the toggle button.
+   * @param {object} [obj=options] - The object to toggle the property on. Defaults to the global options object.
+   * @returns {HTMLElement} The created toggle button.
+   */
   function addToggle(
     parent,
     property,
@@ -7885,12 +7953,17 @@ import { Stats } from "../stats.min.js";
     classes,
     obj
   ) {
+    // Create the toggle button.
     const toggle = document.createElement("a");
+    // If obj is undefined, use options.
     if (obj == undefined) obj = options;
     toggle.obj = obj;
+    // Add the toggle_button class to the toggle button.
     toggle.classList.add("toggle_button");
+    // Add the property attribute to the toggle button.
     toggle.setAttribute("property", property);
     if (onclick == undefined) onclick = () => {};
+    // Augment any existing onclick to toggle the property.
     toggle.onclick = function () {
       toggle.obj[toggle.getAttribute("property")] =
         !toggle.obj[toggle.getAttribute("property")];
@@ -7901,39 +7974,61 @@ import { Stats } from "../stats.min.js";
     if (title != undefined) toggle.title = title;
     if (inner != undefined) toggle.innerHTML = inner;
     if (folderID != undefined) toggle.setAttribute("folderID", folderID);
+    // Add any classes to the toggle button.
     if (classes != undefined) {
       for (const c of classes) {
         toggle.classList.add(c);
       }
     }
+    // Add the toggle button to the parent element.
     parent.appendChild(toggle);
+    // Update the toggle button to reflect the current value of the property.
     updateToggle(toggle);
     return toggle;
   }
 
+  /**
+   * Adds a new line element to the specified parent element.
+   * @param {HTMLElement} parent - The parent element to append the new line element to.
+   */
   function addNewline(parent) {
     const breaker = document.createElement("div");
     breaker.classList.add("break");
     parent.appendChild(breaker);
   }
 
+  /**
+   * Copies the current configuration as a JSON string to the clipboard, with some modifications.
+   * @function
+   * @returns {void}
+   */
   function copyConfigAsJSON() {
-    // Encode the current simulation configuration as raw JSON and put it on the clipboard.
     const parentOptions = Object.assign(
       getPreset("default"),
       getPreset(options.parent)
     );
+
+    // Get the options that differ from the default.
     let objDiff = diffObjects(options, parentOptions);
     // If there's only one view and it has the default name, remove the view from the preset.
     if (options.views.length == 1 && options.views[0].name == "1") {
       delete objDiff.views;
     }
+
     // If every view has the same value as options for a property, remove that property from the views.
     for (const key of Object.keys(options.views[0])) {
       if (options.hasOwnProperty(key)) {
         if (options.views.map((e) => e[key]).every((v) => v == options[key])) {
           options.views.forEach((v) => delete v[key]);
         }
+      }
+    }
+
+    // If every view specifies a value for a property, remove that property from options.
+    for (const key of Object.keys(options.views[0])) {
+      if (options.views.every((v) => v.hasOwnProperty(key))) {
+        console.log(key);
+        delete objDiff[key];
       }
     }
 
@@ -7949,8 +8044,12 @@ import { Stats } from "../stats.min.js";
     copyToClipboard(str);
   }
 
+  /**
+   * Copies debugging data to the clipboard.
+   * @function
+   * @returns {void}
+   */
   function copyDebug() {
-    // Write lots of data to the clipboard for debugging.
     let str = "";
     str += JSON.stringify(options);
     str += JSON.stringify(uniforms);
@@ -7965,49 +8064,75 @@ import { Stats } from "../stats.min.js";
     copyToClipboard(str);
   }
 
+  /**
+   * Configures the stats GUI based on the value of the `options.showStats` flag.
+   */
   function configureStatsGUI() {
-    if (options.showStats) {
-      stats.domElement.style.visibility = "";
-    } else {
-      stats.domElement.style.visibility = "hidden";
-    }
+    stats.domElement.style.visibility = options.showStats ? "" : "hidden";
   }
 
+  /**
+   * Toggles the visibility of the right UI panel and toggles the "clicked" class on the settings button.
+   */
   function toggleRightUI() {
     $("#right_ui").toggle();
     $("#settings").toggleClass("clicked");
   }
 
+  /**
+   * Toggles the visibility of the left UI panel and toggles the "clicked" class of the equations element.
+   */
   function toggleLeftUI() {
     $("#left_ui").toggle();
     $("#equations").toggleClass("clicked");
   }
 
+  /**
+   * Toggles the visibility of the views UI and toggles the "clicked" class of the views element.
+   */
   function toggleViewsUI() {
     $("#views_ui").toggle();
     $("#views").toggleClass("clicked");
   }
 
+  /**
+   * Toggles the visibility of the help panel and toggles the "clicked" class of the help button.
+   */
   function toggleHelpPanel() {
     $("#help_panel").toggle();
     $("#help").toggleClass("clicked");
   }
 
+  /**
+   * Toggles the visibility of the share panel and toggles the "clicked" class of the share button.
+   */
   function toggleSharePanel() {
     $("#share_panel").toggle();
     $("#share").toggleClass("clicked");
   }
 
+  /**
+   * Checks if the user is accessing the website from a mobile device.
+   * @returns {boolean} - True if the user is accessing the website from a mobile device, false otherwise.
+   */
   function onMobile() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     );
   }
 
-  function smallScreen() {
+  /**
+   * Determines if the window width is less than 629 pixels.
+   * @returns {boolean} Whether the screen is considered small or not.
+   */
+  function onSmallScreen() {
     return window.width < 629;
   }
 
+  /**
+   * Inserts the URL of the current sim to an iframe and appends UI options based on the value of embed_ui_type.
+   * Then, it copies the iframe to the clipboard.
+   */
   function copyIframe() {
     // Get the URL of the current sim.
     let url = getSimURL();
@@ -8030,8 +8155,12 @@ import { Stats } from "../stats.min.js";
     copyToClipboard(str);
   }
 
+  /**
+   * Returns a URL encoded string representing the current simulation configuration.
+   * @returns {string} The URL encoded string representing the current simulation configuration.
+   */
   function getSimURL() {
-    // Encode the current simulation configuration as a URL and put it on the clipboard.
+    // First, get the options that differ from the default.
     let objDiff = diffObjects(options, getPreset("default"));
     objDiff.preset = "Custom";
     // Minify the field names in order to generate shorter URLs.
@@ -8044,6 +8173,11 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Copies the given string to the user's clipboard.
+   *
+   * @param {string} str - The string to copy to the clipboard.
+   */
   function copyToClipboard(str) {
     navigator.clipboard.writeText(str).then(
       () => {
@@ -8060,6 +8194,10 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Updates the value of a parameter based on a message received from another window.
+   * @param {MessageEvent} event - The message event containing the parameter name and value.
+   */
   function updateParamFromMessage(event) {
     // Upon receiving a message from another window, use the message to update
     // the value in the specified parameter.
@@ -8072,6 +8210,7 @@ import { Stats } from "../stats.min.js";
         controller.slider.value = event.data.value;
         controller.slider.dispatchEvent(new Event("input"));
       } else {
+        // Otherwise, just update the value.
         const val =
           controller.object[controller.property].split("=")[0] +
           "= " +
@@ -8082,6 +8221,9 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Sets the values of the emboss uniforms based on the current options.
+   */
   function setEmbossUniforms() {
     uniforms.embossAmbient.value = options.embossAmbient;
     uniforms.embossDiffuse.value = options.embossDiffuse;
@@ -8095,6 +8237,13 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Creates a slider element for a given controller with the specified minimum, maximum, and step values.
+   * @param {Object} controller - The controller to which the slider will be added.
+   * @param {number} min - The minimum value of the slider.
+   * @param {number} max - The maximum value of the slider.
+   * @param {number} step - The step value of the slider.
+   */
   function createOptionSlider(controller, min, max, step) {
     controller.slider = document.createElement("input");
     controller.slider.classList.add("styled-slider");
@@ -8118,7 +8267,8 @@ import { Stats } from "../stats.min.js";
 
     // Augment the controller's onChange and onFinishChange to update the slider.
     let flag = true;
-    if (controller.__onChange != undefined) {
+    // If onChange is set, we need to augment it to update the slider.
+    if (controller.__onChange) {
       flag = false;
       controller.oldOnChange = controller.__onChange;
       controller.__onChange = function () {
@@ -8128,7 +8278,8 @@ import { Stats } from "../stats.min.js";
       };
     }
 
-    if (controller.__onFinishChange != undefined) {
+    // If onFinishChange is set, we need to augment it as well.
+    if (controller.__onFinishChange) {
       flag = false;
       controller.oldOnFinishChange = controller.__onFinishChange;
       controller.__onFinishChange = function () {
@@ -8153,6 +8304,9 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Updates the view sliders by setting their value and style based on the current controller value.
+   */
   function updateViewSliders() {
     for (const controller of [...embossControllers, ...contoursControllers]) {
       let value = controller.getValue();
@@ -8161,12 +8315,18 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Sets the contour uniforms for the simulation.
+   */
   function setContourUniforms() {
     uniforms.contourColour.value = new THREE.Color(options.contourColour);
     uniforms.contourEpsilon.value = options.contourEpsilon;
     uniforms.contourStep.value = 1 / (options.contourNum + 1);
   }
 
+  /**
+   * Sets the uniforms for the overlay.
+   */
   function setOverlayUniforms() {
     uniforms.overlayColour.value = new THREE.Color(options.overlayColour);
     uniforms.overlayEpsilon.value = options.overlayEpsilon;
@@ -8175,11 +8335,18 @@ import { Stats } from "../stats.min.js";
     overlayLineMaterial.needsUpdate = true;
   }
 
+  /**
+   * Renders the simulation if it is not currently running.
+   */
   function renderIfNotRunning() {
     frameCount = 0;
     if (!isRunning) render();
   }
 
+  /**
+   * Updates the toggle based on the state of the object property.
+   * @param {HTMLElement} toggle - The toggle element to update.
+   */
   function updateToggle(toggle) {
     const obj = toggle.obj;
     if (obj[toggle.getAttribute("property")]) {
@@ -8195,6 +8362,10 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Disables autocorrect, autocapitalize, and spellcheck for the given input element.
+   * @param {HTMLInputElement} input - The input element to disable autocorrect for.
+   */
   function disableAutocorrect(input) {
     input.setAttribute("autocomplete", "off");
     input.setAttribute("autocorrect", "off");
@@ -8202,6 +8373,11 @@ import { Stats } from "../stats.min.js";
     input.setAttribute("spellcheck", false);
   }
 
+  /**
+   * Sets the vertex shader for the display material based on the value of `options.customSurface`.
+   * If `options.customSurface` is truthy, the custom surface vertex shader is used. Otherwise, the
+   * default surface vertex shader is used.
+   */
   function setSurfaceShader() {
     if (options.customSurface) {
       displayMaterial.vertexShader = surfaceVertexShaderCustom();
@@ -8211,6 +8387,9 @@ import { Stats } from "../stats.min.js";
     displayMaterial.needsUpdate = true;
   }
 
+  /**
+   * Configures the custom surface controllers based on the current plot type and options.
+   */
   function configureCustomSurfaceControllers() {
     if (options.plotType == "surface") {
       $(surfaceButtons).show();
@@ -8234,12 +8413,15 @@ import { Stats } from "../stats.min.js";
     return Array.from(new Set(dups));
   }
 
+  /**
+   * Creates arrows and adds them to the scene.
+   */
   function createArrows() {
     arrowGroup = new THREE.Group();
     scene.add(arrowGroup);
     const maxDisc = Math.max(nXDisc, nYDisc);
     const denom = Math.round(
-      lerp(3, smallScreen() ? 20 : 64, options.arrowDensity)
+      lerp(3, onSmallScreen() ? 20 : 64, options.arrowDensity)
     );
     let stride = Math.max(Math.floor(maxDisc / denom), 1);
     const xNum = Math.floor(nXDisc / stride);
@@ -8262,6 +8444,12 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Creates an arrow object with a tail and a head, positioned at the given position and pointing in the given direction.
+   * @param {number[]} pos - The position of the arrow as an array of three numbers representing the x, y, and z coordinates.
+   * @param {number[]} dir - The direction of the arrow as an array of three numbers representing the x, y, and z components of the direction vector.
+   * @returns {THREE.Group} The arrow object as a THREE.Group instance.
+   */
   function createArrow(pos, dir) {
     const arrow = new THREE.Group();
     const tail = new THREE.Mesh(tailGeometry, arrowMaterial);
@@ -8278,6 +8466,9 @@ import { Stats } from "../stats.min.js";
     return arrow;
   }
 
+  /**
+   * Removes all arrows from the scene.
+   */
   function deleteArrows() {
     if (!arrowGroup) return;
     scene.remove(arrowGroup);
@@ -8286,14 +8477,19 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Configures the vector field based on the options selected by the user.
+   */
   function configureVectorField() {
     uniforms.vectorField.value = options.vectorField;
+    deleteArrows();
     if (options.vectorField) {
-      deleteArrows();
       createArrows();
       updateArrowColour();
+      // Set the arrow scale based on the options.arrowScale value.
       if (options.arrowScale == "relative") {
         try {
+          // Evaluate the expression in options.arrowLengthMax.
           arrowGroup.customMax = parser.evaluate(options.arrowLengthMax);
         } catch (error) {
           throwError(
@@ -8302,19 +8498,29 @@ import { Stats } from "../stats.min.js";
           arrowGroup.customMax = 1;
         }
       }
-    } else {
-      deleteArrows();
     }
   }
 
+  /**
+   * Updates the color of the arrow material based on the options.arrowColour value.
+   */
   function updateArrowColour() {
     arrowMaterial.color = new THREE.Color(options.arrowColour);
   }
 
+  /**
+   * Returns an array of strings containing the names of all species and reactions.
+   * @returns {string[]} Array of strings containing the names of all species and reactions.
+   */
   function getSpecAndReacNames() {
     return listOfSpecies.concat(listOfReactions);
   }
 
+  /**
+   * Validates if a parameter name is already in use.
+   * @param {string} name - The name of the parameter to validate.
+   * @returns {boolean} - Returns true if the parameter name is not already in use, otherwise returns false.
+   */
   function validateParamName(name) {
     const val = isReservedName(name, getSpecAndReacNames());
     if (val) {
@@ -8329,6 +8535,16 @@ import { Stats } from "../stats.min.js";
     return !val;
   }
 
+  /**
+   * The `sortObject()` function is used to sort the keys of an object in case-insensitive alphabetical order and return a new object with the sorted keys.
+   *
+   * @param {Object} obj - The input object to be sorted.
+   *
+   * The function first gets the keys of the object and sorts them using the `sort()` method with a custom comparator function that compares the keys in a case-insensitive manner.
+   * It then uses the `reduce()` method to create a new object with the sorted keys and their corresponding values from the original object.
+   *
+   * @returns {Object} - The new object with keys sorted in case-insensitive alphabetical order.
+   */
   function sortObject(obj) {
     return Object.keys(obj)
       .sort(function (a, b) {
@@ -8340,12 +8556,43 @@ import { Stats } from "../stats.min.js";
       }, {});
   }
 
+  /**
+   * The `replaceMINXMINY()` function is used to replace occurrences of 'MINX' and 'MINY' in a string with the respective minimum X and Y values from the options object.
+   *
+   * @param {string} str - The input string, typically a shader code, where the placeholders 'MINX' and 'MINY' will be replaced.
+   *
+   * The function uses the `replaceAll()` method to replace all occurrences of 'MINX' and 'MINY' in the string. The replacement values are obtained by calling the `parseShaderString()` function with the respective minimum X and Y values from the options object.
+   *
+   * @returns {string} - The modified string with all occurrences of 'MINX' and 'MINY' replaced by the respective minimum X and Y values.
+   */
   function replaceMINXMINY(str) {
     str = str.replaceAll(/\bMINX\b/g, () => parseShaderString(options.minX));
     str = str.replaceAll(/\bMINY\b/g, () => parseShaderString(options.minY));
     return str;
   }
 
+  /**
+   * The `checkForCyclicDependencies()` function is used to check for cyclic dependencies in a directed graph of names
+   *
+   * @param {string} name - The name of the node to start the check from.
+   * @param {Object} doneDict - An object that keeps track of the nodes that have been checked.
+   * @param {Array} stack - An array that represents the current path of nodes being checked.
+   * @param {Object} dependencies - An object that maps each node to an array of its dependencies.
+   * @param {Array} badNames - An array that stores the paths that contain cyclic dependencies.
+   *
+   * The function uses a depth-first search algorithm to traverse the graph. If it encounters a node that is already in the current path, it has found a cycle, and it adds the cyclic path to `badNames`.
+   *
+   * @returns {Array} - Returns an array containing the updated `doneDict`, `stack`, and `badNames`.
+   */
+  function checkForCyclicDependencies(
+    name,
+    doneDict,
+    stack,
+    dependencies,
+    badNames
+  ) {
+    // ...
+  }
   function checkForCyclicDependencies(
     name,
     doneDict,
@@ -8378,6 +8625,18 @@ import { Stats } from "../stats.min.js";
     return [doneDict, stack.slice(0, -1), badNames];
   }
 
+  /**
+   * The `configureCursorDisplay()` function is used to set the cursor display on a canvas element with the id "simCanvas" based on certain conditions.
+   *
+   * Initially, it sets the cursor to the default style ("auto").
+   * If the brush is not enabled or the plot type is either "surface" or "line", the function returns and no further changes are made to the cursor.
+   * If the plot type is "plane", the cursor style is set based on the brush type:
+   * - If the brush type is "circle", the cursor is set to a circle image.
+   * - If the brush type is "hline", the cursor is set to a horizontal line image.
+   * - If the brush type is "vline", the cursor is set to a vertical line image.
+   *
+   * The `$("#simCanvas").css("cursor", "url('images/cursor-circle.svg') 12 12, auto")` line sets the cursor to an image. The "12 12" part specifies the position of the hotspot, or the cursor's active point. The "auto" part is a fallback cursor style in case the image cannot be displayed.
+   */
   function configureCursorDisplay() {
     // Default cursor.
     $("#simCanvas").css("cursor", "auto");
@@ -8412,10 +8671,30 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * The `isEmptyString()` function checks if a given string is empty or contains only whitespace characters.
+   *
+   * @param {string} str - The string to check.
+   *
+   * The function uses a regular expression (`/^\s*$/`) to test the string. This regular expression matches strings that start and end with zero or more whitespace characters.
+   *
+   * @returns {boolean} - Returns true if the string is empty or contains only whitespace characters. Returns false otherwise.
+   */
   function isEmptyString(str) {
     return /^\s*$/.test(str);
   }
 
+  /**
+   * The `addStepCounter()` function is used to add a step counter to the header of the current step in a Shepherd tour.
+   *
+   * The function first retrieves the active tour and the current step within that tour.
+   * It then gets the DOM element associated with the current step and the header within that element.
+   * A new span element is created and given the class "shepherd-progress".
+   * The inner text of this span element is set to the current step number and the total number of steps in the format "current / total".
+   * This span element is then inserted into the header, before the cancel icon.
+   *
+   * Note: This function uses optional chaining (`?.`), so if any of the properties or methods are undefined or null, it will not throw an error and will instead return undefined.
+   */
   function addStepCounter() {
     const currentStep = Shepherd.activeTour?.getCurrentStep();
     const currentStepElement = currentStep?.getElement();
@@ -8430,6 +8709,7 @@ import { Stats } from "../stats.min.js";
       currentStepElement.querySelector(".shepherd-cancel-icon")
     );
   }
+
   function addMoreInfoLink(link, label) {
     const currentStep = Shepherd.activeTour?.getCurrentStep();
     const currentStepElement = currentStep?.getElement();
@@ -8442,6 +8722,18 @@ import { Stats } from "../stats.min.js";
     footer?.insertBefore(moreInfo, footer.firstChild);
   }
 
+  /**
+   * Starts recording a video from the canvas.
+   * The function first checks if a recording is already in progress, and if so, it returns immediately.
+   * It then checks if the browser supports video recording, and if not, it throws an error.
+   * The video quality is set based on the value of the "video_quality" element in the DOM.
+   * A stream is captured from the canvas at a maximum of 30 frames per second.
+   * The MediaRecorder API is used to record the stream.
+   * When the recording is stopped, the video is created and downloaded.
+   * If the browser is not Chrome or Firefox, a message is shown.
+   * The recording automatically stops after 60 seconds.
+   * A timer is displayed showing the recording time.
+   */
   function startRecording() {
     if (isRecording) return;
     isRecording = true;
@@ -8519,6 +8811,17 @@ import { Stats } from "../stats.min.js";
     }, 1000);
   }
 
+  /**
+   * The `stopRecording()` function is used to stop the video recording.
+   *
+   * If no recording is in progress, the function immediately returns.
+   * If a recording is in progress, it clears the recording timer and stops the MediaRecorder.
+   * The recording display is hidden and the interval that updates the recording time display is cleared.
+   * The recording time display is reset.
+   * The `isRecording` flag is set to false, indicating that no recording is currently in progress.
+   * If this is the first time a video has been recorded, a message is displayed to the user.
+   * This message can be closed by clicking on the close button, and it will not be shown again in future recording sessions.
+   */
   function stopRecording() {
     if (!isRecording) return;
     window.clearTimeout(recordingTimer);
@@ -8574,6 +8877,17 @@ import { Stats } from "../stats.min.js";
     return supported.length ? supported[0] : false;
   }
 
+  /**
+   * The `insertRates()` function is used to replace a placeholder in a string with a vector of timescale values.
+   *
+   * @param {string} str - The input string, typically a shader code, where the placeholder 'TIMESCALES' will be replaced.
+   *
+   * The function constructs a string representation of a 4-component vector (vec4) using the timescale values from the options object.
+   * These timescale values are parsed into shader-compatible strings using the `parseShaderString()` function.
+   * The resulting vec4 string is then used to replace all occurrences of 'TIMESCALES' in the input string.
+   *
+   * @returns {string} - The modified string with all occurrences of 'TIMESCALES' replaced by the vec4 string.
+   */
   function insertRates(str) {
     const toSub =
       "vec4(" +
@@ -8589,7 +8903,24 @@ import { Stats } from "../stats.min.js";
     return str.replaceAll(/TIMESCALES/g, toSub);
   }
 
+  /**
+   * The `inDarkMode()` function checks if the application is currently in dark mode.
+   *
+   * It does this by checking if the root element of the document (i.e., <html>) has a class named "dark-mode".
+   *
+   * @returns {boolean} - Returns true if the "dark-mode" class is present, indicating that the application is in dark mode. Returns false otherwise.
+   */
   function inDarkMode() {
     return document.documentElement.classList.contains("dark-mode");
+  }
+
+  /**
+   * Runs MathJax to typeset mathematical expressions, if available.
+   * @param {Object} [args] - The arguments to pass to MathJax.
+   * @returns {Promise} A promise that resolves when typesetting is complete.
+   */
+  function runMathJax(args) {
+    if (MathJax.typesetPromise != undefined)
+      return MathJax.typesetPromise(args);
   }
 })();
