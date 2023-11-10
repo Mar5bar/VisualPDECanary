@@ -471,9 +471,7 @@ export function RDShaderRobinCustomDomainY(TB, fun) {
     )
     .replace(
       /indicatorFunT/,
-      fun
-        .replaceAll(/([^.]|^)\by\b/g, "$1(y+dy)")
-        .replaceAll(/\buvwq\./g, "uvwqT.")
+      fun.replaceAll(/\by\b/g, "(y+dy)").replaceAll(/\buvwq\./g, "uvwqT.")
     );
   if (TB == undefined) return T + B;
   if (TB == "T") return T;
