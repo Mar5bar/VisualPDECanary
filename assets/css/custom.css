@@ -480,26 +480,8 @@ input[type="range"] {
 }
 
 .vpde-slider-valLabel {
-  bottom: -7px;
-  position: absolute;
-  z-index: 1;
   font-size: 0.7rem;
-  max-width: 40%;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.vpde-slider-valLabel.min {
-  left: 0px;
-}
-
-.vpde-slider-valLabel.max {
-  right: 0px;
-}
-
-.vpde-slider.has-labels {
-  position: relative;
-  top: -5px;
+  vertical-align: middle;
 }
 
 /*progress support*/
