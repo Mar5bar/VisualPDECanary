@@ -19,9 +19,12 @@ $$\begin{aligned}E = E\left(\pdd{y}{x}\right) = E^\star + \Delta_E\frac{1+\tanh{
 
 for baseline stiffness $E^\star$, stiffness change $\Delta_E$, and sensitivity $\epsilon$. 
 
-We can play with $\Delta_E$ using this slider: <vpde-slider
+We can play with $\Delta_E$ using the slider below. The minimum value corresponds to a beam with constant stiffness, while the maximum value corresponds to a beam with a stiffness that depends strongly on the curvature. A quick exploration highlights that the dynamics of the beam depend significantly on the differential stiffness.
+
+<p style="text-align:center;"><vpde-slider
     iframe="sim"
     name="Delta_E"
+    label="$\Delta_E$: "
     min="0"
     max="24"
     value="0"
@@ -29,9 +32,7 @@ We can play with $\Delta_E$ using this slider: <vpde-slider
     min-label="$0$"
     max-label="$24$"
     host="/"
-    ></vpde-slider>
-
-The minimum value corresponds to a beam with constant stiffness, while the maximum value corresponds to a beam with a stiffness that depends strongly on the curvature. A quick exploration highlights that the dynamics of the beam depend significantly on the differential stiffness.
+    ></vpde-slider></p>
 
 <iframe id="sim" class="sim" src="/sim/?preset=differentialStiffness&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
