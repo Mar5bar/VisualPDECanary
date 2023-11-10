@@ -7,6 +7,8 @@ class VPDESlider extends HTMLElement {
       .split(" ")
       .map((frame) => document.getElementById(frame));
     this.message = { name: this.getAttribute("name") };
+    // Specify a custom host if one is provided, otherwise use the default.
+    this.host = this.getAttribute("host") || "https://visualpde.com";
 
     // Create a slider and a name tag in a span.
     const wrapper = document.createElement("span");
@@ -53,7 +55,7 @@ class VPDESlider extends HTMLElement {
   sendUpdate() {
     this.message.value = this.slider.value;
     this.attachedFrames.forEach((frame) => {
-      frame.contentWindow.postMessage(this.message, "https://visualpde.com");
+      frame.contentWindow.postMessage(this.message, this.host);
     });
   }
 }
