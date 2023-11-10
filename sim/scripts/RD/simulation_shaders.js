@@ -385,7 +385,7 @@ export function RDShaderRobinY(TB) {
  */
 export function RDShaderRobinCustomDomainX(LR, fun) {
   const L = `
-    if (float(indicatorFunL) <= 0.0 || textureCoords.x - step_x < 0.0) {
+    if (float(indicatorFunL) <= 0.0 || textureCoords.x - 2.0*step_x < 0.0) {
       if (float(indicatorFunR) <= 0.0) {
         uvwqL.SPECIES = dx * robinRHSSPECIESL + uvwq.SPECIES;
       } else {
@@ -395,14 +395,18 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
     `
     .replace(
       /indicatorFunL/,
-      fun.replaceAll(/\bx\b/g, "(x-dx)").replaceAll(/\buvwq\./g, "uvwqL.")
+      fun
+        .replaceAll(/([^.]|^)\bx\b/g, "$1(x-dx)")
+        .replaceAll(/\buvwq\./g, "uvwqL.")
     )
     .replace(
       /indicatorFunR/,
-      fun.replaceAll(/\bx\b/g, "(x+dx)").replaceAll(/\buvwq\./g, "uvwqR.")
+      fun
+        .replaceAll(/([^.]|^)\bx\b/g, "$1(x+dx)")
+        .replaceAll(/\buvwq\./g, "uvwqR.")
     );
   const R = `
-    if (float(indicatorFunR) <= 0.0 || textureCoords.x + step_x > 1.0) {
+    if (float(indicatorFunR) <= 0.0 || textureCoords.x + 2.0*step_x > 1.0) {
       if (float(indicatorFunL) <= 0.0) {
         uvwqR.SPECIES = dx * robinRHSSPECIESR + uvwq.SPECIES;
       } else {
@@ -412,11 +416,15 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
     `
     .replace(
       /indicatorFunR/,
-      fun.replaceAll(/\bx\b/g, "(x+dx)").replaceAll(/\buvwq\./g, "uvwqR.")
+      fun
+        .replaceAll(/([^.]|^)\bx\b/g, "$1(x+dx)")
+        .replaceAll(/\buvwq\./g, "uvwqR.")
     )
     .replace(
       /indicatorFunL/,
-      fun.replaceAll(/\bx\b/g, "(x-dx)").replaceAll(/\buvwq\./g, "uvwqL.")
+      fun
+        .replaceAll(/([^.]|^)\bx\b/g, "$1(x-dx)")
+        .replaceAll(/\buvwq\./g, "uvwqL.")
     );
   if (LR == undefined) return L + R;
   if (LR == "L") return L;
@@ -432,7 +440,7 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
  */
 export function RDShaderRobinCustomDomainY(TB, fun) {
   const T = `
-    if (float(indicatorFunT) <= 0.0 || textureCoords.y + step_y > 1.0){
+    if (float(indicatorFunT) <= 0.0 || textureCoords.y + 2.0*step_y > 1.0){
       if (float(indicatorFunB) <= 0.0) {
         uvwqT.SPECIES = dy * robinRHSSPECIEST + uvwq.SPECIES;
       } else {
@@ -449,7 +457,7 @@ export function RDShaderRobinCustomDomainY(TB, fun) {
       fun.replaceAll(/\by\b/g, "(y-dy)").replaceAll(/\buvwq\./g, "uvwqB.")
     );
   const B = `
-    if (float(indicatorFunB) <= 0.0 || textureCoords.y - step_y < 0.0) {
+    if (float(indicatorFunB) <= 0.0 || textureCoords.y - 2.0*step_y < 0.0) {
       if (float(indicatorFunT) <= 0.0) {
         uvwqB.SPECIES = dy * robinRHSSPECIESB + uvwq.SPECIES;
       } else {
@@ -463,7 +471,9 @@ export function RDShaderRobinCustomDomainY(TB, fun) {
     )
     .replace(
       /indicatorFunT/,
-      fun.replaceAll(/\by\b/g, "(y+dy)").replaceAll(/\buvwq\./g, "uvwqT.")
+      fun
+        .replaceAll(/([^.]|^)\by\b/g, "$1(y+dy)")
+        .replaceAll(/\buvwq\./g, "uvwqT.")
     );
   if (TB == undefined) return T + B;
   if (TB == "T") return T;

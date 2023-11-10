@@ -3886,7 +3886,7 @@ import { Stats } from "../stats.min.js";
         } else {
           let baseStr = RDShaderDirichletIndicatorFun().replace(
             /indicatorFun/g,
-            parseShaderString(options.domainIndicatorFun)
+            parseShaderString(getModifiedDomainIndicatorFun())
           );
           dirichletShader +=
             selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
@@ -3909,7 +3909,7 @@ import { Stats } from "../stats.min.js";
         // Zero-out anything outside of the domain if we're using an indicator function.
         let baseStr = RDShaderDirichletIndicatorFun().replace(
           /indicatorFun/g,
-          parseShaderString(options.domainIndicatorFun)
+          parseShaderString(getModifiedDomainIndicatorFun())
         );
         dirichletShader +=
           selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
@@ -4172,7 +4172,7 @@ import { Stats } from "../stats.min.js";
         let str = RDShaderDirichletIndicatorFun()
           .replace(
             /indicatorFun/,
-            parseShaderString(options.domainIndicatorFun)
+            parseShaderString(getModifiedDomainIndicatorFun())
           )
           .replace(/updated/, "gl_FragColor");
         DStrs.forEach(function (D, ind) {
@@ -4929,7 +4929,7 @@ import { Stats } from "../stats.min.js";
     if (options.domainViaIndicatorFun) {
       shaderStr += postShaderDomainIndicator().replace(
         /indicatorFun/g,
-        parseShaderString(options.domainIndicatorFun)
+        parseShaderString(getModifiedDomainIndicatorFun())
       );
     }
     shaderStr = shaderStr.replaceAll(
@@ -9103,5 +9103,18 @@ import { Stats } from "../stats.min.js";
   function runMathJax(args) {
     if (MathJax.typesetPromise != undefined)
       return MathJax.typesetPromise(args);
+  }
+
+  /**
+   * Modify the domain indicator function so that the outer layer of pixels is not included in the domain.
+   * This is done by multiplying the domain indicator function by a function that is 1 in the domain and 0 outside the domain.
+   * @returns {string} The modified domain indicator function.
+   */
+  function getModifiedDomainIndicatorFun() {
+    return (
+      "(" +
+      options.domainIndicatorFun +
+      ")*float(textureCoords.x - step_x >= 0.0)*float(textureCoords.x + step_x <= 1.0)*float(textureCoords.y - step_y >= 0.0)*float(textureCoords.y + step_y <= 1.0)"
+    );
   }
 })();
