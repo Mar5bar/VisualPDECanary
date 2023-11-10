@@ -9112,7 +9112,7 @@ import { Stats } from "../stats.min.js";
    */
   function getModifiedDomainIndicatorFun() {
     return (
-      "(" +
+      "float(" +
       options.domainIndicatorFun +
       ")*float(textureCoords.x - step_x >= 0.0)*float(textureCoords.x + step_x <= 1.0)*float(textureCoords.y - step_y >= 0.0)*float(textureCoords.y + step_y <= 1.0)"
     );
