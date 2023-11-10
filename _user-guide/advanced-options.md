@@ -259,7 +259,7 @@ Toggle whether or not the domain is forced to be square, independent of the aspe
 Toggle the use of a custom domain $\domain$ that is determined implicitly from a user-set expression.
 
 * ***Ind. fun (indicator function)***\
-Define the domain implicitly by setting a boolean (e.g. $x<0.5$) or a simple expression (e.g. $x-0.5$), where (strict) positivity identifies the interior of the domain. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
+Define the domain implicitly by setting a boolean (e.g. $x<0.5$) or a simple expression (e.g. $x-0.5$), where (strict) positivity identifies the interior of the domain. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$). In order to allow VisualPDE to correctly apply boundary conditions, custom domains should not intersect the edges of the overall computational domain, leaving a gap at least as large as the spatial step.
 
 ### Timestepping <a id='timestepping'>
 * ***Steps/frame***\
