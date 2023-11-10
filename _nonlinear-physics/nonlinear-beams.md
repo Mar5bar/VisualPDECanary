@@ -26,6 +26,8 @@ We can play with $\Delta_E$ using this slider: <vpde-slider
     max="24"
     value="0"
     step="0.1"
+    min-label="$0$"
+    max-label="$24$"
     host="/"
     ></vpde-slider>
 The minimum value corresponds to a beam with constant stiffness, while the maximum value corresponds to a beam with a stiffness that depends strongly on the curvature. A quick exploration highlights that the dynamics of the beam depend significantly on the differential stiffness.

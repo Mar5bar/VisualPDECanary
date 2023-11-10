@@ -472,26 +472,49 @@ input[type="range"] {
 }
 
 /* Slider */
-input[type="range"].styled-slider {
+.vpde-slider {
   height: 2.2em;
-  appearance: none;
   vertical-align: middle;
+  appearance: none;
   -webkit-appearance: none;
 }
 
+.vpde-slider-valLabel {
+  bottom: -7px;
+  position: absolute;
+  z-index: 1;
+  font-size: 0.7rem;
+  max-width: 40%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.vpde-slider-valLabel.min {
+  left: 0px;
+}
+
+.vpde-slider-valLabel.max {
+  right: 0px;
+}
+
+.vpde-slider.has-labels {
+  position: relative;
+  top: -5px;
+}
+
 /*progress support*/
-input[type="range"].styled-slider.slider-progress {
+.vpde-slider.slider-progress {
   --range: calc(var(--max) - var(--min));
   --ratio: calc((var(--value) - var(--min)) / var(--range));
   --sx: calc(0.5 * 2em + var(--ratio) * (100% - 2em));
 }
 
-input[type="range"].styled-slider:focus {
+.vpde-slider:focus {
   outline: none;
 }
 
 /*webkit*/
-input[type="range"].styled-slider::-webkit-slider-thumb {
+.vpde-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 1.5em;
   height: 1.5em;
@@ -502,7 +525,7 @@ input[type="range"].styled-slider::-webkit-slider-thumb {
   margin-top: calc(max((0.25em - 1px - 1px) * 0.5, 0px) - 1.2em * 0.5);
 }
 
-input[type="range"].styled-slider::-webkit-slider-runnable-track {
+.vpde-slider::-webkit-slider-runnable-track {
   height: 0.5em;
   border: 1px solid #b2b2b2;
   border-radius: 0.5em;
@@ -510,15 +533,15 @@ input[type="range"].styled-slider::-webkit-slider-runnable-track {
   box-shadow: none;
 }
 
-input[type="range"].styled-slider:hover::-webkit-slider-runnable-track {
+.vpde-slider:hover::-webkit-slider-runnable-track {
   border-color: #9a9a9a;
 }
 
-input[type="range"].styled-slider::-webkit-slider-thumb:active {
+.vpde-slider::-webkit-slider-thumb:active {
   background: var(--slider-fill-color);
 }
 
-input[type="range"].styled-slider.slider-progress::-webkit-slider-runnable-track {
+.vpde-slider.slider-progress::-webkit-slider-runnable-track {
   background: linear-gradient(
         var(--slider-fill-color),
         var(--slider-fill-color)
@@ -528,7 +551,7 @@ input[type="range"].styled-slider.slider-progress::-webkit-slider-runnable-track
 }
 
 /*mozilla*/
-input[type="range"].styled-slider::-moz-range-thumb {
+.vpde-slider::-moz-range-thumb {
   width: 1.5em;
   height: 1.5em;
   border-radius: 1em;
@@ -537,7 +560,7 @@ input[type="range"].styled-slider::-moz-range-thumb {
   box-shadow: 0 0 2px #000000;
 }
 
-input[type="range"].styled-slider::-moz-range-track {
+.vpde-slider::-moz-range-track {
   height: max(calc(0.5em - 1px - 1px), 0px);
   border: 1px solid #b2b2b2;
   border-radius: 0.5em;
@@ -545,15 +568,15 @@ input[type="range"].styled-slider::-moz-range-track {
   box-shadow: none;
 }
 
-input[type="range"].styled-slider:hover::-moz-range-track {
+.vpde-slider:hover::-moz-range-track {
   border-color: #9a9a9a;
 }
 
-input[type="range"].styled-slider::-moz-range-thumb:active {
+.vpde-slider::-moz-range-thumb:active {
   background: var(--slider-fill-color);
 }
 
-input[type="range"].styled-slider.slider-progress::-moz-range-track {
+.vpde-slider.slider-progress::-moz-range-track {
   background: linear-gradient(
         var(--slider-fill-color),
         var(--slider-fill-color)
@@ -563,17 +586,17 @@ input[type="range"].styled-slider.slider-progress::-moz-range-track {
 }
 
 /*ms*/
-input[type="range"].styled-slider::-ms-fill-upper {
+.vpde-slider::-ms-fill-upper {
   background: transparent;
   border-color: transparent;
 }
 
-input[type="range"].styled-slider::-ms-fill-lower {
+.vpde-slider::-ms-fill-lower {
   background: transparent;
   border-color: transparent;
 }
 
-input[type="range"].styled-slider::-ms-thumb {
+.vpde-slider::-ms-thumb {
   width: 2em;
   height: 2em;
   border-radius: 1em;
@@ -584,7 +607,7 @@ input[type="range"].styled-slider::-ms-thumb {
   box-sizing: border-box;
 }
 
-input[type="range"].styled-slider::-ms-track {
+.vpde-slider::-ms-track {
   height: 0.5em;
   border-radius: 0.5em;
   background: #efefef;
@@ -593,15 +616,15 @@ input[type="range"].styled-slider::-ms-track {
   box-sizing: border-box;
 }
 
-input[type="range"].styled-slider:hover::-ms-track {
+.vpde-slider:hover::-ms-track {
   border-color: #9a9a9a;
 }
 
-input[type="range"].styled-slider::-ms-thumb:active {
+.vpde-slider::-ms-thumb:active {
   background: var(--slider-fill-color);
 }
 
-input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
+.vpde-slider.slider-progress::-ms-fill-lower {
   height: max(calc(1em - 1px - 1px), 0px);
   border-radius: 0.5em 0 0 0.5em;
   margin: -1px 0 -1px -1px;
