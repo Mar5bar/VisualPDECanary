@@ -11,12 +11,16 @@ class VPDESlider extends HTMLElement {
     this.host = this.getAttribute("host") || "https://visualpde.com";
 
     // Create a slider and a name tag in a span.
-    const wrapper = document.createElement("span");
-    const label = wrapper.appendChild(document.createElement("span"));
+    const elementWrapper = document.createElement("span");
+    const label = elementWrapper.appendChild(document.createElement("span"));
     label.innerHTML = this.getAttribute("label") || "";
+    const sliderWrapper = elementWrapper.appendChild(
+      document.createElement("span")
+    );
+    sliderWrapper.style.setProperty("position", "relative");
 
-    // Create a slider input element, set its attributes, add it to the wrapper, and add an input event listener to it
-    const slider = wrapper.appendChild(document.createElement("input"));
+    // Create a slider input element, set its attributes, add it to the sliderWrapper, and add an input event listener to it
+    const slider = sliderWrapper.appendChild(document.createElement("input"));
     slider.type = "range";
     slider.setAttribute("min", this.getAttribute("min") || 0);
     slider.setAttribute("max", this.getAttribute("max") || 1);
@@ -24,8 +28,28 @@ class VPDESlider extends HTMLElement {
     slider.step = this.getAttribute("step") || (slider.max - slider.min) / 20;
     slider.addEventListener("input", this.onInput.bind(this));
 
+    // If min or max labels are provided, add them to the sliderWrapper.
+    if (this.getAttribute("min-label")) {
+      const minLabel = sliderWrapper.appendChild(
+        document.createElement("span")
+      );
+      minLabel.innerHTML = this.getAttribute("min-label");
+      minLabel.classList.add("vpde-slider-valLabel");
+      minLabel.classList.add("min");
+      slider.classList.add("has-labels");
+    }
+    if (this.getAttribute("max-label")) {
+      const maxLabel = sliderWrapper.appendChild(
+        document.createElement("span")
+      );
+      maxLabel.innerHTML = this.getAttribute("max-label");
+      maxLabel.classList.add("vpde-slider-valLabel");
+      maxLabel.classList.add("max");
+      slider.classList.add("has-labels");
+    }
+
     // Configure the slider for formatting.
-    slider.classList.add("styled-slider");
+    slider.classList.add("vpde-slider");
     slider.classList.add("slider-progress");
     slider.style.setProperty("--value", slider.value);
     slider.style.setProperty("--min", slider.min);
@@ -38,7 +62,7 @@ class VPDESlider extends HTMLElement {
       frame.addEventListener("load", this.sendUpdate.bind(this));
     });
 
-    this.append(wrapper);
+    this.append(elementWrapper);
 
     // If MathJax is loaded, typeset the label.
     if (MathJax.typesetPromise != undefined) {
