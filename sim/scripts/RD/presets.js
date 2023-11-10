@@ -224,7 +224,7 @@ export function getListOfPresets() {
     domainScale: "1",
     dt: 0.00005,
     initCond_1: "0",
-    kineticParams: "D = 0.0001;E_R = 12.7 in [0, 12];",
+    kineticParams: "E = 0.0001;Delta_E = 24 in [0, 24];",
     neumannStr_1: "0.1*sin(t/100)",
     numAlgebraicSpecies: 2,
     numSpecies: "3",
@@ -236,7 +236,7 @@ export function getListOfPresets() {
     preset: "differentialStiffness",
     reactionStr_1: "0",
     reactionStr_2: "0",
-    reactionStr_3: "D*((1+tanh(v/0.01))*E_R+1)*v",
+    reactionStr_3: "E*((1+tanh(v/0.01))*Delta_E/2+1)*v",
     spatialStep: "0.04",
     timesteppingScheme: "Mid",
     views: [
