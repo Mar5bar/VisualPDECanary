@@ -2,6 +2,11 @@ class VPDESlider extends HTMLElement {
   constructor() {
     super();
 
+    // If the constructor is being called a second time (iff the element has a child), remove the child.
+    if (this.childElementCount) {
+      this.children[0].remove();
+    }
+
     // Get the associated iframe(s), and create a message template to send to it.
     this.attachedFrames = this.getAttribute("iframe")
       .split(" ")
