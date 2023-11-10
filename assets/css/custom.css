@@ -81,7 +81,7 @@ a[href*="/sim/"] {
   border-radius: 6px;
   border-color: rgba(27, 31, 36, 0.15);
   padding: 5px 16px;
-  color: #dfdfdf;
+  color: #ffffff;
   box-shadow: rgba(27, 31, 36, 0.1) 0px 1px 0px 0px,
     rgba(255, 255, 255, 0.03) 0px 1px 0px 0px inset;
   transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
@@ -464,7 +464,6 @@ span.click_sequence {
 }
 
 input[type="range"] {
-  width: 100%;
   background: none;
 }
 
@@ -836,4 +835,10 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 
 .dark-mode a.home_tile div.container div.title {
   color: var(--soft-text-color);
+}
+
+.dark-mode .nav-button,
+.dark-mode .nav-button:visited,
+.dark-mode a[href*="/sim/"] {
+  color: #dfdfdf;
 }

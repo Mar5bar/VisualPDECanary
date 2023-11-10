@@ -3401,7 +3401,6 @@ import { Stats } from "../stats.min.js";
       takeAScreenshot = false;
       var link = document.createElement("a");
       link.download = "VisualPDEScreenshot";
-      setRenderSizeForScreenshot();
       renderer.render(scene, camera);
       link.href = renderer.domElement.toDataURL();
       document.body.appendChild(link);
@@ -7737,20 +7736,6 @@ import { Stats } from "../stats.min.js";
     renderer.setSize(
       Math.round(scaleFactor * canvasWidth),
       Math.round(scaleFactor * canvasHeight),
-      false
-    );
-  }
-
-  /**
-   * Sets the size of the renderer for taking a screenshot, aiming for high resolution.
-   
-   * @name setRenderSizeForScreenshot
-   * @returns {void}
-   */
-  function setRenderSizeForScreenshot() {
-    renderer.setSize(Math.round)(
-      Math.max(nXDisc, Math.round(devicePixelRatio * canvasWidth)),
-      Math.max(nYDisc, Math.round(devicePixelRatio * canvasHeight)),
       false
     );
   }
