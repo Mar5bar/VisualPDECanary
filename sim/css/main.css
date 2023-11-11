@@ -1319,135 +1319,139 @@ video {
   --active-button-background-color: var(--button-color);
   --views-hover-color: var(--input-background-color);
   --button-inline-icon-color: var(--link-color);
+}
 
-  & body {
-    background-color: var(--ui-background-color);
-  }
+.dark-mode body {
+  background-color: var(--ui-background-color);
+}
 
-  #equations {
-    background: url("/assets/images/function-button-dark.webp") no-repeat;
+.dark-mode #equations {
+  background: url("/assets/images/function-button-dark.webp") no-repeat;
+  background-size: 80%;
+  background-position: center;
+  background-color: var(--ui-button-background-color);
+}
+
+@media (hover: hover) {
+  .dark-mode #equations:hover {
+    background: url("/assets/images/function-button-hover-dark.webp") no-repeat;
     background-size: 80%;
     background-position: center;
     background-color: var(--ui-button-background-color);
   }
+}
 
-  @media (hover: hover) {
-    #equations:hover {
-      background: url("/assets/images/function-button-hover-dark.webp")
-        no-repeat;
-      background-size: 80%;
-      background-position: center;
-      background-color: var(--ui-button-background-color);
-    }
+.dark-mode #equations::after {
+  /* Preload the hovered function button to stop flickering */
+  content: url("/assets/images/function-button-hover-dark.webp")
+    url("/assets/images/function-button.webp")
+    url("/assets/images/function-button-hover.webp");
+  height: 0;
+  overflow: hidden;
+  position: absolute;
+  width: 0;
+  z-index: -1;
+}
 
-    #stop_recording:hover {
-      color: var(--button-color);
-      filter: none;
-    }
+.dark-mode #equation_display {
+  border: none;
+  border-bottom: 5px solid var(--background-color);
+}
 
-    .popout_panel .button:hover .share-icon {
-      background-color: unset;
-      color: var(--text-color);
-    }
+.dark-mode #leftGUI,
+#rightGUI,
+#viewsGUI {
+  border: 1px solid var(--ui-button-border-color);
+}
 
-    .shepherd-button:not(:disabled):hover {
-      background-color: var(--hover-color);
-    }
+.dark-mode #leftGUI {
+  border-top: none;
+}
 
-    .shepherd-button.shepherd-button-secondary:not(:disabled):hover {
-      background-color: var(--input-background-color);
-      color: #dfdfdf;
-      border-color: var(--ui-button-border-color);
-    }
-
-    .shepherd-has-title .shepherd-content .shepherd-cancel-icon:hover {
-      color: var(--views-hover-color);
-    }
+@media (hover: hover) {
+  .dark-mode #stop_recording:hover {
+    color: var(--button-color);
+    filter: none;
   }
+}
 
-  #equations::after {
-    /* Preload the hovered function button to stop flickering */
-    content: url("/assets/images/function-button-hover-dark.webp")
-      url("/assets/images/function-button.webp")
-      url("/assets/images/function-button-hover.webp");
-    height: 0;
-    overflow: hidden;
-    position: absolute;
-    width: 0;
-    z-index: -1;
-  }
+.dark-mode .dg > ul:not(.closed) > li:not(.folder) {
+  border-bottom: 1px solid #c2a1ff58 !important;
+}
 
-  #equation_display {
-    border: none;
-    border-bottom: 5px solid var(--background-color);
-  }
+.dark-mode .dg > ul.closed > li:first-child {
+  border-bottom: 1px solid #c2a1ff58 !important;
+}
 
-  #leftGUI,
-  #rightGUI,
-  #viewsGUI {
-    border: 1px solid var(--ui-button-border-color);
-  }
+.dark-mode .popout_panel .container {
+  border: 1px solid var(--ui-button-border-color);
+}
 
-  #leftGUI {
-    border-top: none;
-  }
-
-  .dg > ul:not(.closed) > li:not(.folder) {
-    border-bottom: 1px solid #c2a1ff58 !important;
-  }
-
-  .dg > ul.closed > li:first-child {
-    border-bottom: 1px solid #c2a1ff58 !important;
-  }
-
-  .popout_panel .container {
-    border: 1px solid var(--ui-button-border-color);
-  }
-
-  .message {
-    background-color: var(--background-color);
-    border-color: var(--background-color);
-  }
-
-  .btn-primary .icon_on_text_button {
-    color: var(--link-color);
-  }
-
-  & canvas,
-  .colourbarMain {
-    filter: brightness(90%);
-  }
-
-  .shepherd-content {
-    color: var(--text-color);
-    background-color: var(--background-color);
-  }
-
-  .shepherd-text {
+@media (hover: hover) {
+  .popout_panel .button:hover .share-icon {
+    background-color: unset;
     color: var(--text-color);
   }
+}
 
-  .shepher-header {
-    background-color: var(--background-color);
+.dark-mode .message {
+  background-color: var(--background-color);
+  border-color: var(--background-color);
+}
+
+.dark-mode .btn-primary .icon_on_text_button {
+  color: var(--link-color);
+}
+
+.dark-mode .shepherd-content {
+  color: var(--text-color);
+  background-color: var(--background-color);
+}
+
+.dark-mode .shepherd-text {
+  color: var(--text-color);
+}
+
+.dark-mode .shepher-header {
+  background-color: var(--background-color);
+}
+
+.dark-mode .shepherd-title {
+  color: var(--text-color);
+}
+
+.dark-mode .shepherd-has-title .shepherd-content .shepherd-header {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.dark-mode .shepherd-button {
+  background-color: var(--button-color);
+  color: #dfdfdf;
+}
+
+@media (hover: hover) {
+  .dark-mode .shepherd-button:not(:disabled):hover {
+    background-color: var(--hover-color);
   }
+}
 
-  .shepherd-title {
-    color: var(--text-color);
-  }
+.dark-mode .shepherd-button.shepherd-button-secondary {
+  background-color: var(--background-color);
+  border-color: var(--ui-button-border-color);
+}
 
-  .shepherd-has-title .shepherd-content .shepherd-header {
-    background-color: var(--background-color);
-    color: var(--text-color);
-  }
-
-  .shepherd-button {
-    background-color: var(--button-color);
+@media (hover: hover) {
+  .dark-mode .shepherd-button.shepherd-button-secondary:not(:disabled):hover {
+    background-color: var(--input-background-color);
     color: #dfdfdf;
-  }
-
-  .shepherd-button.shepherd-button-secondary {
-    background-color: var(--background-color);
     border-color: var(--ui-button-border-color);
+  }
+}
+
+@media (hover: hover) {
+  .dark-mode .shepherd-has-title .shepherd-content .shepherd-cancel-icon:hover {
+    color: var(--views-hover-color);
   }
 }
 
@@ -1489,4 +1493,9 @@ video {
 
 .dark-mode #light-on {
   display: inline;
+}
+
+.dark-mode canvas,
+.colourbarMain {
+  filter: brightness(90%);
 }
