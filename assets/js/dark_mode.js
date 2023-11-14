@@ -17,6 +17,9 @@ if (localStorage.hasOwnProperty("dark-mode-save-time")) {
     localStorage.removeItem("dark-mode");
     localStorage.removeItem("dark-mode-save-time");
   }
+} else {
+  // Remove the preference if no save time is found.
+  localStorage.removeItem("dark-mode");
 }
 if (localStorage.hasOwnProperty("dark-mode")) {
   toggleDarkMode(localStorage.getItem("dark-mode") == "true");
