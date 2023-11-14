@@ -793,7 +793,7 @@ input[type="range"] {
 }
 
 .dark-mode {
-  --background-color: #202124;
+  --background-color: #171b29;
   --text-color: #bec1c5;
   --link-color: #c2a1ff;
   --tile-text-color: #dfdfdf;

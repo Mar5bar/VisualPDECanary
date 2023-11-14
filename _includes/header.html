@@ -3,7 +3,19 @@
         {%- assign default_paths = site.pages | map: "path" -%}
         {%- assign page_paths = site.header_pages | default: default_paths -%}
         {%- assign titles_size = site.pages | map: 'title' | join: '' | size -%}
-        <a class="site-title" rel="author" href="{{ "/" | relative_url }}">{{ site.title | escape }}</a>
+        <a class="site-title" rel="author" href="{{ "/" | relative_url }}">
+            <picture>
+                <source
+                  srcset="/assets/favicons/android-chrome-192x192-dark.png"
+                  media="(prefers-color-scheme: dark)"
+                />
+                <img
+                  src="/assets/favicons/android-chrome-192x192.png"
+                  alt="Heart-shaped logo"
+                  style="height:2rem;margin-right:10px;vertical-align:text-top"
+                />
+              </picture>
+            {{ site.title | escape }}</a>
 
         {%- if titles_size > 0 -%}
             <nav class="site-nav">
