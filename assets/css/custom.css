@@ -847,3 +847,19 @@ input[type="range"] {
 .dark-mode a[href*="/sim/"] {
   color: #dfdfdf;
 }
+
+.dark-mode-img {
+  display: none;
+}
+
+.light-mode-img {
+  display: unset;
+}
+
+.dark-mode .dark-mode-img {
+  display: unset;
+}
+
+.dark-mode .light-mode-img {
+  display: none;
+}
