@@ -1298,7 +1298,7 @@ video {
   --text-color: #bec1c5;
   --link-color: #c2a1ff;
   --tile-text-color: #dfdfdf;
-  --tile-highlight-color: #6826e2;
+  --tile-highlight-color: rgba(104, 38, 226, 0.6);
   --hover-background-color: #343434;
   --hover-color: #3c13ac;
   --toggled-on-hover-color: var(--hover-color);

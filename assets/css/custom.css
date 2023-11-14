@@ -134,11 +134,16 @@ div.home-banner-content {
 
 div.home-banner-subtitle,
 div.home-banner-title {
-  background-color: #30204a;
+  background-color: rgba(48, 32, 74, 0.85);
   color: white;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   pointer-events: all;
+  border-radius: 5px;
+}
+
+div.home-banner-title {
+  border-radius: 0 0 5px 5px;
 }
 
 div.home-banner iframe {
@@ -678,7 +683,7 @@ input[type="range"] {
 
 @media screen and (max-width: 600px) {
   .dark-mode .site-nav {
-    background-color: var(--ui-button-background-color);
+    background-color: #1c2133;
   }
   .site-nav .menu-icon > svg {
     fill: var(--text-color);
@@ -797,7 +802,7 @@ input[type="range"] {
   --text-color: #bec1c5;
   --link-color: #c2a1ff;
   --tile-text-color: #dfdfdf;
-  --tile-highlight-color: #6826e2;
+  --tile-highlight-color: rgba(104, 38, 226, 0.6);
   --hover-background-color: #343434;
   --hover-color: #3c13ac;
   --button-color: #6826e2;
