@@ -1200,12 +1200,13 @@ import { Stats } from "../stats.min.js";
   function computeCanvasSizesAndAspect() {
     // Parse the domain scale.
     try {
-      domainScaleValue = parser.evaluate(options.domainScale);
+      domainScaleValue =
+        parser.evaluate(options.domainScale) * domainScaleFactor;
     } catch (error) {
       throwError(
         "Unable to evaluate the domain length. Please check the definition."
       );
-      domainScaleValue = 100;
+      domainScaleValue = 100 * domainScaleFactor;
     }
     canvasWidth = Math.round(canvas.getBoundingClientRect().width);
     canvasHeight = Math.round(canvas.getBoundingClientRect().height);
@@ -4293,9 +4294,6 @@ import { Stats } from "../stats.min.js";
       }
       delete options.oneDimensional;
     }
-
-    // Update the domain scale based on URL params.
-    domainScaleValue *= domainScaleFactor;
 
     // Configure views.
     configureViews();
