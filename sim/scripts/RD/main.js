@@ -1104,7 +1104,8 @@ import { Stats } from "../stats.min.js";
       false
     );
 
-    window.addEventListener("message", updateParamFromMessage);
+    // Handle messages sent to the simulation.
+    window.addEventListener("message", handleMessage);
 
     // Bind the onchange event for the checkpoint loader.
     $("#checkpointInput").change(function () {
@@ -8377,26 +8378,51 @@ import { Stats } from "../stats.min.js";
   }
 
   /**
-   * Updates the value of a parameter based on a message received from another window.
-   * @param {MessageEvent} event - The message event containing the parameter name and value.
+   * Handles incoming messages for the simulation.
+   * @param {MessageEvent} event - The message event object.
    */
-  function updateParamFromMessage(event) {
+  function handleMessage(event) {
+    switch (event.data.type) {
+      case "updateParam":
+        updateParamFromMessage(event.data);
+        break;
+      case "resetSim":
+        resetSim();
+        break;
+      case "pauseSim":
+        pauseSim();
+        break;
+      case "playSim":
+        playSim();
+        break;
+      default:
+        // Maintain backwards compatibility with old messages.
+        updateParamFromMessage(event.data);
+    }
+  }
+
+  /**
+   * Updates the value of a parameter based on a message received from another window.
+   *
+   * @param {Object} data - The message data containing the name and value of the parameter to update.
+   */
+  function updateParamFromMessage(data) {
     // Upon receiving a message from another window, use the message to update
     // the value in the specified parameter.
 
     // Update the value of the slider associated with this parameter, if it exists.
-    const controller = kineticNameToCont[event.data.name];
+    const controller = kineticNameToCont[data.name];
     if (controller != undefined) {
       // If there's a slider, update its value and trigger the update via the slider's input event.
       if (controller.slider != undefined) {
-        controller.slider.value = event.data.value;
+        controller.slider.value = data.value;
         controller.slider.dispatchEvent(new Event("input"));
       } else {
         // Otherwise, just update the value.
         const val =
           controller.object[controller.property].split("=")[0] +
           "= " +
-          event.data.value.toString();
+          data.value.toString();
         controller.setValue(val);
         controller.__onFinishChange(controller, val);
       }

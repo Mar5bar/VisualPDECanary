@@ -11,7 +11,7 @@ class VPDESlider extends HTMLElement {
     this.attachedFrames = this.getAttribute("iframe")
       .split(" ")
       .map((frame) => document.getElementById(frame));
-    this.message = { name: this.getAttribute("name") };
+    this.message = { name: this.getAttribute("name"), type: "updateParam" };
     // Specify a custom host if one is provided, otherwise use the default.
     this.host = this.getAttribute("host") || "https://visualpde.com";
 
