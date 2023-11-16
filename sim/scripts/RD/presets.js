@@ -2491,6 +2491,7 @@ export function getListOfPresets() {
   };
 
   listOfPresets["GrayScott"] = {
+    colourmap: "viridis",
     initCond_1: "0",
     initCond_2: "1",
     diffusionStr_1_1: "1",
@@ -2498,7 +2499,7 @@ export function getListOfPresets() {
     diffusionStr_3_3: "0",
     domainScale: "1000",
     kineticParams: "a=0.037 in [0,0.1];b=0.06 in [0.04,0.1];",
-    maxColourValue: 0.5,
+    maxColourValue: 0.37,
     minColourValue: 0,
     reactionStr_1: "u^2*v - (a+b)*u",
     reactionStr_2: "-u^2*v + a*(1 - v)",
