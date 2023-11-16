@@ -8,34 +8,27 @@ extract: A glossary of all the features you can play with
 
 Almost everything in VisualPDE is customisable. Here, we describe the basic functionality of every option that can be found in the menus of VisualPDE.
 
-<form id="docSearchForm"
-onSubmit="doc_search(document.getElementById('docSearchInput').value); return false;"
+<form id="pageSearchForm"
+onSubmit="page_search(document.getElementById('pageSearchInput').value); return false;"
 >
 <p>
-    <label for="docSearchInput" id="search-button" title="Search"><i class="fa-solid fa-magnifying-glass"></i></label>
-    <div id="docSearchBar">
+    <div id="pageSearchBar">
     <input
       type="text"
-      id="docSearchInput"
+      id="pageSearchInput"
       name="q"
       maxlength="255"
       value=""
-      placeholder="Search"
-      onfocus="document.getElementById('docSearchForm').onsubmit();window.gtag?.('event', 'site_search');"
-      oninput="document.getElementById('docSearchForm').onsubmit();"
+      placeholder="Search this page..."
+      onfocus="document.getElementById('pageSearchForm').onsubmit();window.gtag?.('event', 'page_search');"
+      oninput="document.getElementById('pageSearchForm').onsubmit();"
       />
-      <div id="docSearchResults" tabindex="0">
+      <div id="pageSearchResults" tabindex="0">
         <ul></ul>
       </div>
     </div>
   </p>
 </form>
-
-Jump to:
-* [Equations](#equations) {{ layout.equations }}
-* [Views](#views) {{ layout.views }}
-* [Settings](#settings) {{ layout.settings }}
-* [Writing valid expressions](#writing-valid-expressions)
 
 ---
 

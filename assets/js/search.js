@@ -11,21 +11,6 @@ async function setupSiteSearch() {
     !localStorage.getItem("index") ||
     localStorage.getItem("index").expiryTime < Date.now()
   ) {
-    // Define a function that will skip a pipeline function for a specified field
-    var skipField = function (fieldName, fn) {
-      return function (token, i, tokens) {
-        if (token.metadata["fields"].indexOf(fieldName) >= 0) {
-          return token;
-        }
-        return fn(token, i, tokens);
-      };
-    };
-
-    const skipStopWordFilter = skipField("title", lunr.stopWordFilter);
-    lunr.Pipeline.registerFunction(skipStopWordFilter, "skipStopWordFilter");
-    const skipStemmer = skipField("title", lunr.stemmer);
-    lunr.Pipeline.registerFunction(skipStemmer, "skipStemmer");
-
     siteIndex = lunr(function () {
       this.ref("id");
       this.field("title");
@@ -58,29 +43,51 @@ async function getDocs() {
 async function setupPageSearch() {
   let counter = 0;
   // Get all h3, h4, h5 tags from the page.
-  document.querySelectorAll("h3, h4, h5").forEach((el) => {
+  document.querySelectorAll("h2, h3, h4, h5").forEach((el) => {
     const obj = {};
     obj.ref = counter++;
     obj.id = el.id;
     obj.title = el.innerText;
+    obj.displayedName =
+      el.innerText.trim() + (el.tagName == "H2" ? " (section)" : "");
     pageHeadings.push(obj);
   });
   pageIndex = lunr(function () {
     this.ref("ref");
     this.field("title");
+    this.pipeline.remove(lunr.stopWordFilter);
+    this.pipeline.remove(lunr.stemmer);
+    this.pipeline.add(skipStopWordFilter);
+    this.pipeline.add(skipStemmer);
 
     pageHeadings.forEach(function (doc) {
       this.add(doc);
     }, this);
   });
-  console.log(pageIndex);
 }
+
+// Define a function that will skip a pipeline function for a specified field
+function skipField(fieldName, fn) {
+  return function (token, i, tokens) {
+    if (token.metadata["fields"].indexOf(fieldName) >= 0) {
+      return token;
+    }
+    return fn(token, i, tokens);
+  };
+}
+
+// Define filters that will prevent stemming of the title field.
+const skipStopWordFilter = skipField("title", lunr.stopWordFilter);
+lunr.Pipeline.registerFunction(skipStopWordFilter, "skipStopWordFilter");
+const skipStemmer = skipField("title", lunr.stemmer);
+lunr.Pipeline.registerFunction(skipStemmer, "skipStemmer");
 
 setupSiteSearch();
 setupPageSearch();
 
 window.addEventListener("blur", () => {
   document.getElementById("siteSearchResults").style.display = "none";
+  document.getElementById("pageSearchResults").style.display = "none";
 });
 
 function site_search(term) {
@@ -146,18 +153,17 @@ function site_search(term) {
   return false;
 }
 
-function doc_search(term) {
-  document.getElementById("docSearchResults").innerHTML = "<ul></ul>";
+function page_search(term) {
+  document.getElementById("pageSearchResults").innerHTML = "<ul></ul>";
   if (term) {
-    document.getElementById("docSearchResults").style.display = "";
+    document.getElementById("pageSearchResults").style.display = "";
     //put results on the screen.
     var searchterm = "";
     term
       .split(" ")
       .filter((e) => e)
       .forEach((str) => {
-        str += "*";
-        searchterm += "*" + str;
+        searchterm += str.trim() + "* ";
       });
     var results = pageIndex.search(searchterm);
 
@@ -165,24 +171,26 @@ function doc_search(term) {
       for (var i = 0; i < results.length; i++) {
         var ref = results[i]["ref"];
         var id = pageHeadings[ref]["id"];
-        var title = pageHeadings[ref]["title"];
-        var item = document.querySelectorAll("#docSearchResults ul")[0];
+        var toDisplay = pageHeadings[ref]["displayedName"];
+        var item = document.querySelectorAll("#pageSearchResults ul")[0];
         var html = "";
-        html += "<p><span class='title'>" + title + "</span></p>";
+        html += "<p><span class='title'>" + toDisplay + "</span></p>";
         item.innerHTML =
           item.innerHTML +
-          `<li class='docSearchResult'><a onclick='document.getElementById("${id}")` +
-          ".scrollIntoView();'>" +
+          `<li class='pageSearchResult'><a onclick='document.getElementById("${id}").scrollIntoView({behaviour:"smooth"});'>` +
           html +
           "</a></li>";
       }
+      if (typeof MathJax !== "undefined") {
+        MathJax.typesetPromise();
+      }
       return results;
     } else {
-      document.querySelectorAll("#docSearchResults ul")[0].innerHTML =
-        "<li class='docSearchResult'>No results found</li>";
+      document.querySelectorAll("#pageSearchResults ul")[0].innerHTML =
+        "<li class='pageSearchResult'>No results found</li>";
     }
   } else {
-    document.getElementById("docSearchResults").style.display = "none";
+    document.getElementById("pageSearchResults").style.display = "none";
   }
   return false;
 }

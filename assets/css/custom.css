@@ -17,6 +17,7 @@
   --tile-border-color: rgba(27, 31, 36, 0.15);
   --font-weight: 400;
   --stop-recording-color: #ff0000;
+  --input-background-color: #e9e9ed;
 }
 
 html {
@@ -338,7 +339,7 @@ a.collection::after {
 
 .ui_button_documentation {
   display: inline-flex;
-  z-index: 3;
+  z-index: -1;
   margin-left: 3px;
   margin-right: 3px;
   background-color: var(--ui-button-background-color);
@@ -684,7 +685,17 @@ input[type="range"] {
   vertical-align: middle;
 }
 
-#siteSearchForm p {
+#pageSearchForm {
+  position: relative;
+  width: 80%;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 54px;
+  vertical-align: middle;
+}
+
+#siteSearchForm p,
+#pageSearchForm p {
   margin-bottom: 0;
 }
 
@@ -705,6 +716,19 @@ input[type="range"] {
 }
 #siteSearchForm:focus-within #siteSearchInput {
   width: calc(100% - 50px);
+}
+
+#pageSearchInput {
+  width: 100%;
+  color: var(--text-color);
+  background-color: var(--input-background-color);
+  outline: none;
+  font-size: medium;
+  border: none;
+  border-radius: 5px;
+  padding-left: 4px;
+  vertical-align: middle;
+  height: 30px;
 }
 
 .site-nav {
@@ -798,6 +822,54 @@ input[type="range"] {
   display: unset;
 }
 
+#pageSearchResults {
+  display: none;
+  z-index: 5;
+  padding-top: 0.2rem;
+  position: absolute;
+  background-color: var(--background-color);
+  border-radius: 0 0 5px 5px;
+  max-height: min(300px, 50vh);
+  height: fit-content;
+  overflow-y: scroll;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  top: 90%;
+  max-width: 100%;
+  box-shadow: var(--hover-background-color) 0px 1px 0px 0px;
+}
+#pageSearchResults ul {
+  list-style-type: none;
+  margin-left: 0;
+  margin-bottom: 0;
+}
+.pageSearchResult {
+  padding-bottom: 1rem;
+  font-size: smaller;
+  background-color: var(--background-color);
+  cursor: pointer;
+}
+.pageSearchResult .title {
+  font-size: small;
+  font-weight: 500;
+}
+.pageSearchResult a {
+  display: flex;
+  align-items: center;
+  color: var(--soft-text-color);
+  text-decoration: none !important;
+}
+.pageSearchResult a:hover,
+.pageSearchResult a:focus {
+  background-color: var(--hover-background-color);
+}
+.pageSearchResult a:hover .title {
+  text-decoration: none;
+}
+#pageSearchBar:focus-within > #pageSearchResults {
+  display: unset;
+}
+
 /* Dark mode */
 .darkmode-button {
   position: absolute;
@@ -851,6 +923,7 @@ input[type="range"] {
   --tile-border-color: rgba(224, 234, 247, 0.15);
   --font-weight: 400;
   --stop-recording-color: var(--link-color);
+  --input-background-color: #303134;
 }
 
 .dark-mode #dark-on {
