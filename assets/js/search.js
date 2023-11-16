@@ -1,9 +1,10 @@
 // Load the document list and index from the root directory of the site.
 
 let documents = [];
-let index;
+let pageHeadings = [];
+let siteIndex, pageIndex;
 
-async function setupSearch() {
+async function setupSiteSearch() {
   documents = await getDocs();
   // If there is no index saved in local storage, build one.
   if (
@@ -25,7 +26,7 @@ async function setupSearch() {
     const skipStemmer = skipField("title", lunr.stemmer);
     lunr.Pipeline.registerFunction(skipStemmer, "skipStemmer");
 
-    index = lunr(function () {
+    siteIndex = lunr(function () {
       this.ref("id");
       this.field("title");
       this.field("extract");
@@ -40,10 +41,10 @@ async function setupSearch() {
         this.add(doc);
       }, this);
     });
-    index.expiryTime = Date.now() + 1000 * 60 * 60 * 24 * 1;
-    localStorage.setItem("index", JSON.stringify(index));
+    siteIndex.expiryTime = Date.now() + 1000 * 60 * 60 * 24 * 1;
+    localStorage.setItem("index", JSON.stringify(siteIndex));
   } else {
-    index = lunr.Index.load(JSON.parse(localStorage.getItem("index")));
+    siteIndex = lunr.Index.load(JSON.parse(localStorage.getItem("index")));
   }
 }
 async function getDocs() {
@@ -54,16 +55,38 @@ async function getDocs() {
     });
 }
 
-setupSearch();
+async function setupPageSearch() {
+  let counter = 0;
+  // Get all h3, h4, h5 tags from the page.
+  document.querySelectorAll("h3, h4, h5").forEach((el) => {
+    const obj = {};
+    obj.ref = counter++;
+    obj.id = el.id;
+    obj.title = el.innerText;
+    pageHeadings.push(obj);
+  });
+  pageIndex = lunr(function () {
+    this.ref("ref");
+    this.field("title");
+
+    pageHeadings.forEach(function (doc) {
+      this.add(doc);
+    }, this);
+  });
+  console.log(pageIndex);
+}
+
+setupSiteSearch();
+setupPageSearch();
 
 window.addEventListener("blur", () => {
-  document.getElementById("lunrsearchresults").style.display = "none";
+  document.getElementById("siteSearchResults").style.display = "none";
 });
 
-function lunr_search(term) {
-  document.getElementById("lunrsearchresults").innerHTML = "<ul></ul>";
+function site_search(term) {
+  document.getElementById("siteSearchResults").innerHTML = "<ul></ul>";
   if (term) {
-    document.getElementById("lunrsearchresults").style.display = "";
+    document.getElementById("siteSearchResults").style.display = "";
     //put results on the screen.
     var searchterm = "";
     term
@@ -82,8 +105,8 @@ function lunr_search(term) {
           str +
           "^0.0001 ";
       });
-    var results = index.search(searchterm);
-    
+    var results = siteIndex.search(searchterm);
+
     if (results.length > 0) {
       for (var i = 0; i < results.length; i++) {
         // more statements
@@ -95,7 +118,7 @@ function lunr_search(term) {
         if (extract) {
           title += /[\?\!\.]/.test(title.trim().slice(-1)) ? " " : ": ";
         }
-        var item = document.querySelectorAll("#lunrsearchresults ul")[0];
+        var item = document.querySelectorAll("#siteSearchResults ul")[0];
         var html = "";
         html += img ? "<img src='" + img + "'/>" : "";
         html +=
@@ -106,7 +129,7 @@ function lunr_search(term) {
           "</span></p>";
         item.innerHTML =
           item.innerHTML +
-          "<li class='lunrsearchresult'><a href='" +
+          "<li class='siteSearchResult'><a href='" +
           url +
           "'>" +
           html +
@@ -114,11 +137,52 @@ function lunr_search(term) {
       }
       return results;
     } else {
-      document.querySelectorAll("#lunrsearchresults ul")[0].innerHTML =
-        "<li class='lunrsearchresult'>No results found</li>";
+      document.querySelectorAll("#siteSearchResults ul")[0].innerHTML =
+        "<li class='siteSearchResult'>No results found</li>";
     }
   } else {
-    document.getElementById("lunrsearchresults").style.display = "none";
+    document.getElementById("siteSearchResults").style.display = "none";
+  }
+  return false;
+}
+
+function doc_search(term) {
+  document.getElementById("docSearchResults").innerHTML = "<ul></ul>";
+  if (term) {
+    document.getElementById("docSearchResults").style.display = "";
+    //put results on the screen.
+    var searchterm = "";
+    term
+      .split(" ")
+      .filter((e) => e)
+      .forEach((str) => {
+        str += "*";
+        searchterm += "*" + str;
+      });
+    var results = pageIndex.search(searchterm);
+
+    if (results.length > 0) {
+      for (var i = 0; i < results.length; i++) {
+        var ref = results[i]["ref"];
+        var id = pageHeadings[ref]["id"];
+        var title = pageHeadings[ref]["title"];
+        var item = document.querySelectorAll("#docSearchResults ul")[0];
+        var html = "";
+        html += "<p><span class='title'>" + title + "</span></p>";
+        item.innerHTML =
+          item.innerHTML +
+          `<li class='docSearchResult'><a onclick='document.getElementById("${id}")` +
+          ".scrollIntoView();'>" +
+          html +
+          "</a></li>";
+      }
+      return results;
+    } else {
+      document.querySelectorAll("#docSearchResults ul")[0].innerHTML =
+        "<li class='docSearchResult'>No results found</li>";
+    }
+  } else {
+    document.getElementById("docSearchResults").style.display = "none";
   }
   return false;
 }

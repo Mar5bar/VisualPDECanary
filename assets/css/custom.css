@@ -386,6 +386,16 @@ a .ui_button_documentation#equations {
   margin-top: 3rem;
 }
 
+.post-content h4,
+.post-content h5 {
+  margin-bottom: 3px;
+  font-weight: 500;
+}
+
+h5 {
+  font-size: 1.1rem;
+}
+
 .post-content li {
   margin-top: 0.5rem;
 }
@@ -666,7 +676,7 @@ input[type="range"] {
   }
 }
 
-#lunrsearchform {
+#siteSearchForm {
   position: absolute;
   left: 20px;
   right: 262px;
@@ -674,11 +684,11 @@ input[type="range"] {
   vertical-align: middle;
 }
 
-#lunrsearchform p {
+#siteSearchForm p {
   margin-bottom: 0;
 }
 
-#lunrsearchinput {
+#siteSearchInput {
   border: none;
   background: none;
   outline: none;
@@ -693,7 +703,7 @@ input[type="range"] {
   font-size: medium;
   color: var(--text-color);
 }
-#lunrsearchform:focus-within #lunrsearchinput {
+#siteSearchForm:focus-within #siteSearchInput {
   width: calc(100% - 50px);
 }
 
@@ -728,12 +738,12 @@ input[type="range"] {
 }
 
 @media screen and (max-width: 600px) {
-  #lunrsearchform {
+  #siteSearchForm {
     right: 50px;
   }
 }
 
-#lunrsearchresults {
+#siteSearchResults {
   display: none;
   padding-top: 0.2rem;
   position: absolute;
@@ -748,34 +758,34 @@ input[type="range"] {
   max-width: 100%;
   box-shadow: var(--hover-background-color) 0px 1px 0px 0px;
 }
-#lunrsearchresults ul {
+#siteSearchResults ul {
   list-style-type: none;
   margin-left: 0;
   margin-bottom: 0;
 }
-.lunrsearchresult {
+.siteSearchResult {
   padding-bottom: 1rem;
   font-size: smaller;
   background-color: var(--background-color);
 }
-.lunrsearchresult .title {
+.siteSearchResult .title {
   font-size: small;
   font-weight: 500;
 }
-.lunrsearchresult a {
+.siteSearchResult a {
   display: flex;
   align-items: center;
   color: var(--soft-text-color);
   text-decoration: none !important;
 }
-.lunrsearchresult a:hover,
-.lunrsearchresult a:focus {
+.siteSearchResult a:hover,
+.siteSearchResult a:focus {
   background-color: var(--hover-background-color);
 }
-.lunrsearchresult a:hover .title {
+.siteSearchResult a:hover .title {
   text-decoration: none;
 }
-.lunrsearchresult img {
+.siteSearchResult img {
   height: 2rem;
   aspect-ratio: 1;
   margin-right: 0.5rem;
@@ -784,7 +794,7 @@ input[type="range"] {
   background-color: black;
   object-fit: cover;
 }
-#lunrsearchbar:focus-within > #lunrsearchresults {
+#siteSearchBar:focus-within > #siteSearchResults {
   display: unset;
 }
 
