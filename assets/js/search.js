@@ -50,6 +50,8 @@ async function setupPageSearch() {
     obj.title = el.innerText;
     obj.displayedName =
       el.innerText.trim() + (el.tagName == "H2" ? " (section)" : "");
+    // Get the text conten of the next element.
+    obj.followedBy = el?.nextElementSibling?.innerText;
     pageHeadings.push(obj);
   });
   pageIndex = lunr(function () {
@@ -171,10 +173,22 @@ function page_search(term) {
       for (var i = 0; i < results.length; i++) {
         var ref = results[i]["ref"];
         var id = pageHeadings[ref]["id"];
-        var toDisplay = pageHeadings[ref]["displayedName"];
+        var displayName = pageHeadings[ref]["displayedName"];
+        var followedBy = pageHeadings[ref]["followedBy"];
+        console.log(followedBy);
+        if (followedBy) {
+          displayName += /[\?\!\.]/.test(displayName.trim().slice(-1))
+            ? " "
+            : ": ";
+        }
         var item = document.querySelectorAll("#pageSearchResults ul")[0];
         var html = "";
-        html += "<p><span class='title'>" + toDisplay + "</span></p>";
+        html +=
+          "<p><span class='title'>" +
+          displayName +
+          "</span><span class='body'>" +
+          followedBy +
+          "</span></p>";
         item.innerHTML =
           item.innerHTML +
           `<li class='pageSearchResult'><a onclick='document.getElementById("${id}").scrollIntoView({behaviour:"smooth"});'>` +

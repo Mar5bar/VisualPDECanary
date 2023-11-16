@@ -835,7 +835,7 @@ input[type="range"] {
   padding-left: 1rem;
   padding-right: 1rem;
   top: 90%;
-  max-width: 100%;
+  max-width: 95%;
   box-shadow: var(--hover-background-color) 0px 1px 0px 0px;
 }
 #pageSearchResults ul {
@@ -848,6 +848,7 @@ input[type="range"] {
   font-size: smaller;
   background-color: var(--background-color);
   cursor: pointer;
+  max-height: 2rem;
 }
 .pageSearchResult .title {
   font-size: small;
@@ -858,6 +859,11 @@ input[type="range"] {
   align-items: center;
   color: var(--soft-text-color);
   text-decoration: none !important;
+}
+.pageSearchResult p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .pageSearchResult a:hover,
 .pageSearchResult a:focus {
