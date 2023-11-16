@@ -122,6 +122,9 @@ export function computeDisplayFunShaderMid() {
         if (overlayLine) {
           height = OVERLAYEXPR;
         }
+        if (isnan(value)) {
+          value = 1.0/0.0;
+        }
         gl_FragColor = vec4(value, 0.0, height, yVecComp);`;
 }
 
