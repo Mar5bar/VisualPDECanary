@@ -3786,7 +3786,7 @@ import { Stats } from "../stats.min.js";
       }
       while (str.indexOf(joker) > -1) {
         str = str.replace(new RegExp(joker + "(\\w+)", "g"), function (m, d) {
-          return tab[d].replace(regex, form);
+          return tab[d] ? tab[d].replace(regex, form) : "";
         });
       }
     }
@@ -7783,30 +7783,101 @@ import { Stats } from "../stats.min.js";
    * @returns {boolean} - Returns true if the syntax is valid, false otherwise.
    */
   function isValidSyntax(str) {
+    let regex, matches;
     // Empty parentheses?
-    if (/\(\s*\)/.test(str)) {
-      throwError("Empty parentheses in " + str.trim() + ".");
+    regex = /\(\s*\)/;
+    matches = str.match(regex);
+    if (matches != null) {
+      throwError(
+        "Empty parentheses in: " +
+          highlightStringinString(str, matches[0]).trim() +
+          "."
+      );
       return false;
     }
 
     // Balanced parentheses?
-    let bracketDepth = 0;
+    let bracketDepth = 0,
+      startInd,
+      endInd;
     for (var ind = 0; ind < str.length; ind++) {
       if (str[ind] == "(") {
         bracketDepth += 1;
       } else if (str[ind] == ")") {
         bracketDepth -= 1;
       }
+      if (bracketDepth > 0 && startInd == undefined) startInd = ind;
     }
-    if (bracketDepth != 0) {
-      throwError("Unbalanced parentheses in " + str.trim() + ".");
+    bracketDepth = 0;
+    for (var ind = str.length; ind >= 0; ind--) {
+      if (str[ind] == "(") {
+        bracketDepth += 1;
+      } else if (str[ind] == ")") {
+        bracketDepth -= 1;
+      }
+      if (bracketDepth < 0 && endInd == undefined) endInd = ind + 1;
+    }
+
+    if (bracketDepth > 0) {
+      throwError(
+        "Missing " +
+          (bracketDepth < 2 ? "" : bracketDepth.toString()) +
+          " ')'" +
+          " in: " +
+          (str.slice(0, startInd) +
+            highlightStringinString(str.slice(startInd), str.slice(startInd))) +
+          "."
+      );
+      return false;
+    } else if (bracketDepth < 0) {
+      throwError(
+        "Missing " +
+          (bracketDepth > -2 ? "" : -bracketDepth.toString()) +
+          " '('" +
+          " in: " +
+          (
+            highlightStringinString(
+              str.slice(0, endInd),
+              str.slice(0, endInd)
+            ) + str.slice(endInd)
+          ).trim() +
+          "."
+      );
       return false;
     }
 
     // Trailing operator?
-    if (/[\+\-\*\^\/]\s*$/.test(str)) {
+    regex = /[\+\-\*\^\/]\s*$/;
+    matches = str.match(regex);
+    if (matches != null) {
       throwError(
-        "A binary operator is missing an operand in " + str.trim() + "."
+        "A binary operator is missing an operand in: " +
+          highlightStringinString(str, matches[0]).trim() +
+          "."
+      );
+      return false;
+    }
+
+    // Closing parenthesis followed by something that isn't an operator or whitespace?
+    regex = /\)\s*[^\+\-\*\^\/\)\s]/;
+    matches = str.match(regex);
+    if (matches != null) {
+      throwError(
+        "Missing operator in: " +
+          highlightStringinString(str, matches[0]).trim() +
+          "<br>You might be missing a '*' for multiplication."
+      );
+      return false;
+    }
+
+    // Number followed immediately by a letter or opening parenthesis?
+    regex = /\.?[0-9]+\s*[a-zA-Z\(]/;
+    matches = str.match(regex);
+    if (matches != null) {
+      throwError(
+        "Operator missing after a number in: " +
+          highlightStringinString(str, matches[0]).trim() +
+          "<br> You might be missing a '*' for multiplication."
       );
       return false;
     }
@@ -9146,6 +9217,23 @@ import { Stats } from "../stats.min.js";
       "float(" +
       options.domainIndicatorFun +
       ")*float(textureCoords.x - step_x >= 0.0)*float(textureCoords.x + step_x <= 1.0)*float(textureCoords.y - step_y >= 0.0)*float(textureCoords.y + step_y <= 1.0)"
+    );
+  }
+
+  /**
+   * Replaces all occurrences of a substring in a string with a highlighted version of the substring.
+   * @param {string} str - The string to search and replace in.
+   * @param {string} substr - The substring to search for and replace.
+   * @param {string} [highlightClass="highlight"] - The CSS class to apply to the highlighted substring.
+   * @returns {string} The modified string with highlighted substrings.
+   */
+  function highlightStringinString(str, substr, highlightClass) {
+    if (highlightClass == undefined) {
+      highlightClass = "highlight";
+    }
+    return str.replaceAll(
+      substr,
+      `<span class="${highlightClass}">${substr}</span>`
     );
   }
 })();

@@ -79,6 +79,10 @@ canvas {
   display: none !important;
 }
 
+span.highlight {
+  background-color: rgba(255,55,136,0.6);
+}
+
 .prevent-select {
   cursor: default;
   -webkit-user-select: none;
@@ -543,7 +547,7 @@ canvas {
 }
 
 @media (hover: hover) {
-  .highlight:hover {
+  .btn-primary.highlight:hover {
     background-color: var(--hover-color);
     cursor: pointer;
   }
