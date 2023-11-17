@@ -52,14 +52,6 @@
           } else {
             el.src += "?sf=0.5";
           }
-          // In order for lazy loading to work with an updated string, we have to remove and 
-          // readd the element to the DOM.
-          const original = el.cloneNode(true);
-          const placeholder = document.createElement("div");
-          el.replaceWith(placeholder);
-          placeholder.replaceWith(original);
-          el.remove();
-          placeholder.remove();
         })
       });
     }
