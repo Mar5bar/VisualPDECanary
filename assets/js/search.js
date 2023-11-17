@@ -175,7 +175,6 @@ function page_search(term) {
         var id = pageHeadings[ref]["id"];
         var displayName = pageHeadings[ref]["displayedName"];
         var followedBy = pageHeadings[ref]["followedBy"];
-        console.log(followedBy);
         if (followedBy) {
           displayName += /[\?\!\.]/.test(displayName.trim().slice(-1))
             ? " "

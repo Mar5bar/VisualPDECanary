@@ -728,7 +728,7 @@ input[type="range"] {
   border-radius: 5px;
   padding-left: 4px;
   vertical-align: middle;
-  height: 30px;
+  height: 25px;
 }
 
 .site-nav {
@@ -874,6 +874,19 @@ input[type="range"] {
 }
 #pageSearchBar:focus-within > #pageSearchResults {
   display: unset;
+}
+
+#toc>ul {
+  list-style-type: none;
+  font-size: small;
+}
+
+#toc > ul > ul {
+  list-style-type: circle;
+}
+
+#toc > ul > ul > ul {
+  list-style-type: disc !important;
 }
 
 /* Dark mode */
