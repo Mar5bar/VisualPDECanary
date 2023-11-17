@@ -41,6 +41,9 @@ a:visited {
     color: var(--link-color);
     cursor: pointer;
   }
+  summary:hover {
+    cursor: pointer;
+  }
 }
 
 p {
