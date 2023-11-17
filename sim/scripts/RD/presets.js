@@ -66,6 +66,13 @@ export function getListOfPresets() {
     whatToDraw: "T",
   };
 
+  listOfPresets["DecontaminationDirichlet"] = {
+    brushEnabled: false,
+    boundaryConditions_1: "combo",
+    parent: "DecontaminationDemo",
+    preset: "DecontaminationDirichlet",
+  };
+
   listOfPresets["DecontaminationDemoSpots"] = {
     brushRadius:
       "ind(yB<h*L_y)*(0.05^2 - ((x-xB)^2+(y-yB)^2)) + ind(yB>=h*L_y)*(0.05^2 - ((x-xB)^2+(y-h*L_y)^2))",
@@ -79,7 +86,7 @@ export function getListOfPresets() {
     brushRadius:
       "ind(yB<h*L_y)*(0.05^2 - ((x-xB)^2+(y-yB)^2)) + ind(yB>=h*L_y)*ind(y>=h*L_y)",
     kineticParams:
-      "k = 0.10 in [0,0.5];chi = 1.00 in [0, 2];R_0 = 0.1 in [0.05,0.5];D_c = 0.0500 in [0.01,0.05];R_init = 0.4 in [0.1, 0.5];h = 0.95;",
+      "k = 0.10 in [0,0.5];chi = 1.00 in [0, 2];R_0 = 0.1 in [0.05,0.5];D_c = 0.0500 in [0.01,0.05];R_init = 0.4 in [0.1, 0.5];h = 0.95;BC = 1",
     overlay: true,
     overlayExpr: "y-h*L_y",
     parent: "DecontaminationAgentOnWalls",
@@ -111,9 +118,9 @@ export function getListOfPresets() {
     brushValue: "1",
     colourbar: true,
     comboStr_1:
-      "Top: Dirichlet = 1; Bottom: Neumann = 0; Left: Neumann = 0; Right: Neumann = 0",
+      "Top: Dirichlet = BC; Bottom: Neumann = 0; Left: Neumann = 0; Right: Neumann = 0",
     contours: true,
-    contourEpsilon: 0.001,
+    contourEpsilon: 0.003,
     contourNum: 3,
     crossDiffusion: true,
     diffusionStr_1_1: "phi*D",
@@ -126,7 +133,7 @@ export function getListOfPresets() {
     initCond_3: "pi*0.4^2",
     initCond_4: "sqrt(1-4*0.4^2)",
     kineticParams:
-      "k = 0.10 in [0,0.5];chi = 1.00 in [0, 2];R_0 = 0.1 in [0.05,0.5];D_c = 0.0500 in [0.01,0.05];R_init = 0.4 in [0.1, 0.5]",
+      "k = 0.10 in [0,0.5];chi = 1.00 in [0, 2];R_0 = 0.1 in [0.05,0.5];D_c = 0.0500 in [0.01,0.05];R_init = 0.4 in [0.1, 0.5];BC = 1",
     numAlgebraicSpecies: 2,
     numSpecies: "4",
     numTimestepsPerFrame: 200,
