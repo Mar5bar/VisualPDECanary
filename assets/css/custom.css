@@ -50,6 +50,12 @@ p {
   font-weight: var(--font-weight);
 }
 
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .no-select {
   cursor: default;
   -webkit-user-select: none;

@@ -18,7 +18,7 @@ The time taken to complete a decontamination depends on many things, including:
 
 The simulation below lets us explore the effect of one of these factors: the chemical reaction rate, which we'll call $k$. Clicking in the simulation adds a blob of cleansing chemical into the material. In reality, this is usually applied just to the upper surface (indicated by a thick black line), but here we can play around and add chemical to wherever we like. Try clicking to introduce cleanser, and watch as the contaminant is cleaned up. At any time, you can reset the simulation by pressing <vpde-reset iframe="simA"></vpde-reset>
 
-<p style="text-align:center;"><vpde-slider
+<p style="text-align:center;margin-bottom:0;"><vpde-slider
     iframe="simA"
     name="k"
     label="$k$:"
@@ -37,7 +37,7 @@ However, there’s a limit to how much we can speed it up by just varying this o
 You might also notice that for small $k$ the contaminant is reacted away quite evenly everywhere, whereas for large $k$ it only manages to clean small `pockets' of contaminant, leading to sharp boundaries separating the cleansed and contaminated regions.
 
 # How much cleanser do we need?
-In practice, an easy way to speed up the cleaning process is to add more cleanser. The following pair of simulations let us see this in action. In each, we're applying cleanser to the top of the concrete, but the simulation on the right is at double strength. Restart the process to get another look by pressing <vpde-reset iframe="simB simC"></vpde-reset>
+In practice, an easy way to speed up the cleaning process is to add more cleanser. The following pair of simulations lets us see this in action. In each, we're applying cleanser to the top of the concrete, but the simulation on the right is at double strength. Restart the process to get another look by pressing <vpde-reset iframe="simB simC"></vpde-reset>
 
 <div style="display:flex">
 <!-- Invisible sliders to set values in simulation -->
@@ -45,6 +45,40 @@ In practice, an easy way to speed up the cleaning process is to add more cleanse
     <iframe id="simB" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&no_ui" frameborder="0" loading="lazy"></iframe>
 <vpde-slider style="display:none" iframe="simC" name="BC" value="2"></vpde-slider>
     <iframe id="simC" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&no_ui" frameborder="0" loading="lazy"></iframe>
+</div>
+
+However, this approach is both wasteful and potentially dangerous: the cleaning chemical might be a strong acid or alkaline (like bleach) and so could damage the concrete if too much is left over after the decontamination. 
+
+To measure this, we can define the efficiency of the decontamination process, which captures how much cleaning chemical is wasted: if the efficiency is 100% then all the cleaning chemical is used up in the decontamination, wasting nothing, but if the efficiency is low then lots of cleaning chemical is left in the concrete at the end of the decontamination.
+
+Here's a rough graph of efficiency vs decontamination time, where each point corresponds to a different amount of applied cleanser.
+
+<img class="center" style="width:50%" src="/assets/images/AOW_increasing_cleanser_conc.webp" alt="Graph showing that increasing the amount of cleanser results in faster but less efficient cleaning">
+
+As we've already seen, we find that the decontamination is faster when we increase the cleaning solution strength, but it is less efficient. In practice, we would need to choose what strength of cleaning solution to apply (i.e. where on the curve we sit) to get a good trade-off between speed and efficiency.
+
+This brings us to a final important question:
+
+# Is there a way to reduce waste?
+Since the concentration of applied cleanser is the easiest thing to control, can we apply it in a clever way to keep the decontamination fast, but reduce the wasted cleaning chemical?
+
+Let's explore this with some simulations. We've set up two views into the same simulation: on the left we see the decontaminant, just like before, whilst on the right we see the cleanser (darker blue means more cleanser). The goal: make both simulations go pure white.
+
+Use the slider below to adjust the strength of the applied cleanser throughout the decontamination process. A good idea is to start with a strong cleaning solution and gradually reduce the strength: this keeps the decontamination fast and the efficiency high. Can you find any better ways by exploring? Reset any time by pressing <vpde-reset iframe="simD simE"></vpde-reset>
+
+<p style="text-align:center;margin-bottom:0;"><vpde-slider
+    iframe="simD"
+    name="BC"
+    label="$k$:"
+    min="0"
+    max="10"
+    value="10"
+    step="0.1"
+></vpde-slider></p>
+
+<div style="display:flex">
+    <iframe id="simD" class="sim" src="/sim/?preset=DecontaminationDirichlet&story&no_ui" frameborder="0" loading="lazy"></iframe>
+    <iframe id="simE" class="sim" src="/sim/?preset=DecontaminationDirichlet&story&no_ui&view=0" frameborder="0" loading="lazy"></iframe>
 </div>
 
 

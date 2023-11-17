@@ -426,6 +426,14 @@ import { Stats } from "../stats.min.js";
     loadPreset(defaultPreset);
   }
 
+  if (params.has("view")) {
+    options.activeViewInd = Number(params.get("view")).clamp(
+      0,
+      options.views.length - 1
+    );
+    applyView(options.views[options.activeViewInd]);
+  }
+
   // If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
   isStory = params.has("story");
   if (isStory) {
