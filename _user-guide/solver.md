@@ -10,6 +10,30 @@ VisualPDE aims to be a plug-and-play, browser-based solver and visualiser for a 
 
 We are always looking for ways to improve and extend VisualPDE, especially ways of reaching a broader audience and new communities. If you have any questions or suggestions about anything related to VisualPDE, we'd love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com)!
 
+<form id="pageSearchForm"
+onSubmit="page_search(document.getElementById('pageSearchInput').value); return false;"
+>
+<p>
+    <div id="pageSearchBar">
+    <input
+      type="text"
+      id="pageSearchInput"
+      name="q"
+      maxlength="255"
+      value=""
+      placeholder="Search this page"
+      onfocus="document.getElementById('pageSearchForm').onsubmit();window.gtag?.('event', 'page_search');"
+      oninput="document.getElementById('pageSearchForm').onsubmit();"
+      />
+      <div id="pageSearchResults" tabindex="0">
+        <ul></ul>
+      </div>
+    </div>
+  </p>
+</form>
+
+<div id="toc"></div>
+
 ### The equations <a id='equations'>
 VisualPDE can solve a variety of PDE systems posed in 1D or 2D space, many of which are straightforward extensions of the two-species reaction–diffusion system,
 

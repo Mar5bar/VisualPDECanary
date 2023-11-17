@@ -36,8 +36,11 @@ a:visited {
   text-decoration: none;
 }
 
-a:hover {
-  color: var(--link-color);
+@media (hover: hover) {
+  a:hover {
+    color: var(--link-color);
+    cursor: pointer;
+  }
 }
 
 p {
@@ -876,9 +879,13 @@ input[type="range"] {
   display: unset;
 }
 
-#toc>ul {
+#toc > ul {
   list-style-type: none;
   font-size: small;
+}
+
+#toc > ul:not(:has(ul)) {
+  list-style-type: unset;
 }
 
 #toc > ul > ul {
