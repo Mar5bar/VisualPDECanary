@@ -74,7 +74,7 @@ export function getListOfPresets() {
   };
 
   listOfPresets["DecontaminationDemo"] = {
-    activeViewInd: 3,
+    activeViewInd: 1,
     brushType: "custom",
     brushRadius:
       "ind(yB<h*L_y)*(0.05^2 - ((x-xB)^2+(y-yB)^2)) + ind(yB>=h*L_y)*ind(y>=h*L_y)",
@@ -90,21 +90,7 @@ export function getListOfPresets() {
         maxColourValue: 1,
         minColourValue: 0,
         whatToPlot: "c",
-        name: "$c$",
-      },
-      {
-        colourmap: "chemicalGreen",
-        maxColourValue: "R_init",
-        minColourValue: "R_0",
-        whatToPlot: "R*ind(y<h*L_y)",
-        name: "$R$",
-      },
-      {
-        colourmap: "turbo",
-        maxColourValue: 0.05,
-        minColourValue: 0.03,
-        whatToPlot: "D",
-        name: "$D$",
+        name: "Cleanser",
       },
       {
         colourmap: "chemicalGreen",

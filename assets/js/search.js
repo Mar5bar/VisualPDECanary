@@ -91,8 +91,8 @@ if (document.querySelector("#siteSearchForm")) setupSiteSearch();
 if (document.querySelector("#pageSearchForm")) setupPageSearch();
 
 window.addEventListener("blur", () => {
-  document.getElementById("siteSearchResults").style.display = "none";
-  document.getElementById("pageSearchResults").style.display = "none";
+  document.getElementById("siteSearchResults")?.style.display = "none";
+  document.getElementById("pageSearchResults")?.style.display = "none";
 });
 
 function site_search(term) {
