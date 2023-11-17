@@ -96,7 +96,7 @@ export function getListOfPresets() {
         colourmap: "chemicalBlue",
         maxColourValue: 1,
         minColourValue: 0,
-        whatToPlot: "c",
+        whatToPlot: "c*ind(y<h*L_y)",
         name: "Cleanser",
       },
       {
@@ -120,7 +120,7 @@ export function getListOfPresets() {
     comboStr_1:
       "Top: Dirichlet = BC; Bottom: Neumann = 0; Left: Neumann = 0; Right: Neumann = 0",
     contours: true,
-    contourEpsilon: 0.003,
+    contourEpsilon: 0.005,
     contourNum: 3,
     crossDiffusion: true,
     diffusionStr_1_1: "phi*D",

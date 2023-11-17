@@ -28,7 +28,7 @@ The simulation below lets us explore the effect of one of these factors: the che
     step="0.01"
 ></vpde-slider></p>
 
-<iframe id="simA" class="sim" src="/sim/?preset=DecontaminationDemoSpots&story&no_ui" frameborder="0" loading="lazy"></iframe>
+<iframe id="simA" class="sim" style="margin-left:calc(15% - 2px);margin-right:calc(15% - 2px);width:70%" src="/sim/?preset=DecontaminationDemoSpots&story&no_ui" frameborder="0" loading="lazy"></iframe>
 
 To explore the role that the reaction rate plays, try adjusting the slider found just above the simulation, and see what effect clicking has now. For larger rates, the reaction is faster, and this speeds up the overall decontamination of the concrete. 
 
@@ -67,9 +67,9 @@ Let's explore this with some simulations. We've set up two views into the same s
 Use the slider below to adjust the strength of the applied cleanser throughout the decontamination process. A good idea is to start with a strong cleaning solution and gradually reduce the strength: this keeps the decontamination fast and the efficiency high. Can you find any better ways by exploring? Reset any time by pressing <vpde-reset iframe="simD simE"></vpde-reset>
 
 <p style="text-align:center;margin-bottom:0;"><vpde-slider
-    iframe="simD"
+    iframe="simD simE"
     name="BC"
-    label="$k$:"
+    label="Strength:"
     min="0"
     max="10"
     value="10"
@@ -77,13 +77,23 @@ Use the slider below to adjust the strength of the applied cleanser throughout t
 ></vpde-slider></p>
 
 <div style="display:flex">
-    <iframe id="simD" class="sim" src="/sim/?preset=DecontaminationDirichlet&story&no_ui" frameborder="0" loading="lazy"></iframe>
-    <iframe id="simE" class="sim" src="/sim/?preset=DecontaminationDirichlet&story&no_ui&view=0" frameborder="0" loading="lazy"></iframe>
+    <iframe id="simD" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&no_ui" frameborder="0" loading="lazy"></iframe>
+    <iframe id="simE" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&no_ui&view=0" frameborder="0" loading="lazy"></iframe>
 </div>
+
+# About the decontamination model
+The mathematical model that we are using for these simulations is derived by considering the diffusion of the cleaning chemical and its reaction with the contaminant, within the pore space of the porous material. Rather than solve these equations in the very intricate, complicated pore-space domain, we’ve used a mathematical technique called homogenisation to average the equations. This makes them much easier and more computationally efficient to solve but keeps the important information from the underlying pore-space system. Specifically, the more contaminant there is, the harder it is to transport the cleaning chemical through the material, since the cleaning chemical has to navigate around the contaminant, in limited pore space. This manifests in the model as an effective diffusivity that depends on the local amount of contaminant.
+
+<img class="center" style="width:50%" src="/assets/images/AOW_homogenisation.webp" alt="Schematic illustrating how fine-grained structure in a material becomes a smooth homogenised medium">
+
+You can find more details on the mathematics discussed in this Story in the following articles:
+1. Homogenisation problems in reactive decontamination (2019). EK Luckins, CJW Breward, IM Griffiths, Z Wilmott. [European Journal of Applied Mathematics 31(5), 782-805](https://doi.org/10.1017/S0956792519000263).
+1. The effect of pore-scale contaminant distribution on the reactive decontamination of porous media (2023). EK Luckins, CJW Breward, IM Griffiths, CP Please. [European Journal of Applied Mathematics 1-41](https://doi.org/10.1017/S0956792523000219).
+1. Optimising the Decontamination of Porous Building Materials (2023). H Turner. Masters thesis, University of Oxford.
 
 
 # Looking for more?
-Not quite had enough of water waves? For a different perspective on this Visual Story, try pressing <span class='click_sequence'>{{ layout.views }} → **3D**</span> in either of the simulations above. What you'll see is the surface of the water drawn in 3D – try dragging to change the view, or clicking on the surface to disturb it, and experience a new point of view.
+Not quite had enough of decontamination? To investigate other parameters in the model, check out this fully [customisable simulation](/sim/?preset=decontaminationDemoSpots).
 
 Enjoyed this Visual Story? We'd love to hear your feedback at [hello@visualpde.com](mailto:hello@visualpde.com).
 

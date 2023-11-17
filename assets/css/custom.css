@@ -954,6 +954,7 @@ input[type="range"] {
   --ui-button-color: var(--text-color);
   --ui-button-background-color: var(--background-color);
   --ui-button-border-color: #555555;
+  --ui-button-hover-color: #555555;
   --slider-fill-color: var(--link-color);
   --tile-border-color: rgba(224, 234, 247, 0.15);
   --font-weight: 400;
