@@ -84,8 +84,8 @@ lunr.Pipeline.registerFunction(skipStopWordFilter, "skipStopWordFilter");
 const skipStemmer = skipField("title", lunr.stemmer);
 lunr.Pipeline.registerFunction(skipStemmer, "skipStemmer");
 
-setupSiteSearch();
-setupPageSearch();
+if (document.querySelector("#siteSearchForm")) setupSiteSearch();
+if (document.querySelector("#pageSearchForm")) setupPageSearch();
 
 window.addEventListener("blur", () => {
   document.getElementById("siteSearchResults").style.display = "none";
