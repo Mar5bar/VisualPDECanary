@@ -2,10 +2,10 @@ document.addEventListener("DOMContentLoaded", function () {
   TableOfContents();
 });
 
-function TableOfContents(container, output) {
+function TableOfContents(container, output, maxLevel) {
   var toc = "";
   var level = 0;
-  const maxLevel = 4;
+  maxLevel = maxLevel || 3;
   var topLevel = Infinity;
   var container =
     document.querySelector(container) ||
@@ -47,7 +47,7 @@ function TableOfContents(container, output) {
 
       if (level == topLevel) {
         // If we're at the top level, make this a summary item.
-        toc += `<li><details><summary>${titleText}</summary>`;
+        toc += `<li><details><summary linkTo=${id}>${titleText}</summary>`;
       } else {
         toc +=
           `<li><a onclick=document.getElementById(${id})?.scrollIntoView({behaviour:"smooth"});>` +
@@ -63,4 +63,16 @@ function TableOfContents(container, output) {
     toc += new Array(level + 1).join("</ul>");
   }
   document.querySelector(output || "#toc").innerHTML += toc;
+  // Check for any empty details elements and replace them with their summary.
+  document
+    .querySelector(output || "#toc")
+    .querySelectorAll("details")
+    .forEach((el) => {
+      if (!el.querySelector("a")) {
+        el.outerHTML = el.innerHTML.replace(
+          /<summary (linkto=("[\w\-]+"))>(.*)<\/summary>/,
+          `<a onclick=document.getElementById($2)?.scrollIntoView({behaviour:"smooth"});>$3</a>`
+        );
+      }
+    });
 }

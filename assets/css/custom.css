@@ -690,7 +690,7 @@ input[type="range"] {
   width: 80%;
   left: 50%;
   transform: translateX(-50%);
-  height: 54px;
+  height: 30px;
   vertical-align: middle;
 }
 

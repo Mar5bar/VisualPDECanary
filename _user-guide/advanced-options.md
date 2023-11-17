@@ -19,7 +19,7 @@ onSubmit="page_search(document.getElementById('pageSearchInput').value); return 
       name="q"
       maxlength="255"
       value=""
-      placeholder="Search this page..."
+      placeholder="Search this page"
       onfocus="document.getElementById('pageSearchForm').onsubmit();window.gtag?.('event', 'page_search');"
       oninput="document.getElementById('pageSearchForm').onsubmit();"
       />
