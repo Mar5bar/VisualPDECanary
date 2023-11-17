@@ -43,17 +43,20 @@ async function getDocs() {
 async function setupPageSearch() {
   let counter = 0;
   // Get all h3, h4, h5 tags from the page.
-  document.querySelectorAll("h2, h3, h4, h5").forEach((el) => {
-    const obj = {};
-    obj.ref = counter++;
-    obj.id = el.id;
-    obj.title = el.innerText;
-    obj.displayedName =
-      el.innerText.trim() + (el.tagName == "H2" ? " (section)" : "");
-    // Get the text conten of the next element.
-    obj.followedBy = el?.nextElementSibling?.innerText;
-    pageHeadings.push(obj);
-  });
+  document
+    .querySelector(".post-content")
+    ?.querySelectorAll("h2, h3, h4, h5")
+    .forEach((el) => {
+      const obj = {};
+      obj.ref = counter++;
+      obj.id = el.id;
+      obj.title = el.innerText;
+      obj.displayedName =
+        el.innerText.trim() + (el.tagName == "H2" ? " (section)" : "");
+      // Get the text conten of the next element.
+      obj.followedBy = el?.nextElementSibling?.innerText;
+      pageHeadings.push(obj);
+    });
   pageIndex = lunr(function () {
     this.ref("ref");
     this.field("title");

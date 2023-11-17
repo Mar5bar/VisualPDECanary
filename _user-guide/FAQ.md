@@ -6,10 +6,29 @@ thumbnail: /assets/images/question-marks.webp
 extract: Unsure about something? Help is at hand
 ---
 
-Jump to:
-* [Sharing and citing](#sharing)
-* [Dealing with errors](#errors)
-* [Extending VisualPDE](#extending)
+<form id="pageSearchForm"
+onSubmit="page_search(document.getElementById('pageSearchInput').value); return false;"
+>
+<p>
+    <div id="pageSearchBar">
+    <input
+      type="text"
+      id="pageSearchInput"
+      name="q"
+      maxlength="255"
+      value=""
+      placeholder="Search this page"
+      onfocus="document.getElementById('pageSearchForm').onsubmit();window.gtag?.('event', 'page_search');"
+      oninput="document.getElementById('pageSearchForm').onsubmit();"
+      />
+      <div id="pageSearchResults" tabindex="0">
+        <ul></ul>
+      </div>
+    </div>
+  </p>
+</form>
+
+<div id="toc"></div>
 
 ---
 
