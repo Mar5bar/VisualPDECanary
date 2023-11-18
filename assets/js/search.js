@@ -67,7 +67,11 @@ async function setupPageSearch() {
       // Get the text content of the next elements until the next heading.
       let curEl = el.nextElementSibling;
       obj.followedBy = "";
-      while (curEl && !selectors.includes(curEl.tagName.toLowerCase())) {
+      while (
+        curEl &&
+        !selectors.includes(curEl.tagName.toLowerCase()) &&
+        !curEl.querySelector(selectors)
+      ) {
         obj.followedBy += curEl.innerText.trim() + " ";
         curEl = curEl.nextElementSibling;
       }
