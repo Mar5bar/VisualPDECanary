@@ -60,6 +60,7 @@ async function setupPageSearch() {
       obj.ref = counter++;
       obj.id = el.id;
       obj.title = el.innerText;
+      obj.level = el.tagName[1];
       obj.displayedName =
         el.innerText.trim() +
         (el.tagName[1] == highestLevel ? " (section)" : "");
@@ -206,6 +207,11 @@ function page_search(term) {
         searchterm += str.trim() + "* ";
       });
     var results = pageIndex.search(searchterm);
+    results = results?.sort(
+      (a, b) =>
+        pageHeadings[a.ref].level - pageHeadings[b.ref].level ||
+        b.score - a.score
+    );
 
     if (results.length > 0) {
       for (var i = 0; i < results.length; i++) {

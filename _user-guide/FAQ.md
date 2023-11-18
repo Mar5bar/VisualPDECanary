@@ -64,19 +64,17 @@ In principle, you can have as many embedded simulations on your site as you want
 
 ---
 
-## Dealing with errors <a id='errors'>
-
-### An error message has popped up – what do I do!?
+## Errors <a id='errors'>
 Sometimes, mistakes happen. If something has gone wrong, VisualPDE will try its best to describe the error in a helpful way via a pop-up. We try to display a helpful error message to help you identify the problem. More cryptic messages are listed below.
 
-#### Undeclared identifier <a id='undeclared'>
+### Undeclared identifier <a id='undeclared'>
 ```
 ERROR: 0:87: 'k' : undeclared identifier
 ```
 
 Here, the quantity 'k' has been used somewhere in one of the many free-text inputs in VisualPDE, but it hasn't been defined. The most common cause of this is using a parameter in the **Definitions** tab without defining it in the **Parameters** tab. Check your definitions and parameters to resolve this. Be careful to define parameters as constant numbers – dependence on other parameters, space, time, or species is not (yet) supported!
 
-#### Cyclic variables/parameters detected <a id='cyclic'>
+### Cyclic variables/parameters detected <a id='cyclic'>
 ```
 Cyclic variables/parameters detected. Please check the definition(s) of a,b.
 ```
@@ -87,7 +85,7 @@ $$\begin{align}a &= b,\\ b &= a+1.\end{align}$$
 
 There is no solution to this system of equations, so check your definitions and try again.
 
-#### My error looks nothing like any of these
+### My error looks nothing like any of these
 Sometimes, errors won't look anything like these examples. If this is the case and the error message doesn't help you in resolving it, please follows the steps outlined [below](#error) and help make VisualPDE as stable as possible!
 
 NOTE: VisualPDE sometimes won't warn you about multiple errors that involve the same error message (we're working on it). So, if you fix an error involving 'k', you might not be warned about later errors involving 'k' in the same session. Reloading the page (making sure to have copied your configuration URL first!) is a good way of getting around this for now.
@@ -105,7 +103,7 @@ If you can, it will help us a lot if you could click <span class='click_sequence
 
 ---
 
-## Extending and repackaging VisualPDE <a id='extending'>
+## Beyond VisualPDE.com <a id='extending'>
 
 ### I want to use VisualPDE in my teaching/research/outreach – what do I do?
 VisualPDE is designed for customising and sharing. If you're new to the site, we recommend that you play around and work through the examples found in [Basic PDEs](/basic-pdes) to get an idea of how to craft your own simulation, and make use of [link sharing](#linkSharing) to permanently save customised simulations.
