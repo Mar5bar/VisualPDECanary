@@ -2507,119 +2507,7 @@ import { Stats } from "../stats.min.js";
         updateView(this.property);
       });
 
-    root
-      .add(options, "colourmap", {
-        BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
-        "Blue-Magenta": "blue-magenta",
-        "Chemical (green)": "chemicalGreen",
-        "Chemical (blue)": "chemicalBlue",
-        Diverging: "diverging",
-        Greyscale: "greyscale",
-        Foliage: "foliage",
-        Ice: "ice",
-        "Lava flow": "lavaflow",
-        Midnight: "midnight",
-        Pastels: "pastels",
-        Retro: "retro",
-        "Simply blue": "blue",
-        "Snow Ghost": "snowghost",
-        Squirrels: "squirrels",
-        Spooky: "spooky",
-        Thermal: "thermal",
-        Turbo: "turbo",
-        Viridis: "viridis",
-        Water: "water",
-      })
-      .onChange(function () {
-        setDisplayColourAndType();
-        configureColourbar();
-        document.activeElement.blur();
-        renderIfNotRunning();
-        updateView(this.property);
-      })
-      .name("Colour map");
-
-    controllers["minColourValue"] = root
-      .add(options, "minColourValue")
-      .name("Min value")
-      .onFinishChange(function () {
-        setColourRangeFromDef();
-        renderIfNotRunning();
-        updateView(this.property);
-      });
-
-    controllers["maxColourValue"] = root
-      .add(options, "maxColourValue")
-      .name("Max value")
-      .onFinishChange(function () {
-        setColourRangeFromDef();
-        renderIfNotRunning();
-        updateView(this.property);
-      });
-
-    const effectsButtons = addButtonList(root, "colour_map_buttons");
-
-    addButton(
-      effectsButtons,
-      '<i class="fa-regular fa-arrows-rotate"></i> Flip',
-      function () {
-        options.flippedColourmap = !options.flippedColourmap;
-        setDisplayColourAndType();
-        configureColourbar();
-        renderIfNotRunning();
-        updateView("flippedColourmap");
-      },
-      null,
-      "Reverse colour map",
-      ["narrow"]
-    );
-
-    addButton(
-      effectsButtons,
-      '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap',
-      function () {
-        setColourRangeSnap();
-        render();
-        updateView("minColourValue");
-        updateView("maxColourValue");
-      },
-      null,
-      "Snap min/max to visible",
-      ["narrow"]
-    );
-
-    addToggle(
-      effectsButtons,
-      "colourbar",
-      '<i class="fa-solid fa-bars-progress"></i> Bar',
-      function () {
-        configureColourbar();
-        updateView("colourbar");
-      },
-      null,
-      "Display the colourbar",
-      null,
-      ["narrow"]
-    );
-
-    addNewline(effectsButtons);
-
-    addToggle(
-      effectsButtons,
-      "autoSetColourRange",
-      '<i class="fa-solid fa-wand-magic-sparkles"></i> Auto snap',
-      function () {
-        if (options.autoSetColourRange) {
-          setColourRangeSnap();
-          render();
-        }
-        updateView("autoSetColourRange");
-      },
-      null,
-      "Automatically snap range",
-      null,
-      ["wide"]
-    );
+    const effectsButtons = addButtonList(root);
 
     addToggle(
       effectsButtons,
@@ -2678,6 +2566,120 @@ import { Stats } from "../stats.min.js";
       "vectorFieldButton",
       "Toggle vector field",
       "vectorFieldFolder",
+      ["wide"]
+    );
+
+    root = editViewFolder.addFolder("Colour");
+
+    root
+      .add(options, "colourmap", {
+        BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
+        "Blue-Magenta": "blue-magenta",
+        "Chemical (green)": "chemicalGreen",
+        "Chemical (blue)": "chemicalBlue",
+        Diverging: "diverging",
+        Greyscale: "greyscale",
+        Foliage: "foliage",
+        Ice: "ice",
+        "Lava flow": "lavaflow",
+        Midnight: "midnight",
+        Pastels: "pastels",
+        Retro: "retro",
+        "Simply blue": "blue",
+        "Snow Ghost": "snowghost",
+        Squirrels: "squirrels",
+        Spooky: "spooky",
+        Thermal: "thermal",
+        Turbo: "turbo",
+        Viridis: "viridis",
+        Water: "water",
+      })
+      .onChange(function () {
+        setDisplayColourAndType();
+        configureColourbar();
+        document.activeElement.blur();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+      .name("Colour map");
+
+    controllers["minColourValue"] = root
+      .add(options, "minColourValue")
+      .name("Min value")
+      .onFinishChange(function () {
+        setColourRangeFromDef();
+        renderIfNotRunning();
+        updateView(this.property);
+      });
+
+    controllers["maxColourValue"] = root
+      .add(options, "maxColourValue")
+      .name("Max value")
+      .onFinishChange(function () {
+        setColourRangeFromDef();
+        renderIfNotRunning();
+        updateView(this.property);
+      });
+
+    const colourButtons = addButtonList(root);
+
+    addButton(
+      colourButtons,
+      '<i class="fa-regular fa-arrows-rotate"></i> Reverse',
+      function () {
+        options.flippedColourmap = !options.flippedColourmap;
+        setDisplayColourAndType();
+        configureColourbar();
+        renderIfNotRunning();
+        updateView("flippedColourmap");
+      },
+      null,
+      "Reverse the colour map",
+      ["wide"]
+    );
+
+    addToggle(
+      colourButtons,
+      "colourbar",
+      '<i class="fa-solid fa-bars-progress"></i> Colour bar',
+      function () {
+        configureColourbar();
+        updateView("colourbar");
+      },
+      null,
+      "Display the colourbar",
+      null,
+      ["wide"]
+    );
+
+    addButton(
+      colourButtons,
+      '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap range',
+      function () {
+        setColourRangeSnap();
+        render();
+        updateView("minColourValue");
+        updateView("maxColourValue");
+      },
+      null,
+      "Snap min/max to visible",
+      ["wide"]
+    );
+
+    addToggle(
+      colourButtons,
+      "autoSetColourRange",
+      '<i class="fa-solid fa-wand-magic-sparkles"></i> Auto snap',
+      function () {
+        if (options.autoSetColourRange) {
+          setColourRangeSnap();
+          render();
+        }
+        updateView("autoSetColourRange");
+      },
+      null,
+      "Automatically snap range",
+      null,
       ["wide"]
     );
 

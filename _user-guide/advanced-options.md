@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Advanced documentation
-lesson_number: 40
+lesson_number: 20
 thumbnail: /assets/images/Brusselator.webp
 extract: A glossary of all the features you can play with
 ---
@@ -125,23 +125,25 @@ Line plots are the default plot type for 1D domains. Cubic splines are used to i
 
 Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Height scale** parameter.
 
-### Colour map
+### Colour
+Customise everything about the colours used to display the solution.
+
+#### Colour map
 Set the current colour map being used to convert **Expression** into a colour value. Use the dropdown to select from the available options. We have tried to cater for everyone in these options but, if you find that no colour map is available that allows you to easily distinguish between values, please let us know at [hello@visualpde.com](mailto:hello@visualpde.com) so that we can add a more appropriate map.
 
-
-### Min/Max value
+#### Min/Max value
 Set the limits of the colour map that transforms  **Expression** into colour. If viewing a surface plot, this also impacts the height of the surface. These can depend on any quantities defined in **Parameters**.
 
-### Flip
+#### Reverse
 Reverse the direction of the current colour map.
 
-### Snap
-Click to instantly snap **Min value** and **Max value** to the current minimum and maximum of **Expression** in the domain.
-
-### Bar
+#### Colour bar
 Toggle the display of the current colour bar and limits.
 
-### Auto snap
+#### Snap range
+Click to instantly snap **Min value** and **Max value** to the current minimum and maximum of **Expression** in the domain.
+
+#### Auto snap
 Toggle the automatic snapping of the colour map limits. This can be very useful if you don't know the range in which **Expression** will fall, especially if it is changing frequently.
 
 ### Contours
