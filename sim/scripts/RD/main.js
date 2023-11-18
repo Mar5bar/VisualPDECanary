@@ -156,6 +156,7 @@ import { Stats } from "../stats.min.js";
     hasDrawn,
     shouldCheckNaN = true,
     isStory = false,
+    wasLinePlot = false,
     shaderContainsRAND = false,
     anyDirichletBCs,
     dataNudgedUp = false,
@@ -6782,6 +6783,7 @@ import { Stats } from "../stats.min.js";
   function configurePlotType() {
     // Configure the simulation to plot the solution as requested.
     if (options.plotType == "line") {
+      wasLinePlot = true;
       setLineWidth();
       options.brushType = "vline";
       setBrushType();
@@ -6793,7 +6795,8 @@ import { Stats } from "../stats.min.js";
       options.vectorField = false;
       configureVectorField();
     } else {
-      if (options.dimension > 1) {
+      if (wasLinePlot && options.dimension > 1) {
+        wasLinePlot = false;
         options.brushType = "circle";
         setBrushType();
       }
