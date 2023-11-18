@@ -9,4 +9,4 @@ Instantly interact with solutions to partial differential equations (PDEs). Expl
 
 New to [PDE](https://en.wikipedia.org/wiki/Partial_differential_equation)s? Take a look at the [Chalkdust article](https://chalkdustmagazine.com/regulars/on-the-cover/visual-pde/) or try our collection of [Visual stories](/visual-stories). 
 
-A project by [Benjamin Walker](https://benjaminwalker.info/){:target="_blank"}, [Adam Townsend](https://adamtownsend.com/){:target="_blank"} and [Andrew Krause](https://www.andrewkrause.org/){:target="_blank"}. [Read the paper](https://doi.org/10.1007/s11538-023-01218-4){:target="_blank"}.
+A project by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/) and [Andrew Krause](https://www.andrewkrause.org/). [Read the paper](https://doi.org/10.1007/s11538-023-01218-4).

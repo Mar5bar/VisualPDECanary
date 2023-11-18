@@ -35,7 +35,7 @@ onSubmit="page_search(document.getElementById('pageSearchInput').value); return 
 ## Sharing and citing <a id='sharing'>
 
 ### How do I cite VisualPDE in my article?
-The VisualPDE paper is out! You can find it [online](https://doi.org/10.1007/s11538-023-01218-4){:target="_blank"} for free and cite it as 
+The VisualPDE paper is out! You can find it [online](https://doi.org/10.1007/s11538-023-01218-4) for free and cite it as 
 
 Walker, B.J., Townsend, A.K., Chudasama, A.K. et al. VisualPDE: Rapid interactive simulations of partial differential equations. Bulletin of Mathematical Biology 85, 113 (2023).
 
