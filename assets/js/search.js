@@ -42,19 +42,52 @@ async function getDocs() {
 
 async function setupPageSearch() {
   let counter = 0;
-  // Get all h3, h4, h5 tags from the page.
+  const selectors = "h2, h3, h4, h5, h6";
+  // Find the highest level heading.
+  let highestLevel = Infinity;
   document
     .querySelector(".post-content")
-    ?.querySelectorAll("h2, h3, h4, h5")
+    ?.querySelectorAll(selectors)
+    .forEach((el) => {
+      if (highestLevel > el.tagName[1]) highestLevel = el.tagName[1];
+    });
+  // Get all h2, h3, h4, h5 tags from the page.
+  document
+    .querySelector(".post-content")
+    ?.querySelectorAll("h2, h3, h4, h5, h6")
     .forEach((el) => {
       const obj = {};
       obj.ref = counter++;
       obj.id = el.id;
       obj.title = el.innerText;
       obj.displayedName =
-        el.innerText.trim() + (el.tagName == "H2" ? " (section)" : "");
-      // Get the text conten of the next element.
-      obj.followedBy = el?.nextElementSibling?.innerText;
+        el.innerText.trim() +
+        (el.tagName[1] == highestLevel ? " (section)" : "");
+      // Get the text content of the next element.
+      obj.followedBy = el.nextElementSibling?.innerText;
+      // Get the text content of the previous heading elements.
+      obj.parentText = "";
+      let level = el.tagName[1];
+      let currentEl = el;
+      let isInLI = true;
+      while (
+        (isInLI || currentEl.previousElementSibling) &&
+        level > highestLevel
+      ) {
+        // If the heading is in a list item, jump up two levels.
+        isInLI = currentEl.parentElement?.tagName.toUpperCase() === "LI";
+        if (isInLI) {
+          currentEl = currentEl.parentElement.parentElement;
+        }
+        currentEl = currentEl.previousElementSibling;
+        if (
+          currentEl.tagName[0].toUpperCase() === "H" &&
+          currentEl.tagName[1] < level
+        ) {
+          obj.parentText = currentEl.innerText.trim() + " > " + obj.parentText;
+          level = currentEl.tagName[1];
+        }
+      }
       pageHeadings.push(obj);
     });
   pageIndex = lunr(function () {
@@ -180,10 +213,14 @@ function page_search(term) {
         var id = pageHeadings[ref]["id"];
         var displayName = pageHeadings[ref]["displayedName"];
         var followedBy = pageHeadings[ref]["followedBy"];
+        var parentText = pageHeadings[ref]["parentText"];
         if (followedBy) {
           displayName += /[\?\!\.]/.test(displayName.trim().slice(-1))
             ? " "
             : ": ";
+        }
+        if (parentText) {
+          displayName = parentText + displayName;
         }
         var item = document.querySelectorAll("#pageSearchResults ul")[0];
         var html = "";
