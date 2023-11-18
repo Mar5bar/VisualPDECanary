@@ -16,7 +16,7 @@ export function getListOfPresets() {
 	"domainViaIndicatorFun": true,
 	"dt": 0.0005,
    imagePathOne: "./images/USA.webp",
-	"initCond_1": "1*H(0.2-((x-0.615*L_x)^2+(y-0.25*L_y/2)^2))^2",
+	"initCond_1": "1*H(0.2-((x-0.615*L_x)^2+(y-0.25*L_y/2)^2))",
 	"kineticParams": "beta= 1 in [0, 0.1, 5];",
 	"minX": "-L_y/2",
 	"minY": "-L_y/2",
