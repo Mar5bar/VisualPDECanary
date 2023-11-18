@@ -64,8 +64,13 @@ async function setupPageSearch() {
       obj.displayedName =
         el.innerText.trim() +
         (el.tagName[1] == highestLevel ? " (section)" : "");
-      // Get the text content of the next element.
-      obj.followedBy = el.nextElementSibling?.innerText;
+      // Get the text content of the next elements until the next heading.
+      let curEl = el.nextElementSibling;
+      obj.followedBy = "";
+      while (curEl && !selectors.includes(curEl.tagName.toLowerCase())) {
+        obj.followedBy += curEl.innerText.trim() + " ";
+        curEl = curEl.nextElementSibling;
+      }
       // Get the text content of the previous heading elements.
       obj.parentText = "";
       let level = el.tagName[1];
@@ -94,10 +99,8 @@ async function setupPageSearch() {
   pageIndex = lunr(function () {
     this.ref("ref");
     this.field("title");
-    this.pipeline.remove(lunr.stopWordFilter);
+    this.field("followedBy");
     this.pipeline.remove(lunr.stemmer);
-    this.pipeline.add(skipStopWordFilter);
-    this.pipeline.add(skipStemmer);
 
     pageHeadings.forEach(function (doc) {
       this.add(doc);
@@ -204,7 +207,9 @@ function page_search(term) {
       .split(" ")
       .filter((e) => e)
       .forEach((str) => {
-        searchterm += str.trim() + "* ";
+        searchterm += "title:" + str + "^1000 followedBy:" + str;
+        str += "*";
+        searchterm += " title:" + str + "^1000 followedBy:" + str;
       });
     var results = pageIndex.search(searchterm);
     results = results?.sort(
