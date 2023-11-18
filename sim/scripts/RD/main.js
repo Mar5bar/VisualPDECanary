@@ -6793,6 +6793,10 @@ import { Stats } from "../stats.min.js";
       options.vectorField = false;
       configureVectorField();
     } else {
+      if (options.dimension > 1) {
+        options.brushType = "circle";
+        setBrushType();
+      }
       domain.visible = true;
       line.visible = false;
       if (options.plotType == "surface") {
