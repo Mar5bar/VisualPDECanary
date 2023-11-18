@@ -65,7 +65,8 @@ a {
 }
 
 canvas {
-  background: black;
+  background: no-repeat center/contain url(/assets/images/logo_with_title_white_padded_low.webp);
+  background-color: black;
   display: block;
   margin: auto;
   touch-action: none;
