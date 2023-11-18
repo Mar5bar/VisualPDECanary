@@ -25,7 +25,7 @@ export function getListOfPresets() {
 	"reactionStr_1": "beta*p*(1-p)",
 	"reactionStr_2": "0",
 	"reactionStr_3": "0",
-	"spatialStep": "0.1",
+	"spatialStep": "0.2",
 	"speciesNames": "p v w q",
 	      squareCanvas: true,
 	"whatToDraw": "p",
