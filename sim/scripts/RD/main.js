@@ -1070,13 +1070,6 @@ import { Stats } from "../stats.min.js";
       var targetTagName =
         target.nodeType == 1 ? target.nodeName.toUpperCase() : "";
       if (!/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
-        if (event.key === "r") {
-          $("#erase").click();
-        }
-        if (event.key === " ") {
-          funsObj.toggleRunning();
-          event.preventDefault();
-        }
         if (event.key === "h") {
           if (uiHidden) {
             uiHidden = false;
@@ -1096,13 +1089,22 @@ import { Stats } from "../stats.min.js";
             uiHidden = true;
             $(".ui").addClass("hidden");
           }
-        }
-        if (event.key == "s") {
-          saveSimState();
-        }
-        if (event.key == "c") {
-          options.resetFromCheckpoints = !options.resetFromCheckpoints;
-          updateToggle($("#checkpointButton")[0]);
+        } else if (!(isStory && uiHidden)) {
+          // Don't allow for keyboard input if the ui is hidden in a Story.
+          if (event.key === "r") {
+            $("#erase").click();
+          }
+          if (event.key === " ") {
+            funsObj.toggleRunning();
+            event.preventDefault();
+          }
+          if (event.key == "s") {
+            saveSimState();
+          }
+          if (event.key == "c") {
+            options.resetFromCheckpoints = !options.resetFromCheckpoints;
+            updateToggle($("#checkpointButton")[0]);
+          }
         }
       }
     });
