@@ -3,6 +3,35 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+
+  listOfPresets["SpanishFluWave"] = {
+	"boundaryConditions_1": "neumann",
+	"brushEnabled": false,
+	"brushType": "vline",
+	"colourbar": true,
+	"diffusionStr_1_1": "1",
+	"diffusionStr_2_2": "0",
+	"diffusionStr_3_3": "0",
+	"domainIndicatorFun": "0.5-I_S",
+	"domainViaIndicatorFun": true,
+	"dt": 0.0005,
+   imagePathOne: "./images/USA.webp",
+	"initCond_1": "1*H(0.2-((x-0.615*L_x)^2+(y-0.25*L_y/2)^2))^2",
+	"kineticParams": "beta= 1 in [0, 0.1, 5];",
+	"minX": "-L_y/2",
+	"minY": "-L_y/2",
+	"numSpecies": 1,
+	"preset": "SpanishFluWave",
+	"reactionStr_1": "beta*p*(1-p)",
+	"reactionStr_2": "0",
+	"reactionStr_3": "0",
+	"spatialStep": "0.1",
+	"speciesNames": "p v w q",
+	"whatToDraw": "p",
+	"whatToPlot": "p",
+};
+
+
   listOfPresets["lavaFlow"] = {
     boundaryConditions_1: "dirichlet",
     boundaryConditions_2: "dirichlet",
