@@ -71,8 +71,8 @@ Use the slider below to adjust the strength of the applied cleanser throughout t
     name="BC"
     label="Strength:"
     min="0"
-    max="10"
-    value="10"
+    max="5"
+    value="5"
     step="0.1"
 ></vpde-slider></p>
 
