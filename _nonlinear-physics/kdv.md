@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Solitons in the Korteweg–De Vries \& Zakharov-Kuznetsov equations
+title: Solitons in the Korteweg–De Vries & Zakharov-Kuznetsov equations
 lesson_number: 80
 thumbnail: /assets/images/KdV.webp
 extract: Solitary movement through each other
