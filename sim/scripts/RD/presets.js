@@ -3,6 +3,43 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+	listOfPresets["ZKSoliton"] = {
+	"boundaryConditions_1": "dirichlet",
+	"brushAction": "smoothreplace",
+	"brushEnabled": false,
+	"brushRadius": "20",
+	"cameraPhi": 10.904738427754285,
+	"cameraTheta": 51.809287124743044,
+	"cameraZoom": 0.9330806239976674,
+	"crossDiffusion": true,
+	"diffusionStr_1_1": "0",
+	"diffusionStr_1_2": "-1",
+	"diffusionStr_1_3": "-b",
+	"diffusionStr_2_2": "0",
+	"diffusionStr_3_1": "1",
+	"diffusionStr_3_3": "0",
+	"domainScale": "350",
+	"dt": 0.005,
+	"guiUpdatePeriod": 3,
+	"initCond_1": "1/cosh(a*(x^2+y^2))^2",
+	"kineticParams": "a = 0.06;b = 0.008;",
+	"maxColourValue": 1.3,
+	"minX": "-L_x/2",
+	"minY": "-L_y/2",
+	"numAlgebraicSpecies": 2,
+	"numSpecies": "3",
+	"plotType": "surface",
+	"preset": "ZKSoliton",
+	"reactionStr_1": "-u*v",
+	"reactionStr_2": "u_x",
+	"reactionStr_3": "0",
+	"spatialStep": "1",
+	"squareCanvas": true,
+	"threeDHeightScale": 0.5,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+};
+
 
   listOfPresets["SpanishFluWave"] = {
 	"boundaryConditions_1": "neumann",
