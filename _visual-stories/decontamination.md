@@ -51,7 +51,7 @@ However, this approach is both wasteful and potentially dangerous: the cleaning 
 
 To measure this, we can define the efficiency of the decontamination process, which captures how much cleaning chemical is wasted: if the efficiency is 100% then all the cleaning chemical is used up in the decontamination, wasting nothing, but if the efficiency is low then lots of cleaning chemical is left in the concrete at the end of the decontamination.
 
-Here's a rough graph of efficiency vs decontamination time, where each point corresponds to a different amount of applied cleanser.
+Here's a graph of efficiency vs decontamination time, where each point corresponds to a different amount of applied cleanser.
 
 <img class="center" style="width:60%" src="/assets/images/AOW_increasing_cleanser_conc.webp" alt="Graph showing that increasing the amount of cleanser results in faster but less efficient cleaning">
 
