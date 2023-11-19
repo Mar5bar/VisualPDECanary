@@ -25,3 +25,26 @@ with periodic boundary conditions.
 1. Next change the brush type to a circle and explore how circular waves travel. These are similar to the planar (effectively 1D) waves above, but their speed will be slightly different as the curvature of these wave fronts will influence their speed.
 
 1. You can also explore this kind of wave in a [1D model](/sim/?preset=travellingWave1D). You can press {{ layout.erase }} to reset the simulation as you change parameters.
+
+# Competitive exclusion
+
+Travelling waves also occur in multispecies models. A model of two competing populations (red and grey squirrels) can be written as,
+
+$$\begin{aligned}\pd{R}{t}&=D\nabla^2 R+R(1-c_{RR}R-c_{RG}G),\\ \pd{G}{t}&=D\nabla^2 G+ G(1-c_{GR}R-c_{GG}G),\end{aligned}$$
+
+where $D is a diffusion coefficient,  $c_{RG}, c_{GR}$ are [interspecific](https://en.wikipedia.org/wiki/Interspecific_competition),  and $c_{RR},c_{GG}$ [intraspecific](https://en.wikipedia.org/wiki/Intraspecific_competition) competition coefficients. As explored further in [this Visual Story](), [competitive exclusion](https://en.wikipedia.org/wiki/Competitive_exclusion_principle) can lead to one of the species being driven to extinction by the other. [This simulation](/sim/?preset=RedGreyInvasionUK) explores the grey squirrels driving the red to extinction across a map of the United Kingdom.
+
+# Epidemic waves
+
+As another example of logistic travelling waves, we can consider the [SIS model](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology#Variations_on_the_basic_SIR_model) of infection given by
+
+$$\begin{aligned}\fd{S}{t}&=d I - b S I,\\ \fd{I}{t}&=b S I - d I,\end{aligned}$$
+
+where $S$ is the number of susceptible individuals, $I$ the numbver of infected individuals, $d$ a recovery rate, and $b$ an infection rate. Since this system is mass conserving (that is, $N=S + I$ must be a constant), we can rewrite this model purely in terms of the proportion of infected individuals $p = I/N$ as to get,
+
+$$\pd{p}{t}=\nabla^2 p+\beta p(1-p)-\delta p,$$
+
+where we have rescaled the infection and recovery rates. As long as $R_0 = \beta/\delta > 1$, then this model will have the same travelling-wave behaviour as the Fisher-KPP equation above where $p=0$ is an unstable steady state, and $p=(\beta - \delta)/\beta$ is a stable endemic equilibrium. You can see an epidemiological [travelling wave across the United States](/sim/?preset=SpanishFluInvasion) to see how this dynamic plays out in time and space.
+
+
+SpanishFluWave
