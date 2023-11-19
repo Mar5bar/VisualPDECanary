@@ -505,7 +505,7 @@ span.highlight {
 .big-popup {
   display: none;
   top: 50%;
-  max-width: min(60vw, calc(100vw - 160px));
+  max-width: min(60vw, calc(100vw - 80px));
   width: 20rem;
   left: 50%;
   position: absolute;
@@ -519,7 +519,8 @@ span.highlight {
 
 .big-popup p {
   color: var(--text-color);
-  font-size: medium;
+  font-size: min(1.2rem, 5vw);
+  padding-bottom: min(1rem, 2vw);
 }
 
 #error_description {
@@ -532,7 +533,7 @@ span.highlight {
 #welcome_no,
 #lets_go,
 .message_dismiss {
-  font-size: 1rem;
+  font-size: min(1rem,5vw);
   margin-bottom: 0.5rem;
   text-align: center;
   width: 13rem;
