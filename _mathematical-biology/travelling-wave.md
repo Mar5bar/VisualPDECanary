@@ -45,6 +45,3 @@ where $S$ is the number of susceptible individuals, $I$ the numbver of infected 
 $$\pd{p}{t}=\nabla^2 p+\beta p(1-p)-\delta p,$$
 
 where we have rescaled the infection and recovery rates. As long as $R_0 = \beta/\delta > 1$, then this model will have the same travelling-wave behaviour as the Fisher-KPP equation above where $p=0$ is an unstable steady state, and $p=(\beta - \delta)/\beta$ is a stable endemic equilibrium. You can see an epidemiological [travelling wave across the United States](/sim/?preset=SpanishFluInvasion) to see how this dynamic plays out in time and space.
-
-
-SpanishFluWave
