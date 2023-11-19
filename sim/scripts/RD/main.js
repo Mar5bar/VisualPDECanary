@@ -770,13 +770,14 @@ import { Stats } from "../stats.min.js";
     const wantsTour = await Promise.race([
       waitListener(document.getElementById("welcome_ok"), "click", true),
       waitListener(document.getElementById(noButtonId), "click", false),
+      waitForFun(isReturningUser),
     ]);
     $("#welcome").css("display", "none");
     // If they've interacted with anything, note that they have visited the site.
     setReturningUser();
     // If someone hasn't seen the full welcome, don't stop them from seeing it next time.
     if (viewFullWelcome) setSeenFullWelcomeUser();
-    if (wantsTour) {
+    if (wantsTour && viewFullWelcome) {
       await new Promise(function (resolve) {
         ["complete", "cancel"].forEach(function (event) {
           Shepherd.once(event, () => resolve());
@@ -6665,21 +6666,11 @@ import { Stats } from "../stats.min.js";
   }
 
   function isReturningUser() {
-    var cookieArr = document.cookie.split(";");
-    for (var i = 0; i < cookieArr.length; i++) {
-      var cookiePair = cookieArr[i].split("=");
-      if ("visited" == cookiePair[0].trim()) {
-        return true;
-      }
-    }
-    return false;
+    return localStorage.getItem("visited");
   }
 
   function setReturningUser() {
-    const d = new Date();
-    d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
-    let expires = "expires=" + d.toUTCString();
-    document.cookie = "visited" + "=" + "true" + ";" + expires + ";path=/";
+    localStorage.setItem("visited", true);
   }
 
   function seenFullWelcomeUser() {
@@ -6708,6 +6699,16 @@ import { Stats } from "../stats.min.js";
         resolve(val);
       };
       element.addEventListener(listenerName, listener);
+    });
+  }
+
+  function waitForFun(fun, interval) {
+    interval = interval || 100;
+    return new Promise(function (resolve, reject) {
+      const toRun = function () {
+        fun() ? resolve(true) : window.setTimeout(toRun, interval);
+      };
+      toRun();
     });
   }
 
