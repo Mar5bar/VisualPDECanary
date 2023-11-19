@@ -6,7 +6,7 @@ thumbnail: /assets/images/travelling-waves.webp
 extract: A classic example
 equation: $\pd{u}{t}=\nabla^2 u+ru\left(1-\frac{u}{K}\right)$<br />with periodic boundary conditions
 ---
-Next we'll consider a classical reaction–diffusion equation, with a logistic nonlinearity. This is often referred to as the [Fisher–KPP equation](https://en.wikipedia.org/wiki/Fisher%27s_equation),
+Here we'll consider a classical reaction–diffusion equation, with a logistic nonlinearity. This is often referred to as the [Fisher–KPP equation](https://en.wikipedia.org/wiki/Fisher%27s_equation),
 
 $$\pd{u}{t}=\nabla^2 u+ru\left(1-\frac{u}{K}\right),$$
 
