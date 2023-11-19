@@ -23,7 +23,7 @@ This example was helpfully constructed by [Paul Sutcliffe](https://www.durham.ac
 
 There are also 2D analogues of solitons sometimes called vortical solitons. The modified Zakharov-Kuznetsov model is given by
 
-$$ \pd{u}{t} = -\frac{\partial^3 u}{\partial x^3}-\frac{\partial^3 u}{\partial x \partial y^2} - u \pd{u}{x}-b\nabla^4 u $$,
+$$\pd{u}{t} = -\frac{\partial^3 u}{\partial x^3}-\frac{\partial^3 u}{\partial x \partial y^2} - u \pd{u}{x}-b\nabla^4 u,$$
 
 where $b$ is a small dissipative term used to reduce radiation. [This interactive simulation](/sim/?preset=ZKSoliton) shows one such vortical soliton moving in the positive $x$ direction.
 
