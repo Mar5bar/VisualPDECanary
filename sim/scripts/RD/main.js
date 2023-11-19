@@ -6683,22 +6683,11 @@ import { Stats } from "../stats.min.js";
   }
 
   function seenFullWelcomeUser() {
-    var cookieArr = document.cookie.split(";");
-    for (var i = 0; i < cookieArr.length; i++) {
-      var cookiePair = cookieArr[i].split("=");
-      if ("seenFullWelcome" == cookiePair[0].trim()) {
-        return true;
-      }
-    }
-    return false;
+    return localStorage.getItem("seenFullWelcome");
   }
 
   function setSeenFullWelcomeUser() {
-    const d = new Date();
-    d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
-    let expires = "expires=" + d.toUTCString();
-    document.cookie =
-      "seenFullWelcome" + "=" + "true" + ";" + expires + ";path=/";
+    localStorage.setItem("seenFullWelcome", true);
   }
 
   function waitListener(element, listenerName, val) {
