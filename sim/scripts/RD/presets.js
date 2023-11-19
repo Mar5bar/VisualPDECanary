@@ -18,7 +18,7 @@ export function getListOfPresets() {
    imagePathOne: "./images/USA.webp",
 	"initCond_1": "H(0.2-((x-0.35*L_x)^2+(y-0.25*L_y/2)^2))",
 	"kineticParams": "beta= 1 in [0, 0.1, 5];",
-	"minX": "-L_y/2",
+	"minX": "-L_x/2",
 	"minY": "-L_y/2",
 	"numSpecies": 1,
 	"preset": "SpanishFluWave",
