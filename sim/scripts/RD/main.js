@@ -770,14 +770,23 @@ import { Stats } from "../stats.min.js";
     const wantsTour = await Promise.race([
       waitListener(document.getElementById("welcome_ok"), "click", true),
       waitListener(document.getElementById(noButtonId), "click", false),
-      waitForFun(isReturningUser),
+      // A promise that resolves when "visited" is added to localStorage.
+      new Promise(function (resolve) {
+        var listener = function (e) {
+          if (e.key == "visited") {
+            window.removeEventListener("storage", listener);
+            resolve(false);
+          }
+        };
+        window.addEventListener("storage", listener);
+      }),
     ]);
     $("#welcome").css("display", "none");
     // If they've interacted with anything, note that they have visited the site.
     setReturningUser();
     // If someone hasn't seen the full welcome, don't stop them from seeing it next time.
     if (viewFullWelcome) setSeenFullWelcomeUser();
-    if (wantsTour && viewFullWelcome) {
+    if (wantsTour) {
       await new Promise(function (resolve) {
         ["complete", "cancel"].forEach(function (event) {
           Shepherd.once(event, () => resolve());
@@ -6699,16 +6708,6 @@ import { Stats } from "../stats.min.js";
         resolve(val);
       };
       element.addEventListener(listenerName, listener);
-    });
-  }
-
-  function waitForFun(fun, interval) {
-    interval = interval || 100;
-    return new Promise(function (resolve, reject) {
-      const toRun = function () {
-        fun() ? resolve(true) : window.setTimeout(toRun, interval);
-      };
-      toRun();
     });
   }
 
