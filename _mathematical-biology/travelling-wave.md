@@ -38,7 +38,7 @@ where $D$ is a diffusion coefficient,  $c_{RG}, c_{GR}$ are [interspecific](http
 
 As another example of logistic travelling waves, we can consider the [SIS model](https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology#Variations_on_the_basic_SIR_model) of infection given by
 
-$$\begin{aligned}\fd{S}{t}&=d I - b S I,\\ \fd{I}{t}&=b S I - d I,\end{aligned}$$
+$$\begin{aligned}\frac{d S}{d t}&=d I - b S I,\\ \frac{d I}{d t}&=b S I - d I,\end{aligned}$$
 
 where $S$ is the number of susceptible individuals, $I$ the numbver of infected individuals, $d$ a recovery rate, and $b$ an infection rate. Since this system is mass conserving (that is, $N=S + I$ must be a constant), we can rewrite this model purely in terms of the proportion of infected individuals $p = I/N$ as to get,
 
