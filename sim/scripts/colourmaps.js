@@ -72,11 +72,11 @@ export function getColours(sel) {
       colours.push([0.962, 0.976, 0.305, 1.0]);
       break;
     case "diverging":
-      colours.push([0.078, 0.193, 0.758, 0.0]);
-      colours.push([0.4262, 0.3772, 0.6683, 0.25]);
-      colours.push([0.5675, 0.5665, 0.567, 0.5]);
-      colours.push([0.7948, 0.7255, 0.3982, 0.75]);
-      colours.push([0.991, 0.894, 0.036, 1.0]);
+      colours.push([0.13850039, 0.41331206, 0.74052025, 0.0]);
+      colours.push([0.60934065, 0.68212194, 0.79422987, 0.25]);
+      colours.push([0.9805997, 0.96155216, 0.95813083, 0.5]);
+      colours.push([0.82740268, 0.59209095, 0.58167944, 0.75]);
+      colours.push([0.66080672, 0.21526712, 0.23069468, 1.0]);
       break;
     case "thermal":
       colours.push([0.909, 0.9822, 0.3555, 0.0]);
