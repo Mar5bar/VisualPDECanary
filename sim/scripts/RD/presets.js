@@ -4,7 +4,6 @@ export function getListOfPresets() {
   let listOfPresets = {};
 
   listOfPresets["ZKSoliton"] = {
-    boundaryConditions_1: "dirichlet",
     brushAction: "smoothreplace",
     brushEnabled: false,
     brushRadius: "20",
