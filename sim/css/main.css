@@ -65,8 +65,7 @@ a {
 }
 
 canvas {
-  background: no-repeat center/40vw
-    url(/assets/images/logo_loading.webp);
+  background: no-repeat center/40vw url(/assets/images/logo_loading.webp);
   background-color: black;
   display: block;
   margin: auto;
@@ -156,15 +155,21 @@ a.info-link {
   position: absolute;
   top: 0.5rem;
   right: 10px;
+  opacity: 0;
+  pointer-events: none;
 }
 
-a.info-link:has(+ .closed) {
-  display: none;
+a.info-link:has(+ ul:not(.closed)),
+a.info-link:has(+ ul:hover) {
+  opacity: 100%;
+  pointer-events: all;
 }
 
 @media (hover: hover) {
   a.info-link:hover {
     color: var(--text-color);
+    opacity: 100%;
+    pointer-events: all;
   }
 }
 
@@ -1325,11 +1330,11 @@ video {
   --text-color: #bec1c5;
   --link-color: #c2a1ff;
   --tile-text-color: #dfdfdf;
-  --tile-highlight-color: rgba(104, 38, 226, 0.6);
+  --tile-highlight-color: #564fddd0;
   --hover-background-color: #343434;
-  --hover-color: #3c13ac;
+  --hover-color: #4c46c7;
   --toggled-on-hover-color: var(--hover-color);
-  --button-color: #6826e2;
+  --button-color: #564fdd;
   --soft-text-color: #dfdfdf;
   --ui-button-color: var(--text-color);
   --ui-button-background-color: var(--background-color);

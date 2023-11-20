@@ -449,8 +449,7 @@ span.click_sequence {
   aspect-ratio: 1;
   border: 2px solid black;
   margin: calc(5% - 2px);
-  background: no-repeat center/contain
-    url(/assets/images/logo_loading.webp);
+  background: no-repeat center/contain url(/assets/images/logo_loading.webp);
   background-color: black;
 }
 @media only screen and (max-width: 600px) {
@@ -949,12 +948,12 @@ input[type="range"] {
   --text-color: #bec1c5;
   --link-color: #c2a1ff;
   --tile-text-color: #dfdfdf;
-  --tile-highlight-color: rgba(104, 38, 226, 0.6);
+  --tile-highlight-color: #564fddd0;
   --hover-background-color: #343434;
-  --hover-color: #3c13ac;
-  --button-color: #6826e2;
-  --play-button-color: var(--button-color);
-  --play-button-hover-color: var(--hover-color);
+  --hover-color: #4c46c7;
+  --button-color: #564fdd;
+  --play-button-color: #008075;
+  --play-button-hover-color: rgb(3, 162, 146);
   --soft-text-color: #969696;
   --ui-button-color: var(--text-color);
   --ui-button-background-color: var(--background-color);
@@ -999,7 +998,17 @@ input[type="range"] {
 .dark-mode .nav-button,
 .dark-mode .nav-button:visited,
 .dark-mode a[href*="/sim/"] {
-  color: #dfdfdf;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.dark-mode p > a,
+.dark-mode p > a:visited {
+  text-decoration: underline;
+}
+
+.dark-mode .footer-col-wrapper {
+  color: var(--soft-text-color);
 }
 
 .dark-mode-img {
