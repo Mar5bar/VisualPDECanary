@@ -65,7 +65,8 @@ a {
 }
 
 canvas {
-  background: no-repeat center/contain url(/assets/images/logo_with_title_white_padded_low.webp);
+  background: no-repeat center/40vw
+    url(/assets/images/logo_loading.webp);
   background-color: black;
   display: block;
   margin: auto;
@@ -81,7 +82,7 @@ canvas {
 }
 
 span.highlight {
-  background-color: rgba(255,55,136,0.6);
+  background-color: rgba(255, 55, 136, 0.6);
 }
 
 .prevent-select {
@@ -533,7 +534,7 @@ span.highlight {
 #welcome_no,
 #lets_go,
 .message_dismiss {
-  font-size: min(1rem,5vw);
+  font-size: min(1rem, 5vw);
   margin-bottom: 0.5rem;
   text-align: center;
   width: 13rem;

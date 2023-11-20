@@ -436,7 +436,7 @@ span.click_sequence {
   border: 2px solid black;
   margin: calc(5% - 2px);
   background: no-repeat center/contain
-    url(/assets/images/logo_with_title_white_padded_low.webp);
+    url(/assets/images/logo_loading.webp);
   background-color: black;
 }
 @media only screen and (max-width: 600px) {

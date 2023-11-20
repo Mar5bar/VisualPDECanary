@@ -8415,7 +8415,7 @@ import { Stats } from "../stats.min.js";
     }
     // Put the url in an iframe and copy to clipboard.
     let str =
-      '<iframe style="border:0;width:100%;height:100%;" src="' +
+      '<iframe title="VisualPDE simulation" style="border:0;width:100%;height:100%;" src="' +
       url +
       '" frameborder="0"></iframe>';
     copyToClipboard(str);
