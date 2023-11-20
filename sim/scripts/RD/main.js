@@ -1635,6 +1635,7 @@ import { Stats } from "../stats.min.js";
 
     // Brush folder.
     root = rightGUI.addFolder("Brush");
+    addInfoButton(root, "/user-guide/advanced-options#brush");
 
     const brushButtonList = addButtonList(root);
 
@@ -1688,6 +1689,7 @@ import { Stats } from "../stats.min.js";
 
     // Domain folder.
     root = rightGUI.addFolder("Domain");
+    addInfoButton(root, "/user-guide/advanced-options#domain");
 
     root
       .add(options, "dimension", { 1: 1, 2: 2 })
@@ -1735,7 +1737,7 @@ import { Stats } from "../stats.min.js";
     addToggle(
       domainButtonList,
       "squareCanvas",
-      '<i class="fa-regular fa-square"></i> Square',
+      '<i class="fa-regular fa-up-right-and-down-left-from-center"></i> Edge-to-edge',
       function () {
         setCanvasShape();
         resize();
@@ -1743,7 +1745,11 @@ import { Stats } from "../stats.min.js";
         renderIfNotRunning();
       },
       null,
-      "Use a square domain"
+      "Fit the domain to the shape of the display, or use a square computational domain",
+      null,
+      null,
+      null,
+      true
     );
 
     addToggle(
@@ -1774,6 +1780,7 @@ import { Stats } from "../stats.min.js";
 
     // Timestepping folder.
     root = rightGUI.addFolder("Timestepping");
+    addInfoButton(root, "/user-guide/advanced-options#timestepping");
 
     controllers["numTimestepsPerFrame"] = root
       .add(options, "numTimestepsPerFrame", 1, 1000, 1)
@@ -1843,6 +1850,7 @@ import { Stats } from "../stats.min.js";
 
     // Equations folder.
     root = rightGUI.addFolder("Equations");
+    addInfoButton(root, "/user-guide/advanced-options#equations-");
 
     // Number of species.
     root
@@ -1901,6 +1909,7 @@ import { Stats } from "../stats.min.js";
     // Definitions folder.
     definitionsFolder = leftGUI.addFolder("Definitions");
     root = definitionsFolder;
+    addInfoButton(root, "/user-guide/advanced-options#definitions");
 
     const defButtonList = addButtonList(root);
     addToggle(
@@ -2130,10 +2139,12 @@ import { Stats } from "../stats.min.js";
     setOnblur(controllers["j"], deselectTeX, ["QFUN"]);
 
     parametersFolder = leftGUI.addFolder("Parameters");
+    addInfoButton(parametersFolder, "/user-guide/advanced-options#parameters");
     setParamsFromKineticString();
 
     // Boundary conditions folder.
     root = leftGUI.addFolder("Boundary conditions");
+    addInfoButton(root, "/user-guide/advanced-options#boundary-conditions");
 
     controllers["uBCs"] = root
       .add(options, "boundaryConditions_1", {})
@@ -2238,6 +2249,7 @@ import { Stats } from "../stats.min.js";
 
     // Initial conditions folder.
     root = leftGUI.addFolder("Initial conditions");
+    addInfoButton(root, "/user-guide/advanced-options#initial-conditions");
 
     controllers["initCond_1"] = root
       .add(options, "initCond_1")
@@ -2258,11 +2270,13 @@ import { Stats } from "../stats.min.js";
     // Images folder.
     fIm = rightGUI.addFolder("Images");
     root = fIm;
+    addInfoButton(root, "/user-guide/advanced-options#images");
     // Always make images controller, but hide them if they're not wanted.
     createImageControllers();
 
     // Saving/loading folder.
     root = rightGUI.addFolder("Checkpoints");
+    addInfoButton(root, "/user-guide/advanced-options#checkpoints");
 
     // Checkpoints override initial condition.
     const checkpointButtons = addButtonList(root);
@@ -2313,6 +2327,7 @@ import { Stats } from "../stats.min.js";
 
     // Miscellaneous folder.
     root = rightGUI.addFolder("Misc.");
+    addInfoButton(root, "/user-guide/advanced-options#misc-");
 
     root
       .addColor(options, "backgroundColour")
@@ -2369,6 +2384,7 @@ import { Stats } from "../stats.min.js";
       });
 
     root = root.addFolder("Dev");
+    addInfoButton(root, "/user-guide/advanced-options#dev");
     // Dev.
     const devButtons = addButtonList(root);
     // Copy configuration as raw JSON.
@@ -2477,6 +2493,7 @@ import { Stats } from "../stats.min.js";
 
     editViewFolder = viewsGUI.addFolder("Edit view");
     root = editViewFolder;
+    addInfoButton(root, "/user-guide/advanced-options#views");
 
     const editViewButtons = addButtonList(root, "edit_view_buttons");
 
@@ -2581,6 +2598,7 @@ import { Stats } from "../stats.min.js";
     );
 
     root = editViewFolder.addFolder("Colour");
+    addInfoButton(root, "/user-guide/advanced-options#colour");
 
     root
       .add(options, "colourmap", {
@@ -2695,6 +2713,7 @@ import { Stats } from "../stats.min.js";
     );
 
     root = editViewFolder.addFolder("Contours");
+    addInfoButton(root, "/user-guide/advanced-options#contours");
     root.domElement.id = "contoursFolder";
 
     controllers["contourColour"] = root
@@ -2729,6 +2748,7 @@ import { Stats } from "../stats.min.js";
     contoursControllers.push(controllers["contourEpsilon"]);
 
     root = editViewFolder.addFolder("Lighting");
+    addInfoButton(root, "/user-guide/advanced-options#lighting");
     root.domElement.id = "embossFolder";
 
     controllers["embossSmoothness"] = root
@@ -2809,6 +2829,7 @@ import { Stats } from "../stats.min.js";
     embossControllers.push(controllers["embossPhi"]);
 
     root = editViewFolder.addFolder("Overlay");
+    addInfoButton(root, "/user-guide/advanced-options#overlay");
     root.domElement.id = "overlayFolder";
 
     root
@@ -2850,6 +2871,7 @@ import { Stats } from "../stats.min.js";
 
     linesAnd3DFolder = editViewFolder.addFolder("3D");
     root = linesAnd3DFolder;
+    addInfoButton(root, "/user-guide/advanced-options#3d-options");
 
     surfaceButtons = addButtonList(root);
 
@@ -2924,6 +2946,7 @@ import { Stats } from "../stats.min.js";
 
     vectorFieldFolder = editViewFolder.addFolder("Vector field");
     root = vectorFieldFolder;
+    addInfoButton(root, "/user-guide/advanced-options#vector-field");
     root.domElement.id = "vectorFieldFolder";
 
     root
@@ -8168,7 +8191,8 @@ import { Stats } from "../stats.min.js";
     const list = document.createElement("li");
     if (id != null) list.id = id;
     list.classList.add("button_list");
-    parent.domElement.children[0].appendChild(list);
+    // Add the button list to the first <ul> element that is a child of parent.
+    parent.domElement.querySelector(".dg > ul")?.appendChild(list);
     return list;
   }
 
@@ -8206,6 +8230,7 @@ import { Stats } from "../stats.min.js";
    * @param {string} [folderID] - The folder ID to assign to the toggle button.
    * @param {string[]} [classes] - An array of classes to assign to the toggle button.
    * @param {object} [obj=options] - The object to toggle the property on. Defaults to the global options object.
+   * @param {boolean} [negate=false] - Button reflects the negation of the property.
    * @returns {HTMLElement} The created toggle button.
    */
   function addToggle(
@@ -8217,29 +8242,29 @@ import { Stats } from "../stats.min.js";
     title,
     folderID,
     classes,
-    obj
+    obj,
+    negate
   ) {
     // Create the toggle button.
     const toggle = document.createElement("a");
     // If obj is undefined, use options.
     if (obj == undefined) obj = options;
     toggle.obj = obj;
+    toggle.property = property;
+    toggle.negate = negate || false;
     // Add the toggle_button class to the toggle button.
     toggle.classList.add("toggle_button");
-    // Add the property attribute to the toggle button.
-    toggle.setAttribute("property", property);
     if (onclick == undefined) onclick = () => {};
     // Augment any existing onclick to toggle the property.
     toggle.onclick = function () {
-      toggle.obj[toggle.getAttribute("property")] =
-        !toggle.obj[toggle.getAttribute("property")];
+      toggle.obj[property] = !toggle.obj[property];
       updateToggle(toggle);
       onclick();
     };
     if (id != undefined) toggle.id = id;
     if (title != undefined) toggle.title = title;
     if (inner != undefined) toggle.innerHTML = inner;
-    if (folderID != undefined) toggle.setAttribute("folderID", folderID);
+    if (folderID != undefined) toggle.folderID = folderID;
     // Add any classes to the toggle button.
     if (classes != undefined) {
       for (const c of classes) {
@@ -8639,16 +8664,15 @@ import { Stats } from "../stats.min.js";
    * @param {HTMLElement} toggle - The toggle element to update.
    */
   function updateToggle(toggle) {
-    const obj = toggle.obj;
-    if (obj[toggle.getAttribute("property")]) {
+    if (toggle.obj[toggle.property] == !toggle.negate) {
       toggle.classList.add("toggled_on");
-      if (toggle.getAttribute("folderID")) {
-        $("#" + toggle.getAttribute("folderID")).removeClass("hidden");
+      if (toggle.folderID) {
+        $("#" + toggle.folderID).removeClass("hidden");
       }
     } else {
       toggle.classList.remove("toggled_on");
-      if (toggle.getAttribute("folderID")) {
-        $("#" + toggle.getAttribute("folderID")).addClass("hidden");
+      if (toggle.folderID) {
+        $("#" + toggle.folderID).addClass("hidden");
       }
     }
   }
@@ -9243,5 +9267,22 @@ import { Stats } from "../stats.min.js";
       substr,
       `<span class="${highlightClass}">${substr}</span>`
     );
+  }
+
+  /**
+   * Adds an information button to a dat.GUI folder.
+   *
+   * @param {dat.GUI} folder - The dat.GUI folder to add the information button to.
+   * @param {string} link - The link to the information page.
+   */
+  function addInfoButton(folder, link) {
+    const infoButton = document.createElement("a");
+    infoButton.classList.add("info-link");
+    infoButton.innerHTML = `<i class="fa-regular fa-circle-info"></i>`;
+    infoButton.href = link;
+    infoButton.target = "_blank";
+    // infoButton.title = "More information";
+    folder.domElement.classList.add("has-info-link");
+    folder.domElement.insertBefore(infoButton, folder.domElement.firstChild);
   }
 })();

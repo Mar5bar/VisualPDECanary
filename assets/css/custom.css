@@ -364,6 +364,7 @@ a.collection::after {
   border: 1px solid var(--ui-button-border-color);
   border-radius: 5px;
   text-shadow: 0 1px #fff;
+  vertical-align: middle;
 }
 
 .ui_button_documentation#equations {
@@ -399,8 +400,17 @@ h5 {
   margin-top: 0.5rem;
 }
 
-span.click_sequence {
+a.anchor {
   display: block;
+  position: relative;
+  top: -3rem;
+  visibility: hidden;
+}
+
+span.click_sequence {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   margin-left: 2rem;
   margin-top: 0.5rem;
   margin-bottom: 0.3rem;

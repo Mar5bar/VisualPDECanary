@@ -148,6 +148,26 @@ span.highlight {
   /* Standard */
 }
 
+.dg .has-info-link {
+  position: relative;
+}
+
+a.info-link {
+  position: absolute;
+  top: 0.5rem;
+  right: 10px;
+}
+
+a.info-link:has(+ .closed) {
+  display: none;
+}
+
+@media (hover: hover) {
+  a.info-link:hover {
+    color: var(--text-color);
+  }
+}
+
 /* Simulation GUI */
 
 #leftGUI,

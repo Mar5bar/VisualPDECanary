@@ -34,10 +34,10 @@ onSubmit="page_search(document.getElementById('pageSearchInput').value); return 
 
 ---
 
-## Equations <a id='equations'> {{ layout.equations }}
+## Equations {{ layout.equations }} <a class="anchor" id='equations'>
 VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Settings**](#settings).
 
-### Definitions <a id='definitions'>
+### Definitions <a class="anchor" id='definitions'>
 #### Typeset
 Have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters. Terms will not be substituted in if they are constants that are not 0 or 1.
 
@@ -49,7 +49,7 @@ Define the inhomogeneities in the equations. These can be functions of space ($x
 
     Advanced users can also make careful use of 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally distributed random number with unit variance and zero mean. This converts the equations into [stochastic partial differential equations](https://en.wikipedia.org/wiki/Stochastic_partial_differential_equation), which should only be solved using the Forward Euler timestepping scheme. Both 'RAND' and 'RANDN' require manually dividing by 'sqrt(dt)' in non-algebraic equations so that the scheme resembles the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler–Maruyama_method). The solution under other timestepping schemes is undefined.
 
-### Parameters <a id='parameters'>
+### Parameters <a class="anchor" id='parameters'>
 This menu contains a list of all the user-specified values that can be used throughout VisualPDE. New parameters can be defined using the empty input field at the bottom of the list of parameters. Parameters can depend on one another, but their definitions cannot be cyclic.
 
 #### Basics
@@ -78,7 +78,7 @@ creates a slider that ranges between 0 and 1, with initial value 0.5 and an auto
 
 The configuration of a slider (value, start, step, stop) can be updated by modifying the relevant parts of the expression that defines it. Sliders can be removed by deleting 'in ...' from the parameter definition, and will be removed automatically when the associated parameter is removed.
 
-### Boundary conditions <a id='boundary-conditions'>
+### Boundary conditions <a class="anchor" id='boundary-conditions'>
 Boundary conditions can be specified for any species in the simulation. The following boundary conditions are available:
 
 * Periodic
@@ -98,12 +98,12 @@ for the species $u$ would specify $u = 0$ on the left boundary, $\pd{u}{n} = 1$ 
 
 An additional type of condition, 'Ghost', can also be specified with Combination boundary conditions. This advanced option pushes VisualPDE to its limits, overriding the value of the ghost nodes used in the spatial discretisation of the PDE, and should be used with caution. We make use of this option in our Visual Story on [virus transmission](/visual-stories/airborne-infections) to effectively double the size of the computational domain in one direction.
 
-### Initial conditions <a id='initial-conditions'>
+### Initial conditions <a class="anchor" id='initial-conditions'>
 Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), the random quantity 'RAND', a uniformly random value in $[0,1]$, the random quantity 'RANDN', a normally-distributed random number with unit variance and zero mean, and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
 
 ---
 
-## Views <a id='views'> {{ layout.views }}
+## Views {{ layout.views }} <a class="anchor" id='views'>
 There are often multiple ways to visualise a solution to a PDE. In the Views pane, you can select from and customise a range of example-specific display options, or create your own. Everything you customise will be saved in the current View. If you share your simulation via a link, your Views will be sent along too.
 
 ### New (+)
@@ -238,10 +238,10 @@ Specify the constant length by which all arrows will be normalised. Must be a ma
 
 ---
 
-## Settings <a id='settings'> {{ layout.settings }}
+## Settings {{ layout.settings }} <a class="anchor" id='settings'>
 Here you can edit a wide range of settings, from the size of the brush to the timestep of the simulation.
 
-### Brush <a id='brush'>
+### Brush <a class="anchor" id='brush'>
 VisualPDE allows you to interact directly with simulations via a brush by simply clicking/pressing on the domain. The brush paints values onto the discrete representation of the domain, which act like initial conditions for the rest of the simulation.
 
 * #### Enable brush
@@ -259,7 +259,7 @@ Change the brush size, measured on the same scale as the domain size. This can e
 * #### Species
 Set the **species** ($u$, $v$, $w$, $q$) you are painting.
 
-### Domain <a id='domain'>
+### Domain <a class="anchor" id='domain'>
 * #### Dimension
 Choose between a 1D or a 2D computational domain. Switching to 1D effectively removes the $y$ dimension from the simulation. Make sure that any expressions you've defined don't contain a $y$ after moving to 1D.
 
@@ -272,8 +272,8 @@ Set the space step $\dx=\dy$ used in discretising the domain. You may have to de
 * #### Min. $x$, $y$
 Set the minimum values of $x$ and $y$ in the simulation. This amounts to translating the simulation domain by $(x_{min}, y_{min})$. A common use of this is to centre the simulation domain at $(0,0)$ rather than $(L_x/2, L_y/2)$. Can be a function of $L_x$, $L_y$ and any of the user-defined parameters.
 
-* #### Square
-Toggle whether or not the domain is forced to be square, independent of the aspect ratio of your device/window.
+* #### Edge-to-edge
+Choosing between the domain filling the display (often recommended) or being forced to be square (vital for guaranteeing the shape of the domain). When selected, the largest edge of the display will correspond to the length set in **Largest side**, so that edge-to-edge simulations can be thought of as cropped, zoomed counterparts to square simulations.
 
 * #### Custom
 Toggle the use of a custom domain $\domain$ that is determined implicitly from a user-set expression.
@@ -281,7 +281,7 @@ Toggle the use of a custom domain $\domain$ that is determined implicitly from a
 * #### Ind. fun (indicator function)
 Define the domain implicitly by setting a boolean (e.g. $x<0.5$) or a simple expression (e.g. $x-0.5$), where (strict) positivity identifies the interior of the domain. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$). In order to allow VisualPDE to correctly apply boundary conditions, the edge of the computational domain is always counted as being outside of the custom domain.
 
-### Timestepping <a id='timestepping'>
+### Timestepping <a class="anchor" id='timestepping'>
 * #### Steps/frame
 Set how many timesteps will be performed every time your browser requests a frame from VisualPDE. This setting effectively allows you to speed up/slow down the simulation without altering the timestep, though large values may cause some stuttering on some devices. Must be a numerical value.
 
@@ -300,7 +300,7 @@ Set the simulation to be automatically paused when the time ($t$) passes a custo
 * #### Performance mode
 Reduces the quality of the display in order to boost simulation performance. Different simulations and devices will benefit differently from this setting. On average, we see an increase of around 6fps on a Mac Mini M1 on the 'BenchmarkingFast' preset in 4K resolution.
 
-### Equations <a id='equations_sub'>
+### Equations <a class="anchor" id='equations_sub'>
 * #### No. species
 Specify the number of unknowns (1, 2, 3, or 4) in the simulation.
 
@@ -318,11 +318,11 @@ Set per-equation timescales (multiplying any time derivatives) $\tau_u$, $\tau_v
 
 Importantly, **timescales must be non-zero**. Setting timescales to zero will result in singularities and are equivalent to large diffusion coefficients, large timesteps, or fast kinetic terms.
 
-### Images <a id='images'>
+### Images <a class="anchor" id='images'>
 * #### $I_S$, $I_T$
 Define the scalar fields $I_S$ and $I_T$, which are derived from images that you can upload by clicking on the current image. Via the symbols 'I_S' and 'I_T' throughout VisualPDE, you can access the average RGB value of each image at each point in space, effectively treating them as greyscale. Advanced users can access the individual RGBA channels via 'I_SR', 'I_SG', etc. VisualPDE will stretch images so that they cover the domain edge-to-edge. Note that this does not respect **Implicit**. The defaults draw from images of [Sofya Kovalevskaya](https://en.wikipedia.org/wiki/Sofya_Kovalevskaya) and [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing).
 
-### Checkpoints <a id='checkpoints'>
+### Checkpoints <a class="anchor" id='checkpoints'>
 VisualPDE supports checkpoints, which allow you to save the state of a simulation at the touch of a button. This allows you to instantly return to a previous solution state - very handy if you've crafted the perfect initial condition by painting with the brush. Revert to a checkpoint by pressing {{ layout.restart }}
 
 * #### Enable checkpoints
@@ -340,7 +340,7 @@ Import a checkpoint from a VisualPDE file. By default, these are called 'VisualP
 * #### Resize
 Specify how a checkpoint should be resized to fit the current simulation domain. 'Stretch' will stretch the checkpoint so that it fills the current domain, but will not preserve the aspect ratio in general. "Crop" will crop the checkpoint whilst preserving the aspect ratio, but may result in some information not being used.
 
-### Misc <a id='misc'>
+### Misc <a class="anchor" id='misc'>
 * #### Background
 Set the background colour of the simulation window, which you will see often when using **Surface Plot** or **Implicit**. In implicit domains, the exterior of the domain adopts this colour.
 
@@ -366,7 +366,7 @@ Tools intended for the development and benchmarking of VisualPDE.
 
 ---
 
-## Writing valid expressions <a id='writing-valid-expressions'>
+## Writing valid expressions <a class="anchor" id='writing-valid-expressions'>
 ### Standard syntax
 VisualPDE aims to support standard mathematical syntax (+,-,*,/), along with the caret notation '^' for exponentiation. Parentheses '()' are also supported for bracketing terms together, and must be used when calling any special functions. In general, whitespace around binary operators will be ignored, so that '2 * 2' is valid syntax for multiplication, for example. Quantities with subscripts, such as $L_x$ and $L_y$, are written with an underscore, e.g. 'L_x' and 'L_y'. Boolean expressions (e.g. 'x < 0') can be used as indicator functions by surrounding them with the function 'ind' (e.g. 'ind(x < 0)').
 

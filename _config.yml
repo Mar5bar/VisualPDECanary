@@ -41,7 +41,7 @@ header_pages:
 collections:
   basic-pdes:
     output: true
-    title: Basic PDEs
+    title: Introductory PDEs
   art-pdes:
     output: true
     title: Art of PDEs
@@ -59,7 +59,7 @@ collections:
     title: Visual stories
   numerical-methods:
     output: true
-    title: Numerical Methods
+    title: Numerical methods
   research:
     output: true
     title: Research
