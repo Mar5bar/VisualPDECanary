@@ -38,14 +38,16 @@ onSubmit="page_search(document.getElementById('pageSearchInput').value); return 
 VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Settings**](#settings).
 
 ### Definitions <a class="anchor" id='definitions'>
+Define all the terms in the PDE that you would like to solve using natural syntax. See our discussion of [valid expressions](#writing-valid-expressions) for helpful examples that will guide you in posing your own PDE system.
+
 #### Typeset
-Have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters. Terms will not be substituted in if they are constants that are not 0 or 1.
+Have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters. Terms will not be substituted in if they are constants that are not 0 or 1. Toggle this off to see the format of the equations that VisualPDE can interpret.
 
 #### $D_u$, $D_v$, $D_w$, ...
-Set the diffusion coefficients of all the species in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are written $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
+Set the diffusion coefficients of all the species in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are written $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
 #### $f_u$, $f_v$, $f_w$, ...
-Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions. 
+Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions. 
 
 Advanced users can also make careful use of 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally distributed random number with unit variance and zero mean. This converts the equations into [stochastic partial differential equations](https://en.wikipedia.org/wiki/Stochastic_partial_differential_equation), which should only be solved using the Forward Euler timestepping scheme. Both 'RAND' and 'RANDN' require manually dividing by 'sqrt(dt)' in non-algebraic equations so that the scheme resembles the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler–Maruyama_method). The solution under other timestepping schemes is undefined.
 
@@ -86,7 +88,7 @@ Boundary conditions can be specified for any species in the simulation. The foll
 * [Neumann](https://en.wikipedia.org/wiki/Neumann_boundary_condition) (e.g. $\pd{u}{n}\onboundary = 0$)
 * [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition) (e.g. $(u + \pd{u}{n})\onboundary = 0$)
 
-Boundary conditions that allow you to specify values can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. Robin boundary conditions are the only type supported that allow you to use an unknown in the specification of its own boundary condition. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
+Boundary conditions that allow you to specify values can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. Robin boundary conditions are the only type supported that allow you to use an unknown in the specification of its own boundary condition. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
 An additional option, **Combination**, is also available, which allows you to specify different types of boundary condition on the Left, Right, Top and Bottom sides of rectangular domains. These conditions are specified as a string, e.g. 
 
@@ -99,7 +101,7 @@ for the species $u$ would specify $u = 0$ on the left boundary, $\pd{u}{n} = 1$ 
 An additional type of condition, 'Ghost', can also be specified with Combination boundary conditions. This advanced option pushes VisualPDE to its limits, overriding the value of the ghost nodes used in the spatial discretisation of the PDE, and should be used with caution. We make use of this option in our Visual Story on [virus transmission](/visual-stories/airborne-infections) to effectively double the size of the computational domain in one direction.
 
 ### Initial conditions <a class="anchor" id='initial-conditions'>
-Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), the random quantity 'RAND', a uniformly random value in $[0,1]$, the random quantity 'RANDN', a normally-distributed random number with unit variance and zero mean, and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
+Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), the random quantity 'RAND', a uniformly random value in $[0,1]$, the random quantity 'RANDN', a normally-distributed random number with unit variance and zero mean, and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
 ---
 
@@ -189,7 +191,7 @@ Toggle the display of an overlay. The expression, colour, and threshold used in 
 Specify the colour in which overlays will be rendered.
 
 * #### Expression
-Set an expression whose zero set defines a curve to be displayed in the domain. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions. 
+Set an expression whose zero set defines a curve to be displayed in the domain. This can be a function of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions. 
 
 * #### Threshold
 Set the relative numerical threshold, between 0 and 1, within which the zero set will be detected. Smaller values result in more precise, thinner curves. Larger values may be needed to detect curves in large spatial domains or for expressions that vary rapidly in space. Under the hood, VisualPDE checks if a given pixel is in the zero set to within this threshold.
@@ -314,7 +316,7 @@ Specify custom names for the species in VisualPDE, which often default to $u$, $
 Enable cross diffusion in systems with 2 or more species, enabling simulation of a wide range of systems.
 
 * #### Scales
-Set per-equation timescales (multiplying any time derivatives) $\tau_u$, $\tau_v$, $\tau_w$, $\tau_q$ to enable simpler entry of some types of systems. For algebraic equations, these quantities are no longer timescales, but retain their notation and function as per-equation scale factors. They can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#valid-expressions) for valid syntax and a list of available in-built functions.
+Set per-equation timescales (multiplying any time derivatives) $\tau_u$, $\tau_v$, $\tau_w$, $\tau_q$ to enable simpler entry of some types of systems. For algebraic equations, these quantities are no longer timescales, but retain their notation and function as per-equation scale factors. They can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
 Importantly, **timescales must be non-zero**. Setting timescales to zero will result in singularities and are equivalent to large diffusion coefficients, large timesteps, or fast kinetic terms.
 
@@ -368,18 +370,22 @@ Tools intended for the development and benchmarking of VisualPDE.
 
 ## Writing valid expressions <a class="anchor" id='writing-valid-expressions'>
 ### Standard syntax
-VisualPDE aims to support standard mathematical syntax (+,-,*,/), along with the caret notation '^' for exponentiation. Parentheses '()' are also supported for bracketing terms together, and must be used when calling any special functions. In general, whitespace around binary operators will be ignored, so that '2 * 2' is valid syntax for multiplication, for example. Quantities with subscripts, such as $L_x$ and $L_y$, are written with an underscore, e.g. 'L_x' and 'L_y'. Boolean expressions (e.g. 'x < 0') can be used as indicator functions by surrounding them with the function 'ind' (e.g. 'ind(x < 0)').
+VisualPDE aims to support standard mathematical syntax for addition `+`, subtraction `-`, multiplication `*`, and division `/`, along with the caret notation `^` for exponentiation. Parentheses `()` are also supported for bracketing terms together, and must be used when calling any special functions. 
+
+In general, whitespace around binary operators will be ignored, so that `2 * 2` is valid syntax for multiplication, for example. Quantities with subscripts, such as $L_x$ and $L_y$, are written with an underscore, e.g. `L_x` and `L_y`. Boolean expressions (e.g. `x < 0`) can be used as indicator functions by surrounding them with the function `ind` (e.g. `ind(x < 0)`).
 
 Examples of valid syntax include
 
 ```
-sin(x) * cos(y)
+sin(x) * cos(3*y)
 exp( -(x-L_x)^2 / 10)
-1 + (x^2 + x + 1) / (y^2 + y + 1)
+1 + (x^2 + x + 1) / (y^2 + 2*y + 1)
+sin(cosh(tan(2*x+1)))
 ```
 
 ### Advanced syntax
 Some terms in VisualPDE have additional functionality when written with special syntax.
+
 #### Images
 By default, images are accessed using 'I_T' and 'I_S', with individual channels available by appending R,G,B or A. When a channel is specified, you can access images using coordinates using the syntax 'I_TR(x,y)'. Examples include
 
@@ -389,10 +395,10 @@ I_SB(x-t, y-t)
 I_TG(x, y + sin(u))
 ```
 
-#### One-sided differences
+#### First derivatives
 First derivatives in space, accessed with 'u_x', 'u_y', ..., are computed using a central finite difference discretisation by default. By appending 'f' or 'b' to the subscript, such as 'u_xf', you can tell VisualPDE to use a forward or a backward difference, respectively. Forward differences sample the solution at increased $x$ (or $y$), whilst backward differences sample at decreased $x$ (or $y$). These specialised schemes can be used in [upwind schemes](https://en.wikipedia.org/wiki/Upwind_scheme) and often reduce numerical artefacts, but at the expense of typically larger numerical error.
 
-    Forward and backward differences can also be computed with second-order numerical schemes by appending '2' to the subscript, though in general this will only respect Periodic boundary conditions in the direction of the derivative. This syntax can only be used in the **Definitions** section.
+Forward and backward differences can also be computed with second-order numerical schemes by appending '2' to the subscript, though in general this will only respect Periodic boundary conditions in the direction of the derivative. This syntax can only be used in the **Definitions** section.
 
 ### Special functions
 Throughout VisualPDE, you can make use of the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt', 'sinh', 'cosh', 'tanh' and 'H', where the latter is a [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function) smoothed over the interval $[-1,1]$ (see the [GLSL reference](https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml) for details). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'. You can also use 'min' and 'max' as functions with two arguments, which return the minimum or maximum of their arguments, e.g. 'min(u,1)' returns the minimum of $u$ and 1. If you wish to raise the output of a function to a power, you must enclose the function in parentheses, e.g. write '(cos(x))^2', not 'cos(x)^2'.

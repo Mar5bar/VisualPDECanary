@@ -396,6 +396,10 @@ h5 {
   font-size: 1.1rem;
 }
 
+.post-content h2 + h3 {
+  margin-top: 0;
+}
+
 .post-content li {
   margin-top: 0.5rem;
 }

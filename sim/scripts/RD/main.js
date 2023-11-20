@@ -1675,12 +1675,21 @@ import { Stats } from "../stats.min.js";
         document.activeElement.blur();
       });
 
-    root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
+    root
+      .add(options, "brushValue")
+      .name("Value")
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setBrushType();
+      });
 
     controllers["brushRadius"] = root
       .add(options, "brushRadius")
       .name("Radius")
-      .onFinishChange(setBrushType);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setBrushType();
+      });
 
     controllers["whatToDraw"] = root
       .add(options, "whatToDraw", listOfSpecies)
@@ -1720,6 +1729,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "minX")
       .name("Min. $x$")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         updateProblem();
         resetSim();
       });
@@ -1728,6 +1738,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "minY")
       .name("Min. $y$")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         updateProblem();
         resetSim();
       });
@@ -1771,6 +1782,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "domainIndicatorFun")
       .name("Ind. fun")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         configureOptions();
         configureGUI();
         setRDEquations();
@@ -1924,6 +1936,7 @@ import { Stats } from "../stats.min.js";
     controllers["TU"] = root
       .add(options, "timescale_1")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1933,6 +1946,7 @@ import { Stats } from "../stats.min.js";
     controllers["TV"] = root
       .add(options, "timescale_2")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1942,6 +1956,7 @@ import { Stats } from "../stats.min.js";
     controllers["TW"] = root
       .add(options, "timescale_3")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1951,6 +1966,7 @@ import { Stats } from "../stats.min.js";
     controllers["TQ"] = root
       .add(options, "timescale_4")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1960,6 +1976,7 @@ import { Stats } from "../stats.min.js";
     controllers["Duu"] = root
       .add(options, "diffusionStr_1_1")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1969,6 +1986,7 @@ import { Stats } from "../stats.min.js";
     controllers["Duv"] = root
       .add(options, "diffusionStr_1_2")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1978,6 +1996,7 @@ import { Stats } from "../stats.min.js";
     controllers["Duw"] = root
       .add(options, "diffusionStr_1_3")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1987,6 +2006,7 @@ import { Stats } from "../stats.min.js";
     controllers["Duq"] = root
       .add(options, "diffusionStr_1_4")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1996,6 +2016,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dvu"] = root
       .add(options, "diffusionStr_2_1")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2005,6 +2026,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dvv"] = root
       .add(options, "diffusionStr_2_2")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2014,6 +2036,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dvw"] = root
       .add(options, "diffusionStr_2_3")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2023,6 +2046,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dvq"] = root
       .add(options, "diffusionStr_2_4")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2032,6 +2056,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dwu"] = root
       .add(options, "diffusionStr_3_1")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2041,6 +2066,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dwv"] = root
       .add(options, "diffusionStr_3_2")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2050,6 +2076,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dww"] = root
       .add(options, "diffusionStr_3_3")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2059,6 +2086,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dwq"] = root
       .add(options, "diffusionStr_3_4")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2068,6 +2096,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dqu"] = root
       .add(options, "diffusionStr_4_1")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2077,6 +2106,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dqv"] = root
       .add(options, "diffusionStr_4_2")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2086,6 +2116,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dqw"] = root
       .add(options, "diffusionStr_4_3")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2095,6 +2126,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dqq"] = root
       .add(options, "diffusionStr_4_4")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2105,6 +2137,7 @@ import { Stats } from "../stats.min.js";
     controllers["f"] = root
       .add(options, "reactionStr_1")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2114,6 +2147,7 @@ import { Stats } from "../stats.min.js";
     controllers["g"] = root
       .add(options, "reactionStr_2")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2123,6 +2157,7 @@ import { Stats } from "../stats.min.js";
     controllers["h"] = root
       .add(options, "reactionStr_3")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2132,6 +2167,7 @@ import { Stats } from "../stats.min.js";
     controllers["j"] = root
       .add(options, "reactionStr_4")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2156,20 +2192,32 @@ import { Stats } from "../stats.min.js";
 
     controllers["dirichletU"] = root
       .add(options, "dirichletStr_1")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["neumannU"] = root
       .add(options, "neumannStr_1")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["robinU"] = root
       .add(options, "robinStr_1")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["comboU"] = root
       .add(options, "comboStr_1")
       .name("Details")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["vBCs"] = root
       .add(options, "boundaryConditions_2", {})
@@ -2181,20 +2229,32 @@ import { Stats } from "../stats.min.js";
 
     controllers["dirichletV"] = root
       .add(options, "dirichletStr_2")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["neumannV"] = root
       .add(options, "neumannStr_2")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["robinV"] = root
       .add(options, "robinStr_2")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["comboV"] = root
       .add(options, "comboStr_2")
       .name("Details")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["wBCs"] = root
       .add(options, "boundaryConditions_3", {})
@@ -2206,20 +2266,32 @@ import { Stats } from "../stats.min.js";
 
     controllers["dirichletW"] = root
       .add(options, "dirichletStr_3")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["neumannW"] = root
       .add(options, "neumannStr_3")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["robinW"] = root
       .add(options, "robinStr_3")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["comboW"] = root
       .add(options, "comboStr_3")
       .name("Details")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["qBCs"] = root
       .add(options, "boundaryConditions_4", {})
@@ -2232,20 +2304,32 @@ import { Stats } from "../stats.min.js";
 
     controllers["dirichletQ"] = root
       .add(options, "dirichletStr_4")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["neumannQ"] = root
       .add(options, "neumannStr_4")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["robinQ"] = root
       .add(options, "robinStr_4")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["comboQ"] = root
       .add(options, "comboStr_4")
       .name("Details")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     // Initial conditions folder.
     root = leftGUI.addFolder("Initial conditions");
@@ -2253,19 +2337,31 @@ import { Stats } from "../stats.min.js";
 
     controllers["initCond_1"] = root
       .add(options, "initCond_1")
-      .onFinishChange(setClearShader);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setClearShader();
+      });
 
     controllers["initCond_2"] = root
       .add(options, "initCond_2")
-      .onFinishChange(setClearShader);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setClearShader();
+      });
 
     controllers["initCond_3"] = root
       .add(options, "initCond_3")
-      .onFinishChange(setClearShader);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setClearShader();
+      });
 
     controllers["initCond_4"] = root
       .add(options, "initCond_4")
-      .onFinishChange(setClearShader);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setClearShader();
+      });
 
     // Images folder.
     fIm = rightGUI.addFolder("Images");
@@ -2516,6 +2612,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "whatToPlot")
       .name("Expression: ")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         updateWhatToPlot();
         renderIfNotRunning();
         updateView(this.property);
@@ -2845,6 +2942,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "overlayExpr")
       .name("Expression")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setDisplayColourAndType();
         if (options.plotType == "line") setPostFunFragShader();
         renderIfNotRunning();
@@ -2894,6 +2992,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "surfaceFun")
       .name("Surface $z=$ ")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         updateWhatToPlot();
         renderIfNotRunning();
         updateView(this.property);
@@ -2961,6 +3060,7 @@ import { Stats } from "../stats.min.js";
     root
       .add(options, "arrowX")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setPostFunFragShader();
         renderIfNotRunning();
         updateView(this.property);
@@ -2970,6 +3070,7 @@ import { Stats } from "../stats.min.js";
     root
       .add(options, "arrowY")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setPostFunFragShader();
         renderIfNotRunning();
         updateView(this.property);
@@ -8318,7 +8419,6 @@ import { Stats } from "../stats.min.js";
     // If every view specifies a value for a property, remove that property from options.
     for (const key of Object.keys(options.views[0])) {
       if (options.views.every((v) => v.hasOwnProperty(key))) {
-        console.log(key);
         delete objDiff[key];
       }
     }
@@ -9284,5 +9384,46 @@ import { Stats } from "../stats.min.js";
     // infoButton.title = "More information";
     folder.domElement.classList.add("has-info-link");
     folder.domElement.insertBefore(infoButton, folder.domElement.firstChild);
+  }
+
+  /**
+   * Corrects the syntax of a given expression by performing specific replacements (primarily multiplication).
+   *
+   * @param {string} str - The expression to be corrected.
+   * @returns {string} The corrected string.
+   */
+  function autoCorrectSyntax(str) {
+    // If a number is followed by a letter or (, add a *.
+    str = str.replaceAll(/(\d)([a-zA-Z(])/g, "$1*$2");
+
+    // If the string contains xy or yx, replace with x*y.
+    str = str.replaceAll(/\bxy\b/g, "x*y");
+    str = str.replaceAll(/\byx\b/g, "y*x");
+
+    // If the string contains a ) followed by a letter or number, add a *.
+    str = str.replaceAll(/\)([a-zA-Z0-9])/g, ")*$1");
+
+    // For each pair of single-character species names that is not itself a species name, add a *.
+    const singleCharNames = listOfSpecies.filter((name) => name.length == 1);
+    singleCharNames.forEach((name1) => {
+      singleCharNames.forEach((name2) => {
+        if (!listOfSpecies.includes(name1 + name2)) {
+          // Replace all occurrences of name1 followed by name2 with name1*name2.
+          str = str.replaceAll(
+            new RegExp("\\b" + name1 + name2 + "\\b", "g"),
+            name1 + "*" + name2
+          );
+        }
+        if (!listOfSpecies.includes(name2 + name1)) {
+          // Replace all occurrences of name1 followed by name2 with name1*name2.
+          str = str.replaceAll(
+            new RegExp("\\b" + name2 + name1 + "\\b", "g"),
+            name2 + "*" + name1
+          );
+        }
+      });
+    });
+
+    return str;
   }
 })();
