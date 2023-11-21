@@ -9208,23 +9208,21 @@ import { Stats } from "../stats.min.js";
     };
     // When stopping, create and download the video.
     mediaRecorder.onstop = function (e) {
-      var blob = new Blob(videoChunks, { type: type });
+      var blob = new Blob(videoChunks, { type: "octet/stream" });
       const recording_url = URL.createObjectURL(blob);
       // Attach the object URL to an <a> element, setting the download file name
       const a = document.createElement("a");
       a.style = "display: none;";
+      a.href = recording_url;
       a.download = "VisualPDERecording." + ext;
-      const reader = new FileReader();
-      reader.onload = function () {
-        const b64 = reader.result.replace(/^data:.+;base64,/, "");
-        a.href = "data:application/octet-stream;base64," + b64;
-        a.click();
-        setTimeout(() => {
-          // Clean up. Firefox demands it be on a timeout.
-          URL.revokeObjectURL(recording_url);
-        }, 100);
-      };
-      reader.readAsDataURL(blob);
+      document.body.appendChild(a);
+      // Trigger the file download
+      a.click();
+      setTimeout(() => {
+        // Clean up. Firefox demands it be on a timeout.
+        URL.revokeObjectURL(recording_url);
+        document.body.removeChild(a);
+      }, 100);
     };
 
     mediaRecorder.start();
