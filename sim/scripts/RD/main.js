@@ -9393,6 +9393,11 @@ import { Stats } from "../stats.min.js";
    * @returns {string} The corrected string.
    */
   function autoCorrectSyntax(str) {
+    // If the string is empty, replace it with 0 and return.
+    if (str.trim() == "") {
+      return "0";
+    }
+
     // If a number is followed by a letter or (, add a *.
     str = str.replaceAll(/(\d)([a-zA-Z(])/g, "$1*$2");
 
