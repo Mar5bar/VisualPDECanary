@@ -49,7 +49,7 @@ Set the diffusion coefficients of all the species in the simulation. When **Cros
 #### $f_u$, $f_v$, $f_w$, ...
 Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions. 
 
-Advanced users can also make careful use of 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally distributed random number with unit variance and zero mean. This converts the equations into [stochastic partial differential equations](https://en.wikipedia.org/wiki/Stochastic_partial_differential_equation), which should only be solved using the Forward Euler timestepping scheme. Both 'RAND' and 'RANDN' require manually dividing by 'sqrt(dt)' in non-algebraic equations so that the scheme resembles the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler–Maruyama_method). The solution under other timestepping schemes is undefined.
+Advanced users can also make careful use of `RAND`, a uniformly random value in $[0,1]$, and `RANDN`, a normally distributed random number with unit variance and zero mean. This converts the equations into [stochastic partial differential equations](https://en.wikipedia.org/wiki/Stochastic_partial_differential_equation), which should only be solved using the Forward Euler timestepping scheme. Both `RAND` and `RANDN` require manually dividing by `sqrt(dt)` in non-algebraic equations so that the scheme resembles the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler–Maruyama_method). The solution under other timestepping schemes is undefined.
 
 ### Parameters <a class="anchor" id='parameters'>
 This menu contains a list of all the user-specified values that can be used throughout VisualPDE. New parameters can be defined using the empty input field at the bottom of the list of parameters. Parameters can depend on one another, but their definitions cannot be cyclic.
@@ -61,7 +61,7 @@ The basic syntax for defining a parameter is
 name = value
 ```
 
-which will make the quantity 'name' available to the simulation. You can then freely change 'value', which will instantly propagate throughout VisualPDE. If you try to use a name that clashes with an internal variable (some of which are only found under the hood of VisualPDE), a warning will appear to inform you of this. Parameters can be removed by deleting the text that defines them. You can even choose a 'name' that includes subscripts, such as 'k_1u'. This will be interpreted as $k_{1u}$ automatically by VisualPDE.
+which will make the quantity `name` available to the simulation. You can then freely change `value`, which will instantly propagate throughout VisualPDE. If you try to use a name that clashes with an internal variable (some of which are only found under the hood of VisualPDE), a warning will appear to inform you of this. Parameters can be removed by deleting the text that defines them. You can even choose a `name` that includes subscripts, such as `k_1u`. This will be interpreted as $k_{1u}$ automatically by VisualPDE.
 
 #### Sliders
 The more advanced syntax 
@@ -70,7 +70,7 @@ The more advanced syntax
 name = value in [start,step,stop]
 ```
 
-creates a slider for your variable, ranging between the 'start' and 'stop' values in increments of 'step'. The 'step' parameter can be omitted and VisualPDE will choose a step automatically. For example,
+creates a slider for your variable, ranging between the `start` and `stop` values in increments of `step`. The `step` parameter can be omitted and VisualPDE will choose a step automatically. For example,
 
 ```
 a = 0.5 in [0,1]
@@ -78,7 +78,7 @@ a = 0.5 in [0,1]
 
 creates a slider that ranges between 0 and 1, with initial value 0.5 and an automatically determined step size. Parameters with sliders cannot be defined in terms of other parameters.
 
-The configuration of a slider (value, start, step, stop) can be updated by modifying the relevant parts of the expression that defines it. Sliders can be removed by deleting 'in ...' from the parameter definition, and will be removed automatically when the associated parameter is removed.
+The configuration of a slider (value, start, step, stop) can be updated by modifying the relevant parts of the expression that defines it. Sliders can be removed by deleting `in ...` from the parameter definition, and will be removed automatically when the associated parameter is removed.
 
 ### Boundary conditions <a class="anchor" id='boundary-conditions'>
 Boundary conditions can be specified for any species in the simulation. The following boundary conditions are available:
@@ -101,7 +101,7 @@ for the species $u$ would specify $u = 0$ on the left boundary, $\pd{u}{n} = 1$ 
 An additional type of condition, 'Ghost', can also be specified with Combination boundary conditions. This advanced option pushes VisualPDE to its limits, overriding the value of the ghost nodes used in the spatial discretisation of the PDE, and should be used with caution. We make use of this option in our Visual Story on [virus transmission](/visual-stories/airborne-infections) to effectively double the size of the computational domain in one direction.
 
 ### Initial conditions <a class="anchor" id='initial-conditions'>
-Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), the random quantity 'RAND', a uniformly random value in $[0,1]$, the random quantity 'RANDN', a normally-distributed random number with unit variance and zero mean, and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
+Initial conditions can be specified for any species in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), the random quantity `RAND`, a uniformly random value in $[0,1]$, the random quantity `RANDN`, a normally-distributed random number with unit variance and zero mean, and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
 ---
 
@@ -112,7 +112,7 @@ There are often multiple ways to visualise a solution to a PDE. In the Views pan
 Create a new view with a placeholder name from the current view configuration.
 
 ### Rename
-Edit the name of the current View, enclosing any mathematics in '$' tags. You can even use emoji.
+Edit the name of the current View, enclosing any mathematics in `$` tags. You can even use emoji.
 
 ### Delete
 Delete the currently selected View. Only visible if there are at least two views.
@@ -253,7 +253,7 @@ Enable or disable the brush. Most simulations will have the brush enabled by def
 Change the shape of the brush, choosing between **Disk**, **Horizontal line** and **Vertical line**. A fourth option, **Custom**, allows you to define a custom shape in the ***Indicator*** field by typing in an expression. The brush will draw wherever the expression is positive. Expressions can be a function of space ($x$, $y$), the brush coordinates ($xB$, $yB$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), and the images ($I_S$, $I_T$).
 
 * #### Value
-Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), 'RAND', a uniformly random value in $[0,1]$, and 'RANDN', a normally-distributed random number with unit variance and zero mean.
+Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), `RAND`, a uniformly random value in $[0,1]$, and `RANDN`, a normally-distributed random number with unit variance and zero mean.
 
 * #### Radius
 Change the brush size, measured on the same scale as the domain size. This can even be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$).
@@ -310,7 +310,7 @@ Specify the number of unknowns (1, 2, 3, or 4) in the simulation.
 Choose how many equations you want to be in algebraic form in systems with cross diffusion enabled. The equations will be put in algebraic form in reverse order, e.g. a 4-species system with 1 algebraic species will convert the final equation to be algebraic.
 
 * #### Species (names)
-Specify custom names for the species in VisualPDE, which often default to $u$, $v$, $w$, $q$. Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, 'T_01' is a valid name (rendered as $T_{01}$) whilst 'T 01' is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as 'H' for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old species everywhere in the simulation and interface.
+Specify custom names for the species in VisualPDE, which often default to $u$, $v$, $w$, $q$. Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, `T_01` is a valid name (rendered as $T_{01}$) whilst `T 01` is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as `H` for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old species everywhere in the simulation and interface.
 
 * #### Cross (diffusion)
 Enable cross diffusion in systems with 2 or more species, enabling simulation of a wide range of systems.
@@ -322,7 +322,7 @@ Importantly, **timescales must be non-zero**. Setting timescales to zero will re
 
 ### Images <a class="anchor" id='images'>
 * #### $I_S$, $I_T$
-Define the scalar fields $I_S$ and $I_T$, which are derived from images that you can upload by clicking on the current image. Via the symbols 'I_S' and 'I_T' throughout VisualPDE, you can access the average RGB value of each image at each point in space, effectively treating them as greyscale. Advanced users can access the individual RGBA channels via 'I_SR', 'I_SG', etc. VisualPDE will stretch images so that they cover the domain edge-to-edge. Note that this does not respect **Implicit**. The defaults draw from images of [Sofya Kovalevskaya](https://en.wikipedia.org/wiki/Sofya_Kovalevskaya) and [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing).
+Define the scalar fields $I_S$ and $I_T$, which are derived from images that you can upload by clicking on the current image. Via the symbols `I_S` and `I_T` throughout VisualPDE, you can access the average RGB value of each image at each point in space, effectively treating them as greyscale. Advanced users can access the individual RGBA channels via `I_SR`, `I_SG`, etc. VisualPDE will stretch images so that they cover the domain edge-to-edge. Note that this does not respect **Implicit**. The defaults draw from images of [Sofya Kovalevskaya](https://en.wikipedia.org/wiki/Sofya_Kovalevskaya) and [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing).
 
 ### Checkpoints <a class="anchor" id='checkpoints'>
 VisualPDE supports checkpoints, which allow you to save the state of a simulation at the touch of a button. This allows you to instantly return to a previous solution state - very handy if you've crafted the perfect initial condition by painting with the brush. Revert to a checkpoint by pressing {{ layout.restart }}
@@ -334,10 +334,10 @@ Toggle the use of checkpoints. When enabled, resetting the simulation will rever
 Save the current simulation as a checkpoint.
 
 * #### Export
-Click to export the last checkpoint as a file to your device, which can be shared and uploaded to the site and used as a checkpoint. If no checkpoint exists, one will be created. By default, the file will be called 'VisualPDEState'.
+Click to export the last checkpoint as a file to your device, which can be shared and uploaded to the site and used as a checkpoint. If no checkpoint exists, one will be created. By default, the file will be called `VisualPDEState`.
 
 * #### Import
-Import a checkpoint from a VisualPDE file. By default, these are called 'VisualPDEState'.
+Import a checkpoint from a VisualPDE file. By default, these are called `VisualPDEState`.
 
 * #### Resize
 Specify how a checkpoint should be resized to fit the current simulation domain. 'Stretch' will stretch the checkpoint so that it fills the current domain, but will not preserve the aspect ratio in general. "Crop" will crop the checkpoint whilst preserving the aspect ratio, but may result in some information not being used.
@@ -353,7 +353,7 @@ Display the integral of **Expression** over the domain. This integral is coarsel
 Use this option to force the use of manual, unoptimised filtering in place of device-default interplation of displayed colours. This toggle is not available on devices that do not support interpolation by default; in this case, manual interpolation is always enabled.
 
 * #### Set seed
-Set the seed of the (pseudo)random number generator used to assign values to 'RAND' and 'RANDN' in all free-text fields in the VisualPDE interface. Note that 'RAND' and 'RANDN' always vary in space. A specific random seed in the form of a numerical value can be configured (default 0).
+Set the seed of the (pseudo)random number generator used to assign values to `RAND` and `RANDN` in all free-text fields in the VisualPDE interface. Note that `RAND` and `RANDN` always vary in space. A specific random seed in the form of a numerical value can be configured (default 0).
 
 * #### Dev
 Tools intended for the development and benchmarking of VisualPDE. 
@@ -387,7 +387,7 @@ sin(cosh(tan(2*x+1)))
 Some terms in VisualPDE have additional functionality when written with special syntax.
 
 #### Images
-By default, images are accessed using 'I_T' and 'I_S', with individual channels available by appending R,G,B or A. When a channel is specified, you can access images using coordinates using the syntax 'I_TR(x,y)'. Examples include
+By default, images are accessed using `I_T` and `I_S`, with individual channels available by appending R,G,B or A. When a channel is specified, you can access images using coordinates using the syntax `I_TR(x,y)`. Examples include
 
 ```
 I_TR(2*x, y)
@@ -396,9 +396,9 @@ I_TG(x, y + sin(u))
 ```
 
 #### First derivatives
-First derivatives in space, accessed with 'u_x', 'u_y', ..., are computed using a central finite difference discretisation by default. By appending 'f' or 'b' to the subscript, such as 'u_xf', you can tell VisualPDE to use a forward or a backward difference, respectively. Forward differences sample the solution at increased $x$ (or $y$), whilst backward differences sample at decreased $x$ (or $y$). These specialised schemes can be used in [upwind schemes](https://en.wikipedia.org/wiki/Upwind_scheme) and often reduce numerical artefacts, but at the expense of typically larger numerical error.
+First derivatives in space, accessed with `u_x`, `u_y`, ..., are computed using a central finite difference discretisation by default. By appending `f` or `b` to the subscript, such as `u_xf`, you can tell VisualPDE to use a forward or a backward difference, respectively. Forward differences sample the solution at increased $x$ (or $y$), whilst backward differences sample at decreased $x$ (or $y$). These specialised schemes can be used in [upwind schemes](https://en.wikipedia.org/wiki/Upwind_scheme) and often reduce numerical artefacts, but at the expense of typically larger numerical error.
 
-Forward and backward differences can also be computed with second-order numerical schemes by appending '2' to the subscript, though in general this will only respect Periodic boundary conditions in the direction of the derivative. This syntax can only be used in the **Definitions** section.
+Forward and backward differences can also be computed with second-order numerical schemes by appending `2` to the subscript, though in general this will only respect Periodic boundary conditions in the direction of the derivative. This syntax can only be used in the **Definitions** section.
 
 ### Special functions
-Throughout VisualPDE, you can make use of the special functions 'sin', 'cos', 'tan', 'exp', 'log', 'sqrt', 'sinh', 'cosh', 'tanh' and 'H', where the latter is a [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function) smoothed over the interval $[-1,1]$ (see the [GLSL reference](https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml) for details). All function arguments should be surrounded by parentheses, e.g. 'sin(x)'. You can also use 'min' and 'max' as functions with two arguments, which return the minimum or maximum of their arguments, e.g. 'min(u,1)' returns the minimum of $u$ and 1. If you wish to raise the output of a function to a power, you must enclose the function in parentheses, e.g. write '(cos(x))^2', not 'cos(x)^2'.
+Throughout VisualPDE, you can make use of the special functions `sin`, `cos`, `tan`, `exp`, `log`, `sqrt`, `sinh`, `cosh`, `tanh` and `H`, where the latter is a [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function) smoothed over the interval $[-1,1]$ (see the [GLSL reference](https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml) for details). All function arguments should be surrounded by parentheses, e.g. `sin(x)`. You can also use `min` and `max` as functions with two arguments, which return the minimum or maximum of their arguments, e.g. `min(u,1)` returns the minimum of $u$ and 1. If you wish to raise the output of a function to a power, you must enclose the function in parentheses, e.g. write `(cos(x))^2`, not `cos(x)^2`.
