@@ -143,7 +143,7 @@ import { Stats } from "../stats.min.js";
     fIm,
     imControllerOne,
     imControllerTwo,
-    definitionsFolder,
+    editEquationsFolder,
     editViewFolder,
     linesAnd3DFolder,
     vectorFieldFolder,
@@ -577,7 +577,7 @@ import { Stats } from "../stats.min.js";
   });
   // Open the Definitions tab when the user clicks on the equation display.
   $("#equation_display").click(function () {
-    definitionsFolder.open();
+    editEquationsFolder.open();
   });
 
   // New, rename, delete
@@ -1926,9 +1926,9 @@ import { Stats } from "../stats.min.js";
 
     // Let's put these in the left GUI.
     // Definitions folder.
-    definitionsFolder = leftGUI.addFolder("Definitions");
-    root = definitionsFolder;
-    addInfoButton(root, "/user-guide/advanced-options#definitions");
+    editEquationsFolder = leftGUI.addFolder("Edit");
+    root = editEquationsFolder;
+    addInfoButton(root, "/user-guide/advanced-options#edit");
 
     const defButtonList = addButtonList(root);
     addToggle(
