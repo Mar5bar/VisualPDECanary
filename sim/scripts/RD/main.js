@@ -9272,6 +9272,7 @@ import { Stats } from "../stats.min.js";
     document.getElementById("recording_time").innerHTML = "";
     isRecording = false;
     if (!localStorage.getItem("recordedVideo")) {
+      pauseSim();
       $("#first_video").show();
       $("#first_video_close").click(function () {
         $("#first_video").hide();
