@@ -355,11 +355,6 @@ import { Stats } from "../stats.min.js";
     );
   };
 
-  // Remove the logo if we're from an internal link.
-  if (!fromExternalLink()) {
-    $("#logo").hide();
-  }
-
   // Check URL for any specified options.
   const params = new URLSearchParams(window.location.search);
 
@@ -377,6 +372,9 @@ import { Stats } from "../stats.min.js";
     $(".ui").addClass("hidden");
     $("#logo").removeClass("hidden");
     uiHidden = true;
+  } else if (!fromExternalLink()) {
+    // Remove the logo if we're from an internal link.
+    $("#logo").hide();
   }
 
   const cleanDisplay = params.has("clean");
@@ -822,6 +820,14 @@ import { Stats } from "../stats.min.js";
     $("#simCanvas").one("pointerdown touchstart", () =>
       fadeout("#top_message")
     );
+  }
+
+  // If we're in an iframe, set the logo to be a link to the current simulation on the main site just as it is clicked.
+  if (window.self !== window.top) {
+    $("#logo").click(function (e) {
+      e.preventDefault();
+      window.open(getSimURL());
+    });
   }
 
   // Begin the simulation.
