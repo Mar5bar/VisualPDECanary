@@ -9099,6 +9099,12 @@ import { Stats } from "../stats.min.js";
           "url('images/cursor-vline.svg') 32 32, auto"
         );
         break;
+      case "custom":
+        $("#simCanvas").css(
+          "cursor",
+          "url('images/cursor-droplet.svg') 12 12, auto"
+        );
+        break;
     }
   }
 
