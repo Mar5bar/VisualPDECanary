@@ -395,15 +395,11 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
     `
     .replace(
       /indicatorFunL/,
-      fun
-        .replaceAll(/([^.]|^)\bx\b/g, "$1(x-dx)")
-        .replaceAll(/\buvwq\./g, "uvwqL.")
+      fun.replaceAll(/\bx\b/g, "(x-dx)").replaceAll(/\buvwq\./g, "uvwqL.")
     )
     .replace(
       /indicatorFunR/,
-      fun
-        .replaceAll(/([^.]|^)\bx\b/g, "$1(x+dx)")
-        .replaceAll(/\buvwq\./g, "uvwqR.")
+      fun.replaceAll(/\bx\b/g, "(x+dx)").replaceAll(/\buvwq\./g, "uvwqR.")
     );
   const R = `
     if (float(indicatorFunR) <= 0.0 || textureCoords.x + 2.0*step_x > 1.0) {
@@ -416,15 +412,11 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
     `
     .replace(
       /indicatorFunR/,
-      fun
-        .replaceAll(/([^.]|^)\bx\b/g, "$1(x+dx)")
-        .replaceAll(/\buvwq\./g, "uvwqR.")
+      fun.replaceAll(/\bx\b/g, "(x+dx)").replaceAll(/\buvwq\./g, "uvwqR.")
     )
     .replace(
       /indicatorFunL/,
-      fun
-        .replaceAll(/([^.]|^)\bx\b/g, "$1(x-dx)")
-        .replaceAll(/\buvwq\./g, "uvwqL.")
+      fun.replaceAll(/\bx\b/g, "(x-dx)").replaceAll(/\buvwq\./g, "uvwqL.")
     );
   if (LR == undefined) return L + R;
   if (LR == "L") return L;

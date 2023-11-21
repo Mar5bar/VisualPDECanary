@@ -20,6 +20,7 @@ import {
   computeDisplayFunShaderMid,
   postGenericShaderBot,
   postShaderDomainIndicator,
+  postShaderDomainIndicatorVField,
   interpolationShader,
   minMaxShader,
 } from "./post_shaders.js";
@@ -5085,6 +5086,15 @@ import { Stats } from "../stats.min.js";
         parseShaderString(getModifiedDomainIndicatorFun())
       );
     }
+    // Substitute the placeholder string used for remove vectors when near custom boundaries.
+    let replacement = "";
+    if (options.vectorField && options.domainViaIndicatorFun) {
+      replacement = postShaderDomainIndicatorVField(
+        parseShaderString(options.domainIndicatorFun)
+      );
+    }
+    shaderStr = shaderStr.replace("VECFIELDPLACEHOLDER", replacement);
+    // Substitute the overlay expression.
     shaderStr = shaderStr.replaceAll(
       "OVERLAYEXPR",
       parseShaderString(options.overlayExpr)
