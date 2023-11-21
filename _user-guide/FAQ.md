@@ -51,7 +51,7 @@ These links can be quite long, so we recommend using a (free) shortening service
 Screenshots and videos are simple in VisualPDE. Simply open the share sheet by clicking {{ layout.share }} and click 'Save image' to download a screenshot to your device, or 'Record clip' to begin a recording that will download to your device when done (we recommend Chrome or Firefox for this). Recordings can be up to 60s long and will stop before then if you pause the simulation or click {{ layout.stop_recording }}
 
 ### How do I make my videos compatible with social media and messaging apps?<a class="anchor" id='videoHelp'>
-Different services accept different (and very specific) types of video, so compatibility is hard. Even worse, different browsers can only create certain (different) types of video, so universal video compatibility is essentially impossible for us at VisualPDE (we're trying). Fortunately, there are simple ways to convert video so that it is compatible with your favourite services.
+Different services accept different types of video, so compatibility is hard. Even worse, different browsers can only create certain types of video, so universal video compatibility is essentially impossible for us at VisualPDE. Fortunately, there are simple ways to convert video so that it is compatible with your favourite services.
 
 If you want a quick solution, <a href="https://ffmpeg-online.vercel.app/?inputOptions=-i&output=VisualPDERecording.mp4&outputOptions=" target="_blank">ffmpeg-online</a> will do this for you. Just drag and drop your video, ignore the rest of the boxes and hit the run button to generate a compatible video file. Even better: your video never leaves your device.
 
