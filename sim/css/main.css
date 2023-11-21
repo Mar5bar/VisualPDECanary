@@ -157,10 +157,10 @@ a.info-link {
   right: 10px;
   opacity: 0;
   pointer-events: none;
+  transition: opacity 0.1s ease;
 }
 
-a.info-link:has(+ ul:not(.closed)),
-a.info-link:has(+ ul:hover) {
+a.info-link:has(+ ul:not(.closed)) {
   opacity: 100%;
   pointer-events: all;
 }
@@ -168,6 +168,10 @@ a.info-link:has(+ ul:hover) {
 @media (hover: hover) {
   a.info-link:hover {
     color: var(--text-color);
+    opacity: 100%;
+    pointer-events: all;
+  }
+  a.info-link:has(+ ul:hover) {
     opacity: 100%;
     pointer-events: all;
   }
