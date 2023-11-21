@@ -3563,7 +3563,6 @@ import { Stats } from "../stats.min.js";
     if (takeAScreenshot) {
       takeAScreenshot = false;
       var link = document.createElement("a");
-      link.target = "_blank";
       link.download = "VisualPDEScreenshot.png";
       renderer.render(scene, camera);
       link.href = renderer.domElement.toDataURL();
@@ -9211,7 +9210,6 @@ import { Stats } from "../stats.min.js";
       // Attach the object URL to an <a> element, setting the download file name
       const a = document.createElement("a");
       a.style = "display: none;";
-      a.target = "_blank";
       a.href = recording_url;
       a.download = "VisualPDERecording." + ext;
       console.log(ext);
