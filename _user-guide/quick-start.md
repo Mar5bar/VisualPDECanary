@@ -29,7 +29,7 @@ Here you can:
 
 The default **domain** for solving PDEs is a 2D rectangle, $\domain = [0,L_x]\times[0,L_y]$, which fits the size of your browser window or phone screen. Throughout VisualPDE, we use coordinates $x\in[0,L_x]$ and $y\in[0,L_y]$.
 
-You can force the domain to be a square, $\domain = [0,L]\times[0,L]$, by toggling off <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Edge-to-edge**</span>
+You can force the domain to be a square, $\domain = [0,L]\times[0,L]$, by toggling off <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Fill screen**</span>
 
 ### Boundary conditions <a class="anchor" id='boundary-conditions'>
 

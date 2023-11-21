@@ -274,8 +274,8 @@ Set the space step $\dx=\dy$ used in discretising the domain. You may have to de
 * #### Min. $x$, $y$
 Set the minimum values of $x$ and $y$ in the simulation. This amounts to translating the simulation domain by $(x_{min}, y_{min})$. A common use of this is to centre the simulation domain at $(0,0)$ rather than $(L_x/2, L_y/2)$. Can be a function of $L_x$, $L_y$ and any of the user-defined parameters.
 
-* #### Edge-to-edge
-Choosing between the domain filling the display (often recommended) or being forced to be square (vital for guaranteeing the shape of the domain). When selected, the largest edge of the display will correspond to the length set in **Largest side**, so that edge-to-edge simulations can be thought of as cropped, zoomed counterparts to square simulations.
+* #### Fill screen
+Choose between the domain filling the display (often recommended) or being forced to be square (vital for guaranteeing the shape of the domain). When selected, the largest edge of the display will correspond to the length set in **Largest side**, so that full-screen simulations can be thought of as cropped, zoomed counterparts to square simulations.
 
 * #### Custom
 Toggle the use of a custom domain $\domain$ that is determined implicitly from a user-set expression.

@@ -1755,7 +1755,7 @@ import { Stats } from "../stats.min.js";
     addToggle(
       domainButtonList,
       "squareCanvas",
-      '<i class="fa-regular fa-up-right-and-down-left-from-center"></i> Edge-to-edge',
+      '<i class="fa-regular fa-up-right-and-down-left-from-center"></i> Fill screen',
       function () {
         setCanvasShape();
         resize();
