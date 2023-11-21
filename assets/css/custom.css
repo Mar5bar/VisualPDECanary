@@ -1,6 +1,6 @@
 :root {
   --text-color: #111111;
-  --soft-text-color: #777;
+  --soft-text-color: #717171;
   --link-color: #1756a9;
   --tile-text-color: #1756a9;
   --tile-highlight-color: #1756a9;
@@ -8,8 +8,8 @@
   --button-color: #1756a9;
   --hover-background-color: #f8f8f8;
   --background-color: #fdfdfd;
-  --play-button-color: #2da44e;
-  --play-button-hover-color: #2c794b;
+  --play-button-color: #23843e;
+  --play-button-hover-color: #216d37;
   --slider-fill-color: #2fa1d6;
   --ui-button-color: #606060;
   --ui-button-background-color: #ffffff;
@@ -18,6 +18,7 @@
   --font-weight: 400;
   --stop-recording-color: #ff0000;
   --input-background-color: #e9e9ed;
+  --input-border-color: #e8e8e8;
 }
 
 html {
@@ -84,6 +85,7 @@ p {
 code {
   background-color: var(--hover-background-color);
   color: var(--soft-text-color);
+  border-color: var(--input-border-color);
 }
 
 .nav-button,
@@ -118,6 +120,15 @@ a[href*='//']:not([href*='visualpde.com'])
 {
   color: var(--text-color);
   text-decoration: underline;
+}
+
+p > a,
+p > a:visited {
+  text-decoration: underline;
+}
+
+.footer-col-wrapper {
+  color: var(--soft-text-color);
 }
 
 div.home-banner {
@@ -715,6 +726,8 @@ input[type="range"] {
 
 #siteSearchInput {
   border: none;
+  border-radius: 5px;
+  padding-left: 4px;
   background: none;
   outline: none;
   position: absolute;
@@ -726,10 +739,13 @@ input[type="range"] {
   transition: all 0.5s ease;
   right: 49px;
   font-size: medium;
+  height: 25px;
   color: var(--text-color);
 }
+
 #siteSearchForm:focus-within #siteSearchInput {
   width: calc(100% - 50px);
+  background-color: var(--input-background-color);
 }
 
 #pageSearchInput {
@@ -743,6 +759,12 @@ input[type="range"] {
   padding-left: 4px;
   vertical-align: middle;
   height: 25px;
+}
+
+#pageSearchInput::placeholder,
+#siteSearchInput::placeholder {
+  color: var(--soft-text-color);
+  opacity: 100%;
 }
 
 .site-nav {
@@ -954,7 +976,7 @@ input[type="range"] {
   --button-color: #564fdd;
   --play-button-color: #008075;
   --play-button-hover-color: rgb(3, 162, 146);
-  --soft-text-color: #969696;
+  --soft-text-color: #9d9d9d;
   --ui-button-color: var(--text-color);
   --ui-button-background-color: var(--background-color);
   --ui-button-border-color: #555555;
@@ -964,6 +986,7 @@ input[type="range"] {
   --font-weight: 400;
   --stop-recording-color: var(--link-color);
   --input-background-color: #303134;
+  --input-border-color: var(--ui-button-border-color);
 }
 
 .dark-mode #dark-on {
@@ -1000,15 +1023,6 @@ input[type="range"] {
 .dark-mode a[href*="/sim/"] {
   color: #ffffff;
   text-decoration: none;
-}
-
-.dark-mode p > a,
-.dark-mode p > a:visited {
-  text-decoration: underline;
-}
-
-.dark-mode .footer-col-wrapper {
-  color: var(--soft-text-color);
 }
 
 .dark-mode-img {
