@@ -38,7 +38,7 @@ onSubmit="page_search(document.getElementById('pageSearchInput').value); return 
 VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Settings**](#settings).
 
 ### Edit <a class="anchor" id='edit'>
-Define all the terms in the PDE that you would like to solve using natural syntax. See our discussion of [valid expressions](#writing-valid-expressions) for helpful examples that will guide you in posing your own PDE system.
+Customise all the terms in the PDEs that you would like to solve using natural syntax. See our discussion of [valid expressions](#writing-valid-expressions) for helpful examples that will guide you in posing your own PDE system. Typing in any of the fields will highlight the corresponding term in the typeset PDE above.
 
 #### Typeset
 Have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters. Terms will not be substituted in if they are constants that are not 0 or 1. Toggle this off to see the format of the equations that VisualPDE can interpret.
