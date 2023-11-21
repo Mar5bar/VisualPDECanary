@@ -8009,8 +8009,8 @@ import { Stats } from "../stats.min.js";
       return false;
     }
 
-    // Closing parenthesis followed by something that isn't an operator or whitespace?
-    regex = /\)\s*[^\+\-\*\^\/\)\s]/;
+    // Closing parenthesis followed by a letter or number?
+    regex = /\)\s*[a-zA-Z0-9]/;
     matches = str.match(regex);
     if (matches != null) {
       throwError(
@@ -8021,8 +8021,8 @@ import { Stats } from "../stats.min.js";
       return false;
     }
 
-    // Number followed immediately by a letter or opening parenthesis?
-    regex = /\.?[0-9]+\s*[a-zA-Z\(]/;
+    // Number followed immediately by an opening parenthesis?
+    regex = /[0-9]+\s*\(/;
     matches = str.match(regex);
     if (matches != null) {
       throwError(
