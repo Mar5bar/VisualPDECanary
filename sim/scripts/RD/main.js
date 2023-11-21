@@ -3563,7 +3563,7 @@ import { Stats } from "../stats.min.js";
     if (takeAScreenshot) {
       takeAScreenshot = false;
       var link = document.createElement("a");
-      link.download = "VisualPDEScreenshot";
+      link.download = "VisualPDEScreenshot.png";
       renderer.render(scene, camera);
       link.href = renderer.domElement.toDataURL();
       document.body.appendChild(link);
@@ -9181,6 +9181,7 @@ import { Stats } from "../stats.min.js";
       throwError("Your browser doesn't support recording video. Sorry!");
       return;
     }
+    const ext = type.split("/")[1].split(";")[0];
     let quality = 8000000;
     switch (document.getElementById("video_quality").value) {
       case "SD":
@@ -9210,7 +9211,8 @@ import { Stats } from "../stats.min.js";
       const a = document.createElement("a");
       a.style = "display: none;";
       a.href = recording_url;
-      a.download = "VisualPDERecording";
+      a.download = "VisualPDERecording." + ext;
+      console.log(ext);
       document.body.appendChild(a);
       // Trigger the file download
       a.click();
