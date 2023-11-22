@@ -3,6 +3,45 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["WavesOnABeach"] = {
+    boundaryConditions_1: "neumann",
+    boundaryConditions_2: "neumann",
+    brushAction: "smoothadd",
+    brushRadius: "50",
+    brushType: "vline",
+    brushValue: "0.01",
+    colourmap: "water",
+    crossDiffusion: true,
+    diffusionStr_1_1: "D",
+    diffusionStr_2_1: "h",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    dimension: "1",
+    domainScale: "1000",
+    dt: 0.005,
+    initCond_1: "0",
+    initCond_3:
+      "0.1 +(k*(x/L_x - 0.2))*ind(x/L_x>0.2)*ind(x/L_x < 0.2+(m-0.1)/k) + (m-0.1)*ind(x/L_x > 0.2+(m-0.1)/k)",
+    kineticParams:
+      "D = 0.1;k = 10.00 in [1, 0.1, 10];m = 1.00 in [1, 5];LHS = 0.20 in [0, 1];",
+    minColourValue: "-m",
+    numAlgebraicSpecies: 1,
+    numSpecies: "3",
+    numTimestepsPerFrame: 400,
+    overlay: true,
+    overlayExpr: "-h",
+    plotType: "line",
+    preset: "WavesOnABeach",
+    reactionStr_1: "v",
+    reactionStr_2: "0",
+    reactionStr_3:
+      "0.1 +(k*(x/L_x - LHS))*ind(x/L_x>LHS)*ind(x/L_x < LHS+(m-0.1)/k) + (m-0.1)*ind(x/L_x > LHS+(m-0.1)/k)",
+    spatialStep: "3",
+    speciesNames: "u v h q",
+    whatToDraw: "u",
+    whatToPlot: "u",
+  };
+
   listOfPresets["WaterOnTopography"] = {
     activeViewInd: 4,
     boundaryConditions_1: "dirichlet",
