@@ -468,7 +468,6 @@ span.click_sequence {
   aspect-ratio: 1;
   border: 2px solid black;
   margin: calc(5% - 2px);
-  background: no-repeat center/contain url(/assets/images/logo_loading.webp);
   background-color: black;
 }
 @media only screen and (max-width: 600px) {
