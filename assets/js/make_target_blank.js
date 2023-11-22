@@ -1,5 +1,3 @@
-$("a")
-  .filter(function () {
-    return /\/sim/.test(this.href);
-  })
-  .attr("target", "_blank");
+document.querySelectorAll("a[href^='/sim/']").forEach((a) => {
+  a.setAttribute("target", "_blank");
+});

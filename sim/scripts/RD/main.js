@@ -1,3 +1,9 @@
+/**
+ * This file contains the main function that initializes the simulation and GUI, and imports various shaders and modules.
+ * It also defines various variables and constants used throughout the simulation.
+ * @file
+ * @summary Main file for the simulation.
+ */
 import {
   drawShaderTop,
   drawShaderBotReplace,
@@ -5,6 +11,7 @@ import {
   drawShaderShapeDisc,
   drawShaderShapeVLine,
   drawShaderShapeHLine,
+  drawShaderCustom,
   drawShaderFactorSharp,
   drawShaderFactorSmooth,
 } from "./drawing_shaders.js";
@@ -13,6 +20,7 @@ import {
   computeDisplayFunShaderMid,
   postGenericShaderBot,
   postShaderDomainIndicator,
+  postShaderDomainIndicatorVField,
   interpolationShader,
   minMaxShader,
 } from "./post_shaders.js";
@@ -73,6 +81,7 @@ import {
   getDefaultTeXLabelsDiffusion,
   getDefaultTeXLabelsReaction,
   getDefaultTeXLabelsBCsICs,
+  getDefaultTeXLabelsTimescales,
   substituteGreek,
 } from "./TEX.js";
 import { closestMatch } from "../../../assets/js/closest-match.js";
@@ -113,7 +122,10 @@ import { Stats } from "../stats.min.js";
     headGeometry;
   let domain, simDomain, clickDomain, line, overlayLine;
   let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
-  let colourmap, colourmapEndpoints;
+  let colourmap,
+    colourmapEndpoints,
+    cLims = [0, 1],
+    cLimsDependOnParams = false;
   let options,
     uniforms,
     minMaxUniforms,
@@ -131,11 +143,13 @@ import { Stats } from "../stats.min.js";
     fIm,
     imControllerOne,
     imControllerTwo,
+    editEquationsFolder,
     editViewFolder,
     linesAnd3DFolder,
     vectorFieldFolder,
     selectedEntries = new Set();
   let isRunning,
+    isSuspended = false,
     isLoading = true,
     isRecording = false,
     hasErrored = false,
@@ -144,12 +158,13 @@ import { Stats } from "../stats.min.js";
     hasDrawn,
     shouldCheckNaN = true,
     isStory = false,
+    wasLinePlot = false,
     shaderContainsRAND = false,
     anyDirichletBCs,
     dataNudgedUp = false,
     compileErrorOccurred = false,
     NaNTimer,
-    topMessageTimer,
+    brushDisabledTimer,
     recordingTimer,
     recordingTextInterval,
     uiHidden = false,
@@ -158,7 +173,6 @@ import { Stats } from "../stats.min.js";
     frameCount = 0,
     seed = performance.now(),
     updatingAlgebraicSpecies = false,
-    valueRange = null,
     viewUIOffsetInit;
   let spatialStepValue,
     nXDisc,
@@ -177,10 +191,12 @@ import { Stats } from "../stats.min.js";
     kineticParamsStrs = {},
     kineticParamsLabels = [],
     kineticNameToCont = {},
+    kineticParamsVals = [],
     kineticParamsCounter = 0;
   const defaultPreset = "GrayScott";
   const defaultSpecies = ["u", "v", "w", "q"];
   const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
+  const timescaleTags = ["TU", "TV", "TW", "TQ"];
   const placeholderSp = ["SPECIES1", "SPECIES2", "SPECIES3", "SPECIES4"];
   const listOfTypes = [
     "1Species", // 0
@@ -197,6 +213,8 @@ import { Stats } from "../stats.min.js";
     "4SpeciesCrossDiffusionAlgebraicWQ", // 11
     "4SpeciesCrossDiffusionAlgebraicVWQ", // 12
   ];
+  const brushActions = ["Replace", "Add", "Replace (smooth)", "Add (smooth)"],
+    brushActionVals = ["replace", "add", "smoothreplace", "smoothadd"];
   let equationType, algebraicV, algebraicW, algebraicQ;
   let takeAScreenshot = false,
     mediaRecorder,
@@ -223,6 +241,7 @@ import { Stats } from "../stats.min.js";
     ...getDefaultTeXLabelsDiffusion(),
     ...getDefaultTeXLabelsReaction(),
     ...getDefaultTeXLabelsBCsICs(),
+    ...getDefaultTeXLabelsTimescales(),
   };
   let listOfSpecies, listOfReactions, anySpeciesRegexStrs;
   const fieldsInView = getFieldsInView();
@@ -337,11 +356,6 @@ import { Stats } from "../stats.min.js";
     );
   };
 
-  // Remove the logo if we're from an internal link.
-  if (!fromExternalLink()) {
-    $("#logo").hide();
-  }
-
   // Check URL for any specified options.
   const params = new URLSearchParams(window.location.search);
 
@@ -358,6 +372,16 @@ import { Stats } from "../stats.min.js";
     // Hide all ui except the logo.
     $(".ui").addClass("hidden");
     $("#logo").removeClass("hidden");
+    uiHidden = true;
+  } else if (!fromExternalLink()) {
+    // Remove the logo if we're from an internal link.
+    $("#logo").hide();
+  }
+
+  const cleanDisplay = params.has("clean");
+  if (cleanDisplay) {
+    $(".ui").addClass("hidden");
+    $("#logo").hide();
     uiHidden = true;
   }
 
@@ -380,9 +404,10 @@ import { Stats } from "../stats.min.js";
   let shouldLoadDefault = true;
   if (params.has("preset")) {
     // If a preset is specified, load it.
-    window.gtag?.("event", "preset: " + params.get("preset"));
     loadPreset(params.get("preset"));
     shouldLoadDefault = false;
+    if (params.get("preset") != "Banner")
+      window.gtag?.("event", "preset: " + params.get("preset"));
   }
   if (params.has("options")) {
     // If options have been provided, apply them on top of loaded options.
@@ -400,6 +425,14 @@ import { Stats } from "../stats.min.js";
   if (shouldLoadDefault) {
     // Load a specific preset as the default.
     loadPreset(defaultPreset);
+  }
+
+  if (params.has("view")) {
+    options.activeViewInd = Number(params.get("view")).clamp(
+      0,
+      options.views.length - 1
+    );
+    applyView(options.views[options.activeViewInd]);
   }
 
   // If this is a Visual Story, hide all buttons apart from play/pause, erase and views.
@@ -542,6 +575,10 @@ import { Stats } from "../stats.min.js";
     $("#welcome").css("display", "none");
     tour.start();
     window.gtag?.("event", "manual_intro_tour");
+  });
+  // Open the Definitions tab when the user clicks on the equation display.
+  $("#equation_display").click(function () {
+    editEquationsFolder.open();
   });
 
   // New, rename, delete
@@ -733,6 +770,16 @@ import { Stats } from "../stats.min.js";
     const wantsTour = await Promise.race([
       waitListener(document.getElementById("welcome_ok"), "click", true),
       waitListener(document.getElementById(noButtonId), "click", false),
+      // A promise that resolves when "visited" is added to localStorage.
+      new Promise(function (resolve) {
+        var listener = function (e) {
+          if (e.key == "visited") {
+            window.removeEventListener("storage", listener);
+            resolve(false);
+          }
+        };
+        window.addEventListener("storage", listener);
+      }),
     ]);
     $("#welcome").css("display", "none");
     // If they've interacted with anything, note that they have visited the site.
@@ -764,7 +811,8 @@ import { Stats } from "../stats.min.js";
       shouldLoadDefault ||
       options.forceTryClickingPopup) &&
     !options.suppressTryClickingPopup &&
-    options.brushEnabled
+    options.brushEnabled &&
+    !cleanDisplay
   ) {
     $("#top_message").html("<p>" + options.tryClickingText + "</p>");
     fadein("#top_message", 1000);
@@ -775,9 +823,23 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  // If we're in an iframe, set the logo to be a link to the current simulation on the main site just as it is clicked.
+  if (window.self !== window.top) {
+    $("#logo").click(function (e) {
+      e.preventDefault();
+      window.open(getSimURL());
+    });
+  }
+
   // Begin the simulation.
   isLoading = false;
   animate();
+
+  const darkOS = window.matchMedia("(prefers-color-scheme: dark)");
+  // Listen for the changes in the OS settings, and refresh equation display.
+  darkOS.addEventListener("change", (evt) => {
+    setEquationDisplayType();
+  });
 
   //---------------
 
@@ -1027,13 +1089,6 @@ import { Stats } from "../stats.min.js";
       var targetTagName =
         target.nodeType == 1 ? target.nodeName.toUpperCase() : "";
       if (!/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
-        if (event.key === "r") {
-          $("#erase").click();
-        }
-        if (event.key === " ") {
-          funsObj.toggleRunning();
-          event.preventDefault();
-        }
         if (event.key === "h") {
           if (uiHidden) {
             uiHidden = false;
@@ -1053,13 +1108,22 @@ import { Stats } from "../stats.min.js";
             uiHidden = true;
             $(".ui").addClass("hidden");
           }
-        }
-        if (event.key == "s") {
-          saveSimState();
-        }
-        if (event.key == "c") {
-          options.resetFromCheckpoints = !options.resetFromCheckpoints;
-          updateToggle($("#checkpointButton")[0]);
+        } else if (!(isStory && uiHidden)) {
+          // Don't allow for keyboard input if the ui is hidden in a Story.
+          if (event.key === "r") {
+            $("#erase").click();
+          }
+          if (event.key === " ") {
+            funsObj.toggleRunning();
+            event.preventDefault();
+          }
+          if (event.key == "s") {
+            saveSimState();
+          }
+          if (event.key == "c") {
+            options.resetFromCheckpoints = !options.resetFromCheckpoints;
+            updateToggle($("#checkpointButton")[0]);
+          }
         }
       }
     });
@@ -1074,7 +1138,8 @@ import { Stats } from "../stats.min.js";
       false
     );
 
-    window.addEventListener("message", updateParamFromMessage);
+    // Handle messages sent to the simulation.
+    window.addEventListener("message", handleMessage);
 
     // Bind the onchange event for the checkpoint loader.
     $("#checkpointInput").change(function () {
@@ -1090,8 +1155,8 @@ import { Stats } from "../stats.min.js";
     resizeTextures();
     // Update cropping of checkpoint textures.
     setStretchOrCropTexture(checkpointTexture);
-    // Update any uniforms.
-    updateUniforms();
+    // Update any size-dependent uniforms.
+    updateSizeUniforms();
     // Create new display domains with the correct sizes.
     replaceDisplayDomains();
     // Create arrows for vector fields.
@@ -1147,31 +1212,35 @@ import { Stats } from "../stats.min.js";
   }
 
   function updateUniforms() {
+    uniforms.dt.value = options.dt;
+    uniforms.heightScale.value = options.threeDHeightScale;
+    uniforms.customSurface.value = options.customSurface;
+    uniforms.vectorField.value = options.vectorField;
+    updateSizeUniforms();
+    setColourRangeFromDef();
+    setEmbossUniforms();
+    updateRandomSeed();
+  }
+
+  function updateSizeUniforms() {
     uniforms.L.value = domainScaleValue;
     uniforms.L_y.value = domainHeight;
     uniforms.L_x.value = domainWidth;
     uniforms.L_min.value = Math.min(domainHeight, domainWidth);
-    uniforms.dt.value = options.dt;
     uniforms.dx.value = spatialStepValue;
     uniforms.dy.value = spatialStepValue;
-    uniforms.heightScale.value = options.threeDHeightScale;
-    uniforms.maxColourValue.value = options.maxColourValue;
-    uniforms.minColourValue.value = options.minColourValue;
-    uniforms.customSurface.value = options.customSurface;
-    uniforms.vectorField.value = options.vectorField;
-    setEmbossUniforms();
-    updateRandomSeed();
   }
 
   function computeCanvasSizesAndAspect() {
     // Parse the domain scale.
     try {
-      domainScaleValue = parser.evaluate(options.domainScale);
+      domainScaleValue =
+        parser.evaluate(options.domainScale) * domainScaleFactor;
     } catch (error) {
       throwError(
         "Unable to evaluate the domain length. Please check the definition."
       );
-      domainScaleValue = 100;
+      domainScaleValue = 100 * domainScaleFactor;
     }
     canvasWidth = Math.round(canvas.getBoundingClientRect().width);
     canvasHeight = Math.round(canvas.getBoundingClientRect().height);
@@ -1574,6 +1643,7 @@ import { Stats } from "../stats.min.js";
 
     // Brush folder.
     root = rightGUI.addFolder("Brush");
+    addInfoButton(root, "/user-guide/advanced-options#brush");
 
     const brushButtonList = addButtonList(root);
 
@@ -1604,19 +1674,30 @@ import { Stats } from "../stats.min.js";
         Disk: "circle",
         "Horizontal line": "hline",
         "Vertical line": "vline",
+        Custom: "custom",
       })
       .name("Shape")
       .onChange(function () {
         setBrushType();
+        configureGUI();
         document.activeElement.blur();
       });
 
-    root.add(options, "brushValue").name("Value").onFinishChange(setBrushType);
-
     root
+      .add(options, "brushValue")
+      .name("Value")
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setBrushType();
+      });
+
+    controllers["brushRadius"] = root
       .add(options, "brushRadius")
       .name("Radius")
-      .onFinishChange(setBrushType);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setBrushType();
+      });
 
     controllers["whatToDraw"] = root
       .add(options, "whatToDraw", listOfSpecies)
@@ -1625,6 +1706,7 @@ import { Stats } from "../stats.min.js";
 
     // Domain folder.
     root = rightGUI.addFolder("Domain");
+    addInfoButton(root, "/user-guide/advanced-options#domain");
 
     root
       .add(options, "dimension", { 1: 1, 2: 2 })
@@ -1655,6 +1737,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "minX")
       .name("Min. $x$")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         updateProblem();
         resetSim();
       });
@@ -1663,6 +1746,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "minY")
       .name("Min. $y$")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         updateProblem();
         resetSim();
       });
@@ -1672,7 +1756,7 @@ import { Stats } from "../stats.min.js";
     addToggle(
       domainButtonList,
       "squareCanvas",
-      '<i class="fa-regular fa-square"></i> Square',
+      '<i class="fa-regular fa-up-right-and-down-left-from-center"></i> Fill screen',
       function () {
         setCanvasShape();
         resize();
@@ -1680,7 +1764,11 @@ import { Stats } from "../stats.min.js";
         renderIfNotRunning();
       },
       null,
-      "Use a square domain"
+      "Fit the domain to the shape of the display, or use a square computational domain",
+      null,
+      null,
+      null,
+      true
     );
 
     addToggle(
@@ -1702,6 +1790,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "domainIndicatorFun")
       .name("Ind. fun")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         configureOptions();
         configureGUI();
         setRDEquations();
@@ -1711,6 +1800,7 @@ import { Stats } from "../stats.min.js";
 
     // Timestepping folder.
     root = rightGUI.addFolder("Timestepping");
+    addInfoButton(root, "/user-guide/advanced-options#timestepping");
 
     controllers["numTimestepsPerFrame"] = root
       .add(options, "numTimestepsPerFrame", 1, 1000, 1)
@@ -1780,6 +1870,7 @@ import { Stats } from "../stats.min.js";
 
     // Equations folder.
     root = rightGUI.addFolder("Equations");
+    addInfoButton(root, "/user-guide/advanced-options#equations-");
 
     // Number of species.
     root
@@ -1822,9 +1913,23 @@ import { Stats } from "../stats.min.js";
       "Toggle cross diffusion"
     );
 
+    addToggle(
+      crossDiffusionButtonList,
+      "timescales",
+      '<i class="fa-regular fa-clock"></i>Scales',
+      function () {
+        configureGUI();
+        setEquationDisplayType();
+      },
+      "timescales_controller",
+      "Toggle the use of custom timescales"
+    );
+
     // Let's put these in the left GUI.
     // Definitions folder.
-    root = leftGUI.addFolder("Definitions");
+    editEquationsFolder = leftGUI.addFolder("Edit");
+    root = editEquationsFolder;
+    addInfoButton(root, "/user-guide/advanced-options#edit");
 
     const defButtonList = addButtonList(root);
     addToggle(
@@ -1836,9 +1941,50 @@ import { Stats } from "../stats.min.js";
       "Typeset the specified equations"
     );
 
+    controllers["TU"] = root
+      .add(options, "timescale_1")
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+        setEquationDisplayType();
+      });
+    setOnfocus(controllers["TU"], selectTeX, ["TU"]);
+    setOnblur(controllers["TU"], deselectTeX, ["TU"]);
+
+    controllers["TV"] = root
+      .add(options, "timescale_2")
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+        setEquationDisplayType();
+      });
+    setOnfocus(controllers["TV"], selectTeX, ["TV"]);
+    setOnblur(controllers["TV"], deselectTeX, ["TV"]);
+
+    controllers["TW"] = root
+      .add(options, "timescale_3")
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+        setEquationDisplayType();
+      });
+    setOnfocus(controllers["TW"], selectTeX, ["TW"]);
+    setOnblur(controllers["TW"], deselectTeX, ["TW"]);
+
+    controllers["TQ"] = root
+      .add(options, "timescale_4")
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+        setEquationDisplayType();
+      });
+    setOnfocus(controllers["TQ"], selectTeX, ["TQ"]);
+    setOnblur(controllers["TQ"], deselectTeX, ["TQ"]);
+
     controllers["Duu"] = root
       .add(options, "diffusionStr_1_1")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1848,6 +1994,7 @@ import { Stats } from "../stats.min.js";
     controllers["Duv"] = root
       .add(options, "diffusionStr_1_2")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1857,6 +2004,7 @@ import { Stats } from "../stats.min.js";
     controllers["Duw"] = root
       .add(options, "diffusionStr_1_3")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1866,6 +2014,7 @@ import { Stats } from "../stats.min.js";
     controllers["Duq"] = root
       .add(options, "diffusionStr_1_4")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1875,6 +2024,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dvu"] = root
       .add(options, "diffusionStr_2_1")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1884,6 +2034,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dvv"] = root
       .add(options, "diffusionStr_2_2")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1893,6 +2044,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dvw"] = root
       .add(options, "diffusionStr_2_3")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1902,6 +2054,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dvq"] = root
       .add(options, "diffusionStr_2_4")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1911,6 +2064,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dwu"] = root
       .add(options, "diffusionStr_3_1")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1920,6 +2074,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dwv"] = root
       .add(options, "diffusionStr_3_2")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1929,6 +2084,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dww"] = root
       .add(options, "diffusionStr_3_3")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1938,6 +2094,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dwq"] = root
       .add(options, "diffusionStr_3_4")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1947,6 +2104,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dqu"] = root
       .add(options, "diffusionStr_4_1")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1956,6 +2114,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dqv"] = root
       .add(options, "diffusionStr_4_2")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1965,6 +2124,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dqw"] = root
       .add(options, "diffusionStr_4_3")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1974,6 +2134,7 @@ import { Stats } from "../stats.min.js";
     controllers["Dqq"] = root
       .add(options, "diffusionStr_4_4")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1984,6 +2145,7 @@ import { Stats } from "../stats.min.js";
     controllers["f"] = root
       .add(options, "reactionStr_1")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -1993,6 +2155,7 @@ import { Stats } from "../stats.min.js";
     controllers["g"] = root
       .add(options, "reactionStr_2")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2002,6 +2165,7 @@ import { Stats } from "../stats.min.js";
     controllers["h"] = root
       .add(options, "reactionStr_3")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2011,6 +2175,7 @@ import { Stats } from "../stats.min.js";
     controllers["j"] = root
       .add(options, "reactionStr_4")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
         setEquationDisplayType();
       });
@@ -2018,10 +2183,12 @@ import { Stats } from "../stats.min.js";
     setOnblur(controllers["j"], deselectTeX, ["QFUN"]);
 
     parametersFolder = leftGUI.addFolder("Parameters");
+    addInfoButton(parametersFolder, "/user-guide/advanced-options#parameters");
     setParamsFromKineticString();
 
     // Boundary conditions folder.
     root = leftGUI.addFolder("Boundary conditions");
+    addInfoButton(root, "/user-guide/advanced-options#boundary-conditions");
 
     controllers["uBCs"] = root
       .add(options, "boundaryConditions_1", {})
@@ -2033,20 +2200,32 @@ import { Stats } from "../stats.min.js";
 
     controllers["dirichletU"] = root
       .add(options, "dirichletStr_1")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["neumannU"] = root
       .add(options, "neumannStr_1")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["robinU"] = root
       .add(options, "robinStr_1")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["comboU"] = root
       .add(options, "comboStr_1")
       .name("Details")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["vBCs"] = root
       .add(options, "boundaryConditions_2", {})
@@ -2058,20 +2237,32 @@ import { Stats } from "../stats.min.js";
 
     controllers["dirichletV"] = root
       .add(options, "dirichletStr_2")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["neumannV"] = root
       .add(options, "neumannStr_2")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["robinV"] = root
       .add(options, "robinStr_2")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["comboV"] = root
       .add(options, "comboStr_2")
       .name("Details")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["wBCs"] = root
       .add(options, "boundaryConditions_3", {})
@@ -2083,20 +2274,32 @@ import { Stats } from "../stats.min.js";
 
     controllers["dirichletW"] = root
       .add(options, "dirichletStr_3")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["neumannW"] = root
       .add(options, "neumannStr_3")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["robinW"] = root
       .add(options, "robinStr_3")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["comboW"] = root
       .add(options, "comboStr_3")
       .name("Details")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["qBCs"] = root
       .add(options, "boundaryConditions_4", {})
@@ -2109,48 +2312,75 @@ import { Stats } from "../stats.min.js";
 
     controllers["dirichletQ"] = root
       .add(options, "dirichletStr_4")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["neumannQ"] = root
       .add(options, "neumannStr_4")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["robinQ"] = root
       .add(options, "robinStr_4")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     controllers["comboQ"] = root
       .add(options, "comboStr_4")
       .name("Details")
-      .onFinishChange(setRDEquations);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setRDEquations();
+      });
 
     // Initial conditions folder.
     root = leftGUI.addFolder("Initial conditions");
+    addInfoButton(root, "/user-guide/advanced-options#initial-conditions");
 
     controllers["initCond_1"] = root
       .add(options, "initCond_1")
-      .onFinishChange(setClearShader);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setClearShader();
+      });
 
     controllers["initCond_2"] = root
       .add(options, "initCond_2")
-      .onFinishChange(setClearShader);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setClearShader();
+      });
 
     controllers["initCond_3"] = root
       .add(options, "initCond_3")
-      .onFinishChange(setClearShader);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setClearShader();
+      });
 
     controllers["initCond_4"] = root
       .add(options, "initCond_4")
-      .onFinishChange(setClearShader);
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        setClearShader();
+      });
 
     // Images folder.
     fIm = rightGUI.addFolder("Images");
     root = fIm;
+    addInfoButton(root, "/user-guide/advanced-options#images");
     // Always make images controller, but hide them if they're not wanted.
     createImageControllers();
 
     // Saving/loading folder.
     root = rightGUI.addFolder("Checkpoints");
+    addInfoButton(root, "/user-guide/advanced-options#checkpoints");
 
     // Checkpoints override initial condition.
     const checkpointButtons = addButtonList(root);
@@ -2201,6 +2431,7 @@ import { Stats } from "../stats.min.js";
 
     // Miscellaneous folder.
     root = rightGUI.addFolder("Misc.");
+    addInfoButton(root, "/user-guide/advanced-options#misc-");
 
     root
       .addColor(options, "backgroundColour")
@@ -2257,6 +2488,7 @@ import { Stats } from "../stats.min.js";
       });
 
     root = root.addFolder("Dev");
+    addInfoButton(root, "/user-guide/advanced-options#dev");
     // Dev.
     const devButtons = addButtonList(root);
     // Copy configuration as raw JSON.
@@ -2332,6 +2564,26 @@ import { Stats } from "../stats.min.js";
     equationsTitle.classList.add("ui_title");
     leftGUI.domElement.prepend(equationsTitle);
 
+    // Add the light/dark buttons to the rightGUI.
+    const darkButton = document.createElement("button");
+    darkButton.className = "darkmode-button";
+    darkButton.id = "dark-on";
+    darkButton.innerHTML =
+      '<span>Dark mode<i class="fa-solid fa-moon"></i></span>';
+    darkButton.onclick = function () {
+      toggleDarkMode(true, true);
+    };
+    const lightButton = document.createElement("button");
+    lightButton.className = "darkmode-button";
+    lightButton.id = "light-on";
+    lightButton.innerHTML =
+      '<span>Light mode<i class="fa-solid fa-sun"></i></span>';
+    lightButton.onclick = function () {
+      toggleDarkMode(false, true);
+    };
+    rightGUI.domElement.prepend(lightButton);
+    rightGUI.domElement.prepend(darkButton);
+
     // Populate the viewsGUI.
     // Create a custom element for containing the view options.
     const viewsList = document.createElement("div");
@@ -2345,6 +2597,7 @@ import { Stats } from "../stats.min.js";
 
     editViewFolder = viewsGUI.addFolder("Edit view");
     root = editViewFolder;
+    addInfoButton(root, "/user-guide/advanced-options#views");
 
     const editViewButtons = addButtonList(root, "edit_view_buttons");
 
@@ -2367,6 +2620,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "whatToPlot")
       .name("Expression: ")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         updateWhatToPlot();
         renderIfNotRunning();
         updateView(this.property);
@@ -2386,120 +2640,7 @@ import { Stats } from "../stats.min.js";
         updateView(this.property);
       });
 
-    root
-      .add(options, "colourmap", {
-        BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
-        "Blue-Magenta": "blue-magenta",
-        Diverging: "diverging",
-        Greyscale: "greyscale",
-        Foliage: "foliage",
-        Ice: "ice",
-        "Lava flow": "lavaflow",
-        Midnight: "midnight",
-        Pastels: "pastels",
-        Retro: "retro",
-        "Simply blue": "blue",
-        "Snow Ghost": "snowghost",
-        Spooky: "spooky",
-        Thermal: "thermal",
-        Turbo: "turbo",
-        Viridis: "viridis",
-        Water: "water",
-      })
-      .onChange(function () {
-        setDisplayColourAndType();
-        configureColourbar();
-        document.activeElement.blur();
-        renderIfNotRunning();
-        updateView(this.property);
-      })
-      .name("Colour map");
-
-    controllers["minColourValue"] = root
-      .add(options, "minColourValue")
-      .name("Min value")
-      .onChange(function () {
-        updateUniforms();
-        updateColourbarLims();
-        renderIfNotRunning();
-        updateView(this.property);
-      });
-    controllers["minColourValue"].__precision = 2;
-
-    controllers["maxColourValue"] = root
-      .add(options, "maxColourValue")
-      .name("Max value")
-      .onChange(function () {
-        updateUniforms();
-        updateColourbarLims();
-        renderIfNotRunning();
-        updateView(this.property);
-      });
-    controllers["maxColourValue"].__precision = 2;
-
-    const effectsButtons = addButtonList(root, "colour_map_buttons");
-
-    addButton(
-      effectsButtons,
-      '<i class="fa-regular fa-arrows-rotate"></i> Flip',
-      function () {
-        options.flippedColourmap = !options.flippedColourmap;
-        setDisplayColourAndType();
-        configureColourbar();
-        renderIfNotRunning();
-        updateView("flippedColourmap");
-      },
-      null,
-      "Reverse colour map",
-      ["narrow"]
-    );
-
-    addButton(
-      effectsButtons,
-      '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap',
-      function () {
-        setColourRange();
-        render();
-        updateView("minColourValue");
-        updateView("maxColourValue");
-      },
-      null,
-      "Snap min/max to visible",
-      ["narrow"]
-    );
-
-    addToggle(
-      effectsButtons,
-      "colourbar",
-      '<i class="fa-solid fa-bars-progress"></i> Bar',
-      function () {
-        configureColourbar();
-        updateView("colourbar");
-      },
-      null,
-      "Display the colourbar",
-      null,
-      ["narrow"]
-    );
-
-    addNewline(effectsButtons);
-
-    addToggle(
-      effectsButtons,
-      "autoSetColourRange",
-      '<i class="fa-solid fa-wand-magic-sparkles"></i> Auto snap',
-      function () {
-        if (options.autoSetColourRange) {
-          setColourRange();
-          render();
-        }
-        updateView("autoSetColourRange");
-      },
-      null,
-      "Automatically snap range",
-      null,
-      ["wide"]
-    );
+    const effectsButtons = addButtonList(root);
 
     addToggle(
       effectsButtons,
@@ -2561,7 +2702,123 @@ import { Stats } from "../stats.min.js";
       ["wide"]
     );
 
+    root = editViewFolder.addFolder("Colour");
+    addInfoButton(root, "/user-guide/advanced-options#colour");
+
+    root
+      .add(options, "colourmap", {
+        BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
+        "Blue-Magenta": "blue-magenta",
+        "Chemical (green)": "chemicalGreen",
+        "Chemical (blue)": "chemicalBlue",
+        Diverging: "diverging",
+        Greyscale: "greyscale",
+        Foliage: "foliage",
+        Ice: "ice",
+        "Lava flow": "lavaflow",
+        Midnight: "midnight",
+        Pastels: "pastels",
+        Retro: "retro",
+        "Simply blue": "blue",
+        "Snow Ghost": "snowghost",
+        Squirrels: "squirrels",
+        Spooky: "spooky",
+        Thermal: "thermal",
+        Turbo: "turbo",
+        Viridis: "viridis",
+        Water: "water",
+      })
+      .onChange(function () {
+        setDisplayColourAndType();
+        configureColourbar();
+        document.activeElement.blur();
+        renderIfNotRunning();
+        updateView(this.property);
+      })
+      .name("Colour map");
+
+    controllers["minColourValue"] = root
+      .add(options, "minColourValue")
+      .name("Min value")
+      .onFinishChange(function () {
+        setColourRangeFromDef();
+        renderIfNotRunning();
+        updateView(this.property);
+      });
+
+    controllers["maxColourValue"] = root
+      .add(options, "maxColourValue")
+      .name("Max value")
+      .onFinishChange(function () {
+        setColourRangeFromDef();
+        renderIfNotRunning();
+        updateView(this.property);
+      });
+
+    const colourButtons = addButtonList(root);
+
+    addButton(
+      colourButtons,
+      '<i class="fa-regular fa-arrows-rotate"></i> Reverse',
+      function () {
+        options.flippedColourmap = !options.flippedColourmap;
+        setDisplayColourAndType();
+        configureColourbar();
+        renderIfNotRunning();
+        updateView("flippedColourmap");
+      },
+      null,
+      "Reverse the colour map",
+      ["wide"]
+    );
+
+    addToggle(
+      colourButtons,
+      "colourbar",
+      '<i class="fa-solid fa-bars-progress"></i> Colour bar',
+      function () {
+        configureColourbar();
+        updateView("colourbar");
+      },
+      null,
+      "Display the colourbar",
+      null,
+      ["wide"]
+    );
+
+    addButton(
+      colourButtons,
+      '<i class="fa-solid fa-arrows-left-right-to-line"></i> Snap range',
+      function () {
+        setColourRangeSnap();
+        render();
+        updateView("minColourValue");
+        updateView("maxColourValue");
+      },
+      null,
+      "Snap min/max to visible",
+      ["wide"]
+    );
+
+    addToggle(
+      colourButtons,
+      "autoSetColourRange",
+      '<i class="fa-solid fa-wand-magic-sparkles"></i> Auto snap',
+      function () {
+        if (options.autoSetColourRange) {
+          setColourRangeSnap();
+          render();
+        }
+        updateView("autoSetColourRange");
+      },
+      null,
+      "Automatically snap range",
+      null,
+      ["wide"]
+    );
+
     root = editViewFolder.addFolder("Contours");
+    addInfoButton(root, "/user-guide/advanced-options#contours");
     root.domElement.id = "contoursFolder";
 
     controllers["contourColour"] = root
@@ -2596,6 +2853,7 @@ import { Stats } from "../stats.min.js";
     contoursControllers.push(controllers["contourEpsilon"]);
 
     root = editViewFolder.addFolder("Lighting");
+    addInfoButton(root, "/user-guide/advanced-options#lighting");
     root.domElement.id = "embossFolder";
 
     controllers["embossSmoothness"] = root
@@ -2676,6 +2934,7 @@ import { Stats } from "../stats.min.js";
     embossControllers.push(controllers["embossPhi"]);
 
     root = editViewFolder.addFolder("Overlay");
+    addInfoButton(root, "/user-guide/advanced-options#overlay");
     root.domElement.id = "overlayFolder";
 
     root
@@ -2691,6 +2950,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "overlayExpr")
       .name("Expression")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setDisplayColourAndType();
         if (options.plotType == "line") setPostFunFragShader();
         renderIfNotRunning();
@@ -2717,6 +2977,7 @@ import { Stats } from "../stats.min.js";
 
     linesAnd3DFolder = editViewFolder.addFolder("3D");
     root = linesAnd3DFolder;
+    addInfoButton(root, "/user-guide/advanced-options#3d-options");
 
     surfaceButtons = addButtonList(root);
 
@@ -2739,6 +3000,7 @@ import { Stats } from "../stats.min.js";
       .add(options, "surfaceFun")
       .name("Surface $z=$ ")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         updateWhatToPlot();
         renderIfNotRunning();
         updateView(this.property);
@@ -2791,6 +3053,7 @@ import { Stats } from "../stats.min.js";
 
     vectorFieldFolder = editViewFolder.addFolder("Vector field");
     root = vectorFieldFolder;
+    addInfoButton(root, "/user-guide/advanced-options#vector-field");
     root.domElement.id = "vectorFieldFolder";
 
     root
@@ -2805,6 +3068,7 @@ import { Stats } from "../stats.min.js";
     root
       .add(options, "arrowX")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setPostFunFragShader();
         renderIfNotRunning();
         updateView(this.property);
@@ -2814,6 +3078,7 @@ import { Stats } from "../stats.min.js";
     root
       .add(options, "arrowY")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setPostFunFragShader();
         renderIfNotRunning();
         updateView(this.property);
@@ -2858,6 +3123,10 @@ import { Stats } from "../stats.min.js";
   }
 
   function animate() {
+    if (isSuspended) {
+      requestAnimationFrame(animate);
+      return;
+    }
     if (options.showStats) stats.begin();
 
     hasDrawn = isDrawing;
@@ -2949,24 +3218,32 @@ import { Stats } from "../stats.min.js";
         shaderStr += drawShaderShapeVLine();
         break;
     }
+
     // Configure the action of the brush.
-    switch (options.brushAction) {
-      case "replace":
-        shaderStr += drawShaderFactorSharp();
-        shaderStr += drawShaderBotReplace();
-        break;
-      case "add":
-        shaderStr += drawShaderFactorSharp();
-        shaderStr += drawShaderBotAdd();
-        break;
-      case "smoothreplace":
-        shaderStr += drawShaderFactorSmooth();
-        shaderStr += drawShaderBotReplace();
-        break;
-      case "smoothadd":
-        shaderStr += drawShaderFactorSmooth();
-        shaderStr += drawShaderBotAdd();
-        break;
+    if (options.brushType == "custom") {
+      shaderStr += drawShaderCustom();
+      shaderStr += options.brushAction.includes("replace")
+        ? drawShaderBotReplace()
+        : drawShaderBotAdd();
+    } else {
+      switch (options.brushAction) {
+        case "replace":
+          shaderStr += drawShaderFactorSharp();
+          shaderStr += drawShaderBotReplace();
+          break;
+        case "add":
+          shaderStr += drawShaderFactorSharp();
+          shaderStr += drawShaderBotAdd();
+          break;
+        case "smoothreplace":
+          shaderStr += drawShaderFactorSmooth();
+          shaderStr += drawShaderBotReplace();
+          break;
+        case "smoothadd":
+          shaderStr += drawShaderFactorSmooth();
+          shaderStr += drawShaderBotAdd();
+          break;
+      }
     }
     // Configure the displayed cursor.
     configureCursorDisplay();
@@ -3146,17 +3423,14 @@ import { Stats } from "../stats.min.js";
 
     // If selected, set the colour range.
     if (options.autoSetColourRange && !(frameCount % options.guiUpdatePeriod)) {
-      setColourRange();
+      setColourRangeSnap();
     }
 
     // Update the position of the click domain for easy clicking.
     if (options.brushEnabled && options.plotType == "surface") {
       let val = 0;
-      if (options.maxColourValue - options.minColourValue > 0) {
-        val =
-          (getMeanVal() - options.minColourValue) /
-            (options.maxColourValue - options.minColourValue) -
-          0.5;
+      if (cLims[1] > cLims[0]) {
+        val = (getMeanVal() - cLims[1]) / (cLims[1] - cLims[0]) - 0.5;
         val = val.clamp(-0.5, 0.5);
       }
       clickDomain.position.y = options.threeDHeightScale * val;
@@ -3168,12 +3442,11 @@ import { Stats } from "../stats.min.js";
       // Get the output from the buffer, in the form of (value,0,0,1).
       fillBuffer();
       let ind = 0;
-      var range = options.maxColourValue - options.minColourValue;
+      var range = cLims[1] - cLims[0];
       range = range == 0 ? 0.5 : range;
       for (let i = 0; i < buffer.length; i += 4) {
         // Set the height.
-        yDisplayDomainCoords[ind++] =
-          (buffer[i] - options.minColourValue) / range - 0.5;
+        yDisplayDomainCoords[ind++] = (buffer[i] - cLims[0]) / range - 0.5;
       }
       // Use spline-smoothed points for plotting.
       let curve = new THREE.SplineCurve(
@@ -3200,8 +3473,7 @@ import { Stats } from "../stats.min.js";
       if (options.overlay) {
         ind = 0;
         for (let i = 2; i < 4 * nXDisc; i += 4) {
-          yDisplayDomainCoords[ind++] =
-            (buffer[i] - options.minColourValue) / range - 0.5;
+          yDisplayDomainCoords[ind++] = (buffer[i] - cLims[0]) / range - 0.5;
         }
         curve = new THREE.SplineCurve(
           xDisplayDomainCoords.map(
@@ -3296,12 +3568,15 @@ import { Stats } from "../stats.min.js";
     if (takeAScreenshot) {
       takeAScreenshot = false;
       var link = document.createElement("a");
-      link.download = "VisualPDEScreenshot";
+      link.download = "VisualPDEScreenshot.png";
       renderer.render(scene, camera);
-      link.href = renderer.domElement.toDataURL();
-      document.body.appendChild(link);
+      link.href = renderer.domElement
+        .toDataURL()
+        .replace(
+          /^data:image\/?[A-z]*;base64,/,
+          "data:application/octet-stream;base64,"
+        );
       link.click();
-      document.body.removeChild(link);
       setSizes();
       render();
     }
@@ -3310,7 +3585,6 @@ import { Stats } from "../stats.min.js";
   }
 
   function postprocess() {
-    valueRange = null;
     simDomain.material = postMaterial;
     uniforms.textureSource.value = simTextures[1].texture;
     renderer.setRenderTarget(postTexture);
@@ -3326,15 +3600,13 @@ import { Stats } from "../stats.min.js";
       if (options.brushEnabled && options.plotType == "surface") {
         controls.enabled = false;
       } else if (!options.brushEnabled) {
-        // Display a message saying that the brush is disabled.
-        $("#top_message").html("<p>Brush disabled</p>");
-        fadein("#top_message");
-        // Fadeout after 3s passes.
-        window.clearTimeout(topMessageTimer);
-        topMessageTimer = setTimeout(function () {
-          if (!$("#top_message").hasClass("fading_out"))
-            fadeout("#top_message");
-        }, 3000);
+        // Display a message saying that the brush is disabled.")
+        $("#brush_disabled").fadeIn(1000);
+        window.clearTimeout(brushDisabledTimer);
+        brushDisabledTimer = setTimeout(
+          () => $("#brush_disabled").fadeOut(1000),
+          3000
+        );
       }
     }
   }
@@ -3676,7 +3948,7 @@ import { Stats } from "../stats.min.js";
       }
       while (str.indexOf(joker) > -1) {
         str = str.replace(new RegExp(joker + "(\\w+)", "g"), function (m, d) {
-          return tab[d].replace(regex, form);
+          return tab[d] ? tab[d].replace(regex, form) : "";
         });
       }
     }
@@ -3785,7 +4057,7 @@ import { Stats } from "../stats.min.js";
         } else {
           let baseStr = RDShaderDirichletIndicatorFun().replace(
             /indicatorFun/g,
-            parseShaderString(options.domainIndicatorFun)
+            parseShaderString(getModifiedDomainIndicatorFun())
           );
           dirichletShader +=
             selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
@@ -3808,7 +4080,7 @@ import { Stats } from "../stats.min.js";
         // Zero-out anything outside of the domain if we're using an indicator function.
         let baseStr = RDShaderDirichletIndicatorFun().replace(
           /indicatorFun/g,
-          parseShaderString(options.domainIndicatorFun)
+          parseShaderString(getModifiedDomainIndicatorFun())
         );
         dirichletShader +=
           selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
@@ -4012,12 +4284,24 @@ import { Stats } from "../stats.min.js";
 
     let type = "FE";
     simMaterials[type].fragmentShader = replaceMINXMINY(
-      [kineticStr, RDShaderTop(type), middle, RDShaderMain(type), bot].join(" ")
+      [
+        kineticStr,
+        RDShaderTop(type),
+        middle,
+        insertRates(RDShaderMain(type)),
+        bot,
+      ].join(" ")
     );
 
     type = "AB2";
     simMaterials[type].fragmentShader = replaceMINXMINY(
-      [kineticStr, RDShaderTop(type), middle, RDShaderMain(type), bot].join(" ")
+      [
+        kineticStr,
+        RDShaderTop(type),
+        middle,
+        insertRates(RDShaderMain(type)),
+        bot,
+      ].join(" ")
     );
 
     type = "Mid";
@@ -4027,7 +4311,7 @@ import { Stats } from "../stats.min.js";
           kineticStr,
           RDShaderTop(type + ind.toString()),
           middle,
-          RDShaderMain(type + ind.toString()),
+          insertRates(RDShaderMain(type + ind.toString())),
           bot,
         ].join(" ")
       );
@@ -4040,7 +4324,7 @@ import { Stats } from "../stats.min.js";
           kineticStr,
           RDShaderTop(type + ind.toString()),
           middle,
-          RDShaderMain(type + ind.toString()),
+          insertRates(RDShaderMain(type + ind.toString())),
           bot,
         ].join(" ")
       );
@@ -4059,7 +4343,7 @@ import { Stats } from "../stats.min.js";
         let str = RDShaderDirichletIndicatorFun()
           .replace(
             /indicatorFun/,
-            parseShaderString(options.domainIndicatorFun)
+            parseShaderString(getModifiedDomainIndicatorFun())
           )
           .replace(/updated/, "gl_FragColor");
         DStrs.forEach(function (D, ind) {
@@ -4178,9 +4462,6 @@ import { Stats } from "../stats.min.js";
       }
       delete options.oneDimensional;
     }
-
-    // Update the domain scale based on URL params.
-    domainScaleValue *= domainScaleFactor;
 
     // Configure views.
     configureViews();
@@ -4340,8 +4621,11 @@ import { Stats } from "../stats.min.js";
     });
 
     // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
-    if (options.minColourValue == null) options.minColourValue = 0;
-    if (options.maxColourValue == null) options.maxColourValue = 1;
+    if (options.minColourValue == null) options.minColourValue = "0";
+    if (options.maxColourValue == null) options.maxColourValue = "1";
+    // Convert min and max values to strings.
+    options.minColourValue = options.minColourValue.toString();
+    options.maxColourValue = options.maxColourValue.toString();
 
     // If options.domainScale is not a string, convert it to one.
     options.domainScale = options.domainScale.toString();
@@ -4416,12 +4700,9 @@ import { Stats } from "../stats.min.js";
       }
     }
     // Run MathJax to texify the parameter names (e.g. D_uu) that appear dynamically.
-    // No need to do this on page load (and indeed will throw an error) so check
-    // MathJax is defined first.
-    if (typeset && MathJax.typesetPromise != undefined) {
-      MathJax.typesetPromise();
+    if (typeset) {
+      runMathJax();
     }
-    // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
   }
 
   function deleteGUIs() {
@@ -4671,9 +4952,7 @@ import { Stats } from "../stats.min.js";
       .addImage(options, "imagePathTwo")
       .name("$I_T(x,y)$")
       .onChange(loadImageSourceTwo);
-    if (MathJax.typesetPromise != undefined) {
-      MathJax.typesetPromise();
-    }
+    runMathJax();
   }
 
   function updateWhatToPlot() {
@@ -4687,6 +4966,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function showVGUIPanels() {
+    if (options.timescales) controllers["TV"].show();
     if (options.crossDiffusion) {
       controllers["Duv"].show();
       controllers["Dvu"].show();
@@ -4701,6 +4981,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function showWGUIPanels() {
+    if (options.timescales) controllers["TW"].show();
     if (options.crossDiffusion) {
       controllers["Duw"].show();
       controllers["Dvw"].show();
@@ -4719,6 +5000,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function showQGUIPanels() {
+    if (options.timescales) controllers["TQ"].show();
     if (options.crossDiffusion) {
       controllers["Duq"].show();
       controllers["Dvq"].show();
@@ -4741,6 +5023,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function hideVGUIPanels() {
+    controllers["TV"].hide();
     controllers["Duv"].hide();
     controllers["Dvu"].hide();
     controllers["Dvv"].hide();
@@ -4750,6 +5033,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function hideWGUIPanels() {
+    controllers["TW"].hide();
     controllers["Duw"].hide();
     controllers["Dvw"].hide();
     controllers["Dwu"].hide();
@@ -4761,6 +5045,7 @@ import { Stats } from "../stats.min.js";
   }
 
   function hideQGUIPanels() {
+    controllers["TQ"].hide();
     controllers["Duq"].hide();
     controllers["Dvq"].hide();
     controllers["Dwq"].hide();
@@ -4812,9 +5097,18 @@ import { Stats } from "../stats.min.js";
     if (options.domainViaIndicatorFun) {
       shaderStr += postShaderDomainIndicator().replace(
         /indicatorFun/g,
+        parseShaderString(getModifiedDomainIndicatorFun())
+      );
+    }
+    // Substitute the placeholder string used for remove vectors when near custom boundaries.
+    let replacement = "";
+    if (options.vectorField && options.domainViaIndicatorFun) {
+      replacement = postShaderDomainIndicatorVField(
         parseShaderString(options.domainIndicatorFun)
       );
     }
+    shaderStr = shaderStr.replace("VECFIELDPLACEHOLDER", replacement);
+    // Substitute the overlay expression.
     shaderStr = shaderStr.replaceAll(
       "OVERLAYEXPR",
       parseShaderString(options.overlayExpr)
@@ -4939,12 +5233,36 @@ import { Stats } from "../stats.min.js";
     } else {
       controllers["algebraicSpecies"].hide();
     }
+    if (options.brushType == "custom") {
+      updateGUIDropdown(
+        controllers["brushAction"],
+        brushActions.filter((x) => !x.includes("smooth")),
+        brushActionVals.filter((x) => !x.includes("smooth"))
+      );
+      if (options.brushAction.includes("smooth")) {
+        controllers["brushAction"].setValue(
+          options.brushAction.replaceAll("smooth", "")
+        );
+      }
+      // Rename the Radius field to Indicator.
+      controllers["brushRadius"].name("Indicator");
+    } else {
+      updateGUIDropdown(
+        controllers["brushAction"],
+        brushActions,
+        brushActionVals
+      );
+      controllers["brushRadius"].name("Radius");
+    }
 
     if (options.numSpecies > 1) {
       $("#cross_diffusion_controller").show();
     } else {
       $("#cross_diffusion_controller").hide();
     }
+
+    // Show all timescale panels to begin with.
+    timescaleTags.forEach((tag) => controllers[tag].show());
 
     // Hide/Show VWQGUI panels.
     hideVGUIPanels();
@@ -4957,6 +5275,10 @@ import { Stats } from "../stats.min.js";
         showWGUIPanels();
       case 2:
         showVGUIPanels();
+    }
+    // Hide timescale panels if we don't need them.
+    if (!options.timescales) {
+      timescaleTags.forEach((tag) => controllers[tag].hide());
     }
 
     // Configure the controller names.
@@ -4988,6 +5310,11 @@ import { Stats } from "../stats.min.js";
     setGUIControllerName(controllers["g"], TeXStrings["VFUN"], tooltip);
     setGUIControllerName(controllers["h"], TeXStrings["WFUN"], tooltip);
     setGUIControllerName(controllers["j"], TeXStrings["QFUN"], tooltip);
+
+    setGUIControllerName(controllers["TU"], TeXStrings["TU"], tooltip);
+    setGUIControllerName(controllers["TV"], TeXStrings["TV"], tooltip);
+    setGUIControllerName(controllers["TW"], TeXStrings["TW"], tooltip);
+    setGUIControllerName(controllers["TQ"], TeXStrings["TQ"], tooltip);
 
     // Configure the names of algebraic controllers.
     if (algebraicV) {
@@ -5341,7 +5668,7 @@ import { Stats } from "../stats.min.js";
     configureDimension();
     configureOptions();
     configureGUI();
-    setKineticUniforms();
+    setComputedUniforms();
     updateShaders();
     setEquationDisplayType();
   }
@@ -5378,6 +5705,10 @@ import { Stats } from "../stats.min.js";
     regexes["VFUN"] = /\b(VFUN)/g;
     regexes["WFUN"] = /\b(WFUN)/g;
     regexes["QFUN"] = /\b(QFUN)/g;
+    regexes["TU"] = /\b(tau_{u})/g;
+    regexes["TV"] = /\b(tau_{v})/g;
+    regexes["TW"] = /\b(tau_{w})/g;
+    regexes["TQ"] = /\b(tau_{q})/g;
 
     if (options.typesetCustomEqs) {
       // We'll work using the default notation, then convert at the end.
@@ -5406,6 +5737,10 @@ import { Stats } from "../stats.min.js";
       associatedStrs["VFUN"] = options.reactionStr_2;
       associatedStrs["WFUN"] = options.reactionStr_3;
       associatedStrs["QFUN"] = options.reactionStr_4;
+      associatedStrs["TU"] = options.timescale_1;
+      associatedStrs["TV"] = options.timescale_2;
+      associatedStrs["TW"] = options.timescale_3;
+      associatedStrs["TQ"] = options.timescale_4;
 
       // Map empty strings to 0.
       Object.keys(associatedStrs).forEach(function (key) {
@@ -5454,28 +5789,53 @@ import { Stats } from "../stats.min.js";
       });
 
       // Add in \selected{} to any selected entry.
+      const selectCommand = inDarkMode() ? "selectedDark" : "selectedLight";
       selectedEntries.forEach(function (x) {
-        associatedStrs[x] = "\\selected{" + associatedStrs[x] + "}";
+        associatedStrs[x] =
+          "\\" + selectCommand + "{" + associatedStrs[x] + "}";
       });
 
       // For each diffusion string, replace it with the value in associatedStrs.
-      Object.keys(associatedStrs).forEach(function (key) {
-        if (!defaultReactions.includes(key)) {
-          let delims = associatedStrs[key].includes("\\dmat") ? "  " : "[]";
-          str = replaceUserDefDiff(
-            str,
-            regexes[key],
-            associatedStrs[key],
-            delims
-          );
-        }
+      [
+        "U",
+        "UU",
+        "V",
+        "VV",
+        "W",
+        "WW",
+        "Q",
+        "QQ",
+        "UV",
+        "UW",
+        "UQ",
+        "VU",
+        "VW",
+        "VQ",
+        "WU",
+        "WV",
+        "WQ",
+        "QU",
+        "QV",
+        "QW",
+      ].forEach(function (key) {
+        let delims = associatedStrs[key].includes("\\dmat") ? "  " : "[]";
+        str = replaceUserDefDiff(
+          str,
+          regexes[key],
+          associatedStrs[key],
+          delims
+        );
       });
 
-      // Replace the reaction strings, converting everything back to default notation.
-      str = replaceUserDefReac(str, regexes["UFUN"], associatedStrs["UFUN"]);
-      str = replaceUserDefReac(str, regexes["VFUN"], associatedStrs["VFUN"]);
-      str = replaceUserDefReac(str, regexes["WFUN"], associatedStrs["WFUN"]);
-      str = replaceUserDefReac(str, regexes["QFUN"], associatedStrs["QFUN"]);
+      // Replace the reaction strings.
+      ["UFUN", "VFUN", "WFUN", "QFUN"].forEach(function (tag) {
+        str = replaceUserDefReac(str, regexes[tag], associatedStrs[tag]);
+      });
+
+      // Replace the timescale strings.
+      timescaleTags.forEach(function (tag) {
+        str = replaceUserDefTimescale(str, regexes[tag], associatedStrs[tag]);
+      });
 
       // Look through the string for any open brackets ( or [ followed by a +.
       regex = /\(\s*\+/g;
@@ -5563,9 +5923,10 @@ import { Stats } from "../stats.min.js";
       str = str.replaceAll(regex, "\\mathcal{Z}");
     } else {
       // Even if we're not customising the typesetting, add in \selected{} to any selected entry.
+      const selectCommand = inDarkMode() ? "selectedDark" : "selectedLight";
       selectedEntries.forEach(function (x) {
         str = str.replaceAll(regexes[x], function (match, g1, g2) {
-          let val = "\\selected{" + g1 + " ";
+          let val = "\\" + selectCommand + "{" + g1 + " ";
           if (typeof g2 == "string") val += g2;
           return val + "}";
         });
@@ -5576,6 +5937,14 @@ import { Stats } from "../stats.min.js";
         ["UFUN", "VFUN", "WFUN", "QFUN"],
         defaultReactions
       );
+    }
+
+    // Remove timescales if they're not being requested.
+    if (!options.timescales) {
+      // Replace the timescale strings.
+      timescaleTags.forEach(function (tag) {
+        str = replaceUserDefTimescale(str, regexes[tag], "");
+      });
     }
 
     // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
@@ -5599,9 +5968,7 @@ import { Stats } from "../stats.min.js";
     str = parseStringToTEX(str);
 
     $("#typeset_equation").html(str);
-    if (MathJax.typesetPromise != undefined) {
-      MathJax.typesetPromise().then(resizeEquationDisplay);
-    }
+    runMathJax()?.then(resizeEquationDisplay);
   }
 
   function parseStringToTEX(str) {
@@ -5944,7 +6311,7 @@ import { Stats } from "../stats.min.js";
           setKineticStringFromParams();
           render();
           // Update the uniforms with this new value.
-          if (setKineticUniforms() || compileErrorOccurred) {
+          if (setComputedUniforms() || compileErrorOccurred) {
             // Reset the error flag.
             compileErrorOccurred = false;
             // If we added a new uniform, we need to remake all the shaders.
@@ -6003,7 +6370,7 @@ import { Stats } from "../stats.min.js";
           createParameterController(newLabel, true);
           // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
           setKineticStringFromParams();
-          if (setKineticUniforms() || compileErrorOccurred) {
+          if (setComputedUniforms() || compileErrorOccurred) {
             // Reset the error flag.
             compileErrorOccurred = false;
             updateShaders();
@@ -6071,7 +6438,7 @@ import { Stats } from "../stats.min.js";
         }
         // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
-        if (setKineticUniforms()) {
+        if (setComputedUniforms()) {
           updateShaders();
         }
       });
@@ -6187,9 +6554,7 @@ import { Stats } from "../stats.min.js";
           $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
         }
       }
-      if (MathJax.typesetPromise != undefined) {
-        MathJax.typesetPromise($("#midLabel"));
-      }
+      runMathJax($("#midLabel"));
       checkColourbarLogoCollision();
       updateColourbarLims();
     } else {
@@ -6201,10 +6566,7 @@ import { Stats } from "../stats.min.js";
     if (options.whatToPlot != "MAX") {
       // We want to display a string that is the shorter of 3 sig. fig. and 3 dec. places.
       let minStr, maxStr;
-      [minStr, maxStr] = formatColourbarLabels(
-        options.minColourValue,
-        options.maxColourValue
-      );
+      [minStr, maxStr] = formatColourbarLabels(cLims[0], cLims[1]);
       // If either strings are just zeros, simply write 0.
       const regex = /[1-9]/;
       if (!regex.test(minStr)) minStr = "0";
@@ -6288,9 +6650,7 @@ import { Stats } from "../stats.min.js";
       str += "_{\\domain}" + parseStringToTEX(options.whatToPlot) + "\\,\\d x";
       options.dimension == 1 ? {} : (str += "\\d y");
       $("#integralLabel").html(str + " = $");
-      if (MathJax.typesetPromise != undefined) {
-        MathJax.typesetPromise($("#integralLabel"));
-      }
+      runMathJax($("#integralLabel"));
     } else {
       $("#integralDisplay").hide();
     }
@@ -6335,7 +6695,7 @@ import { Stats } from "../stats.min.js";
 
   function checkForNaN() {
     // Check to see if a NaN value is in the first entry of the simulation array, which would mean that we've hit overflow or instability.
-    setMinMaxValGPU();
+    const valueRange = setMinMaxValGPU();
     if (
       (shouldCheckNaN &&
         (!isFinite(valueRange[0]) ||
@@ -6408,11 +6768,12 @@ import { Stats } from "../stats.min.js";
         1,
         smallBuffer
       );
-      valueRange = [smallBuffer[0], smallBuffer[1]];
+      return [smallBuffer[0], smallBuffer[1]];
     } catch {
       alert(
         "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!"
       );
+      return [0, 1];
     }
   }
 
@@ -6462,40 +6823,19 @@ import { Stats } from "../stats.min.js";
   }
 
   function isReturningUser() {
-    var cookieArr = document.cookie.split(";");
-    for (var i = 0; i < cookieArr.length; i++) {
-      var cookiePair = cookieArr[i].split("=");
-      if ("visited" == cookiePair[0].trim()) {
-        return true;
-      }
-    }
-    return false;
+    return localStorage.getItem("visited");
   }
 
   function setReturningUser() {
-    const d = new Date();
-    d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
-    let expires = "expires=" + d.toUTCString();
-    document.cookie = "visited" + "=" + "true" + ";" + expires + ";path=/";
+    localStorage.setItem("visited", true);
   }
 
   function seenFullWelcomeUser() {
-    var cookieArr = document.cookie.split(";");
-    for (var i = 0; i < cookieArr.length; i++) {
-      var cookiePair = cookieArr[i].split("=");
-      if ("seenFullWelcome" == cookiePair[0].trim()) {
-        return true;
-      }
-    }
-    return false;
+    return localStorage.getItem("seenFullWelcome");
   }
 
   function setSeenFullWelcomeUser() {
-    const d = new Date();
-    d.setTime(d.getTime() + 365 * 24 * 60 * 60 * 1000);
-    let expires = "expires=" + d.toUTCString();
-    document.cookie =
-      "seenFullWelcome" + "=" + "true" + ";" + expires + ";path=/";
+    localStorage.setItem("seenFullWelcome", true);
   }
 
   function waitListener(element, listenerName, val) {
@@ -6550,6 +6890,17 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  function replaceUserDefTimescale(str, regex, input) {
+    if (!options.timescales) return str.replaceAll(regex, "");
+    // Special cases.
+    let trimmed = input.replace(/\s+/g, "  ").trim();
+    if (["1", "1.0"].includes(trimmed)) return str.replaceAll(regex, "");
+    if (["-1", "-1.0"].includes(trimmed)) return str.replaceAll(regex, "-");
+    // If the input contains a + or -, add parentheses.
+    if (input.match(/[\+\-]/)) input = "(" + input + ")";
+    return str.replaceAll(regex, input);
+  }
+
   function replaceUserDefDiff(str, regex, input, delimiters) {
     // Insert user-defined input into str in place of original, surrounded by delimiters.
     // E.g. str = some TeX, regex = /(D_{uu}) (\\vnabla u)/g; input = "2*a"; delimiters = " ";
@@ -6569,6 +6920,7 @@ import { Stats } from "../stats.min.js";
   function configurePlotType() {
     // Configure the simulation to plot the solution as requested.
     if (options.plotType == "line") {
+      wasLinePlot = true;
       setLineWidth();
       options.brushType = "vline";
       setBrushType();
@@ -6580,6 +6932,11 @@ import { Stats } from "../stats.min.js";
       options.vectorField = false;
       configureVectorField();
     } else {
+      if (wasLinePlot && options.dimension > 1) {
+        wasLinePlot = false;
+        options.brushType = "circle";
+        setBrushType();
+      }
       domain.visible = true;
       line.visible = false;
       if (options.plotType == "surface") {
@@ -6699,14 +7056,14 @@ import { Stats } from "../stats.min.js";
     return nameVals;
   }
 
-  function setKineticUniforms() {
+  function setComputedUniforms() {
     // Set uniforms based on the parameters defined in kineticParams.
     // Return true if we're adding a new uniform, which signifies that all shaders must be
     // updated to reference this new uniform.
     const paramStrs = getKineticParamDefs()
       .split(";")
       .filter((x) => x.length > 0);
-    const nameVals = evaluateParamVals(paramStrs);
+    kineticParamsVals = evaluateParamVals(paramStrs);
     // Check for any duplicated parameter names.
     const dups = getDuplicates(getKineticParamNames());
     if (dups.length > 0) {
@@ -6719,11 +7076,12 @@ import { Stats } from "../stats.min.js";
     }
     let addingNewUniform = false;
     let encounteredError = false;
-    for (const nameVal of nameVals) {
+    for (const nameVal of kineticParamsVals) {
       let [uniformFlag, errorFlag] = setKineticUniform(nameVal[0], nameVal[1]);
       addingNewUniform |= uniformFlag;
       encounteredError |= errorFlag;
     }
+    if (cLimsDependOnParams) setColourRangeFromDef();
     return addingNewUniform && !encounteredError;
   }
 
@@ -6766,6 +7124,13 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Returns a list of (name,value) pairs for parameters defined in a list of strings.
+   * These can depend on each other, but not cyclically.
+   *
+   * @param {string[]} strs - The list of strings to evaluate.
+   * @returns {[string, any][]} A list of (name, value) pairs for the evaluated parameters.
+   */
   function evaluateParamVals(strs) {
     // Return a list of (name,value) pairs for parameters defined in
     // a list of strings. These can depend on each other, but not cyclically.
@@ -6801,6 +7166,16 @@ import { Stats } from "../stats.min.js";
     return Object.keys(valDict).map((x) => [x, valDict[x]]);
   }
 
+  /**
+   * Evaluates a parameter value based on its dependencies and returns the updated value dictionary, stack, and bad names.
+   * @param {string} name - The name of the parameter to evaluate.
+   * @param {Object} strDict - The dictionary of parameter names and their string representations.
+   * @param {Object} valDict - The dictionary of parameter names and their numeric values.
+   * @param {Array} stack - The stack of parameter names being evaluated.
+   * @param {Array} names - The list of parameter names.
+   * @param {Array} badNames - The list of parameter names that have cyclic dependencies.
+   * @returns {Array} - An array containing the updated value dictionary, stack, and bad names.
+   */
   function evaluateParam(name, strDict, valDict, stack, names, badNames) {
     // If we know the value already, don't do anything.
     if (name in valDict) return [valDict, stack.slice(0, -1), badNames];
@@ -6848,8 +7223,67 @@ import { Stats } from "../stats.min.js";
     return [valDict, stack.slice(0, -1), badNames];
   }
 
+  /**
+   * Sets the colour range based on the current min and max values.
+   * @name setColourRangeFromDef
+   * @returns {void}
+   */
+  function setColourRangeFromDef() {
+    cLims = evaluateMinMaxVals();
+    // Check if the colour limits need to be evaluated (ie do they contain non-numeric values).
+    cLimsDependOnParams = doColourLimsNeedEvaluating();
+    uniforms.minColourValue.value = cLims[0];
+    uniforms.maxColourValue.value = cLims[1];
+    updateColourbarLims();
+  }
+
+  /**
+   * Evaluates expressions for min and max colours using the parameter values in kineticParamsVals.
+   * @returns {void}
+   */
+  function evaluateMinMaxVals() {
+    // Using the parameter values in kineticParamsVals, evaluate expressions for min and max colours.
+    let min = options.minColourValue.toString();
+    let max = options.maxColourValue.toString();
+    let regex;
+    for (const nameVal of kineticParamsVals) {
+      regex = new RegExp("\\b" + nameVal[0] + "\\b", "g");
+      min = min.replaceAll(regex, nameVal[1]);
+      max = max.replaceAll(regex, nameVal[1]);
+    }
+    try {
+      cLims[0] = parser.evaluate(min);
+    } catch (error) {
+      throwError(
+        "Unable to evaluate the minimum colour limit. Please check the definition."
+      );
+    }
+    try {
+      cLims[1] = parser.evaluate(max);
+    } catch (error) {
+      throwError(
+        "Unable to evaluate the maximum colour limit. Please check the definition."
+      );
+    }
+    return cLims;
+  }
+
+  /**
+   * Checks if the color limits need to be evaluated (ie do they contain non-numeric values).
+   * @returns {boolean} Returns true if the color limits need to be evaluated, false otherwise.
+   */
+  function doColourLimsNeedEvaluating() {
+    return (
+      /[^\.0-9\s]+/.test(options.minColourValue) ||
+      /[^\.0-9\s]+/.test(options.maxColourValue)
+    );
+  }
+
+  /**
+   * Updates all the shaders that are constructed using user input.
+   * @returns {void}
+   */
   function updateShaders() {
-    // Update all the shaders that are constructed using user input.
     setRDEquations();
     setClearShader();
     setBrushType();
@@ -6858,8 +7292,12 @@ import { Stats } from "../stats.min.js";
     setPostFunFragShader();
   }
 
+  /**
+   * Replaces any digits [0-9] in the input string with their word equivalents, so long as they follow at least one letter in a word.
+   * @param {string} strIn - The input string to replace digits in.
+   * @returns {string} The output string with digits replaced by their word equivalents.
+   */
   function replaceDigitsWithWords(strIn) {
-    // For any digits [0-9] in strIn, replace them with their word equivalents.
     let regex;
     let strOut = strIn;
     for (let num = 0; num < 10; num++) {
@@ -6871,17 +7309,22 @@ import { Stats } from "../stats.min.js";
     return strOut;
   }
 
+  /**
+   * Resizes the equation display to fit the screen by iteratively reducing the font size until the container
+   * no longer encroaches on the right-hand side of the screen.
+   * @returns {void}
+   */
   function resizeEquationDisplay() {
-    // Iteratively reduce the font size of the equation display until the container
-    // doesn't encroach on the RHS of the screen.
     const el = $("#equation_display div mjx-container").children("mjx-math");
-    var fz;
+    var fontSize;
+    // Reset the font size.
     el.css("font-size", "");
     var count = 0;
     if ($("#leftGUI")[0] == undefined) return;
     const rGUI = $("#rightGUI")[0];
     var rGUICorrection = 0;
     if (rGUI != undefined) rGUICorrection = rGUI.getBoundingClientRect().width;
+    // If the equation display is too wide, reduce the font size. Do this at most 20 times.
     while (
       (count < 20) &
       ($("#equation_display")[0].getBoundingClientRect().right >=
@@ -6889,8 +7332,9 @@ import { Stats } from "../stats.min.js";
       ($("#equation_display")[0].getBoundingClientRect().width >
         $("#leftGUI")[0].getBoundingClientRect().width)
     ) {
-      fz = (parseFloat(el.css("font-size")) * 0.9).toString() + "px";
-      el.css("font-size", fz);
+      // Reduce the font size by 10% each time.
+      fontSize = (parseFloat(el.css("font-size")) * 0.9).toString() + "px";
+      el.css("font-size", fontSize);
       count += 1;
     }
 
@@ -6901,22 +7345,36 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Computes the brightness of a given color represented as an array of RGB values.
+   * @param {number[]} col - An array of RGB values representing a color.
+   * @returns {number} The brightness of the color.
+   */
   function computeColourBrightness(col) {
     return col.reduce((a, b) => a + b, 0) / 3;
   }
 
-  function setColourRange() {
-    // Set the range of the colour axis based on the extremes of the computed values.
-    setMinMaxValGPU();
-    options.minColourValue = valueRange[0];
-    options.maxColourValue = valueRange[1];
-    uniforms.maxColourValue.value = options.maxColourValue;
-    uniforms.minColourValue.value = options.minColourValue;
+  /**
+   * Sets the range of the colour axis based on the extremes of the computed values.
+   * @returns {void}
+   */
+  function setColourRangeSnap() {
+    cLims = setMinMaxValGPU();
+    options.minColourValue = String(cLims[0]);
+    options.maxColourValue = String(cLims[1]);
+    uniforms.minColourValue.value = cLims[0];
+    uniforms.maxColourValue.value = cLims[1];
     controllers["maxColourValue"].updateDisplay();
     controllers["minColourValue"].updateDisplay();
     updateColourbarLims();
   }
 
+  /**
+   * Updates the dropdown of a dat.GUI controller.
+   * @param {dat.GUIController} controller - The dat.GUI controller to update.
+   * @param {Array<string>} labels - The labels to display in the dropdown.
+   * @param {Array<string>} [values=labels] - The values to associate with each label in the dropdown. If not provided, the labels will be used as values.
+   */
   function updateGUIDropdown(controller, labels, values) {
     // Update the dropdown of a dat.GUI controller.
     if (values == undefined) {
@@ -6935,6 +7393,10 @@ import { Stats } from "../stats.min.js";
     controller.domElement.children[0].innerHTML = innerHTMLStr;
   }
 
+  /**
+   * Sets custom names for species and reactions, swapping out species in all user-editable strings.
+   * @returns {void}
+   */
   function setCustomNames() {
     let oldListOfSpecies;
     if (listOfSpecies != undefined) {
@@ -6985,6 +7447,7 @@ import { Stats } from "../stats.min.js";
     let defaultStrings = {
       ...getDefaultTeXLabelsDiffusion(),
       ...getDefaultTeXLabelsBCsICs(),
+      ...getDefaultTeXLabelsTimescales(),
     };
     Object.keys(defaultStrings).forEach(function (key) {
       TeXStrings[key] = parseStringToTEX(
@@ -7082,6 +7545,10 @@ import { Stats } from "../stats.min.js";
     setEquationDisplayType();
   }
 
+  /**
+   * Generates an array of strings defining regular expression that are equivalent to [uvwq], [vwq], [wq], [q] but with
+   * the new species inserted. Sorts before forming regex to pick up nested species.
+   */
   function genAnySpeciesRegexStrs() {
     // Generate RegExp that is equivalent to [uvwq], [vwq], [wq], [q] but with
     // the new species inserted. Sort before forming regex to pick up nested species.
@@ -7099,9 +7566,15 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Replaces all the symbols from originals, found as whole words, with those in replacements, allowing for an optional trailing regex.
+   * @param {string} str - The string to replace symbols in.
+   * @param {string[]} originals - The original symbols to replace.
+   * @param {string[]} replacements - The replacement symbols.
+   * @param {string} [optional] - An optional trailing regex.
+   * @returns {string} The string with replaced symbols.
+   */
   function replaceSymbolsInStr(str, originals, replacements, optional) {
-    // Replace all the symbols from originals, found as whole words, with those
-    // in replacements, allowing for an optional trailing regex.
     if (optional == undefined) optional = "";
     const placeholders = new Array(originals.length)
       .fill(0)
@@ -7126,8 +7599,12 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Sets the xy coordinates of the display line, scaling y by options.threeDHeightScale.
+   * @param {Object} lineObj - The line object to set the coordinates for.
+   * @param {Array<Array<number>>} xy - The xy coordinates to set.
+   */
   function setLineXY(lineObj, xy) {
-    // Set the xy coordinates of the display line, scaling y by options.threeDHeightScale.
     let start = lineObj.geometry.attributes.instanceStart;
     let end = lineObj.geometry.attributes.instanceEnd;
     let coord;
@@ -7141,9 +7618,13 @@ import { Stats } from "../stats.min.js";
     end.needsUpdate = true;
   }
 
+  /**
+   * Sets the display line colour from the xy coordinates, noting that y in [-0.5,0.5].
+   * The colour is given simply by the y coordinate.
+   * @param {Object} lineObj - The line object to set the colour for.
+   * @param {Array} xy - The xy coordinates to use for setting the colour.
+   */
   function setLineColour(lineObj, xy) {
-    // Set the display line colour from the xy coordinates, noting that y in [-0.5,0.5].
-    // The colour is given simply by the y coordinate.
     let start = lineObj.geometry.attributes.instanceColorStart;
     let end = lineObj.geometry.attributes.instanceColorEnd;
     let colour;
@@ -7155,6 +7636,11 @@ import { Stats } from "../stats.min.js";
     start.needsUpdate = true;
   }
 
+  /**
+   * Returns a colour from a given value using a colour map.
+   * @param {number} val - The value to assign a colour to, must be between 0 and 1.
+   * @returns {Array<number>} An array of RGB values representing the colour.
+   */
   function colourFromValue(val) {
     // For val in [0,1] assign a colour using the colourmap.
     val = val.clamp(0, 1);
@@ -7174,6 +7660,14 @@ import { Stats } from "../stats.min.js";
     ).map((x) => x.clamp(0, 1));
   }
 
+  /**
+   * Linearly interpolates between two arrays v1 and v2, with t in [0,1].
+   *
+   * @param {Array} v1 - The first array to interpolate from.
+   * @param {Array} v2 - The second array to interpolate to.
+   * @param {number} t - The interpolation factor, in the range [0, 1].
+   * @returns {Array} The interpolated array.
+   */
   function lerpArrays(v1, v2, t) {
     // Linear interpolation of arrays v1 and v2, with t in [0,1].
     let res = new Array(v1.length);
@@ -7183,12 +7677,22 @@ import { Stats } from "../stats.min.js";
     return res;
   }
 
+  /**
+   * Linear interpolation between two values.
+   * @param {number} a - The starting value.
+   * @param {number} b - The ending value.
+   * @param {number} t - The interpolation factor, between 0 and 1.
+   * @returns {number} The interpolated value.
+   */
   function lerp(a, b, t) {
     // Linear interpolation between a and b, with t in [0,1].
     t = t.clamp(0, 1);
     return (1 - t) * a + t * b;
   }
 
+  /**
+   * Sets the line width for the line material and overlay line material.
+   */
   function setLineWidth() {
     lineMaterial.linewidth = 0.01 * options.lineWidthMul;
     overlayLineMaterial.linewidth = 0.01 * options.overlayLineWidthMul;
@@ -7196,16 +7700,32 @@ import { Stats } from "../stats.min.js";
     overlayLineMaterial.needsUpdate = true;
   }
 
+  /**
+   * Sets the onfocus handler of a free-text controller.
+   *
+   * @param {Object} cont - The free-text controller object.
+   * @param {Function} fun - The function to be called when the controller is focused.
+   * @param {Array} args - The arguments to be passed to the function.
+   */
   function setOnfocus(cont, fun, args) {
-    // Set the onfocus handler of a free-text controller.
     cont.domElement.firstChild.onfocus = () => fun(args);
   }
 
+  /**
+   * Sets the onblur handler of a free-text controller.
+   *
+   * @param {Object} cont - The free-text controller object.
+   * @param {Function} fun - The function to be called when the onblur event is triggered.
+   * @param {Array} args - The arguments to be passed to the function.
+   */
   function setOnblur(cont, fun, args) {
-    // Set the onblur handler of a free-text controller.
     cont.domElement.firstChild.onblur = () => fun(args);
   }
 
+  /**
+   * Selects TeX entries with the given IDs.
+   * @param {Array<string>} ids - The IDs of the TeX entries to select.
+   */
   function selectTeX(ids) {
     ids.forEach(function (id) {
       selectedEntries.add(id);
@@ -7213,6 +7733,10 @@ import { Stats } from "../stats.min.js";
     setEquationDisplayType();
   }
 
+  /**
+   * Deselects TeX entries with the given IDs.
+   * @param {Array<string>} ids - The IDs of the TeX entries to deselect.
+   */
   function deselectTeX(ids) {
     ids.forEach(function (id) {
       selectedEntries.delete(id);
@@ -7220,6 +7744,10 @@ import { Stats } from "../stats.min.js";
     setEquationDisplayType();
   }
 
+  /**
+   * Retrieves the raw state of the simulation from the renderer's render target pixels.
+   * @returns {void}
+   */
   function getRawState() {
     stateBuffer = new Float32Array(nXDisc * nYDisc * 4);
     renderer.readRenderTargetPixels(
@@ -7232,6 +7760,9 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Reads the pixel data from the post-processing texture and stores it in a Float32Array postBuffer.
+   */
   function getPostState() {
     postBuffer = new Float32Array(nXDisc * nYDisc * 4);
     renderer.readRenderTargetPixels(
@@ -7244,6 +7775,9 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Saves the current simulation state in memory as a buffer and creates a texture from it.
+   */
   function saveSimState() {
     // Save the current state in memory as a buffer.
     getRawState();
@@ -7254,6 +7788,10 @@ import { Stats } from "../stats.min.js";
     checkpointExists = true;
   }
 
+  /**
+   * Saves a checkpoint of the simulation state and downloads it as a file.
+   * If no checkpoint exists, creates one before downloading.
+   */
   function exportSimState() {
     // Save a checkpoint to file. If no checkpoint exists, create one.
     if (!checkpointExists) {
@@ -7271,6 +7809,11 @@ import { Stats } from "../stats.min.js";
     document.body.removeChild(link);
   }
 
+  /**
+   * Loads simulation state from a file.
+   *
+   * @param {File} file - The file containing the simulation state.
+   */
   function loadSimState(file) {
     const reader = new FileReader();
     reader.onload = function () {
@@ -7284,6 +7827,10 @@ import { Stats } from "../stats.min.js";
     reader.readAsArrayBuffer(file);
   }
 
+  /**
+   * Sets the repeat and offset properties of a texture based on the resizeCheckpoints option. Allows for stretching or cropping of the texture.
+   * @param {Texture} texture - The texture to set the properties for.
+   */
   function setStretchOrCropTexture(texture) {
     if (texture != null) {
       if (options.resizeCheckpoints == "crop") {
@@ -7304,6 +7851,12 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Creates a new THREE.DataTexture object from the given buffer and dimensions.
+   * If a checkpoint texture already exists, it will be disposed of before creating the new texture.
+   * @param {Float32Array} buff - The buffer to use for the texture data.
+   * @param {Array<number>} [dims=[nXDisc, nYDisc]] - The dimensions of the texture.
+   */
   function createCheckpointTexture(buff, dims) {
     if (checkpointTexture != null) {
       checkpointTexture.dispose();
@@ -7328,10 +7881,18 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Sets the size of the renderer to the dimensions of the discretisation.
+   */
   function setRenderSizeToDisc() {
     renderer.setSize(nXDisc, nYDisc, false);
   }
 
+  /**
+   * Sets the default render size based on the canvas dimensions and performance mode option.
+   
+   * @returns {void}
+   */
   function setDefaultRenderSize() {
     let scaleFactor = options.performanceMode ? 0.6 : devicePixelRatio;
     renderer.setSize(
@@ -7341,6 +7902,10 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Pauses the simulation and displays an error message.
+   * @param {string} message - The error message to display.
+   */
   function throwError(message) {
     pauseSim();
     // If we're loading in, don't overwrite previous errors.
@@ -7358,39 +7923,117 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Throws an error about a preset with the given message, pauses the simulation, and displays the error message to the user.
+   * @param {string} message - The error message to display.
+   */
   function throwPresetError(message) {
     pauseSim();
     $("#preset_description").html(message);
     fadein("#bad_preset");
   }
 
+  /**
+   * Checks if the syntax of a given mathematical expression is valid.
+   * @param {string} str - The string to check.
+   * @returns {boolean} - Returns true if the syntax is valid, false otherwise.
+   */
   function isValidSyntax(str) {
-    // Return true if syntax appears correct, and false otherwise.
-
+    let regex, matches;
     // Empty parentheses?
-    if (/\(\s*\)/.test(str)) {
-      throwError("Empty parentheses in " + str.trim() + ".");
+    regex = /\(\s*\)/;
+    matches = str.match(regex);
+    if (matches != null) {
+      throwError(
+        "Empty parentheses in: " +
+          highlightStringinString(str, matches[0]).trim() +
+          "."
+      );
       return false;
     }
 
     // Balanced parentheses?
-    let bracketDepth = 0;
+    let bracketDepth = 0,
+      startInd,
+      endInd;
     for (var ind = 0; ind < str.length; ind++) {
       if (str[ind] == "(") {
         bracketDepth += 1;
       } else if (str[ind] == ")") {
         bracketDepth -= 1;
       }
+      if (bracketDepth > 0 && startInd == undefined) startInd = ind;
     }
-    if (bracketDepth != 0) {
-      throwError("Unbalanced parentheses in " + str.trim() + ".");
+    bracketDepth = 0;
+    for (var ind = str.length; ind >= 0; ind--) {
+      if (str[ind] == "(") {
+        bracketDepth += 1;
+      } else if (str[ind] == ")") {
+        bracketDepth -= 1;
+      }
+      if (bracketDepth < 0 && endInd == undefined) endInd = ind + 1;
+    }
+
+    if (bracketDepth > 0) {
+      throwError(
+        "Missing " +
+          (bracketDepth < 2 ? "" : bracketDepth.toString()) +
+          " ')'" +
+          " in: " +
+          (str.slice(0, startInd) +
+            highlightStringinString(str.slice(startInd), str.slice(startInd))) +
+          "."
+      );
+      return false;
+    } else if (bracketDepth < 0) {
+      throwError(
+        "Missing " +
+          (bracketDepth > -2 ? "" : -bracketDepth.toString()) +
+          " '('" +
+          " in: " +
+          (
+            highlightStringinString(
+              str.slice(0, endInd),
+              str.slice(0, endInd)
+            ) + str.slice(endInd)
+          ).trim() +
+          "."
+      );
       return false;
     }
 
     // Trailing operator?
-    if (/[\+\-\*\^\/]\s*$/.test(str)) {
+    regex = /[\+\-\*\^\/]\s*$/;
+    matches = str.match(regex);
+    if (matches != null) {
       throwError(
-        "A binary operator is missing an operand in " + str.trim() + "."
+        "A binary operator is missing an operand in: " +
+          highlightStringinString(str, matches[0]).trim() +
+          "."
+      );
+      return false;
+    }
+
+    // Closing parenthesis followed by a letter or number?
+    regex = /\)\s*[a-zA-Z0-9]/;
+    matches = str.match(regex);
+    if (matches != null) {
+      throwError(
+        "Missing operator in: " +
+          highlightStringinString(str, matches[0]).trim() +
+          "<br>You might be missing a '*' for multiplication."
+      );
+      return false;
+    }
+
+    // Number followed immediately by an opening parenthesis?
+    regex = /[0-9]+\s*\(/;
+    matches = str.match(regex);
+    if (matches != null) {
+      throwError(
+        "Operator missing after a number in: " +
+          highlightStringinString(str, matches[0]).trim() +
+          "<br> You might be missing a '*' for multiplication."
       );
       return false;
     }
@@ -7399,6 +8042,9 @@ import { Stats } from "../stats.min.js";
     return true;
   }
 
+  /**
+   * Configures the views for the simulation, filling in unset parts of existing views.
+   */
   function configureViews() {
     // If there's no default view in options.views, add one.
     if (options.views.length == 0) {
@@ -7415,6 +8061,9 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Configures the views GUI by removing every existing list item from views_list, creating a new list item for each view, and applying the view when clicked.
+   */
   function configureViewsGUI() {
     // Remove every existing list item from views_list.
     $("#views_list").empty();
@@ -7440,14 +8089,17 @@ import { Stats } from "../stats.min.js";
     } else {
       $("#deleteViewButton").addClass("hidden");
     }
-    if (MathJax.typesetPromise != undefined) {
-      MathJax.typesetPromise();
-    }
+    runMathJax();
     if (options.views.length > 0) {
       // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
     }
   }
 
+  /**
+   * Applies the given view to the options object, updates the plot and renders it.
+   * @param {Object} view - An object of parameters that resembles options.
+   * @param {boolean} [update=true] - Whether to update what is being plotted and render.
+   */
   function applyView(view, update) {
     // Apply the view, which is an object of parameters that resembles options.
     Object.assign(options, view);
@@ -7466,10 +8118,12 @@ import { Stats } from "../stats.min.js";
       updateViewSliders();
       render();
     }
-
-    // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
   }
 
+  /**
+   * Prompts the user to enter a name for the current view and updates the view's name in the options object.
+   * If the user enters a name, the views GUI is reconfigured and MathJax typesetting is updated.
+   */
   function editCurrentViewName() {
     let name = prompt(
       "Enter a name for the current View. You can enclose mathematics in $ $.",
@@ -7478,13 +8132,13 @@ import { Stats } from "../stats.min.js";
     if (name != null) {
       options.views[options.activeViewInd].name = name;
       configureViewsGUI();
-      if (MathJax.typesetPromise != undefined) {
-        MathJax.typesetPromise();
-      }
-      // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
+      runMathJax();
     }
   }
 
+  /**
+   * Adds a new view to the options object and configures the views GUI.
+   */
   function addView() {
     // Add a new view.
     let view = buildViewFromOptions();
@@ -7494,6 +8148,11 @@ import { Stats } from "../stats.min.js";
     configureViewsGUI();
   }
 
+  /**
+   * Removes the current view from the options.views array if there is more than one view. If there is only one view, renames it to "Custom".
+   
+   * @returns {void}
+   */
   function deleteView() {
     // Remove the current view if there is more than one view.
     if (options.views.length > 1) {
@@ -7511,6 +8170,10 @@ import { Stats } from "../stats.min.js";
     applyView(options.views[options.activeViewInd]);
   }
 
+  /**
+   * Builds a view object from the options object, containing only the fields specified in fieldsInView.
+   * @returns {Object} The view object.
+   */
   function buildViewFromOptions() {
     let view = {};
     fieldsInView.forEach(function (key) {
@@ -7519,12 +8182,23 @@ import { Stats } from "../stats.min.js";
     return view;
   }
 
+  /**
+   * Updates the active view with the given property.
+   * @param {string} property - The property to update the active view with.
+   */
   function updateView(property) {
     // Update the active view with options.property.
     if (options.activeViewInd < options.views.length)
       options.views[options.activeViewInd][property] = options[property];
   }
 
+  /**
+   * Updates the shader for a ghost species on a given side with a specified value.
+   * @param {number} speciesInd - The index of the species to update.
+   * @param {string} [side] - The side on which to apply the boundary condition ("L", "R", "B", "T", or undefined).
+   * @param {string} valStr - The value to update the species with.
+   * @returns {string} The updated shader string.
+   */
   function ghostUpdateShader(speciesInd, side, valStr) {
     let str = "";
     str += selectSpeciesInShaderStr(
@@ -7542,6 +8216,12 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Generates a shader string for updating a species with Dirichlet boundary conditions on a given side.
+   * @param {number} speciesInd - The index of the species to update.
+   * @param {string} [side] - The side on which to apply the boundary condition ("L", "R", "B", "T", or undefined).
+   * @returns {string} The generated shader string.
+   */
   function dirichletUpdateShader(speciesInd, side) {
     let str = "";
     str += selectSpeciesInShaderStr(
@@ -7557,6 +8237,12 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Generates a shader for including Robin boundary conditions for a given species and side.
+   * @param {number} speciesInd - The index of the species to update.
+   * @param {string} [side] - The side on which to apply the boundary condition ("L", "R", "B", "T", or undefined).
+   * @returns {string} - The updated shader string.
+   */
   function robinUpdateShader(speciesInd, side) {
     let str = "";
     str += selectSpeciesInShaderStr(
@@ -7572,6 +8258,12 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Generates a shader for including Robin boundary conditions for a given species and side in a custom domain.
+   * @param {number} speciesInd - The index of the species to update the shader for.
+   * @param {string} side - The side to update the shader for.
+   * @returns {string} - The updated shader string.
+   */
   function robinUpdateShaderCustomDomain(speciesInd, side) {
     let str = "";
     str += selectSpeciesInShaderStr(
@@ -7593,6 +8285,12 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Generates a shader string for enforcing Dirichlet boundary conditions for a given species and side.
+   * @param {number} speciesInd - The index of the species to enforce the boundary condition for.
+   * @param {string} side - The side of the boundary to enforce the condition on ("left", "right", "bottom", or "top").
+   * @returns {string} The generated shader string.
+   */
   function dirichletEnforceShader(speciesInd, side) {
     let str = "";
     str += selectSpeciesInShaderStr(
@@ -7608,14 +8306,30 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Creates a button list element and appends it to the parent element.
+   * @param {Object} parent - The parent element to append the button list to.
+   * @param {string} [id] - The id to assign to the button list element.
+   * @returns {Object} The created button list element.
+   */
   function addButtonList(parent, id) {
     const list = document.createElement("li");
     if (id != null) list.id = id;
     list.classList.add("button_list");
-    parent.domElement.children[0].appendChild(list);
+    // Add the button list to the first <ul> element that is a child of parent.
+    parent.domElement.querySelector(".dg > ul")?.appendChild(list);
     return list;
   }
 
+  /**
+   * Creates and appends a button element to a parent element.
+   * @param {HTMLElement} parent - The parent element to append the button to.
+   * @param {string} [inner] - The inner HTML of the button.
+   * @param {function} [onclick] - The function to be executed when the button is clicked.
+   * @param {string} [id] - The ID of the button.
+   * @param {string} [title] - The title of the button.
+   * @param {Array<string>} [classes] - An array of classes to be added to the button.
+   */
   function addButton(parent, inner, onclick, id, title, classes) {
     const button = document.createElement("a");
     if (onclick != undefined) button.onclick = onclick;
@@ -7630,6 +8344,20 @@ import { Stats } from "../stats.min.js";
     parent.appendChild(button);
   }
 
+  /**
+   * Creates a toggle button and appends it to the given parent element.
+   * @param {HTMLElement} parent - The parent element to append the toggle button to.
+   * @param {string} property - The property to toggle when the button is clicked.
+   * @param {string} [inner] - The inner HTML of the toggle button.
+   * @param {function} [onclick] - The function to call when the button is clicked.
+   * @param {string} [id] - The ID to assign to the toggle button.
+   * @param {string} [title] - The title to assign to the toggle button.
+   * @param {string} [folderID] - The folder ID to assign to the toggle button.
+   * @param {string[]} [classes] - An array of classes to assign to the toggle button.
+   * @param {object} [obj=options] - The object to toggle the property on. Defaults to the global options object.
+   * @param {boolean} [negate=false] - Button reflects the negation of the property.
+   * @returns {HTMLElement} The created toggle button.
+   */
   function addToggle(
     parent,
     property,
@@ -7639,57 +8367,83 @@ import { Stats } from "../stats.min.js";
     title,
     folderID,
     classes,
-    obj
+    obj,
+    negate
   ) {
+    // Create the toggle button.
     const toggle = document.createElement("a");
+    // If obj is undefined, use options.
     if (obj == undefined) obj = options;
     toggle.obj = obj;
+    toggle.property = property;
+    toggle.negate = negate || false;
+    // Add the toggle_button class to the toggle button.
     toggle.classList.add("toggle_button");
-    toggle.setAttribute("property", property);
     if (onclick == undefined) onclick = () => {};
+    // Augment any existing onclick to toggle the property.
     toggle.onclick = function () {
-      toggle.obj[toggle.getAttribute("property")] =
-        !toggle.obj[toggle.getAttribute("property")];
+      toggle.obj[property] = !toggle.obj[property];
       updateToggle(toggle);
       onclick();
     };
     if (id != undefined) toggle.id = id;
     if (title != undefined) toggle.title = title;
     if (inner != undefined) toggle.innerHTML = inner;
-    if (folderID != undefined) toggle.setAttribute("folderID", folderID);
+    if (folderID != undefined) toggle.folderID = folderID;
+    // Add any classes to the toggle button.
     if (classes != undefined) {
       for (const c of classes) {
         toggle.classList.add(c);
       }
     }
+    // Add the toggle button to the parent element.
     parent.appendChild(toggle);
+    // Update the toggle button to reflect the current value of the property.
     updateToggle(toggle);
     return toggle;
   }
 
+  /**
+   * Adds a new line element to the specified parent element.
+   * @param {HTMLElement} parent - The parent element to append the new line element to.
+   */
   function addNewline(parent) {
     const breaker = document.createElement("div");
     breaker.classList.add("break");
     parent.appendChild(breaker);
   }
 
+  /**
+   * Copies the current configuration as a JSON string to the clipboard, with some modifications.
+   
+   * @returns {void}
+   */
   function copyConfigAsJSON() {
-    // Encode the current simulation configuration as raw JSON and put it on the clipboard.
     const parentOptions = Object.assign(
       getPreset("default"),
       getPreset(options.parent)
     );
+
+    // Get the options that differ from the default.
     let objDiff = diffObjects(options, parentOptions);
     // If there's only one view and it has the default name, remove the view from the preset.
     if (options.views.length == 1 && options.views[0].name == "1") {
       delete objDiff.views;
     }
+
     // If every view has the same value as options for a property, remove that property from the views.
     for (const key of Object.keys(options.views[0])) {
       if (options.hasOwnProperty(key)) {
         if (options.views.map((e) => e[key]).every((v) => v == options[key])) {
           options.views.forEach((v) => delete v[key]);
         }
+      }
+    }
+
+    // If every view specifies a value for a property, remove that property from options.
+    for (const key of Object.keys(options.views[0])) {
+      if (options.views.every((v) => v.hasOwnProperty(key))) {
+        delete objDiff[key];
       }
     }
 
@@ -7705,8 +8459,12 @@ import { Stats } from "../stats.min.js";
     copyToClipboard(str);
   }
 
+  /**
+   * Copies debugging data to the clipboard.
+   
+   * @returns {void}
+   */
   function copyDebug() {
-    // Write lots of data to the clipboard for debugging.
     let str = "";
     str += JSON.stringify(options);
     str += JSON.stringify(uniforms);
@@ -7721,49 +8479,75 @@ import { Stats } from "../stats.min.js";
     copyToClipboard(str);
   }
 
+  /**
+   * Configures the stats GUI based on the value of the `options.showStats` flag.
+   */
   function configureStatsGUI() {
-    if (options.showStats) {
-      stats.domElement.style.visibility = "";
-    } else {
-      stats.domElement.style.visibility = "hidden";
-    }
+    stats.domElement.style.visibility = options.showStats ? "" : "hidden";
   }
 
+  /**
+   * Toggles the visibility of the right UI panel and toggles the "clicked" class on the settings button.
+   */
   function toggleRightUI() {
     $("#right_ui").toggle();
     $("#settings").toggleClass("clicked");
   }
 
+  /**
+   * Toggles the visibility of the left UI panel and toggles the "clicked" class of the equations element.
+   */
   function toggleLeftUI() {
     $("#left_ui").toggle();
     $("#equations").toggleClass("clicked");
   }
 
+  /**
+   * Toggles the visibility of the views UI and toggles the "clicked" class of the views element.
+   */
   function toggleViewsUI() {
     $("#views_ui").toggle();
     $("#views").toggleClass("clicked");
   }
 
+  /**
+   * Toggles the visibility of the help panel and toggles the "clicked" class of the help button.
+   */
   function toggleHelpPanel() {
     $("#help_panel").toggle();
     $("#help").toggleClass("clicked");
   }
 
+  /**
+   * Toggles the visibility of the share panel and toggles the "clicked" class of the share button.
+   */
   function toggleSharePanel() {
     $("#share_panel").toggle();
     $("#share").toggleClass("clicked");
   }
 
+  /**
+   * Checks if the user is accessing the website from a mobile device.
+   * @returns {boolean} - True if the user is accessing the website from a mobile device, false otherwise.
+   */
   function onMobile() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     );
   }
 
-  function smallScreen() {
+  /**
+   * Determines if the window width is less than 629 pixels.
+   * @returns {boolean} Whether the screen is considered small or not.
+   */
+  function onSmallScreen() {
     return window.width < 629;
   }
 
+  /**
+   * Inserts the URL of the current sim to an iframe and appends UI options based on the value of embed_ui_type.
+   * Then, it copies the iframe to the clipboard.
+   */
   function copyIframe() {
     // Get the URL of the current sim.
     let url = getSimURL();
@@ -7780,14 +8564,18 @@ import { Stats } from "../stats.min.js";
     }
     // Put the url in an iframe and copy to clipboard.
     let str =
-      '<iframe style="border:0;width:100%;height:100%;" src="' +
+      '<iframe title="VisualPDE simulation" style="border:0;width:100%;height:100%;" src="' +
       url +
       '" frameborder="0"></iframe>';
     copyToClipboard(str);
   }
 
+  /**
+   * Returns a URL encoded string representing the current simulation configuration.
+   * @returns {string} The URL encoded string representing the current simulation configuration.
+   */
   function getSimURL() {
-    // Encode the current simulation configuration as a URL and put it on the clipboard.
+    // First, get the options that differ from the default.
     let objDiff = diffObjects(options, getPreset("default"));
     objDiff.preset = "Custom";
     // Minify the field names in order to generate shorter URLs.
@@ -7800,6 +8588,11 @@ import { Stats } from "../stats.min.js";
     return str;
   }
 
+  /**
+   * Copies the given string to the user's clipboard.
+   *
+   * @param {string} str - The string to copy to the clipboard.
+   */
   function copyToClipboard(str) {
     navigator.clipboard.writeText(str).then(
       () => {
@@ -7816,28 +8609,67 @@ import { Stats } from "../stats.min.js";
     );
   }
 
-  function updateParamFromMessage(event) {
+  /**
+   * Handles incoming messages for the simulation.
+   * @param {MessageEvent} event - The message event object.
+   */
+  function handleMessage(event) {
+    switch (event.data.type) {
+      case "updateParam":
+        updateParamFromMessage(event.data);
+        break;
+      case "resetSim":
+        resetSim();
+        break;
+      case "pauseSim":
+        pauseSim();
+        break;
+      case "playSim":
+        playSim();
+        break;
+      case "suspend":
+        isSuspended = true;
+        break;
+      case "resume":
+        isSuspended = false;
+        break;
+      default:
+        // Maintain backwards compatibility with old messages.
+        updateParamFromMessage(event.data);
+    }
+  }
+
+  /**
+   * Updates the value of a parameter based on a message received from another window.
+   *
+   * @param {Object} data - The message data containing the name and value of the parameter to update.
+   */
+  function updateParamFromMessage(data) {
     // Upon receiving a message from another window, use the message to update
     // the value in the specified parameter.
 
     // Update the value of the slider associated with this parameter, if it exists.
-    const controller = kineticNameToCont[event.data.name];
+    const controller = kineticNameToCont[data.name];
     if (controller != undefined) {
       // If there's a slider, update its value and trigger the update via the slider's input event.
       if (controller.slider != undefined) {
-        controller.slider.value = event.data.value;
+        controller.slider.value = data.value;
         controller.slider.dispatchEvent(new Event("input"));
       } else {
+        // Otherwise, just update the value.
         const val =
           controller.object[controller.property].split("=")[0] +
           "= " +
-          event.data.value.toString();
+          data.value.toString();
         controller.setValue(val);
         controller.__onFinishChange(controller, val);
       }
     }
   }
 
+  /**
+   * Sets the values of the emboss uniforms based on the current options.
+   */
   function setEmbossUniforms() {
     uniforms.embossAmbient.value = options.embossAmbient;
     uniforms.embossDiffuse.value = options.embossDiffuse;
@@ -7851,6 +8683,13 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Creates a slider element for a given controller with the specified minimum, maximum, and step values.
+   * @param {Object} controller - The controller to which the slider will be added.
+   * @param {number} min - The minimum value of the slider.
+   * @param {number} max - The maximum value of the slider.
+   * @param {number} step - The step value of the slider.
+   */
   function createOptionSlider(controller, min, max, step) {
     controller.slider = document.createElement("input");
     controller.slider.classList.add("styled-slider");
@@ -7874,7 +8713,8 @@ import { Stats } from "../stats.min.js";
 
     // Augment the controller's onChange and onFinishChange to update the slider.
     let flag = true;
-    if (controller.__onChange != undefined) {
+    // If onChange is set, we need to augment it to update the slider.
+    if (controller.__onChange) {
       flag = false;
       controller.oldOnChange = controller.__onChange;
       controller.__onChange = function () {
@@ -7884,7 +8724,8 @@ import { Stats } from "../stats.min.js";
       };
     }
 
-    if (controller.__onFinishChange != undefined) {
+    // If onFinishChange is set, we need to augment it as well.
+    if (controller.__onFinishChange) {
       flag = false;
       controller.oldOnFinishChange = controller.__onFinishChange;
       controller.__onFinishChange = function () {
@@ -7909,6 +8750,9 @@ import { Stats } from "../stats.min.js";
     );
   }
 
+  /**
+   * Updates the view sliders by setting their value and style based on the current controller value.
+   */
   function updateViewSliders() {
     for (const controller of [...embossControllers, ...contoursControllers]) {
       let value = controller.getValue();
@@ -7917,12 +8761,18 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Sets the contour uniforms for the simulation.
+   */
   function setContourUniforms() {
     uniforms.contourColour.value = new THREE.Color(options.contourColour);
     uniforms.contourEpsilon.value = options.contourEpsilon;
     uniforms.contourStep.value = 1 / (options.contourNum + 1);
   }
 
+  /**
+   * Sets the uniforms for the overlay.
+   */
   function setOverlayUniforms() {
     uniforms.overlayColour.value = new THREE.Color(options.overlayColour);
     uniforms.overlayEpsilon.value = options.overlayEpsilon;
@@ -7931,26 +8781,36 @@ import { Stats } from "../stats.min.js";
     overlayLineMaterial.needsUpdate = true;
   }
 
+  /**
+   * Renders the simulation if it is not currently running.
+   */
   function renderIfNotRunning() {
     frameCount = 0;
     if (!isRunning) render();
   }
 
+  /**
+   * Updates the toggle based on the state of the object property.
+   * @param {HTMLElement} toggle - The toggle element to update.
+   */
   function updateToggle(toggle) {
-    const obj = toggle.obj;
-    if (obj[toggle.getAttribute("property")]) {
+    if (toggle.obj[toggle.property] == !toggle.negate) {
       toggle.classList.add("toggled_on");
-      if (toggle.getAttribute("folderID")) {
-        $("#" + toggle.getAttribute("folderID")).removeClass("hidden");
+      if (toggle.folderID) {
+        $("#" + toggle.folderID).removeClass("hidden");
       }
     } else {
       toggle.classList.remove("toggled_on");
-      if (toggle.getAttribute("folderID")) {
-        $("#" + toggle.getAttribute("folderID")).addClass("hidden");
+      if (toggle.folderID) {
+        $("#" + toggle.folderID).addClass("hidden");
       }
     }
   }
 
+  /**
+   * Disables autocorrect, autocapitalize, and spellcheck for the given input element.
+   * @param {HTMLInputElement} input - The input element to disable autocorrect for.
+   */
   function disableAutocorrect(input) {
     input.setAttribute("autocomplete", "off");
     input.setAttribute("autocorrect", "off");
@@ -7958,6 +8818,11 @@ import { Stats } from "../stats.min.js";
     input.setAttribute("spellcheck", false);
   }
 
+  /**
+   * Sets the vertex shader for the display material based on the value of `options.customSurface`.
+   * If `options.customSurface` is truthy, the custom surface vertex shader is used. Otherwise, the
+   * default surface vertex shader is used.
+   */
   function setSurfaceShader() {
     if (options.customSurface) {
       displayMaterial.vertexShader = surfaceVertexShaderCustom();
@@ -7967,6 +8832,9 @@ import { Stats } from "../stats.min.js";
     displayMaterial.needsUpdate = true;
   }
 
+  /**
+   * Configures the custom surface controllers based on the current plot type and options.
+   */
   function configureCustomSurfaceControllers() {
     if (options.plotType == "surface") {
       $(surfaceButtons).show();
@@ -7990,12 +8858,15 @@ import { Stats } from "../stats.min.js";
     return Array.from(new Set(dups));
   }
 
+  /**
+   * Creates arrows and adds them to the scene.
+   */
   function createArrows() {
     arrowGroup = new THREE.Group();
     scene.add(arrowGroup);
     const maxDisc = Math.max(nXDisc, nYDisc);
     const denom = Math.round(
-      lerp(3, smallScreen() ? 20 : 64, options.arrowDensity)
+      lerp(3, onSmallScreen() ? 20 : 64, options.arrowDensity)
     );
     let stride = Math.max(Math.floor(maxDisc / denom), 1);
     const xNum = Math.floor(nXDisc / stride);
@@ -8018,6 +8889,12 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Creates an arrow object with a tail and a head, positioned at the given position and pointing in the given direction.
+   * @param {number[]} pos - The position of the arrow as an array of three numbers representing the x, y, and z coordinates.
+   * @param {number[]} dir - The direction of the arrow as an array of three numbers representing the x, y, and z components of the direction vector.
+   * @returns {THREE.Group} The arrow object as a THREE.Group instance.
+   */
   function createArrow(pos, dir) {
     const arrow = new THREE.Group();
     const tail = new THREE.Mesh(tailGeometry, arrowMaterial);
@@ -8034,6 +8911,9 @@ import { Stats } from "../stats.min.js";
     return arrow;
   }
 
+  /**
+   * Removes all arrows from the scene.
+   */
   function deleteArrows() {
     if (!arrowGroup) return;
     scene.remove(arrowGroup);
@@ -8042,14 +8922,19 @@ import { Stats } from "../stats.min.js";
     }
   }
 
+  /**
+   * Configures the vector field based on the options selected by the user.
+   */
   function configureVectorField() {
     uniforms.vectorField.value = options.vectorField;
+    deleteArrows();
     if (options.vectorField) {
-      deleteArrows();
       createArrows();
       updateArrowColour();
+      // Set the arrow scale based on the options.arrowScale value.
       if (options.arrowScale == "relative") {
         try {
+          // Evaluate the expression in options.arrowLengthMax.
           arrowGroup.customMax = parser.evaluate(options.arrowLengthMax);
         } catch (error) {
           throwError(
@@ -8058,19 +8943,29 @@ import { Stats } from "../stats.min.js";
           arrowGroup.customMax = 1;
         }
       }
-    } else {
-      deleteArrows();
     }
   }
 
+  /**
+   * Updates the color of the arrow material based on the options.arrowColour value.
+   */
   function updateArrowColour() {
     arrowMaterial.color = new THREE.Color(options.arrowColour);
   }
 
+  /**
+   * Returns an array of strings containing the names of all species and reactions.
+   * @returns {string[]} Array of strings containing the names of all species and reactions.
+   */
   function getSpecAndReacNames() {
     return listOfSpecies.concat(listOfReactions);
   }
 
+  /**
+   * Validates if a parameter name is already in use.
+   * @param {string} name - The name of the parameter to validate.
+   * @returns {boolean} - Returns true if the parameter name is not already in use, otherwise returns false.
+   */
   function validateParamName(name) {
     const val = isReservedName(name, getSpecAndReacNames());
     if (val) {
@@ -8085,6 +8980,16 @@ import { Stats } from "../stats.min.js";
     return !val;
   }
 
+  /**
+   * The `sortObject()` function is used to sort the keys of an object in case-insensitive alphabetical order and return a new object with the sorted keys.
+   *
+   * @param {Object} obj - The input object to be sorted.
+   *
+   * The function first gets the keys of the object and sorts them using the `sort()` method with a custom comparator function that compares the keys in a case-insensitive manner.
+   * It then uses the `reduce()` method to create a new object with the sorted keys and their corresponding values from the original object.
+   *
+   * @returns {Object} - The new object with keys sorted in case-insensitive alphabetical order.
+   */
   function sortObject(obj) {
     return Object.keys(obj)
       .sort(function (a, b) {
@@ -8096,12 +9001,43 @@ import { Stats } from "../stats.min.js";
       }, {});
   }
 
+  /**
+   * The `replaceMINXMINY()` function is used to replace occurrences of 'MINX' and 'MINY' in a string with the respective minimum X and Y values from the options object.
+   *
+   * @param {string} str - The input string, typically a shader code, where the placeholders 'MINX' and 'MINY' will be replaced.
+   *
+   * The function uses the `replaceAll()` method to replace all occurrences of 'MINX' and 'MINY' in the string. The replacement values are obtained by calling the `parseShaderString()` function with the respective minimum X and Y values from the options object.
+   *
+   * @returns {string} - The modified string with all occurrences of 'MINX' and 'MINY' replaced by the respective minimum X and Y values.
+   */
   function replaceMINXMINY(str) {
     str = str.replaceAll(/\bMINX\b/g, () => parseShaderString(options.minX));
     str = str.replaceAll(/\bMINY\b/g, () => parseShaderString(options.minY));
     return str;
   }
 
+  /**
+   * The `checkForCyclicDependencies()` function is used to check for cyclic dependencies in a directed graph of names
+   *
+   * @param {string} name - The name of the node to start the check from.
+   * @param {Object} doneDict - An object that keeps track of the nodes that have been checked.
+   * @param {Array} stack - An array that represents the current path of nodes being checked.
+   * @param {Object} dependencies - An object that maps each node to an array of its dependencies.
+   * @param {Array} badNames - An array that stores the paths that contain cyclic dependencies.
+   *
+   * The function uses a depth-first search algorithm to traverse the graph. If it encounters a node that is already in the current path, it has found a cycle, and it adds the cyclic path to `badNames`.
+   *
+   * @returns {Array} - Returns an array containing the updated `doneDict`, `stack`, and `badNames`.
+   */
+  function checkForCyclicDependencies(
+    name,
+    doneDict,
+    stack,
+    dependencies,
+    badNames
+  ) {
+    // ...
+  }
   function checkForCyclicDependencies(
     name,
     doneDict,
@@ -8134,6 +9070,18 @@ import { Stats } from "../stats.min.js";
     return [doneDict, stack.slice(0, -1), badNames];
   }
 
+  /**
+   * The `configureCursorDisplay()` function is used to set the cursor display on a canvas element with the id "simCanvas" based on certain conditions.
+   *
+   * Initially, it sets the cursor to the default style ("auto").
+   * If the brush is not enabled or the plot type is either "surface" or "line", the function returns and no further changes are made to the cursor.
+   * If the plot type is "plane", the cursor style is set based on the brush type:
+   * - If the brush type is "circle", the cursor is set to a circle image.
+   * - If the brush type is "hline", the cursor is set to a horizontal line image.
+   * - If the brush type is "vline", the cursor is set to a vertical line image.
+   *
+   * The `$("#simCanvas").css("cursor", "url('images/cursor-circle.svg') 12 12, auto")` line sets the cursor to an image. The "12 12" part specifies the position of the hotspot, or the cursor's active point. The "auto" part is a fallback cursor style in case the image cannot be displayed.
+   */
   function configureCursorDisplay() {
     // Default cursor.
     $("#simCanvas").css("cursor", "auto");
@@ -8165,13 +9113,39 @@ import { Stats } from "../stats.min.js";
           "url('images/cursor-vline.svg') 32 32, auto"
         );
         break;
+      case "custom":
+        $("#simCanvas").css(
+          "cursor",
+          "url('images/cursor-droplet.svg') 12 12, auto"
+        );
+        break;
     }
   }
 
+  /**
+   * The `isEmptyString()` function checks if a given string is empty or contains only whitespace characters.
+   *
+   * @param {string} str - The string to check.
+   *
+   * The function uses a regular expression (`/^\s*$/`) to test the string. This regular expression matches strings that start and end with zero or more whitespace characters.
+   *
+   * @returns {boolean} - Returns true if the string is empty or contains only whitespace characters. Returns false otherwise.
+   */
   function isEmptyString(str) {
     return /^\s*$/.test(str);
   }
 
+  /**
+   * The `addStepCounter()` function is used to add a step counter to the header of the current step in a Shepherd tour.
+   *
+   * The function first retrieves the active tour and the current step within that tour.
+   * It then gets the DOM element associated with the current step and the header within that element.
+   * A new span element is created and given the class "shepherd-progress".
+   * The inner text of this span element is set to the current step number and the total number of steps in the format "current / total".
+   * This span element is then inserted into the header, before the cancel icon.
+   *
+   * Note: This function uses optional chaining (`?.`), so if any of the properties or methods are undefined or null, it will not throw an error and will instead return undefined.
+   */
   function addStepCounter() {
     const currentStep = Shepherd.activeTour?.getCurrentStep();
     const currentStepElement = currentStep?.getElement();
@@ -8186,6 +9160,7 @@ import { Stats } from "../stats.min.js";
       currentStepElement.querySelector(".shepherd-cancel-icon")
     );
   }
+
   function addMoreInfoLink(link, label) {
     const currentStep = Shepherd.activeTour?.getCurrentStep();
     const currentStepElement = currentStep?.getElement();
@@ -8198,6 +9173,18 @@ import { Stats } from "../stats.min.js";
     footer?.insertBefore(moreInfo, footer.firstChild);
   }
 
+  /**
+   * Starts recording a video from the canvas.
+   * The function first checks if a recording is already in progress, and if so, it returns immediately.
+   * It then checks if the browser supports video recording, and if not, it throws an error.
+   * The video quality is set based on the value of the "video_quality" element in the DOM.
+   * A stream is captured from the canvas at a maximum of 30 frames per second.
+   * The MediaRecorder API is used to record the stream.
+   * When the recording is stopped, the video is created and downloaded.
+   * If the browser is not Chrome or Firefox, a message is shown.
+   * The recording automatically stops after 60 seconds.
+   * A timer is displayed showing the recording time.
+   */
   function startRecording() {
     if (isRecording) return;
     isRecording = true;
@@ -8208,6 +9195,7 @@ import { Stats } from "../stats.min.js";
       throwError("Your browser doesn't support recording video. Sorry!");
       return;
     }
+    const ext = type.split("/")[1].split(";")[0];
     let quality = 8000000;
     switch (document.getElementById("video_quality").value) {
       case "SD":
@@ -8231,13 +9219,13 @@ import { Stats } from "../stats.min.js";
     };
     // When stopping, create and download the video.
     mediaRecorder.onstop = function (e) {
-      var blob = new Blob(videoChunks, { type: type });
+      var blob = new Blob(videoChunks, { type: "octet/stream" });
       const recording_url = URL.createObjectURL(blob);
       // Attach the object URL to an <a> element, setting the download file name
       const a = document.createElement("a");
       a.style = "display: none;";
       a.href = recording_url;
-      a.download = "VisualPDERecording";
+      a.download = "VisualPDERecording." + ext;
       document.body.appendChild(a);
       // Trigger the file download
       a.click();
@@ -8250,6 +9238,17 @@ import { Stats } from "../stats.min.js";
 
     mediaRecorder.start();
     $("#recording").show();
+    // If the browser is neither Chrome nor Firefox, show a message.
+    if (
+      !/Chrome/.test(navigator.userAgent) &&
+      !/Firefox/.test(navigator.userAgent) &&
+      localStorage.getItem("shown_use_chrome") != "true"
+    ) {
+      fadein("#use_Chrome", 1000);
+      localStorage.setItem("shown_use_chrome", "true");
+      // Fadeout after 5s passes.
+      setTimeout(() => fadeout("#use_Chrome"), 5000);
+    }
     // Stop recording automatically after 60s.
     window.clearTimeout(recordingTimer);
     recordingTimer = setTimeout(stopRecording, 60000);
@@ -8264,6 +9263,17 @@ import { Stats } from "../stats.min.js";
     }, 1000);
   }
 
+  /**
+   * The `stopRecording()` function is used to stop the video recording.
+   *
+   * If no recording is in progress, the function immediately returns.
+   * If a recording is in progress, it clears the recording timer and stops the MediaRecorder.
+   * The recording display is hidden and the interval that updates the recording time display is cleared.
+   * The recording time display is reset.
+   * The `isRecording` flag is set to false, indicating that no recording is currently in progress.
+   * If this is the first time a video has been recorded, a message is displayed to the user.
+   * This message can be closed by clicking on the close button, and it will not be shown again in future recording sessions.
+   */
   function stopRecording() {
     if (!isRecording) return;
     window.clearTimeout(recordingTimer);
@@ -8272,11 +9282,19 @@ import { Stats } from "../stats.min.js";
     clearInterval(recordingTextInterval);
     document.getElementById("recording_time").innerHTML = "";
     isRecording = false;
+    if (!localStorage.getItem("recordedVideo")) {
+      pauseSim();
+      $("#first_video").show();
+      $("#first_video_close").click(function () {
+        $("#first_video").hide();
+      });
+      localStorage.setItem("recordedVideo", "true");
+    }
   }
 
   function getBestVideoType() {
     const media = "video";
-    const types = ["webm", "ogg", "mp4", "x-matroska"];
+    const types = ["mp4", "webm", "ogg", "x-matroska"];
     const codecs = [
       "should-not-be-supported",
       "vp9",
@@ -8285,10 +9303,10 @@ import { Stats } from "../stats.min.js";
       "vp8.0",
       "avc1",
       "av1",
-      "h265",
-      "h.265",
       "h264",
       "h.264",
+      "h265",
+      "h.265",
       "opus",
       "pcm",
       "aac",
@@ -8310,5 +9328,145 @@ import { Stats } from "../stats.min.js";
       if (isSupported(mimeType)) supported.push(mimeType);
     });
     return supported.length ? supported[0] : false;
+  }
+
+  /**
+   * The `insertRates()` function is used to replace a placeholder in a string with a vector of timescale values.
+   *
+   * @param {string} str - The input string, typically a shader code, where the placeholder 'TIMESCALES' will be replaced.
+   *
+   * The function constructs a string representation of a 4-component vector (vec4) using the timescale values from the options object.
+   * These timescale values are parsed into shader-compatible strings using the `parseShaderString()` function.
+   * The resulting vec4 string is then used to replace all occurrences of 'TIMESCALES' in the input string.
+   *
+   * @returns {string} - The modified string with all occurrences of 'TIMESCALES' replaced by the vec4 string.
+   */
+  function insertRates(str) {
+    const toSub =
+      "vec4(" +
+      [
+        options.timescale_1,
+        options.timescale_2,
+        options.timescale_3,
+        options.timescale_4,
+      ]
+        .map(parseShaderString)
+        .join(",") +
+      ")";
+    return str.replaceAll(/TIMESCALES/g, toSub);
+  }
+
+  /**
+   * The `inDarkMode()` function checks if the application is currently in dark mode.
+   *
+   * It does this by checking if the root element of the document (i.e., <html>) has a class named "dark-mode".
+   *
+   * @returns {boolean} - Returns true if the "dark-mode" class is present, indicating that the application is in dark mode. Returns false otherwise.
+   */
+  function inDarkMode() {
+    return document.documentElement.classList.contains("dark-mode");
+  }
+
+  /**
+   * Runs MathJax to typeset mathematical expressions, if available.
+   * @param {Object} [args] - The arguments to pass to MathJax.
+   * @returns {Promise} A promise that resolves when typesetting is complete.
+   */
+  function runMathJax(args) {
+    if (MathJax.typesetPromise != undefined)
+      return MathJax.typesetPromise(args);
+  }
+
+  /**
+   * Modify the domain indicator function so that the outer layer of pixels is not included in the domain.
+   * This is done by multiplying the domain indicator function by a function that is 1 in the domain and 0 outside the domain.
+   * @returns {string} The modified domain indicator function.
+   */
+  function getModifiedDomainIndicatorFun() {
+    return (
+      "float(" +
+      options.domainIndicatorFun +
+      ")*float(textureCoords.x - step_x >= 0.0)*float(textureCoords.x + step_x <= 1.0)*float(textureCoords.y - step_y >= 0.0)*float(textureCoords.y + step_y <= 1.0)"
+    );
+  }
+
+  /**
+   * Replaces all occurrences of a substring in a string with a highlighted version of the substring.
+   * @param {string} str - The string to search and replace in.
+   * @param {string} substr - The substring to search for and replace.
+   * @param {string} [highlightClass="highlight"] - The CSS class to apply to the highlighted substring.
+   * @returns {string} The modified string with highlighted substrings.
+   */
+  function highlightStringinString(str, substr, highlightClass) {
+    if (highlightClass == undefined) {
+      highlightClass = "highlight";
+    }
+    return str.replaceAll(
+      substr,
+      `<span class="${highlightClass}">${substr}</span>`
+    );
+  }
+
+  /**
+   * Adds an information button to a dat.GUI folder.
+   *
+   * @param {dat.GUI} folder - The dat.GUI folder to add the information button to.
+   * @param {string} link - The link to the information page.
+   */
+  function addInfoButton(folder, link) {
+    const infoButton = document.createElement("a");
+    infoButton.classList.add("info-link");
+    infoButton.innerHTML = `<i class="fa-regular fa-circle-info"></i>`;
+    infoButton.href = link;
+    infoButton.target = "_blank";
+    // infoButton.title = "More information";
+    folder.domElement.classList.add("has-info-link");
+    folder.domElement.insertBefore(infoButton, folder.domElement.firstChild);
+  }
+
+  /**
+   * Corrects the syntax of a given expression by performing specific replacements (primarily multiplication).
+   *
+   * @param {string} str - The expression to be corrected.
+   * @returns {string} The corrected string.
+   */
+  function autoCorrectSyntax(str) {
+    // If the string is empty, replace it with 0 and return.
+    if (str.trim() == "") {
+      return "0";
+    }
+
+    // If a number is followed by a letter or (, add a *.
+    str = str.replaceAll(/(\d)([a-zA-Z(])/g, "$1*$2");
+
+    // If the string contains xy or yx, replace with x*y.
+    str = str.replaceAll(/\bxy\b/g, "x*y");
+    str = str.replaceAll(/\byx\b/g, "y*x");
+
+    // If the string contains a ) followed by a letter or number, add a *.
+    str = str.replaceAll(/\)([a-zA-Z0-9])/g, ")*$1");
+
+    // For each pair of single-character species names that is not itself a species name, add a *.
+    const singleCharNames = listOfSpecies.filter((name) => name.length == 1);
+    singleCharNames.forEach((name1) => {
+      singleCharNames.forEach((name2) => {
+        if (!listOfSpecies.includes(name1 + name2)) {
+          // Replace all occurrences of name1 followed by name2 with name1*name2.
+          str = str.replaceAll(
+            new RegExp("\\b" + name1 + name2 + "\\b", "g"),
+            name1 + "*" + name2
+          );
+        }
+        if (!listOfSpecies.includes(name2 + name1)) {
+          // Replace all occurrences of name1 followed by name2 with name1*name2.
+          str = str.replaceAll(
+            new RegExp("\\b" + name2 + name1 + "\\b", "g"),
+            name2 + "*" + name1
+          );
+        }
+      });
+    });
+
+    return str;
   }
 })();

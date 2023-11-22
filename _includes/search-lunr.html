@@ -1,22 +1,22 @@
 <script src="/assets/js/lunr.js"></script>
 
-<form id="lunrsearchform"
-onSubmit="lunr_search(document.getElementById('lunrsearchinput').value); return false;"
+<form id="siteSearchForm"
+onSubmit="site_search(document.getElementById('siteSearchInput').value); return false;"
 >
 <p>
-    <label for="lunrsearchinput" id="search-button" title="Search"><i class="fa-solid fa-magnifying-glass"></i></label>
-    <div id="lunrsearchbar">
+    <label for="siteSearchInput" id="search-button" title="Search"><i class="fa-solid fa-magnifying-glass"></i></label>
+    <div id="siteSearchBar">
     <input
       type="text"
-      id="lunrsearchinput"
+      id="siteSearchInput"
       name="q"
       maxlength="255"
       value=""
       placeholder="Search"
-      onfocus="document.getElementById('lunrsearchform').onsubmit();window.gtag?.('event', 'site_search');"
-      oninput="document.getElementById('lunrsearchform').onsubmit();"
+      onfocus="document.getElementById('siteSearchForm').onsubmit();window.gtag?.('event', 'site_search');"
+      oninput="document.getElementById('siteSearchForm').onsubmit();"
       />
-      <div id="lunrsearchresults" tabindex="0">
+      <div id="siteSearchResults" tabindex="0">
         <ul></ul>
       </div>
     </div>

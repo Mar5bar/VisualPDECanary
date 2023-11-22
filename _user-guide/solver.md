@@ -1,7 +1,7 @@
 ---
 layout: page
 title: The VisualPDE solver
-lesson_number: 30
+lesson_number: 40
 thumbnail: /assets/images/UnderTheHood.webp
 extract: Under the hood of VisualPDE
 ---
@@ -10,7 +10,31 @@ VisualPDE aims to be a plug-and-play, browser-based solver and visualiser for a 
 
 We are always looking for ways to improve and extend VisualPDE, especially ways of reaching a broader audience and new communities. If you have any questions or suggestions about anything related to VisualPDE, we'd love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com)!
 
-### The equations <a id='equations'>
+<form id="pageSearchForm"
+onSubmit="page_search(document.getElementById('pageSearchInput').value); return false;"
+>
+<p>
+    <div id="pageSearchBar">
+    <input
+      type="text"
+      id="pageSearchInput"
+      name="q"
+      maxlength="255"
+      value=""
+      placeholder="Search this page"
+      onfocus="document.getElementById('pageSearchForm').onsubmit();window.gtag?.('event', 'page_search');"
+      oninput="document.getElementById('pageSearchForm').onsubmit();"
+      />
+      <div id="pageSearchResults" tabindex="0">
+        <ul></ul>
+      </div>
+    </div>
+  </p>
+</form>
+
+<div id="toc"></div>
+
+### The equations <a class="anchor" id='equations'>
 VisualPDE can solve a variety of PDE systems posed in 1D or 2D space, many of which are straightforward extensions of the two-species reaction–diffusion system,
 
 $$\begin{aligned}
@@ -20,12 +44,12 @@ $$\begin{aligned}
 
 Here, $u$ and $v$ are the scalar unknowns that we solve for, $t$ is time, and the divergence and gradient operators are the usual spatial operators in a 2D Euclidean domain. In general, the interaction/kinetic terms ($f_u$ and $f_v$) and the diffusion coefficients ($D_u$ and $D_v$) can each be functions of time, space, and the unknowns, though we often don't explicitly write these potential dependencies. See [here](what-can-visualpde-solve) for a comprehensive summary of the types of PDEs that VisualPDE can solve.
 
-### The domain <a id='domain'>
+### The domain <a class="anchor" id='domain'>
 A PDE problem is not well-posed without specifying a domain (or [boundary conditions](#boundary-conditions)). We typically determine the domain $\domain$ from the size of your device, fixing the largest side to be of length $L$ and maintaining an aspect ratio of 1:1. As most screens are not square, you can demand a square domain using a toggle under <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Square**</span>
 
 However, not all domains are rectangular. To accommodate this, VisualPDE allows you to specify an arbitrary domain via a [level set](https://en.wikipedia.org/wiki/Level-set_method) or [indicator function](https://en.wikipedia.org/wiki/Indicator_function) approach, under <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Implicit**</span> To make this work in practice, VisualPDE uses this user-specified function to determine which parts of $\domain$ to include in the simulation, though this prevents you from specifying boundary conditions that include derivatives (computing normals to user-specified curves is not something we wanted to think about). You can specify a boolean (e.g. $x<0.5$) or a simple expression (e.g. $x-0.5$), where (strict) positivity identifies the interior of the domain. You can even use images in this expression, allowing you to define complicated domains with ease.
 
-### Spatial discretisation <a id='spatial-discretisation'>
+### Spatial discretisation <a class="anchor" id='spatial-discretisation'>
 We take $\domain$ and divide it into a square grid with a user-configurable spacing. Be warned: the only limit to this spacing is your imagination/hardware, so taking a spatial step of $\dx=10^{-9}$ is unlikely to be a good idea... We use this grid in a [finite difference](https://en.wikipedia.org/wiki/Finite_difference_method) scheme to approximate the spatial operators in our system.
 
 If $D_u$ and $D_v$ were simply constants, as they were when we began the development of VisualPDE, a standard [central differences](https://en.wikipedia.org/wiki/Discrete_Laplace_operator) discretisation of the resulting Laplacian $\nabla^2$ would suffice. However, as these coefficients generally vary in space, we employ a similar but necessarily more complex scheme. Explicitly, using $\vnabla \cdot(D_u\vnabla u)$ as an example and limiting ourselves to 1D for brevity, we approximate
@@ -34,7 +58,7 @@ $$\textstyle \vnabla \cdot(D_u\vnabla u) \approx \frac{D_u(x-\dx)[u(x-\dx) - u(x
 
 at a point $x$, where we've omitted any dependence of any quantities on anything other than space. Notably, this is just a standard central differences scheme if $D_u$ is constant. Adding the above to itself with $x$ replaced with $y$ gives the 2D discretisation, and adding in additional terms is simple by linearity.
 
-### Timestepping <a id='timestepping'>
+### Timestepping <a class="anchor" id='timestepping'>
 With space discretised as above, we are faced with a large system of coupled ordinary differential equations to solve, which represent the evolution of the unknowns at each discrete gridpoint of the spatial domain. VisualPDE implements four popular schemes for timestepping: [Forward Euler](https://en.wikipedia.org/wiki/Euler_method), two-step [Adams-Bashforth](https://en.wikipedia.org/wiki/Linear_multistep_method#Two-step_Adams–Bashforth), the [Midpoint Method](https://en.wikipedia.org/wiki/Midpoint_method) and the four-step [Runge-Kutta](https://en.wikipedia.org/wiki/Runge–Kutta_methods) method (commonly known as 'RK4'). These solvers each have their strengths, with Forward Euler being the least computationally demanding while RK4 offers superior accuracy and stability at the cost of doing more calculations each timestep. The following Forward Euler scheme is the default in many of the examples on the site:
 
 $$ \pd{u}{t} \approx \frac{u(t+\dt) - u(t)}{\dt}$$
@@ -47,7 +71,7 @@ VisualPDE will try to tell you when it's fallen foul of stability issues (we per
 
 Despite each of our solvers having their limitations, these schemes have enabled VisualPDE to efficiently solve every system that we've thrown at it, though some tuning of the timestep can be necessary in extreme cases. If you have any tips for implementing alternative schemes (especially anything implicit), we'd love to hear from you!
 
-### Boundary conditions <a id='boundary-conditions'>
+### Boundary conditions <a class="anchor" id='boundary-conditions'>
 VisualPDE implements four types of boundary condition: periodic, [Dirichlet](https://en.wikipedia.org/wiki/Dirichlet_boundary_condition), [Neumann](https://en.wikipedia.org/wiki/Neumann_boundary_condition), and [Robin](https://en.wikipedia.org/wiki/Robin_boundary_condition). As each of these are slightly different in character, we briefly describe the general form of each condition that can be used in VisualPDE, along with notes on how this is enforced in the simulation. We pose these conditions as if they correspond to the scalar [heat equation](/_basic-pdes/heat-equation) in 2D.
 
 #### Periodic
@@ -73,7 +97,7 @@ in the finite difference operator described [above](#spatial-discretisation), ap
 #### Combined
 VisualPDE also allows you to specify different boundary conditions on different parts of the boundary. Doing this requires some special syntax, as detailed in the [advanced documentation](/user-guide/advanced-options#boundary-conditions).
 
-### Doing this in your browser, quickly <a id='browser'>
+### Doing this in your browser, quickly <a class="anchor" id='browser'>
 Solving PDEs is hard. To solve them in real time in your browser, VisualPDE gives all the hard work to the graphics chip (GPU) on your device, making use of [WebGL](https://en.wikipedia.org/wiki/WebGL) and a low-level shader language called [GLSL](https://en.wikipedia.org/wiki/OpenGL_Shading_Language).
 
 Every time your browser requests a frame from VisualPDE (which might be up to 60 times per second), some [JavaScript](https://en.wikipedia.org/wiki/JavaScript) organises the solving of the discretised equations, displaying the solution, and incorporating anything you've drawn, which all happen on the GPU. Each frame, we typically perform hundreds of timesteps to give you a smooth experience, mitigating many of the limitations of our [timestepping schemes](#timestepping). If you're interested in the finest details of the implementation, the source code for the entire site is freely available to view, reuse, and repurpose on [GitHub](https://github.com/Pecnut/visual-pde).

@@ -1,5 +1,10 @@
 // simulation_shaders.js
 
+/**
+ * Generates the top part of a shader for reaction-diffusion simulation based on the given timestepping scheme.
+ * @param {string} type - The timestepping scheme to generate the shader for.
+ * @returns {string} The generated shader code.
+ */
 export function RDShaderTop(type) {
   let numInputs = 0;
   switch (type) {
@@ -122,6 +127,11 @@ export function RDShaderTop(type) {
   );
 }
 
+/**
+ * Generates shader code based on the timestepping scheme.
+ * @param {string} type - The type of timestepping scheme ("FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44").
+ * @returns {string} - The generated shader code.
+ */
 export function RDShaderMain(type) {
   let update = {};
   update.FE = `uvwq = texture2D(textureSource, textureCoords);
@@ -134,7 +144,8 @@ export function RDShaderMain(type) {
     uvwqTT = texture2D(textureSource, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
-    updated = dt * RHS + uvwq;`;
+    vec4 timescales = TIMESCALES;
+    updated = dt * RHS / timescales + uvwq;`;
   update.AB2 = `uvwq = texture2D(textureSource, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL);
     uvwqR = texture2D(textureSource, textureCoordsR);
@@ -156,7 +167,8 @@ export function RDShaderMain(type) {
     uvwqBB = texture2D(textureSource1, textureCoordsBB);
     computeRHS(textureSource1, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS2);
     RHS = 1.5 * RHS1 - 0.5 * RHS2;
-    updated = dt * RHS + texture2D(textureSource, textureCoords);`;
+    vec4 timescales = TIMESCALES;
+    updated = dt * RHS / timescales + texture2D(textureSource, textureCoords);`;
   update.Mid1 = `uvwq = texture2D(textureSource, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL);
     uvwqR = texture2D(textureSource, textureCoordsR);
@@ -167,6 +179,7 @@ export function RDShaderMain(type) {
     uvwqTT = texture2D(textureSource, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
+    vec4 timescales = TIMESCALES;
     updated = RHS;`;
   update.Mid2 = `uvwqLast = texture2D(textureSource, textureCoords);
     uvwq = uvwqLast + 0.5*dt*texture2D(textureSource1, textureCoords);
@@ -179,7 +192,8 @@ export function RDShaderMain(type) {
     uvwqTT = texture2D(textureSource, textureCoordsTT) + 0.5*dt*texture2D(textureSource1, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB) + 0.5*dt*texture2D(textureSource1, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
-    updated = dt * RHS + uvwqLast;`;
+    vec4 timescales = TIMESCALES;
+    updated = dt * RHS / timescales + uvwqLast;`;
   update.RK41 = `uvwq = texture2D(textureSource, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL);
     uvwqR = texture2D(textureSource, textureCoordsR);
@@ -190,6 +204,7 @@ export function RDShaderMain(type) {
     uvwqTT = texture2D(textureSource, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
+    vec4 timescales = TIMESCALES;
     updated = RHS;`;
   update.RK42 = `uvwq = texture2D(textureSource, textureCoords) + 0.5*dt*texture2D(textureSource1, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL) + 0.5*dt*texture2D(textureSource1, textureCoordsL);
@@ -201,6 +216,7 @@ export function RDShaderMain(type) {
     uvwqTT = texture2D(textureSource, textureCoordsTT) + 0.5*dt*texture2D(textureSource1, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB) + 0.5*dt*texture2D(textureSource1, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
+    vec4 timescales = TIMESCALES;
     updated = RHS;`;
   update.RK43 = `uvwq = texture2D(textureSource, textureCoords) + 0.5*dt*texture2D(textureSource2, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL) + 0.5*dt*texture2D(textureSource2, textureCoordsL);
@@ -212,6 +228,7 @@ export function RDShaderMain(type) {
     uvwqTT = texture2D(textureSource, textureCoordsTT) + 0.5*dt*texture2D(textureSource2, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB) + 0.5*dt*texture2D(textureSource2, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
+    vec4 timescales = TIMESCALES;
     updated = RHS;`;
   update.RK44 = `uvwqLast = texture2D(textureSource, textureCoords);
     uvwq = uvwqLast + dt*texture2D(textureSource3, textureCoords);
@@ -225,7 +242,8 @@ export function RDShaderMain(type) {
     uvwqBB = texture2D(textureSource, textureCoordsBB) + dt*texture2D(textureSource3, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS1);
     RHS = (texture2D(textureSource1, textureCoords) + 2.0*(texture2D(textureSource2, textureCoords) + texture2D(textureSource3, textureCoords)) + RHS1) / 6.0;
-    updated = dt * RHS + uvwqLast;`;
+    vec4 timescales = TIMESCALES;
+    updated = dt * RHS / timescales + uvwqLast;`;
   return (
     `
   void main()
@@ -263,10 +281,19 @@ export function RDShaderMain(type) {
   );
 }
 
+/**
+ * Returns the shader code for a reaction-diffusion simulation with periodic boundary conditions.
+ * @returns {string} The shader code.
+ */
 export function RDShaderPeriodic() {
   return ``;
 }
 
+/**
+ * Generates shader code for specifying the values of ghost cells in the x-direction.
+ * @param {string} [LR] - Determines whether to apply the condition at the left ("L"), right ("R"), or both ("LR"). If undefined, returns both.
+ * @returns {string} The shader code for setting the species of ghost cells in the x-direction.
+ */
 export function RDShaderGhostX(LR) {
   const L = `
     if (textureCoords.x - step_x < 0.0) {
@@ -284,6 +311,11 @@ export function RDShaderGhostX(LR) {
   return "";
 }
 
+/**
+ * Generates shader code for specifying the values of ghost cells in the y-direction.
+ * @param {string} [TB] - Determines whether to apply the condition at the top ("T"), bottom ("B"), or both ("TB"). If undefined, returns both.
+ * @returns {string} The shader code for setting the species of ghost cells in the y-direction.
+ */
 export function RDShaderGhostY(TB) {
   const T = `
     if (textureCoords.y + step_y > 1.0){
@@ -301,6 +333,11 @@ export function RDShaderGhostY(TB) {
   return "";
 }
 
+/**
+ * Returns a string containing the Robin boundary condition shader code in the x-direction.
+ * @param {string} [LR] - Determines whether to apply the condition at the left ("L"), right ("R"), or both ("LR"). If undefined, returns both.
+ * @returns {string} The Robin boundary condition shader code.
+ */
 export function RDShaderRobinX(LR) {
   const L = `
     if (textureCoords.x - step_x < 0.0) {
@@ -318,6 +355,11 @@ export function RDShaderRobinX(LR) {
   return "";
 }
 
+/**
+ * Returns a string containing the Robin boundary condition shader code in the y-direction.
+ * @param {string} [TB] - Determines whether to apply the condition at the top ("T"), bottom ("B"), or both ("TB"). If undefined, returns both.
+ * @returns {string} The Robin boundary condition shader code.
+ */
 export function RDShaderRobinY(TB) {
   const T = `
     if (textureCoords.y + step_y > 1.0){
@@ -335,9 +377,15 @@ export function RDShaderRobinY(TB) {
   return "";
 }
 
+/**
+ * Generates a Robin boundary condition shader for a custom domain in the x-direction.
+ * @param {string} TB - Determines whether to apply the condition at the left ("L"), right ("R"), or both ("LR"). If undefined, returns both.
+ * @param {string} fun - A function that defines the custom domain.
+ * @returns {string} The generated shader code.
+ */
 export function RDShaderRobinCustomDomainX(LR, fun) {
   const L = `
-    if (float(indicatorFunL) <= 0.0 || textureCoords.x - step_x < 0.0) {
+    if (float(indicatorFunL) <= 0.0 || textureCoords.x - 2.0*step_x < 0.0) {
       if (float(indicatorFunR) <= 0.0) {
         uvwqL.SPECIES = dx * robinRHSSPECIESL + uvwq.SPECIES;
       } else {
@@ -354,7 +402,7 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
       fun.replaceAll(/\bx\b/g, "(x+dx)").replaceAll(/\buvwq\./g, "uvwqR.")
     );
   const R = `
-    if (float(indicatorFunR) <= 0.0 || textureCoords.x + step_x > 1.0) {
+    if (float(indicatorFunR) <= 0.0 || textureCoords.x + 2.0*step_x > 1.0) {
       if (float(indicatorFunL) <= 0.0) {
         uvwqR.SPECIES = dx * robinRHSSPECIESR + uvwq.SPECIES;
       } else {
@@ -376,9 +424,15 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
   return "";
 }
 
+/**
+ * Generates a Robin boundary condition shader for a custom domain in the y-direction.
+ * @param {string} TB - Determines whether to apply the condition at the top ("T"), bottom ("B"), or both ("TB"). If undefined, returns both.
+ * @param {string} fun - A function that defines the custom domain.
+ * @returns {string} The generated shader code.
+ */
 export function RDShaderRobinCustomDomainY(TB, fun) {
   const T = `
-    if (float(indicatorFunT) <= 0.0 || textureCoords.y + step_y > 1.0){
+    if (float(indicatorFunT) <= 0.0 || textureCoords.y + 2.0*step_y > 1.0){
       if (float(indicatorFunB) <= 0.0) {
         uvwqT.SPECIES = dy * robinRHSSPECIEST + uvwq.SPECIES;
       } else {
@@ -395,7 +449,7 @@ export function RDShaderRobinCustomDomainY(TB, fun) {
       fun.replaceAll(/\by\b/g, "(y-dy)").replaceAll(/\buvwq\./g, "uvwqB.")
     );
   const B = `
-    if (float(indicatorFunB) <= 0.0 || textureCoords.y - step_y < 0.0) {
+    if (float(indicatorFunB) <= 0.0 || textureCoords.y - 2.0*step_y < 0.0) {
       if (float(indicatorFunT) <= 0.0) {
         uvwqB.SPECIES = dy * robinRHSSPECIESB + uvwq.SPECIES;
       } else {
@@ -417,6 +471,10 @@ export function RDShaderRobinCustomDomainY(TB, fun) {
   return "";
 }
 
+/**
+ * Returns the shader code for computing advection before boundary conditions have been applied.
+ * @returns {string} The shader code.
+ */
 export function RDShaderAdvectionPreBC() {
   return `
     vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
@@ -432,6 +490,10 @@ export function RDShaderAdvectionPreBC() {
     `;
 }
 
+/**
+ * Returns the shader code for computing advection after boundary conditions have been applied.
+ * @returns {string} The shader code.
+ */
 export function RDShaderAdvectionPostBC() {
   return `
     uvwqX = (uvwqR - uvwqL) / (2.0*dx);
@@ -447,6 +509,10 @@ export function RDShaderAdvectionPostBC() {
     `;
 }
 
+/**
+ * Returns the shader code for computing diffusion before boundary conditions have been applied.
+ * @returns {string} The shader code.
+ */
 export function RDShaderDiffusionPreBC() {
   return `
     vec4 uvwqXX = (uvwqR - 2.0*uvwq + uvwqL) / (dx*dx);
@@ -454,6 +520,10 @@ export function RDShaderDiffusionPreBC() {
     `;
 }
 
+/**
+ * Returns the shader code for computing diffusion after boundary conditions have been applied.
+ * @returns {string} The shader code.
+ */
 export function RDShaderDiffusionPostBC() {
   return `
     uvwqXX = (uvwqR - 2.0*uvwq + uvwqL) / (dx*dx);
@@ -461,6 +531,11 @@ export function RDShaderDiffusionPostBC() {
     `;
 }
 
+/**
+ * Generates a shader for updating a reaction-diffusion system without cross diffusion.
+ * @param {number} [numSpecies=4] - The number of species. Defaults to 4.
+ * @returns {string} - The shader code for the update.
+ */
 export function RDShaderUpdateNormal(numSpecies) {
   if (numSpecies == undefined) numSpecies = 4;
   let shader = "";
@@ -486,6 +561,7 @@ export function RDShaderUpdateNormal(numSpecies) {
     float dq = LDqqQ + QFUN;
     `;
   }
+  // Add the final line of the shader.
   switch (numSpecies) {
     case 1:
       shader += `result = vec4(du,0.0,0.0,0.0);`;
@@ -507,6 +583,11 @@ export function RDShaderUpdateNormal(numSpecies) {
   );
 }
 
+/**
+ * Generates a shader for updating a reaction-diffusion system with cross diffusion.
+ * @param {number} [numSpecies=4] - The number of species in the system.
+ * @returns {string} The generated shader code.
+ */
 export function RDShaderUpdateCross(numSpecies) {
   if (numSpecies == undefined) numSpecies = 4;
   let shader = "";
@@ -522,7 +603,9 @@ export function RDShaderUpdateCross(numSpecies) {
     `\nfloat du = 0.5*dot(dSquared,` +
     [`LDuuU`, `LDuvV`, `LDuwW`, `LDuqQ`].slice(0, numSpecies).join(" + ") +
     `) + UFUN;\n`;
+  // If there is more than one species, add the second species.
   if (numSpecies > 1) {
+    // Compute the cross-diffusion terms.
     shader +=
       [
         `vec2 LDvuU = vec2(Dvux*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DvuxR*(uvwqR.r - uvwq.r) + DvuxL*(uvwqL.r - uvwq.r), Dvuy*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DvuyT*(uvwqT.r - uvwq.r) + DvuyB*(uvwqB.r - uvwq.r));`,
@@ -536,7 +619,9 @@ export function RDShaderUpdateCross(numSpecies) {
       [`LDvuU`, `LDvvV`, `LDvwW`, `LDvqQ`].slice(0, numSpecies).join(" + ") +
       `) + VFUN;\n`;
   }
+  // If there are more than two species, add the third species.
   if (numSpecies > 2) {
+    // Compute the cross-diffusion terms.
     shader +=
       [
         `vec2 LDwuU = vec2(Dwux*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DwuxR*(uvwqR.r - uvwq.r) + DwuxL*(uvwqL.r - uvwq.r), Dwuy*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DwuyT*(uvwqT.r - uvwq.r) + DwuyB*(uvwqB.r - uvwq.r));`,
@@ -550,7 +635,9 @@ export function RDShaderUpdateCross(numSpecies) {
       [`LDwuU`, `LDwvV`, `LDwwW`, `LDwqQ`].slice(0, numSpecies).join(" + ") +
       `) + WFUN;\n`;
   }
+  // If there are more than three species, add the fourth species.
   if (numSpecies > 3) {
+    // Compute the cross-diffusion terms.
     shader +=
       [
         `vec2 LDquU = vec2(Dqux*(uvwqR.r + uvwqL.r - 2.0*uvwq.r) + DquxR*(uvwqR.r - uvwq.r) + DquxL*(uvwqL.r - uvwq.r), Dquy*(uvwqT.r + uvwqB.r - 2.0*uvwq.r) + DquyT*(uvwqT.r - uvwq.r) + DquyB*(uvwqB.r - uvwq.r));`,
@@ -564,6 +651,7 @@ export function RDShaderUpdateCross(numSpecies) {
       [`LDquU`, `LDqvV`, `LDqwW`, `LDqqQ`].slice(0, numSpecies).join(" + ") +
       `) + QFUN;\n`;
   }
+  // Add the final line of the shader.
   switch (numSpecies) {
     case 1:
       shader += `result = vec4(du,0.0,0.0,0.0);`;
@@ -585,27 +673,21 @@ export function RDShaderUpdateCross(numSpecies) {
   );
 }
 
+/**
+ * Returns the shader code for updating the algebraic species in a reaction-diffusion simulation.
+ * @returns {string} The shader code for updating the algebraic species.
+ */
 export function RDShaderAlgebraicSpecies() {
   return `
-    updated.SPECIES = RHS.SPECIES;
+    updated.SPECIES = RHS.SPECIES / timescales.SPECIES;
     `;
 }
 
-export function RDShaderAlgebraicV() {
-  return `
-    updated.SPECIES = LDvuU + VFUN;`;
-}
-
-export function RDShaderAlgebraicW() {
-  return `
-    updated.SPECIES = LDwuU + LDwvV + WFUN;`;
-}
-
-export function RDShaderAlgebraicQ() {
-  return `
-    updated.SPECIES = LDquU + LDqvV + LDqwW + QFUN;`;
-}
-
+/**
+ * Returns the shader code for applying Dirichlet boundary conditions in the x-direction.
+ * @param {string} [LR] - Optional argument to specify whether to return the shader code for the left boundary ("L"), right boundary ("R"), or both boundaries (undefined).
+ * @returns {string} The shader code for applying Dirichlet boundary conditions in the x-direction.
+ */
 export function RDShaderDirichletX(LR) {
   const L = `
     if (textureCoords.x - step_x < 0.0) {
@@ -623,6 +705,11 @@ export function RDShaderDirichletX(LR) {
   return "";
 }
 
+/**
+ * Returns the shader code for applying Dirichlet boundary conditions in the y-direction.
+ * @param {string} [LR] - Optional argument to specify whether to return the shader code for the top boundary ("T"), bottom boundary ("B"), or both boundaries (undefined).
+ * @returns {string} The shader code for applying Dirichlet boundary conditions in the y-direction.
+ */
 export function RDShaderDirichletY(TB) {
   const T = `
     if (textureCoords.y + step_y > 1.0) {
@@ -640,18 +727,30 @@ export function RDShaderDirichletY(TB) {
   return "";
 }
 
+/**
+ * Returns a shader fragment that updates the SPECIES based on an indicator function.
+ * @returns {string} The shader function as a string.
+ */
 export function RDShaderDirichletIndicatorFun() {
   return `
     if (float(indicatorFun) <= 0.0) {
         updated.SPECIES = `;
 }
 
+/**
+ * Returns the final part of shader code for a reaction-diffusion simulation.
+ * @returns {string} The shader code.
+ */
 export function RDShaderBot() {
   return ` 
     gl_FragColor = updated;
 }`;
 }
 
+/**
+ * Returns the top part of shader code for enforcing Dirichlet boundary conditions.
+ * @returns {string} The shader code.
+ */
 export function RDShaderEnforceDirichletTop() {
   return `precision highp float;
     varying vec2 textureCoords;
@@ -721,6 +820,11 @@ export function RDShaderEnforceDirichletTop() {
     `;
 }
 
+/**
+ * Generates shader code for clamping species values to the edge of a texture in a given direction.
+ * @param {string} direction - The direction in which to clamp the species values. Can include "H" for horizontal and/or "V" for vertical.
+ * @returns {string} The generated GLSL code.
+ */
 export function clampSpeciesToEdgeShader(direction) {
   let out = "";
   if (direction.includes("H")) {

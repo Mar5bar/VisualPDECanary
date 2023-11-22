@@ -6,8 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="Cache-control" content="public">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#202124" />
+    <link type="text/css" rel="stylesheet" href="../assets/css/shepherd.css">
     <link type="text/css" rel="stylesheet" href="./css/main.css">
     <script src="../assets/js/jQuery.js"></script>
+    <script src="../assets/js/dark_mode.js"></script>
     <script defer type="text/javascript" src="./scripts/dat.gui.min.js"></script>
     <script defer src="../assets/fontawesome/solid.js"></script>
     <script defer src="../assets/fontawesome/fontawesome.min.js"></script>
@@ -39,7 +42,8 @@
                     domain: "\\mathit{\\Omega}",
                     boundary: "\\partial\\mathit{\\Omega}",
                     onboundary: "\\vert_{\\boundary}",
-                    selected: ["{\\bbox[GreenYellow]{#1}}", 1],
+                    selectedLight: ["{\\bbox[GreenYellow]{#1}}", 1],
+                    selectedDark: ["{\\bbox[Purple]{#1}}", 1],
                     floor: ["\\left\\lfloor#1\\right\\rfloor", 1],
                     ind: ["\\mathbb{1}_{#1}", 1],
                     dmat: ["\\begin{bmatrix}#1&0\\\\0&#2\\end{bmatrix}", 2],
@@ -59,7 +63,6 @@
         src="../assets/js/mathjax/es5/tex-chtml-full.js">
     </script>
     <script type="module" src="../assets/js/shepherd.min.js"></script>
-    <link type="text/css" rel="stylesheet" href="../assets/css/shepherd.css">
     <script type="module" src="./scripts/dat_gui_mods.js"></script>
     <script type="module" src="./scripts/RD/main.js"></script>
     <script src="./scripts/fitty.min.js"></script>
@@ -93,21 +96,19 @@
     <canvas id="simCanvas"></canvas>
 </div>
 
-<div class="message" id="welcome">
+<div class="message big-popup" id="welcome">
     <p><img src='../assets/favicons/android-chrome-192x192.webp' width="48" height="48"></p>
     <p>Welcome to VisualPDE!</p>
-    <br>
     <div id="tour_question">
         <p>There is so much to explore. Would you like a tour?</p>
         <br>
-        <button id="welcome_ok" class="btn-primary">Yes, show me round!</button>
+        <button id="welcome_ok" class="btn-primary highlight">Yes, show me round!</button>
         <br>
         <button id="welcome_no" class="btn-primary">No, let me jump in!</button>
     </div>
-    <p style="font-size: small;">Some simulations on VisualPDE.com may contain flashing images and patterns.</p>
+    <p>Some simulations on VisualPDE.com may contain flashing images and patterns.</p>
     <div id="lets_go_cont" style="display:none">
-        <br>
-        <button id="lets_go" class="btn-primary">Ok, let's go!</button>
+        <button id="lets_go" class="btn-primary highlight">Ok, let's go!</button>
     </div>
 </div>
 
@@ -117,38 +118,47 @@
 <div class="ui hidden ui_button" id="pause" title="Pause (space)"><i class="fa-solid fa-pause"></i></div>
 <div class="ui hidden ui_button" id="erase" title="Restart (R)"><i class="fa-solid fa-arrow-rotate-left"></i></div>
 <div class="ui hidden ui_button" id="share" title="Share"><i class="fa-solid fa-share-from-square"></i></div>
-<div class="message" id="link_copied"><p>Copied to clipboard</p></div>
-<div class="message" id="get_help"><p>Get help here anytime</p></div>
-<div class="message" id="recording">
+<div class="message small" id="link_copied"><p>Copied to clipboard</p></div>
+<div class="message small" id="get_help"><p>Get help here anytime</p></div>
+<div class="message small mid" id="brush_disabled"><p>Brush disabled</p></div>
+<div class="message small mid" id="recording">
     <div class="circle"></div><p>Recording <span id="recording_time"></span></p>
     <div class="ui_button" id="stop_recording" title="Stop recording"><i class="fa-solid fa-video-slash"></i></div>
 </div>
+<div class="message small" id="use_Chrome"><p>Chrome/Firefox are recommended for video compatibility</p></div>
 <div class="ui hidden ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div>
 <div class="ui hidden ui_button" id="views" title="Views"><i class="fa-solid fa-layer-group"></i></div>
 
 <div class="ui hidden ui_button" id="equations" title="Edit equations"></div>
 
-<a href='/' target="blank"><div id="logo" class="ui hidden">VisualPDE</div></a>
+<a id="logo" title="To VisualPDE.com" class="ui hidden" href="/" target="_blank">VisualPDE</a>
 
 <div class="message" id="top_message" title="Try clicking!"><p>Try clicking!</p></div>
-<div class="message" id="oops_hit_nan">
-    <div class="error_infinity"><i class="fa-sharp fa-solid fa-infinity"></i></div>
+<div class="message big-popup" id="oops_hit_nan">
+    <div class="centre_symbol"><i class="fa-sharp fa-solid fa-infinity"></i></div>
     <p class="error_para"><strong>Oops!</strong> It looks like things have spiralled off to infinity, or the numerical solver is unstable.</p>
     <p class="error_para">Check the equations, or try reducing the timestep, and restart the simulation.</p>
-    <button class="btn-primary warning_dismiss" id="oops_hit_nan_close"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
+    <button class="btn-primary message_dismiss" id="oops_hit_nan_close"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
-<div class="message" id="error">
-    <div class="error_infinity"><i class="fa-solid fa-clipboard-question"></i></div>
+<div class="message big-popup" id="error">
+    <div class="centre_symbol"><i class="fa-solid fa-clipboard-question"></i></div>
     <p class="error_para">VisualPDE is throwing an error.</p>
     <p class="error_para" id='error_description'></p>
-    <p class="error_para">Check for syntax errors, and reload the page if the interface is unresponsive.</p>
-    <button class="btn-primary warning_dismiss" id="error_close_button"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
+    <p class="error_para">Check for <a href="/user-guide/advanced-options.html#writing-valid-expressions" target="_blank">syntax errors</a>, and reload the page if the interface is unresponsive.</p>
+    <button class="btn-primary message_dismiss" id="error_close_button"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
-<div class="message" id="bad_preset">
-    <div class="error_infinity"><i class="fa-solid fa-clipboard-question"></i></div>
+<div class="message big-popup" id="bad_preset">
+    <div class="centre_symbol"><i class="fa-solid fa-clipboard-question"></i></div>
     <p class="error_para"><strong>Hmmm...</strong></p>
     <p class="error_para" id='preset_description'></p>
-    <button class="btn-primary warning_dismiss" id="preset_error_close_button"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
+    <button class="btn-primary message_dismiss" id="preset_error_close_button"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
+</div>
+<div class="message big-popup" id="first_video">
+    <div class="centre_symbol"><i class="fa-solid fa-file-video"></i></div>
+    <p>Congratulations! You've recorded your first video clip with VisualPDE!</p>
+    <br>
+    <p>If you're planning to share it on social media or messaging apps, check out our <a href="/user-guide/FAQ.html#videoHelp" target="_blank">FAQ on video compatibility</a>.</p>
+    <button class="btn-primary message_dismiss" id="first_video_close"><i class="fa-solid fa-xmark icon_on_text_button"></i>Close</button>
 </div>
 
 <div id="right_ui" class="ui hidden">

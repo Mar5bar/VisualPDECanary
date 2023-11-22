@@ -84,6 +84,31 @@ export function computeDisplayFunShaderMid() {
         vec4 uvwqXB = (uvwq - uvwqL) / dx;
         vec4 uvwqYB = (uvwq - uvwqB) / dy;
 
+        // At boundaries, compute gradients using one-sided differences.
+        if (textureCoords.x - step_x < 0.0) {
+          uvwqX = (uvwqR - uvwq) / dx;
+          uvwqXF = uvwqX;
+          uvwqXB = uvwqX;
+        }
+
+        if (textureCoords.x + step_x > 1.0) {
+          uvwqX = (uvwq - uvwqL) / dx;
+          uvwqXF = uvwqX;
+          uvwqXB = uvwqX;
+        }
+
+        if (textureCoords.y - step_y < 0.0) {
+          uvwqY = (uvwqT - uvwq) / dy;
+          uvwqYF = uvwqY;
+          uvwqYB = uvwqY;
+        }
+
+        if (textureCoords.y + step_y > 1.0) {
+          uvwqY = (uvwq - uvwqB) / dy;
+          uvwqYF = uvwqY;
+          uvwqYB = uvwqY;
+        }
+
         float value = FUN;
 				float height = value;
                 float yVecComp;
@@ -91,13 +116,43 @@ export function computeDisplayFunShaderMid() {
 					height = (HEIGHT) / L;
 				}
         if (vectorField) {
-            height = XVECFUN;
-            yVecComp = YVECFUN;
+          height = XVECFUN;
+          yVecComp = YVECFUN;
+          VECFIELDPLACEHOLDER
         }
         if (overlayLine) {
           height = OVERLAYEXPR;
         }
+        if (isnan(value)) {
+          value = 1.0/0.0;
+        }
         gl_FragColor = vec4(value, 0.0, height, yVecComp);`;
+}
+
+// If the sample point is near the edge of the domain, set all vector components to zero.
+export function postShaderDomainIndicatorVField(fun) {
+  return `
+  if (float(indicatorFunL) <= 0.0 || float(indicatorFunR) <= 0.0 || float(indicatorFunT) <= 0.0 || float(indicatorFunB) <= 0.0) {
+    height = 0.0;
+    yVecComp = 0.0;
+  }
+  `
+    .replace(
+      /indicatorFunL/,
+      fun.replaceAll(/\bx\b/g, "(x-dx)").replaceAll(/\buvwq\./g, "uvwqL.")
+    )
+    .replace(
+      /indicatorFunR/,
+      fun.replaceAll(/\bx\b/g, "(x+dx)").replaceAll(/\buvwq\./g, "uvwqR.")
+    )
+    .replace(
+      /indicatorFunT/,
+      fun.replaceAll(/\by\b/g, "(y+dy)").replaceAll(/\buvwq\./g, "uvwqT.")
+    )
+    .replace(
+      /indicatorFunB/,
+      fun.replaceAll(/\by\b/g, "(y-dy)").replaceAll(/\buvwq\./g, "uvwqB.")
+    );
 }
 
 export function postShaderDomainIndicator() {

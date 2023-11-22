@@ -14,4 +14,6 @@ Functions of space can allow us to change how a PDE solution varies in space and
 
 * Change $I_T$ to $I_S$ in {{ layout.equations }}→**Definitions** to see another famous mathematical face. [Sofya Kovalevskaya](https://en.wikipedia.org/wiki/Sofya_Kovalevskaya) also has her own [interactive simulation](/sim/?preset=Sofya).
 
-* You can upload a replacement for either of these images under {{ layout.settings }}→**Images**. They can each be used as heterogeneities in many parts of VisualPDE.
+# Other Images
+
+You can upload a replacement for either of these images under {{ layout.settings }}→**Images**. They can each be used as heterogeneities in many parts of VisualPDE. Some examples include a [Halloween design](/sim/?preset=Jack), a [VisualPDE QR code](/sim/?preset=QR), and a [spiralling shell](/sim/?preset=shell)

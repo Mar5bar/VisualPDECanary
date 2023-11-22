@@ -3,7 +3,18 @@
         {%- assign default_paths = site.pages | map: "path" -%}
         {%- assign page_paths = site.header_pages | default: default_paths -%}
         {%- assign titles_size = site.pages | map: 'title' | join: '' | size -%}
-        <a class="site-title" rel="author" href="{{ "/" | relative_url }}">{{ site.title | escape }}</a>
+        <a class="site-title" rel="author" href="{{ "/" | relative_url }}">
+            <img
+                class="light-mode-img"
+                src="/assets/images/logo.webp"
+                alt="Heart-shaped logo"
+                style="height:2rem;margin-right:8px;vertical-align:text-top"
+            /><img
+                class="dark-mode-img"
+                src="/assets/images/logo-dark.webp"
+                alt="Heart-shaped logo"
+                style="height:2rem;margin-right:8px;vertical-align:text-top"
+            />{{ site.title | escape }}</a>
 
         {%- if titles_size > 0 -%}
             <nav class="site-nav">
@@ -23,7 +34,7 @@
                 <a class="page-link" href="{{ my_page.url | relative_url }}">{{ my_page.title | escape }}</a>
                 {%- endif -%}
                 {%- endfor -%}
-                <a class="nav-button" href="/sim">Play!</a>
+                <a class="nav-button" href="/sim/">Play!</a>
             </div>
         </nav>
             {%- include search-lunr.html -%}

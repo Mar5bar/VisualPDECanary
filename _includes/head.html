@@ -19,7 +19,7 @@
   <link rel="shortcut icon" href="/assets/favicons/favicon.ico">
   <meta name="msapplication-TileColor" content="#da532c">
   <meta name="msapplication-config" content="/assets/favicons/browserconfig.xml">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#dfdfdf">
   <meta name="twitter:card" content="summary" /> 
   <meta name="twitter:site:id" content="@bj_w95" /> 
   <meta name="twitter:title" content="VisualPDE" /> 
@@ -31,6 +31,10 @@
   <meta property="og:image" content="https://visualpde.com/assets/favicons/android-chrome-512x512.webp" />
   <meta property="og:url" content="https://visualpde.com" />
   <meta property="og:site_name" content="VisualPDE" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <script src="/assets/js/dark_mode.js"></script>
 
   <script>
     // If the window is very narrow, use a smaller domain in any iframe simulations.
@@ -48,14 +52,6 @@
           } else {
             el.src += "?sf=0.5";
           }
-          // In order for lazy loading to work with an updated string, we have to remove and 
-          // readd the element to the DOM.
-          const original = el.cloneNode(true);
-          const placeholder = document.createElement("div");
-          el.replaceWith(placeholder);
-          placeholder.replaceWith(original);
-          el.remove();
-          placeholder.remove();
         })
       });
     }
@@ -78,5 +74,33 @@
       });
     }
   </script>
+	
+	<script>
+		// Suspend simulations when not in view.
+    let simObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach((entry) => {
+          let message;
+          if (entry.isIntersecting) {
+            message = "resume";
+          } else {
+            message = "suspend";
+          }
+          entry.target?.contentWindow.postMessage({ type: message }, "/");
+        });
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0,
+      }
+    );
+    window.addEventListener("load", function () {
+      [...document.getElementsByClassName("sim")].forEach((el) => {
+        simObserver.observe(el);
+      });
+    });
+  </script>
+		
 
 </head>

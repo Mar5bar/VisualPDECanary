@@ -6,12 +6,12 @@ thumbnail: /assets/images/start.webp
 extract: Two-minute top tips
 ---
 
-VisualPDE is a web-based set of tools for solving partial differential equations (PDEs) via an interactive, easy-to-use simulation. To get started, try playing with some of the examples in [Basic PDEs](/basic-pdes), or read on for some quick tips for using the solver.
+VisualPDE is a web-based set of tools for solving partial differential equations (PDEs) via an interactive, easy-to-use simulation. To get started, try playing with some of the examples in [Introductory PDEs](/basic-pdes), or read on for some quick tips for using the solver.
 
-### Interacting with the simulation <a id='interacting'>
+### Interacting with the simulation <a class="anchor" id='interacting'>
 Clicking/pressing on the simulation draws values right onto the domain. You can customise exactly what this does under <span class='click_sequence'>{{ layout.settings }} → **Brush** </span> For example, the default settings in the [heat equation example](/basic-pdes/heat-equation) allow you to paint 'heat' of value 1 onto the domain, which acts like an initial condition for the rest of the simulation.
 
-### The equations panel <a id='equations-panel'>
+### The equations panel <a class="anchor" id='equations-panel'>
 Pressing {{ layout.equations }} opens up the **equations panel**.
 
 {:refdef: style="text-align: center;"}
@@ -25,13 +25,13 @@ Here you can:
 * Set the [boundary conditions](#boundary-conditions).
 * Set the [initial conditions](#initial-conditions).
 
-### Domain shape <a id='domain-shape'>
+### Domain shape <a class="anchor" id='domain-shape'>
 
 The default **domain** for solving PDEs is a 2D rectangle, $\domain = [0,L_x]\times[0,L_y]$, which fits the size of your browser window or phone screen. Throughout VisualPDE, we use coordinates $x\in[0,L_x]$ and $y\in[0,L_y]$.
 
-You can force the domain to be square, $\domain = [0,L]\times[0,L]$, by toggling <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Square**</span>
+You can force the domain to be a square, $\domain = [0,L]\times[0,L]$, by toggling off <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Fill screen**</span>
 
-### Boundary conditions <a id='boundary-conditions'>
+### Boundary conditions <a class="anchor" id='boundary-conditions'>
 
 The following **boundary conditions** are available to allow you to set the value of the function, or the value of its derivative, along the boundary $\boundary$ of the domain $\domain$:
 
@@ -42,10 +42,10 @@ The following **boundary conditions** are available to allow you to set the valu
 
 You can swap between boundary conditions by choosing <span class='click_sequence'>{{ layout.equations }} → **Boundary conditions**</span> and selecting from the list for each variable.
 
-### Initial conditions <a id='initial-conditions'>
+### Initial conditions <a class="anchor" id='initial-conditions'>
 You can specify the values to which the unknowns ($u$, $v$, $w$) are initialised when resetting the simulation. These expressions can be functions of $x$, $y$, the special string 'RAND' that assigns a random number in [0,1] to each point in the domain, along with any user-defined parameters and the images $I_S$ and $I_T$ (see the [advanced documentation](/user-guide/advanced-options) for more details). You can also use $L$, $L_x$ and $L_y$.
 
-### Changing the equations <a id='equations'>
+### Changing the equations <a class="anchor" id='equations'>
 
 The simplest system VisualPDE can solve is a single PDE,
 
@@ -56,25 +56,25 @@ where $D_u$ and $f_u$ are functions of $u$, $x$, $y$, and $t$ that you can speci
 The most complicated type is a coupled system of PDEs in four unknowns, $u$, $v$, $w$ and $q$:
 
 $$\begin{aligned}
-\pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_{uq}\vnabla q) + f_u,\\
-\text{one of}\left\{\begin{matrix}\displaystyle\pd{v}{t} \\ v\end{matrix}\right. & 
+t_u\pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_{uq}\vnabla q) + f_u,\\
+\text{one of}\left\{\begin{matrix}\displaystyle t_v\pd{v}{t} \\ v\end{matrix}\right. & 
 \begin{aligned}
-    &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + f_v \vphantom{\displaystyle\pd{v}{t}}, \\
+    &= \vnabla \cdot(D_{vu}\vnabla u+D_{vv}\vnabla v+D_{vw}\vnabla w+D_{vq}\vnabla q) + f_v \vphantom{\displaystyle t_v\pd{v}{t}}, \\
     &= \vnabla \cdot(D_{vu}\vnabla u+D_{vw}\vnabla w+D_{vq}\vnabla q) + f_v,
 \end{aligned}\\
-\text{one of}\left\{\begin{matrix}\displaystyle\pd{w}{t} \\ w\end{matrix}\right. & 
+\text{one of}\left\{\begin{matrix}\displaystyle t_w\pd{w}{t} \\ w\end{matrix}\right. & 
 \begin{aligned}
-    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w+D_{wq}\vnabla q) + f_w \vphantom{\displaystyle\pd{w}{t}}, \\
+    &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{ww}\vnabla w+D_{wq}\vnabla q) + f_w \vphantom{\displaystyle t_w\pd{w}{t}}, \\
     &= \vnabla \cdot(D_{wu}\vnabla u+D_{wv}\vnabla v+D_{wq}\vnabla q) + f_w,
 \end{aligned}\\
-\text{one of}\left\{\begin{matrix}\displaystyle\pd{q}{t} \\ q\end{matrix}\right. & 
+\text{one of}\left\{\begin{matrix}\displaystyle t_q\pd{q}{t} \\ q\end{matrix}\right. & 
 \begin{aligned}
-    &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w+D_{qq}\vnabla q) + f_q \vphantom{\displaystyle\pd{q}{t}}, \\
+    &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w+D_{qq}\vnabla q) + f_q \vphantom{\displaystyle t_q\pd{q}{t}}, \\
     &= \vnabla \cdot(D_{qu}\vnabla u+D_{qv}\vnabla v+D_{qw}\vnabla w) + f_q,
 \end{aligned}
 \end{aligned}$$
 
-where $D_{uu}, \dots,  D_{qq}$ and $f_u, \dots, f_q$ are functions of $u$, $v$, $w$, $q$, $x$, $y$ and $t$ that you can specify.
+where $D_{uu}, \dots,  D_{qq}$, $f_u, \dots, f_q$ and $t_u, \dots, t_q$ are functions of $u$, $v$, $w$, $q$, $x$, $y$ and $t$ that you can specify.
 
 * You can change the number of unknowns by choosing <span class='click_sequence'>{{ layout.settings }} → **Equations** → **No. species**</span>
 * In systems of multiple unknowns, you can include terms representing cross-diffusion (e.g. $D_{uv}$, $D_{vu}$) by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Cross**</span>
