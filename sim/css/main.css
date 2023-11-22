@@ -64,6 +64,11 @@ a {
   }
 }
 
+p > a,
+p > a:visited {
+  text-decoration: underline;
+}
+
 canvas {
   background: no-repeat center/40vw url(/assets/images/logo_loading.webp);
   background-color: black;

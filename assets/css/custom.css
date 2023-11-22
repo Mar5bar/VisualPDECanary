@@ -37,13 +37,28 @@ a:visited {
   text-decoration: none;
 }
 
+a[href*='//']:not([href*='visualpde.com'])
+{
+  color: var(--text-color);
+}
+
+p > a,
+p > a:visited {
+  text-decoration: underline;
+}
+
 @media (hover: hover) {
   a:hover {
     color: var(--link-color);
     cursor: pointer;
+    text-decoration: none;
   }
   summary:hover {
     cursor: pointer;
+  }
+  .site-nav .page-link:hover,
+  .site-title:hover {
+    text-decoration: underline;
   }
 }
 
@@ -103,6 +118,10 @@ a[href*="/sim/"] {
   white-space: nowrap;
 }
 
+a[href*="/sim/"] {
+  text-decoration: none;
+}
+
 .nav-button:hover,
 a[href*="/sim/"]:hover {
   background-color: var(--play-button-hover-color);
@@ -114,17 +133,6 @@ a[href*="/sim/"]:hover {
 
 .trigger .nav-button {
   margin-right: 10px;
-}
-
-a[href*='//']:not([href*='visualpde.com'])
-{
-  color: var(--text-color);
-  text-decoration: underline;
-}
-
-p > a,
-p > a:visited {
-  text-decoration: underline;
 }
 
 .footer-col-wrapper {
