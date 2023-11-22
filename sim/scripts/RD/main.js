@@ -149,6 +149,7 @@ import { Stats } from "../stats.min.js";
     vectorFieldFolder,
     selectedEntries = new Set();
   let isRunning,
+    isSuspended = false,
     isLoading = true,
     isRecording = false,
     hasErrored = false,
@@ -3122,6 +3123,10 @@ import { Stats } from "../stats.min.js";
   }
 
   function animate() {
+    if (isSuspended) {
+      requestAnimationFrame(animate);
+      return;
+    }
     if (options.showStats) stats.begin();
 
     hasDrawn = isDrawing;
@@ -8621,6 +8626,12 @@ import { Stats } from "../stats.min.js";
         break;
       case "playSim":
         playSim();
+        break;
+      case "suspend":
+        isSuspended = true;
+        break;
+      case "resume":
+        isSuspended = false;
         break;
       default:
         // Maintain backwards compatibility with old messages.

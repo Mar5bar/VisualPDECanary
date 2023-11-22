@@ -74,5 +74,33 @@
       });
     }
   </script>
+	
+	<script>
+		// Suspend simulations when not in view.
+    let simObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach((entry) => {
+          let message;
+          if (entry.isIntersecting) {
+            message = "resume";
+          } else {
+            message = "suspend";
+          }
+          entry.target?.contentWindow.postMessage({ type: message }, "/");
+        });
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0,
+      }
+    );
+    window.addEventListener("load", function () {
+      [...document.getElementsByClassName("sim")].forEach((el) => {
+        simObserver.observe(el);
+      });
+    });
+  </script>
+		
 
 </head>
