@@ -559,6 +559,7 @@ export function getListOfPresets() {
   };
 
   listOfPresets["RedGreyInvasionUK"] = {
+    activeViewInd: 1,
     arrowDensity: 0.267,
     arrowLengthMax: "0.01",
     arrowScale: "relative",
