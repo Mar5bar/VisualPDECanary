@@ -61,9 +61,7 @@ async function setupPageSearch() {
       obj.id = el.id;
       obj.title = el.innerText;
       obj.level = el.tagName[1];
-      obj.displayedName =
-        el.innerText.trim() +
-        (el.tagName[1] == highestLevel ? " (section)" : "");
+      obj.displayedName = el.innerText.trim();
       // Get the text content of the next elements until the next heading.
       let curEl = el.nextElementSibling;
       obj.followedBy = "";
@@ -98,11 +96,13 @@ async function setupPageSearch() {
           level = currentEl.tagName[1];
         }
       }
+      obj.parentNames = obj.parentText.replaceAll(" > ", " ");
       pageHeadings.push(obj);
     });
   pageIndex = lunr(function () {
     this.ref("ref");
     this.field("title");
+    this.field("parentNames");
     this.field("followedBy");
     this.pipeline.remove(lunr.stemmer);
 
@@ -110,6 +110,8 @@ async function setupPageSearch() {
       this.add(doc);
     }, this);
   });
+  // Store the highestLevel in the page index for later.
+  pageIndex.highestLevel = highestLevel;
 }
 
 // Define a function that will skip a pipeline function for a specified field
@@ -163,7 +165,7 @@ function site_search(term) {
     var results = siteIndex.search(searchterm);
 
     if (results.length > 0) {
-      for (var i = 0; i < results.length; i++) {
+      for (var i = 0; i < Math.min(results.length, 10); i++) {
         // more statements
         var ref = results[i]["ref"];
         var url = documents[ref]["url"];
@@ -211,19 +213,28 @@ function page_search(term) {
       .split(" ")
       .filter((e) => e)
       .forEach((str) => {
-        searchterm += "title:" + str + "^1000 followedBy:" + str;
+        str = str.trim();
         str += "*";
-        searchterm += " title:" + str + "^1000 followedBy:" + str;
+        searchterm +=
+          "title:" +
+          str +
+          "^10000 parentNames:" +
+          str +
+          "^0.01 followedBy:" +
+          str +
+          "^0.000001 ";
       });
     var results = pageIndex.search(searchterm);
-    results = results?.sort(
-      (a, b) =>
-        pageHeadings[a.ref].level - pageHeadings[b.ref].level ||
+    results = results?.sort(function (a, b) {
+      return (
+        (pageHeadings[b.ref].level == pageIndex.highestLevel) -
+          (pageHeadings[a.ref].level == pageIndex.highestLevel) ||
         b.score - a.score
-    );
+      );
+    });
 
     if (results.length > 0) {
-      for (var i = 0; i < results.length; i++) {
+      for (var i = 0; i < Math.min(results.length, 10); i++) {
         var ref = results[i]["ref"];
         var id = pageHeadings[ref]["id"];
         var displayName = pageHeadings[ref]["displayedName"];
