@@ -97,7 +97,7 @@ p {
   background-color: var(--hover-background-color);
 }
 
-pre,
+pre:has(code),
 code {
   background-color: var(--hover-background-color);
   color: var(--soft-text-color);
@@ -474,8 +474,7 @@ span.click_sequence {
 @media only screen and (max-width: 600px) {
   .sim {
     width: 99%;
-    margin-top: 0;
-    margin-bottom: 0;
+		margin: 0 auto;
   }
 }
 
