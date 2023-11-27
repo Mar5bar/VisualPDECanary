@@ -3606,12 +3606,11 @@ import { Stats } from "../stats.min.js";
     let y = 1 - (event.clientY - cRect.y) / cRect.height;
     if (options.plotType == "surface") {
       // If we're in 3D, we'll do some GPU-side raycasting to find the coordinates.
-      const dpr = window.devicePixelRatio;
       camera.setViewOffset(
         cRect.width,
         cRect.height,
-        Math.floor((event.clientX - cRect.x) * dpr),
-        Math.floor((event.clientY - cRect.y) * dpr),
+        Math.floor(event.clientX - cRect.x),
+        Math.floor(event.clientY - cRect.y),
         1,
         1
       );
