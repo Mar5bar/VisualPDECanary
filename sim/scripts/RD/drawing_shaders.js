@@ -132,3 +132,11 @@ export function drawShaderBotAdd() {
   return `gl_FragColor.COLOURSPEC = uvwq.COLOURSPEC + brushValue * factor;
         }`;
 }
+
+// A shader that colours by texture uv coordinates.
+export function uvFragShader() {
+  return `varying vec2 textureCoords;
+    void main() {
+        gl_FragColor = vec4(textureCoords, 0.0, 1.0);
+    }`;
+}

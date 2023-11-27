@@ -14,6 +14,7 @@ import {
   drawShaderCustom,
   drawShaderFactorSharp,
   drawShaderFactorSmooth,
+  uvFragShader,
 } from "./drawing_shaders.js";
 import {
   computeDisplayFunShaderTop,
@@ -89,24 +90,18 @@ import { Stats } from "../stats.min.js";
 
 (async function () {
   let canvas, gl, manualInterpolationNeeded;
-  let camera,
-    simCamera,
-    scene,
-    simScene,
-    renderer,
-    aspectRatio,
-    controls,
-    raycaster,
-    clampedCoords;
+  let camera, simCamera, scene, simScene, renderer, aspectRatio, controls;
   let simTextures = [],
     postTexture,
     interpolationTexture,
+    clickTexture,
     simTextureOpts,
     minMaxTextures = [],
     checkpointTexture;
-  let basicMaterial,
-    displayMaterial,
+  let displayMaterial,
     drawMaterial,
+    clickMaterial,
+    clearColour,
     simMaterials = {},
     dirichletMaterial,
     clearMaterial,
@@ -120,7 +115,7 @@ import { Stats } from "../stats.min.js";
     minMaxMaterial,
     tailGeometry,
     headGeometry;
-  let domain, simDomain, clickDomain, line, overlayLine;
+  let domain, simDomain, line, overlayLine;
   let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
   let colourmap,
     colourmapEndpoints,
@@ -851,12 +846,6 @@ import { Stats } from "../stats.min.js";
     // Define a quantity to track if the user is drawing.
     isDrawing = false;
 
-    // Define a raycaster to be used in 3D plotting.
-    raycaster = new THREE.Raycaster();
-
-    // Initialise a vector of grid-clamped coordinates.
-    clampedCoords = new THREE.Vector2();
-
     // Check local storage to see if antialiasing has been specified.
     // If not, default to on for desktop, off for mobile.
     const antialias = localStorage.getItem("AA")
@@ -925,6 +914,16 @@ import { Stats } from "../stats.min.js";
     interpolationTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
     interpolationTexture.texture.wrapT = THREE.ClampToEdgeWrapping;
 
+    // Create a 1x1 texture for clicking into 3D simulations, which will be used to pick the uv coords of the click.
+    clickTexture = new THREE.WebGLRenderTarget(1, 1, {
+      type: THREE.FloatType,
+      format: THREE.RGBAFormat,
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+    });
+    clickTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
+    clickTexture.texture.wrapT = THREE.ClampToEdgeWrapping;
+
     // Create cameras for the simulation domain and the final output.
     camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
     controls = new OrbitControls(camera, canvas);
@@ -950,10 +949,8 @@ import { Stats } from "../stats.min.js";
     scene = new THREE.Scene();
     simScene = new THREE.Scene();
 
-    scene.add(camera);
     scene.background = new THREE.Color(options.backgroundColour);
 
-    basicMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
     // This material will display the output of the simulation.
     displayMaterial = new THREE.ShaderMaterial({
       uniforms: uniforms,
@@ -977,6 +974,13 @@ import { Stats } from "../stats.min.js";
       uniforms: uniforms,
       vertexShader: genericVertexShader(),
     });
+    // This material allows for the detection of clicks.
+    clickMaterial = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: genericVertexShader(),
+      fragmentShader: uvFragShader(),
+    });
+    clearColour = new THREE.Color().setRGB(-1, -1, -1);
 
     // We'll use a host of materials for timestepping, each with different fragment shaders.
     simMaterials.FE = new THREE.ShaderMaterial({
@@ -1171,8 +1175,6 @@ import { Stats } from "../stats.min.js";
   function replaceDisplayDomains() {
     domain.geometry.dispose();
     scene.remove(domain);
-    clickDomain.geometry.dispose();
-    scene.remove(clickDomain);
     line.geometry.dispose();
     scene.remove(line);
     overlayLine.geometry.dispose();
@@ -1345,19 +1347,6 @@ import { Stats } from "../stats.min.js";
     domain.visible = options.plotType != "line";
     domain.matrixAutoUpdate = false;
     scene.add(domain);
-
-    // Create an invisible, low-poly plane used for raycasting.
-    const simplePlane = new THREE.PlaneGeometry(
-      domainWidth / maxDim,
-      domainHeight / maxDim,
-      1,
-      1
-    );
-    clickDomain = new THREE.Mesh(simplePlane, basicMaterial);
-    clickDomain.position.z = 0;
-    clickDomain.visible = false;
-    clickDomain.matrixAutoUpdate = false;
-    scene.add(clickDomain);
     setDomainOrientation();
 
     // Create a line object whose coordinates we can set when plotting lines.
@@ -1388,15 +1377,12 @@ import { Stats } from "../stats.min.js";
     switch (options.plotType) {
       case "plane":
         domain.rotation.x = 0;
-        clickDomain.rotation.x = 0;
         break;
       case "surface":
         domain.rotation.x = -Math.PI / 2;
-        clickDomain.rotation.x = -Math.PI / 2;
         break;
     }
     domain.updateMatrix();
-    clickDomain.updateMatrix();
   }
 
   function setCanvasShape() {
@@ -3426,21 +3412,6 @@ import { Stats } from "../stats.min.js";
       setColourRangeSnap();
     }
 
-    // Update the position of the click domain for easy clicking.
-    if (
-      options.brushEnabled &&
-      options.plotType == "surface" &&
-      !options.customSurface
-    ) {
-      let val = 0;
-      if (cLims[1] > cLims[0]) {
-        val = (getMeanVal() - cLims[0]) / (cLims[1] - cLims[0]) - 0.5;
-        val = val.clamp(-0.5, 0.5);
-      }
-      clickDomain.position.y = options.threeDHeightScale * val;
-      clickDomain.updateWorldMatrix();
-    }
-
     // If this is a line plot, modify the line positions and colours before rendering.
     if (options.plotType == "line") {
       // Get the output from the buffer, in the form of (value,0,0,1).
@@ -3629,23 +3600,38 @@ import { Stats } from "../stats.min.js";
   }
 
   function setBrushCoords(event, container) {
+    // Set the brush coordinates to the mouse position, and return whether we're in the container.
     var cRect = container.getBoundingClientRect();
     let x = (event.clientX - cRect.x) / cRect.width;
     let y = 1 - (event.clientY - cRect.y) / cRect.height;
     if (options.plotType == "surface") {
-      // If we're in 3D, we have to project onto the simulation domain.
-      // We need x,y between -1 and 1.
-      clampedCoords.x = 2 * x - 1;
-      clampedCoords.y = 2 * y - 1;
-      raycaster.setFromCamera(clampedCoords, camera);
-      var intersects = raycaster.intersectObject(clickDomain, false);
-      if (intersects.length > 0) {
-        x = intersects[0].uv.x;
-        y = intersects[0].uv.y;
-      } else {
-        x = -1;
-        y = -1;
-      }
+      // If we're in 3D, we'll do some GPU-side raycasting to find the coordinates.
+      const dpr = window.devicePixelRatio;
+      camera.setViewOffset(
+        cRect.width,
+        cRect.height,
+        Math.floor((event.clientX - cRect.x) * dpr),
+        Math.floor((event.clientY - cRect.y) * dpr),
+        1,
+        1
+      );
+      // Render to the click domain.
+      domain.material = clickMaterial;
+      renderer.setRenderTarget(clickTexture);
+      scene.background = clearColour;
+      renderer.render(scene, camera);
+
+      // Reset for future rendering.
+      camera.clearViewOffset();
+      domain.material = displayMaterial;
+      scene.background = new THREE.Color(options.backgroundColour);
+
+      // Create a buffer for reading single pixel
+      const pixelBuffer = new Float32Array(4);
+
+      // Read the pixel.
+      renderer.readRenderTargetPixels(clickTexture, 0, 0, 1, 1, pixelBuffer);
+      [x, y] = pixelBuffer.slice(0, 2);
     } else if (options.plotType == "line") {
       x = (x - 0.5) / camera.zoom + 0.5;
       y = 0.5;
@@ -8832,10 +8818,13 @@ import { Stats } from "../stats.min.js";
   function setSurfaceShader() {
     if (options.customSurface) {
       displayMaterial.vertexShader = surfaceVertexShaderCustom();
+      clickMaterial.vertexShader = surfaceVertexShaderCustom();
     } else {
       displayMaterial.vertexShader = surfaceVertexShaderColour();
+      clickMaterial.vertexShader = surfaceVertexShaderColour();
     }
     displayMaterial.needsUpdate = true;
+    clickMaterial.needsUpdate = true;
   }
 
   /**
