@@ -3427,10 +3427,14 @@ import { Stats } from "../stats.min.js";
     }
 
     // Update the position of the click domain for easy clicking.
-    if (options.brushEnabled && options.plotType == "surface") {
+    if (
+      options.brushEnabled &&
+      options.plotType == "surface" &&
+      !options.customSurface
+    ) {
       let val = 0;
       if (cLims[1] > cLims[0]) {
-        val = (getMeanVal() - cLims[1]) / (cLims[1] - cLims[0]) - 0.5;
+        val = (getMeanVal() - cLims[0]) / (cLims[1] - cLims[0]) - 0.5;
         val = val.clamp(-0.5, 0.5);
       }
       clickDomain.position.y = options.threeDHeightScale * val;
@@ -3619,7 +3623,9 @@ import { Stats } from "../stats.min.js";
   }
 
   function onDocumentPointerMove(event) {
-    setBrushCoords(event, canvas);
+    if (isDrawing) {
+      setBrushCoords(event, canvas);
+    }
   }
 
   function setBrushCoords(event, container) {
