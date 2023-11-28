@@ -85,14 +85,14 @@ Neumann boundary conditions are specified as $\pd{u}{n}\onboundary = a(x,y,t)$ f
 
 $$\textstyle u(x-\dx,y) = u(x+\dx,y)$$ 
 
-in the finite difference operator described [above](#spatial-discretisation).
+in the [finite difference operator](#spatial-discretisation) described above.
 
 #### Robin
 Robin boundary conditions are a natural combination of Dirichlet and Neumann conditions, which we pose in the form of a generalised Neumann condition $\pd{u}{n}\onboundary = a(u,x,y,t)$, where the right-hand side can now depend on $u$ (and any other unknown in multi-species systems). These conditions are also implemented with ghost nodes. For example, enforcing $\pd{u}{n}\onboundary = u\onboundary$ at the leftmost $x$ boundary of a rectangular domain is achieved in practice by taking 
 
 $$\textstyle u(x-\dx,y) = u(x+\dx,y) + 2 u(x,y)\,\dx$$ 
 
-in the finite difference operator described [above](#spatial-discretisation), approximating the derivative at the boundary with a simple central difference.
+in the [finite difference operator](#spatial-discretisation) described above, approximating the derivative at the boundary with a simple central difference.
 
 #### Combined
 VisualPDE also allows you to specify different boundary conditions on different parts of the boundary. Doing this requires some special syntax, as detailed in the [advanced documentation](/user-guide/advanced-options#boundary-conditions).
