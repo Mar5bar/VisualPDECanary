@@ -1854,63 +1854,6 @@ import { Stats } from "../stats.min.js";
         controllers["autoPauseAt"].domElement.blur();
       });
 
-    // Equations folder.
-    root = rightGUI.addFolder("Equations");
-    addInfoButton(root, "/user-guide/advanced-options#equations-");
-
-    // Number of species.
-    root
-      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
-      .name("No. species")
-      .onChange(function () {
-        document.activeElement.blur();
-        updateProblem();
-        resetSim();
-      });
-
-    // Number of algebraic species.
-    controllers["algebraicSpecies"] = root
-      .add(options, "numAlgebraicSpecies", { 0: 0, 1: 1, 2: 2, 3: 3 })
-      .name("No. algebraic")
-      .onChange(function () {
-        updatingAlgebraicSpecies = true;
-        updateProblem();
-        updatingAlgebraicSpecies = false;
-        resetSim();
-      });
-
-    root
-      .add(options, "speciesNames")
-      .name("Species names")
-      .onFinishChange(function () {
-        setCustomNames();
-      });
-
-    // Cross diffusion.
-    const crossDiffusionButtonList = addButtonList(root);
-    addToggle(
-      crossDiffusionButtonList,
-      "crossDiffusion",
-      '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
-      function () {
-        updateProblem();
-      },
-      "cross_diffusion_controller",
-      "Toggle cross diffusion"
-    );
-
-    addToggle(
-      crossDiffusionButtonList,
-      "timescales",
-      '<i class="fa-regular fa-clock"></i>Scales',
-      function () {
-        configureGUI();
-        setEquationDisplayType();
-      },
-      "timescales_controller",
-      "Toggle the use of custom timescales"
-    );
-
     // Let's put these in the left GUI.
     // Definitions folder.
     editEquationsFolder = leftGUI.addFolder("Edit");
@@ -2356,6 +2299,64 @@ import { Stats } from "../stats.min.js";
         this.setValue(autoCorrectSyntax(this.getValue()));
         setClearShader();
       });
+
+    // Equations folder.
+    root = leftGUI.addFolder("Advanced options");
+    root.domElement.classList.add("advancedOptions");
+    addInfoButton(root, "/user-guide/advanced-options#advanced-options-");
+
+    // Number of species.
+    root
+      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
+      .name("Num. species")
+      .onChange(function () {
+        document.activeElement.blur();
+        updateProblem();
+        resetSim();
+      });
+
+    // Number of algebraic species.
+    controllers["algebraicSpecies"] = root
+      .add(options, "numAlgebraicSpecies", { 0: 0, 1: 1, 2: 2, 3: 3 })
+      .name("Num. algebraic")
+      .onChange(function () {
+        updatingAlgebraicSpecies = true;
+        updateProblem();
+        updatingAlgebraicSpecies = false;
+        resetSim();
+      });
+
+    root
+      .add(options, "speciesNames")
+      .name("Species names")
+      .onFinishChange(function () {
+        setCustomNames();
+      });
+
+    // Cross diffusion.
+    const crossDiffusionButtonList = addButtonList(root);
+    addToggle(
+      crossDiffusionButtonList,
+      "crossDiffusion",
+      '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
+      function () {
+        updateProblem();
+      },
+      "cross_diffusion_controller",
+      "Toggle cross diffusion"
+    );
+
+    addToggle(
+      crossDiffusionButtonList,
+      "timescales",
+      '<i class="fa-regular fa-clock"></i>Scales',
+      function () {
+        configureGUI();
+        setEquationDisplayType();
+      },
+      "timescales_controller",
+      "Toggle the use of custom timescales"
+    );
 
     // Images folder.
     fIm = rightGUI.addFolder("Images");
