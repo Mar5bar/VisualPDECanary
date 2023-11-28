@@ -3646,6 +3646,27 @@ export function getListOfPresets() {
     whatToPlot: "u",
   };
 
+  listOfPresets["blank"] = {
+    arrowX: "0",
+    arrowY: "0",
+    brushRadius: "0.05",
+    colourmap: "viridis",
+    diffusionStr_1_1: "0",
+    diffusionStr_2_2: "0",
+    diffusionStr_3_3: "0",
+    domainScale: "1",
+    initCond_1: "0",
+    numSpecies: 1,
+    parent: "default",
+    preset: "blank",
+    reactionStr_1: "0",
+    reactionStr_2: "0",
+    reactionStr_3: "0",
+    spatialStep: 0.005,
+    whatToDraw: "u",
+    whatToPlot: "u",
+  };
+
   listOfPresets["default"] = {
     activeViewInd: 0,
     arrowColour: 0x00ffff,
