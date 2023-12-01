@@ -751,7 +751,7 @@ import { Stats } from "../stats.min.js";
   if (
     (!isReturningUser() || (viewFullWelcome && !seenFullWelcomeUser())) &&
     options.preset != "Banner" &&
-    !logo_only
+    !(logo_only || cleanDisplay)
   ) {
     let restart = isRunning;
     pauseSim();

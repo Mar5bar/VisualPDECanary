@@ -465,10 +465,11 @@ span.click_sequence {
 }
 
 .sim {
+  display: block;
   width: 90%;
   aspect-ratio: 1;
   border: 2px solid black;
-  margin: calc(5% - 2px);
+  margin: auto;
   background-color: black;
 }
 @media only screen and (max-width: 600px) {
