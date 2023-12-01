@@ -70,6 +70,7 @@ import {
   getListOfPresetNames,
 } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
+import { auxiliary_GLSL_funs } from "../auxiliary_GLSL_funs.js";
 import * as THREE from "../three.module.min.js";
 import { OrbitControls } from "../OrbitControls.js";
 import { Line2 } from "../lines/Line2.js";
@@ -3237,7 +3238,7 @@ import { Stats } from "../stats.min.js";
     // Substitute in the correct colour code.
     shaderStr = selectColourspecInShaderStr(shaderStr);
     shaderStr = replaceMINXMINY(shaderStr);
-    drawMaterial.fragmentShader = shaderStr;
+    assignFragmentShader(drawMaterial, shaderStr);
     drawMaterial.needsUpdate = true;
   }
 
@@ -3274,7 +3275,7 @@ import { Stats } from "../stats.min.js";
     }
     overlayLine.visible = options.overlay && options.plotType == "line";
     shader += fiveColourDisplayBot();
-    displayMaterial.fragmentShader = shader;
+    assignFragmentShader(displayMaterial, shader);
     displayMaterial.needsUpdate = true;
     postMaterial.needsUpdate = true;
     colourmapEndpoints = colourmap.map((x) => x[3]);
@@ -3404,12 +3405,15 @@ import { Stats } from "../stats.min.js";
     simTextures.rotate(-1);
   }
 
-  function render() {
+  function render(isResetting) {
     // Perform any postprocessing on the last computed values.
     postprocess();
 
     // If selected, set the colour range.
-    if (options.autoSetColourRange && !(frameCount % options.guiUpdatePeriod)) {
+    if (
+      options.autoSetColourRange &&
+      (isResetting || !(frameCount % options.guiUpdatePeriod))
+    ) {
       setColourRangeSnap();
     }
 
@@ -3687,7 +3691,7 @@ import { Stats } from "../stats.min.js";
     canAutoPause = true;
     updateTimeDisplay();
     clearTextures();
-    render();
+    render(true);
     // Start a timer that checks for NaNs every second.
     shouldCheckNaN = true;
     window.clearTimeout(NaNTimer);
@@ -4279,50 +4283,62 @@ import { Stats } from "../stats.min.js";
     let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
     let type = "FE";
-    simMaterials[type].fragmentShader = replaceMINXMINY(
-      [
-        kineticStr,
-        RDShaderTop(type),
-        middle,
-        insertRates(RDShaderMain(type)),
-        bot,
-      ].join(" ")
+    assignFragmentShader(
+      simMaterials[type],
+      replaceMINXMINY(
+        [
+          kineticStr,
+          RDShaderTop(type),
+          middle,
+          insertRates(RDShaderMain(type)),
+          bot,
+        ].join(" ")
+      )
     );
 
     type = "AB2";
-    simMaterials[type].fragmentShader = replaceMINXMINY(
-      [
-        kineticStr,
-        RDShaderTop(type),
-        middle,
-        insertRates(RDShaderMain(type)),
-        bot,
-      ].join(" ")
+    assignFragmentShader(
+      simMaterials[type],
+      replaceMINXMINY(
+        [
+          kineticStr,
+          RDShaderTop(type),
+          middle,
+          insertRates(RDShaderMain(type)),
+          bot,
+        ].join(" ")
+      )
     );
 
     type = "Mid";
     for (let ind = 1; ind < 3; ind++) {
-      simMaterials[type + ind.toString()].fragmentShader = replaceMINXMINY(
-        [
-          kineticStr,
-          RDShaderTop(type + ind.toString()),
-          middle,
-          insertRates(RDShaderMain(type + ind.toString())),
-          bot,
-        ].join(" ")
+      assignFragmentShader(
+        simMaterials[type + ind.toString()],
+        replaceMINXMINY(
+          [
+            kineticStr,
+            RDShaderTop(type + ind.toString()),
+            middle,
+            insertRates(RDShaderMain(type + ind.toString())),
+            bot,
+          ].join(" ")
+        )
       );
     }
 
     type = "RK4";
     for (let ind = 1; ind < 5; ind++) {
-      simMaterials[type + ind.toString()].fragmentShader = replaceMINXMINY(
-        [
-          kineticStr,
-          RDShaderTop(type + ind.toString()),
-          middle,
-          insertRates(RDShaderMain(type + ind.toString())),
-          bot,
-        ].join(" ")
+      assignFragmentShader(
+        simMaterials[type + ind.toString()],
+        replaceMINXMINY(
+          [
+            kineticStr,
+            RDShaderTop(type + ind.toString()),
+            middle,
+            insertRates(RDShaderMain(type + ind.toString())),
+            bot,
+          ].join(" ")
+        )
       );
     }
 
@@ -4382,7 +4398,7 @@ import { Stats } from "../stats.min.js";
       }
       dirichletShader += "}";
       dirichletShader = replaceMINXMINY(dirichletShader);
-      dirichletMaterial.fragmentShader = dirichletShader;
+      assignFragmentShader(dirichletMaterial, dirichletShader);
       dirichletMaterial.needsUpdate = true;
     }
   }
@@ -4898,7 +4914,7 @@ import { Stats } from "../stats.min.js";
     shaderStr += "float q = " + parseShaderString(options.initCond_4) + ";\n";
     shaderStr += clearShaderBot();
     shaderStr = replaceMINXMINY(shaderStr);
-    clearMaterial.fragmentShader = shaderStr;
+    assignFragmentShader(clearMaterial, shaderStr);
     clearMaterial.needsUpdate = true;
   }
 
@@ -5111,7 +5127,7 @@ import { Stats } from "../stats.min.js";
     );
     shaderStr = replaceMINXMINY(shaderStr);
     setOverlayUniforms();
-    postMaterial.fragmentShader = shaderStr + postGenericShaderBot();
+    assignFragmentShader(postMaterial, shaderStr + postGenericShaderBot());
     postMaterial.needsUpdate = true;
   }
 
@@ -6847,7 +6863,7 @@ import { Stats } from "../stats.min.js";
   function getReservedStrs(exclusions) {
     // Load an RD shader and find floats, vecs, and ivecs.
     let regex = /(?:float|vec\d|ivec\d|function|void)\b\s+(\w+)\b/g;
-    let str = RDShaderTop() + RDShaderUpdateCross();
+    let str = RDShaderTop() + RDShaderUpdateCross() + auxiliary_GLSL_funs();
     let reserved = [...str.matchAll(regex)]
       .map((x) => x[1])
       .concat(exclusions)
@@ -9520,5 +9536,12 @@ import { Stats } from "../stats.min.js";
     str = str.replaceAll(/\bBump\(([^,]*),([^,]*)\)/g, "Bump(x,y,$1,$1,$2)");
 
     return str;
+  }
+
+  function assignFragmentShader(material, shader) {
+    material.fragmentShader = shader.replaceAll(
+      /\bAUXILIARY_GLSL_FUNS\b/g,
+      auxiliary_GLSL_funs()
+    );
   }
 })();
