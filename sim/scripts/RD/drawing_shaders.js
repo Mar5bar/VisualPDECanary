@@ -43,6 +43,19 @@ export function drawShaderTop() {
       return -pow(-x,y);
     }
 
+    float Gauss(float x, float y, float mx, float my, float sx, float sy, float rho) {
+      return exp(-((x-mx)*(x-mx)/(2.0*sx*sx)+(y-my)*(y-my)/(2.0*sy*sy)-rho*(x-mx)*(y-my)/(sx*sy))/(1.0-rho*rho))/(2.0*pi*sx*sy*sqrt(1.0-rho*rho));
+    }
+
+    float Bump(float x, float y, float mx, float my, float maxr) {
+      float r = ((x-mx)*(x-mx)+(y-my)*(y-my)) / (maxr*maxr);
+      if (r < 1.0) {
+        return exp(1.0-1.0/(1.0-r));
+      } else {
+        return 0.0;
+      }
+    }
+
     const float ALPHA = 0.147;
     const float INV_ALPHA = 1.0 / ALPHA;
     const float BETA = 2.0 / (pi * ALPHA);

@@ -3862,6 +3862,10 @@ import { Stats } from "../stats.min.js";
     // Replace tanh with safetanh.
     str = str.replaceAll(/\btanh\b/g, "safetanh");
 
+    // Replace custom functions.
+    str = replaceGauss(str);
+    str = replaceBump(str);
+
     // Replace powers with safepow, including nested powers.
     str = replaceBinOperator(str, "^", function (m, p1, p2) {
       if (p2 == "0") return "1";
@@ -9461,6 +9465,59 @@ import { Stats } from "../stats.min.js";
         }
       });
     });
+
+    return str;
+  }
+
+  /**
+   * Replaces occurrences of Gauss(blah) with correct shader syntax.
+   *
+   * @param {string} str - The input string to be modified.
+   * @returns {string} The modified string.
+   */
+  function replaceGauss(str) {
+    // Replace Gauss(meanx, meany, sx, sy, rho) with Gauss(x, y, meanx, meany, sx, sy, rho).
+    str = str.replaceAll(
+      /\bGauss\(([^,]*),([^,]*),([^,]*),([^,]*),([^,]*)\)/g,
+      "Gauss(x,y,$1,$2,$3,$4,$5)"
+    );
+
+    // Replace Gauss(meanx, meany, sx, sy) with Gauss(x, y, meanx, meany, sx, sy, 0).
+    str = str.replaceAll(
+      /\bGauss\(([^,]*),([^,]*),([^,]*),([^,]*)\)/g,
+      "Gauss(x,y,$1,$2,$3,$4,0)"
+    );
+
+    // Replace Gauss(meanx, meany, sd) with Gauss(x, y, meanx, meany, sd).
+    str = str.replaceAll(
+      /\bGauss\(([^,]*),([^,]*),([^,]*)\)/g,
+      "Gauss(x,y,$1,$2,$3,$3,0)"
+    );
+
+    // Replace Gauss(mean, sd) with Gauss(x, y, mean, sd).
+    str = str.replaceAll(
+      /\bGauss\(([^,]*),([^,]*)\)/g,
+      "Gauss(x,y,$1,$1,$2,$2,0)"
+    );
+
+    return str;
+  }
+
+  /**
+   * Replaces occurrences of Bump(blah) with correct shader syntax.
+   *
+   * @param {string} str - The input string to be modified.
+   * @returns {string} The modified string.
+   */
+  function replaceBump(str) {
+    // Replace Bump(meanx, meany, radius) with Bump(x, y, meanx, meany, radius).
+    str = str.replaceAll(
+      /\bBump\(([^,]*),([^,]*),([^,]*)\)/g,
+      "Bump(x,y,$1,$2,$3)"
+    );
+
+    // Replace Bump(mean, radius) with Bump(x, y, mean, mean, radius).
+    str = str.replaceAll(/\bBump\(([^,]*),([^,]*)\)/g, "Bump(x,y,$1,$1,$2)");
 
     return str;
   }
