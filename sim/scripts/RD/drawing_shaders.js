@@ -80,11 +80,7 @@ export function drawShaderFactorSharp() {
 
 export function drawShaderFactorSmooth() {
   return `
-  if (distance < brushRadius) {
-        factor = exp(1.0-1.0/(1.0-pow(distance / brushRadius, 2.0)));
-    } else {
-          factor = 0.0;
-    }\n;`;
+  factor = Bump(distance, 0.0, 0.0, 0.0, brushRadius);`;
 }
 
 export function drawShaderCustom() {
