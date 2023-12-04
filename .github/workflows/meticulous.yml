@@ -41,7 +41,9 @@ jobs:
           ruby-version: '3.1'
 
       - name: Build
-        run: bundle exec jekyll build 
+        run: |
+          bundle install
+          bundle exec jekyll build 
 
       - name: Serve project
         # Notes:
