@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Turing on Turing
+title: CHANGE
 lesson_number: 10
 thumbnail: /assets/images/alan4.webp
 extract: Or upload your own image!
