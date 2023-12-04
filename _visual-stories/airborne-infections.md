@@ -7,7 +7,7 @@ extract: Visualising airborne infections
 equation:
 ---
 
-Since the Covid-19 pandemic began, airborne viruses have formed a large part of scientific study. In this short Story, we're going to explore one aspect of this work: the effects of airflow.
+VISUAL CHANGE
 
 Before we begin, it's worth noting that the results of the simulations in this Story aren't meant to match up perfectly with reality, so we'll focus on qualitative features rather than on particular values. At the end of our exploration we'll point you towards the full science behind this Story, which includes discussions of the assumptions behind the mathematical model that inspired our Story.
 
