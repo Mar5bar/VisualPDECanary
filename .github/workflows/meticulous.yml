@@ -45,9 +45,6 @@ jobs:
       - run: bundle exec jekyll build 
 
       - name: Serve project
-        # TODO: Update these commands to serve your app's frontend locally, and
-        # then update the app-url to match.
-        #
         # Notes:
         #
         # 1. Please make sure your serve command listens 0.0.0.0 rather than
@@ -56,7 +53,7 @@ jobs:
         #    https://stackoverflow.com/a/20778887 for more details)
         # 2. The sleep is often required to ensure your app is readily being served
         #    by the time the Meticulous tests start
-        run: |
+      - run: |
           bundle exec jekyll serve --host=0.0.0.0 &
           sleep 5
 
