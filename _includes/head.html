@@ -34,6 +34,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+  {%- if jekyll.environment == 'production' -%}
+    <script data-project-id="WDSMzHPwUBEjOchAL1PpmmDY8liZ6wyPZJ4TAkXY" data-is-production-environment="true" src="https://snippet.meticulous.ai/v1/meticulous.js"></script>
+  {% else %}
+    <script data-project-id="WDSMzHPwUBEjOchAL1PpmmDY8liZ6wyPZJ4TAkXY" data-is-production-environment="false" src="https://snippet.meticulous.ai/v1/meticulous.js"></script>
+  {%- endif -%}
+
   <script src="/assets/js/dark_mode.js"></script>
 
   <script>
