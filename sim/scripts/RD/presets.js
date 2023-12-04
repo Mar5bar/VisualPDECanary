@@ -2710,7 +2710,7 @@ export function getListOfPresets() {
   };
 
   listOfPresets["GrayScott"] = {
-    colourmap: "viridis",
+    colourmap: "water",
     initCond_1: "0",
     initCond_2: "1",
     diffusionStr_1_1: "1",
