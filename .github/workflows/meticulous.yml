@@ -36,13 +36,12 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Install ruby 
-      - uses: ruby/setup-ruby@ec02537da5712d66d4d50a0f33b7eb52773b5ed1
+        uses: ruby/setup-ruby@ec02537da5712d66d4d50a0f33b7eb52773b5ed1
         with:
           ruby-version: '3.1'
-      - run: bundle install
 
       - name: Build
-      - run: bundle exec jekyll build 
+        run: bundle exec jekyll build 
 
       - name: Serve project
         # Notes:
@@ -53,7 +52,7 @@ jobs:
         #    https://stackoverflow.com/a/20778887 for more details)
         # 2. The sleep is often required to ensure your app is readily being served
         #    by the time the Meticulous tests start
-      - run: |
+        run: |
           bundle exec jekyll serve --host=0.0.0.0 &
           sleep 5
 
