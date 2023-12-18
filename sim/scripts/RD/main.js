@@ -5123,7 +5123,7 @@ import { Stats } from "../stats.min.js";
     // Substitute the overlay expression.
     shaderStr = shaderStr.replaceAll(
       "OVERLAYEXPR",
-      parseShaderString(options.overlayExpr)
+      parseShaderString(options.overlay ? options.overlayExpr : "1.0")
     );
     shaderStr = replaceMINXMINY(shaderStr);
     setOverlayUniforms();

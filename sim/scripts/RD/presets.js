@@ -3,6 +3,37 @@
 export function getListOfPresets() {
   let listOfPresets = {};
 
+  listOfPresets["SMB"] = {
+    boundaryConditionsU: "neumann",
+    boundaryConditionsV: "neumann",
+    brushRadius: "5.6",
+    brushValue: "1",
+    colourmap: "midnight",
+    crossDiffusion: true,
+    diffusionStr_1_1: "1",
+    diffusionStr_1_2: "-c*u/(1+u^2)",
+    diffusionStr_2_2: "D",
+    diffusionStr_3_3: "0",
+    dt: 0.002,
+    emboss: true,
+    imagePathOne: "./images/smb_mask.webp",
+    imagePathTwo: "./images/smb.webp",
+    initCond_1: "0.01*RAND",
+    kineticParams:
+      "c = 3.00 in [3, 0.1, 4];D = 4 in [0, 4];a = 0.1 in [0, 0.2];omega = 0.01;",
+    maxColourValue: "1",
+    minColourValue: "0",
+    preset: "SMB",
+    reactionStr_1: "u*(I_T-u)*min(max(omega*t - 1+I_S, 0),1)",
+    reactionStr_2: "(u-a*v)*min(max(omega*t - 1+I_S, 0),1)",
+    reactionStr_3: "0",
+    spatialStep: "0.2",
+    squareCanvas: true,
+    suppressTryClickingPopup: true,
+    whatToDraw: "u",
+    whatToPlot: "u",
+  };
+
   listOfPresets["WavesOnABeach"] = {
     boundaryConditions_1: "neumann",
     boundaryConditions_2: "neumann",
