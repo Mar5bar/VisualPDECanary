@@ -284,6 +284,14 @@ a.info-link:has(+ ul:not(.closed)) {
   width: 73%;
 }
 
+#leftGUI ul li div.advancedOptions ul li div .property-name {
+  width: 57%;
+}
+
+#leftGUI ul li div.advancedOptions ul li div div.c {
+  width: 43%;
+}
+
 .ui_button {
   transition: color 0.3s ease, background-color 0.3s ease, background 0.3s ease;
   position: absolute;

@@ -14,6 +14,7 @@ import {
   drawShaderCustom,
   drawShaderFactorSharp,
   drawShaderFactorSmooth,
+  uvFragShader,
 } from "./drawing_shaders.js";
 import {
   computeDisplayFunShaderTop,
@@ -69,6 +70,7 @@ import {
   getListOfPresetNames,
 } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
+import { auxiliary_GLSL_funs } from "../auxiliary_GLSL_funs.js";
 import * as THREE from "../three.module.min.js";
 import { OrbitControls } from "../OrbitControls.js";
 import { Line2 } from "../lines/Line2.js";
@@ -89,24 +91,18 @@ import { Stats } from "../stats.min.js";
 
 (async function () {
   let canvas, gl, manualInterpolationNeeded;
-  let camera,
-    simCamera,
-    scene,
-    simScene,
-    renderer,
-    aspectRatio,
-    controls,
-    raycaster,
-    clampedCoords;
+  let camera, simCamera, scene, simScene, renderer, aspectRatio, controls;
   let simTextures = [],
     postTexture,
     interpolationTexture,
+    clickTexture,
     simTextureOpts,
     minMaxTextures = [],
     checkpointTexture;
-  let basicMaterial,
-    displayMaterial,
+  let displayMaterial,
     drawMaterial,
+    clickMaterial,
+    clearColour,
     simMaterials = {},
     dirichletMaterial,
     clearMaterial,
@@ -120,7 +116,7 @@ import { Stats } from "../stats.min.js";
     minMaxMaterial,
     tailGeometry,
     headGeometry;
-  let domain, simDomain, clickDomain, line, overlayLine;
+  let domain, simDomain, line, overlayLine;
   let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
   let colourmap,
     colourmapEndpoints,
@@ -755,7 +751,7 @@ import { Stats } from "../stats.min.js";
   if (
     (!isReturningUser() || (viewFullWelcome && !seenFullWelcomeUser())) &&
     options.preset != "Banner" &&
-    !logo_only
+    !(logo_only || cleanDisplay)
   ) {
     let restart = isRunning;
     pauseSim();
@@ -851,12 +847,6 @@ import { Stats } from "../stats.min.js";
     // Define a quantity to track if the user is drawing.
     isDrawing = false;
 
-    // Define a raycaster to be used in 3D plotting.
-    raycaster = new THREE.Raycaster();
-
-    // Initialise a vector of grid-clamped coordinates.
-    clampedCoords = new THREE.Vector2();
-
     // Check local storage to see if antialiasing has been specified.
     // If not, default to on for desktop, off for mobile.
     const antialias = localStorage.getItem("AA")
@@ -925,6 +915,16 @@ import { Stats } from "../stats.min.js";
     interpolationTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
     interpolationTexture.texture.wrapT = THREE.ClampToEdgeWrapping;
 
+    // Create a 1x1 texture for clicking into 3D simulations, which will be used to pick the uv coords of the click.
+    clickTexture = new THREE.WebGLRenderTarget(1, 1, {
+      type: THREE.FloatType,
+      format: THREE.RGBAFormat,
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+    });
+    clickTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
+    clickTexture.texture.wrapT = THREE.ClampToEdgeWrapping;
+
     // Create cameras for the simulation domain and the final output.
     camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
     controls = new OrbitControls(camera, canvas);
@@ -950,10 +950,8 @@ import { Stats } from "../stats.min.js";
     scene = new THREE.Scene();
     simScene = new THREE.Scene();
 
-    scene.add(camera);
     scene.background = new THREE.Color(options.backgroundColour);
 
-    basicMaterial = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
     // This material will display the output of the simulation.
     displayMaterial = new THREE.ShaderMaterial({
       uniforms: uniforms,
@@ -977,6 +975,13 @@ import { Stats } from "../stats.min.js";
       uniforms: uniforms,
       vertexShader: genericVertexShader(),
     });
+    // This material allows for the detection of clicks.
+    clickMaterial = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: genericVertexShader(),
+      fragmentShader: uvFragShader(),
+    });
+    clearColour = new THREE.Color().setRGB(-1, -1, -1);
 
     // We'll use a host of materials for timestepping, each with different fragment shaders.
     simMaterials.FE = new THREE.ShaderMaterial({
@@ -1171,8 +1176,6 @@ import { Stats } from "../stats.min.js";
   function replaceDisplayDomains() {
     domain.geometry.dispose();
     scene.remove(domain);
-    clickDomain.geometry.dispose();
-    scene.remove(clickDomain);
     line.geometry.dispose();
     scene.remove(line);
     overlayLine.geometry.dispose();
@@ -1345,19 +1348,6 @@ import { Stats } from "../stats.min.js";
     domain.visible = options.plotType != "line";
     domain.matrixAutoUpdate = false;
     scene.add(domain);
-
-    // Create an invisible, low-poly plane used for raycasting.
-    const simplePlane = new THREE.PlaneGeometry(
-      domainWidth / maxDim,
-      domainHeight / maxDim,
-      1,
-      1
-    );
-    clickDomain = new THREE.Mesh(simplePlane, basicMaterial);
-    clickDomain.position.z = 0;
-    clickDomain.visible = false;
-    clickDomain.matrixAutoUpdate = false;
-    scene.add(clickDomain);
     setDomainOrientation();
 
     // Create a line object whose coordinates we can set when plotting lines.
@@ -1388,15 +1378,12 @@ import { Stats } from "../stats.min.js";
     switch (options.plotType) {
       case "plane":
         domain.rotation.x = 0;
-        clickDomain.rotation.x = 0;
         break;
       case "surface":
         domain.rotation.x = -Math.PI / 2;
-        clickDomain.rotation.x = -Math.PI / 2;
         break;
     }
     domain.updateMatrix();
-    clickDomain.updateMatrix();
   }
 
   function setCanvasShape() {
@@ -1868,63 +1855,6 @@ import { Stats } from "../stats.min.js";
         controllers["autoPauseAt"].domElement.blur();
       });
 
-    // Equations folder.
-    root = rightGUI.addFolder("Equations");
-    addInfoButton(root, "/user-guide/advanced-options#equations-");
-
-    // Number of species.
-    root
-      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
-      .name("No. species")
-      .onChange(function () {
-        document.activeElement.blur();
-        updateProblem();
-        resetSim();
-      });
-
-    // Number of algebraic species.
-    controllers["algebraicSpecies"] = root
-      .add(options, "numAlgebraicSpecies", { 0: 0, 1: 1, 2: 2, 3: 3 })
-      .name("No. algebraic")
-      .onChange(function () {
-        updatingAlgebraicSpecies = true;
-        updateProblem();
-        updatingAlgebraicSpecies = false;
-        resetSim();
-      });
-
-    root
-      .add(options, "speciesNames")
-      .name("Species names")
-      .onFinishChange(function () {
-        setCustomNames();
-      });
-
-    // Cross diffusion.
-    const crossDiffusionButtonList = addButtonList(root);
-    addToggle(
-      crossDiffusionButtonList,
-      "crossDiffusion",
-      '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
-      function () {
-        updateProblem();
-      },
-      "cross_diffusion_controller",
-      "Toggle cross diffusion"
-    );
-
-    addToggle(
-      crossDiffusionButtonList,
-      "timescales",
-      '<i class="fa-regular fa-clock"></i>Scales',
-      function () {
-        configureGUI();
-        setEquationDisplayType();
-      },
-      "timescales_controller",
-      "Toggle the use of custom timescales"
-    );
-
     // Let's put these in the left GUI.
     // Definitions folder.
     editEquationsFolder = leftGUI.addFolder("Edit");
@@ -2370,6 +2300,64 @@ import { Stats } from "../stats.min.js";
         this.setValue(autoCorrectSyntax(this.getValue()));
         setClearShader();
       });
+
+    // Equations folder.
+    root = leftGUI.addFolder("Advanced options");
+    root.domElement.classList.add("advancedOptions");
+    addInfoButton(root, "/user-guide/advanced-options#advanced-options-");
+
+    // Number of species.
+    root
+      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
+      .name("Num. species")
+      .onChange(function () {
+        document.activeElement.blur();
+        updateProblem();
+        resetSim();
+      });
+
+    // Number of algebraic species.
+    controllers["algebraicSpecies"] = root
+      .add(options, "numAlgebraicSpecies", { 0: 0, 1: 1, 2: 2, 3: 3 })
+      .name("Num. algebraic")
+      .onChange(function () {
+        updatingAlgebraicSpecies = true;
+        updateProblem();
+        updatingAlgebraicSpecies = false;
+        resetSim();
+      });
+
+    root
+      .add(options, "speciesNames")
+      .name("Species names")
+      .onFinishChange(function () {
+        setCustomNames();
+      });
+
+    // Cross diffusion.
+    const crossDiffusionButtonList = addButtonList(root);
+    addToggle(
+      crossDiffusionButtonList,
+      "crossDiffusion",
+      '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
+      function () {
+        updateProblem();
+      },
+      "cross_diffusion_controller",
+      "Toggle cross diffusion"
+    );
+
+    addToggle(
+      crossDiffusionButtonList,
+      "timescales",
+      '<i class="fa-regular fa-clock"></i>Scales',
+      function () {
+        configureGUI();
+        setEquationDisplayType();
+      },
+      "timescales_controller",
+      "Toggle the use of custom timescales"
+    );
 
     // Images folder.
     fIm = rightGUI.addFolder("Images");
@@ -3250,7 +3238,7 @@ import { Stats } from "../stats.min.js";
     // Substitute in the correct colour code.
     shaderStr = selectColourspecInShaderStr(shaderStr);
     shaderStr = replaceMINXMINY(shaderStr);
-    drawMaterial.fragmentShader = shaderStr;
+    assignFragmentShader(drawMaterial, shaderStr);
     drawMaterial.needsUpdate = true;
   }
 
@@ -3287,7 +3275,7 @@ import { Stats } from "../stats.min.js";
     }
     overlayLine.visible = options.overlay && options.plotType == "line";
     shader += fiveColourDisplayBot();
-    displayMaterial.fragmentShader = shader;
+    assignFragmentShader(displayMaterial, shader);
     displayMaterial.needsUpdate = true;
     postMaterial.needsUpdate = true;
     colourmapEndpoints = colourmap.map((x) => x[3]);
@@ -3417,24 +3405,16 @@ import { Stats } from "../stats.min.js";
     simTextures.rotate(-1);
   }
 
-  function render() {
+  function render(isResetting) {
     // Perform any postprocessing on the last computed values.
     postprocess();
 
     // If selected, set the colour range.
-    if (options.autoSetColourRange && !(frameCount % options.guiUpdatePeriod)) {
+    if (
+      options.autoSetColourRange &&
+      (isResetting || !(frameCount % options.guiUpdatePeriod))
+    ) {
       setColourRangeSnap();
-    }
-
-    // Update the position of the click domain for easy clicking.
-    if (options.brushEnabled && options.plotType == "surface") {
-      let val = 0;
-      if (cLims[1] > cLims[0]) {
-        val = (getMeanVal() - cLims[1]) / (cLims[1] - cLims[0]) - 0.5;
-        val = val.clamp(-0.5, 0.5);
-      }
-      clickDomain.position.y = options.threeDHeightScale * val;
-      clickDomain.updateWorldMatrix();
     }
 
     // If this is a line plot, modify the line positions and colours before rendering.
@@ -3619,27 +3599,43 @@ import { Stats } from "../stats.min.js";
   }
 
   function onDocumentPointerMove(event) {
-    setBrushCoords(event, canvas);
+    if (isDrawing) {
+      setBrushCoords(event, canvas);
+    }
   }
 
   function setBrushCoords(event, container) {
+    // Set the brush coordinates to the mouse position, and return whether we're in the container.
     var cRect = container.getBoundingClientRect();
     let x = (event.clientX - cRect.x) / cRect.width;
     let y = 1 - (event.clientY - cRect.y) / cRect.height;
     if (options.plotType == "surface") {
-      // If we're in 3D, we have to project onto the simulation domain.
-      // We need x,y between -1 and 1.
-      clampedCoords.x = 2 * x - 1;
-      clampedCoords.y = 2 * y - 1;
-      raycaster.setFromCamera(clampedCoords, camera);
-      var intersects = raycaster.intersectObject(clickDomain, false);
-      if (intersects.length > 0) {
-        x = intersects[0].uv.x;
-        y = intersects[0].uv.y;
-      } else {
-        x = -1;
-        y = -1;
-      }
+      // If we're in 3D, we'll do some GPU-side raycasting to find the coordinates.
+      camera.setViewOffset(
+        cRect.width,
+        cRect.height,
+        Math.floor(event.clientX - cRect.x),
+        Math.floor(event.clientY - cRect.y),
+        1,
+        1
+      );
+      // Render to the click domain.
+      domain.material = clickMaterial;
+      renderer.setRenderTarget(clickTexture);
+      scene.background = clearColour;
+      renderer.render(scene, camera);
+
+      // Reset for future rendering.
+      camera.clearViewOffset();
+      domain.material = displayMaterial;
+      scene.background = new THREE.Color(options.backgroundColour);
+
+      // Create a buffer for reading single pixel
+      const pixelBuffer = new Float32Array(4);
+
+      // Read the pixel.
+      renderer.readRenderTargetPixels(clickTexture, 0, 0, 1, 1, pixelBuffer);
+      [x, y] = pixelBuffer.slice(0, 2);
     } else if (options.plotType == "line") {
       x = (x - 0.5) / camera.zoom + 0.5;
       y = 0.5;
@@ -3695,7 +3691,7 @@ import { Stats } from "../stats.min.js";
     canAutoPause = true;
     updateTimeDisplay();
     clearTextures();
-    render();
+    render(true);
     // Start a timer that checks for NaNs every second.
     shouldCheckNaN = true;
     window.clearTimeout(NaNTimer);
@@ -3869,6 +3865,10 @@ import { Stats } from "../stats.min.js";
 
     // Replace tanh with safetanh.
     str = str.replaceAll(/\btanh\b/g, "safetanh");
+
+    // Replace custom functions.
+    str = replaceGauss(str);
+    str = replaceBump(str);
 
     // Replace powers with safepow, including nested powers.
     str = replaceBinOperator(str, "^", function (m, p1, p2) {
@@ -4283,50 +4283,62 @@ import { Stats } from "../stats.min.js";
     let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
     let type = "FE";
-    simMaterials[type].fragmentShader = replaceMINXMINY(
-      [
-        kineticStr,
-        RDShaderTop(type),
-        middle,
-        insertRates(RDShaderMain(type)),
-        bot,
-      ].join(" ")
+    assignFragmentShader(
+      simMaterials[type],
+      replaceMINXMINY(
+        [
+          kineticStr,
+          RDShaderTop(type),
+          middle,
+          insertRates(RDShaderMain(type)),
+          bot,
+        ].join(" ")
+      )
     );
 
     type = "AB2";
-    simMaterials[type].fragmentShader = replaceMINXMINY(
-      [
-        kineticStr,
-        RDShaderTop(type),
-        middle,
-        insertRates(RDShaderMain(type)),
-        bot,
-      ].join(" ")
+    assignFragmentShader(
+      simMaterials[type],
+      replaceMINXMINY(
+        [
+          kineticStr,
+          RDShaderTop(type),
+          middle,
+          insertRates(RDShaderMain(type)),
+          bot,
+        ].join(" ")
+      )
     );
 
     type = "Mid";
     for (let ind = 1; ind < 3; ind++) {
-      simMaterials[type + ind.toString()].fragmentShader = replaceMINXMINY(
-        [
-          kineticStr,
-          RDShaderTop(type + ind.toString()),
-          middle,
-          insertRates(RDShaderMain(type + ind.toString())),
-          bot,
-        ].join(" ")
+      assignFragmentShader(
+        simMaterials[type + ind.toString()],
+        replaceMINXMINY(
+          [
+            kineticStr,
+            RDShaderTop(type + ind.toString()),
+            middle,
+            insertRates(RDShaderMain(type + ind.toString())),
+            bot,
+          ].join(" ")
+        )
       );
     }
 
     type = "RK4";
     for (let ind = 1; ind < 5; ind++) {
-      simMaterials[type + ind.toString()].fragmentShader = replaceMINXMINY(
-        [
-          kineticStr,
-          RDShaderTop(type + ind.toString()),
-          middle,
-          insertRates(RDShaderMain(type + ind.toString())),
-          bot,
-        ].join(" ")
+      assignFragmentShader(
+        simMaterials[type + ind.toString()],
+        replaceMINXMINY(
+          [
+            kineticStr,
+            RDShaderTop(type + ind.toString()),
+            middle,
+            insertRates(RDShaderMain(type + ind.toString())),
+            bot,
+          ].join(" ")
+        )
       );
     }
 
@@ -4386,7 +4398,7 @@ import { Stats } from "../stats.min.js";
       }
       dirichletShader += "}";
       dirichletShader = replaceMINXMINY(dirichletShader);
-      dirichletMaterial.fragmentShader = dirichletShader;
+      assignFragmentShader(dirichletMaterial, dirichletShader);
       dirichletMaterial.needsUpdate = true;
     }
   }
@@ -4902,7 +4914,7 @@ import { Stats } from "../stats.min.js";
     shaderStr += "float q = " + parseShaderString(options.initCond_4) + ";\n";
     shaderStr += clearShaderBot();
     shaderStr = replaceMINXMINY(shaderStr);
-    clearMaterial.fragmentShader = shaderStr;
+    assignFragmentShader(clearMaterial, shaderStr);
     clearMaterial.needsUpdate = true;
   }
 
@@ -5111,11 +5123,11 @@ import { Stats } from "../stats.min.js";
     // Substitute the overlay expression.
     shaderStr = shaderStr.replaceAll(
       "OVERLAYEXPR",
-      parseShaderString(options.overlayExpr)
+      parseShaderString(options.overlay ? options.overlayExpr : "1.0")
     );
     shaderStr = replaceMINXMINY(shaderStr);
     setOverlayUniforms();
-    postMaterial.fragmentShader = shaderStr + postGenericShaderBot();
+    assignFragmentShader(postMaterial, shaderStr + postGenericShaderBot());
     postMaterial.needsUpdate = true;
   }
 
@@ -6851,7 +6863,7 @@ import { Stats } from "../stats.min.js";
   function getReservedStrs(exclusions) {
     // Load an RD shader and find floats, vecs, and ivecs.
     let regex = /(?:float|vec\d|ivec\d|function|void)\b\s+(\w+)\b/g;
-    let str = RDShaderTop() + RDShaderUpdateCross();
+    let str = RDShaderTop() + RDShaderUpdateCross() + auxiliary_GLSL_funs();
     let reserved = [...str.matchAll(regex)]
       .map((x) => x[1])
       .concat(exclusions)
@@ -8826,10 +8838,13 @@ import { Stats } from "../stats.min.js";
   function setSurfaceShader() {
     if (options.customSurface) {
       displayMaterial.vertexShader = surfaceVertexShaderCustom();
+      clickMaterial.vertexShader = surfaceVertexShaderCustom();
     } else {
       displayMaterial.vertexShader = surfaceVertexShaderColour();
+      clickMaterial.vertexShader = surfaceVertexShaderColour();
     }
     displayMaterial.needsUpdate = true;
+    clickMaterial.needsUpdate = true;
   }
 
   /**
@@ -9468,5 +9483,65 @@ import { Stats } from "../stats.min.js";
     });
 
     return str;
+  }
+
+  /**
+   * Replaces occurrences of Gauss(blah) with correct shader syntax.
+   *
+   * @param {string} str - The input string to be modified.
+   * @returns {string} The modified string.
+   */
+  function replaceGauss(str) {
+    // Replace Gauss(meanx, meany, sx, sy, rho) with Gauss(x, y, meanx, meany, sx, sy, rho).
+    str = str.replaceAll(
+      /\bGauss\(([^,]*),([^,]*),([^,]*),([^,]*),([^,]*)\)/g,
+      "Gauss(x,y,$1,$2,$3,$4,$5)"
+    );
+
+    // Replace Gauss(meanx, meany, sx, sy) with Gauss(x, y, meanx, meany, sx, sy, 0).
+    str = str.replaceAll(
+      /\bGauss\(([^,]*),([^,]*),([^,]*),([^,]*)\)/g,
+      "Gauss(x,y,$1,$2,$3,$4,0)"
+    );
+
+    // Replace Gauss(meanx, meany, sd) with Gauss(x, y, meanx, meany, sd).
+    str = str.replaceAll(
+      /\bGauss\(([^,]*),([^,]*),([^,]*)\)/g,
+      "Gauss(x,y,$1,$2,$3,$3,0)"
+    );
+
+    // Replace Gauss(mean, sd) with Gauss(x, y, mean, sd).
+    str = str.replaceAll(
+      /\bGauss\(([^,]*),([^,]*)\)/g,
+      "Gauss(x,y,$1,$1,$2,$2,0)"
+    );
+
+    return str;
+  }
+
+  /**
+   * Replaces occurrences of Bump(blah) with correct shader syntax.
+   *
+   * @param {string} str - The input string to be modified.
+   * @returns {string} The modified string.
+   */
+  function replaceBump(str) {
+    // Replace Bump(meanx, meany, radius) with Bump(x, y, meanx, meany, radius).
+    str = str.replaceAll(
+      /\bBump\(([^,]*),([^,]*),([^,]*)\)/g,
+      "Bump(x,y,$1,$2,$3)"
+    );
+
+    // Replace Bump(mean, radius) with Bump(x, y, mean, mean, radius).
+    str = str.replaceAll(/\bBump\(([^,]*),([^,]*)\)/g, "Bump(x,y,$1,$1,$2)");
+
+    return str;
+  }
+
+  function assignFragmentShader(material, shader) {
+    material.fragmentShader = shader.replaceAll(
+      /\bAUXILIARY_GLSL_FUNS\b/g,
+      auxiliary_GLSL_funs()
+    );
   }
 })();

@@ -16,32 +16,7 @@ export function drawShaderTop() {
     uniform float dy;
     const float pi = 3.141592653589793;
 
-    float H(float val) 
-    {
-        float res = smoothstep(-0.01, 0.01, val);
-        return res;
-    }
-
-    float H(float val, float edge) 
-    {
-        float res = smoothstep(-0.01, 0.01, val - edge);
-        return res;
-    }
-
-    float safetanh(float val)
-    {
-        return 1.0 - 2.0/(1.0+exp(2.0*val));
-    }
-
-    float safepow(float x, float y) {
-      if (x >= 0.0) {
-          return pow(x,y);
-      }
-      if (mod(round(y),2.0) == 0.0) {
-          return pow(-x,y);
-      }
-      return -pow(-x,y);
-    }
+    AUXILIARY_GLSL_FUNS
 
     const float ALPHA = 0.147;
     const float INV_ALPHA = 1.0 / ALPHA;
@@ -105,11 +80,7 @@ export function drawShaderFactorSharp() {
 
 export function drawShaderFactorSmooth() {
   return `
-  if (distance < brushRadius) {
-        factor = exp(1.0-1.0/(1.0-pow(distance / brushRadius, 2.0)));
-    } else {
-          factor = 0.0;
-    }\n;`;
+  factor = Bump(distance, 0.0, 0.0, 0.0, brushRadius);`;
 }
 
 export function drawShaderCustom() {
@@ -131,4 +102,12 @@ export function drawShaderBotReplace() {
 export function drawShaderBotAdd() {
   return `gl_FragColor.COLOURSPEC = uvwq.COLOURSPEC + brushValue * factor;
         }`;
+}
+
+// A shader that colours by texture uv coordinates.
+export function uvFragShader() {
+  return `varying vec2 textureCoords;
+    void main() {
+        gl_FragColor = vec4(textureCoords, 0.0, 1.0);
+    }`;
 }

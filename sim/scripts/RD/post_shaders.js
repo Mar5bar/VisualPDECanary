@@ -17,32 +17,7 @@ export function computeDisplayFunShaderTop() {
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
 
-    float H(float val) 
-    {
-        float res = smoothstep(-0.01, 0.01, val);
-        return res;
-    }
-
-    float H(float val, float edge) 
-    {
-        float res = smoothstep(-0.01, 0.01, val - edge);
-        return res;
-    }
-
-    float safetanh(float val)
-    {
-        return 1.0 - 2.0/(1.0+exp(2.0*val));
-    }
-
-    float safepow(float x, float y) {
-      if (x >= 0.0) {
-          return pow(x,y);
-      }
-      if (mod(round(y),2.0) == 0.0) {
-          return pow(-x,y);
-      }
-      return -pow(-x,y);
-    }
+    AUXILIARY_GLSL_FUNS
 
     const float ALPHA = 0.147;
     const float INV_ALPHA = 1.0 / ALPHA;

@@ -24,6 +24,7 @@ Here you can:
 * Set the value of any extra parameters.
 * Set the [boundary conditions](#boundary-conditions).
 * Set the [initial conditions](#initial-conditions).
+* Set the [number and type of equations](#changing-the-equations-) to be solved.
 
 ### Domain shape <a class="anchor" id='domain-shape'>
 
@@ -76,9 +77,9 @@ t_u\pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_
 
 where $D_{uu}, \dots,  D_{qq}$, $f_u, \dots, f_q$ and $t_u, \dots, t_q$ are functions of $u$, $v$, $w$, $q$, $x$, $y$ and $t$ that you can specify.
 
-* You can change the number of unknowns by choosing <span class='click_sequence'>{{ layout.settings }} → **Equations** → **No. species**</span>
-* In systems of multiple unknowns, you can include terms representing cross-diffusion (e.g. $D_{uv}$, $D_{vu}$) by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Cross**</span>
-* In systems of multiple unknowns, you can choose between a differential or algebraic equation for some of the species (e.g. '$\partial w/\partial t=$' or '$w=$') by toggling <span class='click_sequence'>{{ layout.settings }} → **Equations** → **Algebraic w** (or **v** or **q**)</span>
+* You can change the number of unknowns by choosing <span class='click_sequence'>{{ layout.equations }} → **Advanced options** → **Num. species**</span>
+* In systems of multiple unknowns, you can include terms representing cross-diffusion (e.g. $D_{uv}$, $D_{vu}$) by toggling <span class='click_sequence'>{{ layout.equations }} → **Advanced options** → **Cross diffusion**</span>
+* In systems of multiple unknowns, you can choose between a differential or algebraic equation for some of the species (e.g. '$\partial w/\partial t=$' or '$w=$') by toggling <span class='click_sequence'>{{ layout.equations }} → **Advanced options** → **Algebraic w** (or **v** or **q**)</span>
 
 ### More VisualPDE
 For a comprehensive list of all the options that you can set in VisualPDE, check out the [Advanced documentation](/user-guide/advanced-options), or discover what VisualPDE can solve in our brief [summary](/user-guide/what-can-visualpde-solve).
