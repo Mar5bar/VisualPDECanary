@@ -154,7 +154,9 @@ div.home-banner {
   position: absolute;
   background-color: #ddf1ff;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
+  width: 100dvw;
   background: #def3ff url("/assets/images/bannerPlaceholder.webp") no-repeat
     center center;
   background-size: cover;
