@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+
+  {%- include head.html -%}
+
+  <body>
+
+    {%- include header.html -%}
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+
+        <header class="post-header">
+            <h1 class="post-title">{{ page.title }}</h1>
+          </header>
+          
+        {{ content }}
+
+        <h2>Pick a topic</h2>
+
+        <div class='home_tiles'>
+          <a class='home_tile' href='visual-stories'>
+            <div class='container'>
+              <img alt="A crescent moon with text 'Once upon a time'" src='/assets/images/OnceUponATime.webp' />
+            </div>
+            <div class='container'>
+              <div class='title'>Visual stories</div>
+              <div class='subtitle'>Not a mathematician? No problem</div>
+              <div class='button'>Browse</div>
+            </div>
+          </a> 
+          <a class='home_tile' href='art-pdes'>
+            <div class='container'>
+              <img alt="Alan Turing surrounded by a simulated Turing pattern" src='/assets/images/alan4.webp' />
+            </div>
+            <div class='container'>
+              <div class='title'>Art of PDEs</div>
+              <div class='subtitle'>Beauty in time and space</div>
+              <div class='button'>Browse</div>
+            </div>
+          </a>
+          <a class='home_tile' href='basic-pdes'>
+            <div class='container'>
+              <img alt="Heatmap of concentration of a substance diffusing with circular symmetry" src='/assets/images/heat-equation.webp' />
+            </div>
+            <div class='container'>
+              <div class='title'>Introductory PDEs</div>
+              <div class='subtitle'>Explore simple models interactively</div>
+              <div class='button'>Browse</div>
+            </div>
+          </a>
+          <a class='home_tile' href='mathematical-biology'>
+            <div class='container'>
+              <img alt="A squirrel sat with its front paws to its mouth" src='/assets/images/squirrel.webp' />
+            </div>
+            <div class='container'>
+              <div class='title'>Mathematical biology</div>
+              <div class='subtitle'>Squirrels, waves and patterns</div>
+              <div class='button'>Browse</div>
+            </div>
+          </a>
+          <a class='home_tile' href='nonlinear-physics'>
+            <div class='container'>
+              <img alt="Stone spiral staircase viewed from above" src='/assets/images/optics.webp' />
+            </div>
+            <div class='container'>
+              <div class='title'>Nonlinear physics</div>
+              <div class='subtitle'>Optics, QFT and the rest</div>
+              <div class='button'>Browse</div>
+            </div>
+          </a>
+          <a class='home_tile' href='numerical-methods'>
+            <div class='container'>
+              <img alt="Spot-like pattern of numerical instability on a grid" src='/assets/images/NumericalMethodsImage.webp' />
+            </div>
+            <div class='container'>
+              <div class='title'>Numerical methods</div>
+              <div class='subtitle'>Adventures in numerical analysis</div>
+              <div class='button'>Browse</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </main>
+
+    {%- include footer.html -%}
+    {%- include mathjax.html -%}
+
+  </body>
+
+  <script type="text/javascript">
+    document.querySelector("iframe").addEventListener( "load", function(e) {
+      this.style.visibility = "visible";
+      document.getElementById("sim").contentWindow.document.getElementById("play").click();
+      document.getElementById("sim-placeholder").style.opacity = 0;
+      document.getElementsByClassName("home-banner-subtitle")[0].style.opacity = 1;
+      setTimeout(function() {
+        document.getElementsByClassName("home-banner-title")[0].style.opacity = 1;
+      }, 1000);
+      const tryClickingTimer = setTimeout(function() {
+        document.getElementById("try-clicking").style.opacity = 1;
+      }, 2500);
+      $("#sim").contents().find("#simCanvas").click(function() {
+        clearTimeout(tryClickingTimer);
+        document.getElementById("try-clicking").style.opacity = 0;
+        //document.getElementsByClassName("home-banner-subtitle")[0].classList.add("with-background");
+        //document.getElementsByClassName("home-banner-title")[0].classList.add("with-background");
+      });
+    });
+  </script>
+
+</html>

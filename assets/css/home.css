@@ -1,0 +1,9 @@
+.site-header {
+  opacity: 0;
+  transition: opacity 1s ease;
+  background-color: color-mix(
+    in srgb,
+    var(--background-color) 90%,
+    transparent
+  );
+}

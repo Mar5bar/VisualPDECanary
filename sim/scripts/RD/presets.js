@@ -2020,6 +2020,14 @@ export function getListOfPresets() {
     whatToPlot: "u",
   };
 
+  listOfPresets["GrayScottGlidersAdvectingPeriodic"] = {
+    parent: "GrayScottGlidersAdvecting",
+    preset: "GrayScottGlidersAdvectingPeriodic",
+    boundaryConditionsU: "periodic",
+    boundaryConditionsV: "periodic",
+    numTimestepsPerFrame: 50,
+  }
+
   listOfPresets["GrayScottGlidersAdvecting"] = {
     boundaryConditions_1: "neumann",
     boundaryConditions_2: "neumann",
