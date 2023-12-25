@@ -186,6 +186,24 @@ div.home-banner-title,
   border-radius: 5px;
   opacity: 0;
   transition: opacity 1s ease;
+  overflow: hidden;
+
+  & > div {
+    transform: translateY(115%);
+  }
+}
+
+.sliding-in {
+  animation: up 0.8s;
+  animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+  animation-fill-mode: forwards;
+  transform: translateY(115%);
+}
+
+@keyframes up {
+  100% {
+    transform: translateY(0%);
+  }
 }
 
 #try-clicking {
@@ -841,6 +859,7 @@ input[type="range"] {
 }
 
 .links-wrapper {
+  pointer-events: none;
   position: absolute;
   bottom: 20px;
   width: 80%;
@@ -850,7 +869,6 @@ input[type="range"] {
   align-items: center;
   justify-content: space-around;
   flex-direction: row;
-  margin-top: 1rem;
   opacity: 0;
   transition: opacity 1s ease;
   flex-wrap: wrap;
@@ -858,6 +876,7 @@ input[type="range"] {
 }
 
 .links-wrapper a {
+  pointer-events: all;
   color: white;
   border: 1px solid;
   border-radius: 6px;
@@ -874,8 +893,8 @@ input[type="range"] {
   background-color: color-mix(in srgb, var(--button-color) 90%, transparent);
 }
 
-.button {
-  background-color: var(--button-color);
+.links-wrapper .button {
+  background-color: rgba(48, 32, 74, 0.85) !important;
 }
 
 /* If we can hover, add a hover style to the button class */
