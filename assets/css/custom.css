@@ -133,13 +133,15 @@ a[href*="/sim/"] {
   text-decoration: none;
 }
 
-.nav-button:hover,
-a[href*="/sim/"]:hover {
-  background-color: var(--play-button-hover-color);
-  border-color: rgba(27, 31, 36, 0.15);
-  transition-duration: 0.1s;
-  text-decoration: none;
-  color: white;
+@media (hover: hover) {
+  .nav-button:hover,
+  a[href*="/sim/"]:hover {
+    background-color: var(--play-button-hover-color);
+    border-color: rgba(27, 31, 36, 0.15);
+    transition-duration: 0.1s;
+    text-decoration: none;
+    color: white;
+  }
 }
 
 .trigger .nav-button {
