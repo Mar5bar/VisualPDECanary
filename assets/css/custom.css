@@ -907,13 +907,14 @@ input[type="range"] {
 
 .links-wrapper .button {
   background-color: rgba(48, 32, 74, 0.85) !important;
+  text-decoration: none !important;
 }
 
 /* If we can hover, add a hover style to the button class */
 @media (hover: hover) {
-  .button:hover {
+  .links-wrapper .button:hover {
     background-color: var(--hover-color);
-    border-color: rgba(27, 31, 36, 0.15);
+    border-color: rgba(27, 31, 36, 0.15) !important;
     transition-duration: 0.1s;
     text-decoration: none;
   }
