@@ -84,8 +84,8 @@ p {
 .logo {
   position: absolute;
   top: 20vh;
-  max-width: 40vh;
-  max-height: 20vh;
+  max-width: 40vw;
+  max-height: 15vh;
   opacity: 0;
   transition: opacity 1s ease;
   pointer-events: none;
