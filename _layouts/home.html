@@ -13,9 +13,9 @@
       <iframe id="sim" src="/sim/?preset=GrayScottGlidersAdvectingPeriodic&clean" style="visibility:hidden"></iframe>
       <img class="logo" src="/assets/images/logo_title_white.webp">
       <div class='home-banner-content no-select'>
-        <div class='home-banner-subtitle'>Interactive solutions of PDE systems</div>
-        <div class='home-banner-title'>live on your device.</div>
-        <div id="try-clicking">Try clicking <i class="fa-solid fa-arrow-right-long pulse" style="position:relative;left:3px;top:2px;"></i></div>
+        <div class='home-banner-subtitle with-background'>Interactive solutions of PDE systems</div>
+        <div class='home-banner-title with-background'>live on your device.</div>
+        <div class="with-background" id="try-clicking">Try clicking <i class="fa-solid fa-arrow-right-long pulse" style="position:relative;left:3px;top:2px;"></i></div>
       </div>
     </div>
     <main class="page-content" aria-label="Content">
@@ -62,8 +62,6 @@
           document.getElementsByClassName("site-header")[0].style.opacity = 1;
           document.getElementsByClassName("logo")[0].style.opacity = 0;
         }, 1500);
-        //document.getElementsByClassName("home-banner-subtitle")[0].classList.add("with-background");
-        //document.getElementsByClassName("home-banner-title")[0].classList.add("with-background");
       });
     });
   </script>
