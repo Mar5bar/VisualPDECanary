@@ -11,6 +11,7 @@
     <div class="home-banner">
       <div id="sim-placeholder" class="no-select"></div>
       <iframe id="sim" src="/sim/?preset=GrayScottGlidersAdvectingPeriodic&clean" style="visibility:hidden"></iframe>
+      <img class="logo" src="/assets/images/logo_title_white.webp">
       <div class='home-banner-content no-select'>
         <div class='home-banner-subtitle'>Interactive solutions of PDE systems</div>
         <div class='home-banner-title'>live on your device.</div>
@@ -34,17 +35,21 @@
   </body>
 
   <script type="text/javascript">
-    document.querySelector("iframe").addEventListener( "load", function(e) {
+    document.querySelector("iframe").addEventListener("load", function(e) {
       this.style.visibility = "visible";
       document.getElementById("sim").contentWindow.document.getElementById("play").click();
       document.getElementById("sim-placeholder").style.opacity = 0;
-      document.getElementsByClassName("home-banner-subtitle")[0].style.opacity = 1;
+      document.getElementsByClassName("logo")[0].style.opacity = 1;
+      setTimeout(function() {
+        document.getElementsByClassName("home-banner-subtitle")[0].style.opacity = 1;
+      }, 1000);
       setTimeout(function() {
         document.getElementsByClassName("home-banner-title")[0].style.opacity = 1;
       }, 2000);
       setTimeout(function() {
         document.getElementsByClassName("links-wrapper")[0].style.opacity = 1;
         document.getElementsByClassName("site-header")[0].style.opacity = 1;
+        document.getElementsByClassName("logo")[0].style.opacity = 0;
       }, 10000);
       const tryClickingTimer = setTimeout(function() {
         document.getElementById("try-clicking").style.opacity = 1;
@@ -55,6 +60,7 @@
         setTimeout(function() {
           document.getElementsByClassName("links-wrapper")[0].style.opacity = 1;
           document.getElementsByClassName("site-header")[0].style.opacity = 1;
+          document.getElementsByClassName("logo")[0].style.opacity = 0;
         }, 1500);
         //document.getElementsByClassName("home-banner-subtitle")[0].classList.add("with-background");
         //document.getElementsByClassName("home-banner-title")[0].classList.add("with-background");
