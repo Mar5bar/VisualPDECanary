@@ -49,7 +49,7 @@
       const tryClickingTimer = setTimeout(function() {
         document.getElementById("try-clicking").style.opacity = 1;
       }, 2500);
-      $("#sim").contents().find("#simCanvas").click(function() {
+      $("#sim").contents().find("#simCanvas").mousedown(function() {
         clearTimeout(tryClickingTimer);
         document.getElementById("try-clicking").style.opacity = 0;
         setTimeout(function() {
