@@ -25,7 +25,7 @@
       </div>
       <div class="links-wrapper">
         <a class="button" href="/sim/">Interactive simulation</a>
-        <a class="button" href="/examples/">Explore the examples</a>
+        <a class="button" href="/examples">Explore the examples</a>
       </div>
     </main>
 
@@ -52,8 +52,10 @@
       $("#sim").contents().find("#simCanvas").click(function() {
         clearTimeout(tryClickingTimer);
         document.getElementById("try-clicking").style.opacity = 0;
-        document.getElementsByClassName("links-wrapper")[0].style.opacity = 1;
-        document.getElementsByClassName("site-header")[0].style.opacity = 1;
+        setTimeout(function() {
+          document.getElementsByClassName("links-wrapper")[0].style.opacity = 1;
+          document.getElementsByClassName("site-header")[0].style.opacity = 1;
+        }, 2000);
         //document.getElementsByClassName("home-banner-subtitle")[0].classList.add("with-background");
         //document.getElementsByClassName("home-banner-title")[0].classList.add("with-background");
       });
