@@ -39,7 +39,10 @@
       this.style.visibility = "visible";
       document.getElementById("sim").contentWindow.document.getElementById("play").click();
       document.getElementById("sim-placeholder").style.opacity = 0;
-      document.getElementsByClassName("logo")[0].style.opacity = 1;
+      if (document.getElementsByClassName("logo")[0].getBoundingClientRectangle().bottom + 50 < 
+        document.getElementsByClassName("home-banner-subtitle")[0].getBoundingClientRectangle().top) {
+        document.getElementsByClassName("logo")[0].style.opacity = 1;
+      }
       setTimeout(function() {
         document.getElementsByClassName("home-banner-subtitle")[0].style.opacity = 1;
       }, 1000);
