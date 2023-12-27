@@ -155,8 +155,8 @@ a[href*="/sim/"] {
 div.home-banner {
   position: absolute;
   background-color: #ddf1ff;
-  height: 100vh;
-  height: 100dvh;
+  height: calc(100vh + 1px);
+  height: calc(100dvh + 1px);
   width: 100vw;
   width: 100dvw;
   background: #def3ff url("/assets/images/bannerPlaceholder.webp") no-repeat
@@ -747,6 +747,12 @@ input[type="range"] {
   border-radius: 5px;
   text-shadow: 0 1px #fff;
   vertical-align: middle;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: all;
 }
 
 @media (hover: hover) {
@@ -917,7 +923,6 @@ input[type="range"] {
   .links-wrapper .button:hover {
     background-color: var(--hover-color);
     border-color: rgba(27, 31, 36, 0.15) !important;
-    transition-duration: 0.1s;
     text-decoration: none;
   }
 }

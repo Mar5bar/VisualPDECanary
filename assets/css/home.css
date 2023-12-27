@@ -1,3 +1,8 @@
+.transparent {
+  opacity: 0;
+  pointer-events: none;;
+}
+
 .site-header {
   opacity: 0;
   transition: opacity 1s ease;
@@ -13,4 +18,31 @@ body {
   -webkit-overflow-scrolling: touch !important;
   overflow: hidden !important;
   height: 100% !important;
+}
+
+vpde-reset {
+  transition: opacity 1s ease;
+}
+
+.vpde-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  height: 32px;
+  width: 32px;
+  z-index: 9999;
+  background-color: rgba(48, 32, 74, 0.85) !important;
+  color: white;
+  border-color: white;
+}
+
+@media (hover: hover) {
+  .vpde-button:hover {
+    border-color: rgba(27, 31, 36, 0.15) !important;
+    background-color: var(--hover-color);
+    color: white;
+  }
+  vpde-reset:hover {
+    opacity: 1;
+  }
 }
