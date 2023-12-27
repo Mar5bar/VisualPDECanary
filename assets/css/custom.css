@@ -159,8 +159,7 @@ div.home-banner {
   height: calc(100dvh + 1px);
   width: 100vw;
   width: 100dvw;
-  background: #def3ff url("/assets/images/bannerPlaceholder.webp") no-repeat
-    center center;
+  background: var(--background-color);
   background-size: cover;
   text-align: center;
   display: flex;
