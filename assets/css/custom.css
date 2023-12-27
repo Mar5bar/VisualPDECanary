@@ -190,12 +190,13 @@ div.home-banner-content {
   pointer-events: none;
 }
 
-div.home-banner-subtitle,
-div.home-banner-title,
+.home-banner-subtitle,
+.home-banner-title,
 #try-clicking {
   color: white;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
+  margin-bottom: 0;
   pointer-events: none;
   border-radius: 5px;
   opacity: 0;
