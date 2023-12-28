@@ -30,8 +30,6 @@
       </div>
     </main>
 
-    <vpde-reset id="reset-button" class="transparent" iframe="sim"></vpde-reset>
-
     {%- include mathjax.html -%}
 
   </body>
@@ -41,9 +39,6 @@
       document.getElementsByClassName("links-wrapper")[0].style.opacity = 1;
       document.getElementsByClassName("site-header")[0].style.opacity = 1;
       document.getElementsByClassName("logo")[0].style.opacity = 0;
-    }
-    function revealResetButton() {
-      document.getElementById("reset-button").classList.remove("transparent");
     }
     document.querySelector("iframe").addEventListener("load", function(e) {
       this.style.visibility = "visible";
@@ -67,7 +62,7 @@
       $("#sim").contents().one("pointerdown touchstart", function() {
         clearTimeout(tryClickingTimer);
         document.getElementById("try-clicking").style.opacity = 0;
-        setTimeout(() => {revealNav(); revealResetButton()}, 1500);
+        setTimeout(revealNav, 1500);
         window.localStorage.setItem("clickedOnHome", true);
       });
     });
