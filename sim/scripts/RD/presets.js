@@ -2025,6 +2025,9 @@ export function getListOfPresets() {
     preset: "GrayScottGlidersAdvectingPeriodic",
     boundaryConditionsU: "periodic",
     boundaryConditionsV: "periodic",
+    contours: true,
+    contourNum: 2,
+    maxColourValue: 0.6,
     numTimestepsPerFrame: 50,
   }
 
