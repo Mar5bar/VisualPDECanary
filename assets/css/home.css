@@ -11,6 +11,7 @@
     var(--background-color) 90%,
     transparent
   );
+  border-bottom: none;
 }
 
 html,

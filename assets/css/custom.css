@@ -29,6 +29,7 @@ body {
   color: var(--text-color);
   background-color: var(--background-color);
   transition: color 0.5s ease, background-color 0.5s ease;
+  scrollbar-gutter: stable;
 }
 
 a,
@@ -96,7 +97,9 @@ p {
 }
 
 .site-header {
-  border-bottom: none;
+  position: sticky;
+  top: 0;
+  background-color: var(--background-color);
   z-index: 1;
   /* Fix for Safari not respecting z-index */
   -webkit-transform: translate3d(0, 0, 0);
