@@ -876,7 +876,8 @@ input[type="range"] {
   z-index: 1;
   color: var(--text-color);
 }
-.wrapper:focus-within .site-title:not(:focus) {
+
+#siteSearchForm:focus-within ~ .site-title {
   opacity: 0;
   pointer-events: none;
 }
