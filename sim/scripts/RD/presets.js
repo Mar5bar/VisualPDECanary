@@ -2027,8 +2027,9 @@ export function getListOfPresets() {
     boundaryConditionsV: "periodic",
     contours: true,
     contourNum: 2,
+    domainScale: "750",
     maxColourValue: 0.6,
-    numTimestepsPerFrame: 50,
+    numTimestepsPerFrame: 25,
   }
 
   listOfPresets["GrayScottGlidersAdvecting"] = {
