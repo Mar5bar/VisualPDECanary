@@ -8,12 +8,16 @@
 
     {%- include header.html -%}
 
+    <noscript>
+      <link rel="stylesheet" href="{{ '/assets/css/noscript.css' | relative_url }}">
+    </noscript>
+
     <div class="home-banner">
       <div id="sim-placeholder" class="no-select"></div>
       <iframe id="sim" src="/sim/?preset=GrayScottGlidersAdvectingPeriodic&lite&clean" style="visibility:hidden"></iframe>
       <img class="logo" src="/assets/images/logo_title_white.webp">
       <div class='home-banner-content no-select'>
-        <p class='home-banner-subtitle'>Interactive solutions of PDE systems</p>
+        <p class='home-banner-subtitle'>Interactive solutions of partial differential equations</p>
         <p class='home-banner-title'>live on your device.</p>
         <p id="try-clicking">Try clicking <i class="fa-solid fa-arrow-right-long pulse" style="position:relative;left:3px;top:2px;"></i></p>
       </div>

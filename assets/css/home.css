@@ -1,6 +1,6 @@
 .transparent {
   opacity: 0;
-  pointer-events: none;;
+  pointer-events: none;
 }
 
 .site-header {
@@ -46,4 +46,11 @@ vpde-reset {
   vpde-reset:hover {
     opacity: 1;
   }
+}
+
+.noscript {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }

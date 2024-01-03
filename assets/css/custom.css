@@ -48,6 +48,13 @@ p > a:visited {
   text-decoration: underline;
 }
 
+.noscript {
+  text-align: center;
+  font-weight: 600;
+  max-width: calc(800px - (30px * 2));
+  margin: 0 auto;
+}
+
 @media (hover: hover) {
   a:hover {
     color: var(--link-color);
