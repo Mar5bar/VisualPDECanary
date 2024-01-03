@@ -81,7 +81,7 @@ noscript {
 
 noscript > p {
     margin: 0;
-    font-size: 1rem;
+    font-size: min(3vw,3vh);
 }
 
 canvas {
