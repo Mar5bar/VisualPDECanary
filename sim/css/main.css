@@ -69,6 +69,25 @@ p > a:visited {
   text-decoration: underline;
 }
 
+noscript {
+  position: absolute;
+  text-align: center;
+  font-weight: 600;
+  top: 50%;
+  left: 50%;
+  max-width: calc(800px - (30px * 2));
+  transform: translate(-50%, -50%);
+  & > p {
+    margin: 0;
+    font-size: larger;
+  }
+}
+
+.logo {
+  max-height: 30vw;
+  max-width: 60vh;
+}
+
 canvas {
   background: no-repeat center/40vw url(/assets/images/logo_loading.webp);
   background-color: black;

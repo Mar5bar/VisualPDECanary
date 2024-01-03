@@ -1,15 +1,21 @@
-.site-header, .links-wrapper {
-    opacity: 1;
+.site-header,
+.links-wrapper {
+  opacity: 1;
 }
 
 .transparent {
-    opacity: 1;
-    pointer-events: all;
-  }
+  opacity: 1;
+  pointer-events: all;
+}
 
 .noscript {
-    background-color: var(--background-color);
-    z-index: 999;
-    border-radius: 5px;
-    padding: 5px;
+  background-color: var(--background-color);
+  z-index: 999;
+  border-radius: 5px;
+  padding: 5px;
+  color: var(--text-color);
+}
+
+canvas {
+  display: none;
 }
