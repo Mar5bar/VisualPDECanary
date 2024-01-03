@@ -21,6 +21,11 @@ jobs:
           npm install
           node build_index.js
         working-directory: assets/js/build_index
+      - name: Webpack simulation scripts
+        run: |
+          npm install webpack webpack-cli
+          npx webpack
+        working-directory: ./sim/scripts/RD
       - name: Install terser
         run: npm install -g terser
       - name: Run terser on sim/scripts
