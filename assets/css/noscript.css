@@ -19,3 +19,8 @@
 canvas {
   display: none;
 }
+
+.logo {
+  max-height: 30vw;
+  max-width: 60vh;
+}
