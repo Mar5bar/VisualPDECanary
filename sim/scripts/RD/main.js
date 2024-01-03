@@ -65,7 +65,6 @@ import {
   getPreset,
   getUserTextFields,
   getFieldsInView,
-  getListOfPresets,
   getOldPresetFieldsToNew,
   getListOfPresetNames,
 } from "./presets.js";
@@ -2366,8 +2365,8 @@ import { createWelcomeTour } from "./tours.js";
     );
 
     // Populate list of presets for parent selection.
-    let listOfPresets = getListOfPresets();
-    Object.keys(listOfPresets).forEach(function (key) {
+    let listOfPresets = {};
+    getListOfPresetNames().forEach(function (key) {
       listOfPresets[key] = key;
     });
     listOfPresets["default"] = null;
