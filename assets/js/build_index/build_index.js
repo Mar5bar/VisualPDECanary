@@ -16,7 +16,8 @@ try {
         const obj = matter.attributes;
         obj.body = matter.body;
         const parsedPath = path.parse(file.slice(2));
-        obj.url = parsedPath.dir.replaceAll(/\/_/g,"/") + "/" + parsedPath.name;
+        obj.url =
+          parsedPath.dir.replaceAll(/\/_/g, "/") + "/" + parsedPath.name;
         obj.url = path.normalize(obj.url);
         obj.tags = obj.tags || "";
         obj.extract = obj.extract || "";
@@ -28,7 +29,11 @@ try {
   });
   // Write docs to disk.
   fs.writeFileSync("../../../doclist.json", JSON.stringify(docs));
-  // console.log(docs);
+  // Write a doclist to disk that doesn't include the body of the document.
+  docs.forEach((doc) => {
+    delete doc.body;
+  });
+  fs.writeFileSync("../../../doclist_frontmatter.json", JSON.stringify(docs));
 } catch (error) {}
 
 // Recursive function to get files
