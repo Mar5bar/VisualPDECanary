@@ -624,7 +624,7 @@ import { createWelcomeTour } from "./tours.js";
     if (wantsTour) {
       await new Promise(function (resolve) {
         ["complete", "cancel"].forEach(function (event) {
-          Shepherd.once(event, () => resolve());
+          Shepherd?.once(event, () => resolve());
         });
         tour.start();
         window.gtag?.("event", "intro_tour");

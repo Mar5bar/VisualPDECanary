@@ -12,11 +12,6 @@
     <script src="../assets/js/jQuery.js"></script>
     <script src="../assets/js/dark_mode.js"></script>
     <script defer type="text/javascript" src="./scripts/dat.gui.min.js"></script>
-    <script defer src="../assets/fontawesome/solid.js"></script>
-    <script defer src="../assets/fontawesome/fontawesome.min.js"></script>
-    <link href="../assets/fontawesome/css/fontawesome.min.css" rel="stylesheet">
-    <link href="../assets/fontawesome/css/solid.min.css" rel="stylesheet">
-
 
     <script type="text/javascript">
         window.MathJax = {
@@ -59,19 +54,23 @@
             }            
         };    
     </script>
-    <!-- Only load MathJax if the query string doesn't contain lite -->
+    <!-- Prevent loading of accessory scripts if the query string contains lite -->
     <script type="text/javascript">
         const params = new URLSearchParams(window.location.search);
         if (!params.has('lite')) {
-            document.write('<script id="MathJax-script" async src="../assets/js/mathjax/es5/tex-chtml-full.js"><\/script>')
+            document.write('<script id="MathJax-script" async src="../assets/js/mathjax/es5/tex-chtml-full.js"><\/script>');
+            document.write('<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"><\/script>');
+            document.write('<script defer src="../assets/fontawesome/solid.js"><\/script>');
+            document.write('<script defer src="../assets/fontawesome/fontawesome.min.js"><\/script>');
+            document.write('<link href="../assets/fontawesome/css/fontawesome.min.css" rel="stylesheet">');
+            document.write('<link href="../assets/fontawesome/css/solid.min.css" rel="stylesheet">');
+            document.write('<script type="module" src="../assets/js/shepherd.min.js"><\/script>');
         }
     </script>
-    <script type="module" src="../assets/js/shepherd.min.js"></script>
     <script type="module" src="./scripts/dat_gui_mods.js"></script>
     <script type="module" src="./scripts/RD/main.js"></script>
     <script src="./scripts/fitty.min.js"></script>
     <script src="./scripts/expr-eval.js"></script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
