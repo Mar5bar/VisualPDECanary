@@ -71,7 +71,7 @@
       $("#sim").contents().one("pointerdown touchstart", function() {
         clearTimeout(tryClickingTimer);
         document.getElementById("try-clicking").style.opacity = 0;
-        setTimeout(revealNav, 1500);
+        setTimeout(revealNav, 500);
         window.localStorage.setItem("clickedOnHome", true);
       });
     });
