@@ -8305,7 +8305,7 @@ import { createWelcomeTour } from "./tours.js";
       .replaceAll("  ", " ")
       .replaceAll("{", "{\n\t")
       .replaceAll("}", ",\n}");
-    str = 'listOfPresets["PRESETNAME"] = ' + str + ";\n";
+    str = 'presets["PRESETNAME"] = ' + str + ";\n";
 
     copyToClipboard(str);
   }

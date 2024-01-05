@@ -2032,6 +2032,21 @@ presets["GrayScottBanner"] = {
   preset: "GrayScottBanner",
 };
 
+presets["GrayScottRollsBanner"] = {
+  boundaryConditions_1: "periodic",
+  boundaryConditions_2: "periodic",
+  contourNum: 2,
+  diffusionStr_1_1: "0.4",
+  diffusionStr_2_2: "0.55",
+  dt: 0.15,
+  kineticParams:
+    "a = 0.0299999999999970044 in [0, 0.1];b = 0.054 in [0.04, 0.1];theta = -2.1600000 in [-6.4, 0.01, 6.4];V = 0.04 in [0, 0.04];",
+  maxColourValue: "0.66",
+  numTimestepsPerFrame: 25,
+  parent: "GrayScottGlidersAdvecting",
+  preset: "GrayScottRollsBanner",
+};
+
 presets["GrayScottGlidersAdvecting"] = {
   boundaryConditions_1: "neumann",
   boundaryConditions_2: "neumann",
