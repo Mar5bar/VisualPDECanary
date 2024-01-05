@@ -199,6 +199,7 @@ div.home-banner-content {
 .home-banner-subtitle,
 .home-banner-title,
 #try-clicking {
+  transition: background-color 1s ease;
   color: white;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
@@ -226,18 +227,19 @@ div.home-banner-content {
 }
 
 #try-clicking {
+  background: none;
   opacity: 0;
   transition: opacity 0.5s ease;
   position: relative;
   top: 1rem;
 }
 
-div.home-banner-title {
+.home-banner-title {
   border-radius: 0 0 5px 5px;
 }
 
 .with-background {
-  background-color: rgba(48, 32, 74, 0.85);
+  background-color: rgba(46, 19, 55, 0.85);
 }
 
 .pulse {
