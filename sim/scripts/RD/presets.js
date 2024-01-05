@@ -2016,15 +2016,17 @@ presets["swiftHohenbergLocalisedRotationalAdvection"] = {
   whatToPlot: "u",
 };
 
-presets["GrayScottGlidersAdvectingPeriodic"] = {
-  parent: "GrayScottGlidersAdvecting",
-  preset: "GrayScottGlidersAdvectingPeriodic",
-  boundaryConditionsU: "periodic",
-  boundaryConditionsV: "periodic",
+presets["GrayScottBanner"] = {
+  boundaryConditionsU: "dirichlet",
+  parent: "GrayScott",
+  preset: "GrayScottBanner",
+  colourmap: "turbo",
   contours: true,
   contourNum: 2,
+  contourEpsilon: 0.005,
   domainScale: "750",
-  maxColourValue: 0.6,
+  emboss: true,
+  maxColourValue: 0.67,
   numTimestepsPerFrame: 25,
 };
 

@@ -1,26 +1,3 @@
-.transparent {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.site-header {
-  opacity: 0;
-  transition: opacity 1s ease;
-  background-color: color-mix(
-    in srgb,
-    var(--background-color) 90%,
-    transparent
-  );
-  border-bottom: none;
-}
-
-html,
-body {
-  -webkit-overflow-scrolling: touch !important;
-  overflow: hidden !important;
-  height: 100% !important;
-}
-
 vpde-reset {
   transition: opacity 1s ease;
 }
@@ -48,9 +25,6 @@ vpde-reset {
   }
 }
 
-.noscript {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.wrapper > p {
+  text-align: center;
 }
