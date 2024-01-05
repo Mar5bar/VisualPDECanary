@@ -9057,8 +9057,7 @@ import { createWelcomeTour } from "./tours.js";
     // If the browser is neither Chrome nor Firefox, show a message.
     if (
       !/Chrome/.test(navigator.userAgent) &&
-      !/Firefox/.test(navigator.userAgent) &&
-      localStorage.getItem("shown_use_chrome") != "true"
+      !/Firefox/.test(navigator.userAgent)
     ) {
       fadein("#use_Chrome", 1000);
       localStorage.setItem("shown_use_chrome", "true");
