@@ -103,9 +103,7 @@
       this.style.visibility = "visible";
       document.getElementById("sim").contentWindow.document.getElementById("play").click();
       document.getElementById("sim-placeholder").style.opacity = 0;
-      const tryClickingTimer = setTimeout(function() {
-        document.getElementById("try-clicking").style.opacity = 1;
-      }, 2000);
+      document.getElementById("try-clicking").style.opacity = 1;
       $("#sim").contents().one("pointerdown touchstart", function() {
         clearTimeout(tryClickingTimer);
         document.getElementById("try-clicking").style.opacity = 0;
