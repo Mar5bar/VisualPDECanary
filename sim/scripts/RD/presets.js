@@ -3851,6 +3851,7 @@ presets["default"] = {
   numSpecies: 2,
   numTimestepsPerFrame: 100,
   oneDimensional: false,
+  optimiseFPS: true,
   overlay: false,
   overlayColour: 0x000000,
   overlayEpsilon: 0.005,

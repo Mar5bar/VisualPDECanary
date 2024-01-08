@@ -148,6 +148,7 @@ import { createWelcomeTour } from "./tours.js";
     isSuspended = false,
     isLoading = true,
     isRecording = false,
+    isOptimising = false,
     hasErrored = false,
     canAutoPause = true,
     isDrawing,
@@ -162,11 +163,15 @@ import { createWelcomeTour } from "./tours.js";
     NaNTimer,
     brushDisabledTimer,
     recordingTimer,
+    stabilisingFPSTimer = setTimeout(() => {
+      stabilisingFPSTimer = null;
+    }, 1000),
     recordingTextInterval,
     uiHidden = false,
     checkpointExists = false,
     nextViewNumber = 0,
     frameCount = 0,
+    lastFPS,
     seed = performance.now(),
     updatingAlgebraicSpecies = false,
     viewUIOffsetInit;
@@ -665,6 +670,10 @@ import { createWelcomeTour } from "./tours.js";
       window.open(getSimURL());
     });
   }
+
+  // Determine whether or not we can optimise the FPS of the simulation.
+  // Typically, this is only disabled for synchronised simulations.
+  isOptimising = !params.has("noop") && options.optimiseFPS;
 
   // Begin the simulation.
   isLoading = false;
@@ -2954,7 +2963,7 @@ import { createWelcomeTour } from "./tours.js";
       requestAnimationFrame(animate);
       return;
     }
-    if (options.showStats) stats.begin();
+    stats.begin();
 
     hasDrawn = isDrawing;
     // Draw on any input from the user, which can happen even if timestepping is not running.
@@ -2984,11 +2993,40 @@ import { createWelcomeTour } from "./tours.js";
     }
 
     // Render if something has happened.
-    if (hasDrawn || isRunning) {
-      render();
-    }
-    if (options.showStats) stats.end();
+    if (hasDrawn || isRunning) render();
+
+    // Update stats.
+    stats.end();
+
+    // Optimise FPS.
+    if (isRunning && isOptimising) optimiseFPS();
+
     requestAnimationFrame(animate);
+  }
+
+  function optimiseFPS() {
+    // Return immediately if we're already waiting for the FPS to stabilise.
+    if (stabilisingFPSTimer) return;
+    // If we're already at 1 TPF, stop optimising.
+    if (options.numTimestepsPerFrame == 1) return doneOptimising();
+    const fps = stats.getFPS();
+    // If we're already at 30 FPS, stop optimising.
+    if (fps > 29) return doneOptimising();
+
+    // If stats has returned a new FPS, update the number of timesteps per frame to target 30 FPS.
+    if (lastFPS != Math.floor(fps)) {
+      lastFPS = Math.floor(fps);
+      options.numTimestepsPerFrame = Math.max(
+        1,
+        Math.floor((options.numTimestepsPerFrame * fps) / 30)
+      );
+      controllers["numTimestepsPerFrame"].updateDisplay();
+      stabilisingFPSTimer = setTimeout(() => (stabilisingFPSTimer = null), 500);
+    } else {
+      // If we haven't received a new FPS, we're probably at the limit of the device's performance.
+      // Stop optimising.
+      return doneOptimising();
+    }
   }
 
   function setDrawAndDisplayShaders() {
@@ -9344,4 +9382,15 @@ import { createWelcomeTour } from "./tours.js";
       auxiliary_GLSL_funs()
     );
   }
+
+  function startOptimising() {
+    lastFPS = 0;
+    isOptimising = true;
+  }
+
+  function doneOptimising() {
+    isOptimising = false;
+  }
+
+  function queryOptimising() {}
 })();
