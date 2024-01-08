@@ -2966,7 +2966,7 @@ import { createWelcomeTour } from "./tours.js";
       requestAnimationFrame(animate);
       return;
     }
-    stats.begin();
+    if (options.showStats || isOptimising) stats.begin();
 
     hasDrawn = isDrawing;
     // Draw on any input from the user, which can happen even if timestepping is not running.
@@ -2999,7 +2999,7 @@ import { createWelcomeTour } from "./tours.js";
     if (hasDrawn || isRunning) render();
 
     // Update stats.
-    stats.end();
+    if (options.showStats || isOptimising) stats.end();
 
     // Optimise FPS.
     if (isRunning && isOptimising) optimiseFPS();
