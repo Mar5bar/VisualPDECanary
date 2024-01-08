@@ -163,9 +163,7 @@ import { createWelcomeTour } from "./tours.js";
     NaNTimer,
     brushDisabledTimer,
     recordingTimer,
-    stabilisingFPSTimer = setTimeout(() => {
-      stabilisingFPSTimer = null;
-    }, 1000),
+    stabilisingFPSTimer,
     recordingTextInterval,
     uiHidden = false,
     checkpointExists = false,
@@ -644,11 +642,6 @@ import { createWelcomeTour } from "./tours.js";
     if (restart) {
       playSim();
     }
-    // Restart the optimisation timer to prevent the welcome message from preventing optimisation.
-    window.clearTimeout(stabilisingFPSTimer);
-    stabilisingFPSTimer = setTimeout(() => {
-      stabilisingFPSTimer = null;
-    }, 1000);
   }
 
   // If the "Try clicking!" popup is allowed, show it iff we're from an external link
@@ -684,6 +677,9 @@ import { createWelcomeTour } from "./tours.js";
 
   // Begin the simulation.
   isLoading = false;
+  stabilisingFPSTimer = setTimeout(() => {
+    stabilisingFPSTimer = null;
+  }, 1000);
   animate();
 
   const darkOS = window.matchMedia("(prefers-color-scheme: dark)");
@@ -3028,7 +3024,10 @@ import { createWelcomeTour } from "./tours.js";
         Math.floor((options.numTimestepsPerFrame * fps) / 30)
       );
       controllers["numTimestepsPerFrame"].updateDisplay();
-      stabilisingFPSTimer = setTimeout(() => (stabilisingFPSTimer = null), 500);
+      stabilisingFPSTimer = setTimeout(
+        () => (stabilisingFPSTimer = null),
+        1200
+      );
     } else {
       // If we haven't received a new FPS, we're probably at the limit of the device's performance.
       // Stop optimising.
