@@ -641,7 +641,14 @@ import { createWelcomeTour } from "./tours.js";
       $("#get_help").fadeIn(1000);
       setTimeout(() => $("#get_help").fadeOut(1000), 4000);
     }
-    if (restart) playSim();
+    if (restart) {
+      playSim();
+    }
+    // Restart the optimisation timer to prevent the welcome message from preventing optimisation.
+    window.clearTimeout(stabilisingFPSTimer);
+    stabilisingFPSTimer = setTimeout(() => {
+      stabilisingFPSTimer = null;
+    }, 1000);
   }
 
   // If the "Try clicking!" popup is allowed, show it iff we're from an external link
