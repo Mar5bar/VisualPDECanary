@@ -805,6 +805,45 @@ presets["TaylorGreen"] = {
   whatToPlot: "n",
 };
 
+presets["KlausmeierOnTopography"] = {
+  cameraTheta: 31.614349775783595,
+  cameraPhi: 27.98206278026889,
+  cameraZoom: 0.5307363450312499,
+  crossDiffusion: true,
+  customSurface: true,
+  diffusionStr_2_3: "10*w",
+  diffusionStr_3_3: "20*ind(t<0.1)",
+  imagePathTwo: "./images/topography.webp",
+  initCond_3: "10*I_T(x/2,y/2)",
+  minColourValue: "0",
+  numSpecies: "3",
+  numTimestepsPerFrame: 50,
+  parent: "KlausmeierModel",
+  plotType: "surface",
+  preset: "KlausmeierOnTopography",
+  resetOnImageLoad: true,
+  reactionStr_2: "a-w-w*n^2",
+  spatialStep: "0.5",
+  speciesNames: "n w T",
+  surfaceFun: "3*T",
+  views: [
+    {
+      colourmap: "foliage",
+      emboss: true,
+      maxColourValue: "6",
+      whatToPlot: "n",
+      name: "Foliage",
+    },
+    {
+      colourmap: "water",
+      emboss: false,
+      maxColourValue: "2",
+      whatToPlot: "w",
+      name: "Water",
+    },
+  ],
+};
+
 presets["LocalisedVegetation"] = {
   activeViewInd: 0,
   brushEnabled: false,

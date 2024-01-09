@@ -675,11 +675,18 @@ import { createWelcomeTour } from "./tours.js";
   // Typically, this is only disabled for synchronised simulations.
   isOptimising = !params.has("noop") && options.optimiseFPS;
 
+  if (isOptimising) {
+    // If the tab has been opened in the background, delay the FPS optimisation until we return to the tab.
+    if (document.visibilityState === "hidden") {
+      becomingHidden();
+    } else {
+      // Otherwise, delay optimisation until FPS stabilises and listen out for becoming hidden.
+      becomingVisible();
+    }
+  }
+
   // Begin the simulation.
   isLoading = false;
-  stabilisingFPSTimer = setTimeout(() => {
-    stabilisingFPSTimer = null;
-  }, 1000);
   animate();
 
   const darkOS = window.matchMedia("(prefers-color-scheme: dark)");
@@ -9399,4 +9406,27 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   function queryOptimising() {}
+
+  function becomingVisible() {
+    // Allow optimisation to occur while the page is visible.
+    window.clearTimeout(stabilisingFPSTimer);
+    stabilisingFPSTimer = setTimeout(() => {
+      stabilisingFPSTimer = null;
+    }, 1000);
+    startOptimising();
+    // Listen for becoming hidden again.
+    document.addEventListener("visibilitychange", becomingHidden, {
+      once: true,
+    });
+  }
+
+  function becomingHidden() {
+    // Prevent optimisation from occuring while the page is hidden.
+    window.clearTimeout(stabilisingFPSTimer);
+    stabilisingFPSTimer = true;
+    // Listen for becoming visible again.
+    document.addEventListener("visibilitychange", becomingVisible, {
+      once: true,
+    });
+  }
 })();
