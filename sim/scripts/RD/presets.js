@@ -806,15 +806,19 @@ presets["TaylorGreen"] = {
 };
 
 presets["KlausmeierOnTopography"] = {
-  cameraTheta: 31.614349775783595,
-  cameraPhi: 27.98206278026889,
+  boundaryConditions_3: "neumann",
+  cameraTheta: -3.7,
+  cameraPhi: 89,
   cameraZoom: 0.5307363450312499,
   crossDiffusion: true,
   customSurface: true,
-  diffusionStr_2_3: "10*w",
-  diffusionStr_3_3: "20*ind(t<0.1)",
+  diffusionStr_2_2: "2",
+  diffusionStr_2_3: "V*w",
+  diffusionStr_3_3: "40*ind(t<0.1)",
   imagePathTwo: "./images/topography.webp",
-  initCond_3: "10*I_T(x/2,y/2)",
+  initCond_3: "10*I_T(x/2,y/2)+20*(x/L_x-0.5)",
+  kineticParams:
+    "a = 1.1 in [0.01, 0.01, 10];m = 0.630 in [0.2, 0.01, 1];V = 100;",
   minColourValue: "0",
   numSpecies: "3",
   numTimestepsPerFrame: 50,
@@ -837,7 +841,7 @@ presets["KlausmeierOnTopography"] = {
     {
       colourmap: "water",
       emboss: false,
-      maxColourValue: "2",
+      maxColourValue: "1",
       whatToPlot: "w",
       name: "Water",
     },
