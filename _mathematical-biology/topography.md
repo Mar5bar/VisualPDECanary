@@ -20,7 +20,7 @@ $$\begin{aligned}\pd{w}{t} &= a-w -wn^2+ D\nabla^2w + V\vnabla \cdot (w\nabla T)
 
 where $T(x,y)$ is the spatially varying height of the landscape. The parameters $D$ and $V$ capture the relative sizes of the water transport terms.
 
-* Load the [interactive simulation](/sim/?preset=KlausmeierOnTopography) that implements this modified PDE for a given $T(x,y)$.
+* Load the [interactive simulation](/sim/?preset=KlausmeierOnTopography) that implements this modified PDE for a given $T(x,y)$. Watch the vegetation seemingly travel uphill into water-rich regions, which then get used up and dry out.
 
 * Try varying the parameters $a$ and $m$ to see if and how they impact the formation and type of patterns.
 
