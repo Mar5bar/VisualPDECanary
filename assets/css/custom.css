@@ -332,13 +332,12 @@ div.topic_banner {
   border-radius: 6px 6px 0px 0px;
 }
 
-a.home_tile:hover,
-a.topic_tile:hover {
-  text-decoration: none;
-}
-
-a.topic_tile:hover {
-  background-color: var(--hover-background-color);
+@media (hover: hover) {
+  a.home_tile:hover,
+  a.topic_tile:hover {
+    text-decoration: none;
+    background-color: var(--hover-background-color);
+  }
 }
 
 a.home_tile img {
