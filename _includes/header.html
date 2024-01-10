@@ -4,17 +4,19 @@
         {%- assign page_paths = site.header_pages | default: default_paths -%}
         {%- assign titles_size = site.pages | map: 'title' | join: '' | size -%}
         {%- include search-lunr.html -%}
+        <link rel="preload" as="image" href="/assets/images/logo.webp"/>
+        <link rel="preload" as="image" href="/assets/images/logo-dark.webp"/>
         <a class="site-title" rel="author" href="{{ "/" | relative_url }}">
             <img
                 class="light-mode-img"
                 src="/assets/images/logo.webp"
                 alt="Heart-shaped logo"
-                style="height:2rem;margin-right:8px;vertical-align:text-top"
+                style="height:2rem;width:2rem;margin-right:8px;vertical-align:text-top"
             /><img
                 class="dark-mode-img"
                 src="/assets/images/logo-dark.webp"
                 alt="Heart-shaped logo"
-                style="height:2rem;margin-right:8px;vertical-align:text-top"
+                style="height:2rem;width:2rem;margin-right:8px;vertical-align:text-top"
             />{{ site.title | escape }}</a>
 
         {%- if titles_size > 0 -%}
