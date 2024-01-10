@@ -19,6 +19,8 @@
   --stop-recording-color: #ff0000;
   --input-background-color: #e9e9ed;
   --input-border-color: #e8e8e8;
+  --table-header-background-color: #f0f0f0;
+  --table-even-row-background-color: #f0f0f0;
 }
 
 html {
@@ -46,6 +48,18 @@ a[href*='//']:not([href*='visualpde.com'])
 p > a,
 p > a:visited {
   text-decoration: underline;
+}
+
+table {
+  color: var(--text-color);
+}
+
+table th {
+  background-color: var(--table-header-background-color);
+}
+
+table tr:nth-child(even) {
+  background-color: var(--table-even-row-background-color);
 }
 
 .noscript {
@@ -1139,6 +1153,8 @@ input[type="range"] {
   --stop-recording-color: var(--link-color);
   --input-background-color: #303134;
   --input-border-color: var(--ui-button-border-color);
+  --table-header-background-color: #2b2c2e;
+  --table-even-row-background-color: #303134;
 }
 
 .dark-mode #dark-on {
