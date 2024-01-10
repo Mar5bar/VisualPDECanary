@@ -71,6 +71,28 @@ presets["WavesOnABeach"] = {
   whatToPlot: "u",
 };
 
+presets["WaterOnTopographySpringHighres"] = {
+  dt: 0.002,
+  parent: "WaterOnTopographySpring",
+  preset: "WaterOnTopographySpringHighres",
+  spatialStep: "0.5",
+};
+
+presets["WaterOnTopographySpring"] = {
+  initCond_3: "exp(-10*((x-0.75*L_x)^2 + (y-0.63*L_y)^2))",
+  parent: "WaterOnTopography",
+  preset: "WaterOnTopographySpring",
+  reactionStr_1: "r*ind(s>0)",
+  whatToDraw: "s",
+};
+
+presets["WaterOnTopographyHighres"] = {
+  dt: 0.002,
+  parent: "WaterOnTopography",
+  preset: "WaterOnTopographyHighres",
+  spatialStep: "0.5",
+};
+
 presets["WaterOnTopography"] = {
   activeViewInd: 4,
   boundaryConditions_1: "dirichlet",
@@ -81,27 +103,27 @@ presets["WaterOnTopography"] = {
   comboStr_1:
     "Left: Ghost = -1; Right: Ghost = -1; Top: Ghost = -1; Bottom: Ghost = -1;",
   crossDiffusion: true,
-  diffusionStr_1_1: "min(ind(u>0)*u^3,F_max)",
-  diffusionStr_1_2: "min(ind(u>0)*u^3,F_max)",
+  diffusionStr_1_1: "min(ind(h>0)*h^3,F_max)",
+  diffusionStr_1_2: "min(ind(h>0)*h^3,F_max)",
   diffusionStr_2_2: "0.1*ind(t<30)",
   diffusionStr_3_3: "0",
   domainScale: "320",
-  dt: 0.01,
+  dt: 0.008,
   guiUpdatePeriod: 3,
   imagePathTwo: "./images/topography.webp",
   initCond_1: "0",
-  initCond_2: "10*I_T",
+  initCond_2: "20*I_T(x/2,y/2)",
   initCond_3: "0*exp(-0.1*((x-L_x/2)^2 + (y-0.9*L_y)^2))",
   kineticParams: "F_max = 20;r = 1.0 in [0, 2];",
   numSpecies: "3",
   preset: "WaterOnTopography",
   resetOnImageLoad: true,
-  reactionStr_1: "r*ind(s>0)",
+  reactionStr_1: "0",
   reactionStr_2: "0",
   reactionStr_3: "0",
-  robinStr_1: "-0.01*u",
-  spatialStep: "1",
-  speciesNames: "u T s",
+  robinStr_1: "-0.01*h",
+  spatialStep: "0.8",
+  speciesNames: "h T s",
   squareCanvas: true,
   views: [
     {
@@ -116,7 +138,7 @@ presets["WaterOnTopography"] = {
       minColourValue: "-0.16781748831272125",
       plotType: "plane",
       surfaceFun: "0",
-      whatToPlot: "u",
+      whatToPlot: "h",
       name: "Water",
     },
     {
@@ -146,7 +168,7 @@ presets["WaterOnTopography"] = {
       minColourValue: "0",
       plotType: "plane",
       surfaceFun: "0",
-      whatToPlot: "u+T",
+      whatToPlot: "h+T",
       name: "Total",
     },
     {
@@ -176,11 +198,11 @@ presets["WaterOnTopography"] = {
       minColourValue: "-1",
       plotType: "surface",
       surfaceFun: "4*T",
-      whatToPlot: "ind(u>0.5)*(u+6) + ind(u<0.5)*(T-2)",
+      whatToPlot: "ind(h>0.5)*(h+6) + ind(h<0.5)*(T-7)",
       name: "Water on Topography",
     },
   ],
-  whatToDraw: "u",
+  whatToDraw: "h",
 };
 
 presets["ZKSoliton"] = {

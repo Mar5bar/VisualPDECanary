@@ -58,7 +58,9 @@
     <script type="text/javascript">
         const params = new URLSearchParams(window.location.search);
         if (!params.has('lite')) {
-            document.write('<script id="MathJax-script" async src="../assets/js/mathjax/es5/tex-chtml-full.js"><\/script>');
+            if (!params.has('nomathjax')) {
+                document.write('<script id="MathJax-script" async src="../assets/js/mathjax/es5/tex-chtml-full.js"><\/script>');
+            }
             document.write('<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"><\/script>');
             document.write('<script defer src="../assets/fontawesome/solid.js"><\/script>');
             document.write('<script defer src="../assets/fontawesome/fontawesome.min.js"><\/script>');
