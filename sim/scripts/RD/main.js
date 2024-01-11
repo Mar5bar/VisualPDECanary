@@ -3033,7 +3033,7 @@ import { createWelcomeTour } from "./tours.js";
       controllers["numTimestepsPerFrame"].updateDisplay();
       stabilisingFPSTimer = setTimeout(
         () => (stabilisingFPSTimer = null),
-        1200
+        2200
       );
     } else {
       // If we haven't received a new FPS, we're probably at the limit of the device's performance.
@@ -9412,7 +9412,7 @@ import { createWelcomeTour } from "./tours.js";
     window.clearTimeout(stabilisingFPSTimer);
     stabilisingFPSTimer = setTimeout(() => {
       stabilisingFPSTimer = null;
-    }, 1200);
+    }, 2200);
     startOptimising();
     // Listen for becoming hidden again.
     document.addEventListener("visibilitychange", becomingHidden, {
