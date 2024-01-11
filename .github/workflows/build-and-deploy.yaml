@@ -21,14 +21,18 @@ jobs:
           npm install
           node build_index.js
         working-directory: assets/js/build_index
-      - name: Install terser
-        run: npm install -g terser
       - name: Run terser on sim/scripts
         run: |
+          npm install -g terser
           find . -name "*.js" | while read file; do
             terser --compress --mangle --module --output "$file" -- "$file"
           done
         working-directory: ./sim/scripts/
+      - name: Webpack simulation scripts
+        run: |
+          npm install webpack webpack-cli
+          npx webpack
+        working-directory: ./sim/scripts/RD
       - name: Minify all CSS
         run: |
           npm install clean-css-cli -g

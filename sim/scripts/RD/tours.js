@@ -1,4 +1,8 @@
 function createWelcomeTour(onMobile) {
+  // If Shepherd is not defined, return.
+  if (typeof Shepherd === "undefined") {
+    return;
+  }
   // Create the welcome tour.
   const tour = new Shepherd.Tour({
     useModalOverlay: true,
@@ -176,6 +180,10 @@ function createWelcomeTour(onMobile) {
  * Note: This function uses optional chaining (`?.`), so if any of the properties or methods are undefined or null, it will not throw an error and will instead return undefined.
  */
 function addStepCounter() {
+  // If Shepherd is not defined, return.
+  if (typeof Shepherd === "undefined") {
+    return;
+  }
   const currentStep = Shepherd.activeTour?.getCurrentStep();
   const currentStepElement = currentStep?.getElement();
   const header = currentStepElement?.querySelector(".shepherd-header");
@@ -191,6 +199,10 @@ function addStepCounter() {
 }
 
 function addMoreInfoLink(link, label) {
+  // If Shepherd is not defined, return.
+  if (typeof Shepherd === "undefined") {
+    return;
+  }
   const currentStep = Shepherd.activeTour?.getCurrentStep();
   const currentStepElement = currentStep?.getElement();
   const footer = currentStepElement?.querySelector(".shepherd-footer");

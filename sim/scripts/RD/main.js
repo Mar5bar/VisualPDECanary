@@ -65,7 +65,6 @@ import {
   getPreset,
   getUserTextFields,
   getFieldsInView,
-  getListOfPresets,
   getOldPresetFieldsToNew,
   getListOfPresetNames,
 } from "./presets.js";
@@ -149,6 +148,7 @@ import { createWelcomeTour } from "./tours.js";
     isSuspended = false,
     isLoading = true,
     isRecording = false,
+    isOptimising = false,
     hasErrored = false,
     canAutoPause = true,
     isDrawing,
@@ -163,11 +163,16 @@ import { createWelcomeTour } from "./tours.js";
     NaNTimer,
     brushDisabledTimer,
     recordingTimer,
+    stabilisingFPSTimer,
     recordingTextInterval,
     uiHidden = false,
     checkpointExists = false,
     nextViewNumber = 0,
     frameCount = 0,
+    lastFPS,
+    rate,
+    lastT,
+    lastTime,
     seed = performance.now(),
     updatingAlgebraicSpecies = false,
     viewUIOffsetInit;
@@ -625,7 +630,7 @@ import { createWelcomeTour } from "./tours.js";
     if (wantsTour) {
       await new Promise(function (resolve) {
         ["complete", "cancel"].forEach(function (event) {
-          Shepherd.once(event, () => resolve());
+          Shepherd?.once(event, () => resolve());
         });
         tour.start();
         window.gtag?.("event", "intro_tour");
@@ -637,7 +642,9 @@ import { createWelcomeTour } from "./tours.js";
       $("#get_help").fadeIn(1000);
       setTimeout(() => $("#get_help").fadeOut(1000), 4000);
     }
-    if (restart) playSim();
+    if (restart) {
+      playSim();
+    }
   }
 
   // If the "Try clicking!" popup is allowed, show it iff we're from an external link
@@ -667,9 +674,34 @@ import { createWelcomeTour } from "./tours.js";
     });
   }
 
+  // Determine whether or not we can optimise the FPS of the simulation.
+  // Typically, this is only disabled for synchronised simulations.
+  isOptimising = !params.has("noop") && options.optimiseFPS;
+
+  if (isOptimising) {
+    // If the tab has been opened in the background, delay the FPS optimisation until we return to the tab.
+    if (document.visibilityState === "hidden") {
+      becomingHidden();
+    } else {
+      // Otherwise, delay optimisation until FPS stabilises and listen out for becoming hidden.
+      becomingVisible();
+    }
+  }
+
   // Begin the simulation.
   isLoading = false;
   animate();
+
+  // Monitor the rate at which time is being increased in the simulation.
+  setInterval(function () {
+    rate = (1e3 * (uniforms.t.value - lastT)) / (performance.now() - lastTime);
+    lastT = uniforms.t.value;
+    lastTime = performance.now();
+    if (options.showStats) {
+      document.getElementById("rateOfProgressValue").innerHTML =
+        rate.toPrecision(2) + "/s";
+    }
+  }, 1000);
 
   const darkOS = window.matchMedia("(prefers-color-scheme: dark)");
   // Listen for the changes in the OS settings, and refresh equation display.
@@ -2366,8 +2398,8 @@ import { createWelcomeTour } from "./tours.js";
     );
 
     // Populate list of presets for parent selection.
-    let listOfPresets = getListOfPresets();
-    Object.keys(listOfPresets).forEach(function (key) {
+    let listOfPresets = {};
+    getListOfPresetNames().forEach(function (key) {
       listOfPresets[key] = key;
     });
     listOfPresets["default"] = null;
@@ -2955,7 +2987,7 @@ import { createWelcomeTour } from "./tours.js";
       requestAnimationFrame(animate);
       return;
     }
-    if (options.showStats) stats.begin();
+    if (options.showStats || isOptimising) stats.begin();
 
     hasDrawn = isDrawing;
     // Draw on any input from the user, which can happen even if timestepping is not running.
@@ -2985,11 +3017,43 @@ import { createWelcomeTour } from "./tours.js";
     }
 
     // Render if something has happened.
-    if (hasDrawn || isRunning) {
-      render();
-    }
-    if (options.showStats) stats.end();
+    if (hasDrawn || isRunning) render();
+
+    // Update stats.
+    if (options.showStats || isOptimising) stats.end();
+
+    // Optimise FPS.
+    if (isRunning && isOptimising) optimiseFPS();
+
     requestAnimationFrame(animate);
+  }
+
+  function optimiseFPS() {
+    // Return immediately if we're already waiting for the FPS to stabilise.
+    if (stabilisingFPSTimer) return;
+    // If we're already at 1 TPF, stop optimising.
+    if (options.numTimestepsPerFrame == 1) return doneOptimising();
+    const fps = stats.getFPS();
+    // If we're already at 30 FPS, stop optimising.
+    if (fps > 29) return doneOptimising();
+
+    // If stats has returned a new FPS, update the number of timesteps per frame to target 30 FPS.
+    if (lastFPS != Math.floor(fps)) {
+      lastFPS = Math.floor(fps);
+      options.numTimestepsPerFrame = Math.max(
+        1,
+        Math.floor((options.numTimestepsPerFrame * fps) / 30)
+      );
+      controllers["numTimestepsPerFrame"].updateDisplay();
+      stabilisingFPSTimer = setTimeout(
+        () => (stabilisingFPSTimer = null),
+        2200
+      );
+    } else {
+      // If we haven't received a new FPS, we're probably at the limit of the device's performance.
+      // Stop optimising.
+      return doneOptimising();
+    }
   }
 
   function setDrawAndDisplayShaders() {
@@ -3532,6 +3596,9 @@ import { createWelcomeTour } from "./tours.js";
     updateTimeDisplay();
     clearTextures();
     render(true);
+    // Reset time-tracking stats.
+    lastT = uniforms.t.value;
+    lastTime = performance.now();
     // Start a timer that checks for NaNs every second.
     shouldCheckNaN = true;
     window.clearTimeout(NaNTimer);
@@ -8306,7 +8373,7 @@ import { createWelcomeTour } from "./tours.js";
       .replaceAll("  ", " ")
       .replaceAll("{", "{\n\t")
       .replaceAll("}", ",\n}");
-    str = 'listOfPresets["PRESETNAME"] = ' + str + ";\n";
+    str = 'presets["PRESETNAME"] = ' + str + ";\n";
 
     copyToClipboard(str);
   }
@@ -8336,6 +8403,8 @@ import { createWelcomeTour } from "./tours.js";
    */
   function configureStatsGUI() {
     stats.domElement.style.visibility = options.showStats ? "" : "hidden";
+    document.getElementById("dataContainerStats").style.visibility =
+      options.showStats ? "" : "hidden";
   }
 
   /**
@@ -9058,8 +9127,7 @@ import { createWelcomeTour } from "./tours.js";
     // If the browser is neither Chrome nor Firefox, show a message.
     if (
       !/Chrome/.test(navigator.userAgent) &&
-      !/Firefox/.test(navigator.userAgent) &&
-      localStorage.getItem("shown_use_chrome") != "true"
+      !/Firefox/.test(navigator.userAgent)
     ) {
       fadein("#use_Chrome", 1000);
       localStorage.setItem("shown_use_chrome", "true");
@@ -9345,5 +9413,39 @@ import { createWelcomeTour } from "./tours.js";
       /\bAUXILIARY_GLSL_FUNS\b/g,
       auxiliary_GLSL_funs()
     );
+  }
+
+  function startOptimising() {
+    lastFPS = 0;
+    isOptimising = true;
+  }
+
+  function doneOptimising() {
+    isOptimising = false;
+  }
+
+  function queryOptimising() {}
+
+  function becomingVisible() {
+    // Allow optimisation to occur while the page is visible.
+    window.clearTimeout(stabilisingFPSTimer);
+    stabilisingFPSTimer = setTimeout(() => {
+      stabilisingFPSTimer = null;
+    }, 2200);
+    startOptimising();
+    // Listen for becoming hidden again.
+    document.addEventListener("visibilitychange", becomingHidden, {
+      once: true,
+    });
+  }
+
+  function becomingHidden() {
+    // Prevent optimisation from occuring while the page is hidden.
+    window.clearTimeout(stabilisingFPSTimer);
+    stabilisingFPSTimer = true;
+    // Listen for becoming visible again.
+    document.addEventListener("visibilitychange", becomingVisible, {
+      once: true,
+    });
   }
 })();

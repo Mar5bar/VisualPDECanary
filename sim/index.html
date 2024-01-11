@@ -12,11 +12,6 @@
     <script src="../assets/js/jQuery.js"></script>
     <script src="../assets/js/dark_mode.js"></script>
     <script defer type="text/javascript" src="./scripts/dat.gui.min.js"></script>
-    <script defer src="../assets/fontawesome/solid.js"></script>
-    <script defer src="../assets/fontawesome/fontawesome.min.js"></script>
-    <link href="../assets/fontawesome/css/fontawesome.min.css" rel="stylesheet">
-    <link href="../assets/fontawesome/css/solid.min.css" rel="stylesheet">
-
 
     <script type="text/javascript">
         window.MathJax = {
@@ -59,15 +54,25 @@
             }            
         };    
     </script>
-    <script id="MathJax-script" async
-        src="../assets/js/mathjax/es5/tex-chtml-full.js">
+    <!-- Prevent loading of accessory scripts if the query string contains lite -->
+    <script type="text/javascript">
+        const params = new URLSearchParams(window.location.search);
+        if (!params.has('lite')) {
+            if (!params.has('nomathjax')) {
+                document.write('<script id="MathJax-script" async src="../assets/js/mathjax/es5/tex-chtml-full.js"><\/script>');
+            }
+            document.write('<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"><\/script>');
+            document.write('<script defer src="../assets/fontawesome/solid.js"><\/script>');
+            document.write('<script defer src="../assets/fontawesome/fontawesome.min.js"><\/script>');
+            document.write('<link href="../assets/fontawesome/css/fontawesome.min.css" rel="stylesheet">');
+            document.write('<link href="../assets/fontawesome/css/solid.min.css" rel="stylesheet">');
+            document.write('<script type="module" src="../assets/js/shepherd.min.js"><\/script>');
+        }
     </script>
-    <script type="module" src="../assets/js/shepherd.min.js"></script>
     <script type="module" src="./scripts/dat_gui_mods.js"></script>
     <script type="module" src="./scripts/RD/main.js"></script>
     <script src="./scripts/fitty.min.js"></script>
     <script src="./scripts/expr-eval.js"></script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
@@ -125,7 +130,7 @@
     <div class="circle"></div><p>Recording <span id="recording_time"></span></p>
     <div class="ui_button" id="stop_recording" title="Stop recording"><i class="fa-solid fa-video-slash"></i></div>
 </div>
-<div class="message small" id="use_Chrome"><p>Chrome/Firefox are recommended for video compatibility</p></div>
+<div class="message small" id="use_Chrome"><p>Chrome/Firefox on desktop are recommended for video recording</p></div>
 <div class="ui hidden ui_button" id="help" title="Help"><i class="fa-solid fa-circle-question"></i></div>
 <div class="ui hidden ui_button" id="views" title="Views"><i class="fa-solid fa-layer-group"></i></div>
 
@@ -237,6 +242,18 @@
 
 <input id="checkpointInput" type="file" style="visibility:hidden">
 
+<div class="ui dataContainer" id="dataContainerStats" style="visibility:hidden;display:block;">
+    <div class="dataItem prevent-select" id="rateOfProgressDisplay">
+        <div class="label rateOfProgressLabel">$\frac{\d t}{\d t}=$</div>
+        <div class="label rateOfProgressLabel" id="rateOfProgressValue"></div>
+    </div>
+</div>
+
+<noscript>
+    <link rel="stylesheet" href="/assets/css/noscript.css">
+    <a href="/"><img class="logo" src="/assets/images/logo_title_white.webp"></a>
+    <p class="noscript">VisualPDE makes heavy use of JavaScript to enable in-browser simulations.<br>Enable JavaScript in your browser settings to experience this simulation.</p>
+</noscript>
 <body>
 </body>
 

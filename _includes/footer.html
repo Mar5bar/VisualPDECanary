@@ -11,16 +11,12 @@
     <div class="footer-col-wrapper">
       <div class="footer-col footer-col-1">
         <ul class="contact-list">
+          {%- if site.email -%}
+          <li><a class="u-email" href="mailto:{{ site.email }}">{{ site.email }}</a></li>
+          {%- endif -%}
           <li class="p-name">
-            {%- if site.author -%}
-              {{ site.author | escape }}
-            {%- else -%}
-              {{ site.title | escape }}
-            {%- endif -%}
+            <p style="margin-bottom:0;">Read the <a style="color:unset;" href="https://doi.org/10.1007/s11538-023-01218-4">paper</a></p>
             </li>
-            {%- if site.email -%}
-            <li><a class="u-email" href="mailto:{{ site.email }}">{{ site.email }}</a></li>
-            {%- endif -%}
         </ul>
       </div>
 

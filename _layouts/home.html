@@ -2,28 +2,31 @@
 <html lang="{{ page.lang | default: site.lang | default: "en" }}">
 
   {%- include head.html -%}
+  <link rel="stylesheet" href="{{ '/assets/css/home.css' | relative_url }}">
 
   <body>
 
     {%- include header.html -%}
 
+    <noscript>
+      <link rel="stylesheet" href="{{ '/assets/css/noscript.css' | relative_url }}">
+    </noscript>
+
     <div class="home-banner">
-      <iframe id="sim" title="Interactive banner" src="/sim/?preset=Banner&clean" style="visibility:hidden"></iframe>
+      <div id="sim-placeholder" class="no-select"></div>
+      <iframe id="sim" src="/sim/?preset=GrayScottBanner&lite&clean&noop" style="visibility:hidden"></iframe>
+      <img class="logo" src="/assets/images/logo_title_white.webp">
       <div class='home-banner-content no-select'>
-        <div class='home-banner-subtitle'>Interactive live solutions of PDE systems</div>
-        <div class='home-banner-title'>right on your device.</div>
+        <p class='home-banner-subtitle'>Interactive solutions of partial differential equations</p>
+        <p class='home-banner-title'>live on your device.</p>
+        <p id="try-clicking">Try clicking <i class="fa-solid fa-arrow-right-long pulse" style="position:relative;left:3px;top:2px;"></i></p>
       </div>
     </div>
     <main class="page-content" aria-label="Content">
       <div class="wrapper">
 
-        <!-- {% for item in site.collections %}
-          <a href="{{ item.url }}">{{ item.label }}</a><br />
-        {% endfor %} -->
-
         {{ content }}
 
-        <!-- <h2>Tutorials</h2> -->
         <div class='home_tiles'>
           <a class='home_tile' href='visual-stories'>
             <div class='container'>
@@ -86,30 +89,27 @@
             </div>
           </a>
         </div>
+
       </div>
     </main>
 
-    {%- include footer.html -%}
     {%- include mathjax.html -%}
+    {%- include footer.html -%}
 
   </body>
 
   <script type="text/javascript">
-    document.querySelector("iframe").addEventListener( "load", function(e) {
-        setTimeout(() => this.style.visibility = "visible", 1000);
-    });
-    
-    window.focus()
-    setTimeout(() => {
+    document.querySelector("iframe").addEventListener("load", function(e) {
+      this.style.visibility = "visible";
       document.getElementById("sim").contentWindow.document.getElementById("play").click();
-    }, 10000);
-    window.addEventListener("blur", () => {
-      setTimeout(() => {
-        if (document.activeElement.tagName === "IFRAME") {
-          document.getElementById("sim").contentWindow.document.getElementById("play").click();
-        }
+      document.getElementById("sim-placeholder").style.opacity = 0;
+      document.getElementById("try-clicking").style.opacity = 1;
+      $("#sim").contents().one("pointerdown touchstart", function() {
+        document.getElementById("try-clicking").style.opacity = 0;
+        document.getElementsByClassName("home-banner-title")[0].classList.add("with-background");
+        document.getElementsByClassName("home-banner-subtitle")[0].classList.add("with-background");
       });
-    }, { once: true });
+    });
   </script>
 
 </html>
