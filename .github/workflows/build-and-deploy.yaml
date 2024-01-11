@@ -2,7 +2,7 @@ name: build-and-deploy
 on: 
   push:
     branches:
-      - homepage_redesign
+      - main
 
 jobs:
   # Build job
