@@ -632,7 +632,7 @@ presets["GrayScottPearsonClassification"] = {
   domainScale: "3500",
   dt: 0.2,
   emboss: true,
-  initCond_1: "1/cosh(0.01*((x-L_x/5)^2+(y-0.8*L_y)^2))",
+  initCond_1: "Bump(0,L_y,L/10)",
   kineticParams: "",
   maxColourValue: 0.65,
   parent: "GrayScott",
