@@ -15,10 +15,12 @@
   --ui-button-background-color: #ffffff;
   --ui-button-border-color: rgba(0, 0, 0, 0.8);
   --tile-border-color: rgba(27, 31, 36, 0.15);
-  --font-weight: 400;
+  --font-weight: 350;
   --stop-recording-color: #ff0000;
   --input-background-color: #e9e9ed;
   --input-border-color: #e8e8e8;
+  --table-header-background-color: #f0f0f0;
+  --table-even-row-background-color: #f0f0f0;
 }
 
 html {
@@ -29,6 +31,7 @@ body {
   color: var(--text-color);
   background-color: var(--background-color);
   transition: color 0.5s ease, background-color 0.5s ease;
+  scrollbar-gutter: stable;
 }
 
 a,
@@ -45,6 +48,25 @@ a[href*='//']:not([href*='visualpde.com'])
 p > a,
 p > a:visited {
   text-decoration: underline;
+}
+
+table {
+  color: var(--text-color);
+}
+
+table th {
+  background-color: var(--table-header-background-color);
+}
+
+table tr:nth-child(even) {
+  background-color: var(--table-even-row-background-color);
+}
+
+.noscript {
+  text-align: center;
+  font-weight: 600;
+  max-width: calc(800px - (30px * 2));
+  margin: 0 auto;
 }
 
 @media (hover: hover) {
@@ -81,13 +103,26 @@ p {
   user-select: none;
 }
 
+.logo {
+  position: absolute;
+  top: 20vh;
+  max-width: 40vw;
+  max-height: 15vh;
+  opacity: 0;
+  transition: opacity 1s ease;
+  pointer-events: none;
+}
+
 .wrapper {
   position: relative;
 }
 
 .site-header {
-  border-bottom: none;
+  position: sticky;
+  top: 0;
+  background-color: var(--background-color);
   z-index: 1;
+  border-bottom: 1px solid var(--tile-border-color);
   /* Fix for Safari not respecting z-index */
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
@@ -123,13 +158,15 @@ a[href*="/sim/"] {
   text-decoration: none;
 }
 
-.nav-button:hover,
-a[href*="/sim/"]:hover {
-  background-color: var(--play-button-hover-color);
-  border-color: rgba(27, 31, 36, 0.15);
-  transition-duration: 0.1s;
-  text-decoration: none;
-  color: white;
+@media (hover: hover) {
+  .nav-button:hover,
+  a[href*="/sim/"]:hover {
+    background-color: var(--play-button-hover-color);
+    border-color: rgba(27, 31, 36, 0.15);
+    transition-duration: 0.1s;
+    text-decoration: none;
+    color: white;
+  }
 }
 
 .trigger .nav-button {
@@ -143,16 +180,24 @@ a[href*="/sim/"]:hover {
 div.home-banner {
   position: relative;
   background-color: #ddf1ff;
-  height: 150px;
+  height: 25vh;
   width: 100vw;
-  background: #def3ff url("/assets/images/bannerPlaceholder.webp") no-repeat
-    center center;
+  background: var(--background-color);
   background-size: cover;
   text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
+}
+
+#sim-placeholder {
+  background: rgb(36, 21, 59);
+  height: 25vh;
+  width: 100vw;
+  position: absolute;
+  transition: opacity 0.7s ease;
+  pointer-events: none;
 }
 
 div.home-banner-content {
@@ -163,20 +208,66 @@ div.home-banner-content {
   justify-content: center;
   flex-direction: column;
   pointer-events: none;
+  transition: background 0.5s ease 1s;
 }
 
-div.home-banner-subtitle,
-div.home-banner-title {
-  background-color: rgba(48, 32, 74, 0.85);
+.home-banner-subtitle,
+.home-banner-title,
+#try-clicking {
+  transition: background-color 1s ease;
   color: white;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
-  pointer-events: all;
+  margin-bottom: 0;
+  pointer-events: none;
   border-radius: 5px;
+  overflow: hidden;
+
+  & > div {
+    transform: translateY(115%);
+  }
 }
 
-div.home-banner-title {
+.sliding-in {
+  animation: up 0.8s;
+  animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+  animation-fill-mode: forwards;
+  transform: translateY(115%);
+}
+
+@keyframes up {
+  100% {
+    transform: translateY(0%);
+  }
+}
+
+#try-clicking {
+  background: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  position: relative;
+  top: 1rem;
+}
+
+.home-banner-title {
   border-radius: 0 0 5px 5px;
+}
+
+.with-background {
+  background-color: rgba(46, 19, 55, 0.5);
+}
+
+.pulse {
+  animation: pulse-animation 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-animation {
+  0% {
+    transform: scale(1) translateX(0);
+  }
+  100% {
+    transform: scale(1.2) translateX(2px);
+  }
 }
 
 div.home-banner iframe {
@@ -241,13 +332,12 @@ div.topic_banner {
   border-radius: 6px 6px 0px 0px;
 }
 
-a.home_tile:hover,
-a.topic_tile:hover {
-  text-decoration: none;
-}
-
-a.topic_tile:hover {
-  background-color: var(--hover-background-color);
+@media (hover: hover) {
+  a.home_tile:hover,
+  a.topic_tile:hover {
+    text-decoration: none;
+    background-color: var(--hover-background-color);
+  }
 }
 
 a.home_tile img {
@@ -475,7 +565,7 @@ span.click_sequence {
 @media only screen and (max-width: 600px) {
   .sim {
     width: 99%;
-		margin: 0 auto;
+    margin: 0 auto;
   }
 }
 
@@ -680,6 +770,12 @@ input[type="range"] {
   border-radius: 5px;
   text-shadow: 0 1px #fff;
   vertical-align: middle;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: all;
 }
 
 @media (hover: hover) {
@@ -713,7 +809,7 @@ input[type="range"] {
 #siteSearchForm {
   position: absolute;
   left: 20px;
-  right: 262px;
+  right: 300px;
   height: 54px;
   vertical-align: middle;
 }
@@ -800,9 +896,70 @@ input[type="range"] {
   z-index: 1;
   color: var(--text-color);
 }
-.wrapper:focus-within .site-title:not(:focus) {
+
+#siteSearchForm:focus-within ~ .site-title {
   opacity: 0;
   pointer-events: none;
+}
+
+.links-wrapper {
+  pointer-events: none;
+  position: absolute;
+  bottom: 20px;
+  width: 80%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-direction: row;
+  opacity: 0;
+  transition: opacity 1s ease;
+  flex-wrap: wrap;
+  row-gap: 0.4rem;
+}
+
+.links-wrapper a {
+  pointer-events: all;
+  color: white;
+  border: 1px solid;
+  border-radius: 6px;
+  border-color: white;
+  padding: 3px 16px;
+  color: #ffffff;
+  box-shadow: rgba(27, 31, 36, 0.1) 0px 1px 0px 0px,
+    rgba(255, 255, 255, 0.03) 0px 1px 0px 0px inset;
+  transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
+  white-space: nowrap;
+}
+
+.links-wrapper a:not([href*="/sim/"]) {
+  background-color: color-mix(in srgb, var(--button-color) 90%, transparent);
+}
+
+.links-wrapper .button {
+  background-color: rgba(48, 32, 74, 0.85) !important;
+  text-decoration: none !important;
+}
+
+/* If we can hover, add a hover style to the button class */
+@media (hover: hover) {
+  .links-wrapper .button:hover {
+    background-color: var(--hover-color);
+    border-color: rgba(27, 31, 36, 0.15) !important;
+    text-decoration: none;
+  }
+}
+
+.site-footer {
+  background-color: color-mix(
+    in srgb,
+    var(--background-color) 90%,
+    transparent
+  );
+  z-index: 0;
+  padding: 0;
+  border: none;
 }
 
 @media screen and (max-width: 600px) {
@@ -995,6 +1152,8 @@ input[type="range"] {
   --stop-recording-color: var(--link-color);
   --input-background-color: #303134;
   --input-border-color: var(--ui-button-border-color);
+  --table-header-background-color: #2b2c2e;
+  --table-even-row-background-color: #303134;
 }
 
 .dark-mode #dark-on {
@@ -1003,6 +1162,10 @@ input[type="range"] {
 
 .dark-mode #light-on {
   display: inline;
+}
+
+.dark-mode .home-banner {
+  border-bottom: 1px solid var(--tile-border-color);
 }
 
 .dark-mode div.home-banner {

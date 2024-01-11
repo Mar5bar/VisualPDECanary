@@ -28,7 +28,7 @@ The simulation below lets us explore the effect of one of these factors: the che
     step="0.01"
 ></vpde-slider></p>
 
-<iframe id="simA" class="sim" style="margin-left:calc(15% - 2px);margin-right:calc(15% - 2px);width:70%" src="/sim/?preset=DecontaminationDemoSpots&story&no_ui" frameborder="0" loading="lazy"></iframe>
+<iframe id="simA" class="sim" style="margin-left:calc(15% - 2px);margin-right:calc(15% - 2px);width:70%" src="/sim/?preset=DecontaminationDemoSpots&story&lite&no_ui" frameborder="0" loading="lazy"></iframe>
 
 To explore the role that the reaction rate plays, try adjusting the slider found just above the simulation, and see what effect clicking has now. For larger rates, the reaction is faster, and this speeds up the overall decontamination of the concrete. 
 
@@ -42,9 +42,9 @@ In practice, an easy way to speed up the cleaning process is to add more cleanse
 <div style="display:flex">
 <!-- Invisible sliders to set values in simulation -->
 <vpde-slider style="display:none;justify-content:space-evenly;" iframe="simB" name="BC" value="1"></vpde-slider>
-    <iframe id="simB" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&no_ui" frameborder="0" loading="lazy"></iframe>
+    <iframe id="simB" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&lite&no_ui&noop" frameborder="0" loading="lazy"></iframe>
 <vpde-slider style="display:none" iframe="simC" name="BC" value="2"></vpde-slider>
-    <iframe id="simC" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&no_ui" frameborder="0" loading="lazy"></iframe>
+    <iframe id="simC" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&lite&no_ui&noop" frameborder="0" loading="lazy"></iframe>
 </div>
 
 However, this approach is both wasteful and potentially dangerous: the cleaning chemical might be a strong acid or alkaline (like bleach) and so could damage the concrete if too much is left over after the decontamination. 
@@ -77,8 +77,8 @@ Use the slider below to adjust the strength of the applied cleanser throughout t
 ></vpde-slider></p>
 
 <div style="display:flex">
-    <iframe id="simD" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&no_ui" frameborder="0" loading="lazy"></iframe>
-    <iframe id="simE" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&no_ui&view=0" frameborder="0" loading="lazy"></iframe>
+    <iframe id="simD" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&lite&no_ui&noop" frameborder="0" loading="lazy"></iframe>
+    <iframe id="simE" class="sim" style="width:40%" src="/sim/?preset=DecontaminationDirichlet&story&lite&no_ui&noop&view=0" frameborder="0" loading="lazy"></iframe>
 </div>
 
 # About the decontamination model

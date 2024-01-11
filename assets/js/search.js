@@ -1,16 +1,20 @@
 // Load the document list and index from the root directory of the site.
 
-let documents = [];
+let frontmatter = [];
 let pageHeadings = [];
 let siteIndex, pageIndex;
 
 async function setupSiteSearch() {
-  documents = await getDocs();
   // If there is no index saved in local storage, build one.
   if (
     !localStorage.getItem("index") ||
     localStorage.getItem("index").expiryTime < Date.now()
   ) {
+    let documents = await getDocs();
+    frontmatter = documents.map((doc) => {
+      delete doc.body;
+      return doc;
+    });
     siteIndex = lunr(function () {
       this.ref("id");
       this.field("title");
@@ -30,10 +34,19 @@ async function setupSiteSearch() {
     localStorage.setItem("index", JSON.stringify(siteIndex));
   } else {
     siteIndex = lunr.Index.load(JSON.parse(localStorage.getItem("index")));
+    frontmatter = await getFrontmatter();
   }
 }
 async function getDocs() {
   return fetch("/doclist.json")
+    .then((response) => response.json())
+    .then((json) => {
+      return json;
+    });
+}
+
+async function getFrontmatter() {
+  return fetch("/doclist_frontmatter.json")
     .then((response) => response.json())
     .then((json) => {
       return json;
@@ -168,10 +181,10 @@ function site_search(term) {
       for (var i = 0; i < Math.min(results.length, 10); i++) {
         // more statements
         var ref = results[i]["ref"];
-        var url = documents[ref]["url"];
-        var title = documents[ref]["title"];
-        var extract = documents[ref]["extract"];
-        var img = documents[ref]["img"];
+        var url = frontmatter[ref]["url"];
+        var title = frontmatter[ref]["title"];
+        var extract = frontmatter[ref]["extract"];
+        var img = frontmatter[ref]["img"];
         if (extract) {
           title += /[\?\!\.]/.test(title.trim().slice(-1)) ? " " : ": ";
         }

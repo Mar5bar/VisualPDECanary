@@ -1,6 +1,9 @@
 var fs = require("fs"),
   fm = require("front-matter");
 var path = require("path");
+var jsdom = require("jsdom");
+var { JSDOM } = jsdom;
+const { document } = (new JSDOM(`<!DOCTYPE html>`)).window;
 
 try {
   // Loop through all the markdown files in the site.
@@ -14,12 +17,14 @@ try {
     if (matter.attributes.hasOwnProperty("title")) {
       if (matter.attributes?.published != false) {
         const obj = matter.attributes;
-        obj.body = matter.body;
+        obj.body = minify(matter.body);
         const parsedPath = path.parse(file.slice(2));
-        obj.url = parsedPath.dir.replaceAll(/\/_/g,"/") + "/" + parsedPath.name;
+        obj.url =
+          parsedPath.dir.replaceAll(/\/_/g, "/") + "/" + parsedPath.name;
         obj.url = path.normalize(obj.url);
         obj.tags = obj.tags || "";
-        obj.extract = obj.extract || "";
+        obj.extract = minify(obj.extract) || "";
+        obj.equation = minify(obj.equation) || "";
         obj.img = obj.thumbnail || "";
         obj.id = counter++;
         docs.push(obj);
@@ -28,7 +33,11 @@ try {
   });
   // Write docs to disk.
   fs.writeFileSync("../../../doclist.json", JSON.stringify(docs));
-  // console.log(docs);
+  // Write a doclist to disk that doesn't include the body of the document.
+  docs.forEach((doc) => {
+    delete doc.body;
+  });
+  fs.writeFileSync("../../../doclist_frontmatter.json", JSON.stringify(docs));
 } catch (error) {}
 
 // Recursive function to get files
@@ -48,4 +57,30 @@ function getFiles(dir, files = []) {
     }
   }
   return files;
+}
+
+// Strip HTML tags and content from a string.
+function stripHTML(content) {
+  let div = document.createElement("div");
+  div.innerHTML = content;
+  let textContent = "";
+  while (div.firstChild) {
+    // If the first child is a text node, add it to the textContent.
+    if (div.firstChild.nodeType === 3) {
+      textContent += div.firstChild.textContent;
+    }
+    div.removeChild(div.firstChild);
+  }
+  div.remove();
+  return textContent;
+}
+
+function minify(content) {
+  content = stripHTML(content);
+  content = content.replace(/\s+/g, " ");
+  content = content.replaceAll(/\$\$[^\$]+\$\$/g,"");
+  content = content.replaceAll(/\$[^\$]+\$/g,"");
+  content = content.replaceAll(/\[([^\]]+)\]\([^\)]+\)/g,"$1");
+  content = content.replaceAll(/\{\{[^\}]+\}\}/g,"");
+  return content;
 }
