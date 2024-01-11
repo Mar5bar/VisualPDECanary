@@ -9412,7 +9412,7 @@ import { createWelcomeTour } from "./tours.js";
     window.clearTimeout(stabilisingFPSTimer);
     stabilisingFPSTimer = setTimeout(() => {
       stabilisingFPSTimer = null;
-    }, 1000);
+    }, 1200);
     startOptimising();
     // Listen for becoming hidden again.
     document.addEventListener("visibilitychange", becomingHidden, {
