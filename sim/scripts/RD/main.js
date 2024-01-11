@@ -170,6 +170,9 @@ import { createWelcomeTour } from "./tours.js";
     nextViewNumber = 0,
     frameCount = 0,
     lastFPS,
+    rate,
+    lastT,
+    lastTime,
     seed = performance.now(),
     updatingAlgebraicSpecies = false,
     viewUIOffsetInit;
@@ -688,6 +691,17 @@ import { createWelcomeTour } from "./tours.js";
   // Begin the simulation.
   isLoading = false;
   animate();
+
+  // Monitor the rate at which time is being increased in the simulation.
+  setInterval(function () {
+    rate = (1e3 * (uniforms.t.value - lastT)) / (performance.now() - lastTime);
+    lastT = uniforms.t.value;
+    lastTime = performance.now();
+    if (options.showStats) {
+      document.getElementById("rateOfProgressValue").innerHTML =
+        rate.toPrecision(2) + "/s";
+    }
+  }, 1000);
 
   const darkOS = window.matchMedia("(prefers-color-scheme: dark)");
   // Listen for the changes in the OS settings, and refresh equation display.
@@ -3582,6 +3596,9 @@ import { createWelcomeTour } from "./tours.js";
     updateTimeDisplay();
     clearTextures();
     render(true);
+    // Reset time-tracking stats.
+    lastT = uniforms.t.value;
+    lastTime = performance.now();
     // Start a timer that checks for NaNs every second.
     shouldCheckNaN = true;
     window.clearTimeout(NaNTimer);
@@ -8386,6 +8403,8 @@ import { createWelcomeTour } from "./tours.js";
    */
   function configureStatsGUI() {
     stats.domElement.style.visibility = options.showStats ? "" : "hidden";
+    document.getElementById("dataContainerStats").style.visibility =
+      options.showStats ? "" : "hidden";
   }
 
   /**
