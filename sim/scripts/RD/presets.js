@@ -71,15 +71,11 @@ presets["WavesOnABeach"] = {
   whatToPlot: "u",
 };
 
-presets["WaterOnTopographySpringHighresDams"] = {
-  brushRadius: "5",
-  brushValue: "max(4,T) - T",
-  initCond_3: "exp(-10*((x-0.75*L_x)^2 + (y-0.63*L_y)^2))",
-  kineticParams: "F_max = 20;r = 1.0 in [0, 2];a=0.003 in [0,0.005]",
-  parent: "WaterOnTopographySpringHighres",
-  preset: "WaterOnTopographySpringHighresDams",
-  reactionStr_1: "r*ind(s>0) - a*ind(h>0)",
-  whatToDraw: "T",
+presets["WaterOnTopographySpringDamsHighres"] = {
+  dt: 0.002,
+  parent: "WaterOnTopographySpringDams",
+  preset: "WaterOnTopographySpringDamsHighres",
+  spatialStep: "0.5",
 };
 
 presets["WaterOnTopographySpringHighres"] = {
@@ -87,6 +83,17 @@ presets["WaterOnTopographySpringHighres"] = {
   parent: "WaterOnTopographySpring",
   preset: "WaterOnTopographySpringHighres",
   spatialStep: "0.5",
+};
+
+presets["WaterOnTopographySpringDams"] = {
+  brushRadius: "5",
+  brushValue: "max(4,T) - T",
+  initCond_3: "exp(-10*((x-0.75*L_x)^2 + (y-0.63*L_y)^2))",
+  kineticParams: "F_max = 20;r = 1.0 in [0, 2];a=0.003 in [0,0.005]",
+  parent: "WaterOnTopographySpring",
+  preset: "WaterOnTopographySpringDams",
+  reactionStr_1: "r*ind(s>0) - a*ind(h>0)",
+  whatToDraw: "T",
 };
 
 presets["WaterOnTopographySpring"] = {
