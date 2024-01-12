@@ -10,7 +10,7 @@ Many of the spatial models that people study assume flat, homogeneous domains. I
 
 # Hillside vegetation
 
-In our [page on vegetation patterns](/mathematical-biology/vegetation-patterns), we explore the [Klasumeier model](https://www.science.org/doi/full/10.1126/science.284.5421.1826), which can be stated as
+In our [page on vegetation patterns](/mathematical-biology/vegetation-patterns), we explore the [Klausmeier model](https://www.science.org/doi/full/10.1126/science.284.5421.1826), which can be stated as
 
 $$\begin{aligned}\pd{w}{t} &= a-w -wn^2+v\pd{w}{x} + \nabla^2w,\\ \pd{n}{t} &= wn^2 - mn + \nabla^2n\end{aligned}$$
 
