@@ -71,6 +71,17 @@ presets["WavesOnABeach"] = {
   whatToPlot: "u",
 };
 
+presets["WaterOnTopographySpringHighresDams"] = {
+  brushRadius: "5",
+  brushValue: "max(4,T) - T",
+  initCond_3: "exp(-10*((x-0.75*L_x)^2 + (y-0.63*L_y)^2))",
+  kineticParams: "F_max = 20;r = 1.0 in [0, 2];a=0.003 in [0,0.005]",
+  parent: "WaterOnTopographySpringHighres",
+  preset: "WaterOnTopographySpringHighresDams",
+  reactionStr_1: "r*ind(s>0) - a*ind(h>0)",
+  whatToDraw: "T",
+};
+
 presets["WaterOnTopographySpringHighres"] = {
   dt: 0.002,
   parent: "WaterOnTopographySpring",
@@ -119,7 +130,7 @@ presets["WaterOnTopography"] = {
   preset: "WaterOnTopography",
   resetOnImageLoad: true,
   reactionStr_1: "0",
-  reactionStr_2: "0",
+  reactionStr_2: "(T_xx + T_yy)*ind(T_xx^2 + T_yy^2 > 0.5)",
   reactionStr_3: "0",
   robinStr_1: "-0.01*h",
   spatialStep: "0.8",
