@@ -9331,12 +9331,6 @@ import { createWelcomeTour } from "./tours.js";
     // If the string contains a ) followed by a letter or number, add a *.
     str = str.replaceAll(/\)([a-zA-Z0-9])/g, ")*$1");
 
-    // If the string contains a single species name followed by a (, add a *.
-    str = str.replaceAll(
-      new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")\\(", "g"),
-      "$1*("
-    );
-
     // For each pair of single-character species names that is not itself a species name, add a *.
     const singleCharNames = listOfSpecies.filter((name) => name.length == 1);
     singleCharNames.forEach((name1) => {
@@ -9357,6 +9351,12 @@ import { createWelcomeTour } from "./tours.js";
         }
       });
     });
+
+    // If the string contains a single species name followed by a (, add a *.
+    str = str.replaceAll(
+      new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")\\(", "g"),
+      "$1*("
+    );
 
     return str;
   }
