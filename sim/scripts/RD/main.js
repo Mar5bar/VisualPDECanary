@@ -9352,6 +9352,12 @@ import { createWelcomeTour } from "./tours.js";
       });
     });
 
+    // If the string contains a single species name followed by a (, add a *.
+    str = str.replaceAll(
+      new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")\\(", "g"),
+      "$1*("
+    );
+
     return str;
   }
 

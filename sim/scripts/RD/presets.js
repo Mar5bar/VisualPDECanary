@@ -22,8 +22,8 @@ presets["SMB"] = {
   maxColourValue: "1",
   minColourValue: "0",
   preset: "SMB",
-  reactionStr_1: "u*(I_T-u)*min(max(omega*t - 1+I_S, 0),1)",
-  reactionStr_2: "(u-a*v)*min(max(omega*t - 1+I_S, 0),1)",
+  reactionStr_1: "u*(I_T-u)*min(max(omega*t - 1+I_SR, 0),1)",
+  reactionStr_2: "(u-a*v)*min(max(omega*t - 1+I_SR, 0),1)",
   reactionStr_3: "0",
   spatialStep: "0.2",
   squareCanvas: true,
@@ -71,11 +71,29 @@ presets["WavesOnABeach"] = {
   whatToPlot: "u",
 };
 
+presets["WaterOnTopographySpringDamsHighres"] = {
+  dt: 0.002,
+  parent: "WaterOnTopographySpringDams",
+  preset: "WaterOnTopographySpringDamsHighres",
+  spatialStep: "0.5",
+};
+
 presets["WaterOnTopographySpringHighres"] = {
   dt: 0.002,
   parent: "WaterOnTopographySpring",
   preset: "WaterOnTopographySpringHighres",
   spatialStep: "0.5",
+};
+
+presets["WaterOnTopographySpringDams"] = {
+  brushRadius: "5",
+  brushValue: "max(4,T) - T",
+  initCond_3: "exp(-10*((x-0.75*L_x)^2 + (y-0.63*L_y)^2))",
+  kineticParams: "F_max = 20;r = 1.0 in [0, 2];a=0.003 in [0,0.005]",
+  parent: "WaterOnTopographySpring",
+  preset: "WaterOnTopographySpringDams",
+  reactionStr_1: "r*ind(s>0) - a*ind(h>0)",
+  whatToDraw: "T",
 };
 
 presets["WaterOnTopographySpring"] = {
@@ -119,7 +137,7 @@ presets["WaterOnTopography"] = {
   preset: "WaterOnTopography",
   resetOnImageLoad: true,
   reactionStr_1: "0",
-  reactionStr_2: "0",
+  reactionStr_2: "(T_xx + T_yy)*ind(T_xx^2 + T_yy^2 > 0.5)",
   reactionStr_3: "0",
   robinStr_1: "-0.01*h",
   spatialStep: "0.8",
