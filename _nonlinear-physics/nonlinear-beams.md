@@ -34,7 +34,7 @@ We can play with $\Delta_E$ using the slider below. The minimum value correspond
     host="/"
     ></vpde-slider></p>
 
-<iframe id="sim" class="sim" src="/sim/?preset=differentialStiffness&story&sf=1&noop" frameborder="0" loading="lazy"></iframe>
+<iframe id="sim" class="sim" src="/sim/?preset=differentialStiffness&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
 Play with this example in more detail in [this simulation](/sim/?preset=differentialStiffness).
 
