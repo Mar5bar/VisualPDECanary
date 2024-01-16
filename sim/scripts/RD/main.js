@@ -149,6 +149,7 @@ import { createWelcomeTour } from "./tours.js";
     isLoading = true,
     isRecording = false,
     isOptimising = false,
+    simObserver,
     hasErrored = false,
     canAutoPause = true,
     isDrawing,
@@ -693,6 +694,23 @@ import { createWelcomeTour } from "./tours.js";
       // Otherwise, delay optimisation until FPS stabilises and listen out for becoming hidden.
       becomingVisible();
     }
+    // Add an observer to listen for becoming hidden if we're inside an iframe.
+    simObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            becomingVisible();
+          } else {
+            becomingHidden();
+          }
+        });
+      },
+      {
+        root: null,
+        threshold: 0,
+      }
+    );
+    simObserver.observe(document.getElementById("simCanvas"));
   }
 
   // Begin the simulation.
@@ -8490,8 +8508,6 @@ import { createWelcomeTour } from "./tours.js";
         url += "&logo_only";
         break;
     }
-    // Prevent optimisation of the simulation by default, as iframes may be lazy loaded etc.
-    url += "&noop";
     // Put the url in an iframe and copy to clipboard.
     let str =
       '<iframe title="VisualPDE simulation" style="border:0;width:100%;height:100%;" src="' +
@@ -9437,6 +9453,7 @@ import { createWelcomeTour } from "./tours.js";
 
   function doneOptimising() {
     isOptimising = false;
+    simObserver.disconnect();
   }
 
   function queryOptimising() {}
