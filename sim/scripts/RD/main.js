@@ -8490,6 +8490,8 @@ import { createWelcomeTour } from "./tours.js";
         url += "&logo_only";
         break;
     }
+    // Prevent optimisation of the simulation by default, as iframes may be lazy loaded etc.
+    url += "&noop";
     // Put the url in an iframe and copy to clipboard.
     let str =
       '<iframe title="VisualPDE simulation" style="border:0;width:100%;height:100%;" src="' +
