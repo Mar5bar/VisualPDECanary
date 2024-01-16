@@ -28,7 +28,7 @@ The simulation below lets us explore the effect of one of these factors: the che
     step="0.01"
 ></vpde-slider></p>
 
-<iframe id="simA" class="sim" style="margin-left:calc(15% - 2px);margin-right:calc(15% - 2px);width:70%" src="/sim/?preset=DecontaminationDemoSpots&story&lite&no_ui" frameborder="0" loading="lazy"></iframe>
+<iframe id="simA" class="sim" style="margin-left:calc(15% - 2px);margin-right:calc(15% - 2px);width:70%" src="/sim/?preset=DecontaminationDemoSpots&story&lite&no_ui&noop" frameborder="0" loading="lazy"></iframe>
 
 To explore the role that the reaction rate plays, try adjusting the slider found just above the simulation, and see what effect clicking has now. For larger rates, the reaction is faster, and this speeds up the overall decontamination of the concrete. 
 
