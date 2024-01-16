@@ -414,9 +414,16 @@ import { createWelcomeTour } from "./tours.js";
   if (params.has("options")) {
     // If options have been provided, apply them on top of loaded options.
     window.gtag?.("event", "custom_link_followed");
-    var newParams = JSON.parse(
-      LZString.decompressFromEncodedURIComponent(params.get("options"))
-    );
+    try {
+      var newParams = JSON.parse(
+        LZString.decompressFromEncodedURIComponent(params.get("options"))
+      );
+    } catch (e) {
+      throwError(
+        "It looks like this link is missing something - please check that it has been copied and pasted correctly and try again."
+      );
+      newParams = {};
+    }
     if (newParams.hasOwnProperty("p")) {
       // This has been minified, so maxify before loading.
       newParams = maxifyPreset(newParams);
