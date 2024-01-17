@@ -379,7 +379,7 @@ a.topic_tile div.container div.title {
 }
 
 a.home_tile div.container div.subtitle {
-  font-size: 1.4rem;
+  font-size: 1.1rem;
   font-weight: 300;
   padding-bottom: 15px;
 }
@@ -494,6 +494,10 @@ a.collection::after {
 .post-content h2,
 .post-content h3 {
   margin-top: 3rem;
+}
+
+.post-content h3 {
+  font-size: 22px;
 }
 
 .post-content h4,
