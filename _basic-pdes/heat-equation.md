@@ -54,4 +54,4 @@ $$
 T(x,0) = \cos\left(\frac{m\pi}{L}\right) \implies T(x,t) = \mathrm{e}^{-Dt\left(\frac{m\pi}{L}\right)^2}\cos\left(\frac{m\pi x}{L}\right),
 $$
 
-with $m$ a positive integer. These solutions decay to 0 as time increases. Importantly, the rate of decay depends on the frequency of the initial perturbation $m$, with larger $m$ (or larger $D_T$) leading to more quickly decaying solutions. You can explore these solutions [here](/sim/?preset=heatEquation1D).
+with $m$ a positive integer. These solutions decay to 0 as time increases. Importantly, the rate of decay depends on the frequency of the initial perturbation $m$, with larger $m$ (or larger $D_T$) leading to more quickly decaying solutions. You can explore these solutions in this [1D simulation](/sim/?preset=heatEquation1D).

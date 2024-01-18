@@ -16,7 +16,7 @@ with homogeneous Neumann (aka no-flux) boundary conditions on a rectangular doma
 
 $$T(x,y) = -\cos \left(\frac{n\pi x}{L_x} \right)\cos \left(\frac{m\pi y}{L_y} \right).$$
 
-* Load the [interactive simulation](/sim/?preset=inhomogHeatEquation). 
+* Load this [interactive simulation](/sim/?preset=inhomogHeatEquation). 
 
 * You can change the values of $m$ and $n$ to observe different patterns of sources/sinks of heat in the domain.
 
@@ -38,4 +38,4 @@ where we need $g(x,y)>0$ for all $x,y$ in the domain. As a simple (though compli
 
 $$g(x,y) = D\left[1+E\cos\left(\frac{n \pi}{L_xL_y}\sqrt{(x-L_x/2)^2+(y-L_y/2)^2}\right)\right],$$
 
-where $D>0$, $n>0$, and $\lvert E\rvert <1$ are constants. This represents radially-oscillating regions of high and low diffusion. Setting an initial condition of $$u(x,y,0)=1$$ and Dirichlet boundary conditions, we can observe an immediate partitioning of the initial heat into regions bounded by the maxima of the cosine function. Click [here](/sim/?preset=inhomogDiffusionHeatEquation) to see this, and play around with the values of $n$, $E$ and $D$.
+where $D>0$, $n>0$, and $\lvert E\rvert <1$ are constants. This represents radially-oscillating regions of high and low diffusion. Setting an initial condition of $$u(x,y,0)=1$$ and Dirichlet boundary conditions, we can observe an immediate partitioning of the initial heat into regions bounded by the maxima of the cosine function. Click in this [inhomogeneous simulation](/sim/?preset=inhomogDiffusionHeatEquation) to see this, and play around with the values of $n$, $E$ and $D$.

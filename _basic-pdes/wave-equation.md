@@ -59,7 +59,7 @@ $$
 
 which oscillates in time and space. 
 
-You can play with such an initial condition [here](/sim/?preset=waveEquationICs), changing $n$ and $m$ in <span class='click_sequence'>{{ layout.equations }} → **Parameters**</span> and restarting the simulation by pressing {{ layout.erase }} to see how these parameters influence the solution. 
+You can play with such an initial condition in this [initialised simulation](/sim/?preset=waveEquationICs), changing $n$ and $m$ in <span class='click_sequence'>{{ layout.equations }} → **Parameters**</span> and restarting the simulation by pressing {{ layout.erase }} to see how these parameters influence the solution. 
 
 The damping factor $C$ is also set to zero in this case. If you increase its value, the solution amplitude will decay over time. If you change the boundary conditions to Dirichlet (and set $C=0.01$), the simulation will exhibit some fascinatingly symmetric oscillations.
 

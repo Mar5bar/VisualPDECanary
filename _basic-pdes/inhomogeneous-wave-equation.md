@@ -26,11 +26,10 @@ with homogeneous Neumann (aka no-flux) boundary conditions. This equation can be
 
 We next consider the damped wave equation,
 
-
 $$\pdd{u}{t} +d\pd{u}{t}=D\nabla^2 u,$$
 
 with inhomogeneous Dirichlet boundary conditions,
 
 $$u|_{\partial \Omega} = \cos(m x \pi/100)\cos(m y \pi/100),$$
 
-on a square domain. An undamped version of this equation ($d=0$) is given [here](/sim/?preset=dampedWaveEquation). You can vary the frequency $m$, or increase the damping $d$ to, for example, $d=0.01$ to observe how this changes the wave propagation into the domain from the boundaries.
+on a square domain. This [damped simulation](/sim/?preset=dampedWaveEquation) initially has ($d=0$). Try increasing the damping $d$ to, for example, $d=0.01$ to observe how this changes the wave propagation into the domain from the boundaries, or play with the frequency $m$.

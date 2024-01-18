@@ -14,4 +14,4 @@ with periodic boundary conditions.
 
 * Load the [interactive simulation](/sim/?preset=CahnHilliard) 
 
-* The initial condition is taken to be random noise at the level of the discretised system, and the initial timescale, given by $r$, is small. Increase $r$ by one or two orders of magnitude to speed up the simulation, and observe the coarsening process as described [here](https://people.maths.ox.ac.uk/trefethen/pdectb/cahn2.pdf).
+* The initial condition is taken to be random noise at the level of the discretised system, and the initial timescale, given by $r$, is small. Increase $r$ by one or two orders of magnitude to speed up the simulation, and observe the coarsening process as described in this [article](https://people.maths.ox.ac.uk/trefethen/pdectb/cahn2.pdf).

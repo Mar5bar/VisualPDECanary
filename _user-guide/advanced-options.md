@@ -289,7 +289,7 @@ Choose between a 1D or a 2D computational domain. Switching to 1D effectively re
 Change the largest side $L$ of the domain. Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities. If this is not an integer multiple of the space step $\dx=\dy$, the domain will extend to $\floor{L / \dx}\dx$ in practice. This guarantees the use of a precise space step.
 
 * #### Space step
-Set the space step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the space step (as discussed [here](/user-guide/solver#timestepping)). Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
+Set the space step $\dx=\dy$ used in discretising the domain. You may have to decrease the timestep $\dt$ in order to maintain numerical stability if you decrease the space step (as discussed in the [timestepping guide](/user-guide/solver#timestepping)). Must be a mathematical expression that is not written in terms of any other parameters or user-defined quantities.
 
 * #### Min. $x$, $y$
 Set the minimum values of $x$ and $y$ in the simulation. This amounts to translating the simulation domain by $(x_{min}, y_{min})$. A common use of this is to centre the simulation domain at $(0,0)$ rather than $(L_x/2, L_y/2)$. Can be a function of $L_x$, $L_y$ and any of the user-defined parameters.
@@ -308,7 +308,7 @@ Define the domain implicitly by setting a boolean (e.g. $x<0.5$) or a simple exp
 Set how many timesteps will be performed every time your browser requests a frame from VisualPDE. This setting effectively allows you to speed up/slow down the simulation without altering the timestep, though large values may cause some stuttering on some devices. Must be a numerical value.
 
 * #### Timestep
-Set the timestep $\dt$ used in the solver. You may have to increase the spatial step $\dx$ in order to maintain numerical stability if you increase the timestep (as discussed [here](/user-guide/solver)). Must be a numerical value.
+Set the timestep $\dt$ used in the solver. You may have to increase the spatial step $\dx$ in order to maintain numerical stability if you increase the timestep (as discussed in the [solver guide](/user-guide/solver)). Must be a numerical value.
 
 * #### Scheme
 Select one of various timestepping schemes. [Forward Euler](https://en.wikipedia.org/wiki/Euler_method) is the fastest but least accurate; the [Midpoint Method](https://en.wikipedia.org/wiki/Midpoint_method) and [Runge-Kutta 4](https://en.wikipedia.org/wiki/Runge–Kutta_methods) improve upon the accuracy and stability of Forward Euler, though are associated with increased computational cost. [Adams-Bashforth 2](https://en.wikipedia.org/wiki/Linear_multistep_method#Two-step_Adams–Bashforth) is more accurate but less stable than Forward Euler. Use of higher accuracy schemes may require a reduction of Steps/frame to reduce stuttering due to increased computational load. When solving stochastic partial differential equations, only Forward Euler is supported.
