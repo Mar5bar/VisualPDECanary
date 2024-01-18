@@ -10,7 +10,7 @@ When implementing VisualPDE, we were somewhat sceptical of browser-based computa
 
 ### The heat equation
 
-Perhaps the simplest equation that VisualPDE can solve is the heat equation, as explored in [this example](/basic-pdes/heat-equation). With $T(x,t)$ as the temperature in an infinite domain, the heat equation
+Perhaps the simplest equation that VisualPDE can solve is the heat equation, as explored in this [detailed example](/basic-pdes/heat-equation). With $T(x,t)$ as the temperature in an infinite domain, the heat equation
 
 $$\pd{T}{t}=D_T \nabla^2 T$$
 

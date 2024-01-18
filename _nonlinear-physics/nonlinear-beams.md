@@ -38,4 +38,4 @@ We can play with $\Delta_E$ using the slider below. The minimum value correspond
 
 Play with this example in more detail in this [customisable simulation](/sim/?preset=differentialStiffness).
 
-<!-- For more details on this topic, take a look at [this paper](https://arxiv.org/abs/2204.13820). -->
+<!-- For more details on this topic, take a look at this [paper](https://arxiv.org/abs/2204.13820). -->

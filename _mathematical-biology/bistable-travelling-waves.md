@@ -49,4 +49,4 @@ We can add an advection term to the equation to model movement due to, e.g., put
 
 $$\pd{u}{t}=D\nabla^2u +u(u-a)(1-u)+V(\cos(\theta)u_x + \sin(\theta)u_y),$$
 
-where $V$ is a velocity and $\theta$ is a direction of advection. We implement this in [this advective bistable simulator](/sim/?preset=BistableAdvection), starting near the critical Allee threshold with $a=0.48$. It can be an interesting task to paint an initial condition capable of surviving so close to this boundary to extinction.
+where $V$ is a velocity and $\theta$ is a direction of advection. We implement this in this [advective bistable simulator](/sim/?preset=BistableAdvection), starting near the critical Allee threshold with $a=0.48$. It can be an interesting task to paint an initial condition capable of surviving so close to this boundary to extinction.

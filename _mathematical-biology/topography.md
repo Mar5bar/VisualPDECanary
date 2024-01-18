@@ -14,7 +14,7 @@ In our [page on vegetation patterns](/mathematical-biology/vegetation-patterns),
 
 $$\begin{aligned}\pd{w}{t} &= a-w -wn^2+v\pd{w}{x} + \nabla^2w,\\ \pd{n}{t} &= wn^2 - mn + \nabla^2n\end{aligned}$$
 
-when written in terms of water $w$ and plant biomass $m$. There are many extensions of this model to include varying, real-world topography, some of which are neatly summarised in [this paper](https://royalsocietypublishing.org/doi/10.1098/rsif.2018.0508). We'll use the simplest possible model, which modifies the original to become
+when written in terms of water $w$ and plant biomass $m$. There are many extensions of this model to include varying, real-world topography, some of which are neatly summarised in this [paper](https://royalsocietypublishing.org/doi/10.1098/rsif.2018.0508). We'll use the simplest possible model, which modifies the original to become
 
 $$\begin{aligned}\pd{w}{t} &= a-w -wn^2+ D\nabla^2w + V\vnabla \cdot (w\nabla T),\\ \pd{n}{t} &= wn^2 - mn + \nabla^2n,\end{aligned}$$
 

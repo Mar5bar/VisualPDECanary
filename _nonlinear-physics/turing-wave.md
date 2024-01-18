@@ -19,4 +19,4 @@ where there are two new terms proportional to $\tau$. The normal Turing instabil
 
 * Here is a [different 1D example](/sim/?preset=TuringWaveFHN) and the [same system in 2D](/sim/?preset=TuringWaveFHN2D) based on the [FitzHugh-Nagumo system](/mathematical-biology/fitzhugh-nagumo). 
 
-For more details on such systems and their generalisations, take a look at [this paper](https://arxiv.org/abs/2204.13820).
+For more details on such systems and their generalisations, take a look at this [paper](https://arxiv.org/abs/2204.13820).
