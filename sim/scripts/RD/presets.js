@@ -2108,7 +2108,7 @@ presets["GrayScottBanner"] = {
   dt: 0.2,
   emboss: true,
   kineticParams:
-    "a=0.014 in [0,0.1];b=0.054  in  [0.04, 0.1];theta=-3.1500000 in [-6.4,0.01,6.4];V=0.01 in [0,0.04];",
+    "a=0.017 in [0,0.1];b=0.054  in  [0.04, 0.1];theta=-3.1500000 in [-6.4,0.01,6.4];V=0.01 in [0,0.04];",
   maxColourValue: "0.66",
   numTimestepsPerFrame: 25,
   parent: "GrayScottGlidersAdvecting",
