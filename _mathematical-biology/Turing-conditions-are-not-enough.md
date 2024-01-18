@@ -28,7 +28,7 @@ $$
 \end{aligned}
 $$
 
-Localised solutions can be found by setting $c=5$ and $d=0.1$. Reducing $d$ further to $0.01$ for this value of $c$ leads to spatiotemporal behaviour similar to using the purely logistic demographic term as in this [alternative simulation](/mathematical-biology/keller-segel).
+Localised solutions can be found by setting $c=5$ and $d=0.1$. Reducing $d$ further to $0.01$ for this value of $c$ leads to spatiotemporal behaviour similar to using the purely logistic demographic term as in this [alternative model](/mathematical-biology/keller-segel).
 
 ### Biharmonic equation
 This [biharmonic simulation](/sim/?preset=TuringNotEnoughBiharmonic) corresponds to the equation
