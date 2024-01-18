@@ -20,7 +20,7 @@ $$\begin{aligned}\pd{w}{t} &= a-w -wn^2+ D\nabla^2w + V\vnabla \cdot (w\nabla T)
 
 where $T(x,y)$ is the spatially varying height of the landscape. The parameters $D$ and $V$ capture the relative sizes of the water transport terms.
 
-* Load the [interactive simulation](/sim/?preset=KlausmeierOnTopography) that implements this modified PDE for a given $T(x,y)$. Watch the vegetation invade into water-rich regions in the valleys, and seemingly travel uphill following rainfall, which then get used up and dry out.
+* Load this [Klausmeier simulation](/sim/?preset=KlausmeierOnTopography), which implements the modified PDE for a given $T(x,y)$. Watch the vegetation invade into water-rich regions in the valleys, and seemingly travel uphill following rainfall, which then get used up and dry out.
 
 * Try varying the parameters $a$ and $m$ to see how they impact the structure of patterns. 
 
@@ -34,7 +34,7 @@ For water of height $h(x,y,t)$ above topography of height $T(x,y)$, this model o
 
 $$\pd{h}{t}=D\vnabla \cdot(h^3\nabla(h+T)),$$
 
-where $D$ represents the relative strength of gravity to the stickiness of the fluid. This equation (with some helpful [numerical tricks](https://en.wikipedia.org/wiki/Flux_limiter)) is encoded in an [interactive simulation](/sim/?preset=WaterOnTopography) that lets us click to introduce water to the rolling landscape.
+where $D$ represents the relative strength of gravity to the stickiness of the fluid. This equation (with some helpful [numerical tricks](https://en.wikipedia.org/wiki/Flux_limiter)) is encoded in an [rainfall simulation](/sim/?preset=WaterOnTopography) that lets us click to introduce water to the rolling landscape.
 
 * Try clicking to introduce spots of water and watch as they flow down into the valleys.
 
@@ -46,7 +46,7 @@ where $D$ represents the relative strength of gravity to the stickiness of the f
 
 # Springing to life
 
-Of course, rivers aren't only filled by rain. Let's see what happens if we introduce a spring to the hillside. This [interactive simulation](/sim/?preset=WaterOnTopographySpring) captures the same river system as before, but now with a spring emerging from one of the hilltops.
+Of course, rivers aren't only filled by rain. Let's see what happens if we introduce a spring to the hillside. This [spring simulation](/sim/?preset=WaterOnTopographySpring) captures the same river system as before, but now with a spring emerging from one of the hilltops.
 
 * Watch as the spring spreads down the hillside and gradually fills up the large riverbed.
 
