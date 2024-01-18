@@ -36,6 +36,6 @@ We can play with $\Delta_E$ using the slider below. The minimum value correspond
 
 <iframe id="sim" class="sim" src="/sim/?preset=differentialStiffness&story&sf=1" frameborder="0" loading="lazy"></iframe>
 
-Play with this example in more detail in [this simulation](/sim/?preset=differentialStiffness).
+Play with this example in more detail in this [customisable simulation](/sim/?preset=differentialStiffness).
 
 <!-- For more details on this topic, take a look at [this paper](https://arxiv.org/abs/2204.13820). -->

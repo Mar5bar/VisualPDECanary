@@ -32,7 +32,7 @@ Travelling waves also occur in multispecies models. A model of two competing pop
 
 $$\begin{aligned}\pd{R}{t}&=D\nabla^2 R+R(1-c_{RR}R-c_{RG}G),\\ \pd{G}{t}&=D\nabla^2 G+ G(1-c_{GR}R-c_{GG}G),\end{aligned}$$
 
-where $D$ is a diffusion coefficient,  $c_{RG}, c_{GR}$ are [interspecific](https://en.wikipedia.org/wiki/Interspecific_competition), and $c_{RR},c_{GG}$ are [intraspecific](https://en.wikipedia.org/wiki/Intraspecific_competition) competition coefficients. [Competitive exclusion](https://en.wikipedia.org/wiki/Competitive_exclusion_principle) can lead to one of the species being driven to extinction by the other. [This simulation](/sim/?preset=RedGreyInvasionUK) explores the grey squirrels driving the red to extinction across a map of the United Kingdom.
+where $D$ is a diffusion coefficient,  $c_{RG}, c_{GR}$ are [interspecific](https://en.wikipedia.org/wiki/Interspecific_competition), and $c_{RR},c_{GG}$ are [intraspecific](https://en.wikipedia.org/wiki/Intraspecific_competition) competition coefficients. [Competitive exclusion](https://en.wikipedia.org/wiki/Competitive_exclusion_principle) can lead to one of the species being driven to extinction by the other. This [squirrel simulation](/sim/?preset=RedGreyInvasionUK) explores the grey squirrels driving the red to extinction across a map of the United Kingdom.
 
 # Epidemic waves
 

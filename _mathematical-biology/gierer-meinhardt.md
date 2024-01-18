@@ -40,6 +40,6 @@ $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+a+\frac{u^2}{v(1+Ku^2)}-bu,\\ \pd{v}{t}&=
 
 where $K>0$ is a saturation constant. 
 
-For very large values of $K$, the system will not admit Turing patterns, and for very small values it will behave as in the above spot-forming model. However for intermediate values of $K$, one can get labyrinthine patterns as [this simulation](/sim/?preset=GiererMeinhardtStripes). 
+For very large values of $K$, the system will not admit Turing patterns, and for very small values it will behave as in the above spot-forming model. However, for intermediate values of $K$ one can get labyrinthine patterns as in this [stripey simulation](/sim/?preset=GiererMeinhardtStripes). 
 
 Try increasing or decreasing the size of $K$ to observe how this influences spot/stripe selection in the system. Note that the colour scale is changing to match solution maxima/minima.
