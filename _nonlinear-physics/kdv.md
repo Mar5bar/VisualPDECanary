@@ -24,5 +24,5 @@ There are also 2D analogues of solitons sometimes called vortical solitons. The 
 
 $$\pd{u}{t} = -\frac{\partial^3 u}{\partial x^3}-\frac{\partial^3 u}{\partial x \partial y^2} - u \pd{u}{x}-b\nabla^4 u,$$
 
-where $b$ is a small dissipative term used to reduce radiation. [This simulation](/sim/?preset=ZKSoliton) shows one such vortical soliton moving in the positive $x$ direction.
+where $b$ is a small dissipative term used to reduce radiation. This [2D soliton simulation](/sim/?preset=ZKSoliton) shows one such vortical soliton moving in the positive $x$ direction.
 

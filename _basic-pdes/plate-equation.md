@@ -16,7 +16,7 @@ $$u=0 \quad \text{and} \quad \pdd{u}{x} = 0 $$
 
 along the boundary. The constant $D$ represents the relative size of the domain and its material properties (e.g. stiffness), $C>0$ is a damping constant, and $q>0$ a gravity-like force.
 
-* Load the [interactive simulation](/sim/?preset=BeamEquation). 
+* Load the interactive [beam equation simulation](/sim/?preset=BeamEquation). 
 
 * Click to push down on the beam, creating a localised depression which creates ripples in the beam nearby. 
 
@@ -37,7 +37,7 @@ $$u=0 \quad \text{and} \quad \nabla^2 u = 0 $$
 
 along the boundary. 
 
-* Load the [interactive simulation](/sim/?preset=plateEquation). 
+* Load the [plate equation simulation](/sim/?preset=plateEquation). 
 
 * Initially the plate is deformed to a value of $u=-4$ everywhere, representing an initial deformation which instantaneously snaps to the fixed condition of $u=0$ at the edges, which gives rise to compression waves which propagate inwards. 
 
@@ -57,4 +57,4 @@ which is the plate equation for $D_c=0$. The parameter $D_c$ is used to prevent 
 ## 3D deformations
 
 
-* Load the [interactive simulation](/sim/?preset=plateEquation3D) and click! This is the same simulation as in the 2D plate equation above, but shown in 3D with a view that can be rotated.
+* Load the [3D simulation](/sim/?preset=plateEquation3D) and click! This is the same simulation as in the 2D plate equation above, but shown in 3D with a view that can be rotated.

@@ -12,7 +12,7 @@ $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+a-u+u^2v,\\ \pd{v}{t}&=D\nabla^2v+ b-u^2v
 
 where we need $D>1$ to form patterns, and typically take $a,b>0$.
 
-* Load the [interactive simulation](/sim/?preset=Schnakenberg). 
+* Load the [Schnakenberg simulation](/sim/?preset=Schnakenberg). 
 
 * Click within the box to visualise a pulse of a population, which will then spread out as a planar wave leaving patterns behind it. 
 
@@ -20,6 +20,6 @@ where we need $D>1$ to form patterns, and typically take $a,b>0$.
 
 * With $D=100$, the system forms spot-like patterns. If you reduce to $D=30$, instead stripe-like patterns will be formed. 
 
-* The homogeneous equilibrium can undergo Hopf bifurcations for small values of $1 > b > a \geq 0$. In this regime, one can find Turing patterns, homogeneous oscillations, and complex spatiotemporal interactions of Turing and Hopf instabilities. One example is [this simulation](/sim/?preset=SchnakenbergHopf), but you can find others by tweaking the parameters.
+* The homogeneous equilibrium can undergo Hopf bifurcations for small values of $1 > b > a \geq 0$. In this regime, one can find Turing patterns, homogeneous oscillations, and complex spatiotemporal interactions of Turing and Hopf instabilities. One example is this [interactive simulation](/sim/?preset=SchnakenbergHopf), but you can find others by tweaking the parameters.
 
-* Check out [this simulation](/sim/?preset=SchnakenbergGrowingDisk) for a crude implementation of the Schnakenberg system on a growing domain with Dirichlet boundary conditions.
+* Check out this [growing simulation](/sim/?preset=SchnakenbergGrowingDisk) for a crude implementation of the Schnakenberg system on a growing domain with Dirichlet boundary conditions.

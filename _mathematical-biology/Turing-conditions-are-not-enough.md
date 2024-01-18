@@ -11,7 +11,7 @@ Linear stability theory is often used to predict regions of pattern-forming (or 
 In each case, the default is a 2D spatial domain with periodic boundary conditions. The boundary conditions can be modified by clicking {{ layout.equations }} → **Boundary conditions**, and the domain can be changed to a 1D interval by clicking {{ layout.settings }} → **Domain** and setting the dimension to be 1. By default an initial small random perturbation of a homogeneous equilibrium is used to generate a Turing instability which eventually leads to the solution approaching a different homogeneous equilibrium. You can alternatively click to introduce a localised perturbation, or directly input a different initial condition. Importantly all parameters and functional forms can also be changed. Below we highlight specific parameters that give different dynamics.
 
 ### Reaction--diffusion system
-[This simulation](/sim/?preset=TuringNotEnoughRD) explores the reaction--diffusion system
+This [reaction--diffusion simulation](/sim/?preset=TuringNotEnoughRD) explores the system
 
 $$
 \begin{aligned}
@@ -20,7 +20,7 @@ $$
 $$
 
 ### Keller--Segel chemotaxis
-[This simulation](/sim/?preset=TuringNotEnoughKellerSegel) corresponds to the equations
+This [Keller--Segel simulation](/sim/?preset=TuringNotEnoughKellerSegel) corresponds to the equations
 
 $$
 \begin{aligned}\pd{u}{t} &=  \nabla^2 u - c\vnabla \cdot(u\vnabla v) +u(b - u)(u - d),\\
@@ -28,10 +28,10 @@ $$
 \end{aligned}
 $$
 
-Localised solutions can be found by setting $c=5$ and $d=0.1$. Reducing $d$ further to $0.01$ for this value of $c$ leads to spatiotemporal behaviour similar to using the purely logistic demographic term as in [this Keller-Segel simulation](/mathematical-biology/keller-segel).
+Localised solutions can be found by setting $c=5$ and $d=0.1$. Reducing $d$ further to $0.01$ for this value of $c$ leads to spatiotemporal behaviour similar to using the purely logistic demographic term as in this [alternative model](/mathematical-biology/keller-segel).
 
 ### Biharmonic equation
-[This simulation](/sim/?preset=TuringNotEnoughBiharmonic) corresponds to the equation
+This [biharmonic simulation](/sim/?preset=TuringNotEnoughBiharmonic) corresponds to the equation
 
 $$
 \pd{u}{t} = - D\nabla^2 u -  \nabla^4 u + au(c - u)(u - b).

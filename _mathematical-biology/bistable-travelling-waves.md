@@ -16,12 +16,12 @@ $$\pd{u}{t}=D\nabla^2u +u(u-a)(1-u),$$
 where $a \in (0,1)$ is a parameter. As with the [Fisher–KPP equation](travelling-wave), this system will admit travelling waves. Here however, one can show that the wavespeed is proportional to
 
 $$
-c \propto \int_0^1 u(u-a)(1-u)\, \d u = \frac{1-2a}{12},
+c \propto \int_0^1 u(u-a)(1-u)\, \d u = \frac{1-2a}{12}
 $$
 
-and hence we expect the waves to change their direction of travel when $a$ crosses the value 0.5. 
+and, hence, we expect the waves to change their direction of travel when $a$ crosses the value 0.5. 
 
-* Load the [interactive simulation](/sim/?preset=bistableTravellingWave). 
+* Load the [travelling wave simulation](/sim/?preset=bistableTravellingWave). 
 
 * Click within the box to visualise a 'line' of a population, which will then spread out as a planar wave. 
 
@@ -33,7 +33,7 @@ and hence we expect the waves to change their direction of travel when $a$ cross
 
 In the above simulations, we considered $a$ near the boundary, and initial waves that had sufficient size. Biologically we are often interested in the question of small invading populations, which becomes complex when both extinction ($u=0$) and persistence ($u=1$) are possible. We'll set $a=0.4$ so that in principle a wave of population can invade the domain, but consider only small initial regions where $u=1$.
 
-* Load the [interactive simulation](/sim/?preset=bistableSurvival). 
+* Load the interactive [Allee simulation](/sim/?preset=bistableSurvival). 
 
 * Click within the domain to set the value of $u$ to 1 in some small region. You should notice that the initial population dies out quickly despite $u=1$ being locally stable. Diffusion is spreading the population too quickly.
 
@@ -49,4 +49,4 @@ We can add an advection term to the equation to model movement due to, e.g., put
 
 $$\pd{u}{t}=D\nabla^2u +u(u-a)(1-u)+V(\cos(\theta)u_x + \sin(\theta)u_y),$$
 
-where $V$ is a velocity and $\theta$ is a direction of advection. We implement this in [this advective bistable simulator](/sim/?preset=BistableAdvection), starting near the critical Allee threshold with $a=0.48$. It can be an interesting task to paint an initial condition capable of surviving so close to this boundary to extinction.
+where $V$ is a velocity and $\theta$ is a direction of advection. We implement this in this [advective bistable simulation](/sim/?preset=BistableAdvection), starting near the critical Allee threshold with $a=0.48$. It can be an interesting task to paint an initial condition capable of surviving so close to this boundary to extinction.
