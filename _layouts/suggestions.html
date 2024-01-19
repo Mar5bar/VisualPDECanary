@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+
+  {%- include head.html -%}
+
+  <script async src="{{ site.baseurl }}/assets/js/marked.js"></script>
+  <script async src="{{ site.baseurl }}/assets/js/DOMPurify.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script async defer src="https://www.google.com/recaptcha/api.js"></script>
+
+  <body>
+
+    {%- include header.html -%}
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+
+        <header class="post-header">
+          <h1 class="post-title">{{ page.title }}</h1>
+        </header>
+
+        {{ content }}
+
+        <form onsubmit="return sendByEmail();" id="form">
+            <ul>
+                <li>
+                  <label for="name">Name:</label>
+                  <input type="text" id="name" name="user_name" value="Ben"/>
+                </li>
+                <li>
+                  <label for="mail">Email:</label>
+                  <input type="email" id="email" name="user_email" value="ben@benjaminwalker.info"/>
+                </li>
+                <li>
+                  <label for="msg">Please enter your suggested content. If you write suggested content in markdown, we'll show you a preview of your suggestion below.</label>
+                  <textarea id="msg" name="message">Some default text</textarea>
+                </li>
+                <li class="button">
+                    <button class="g-recaptcha" 
+                    data-sitekey="6Lem6lUpAAAAAElYDP09M4el7ZB-rsFEXsDqwB_o" 
+                    data-callback="onSubmit">Send your message</button>
+                  </li>
+              </ul>
+        </form>
+
+        <div class="preview" id="preview">
+          <div class="preview-content" id="preview-content"></div>
+        </div>
+
+      </div>
+    </main>
+
+    {%- include footer.html -%}
+    {%- include mathjax.html -%}
+
+  </body>
+
+    <script type="text/javascript">
+        function updatePreview() {
+            var preview = document.getElementById("preview-content");
+            var content = document.getElementById("msg");
+            try {;
+                preview.innerHTML = DOMPurify.sanitize(marked.parse(content.value));
+            }
+            catch (e) {
+                // Couldn't parse the markdown.
+            }
+            return false;
+        }
+        window.onload = function () {
+            updatePreview();
+            setInterval(updatePreview, 1000);
+        }
+    </script>
+
+    <script type="text/javascript">
+        function onSubmit(token) {
+            sendByEmail();
+        }
+        function sendByEmail(e) {
+            if (emailjs) {
+                emailjs.sendForm('service_1mjzy8i', 'template_dqsw4kn', document.getElementById('form'), "Q7RWm9uAIDkNvRg78")
+                .then(function() {
+                    console.log('SUCCESS!');
+                }, function(error) {
+                    console.log('FAILED...', error);
+                });
+            } else {
+                alert("Unable to send form. Please try again later or contact us directly at hello@visualpde.com.")
+            };
+            return false;
+        }
+    </script>
+
+</html>
