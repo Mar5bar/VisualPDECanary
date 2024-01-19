@@ -400,7 +400,8 @@ div.subtitle_equation mjx-container mjx-math {
   font-size: 110%;
 }
 
-a.home_tile div.container div.button {
+a.home_tile div.container div.button,
+.button {
   background-color: var(--button-color);
   text-align: center;
   width: 60px;
@@ -604,6 +605,18 @@ span.click_sequence {
   html {
     scroll-behavior: auto;
   }
+}
+
+input,
+textarea {
+  background-color: var(--input-background-color);
+  border: none;
+  border-radius: 5px;
+  color: var(--text-color);
+  font-size: medium;
+  height: 25px;
+  outline: none;
+  padding-left: 4px;
 }
 
 input[type="range"] {
@@ -833,11 +846,7 @@ input[type="range"] {
 }
 
 #siteSearchInput {
-  border: none;
-  border-radius: 5px;
-  padding-left: 4px;
   background: none;
-  outline: none;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -846,9 +855,6 @@ input[type="range"] {
   vertical-align: middle;
   transition: all 0.5s ease;
   right: 49px;
-  font-size: medium;
-  height: 25px;
-  color: var(--text-color);
 }
 
 #siteSearchForm:focus-within #siteSearchInput {
@@ -858,15 +864,7 @@ input[type="range"] {
 
 #pageSearchInput {
   width: 100%;
-  color: var(--text-color);
-  background-color: var(--input-background-color);
-  outline: none;
-  font-size: medium;
-  border: none;
-  border-radius: 5px;
-  padding-left: 4px;
   vertical-align: middle;
-  height: 25px;
 }
 
 #pageSearchInput::placeholder,
