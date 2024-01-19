@@ -46,8 +46,7 @@
   height: 40px;
   padding-top: 30px;
   padding-bottom: 4px;
-  width: calc(100% - 5px);
-  margin: 0 20px;
+  width: 100%;
 }
 
 .form-row .input-data {
@@ -67,7 +66,6 @@
 
 .input-data.textarea {
   height: fit-content;
-  width: calc(100% - 30px);
 }
 
 .input-data input:focus ~ label,
@@ -150,8 +148,11 @@
   grid-area: 1 / 1 / 2 / 2;
 }
 
-@media screen and (max-width: 820px) {
-  .input-data input {
-    width: calc(100% - 5px);
+@media screen and (max-width: 600px) {
+  .form-row {
+    display: block;
+  }
+  .form-row .input-data {
+    width: 100%;
   }
 }

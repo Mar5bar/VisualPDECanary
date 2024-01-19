@@ -175,10 +175,20 @@ a[href*="/sim/"] {
 
 .footer-col-wrapper {
   color: var(--soft-text-color);
+  display: flex;
+  justify-content: space-between;
+}
+
+@media screen and (max-width: 820px) {
+  .footer-col-2 {
+    display: none;
+  }
 }
 
 .footer-col-3 {
   text-align: right;
+  max-width: 50%;
+  float: right;
 }
 
 div.home-banner {
