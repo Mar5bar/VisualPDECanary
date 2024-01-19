@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+
+  {%- include head.html -%}
+
+  <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/suggestions.css">
+  <script async src="{{ site.baseurl }}/assets/js/marked.js"></script>
+  <script async src="{{ site.baseurl }}/assets/js/DOMPurify.js"></script>
+
+  <body>
+
+    {%- include header.html -%}
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+
+        <header class="post-header">
+          <h1 class="post-title">{{ page.title }}</h1>
+        </header>
+
+        {{ content }}
+
+        <h2>Markdown</h2>
+        <div class="input-data textarea" style="padding-top:unset;">
+            <div class="grow-wrap">
+            <textarea id="msg" name="message" onInput="this.parentNode.dataset.replicatedValue = this.value" placeholder="Put your markdown in here"></textarea>
+            </div>
+        </div>
+
+        <div class="preview" id="preview" style="padding-top: 20px;">
+            <h2>Preview</h2>
+          <div class="preview-content" id="preview-content"></div>
+        </div>
+
+      </div>
+    </main>
+
+    {%- include footer.html -%}
+    {%- include mathjax.html -%}
+
+  </body>
+
+    <script type="text/javascript">
+        function updatePreview() {
+            var preview = document.getElementById("preview-content");
+            var content = document.getElementById("msg");
+            try {;
+                preview.innerHTML = DOMPurify.sanitize(marked.parse(content.value));
+                MathJax?.typesetPromise();
+            }
+            catch (e) {
+                // Couldn't parse the markdown.
+            }
+            return false;
+        }
+        function setTextboxHeight() {
+            document.getElementById("msg").parentNode.dataset.replicatedValue = document.getElementById("msg").value
+        }
+        setTextboxHeight();
+        window.onload = function () {
+            updatePreview();
+            setInterval(updatePreview, 1000);
+        }
+    </script>
+
+</html>
