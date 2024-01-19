@@ -7,7 +7,7 @@
   <script async src="{{ site.baseurl }}/assets/js/marked.js"></script>
   <script async src="{{ site.baseurl }}/assets/js/DOMPurify.js"></script>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  <!-- <script async defer src="https://www.google.com/recaptcha/api.js?render=6Lem6lUpAAAAAElYDP09M4el7ZB-rsFEXsDqwB_o"></script> -->
+  <script async defer src="https://www.google.com/recaptcha/api.js?render=6Lem6lUpAAAAAElYDP09M4el7ZB-rsFEXsDqwB_o"></script>
 
   <body>
 
@@ -112,7 +112,7 @@ When you're happy with your suggestion, just press the **Send** button below thi
         }
         function wentWrong() {
             document.getElementById("send").disabled = true;
-            document.getElementById("send").innerHTML = "Oops! Something went wrong. Get in touch at <a href='mailto:hello@visualpde.com?subject=Suggestion'>hello@visualpde.com</a>";
+            document.getElementById("send").innerHTML = "Oops! Something went wrong. Get in touch at <a href='mailto:hello@visualpde.com?subject=suggestion'>hello@visualpde.com</a>";
             setTimeout(function() {
                 document.getElementById("send").innerHTML = "Send";
                 document.getElementById("send").disabled = false;
@@ -131,6 +131,7 @@ When you're happy with your suggestion, just press the **Send** button below thi
                         setTextboxHeight();
                     }, 5000);
                 }, function(error) {
+                    setTimeout(wentWrong, 1000);
                 });
             } else {
                 setTimeout(wentWrong, 1000);
