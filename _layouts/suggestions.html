@@ -119,7 +119,7 @@ When you're happy with your suggestion, just press the **Send** button below thi
             }, 5000);
         }
         function sendByEmail() {
-            if (false && emailjs) {
+            if (emailjs) {
                 emailjs.sendForm('service_1mjzy8i', 'template_dqsw4kn', document.getElementById('form'), "Q7RWm9uAIDkNvRg78")
                 .then(function() {
                     document.getElementById("send").innerHTML = "Sent!";
@@ -127,12 +127,10 @@ When you're happy with your suggestion, just press the **Send** button below thi
                     setTimeout(function() {
                         document.getElementById("send").innerHTML = "Send";
                         document.getElementById("send").disabled = false;
+                        document.getElementById("form").reset();
+                        setTextboxHeight();
                     }, 5000);
-                    document.getElementById("form").reset();
-                    setTextboxHeight();
-                    console.log('SUCCESS!');
                 }, function(error) {
-                    console.log('FAILED...', error);
                 });
             } else {
                 setTimeout(wentWrong, 1000);
