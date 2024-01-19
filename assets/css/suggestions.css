@@ -36,11 +36,23 @@
   border-radius: 5px;
 }
 
+.form-row {
+  display: flex;
+  justify-content: space-between;
+}
+
 .input-data {
   position: relative;
   height: 40px;
   padding-top: 30px;
   padding-bottom: 4px;
+  width: calc(100% - 5px);
+  margin: 0 20px;
+}
+
+.form-row .input-data {
+  width: 48%;
+  margin: 0;
 }
 
 .input-data input,
@@ -51,16 +63,11 @@
   border: none;
   font-size: 17px;
   border-bottom: 2px solid rgba(0, 0, 0, 0.12);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.input-data input {
-  width: 50%;
 }
 
 .input-data.textarea {
   height: fit-content;
+  width: calc(100% - 30px);
 }
 
 .input-data input:focus ~ label,
@@ -117,6 +124,8 @@
 .grow-wrap {
   /* easy way to plop the elements on top of each other and have them both sized based on the tallest one's height */
   display: grid;
+  font-size: 17px;
+  line-height: normal;
 }
 .grow-wrap::after {
   /* Note the weird space! Needed to preventy jumpy behavior */

@@ -177,6 +177,10 @@ a[href*="/sim/"] {
   color: var(--soft-text-color);
 }
 
+.footer-col-3 {
+  text-align: right;
+}
+
 div.home-banner {
   position: relative;
   background-color: #ddf1ff;
@@ -1101,7 +1105,7 @@ input[type="range"] {
 /* Dark mode */
 .darkmode-button {
   position: absolute;
-  right: 37px;
+  right: 24px;
   top: 1px;
   color: var(--link-color);
   cursor: pointer;
@@ -1112,7 +1116,7 @@ input[type="range"] {
 
 .darkmode-button .svg-inline--fa {
   margin-right: 5px;
-  vertical-align: -.2em;
+  vertical-align: -0.2em;
 }
 
 @media screen and (max-width: 600px) {

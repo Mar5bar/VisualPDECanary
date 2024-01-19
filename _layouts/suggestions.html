@@ -24,16 +24,15 @@
 
         <form onsubmit="return onSubmit();" id="form" class="suggestion">
             <button type="submit" disabled style="display: none" aria-hidden="true"></button>
-            <div class="input-data">
-                <input type="text" id="name" name="user_name" required placeholder=" "/>
-                <div class="underline"></div>
-                <label for="name">Name</label>
-            </div>
-
-            <div class="input-data">
-                <input type="email" id="email" name="user_email" required placeholder=" "/>
-                <div class="underline"></div>
-                <label for="email">Email</label>
+            <div class="form-row">
+                <div class="input-data">
+                    <input type="text" id="name" name="user_name" required placeholder=" "/>
+                    <label for="name">Name</label>
+                </div>
+                <div class="input-data">
+                    <input type="email" id="email" name="user_email" required placeholder=" "/>
+                    <label for="email">Email</label>
+                </div>
             </div>
 
             <div class="input-data textarea">
@@ -50,7 +49,6 @@ $$ \pd{T}{t} = \nabla^2T. $$
 When you're happy with your suggestion, just press the **Send** button below this box.
                 </textarea>
                 </div>
-                <div class="underline"></div>
             </div>
 
             <button id="send" class="button g-recaptcha" 
