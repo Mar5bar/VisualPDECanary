@@ -14,8 +14,19 @@
   }
 }
 
+.suggestion .button:disabled {
+  background-color: var(--input-background-color);
+  border-color: rgba(27, 31, 36, 0.15) !important;
+  cursor: not-allowed;
+  color: var(--text-color);
+}
+
+.suggestion .button:disabled a {
+  text-decoration: underline;
+}
+
 .preview-content {
-  width: 100%;
+  width: calc(100% - 10px);
   height: 100%;
   outline: 2px solid var(--tile-border-color);
   padding: 5px 5px;
@@ -35,7 +46,7 @@
 .input-data input,
 .input-data textarea {
   display: block;
-  width: 100%;
+  width: calc(100% - 5px);
   height: 100%;
   border: none;
   font-size: 17px;
@@ -44,11 +55,17 @@
   border-bottom-right-radius: 0;
 }
 
+.input-data input {
+  width: 50%;
+}
+
 .input-data.textarea {
   height: fit-content;
 }
 
 .input-data input:focus ~ label,
+.input-data input:valid ~ label,
+.input-data input:invalid:not(:placeholder-shown) ~ label,
 .textarea textarea:focus ~ label {
   transform: translateY(-34px);
   font-size: 14px;
@@ -74,7 +91,7 @@
   position: relative;
   bottom: 2px;
   height: 2px;
-  width: 100%;
+  width: calc(100% - 5px);
 }
 .input-data .grow-wrap + .underline {
   bottom: -12px;
@@ -122,4 +139,10 @@
 .grow-wrap::after {
   /* Place on top of each other */
   grid-area: 1 / 1 / 2 / 2;
+}
+
+@media screen and (max-width: 820px) {
+  .input-data input {
+    width: calc(100% - 5px);
+  }
 }

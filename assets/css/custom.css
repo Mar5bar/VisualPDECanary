@@ -1111,12 +1111,13 @@ input[type="range"] {
 }
 
 .darkmode-button .svg-inline--fa {
-  margin-left: 5px;
+  margin-right: 5px;
+  vertical-align: -.2em;
 }
 
 @media screen and (max-width: 600px) {
   .darkmode-button {
-    right: 30px;
+    right: 0px;
   }
 }
 

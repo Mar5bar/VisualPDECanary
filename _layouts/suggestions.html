@@ -7,7 +7,7 @@
   <script async src="{{ site.baseurl }}/assets/js/marked.js"></script>
   <script async src="{{ site.baseurl }}/assets/js/DOMPurify.js"></script>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  <script async defer src="https://www.google.com/recaptcha/api.js?render=6Lem6lUpAAAAAElYDP09M4el7ZB-rsFEXsDqwB_o"></script>
+  <!-- <script async defer src="https://www.google.com/recaptcha/api.js?render=6Lem6lUpAAAAAElYDP09M4el7ZB-rsFEXsDqwB_o"></script> -->
 
   <body>
 
@@ -22,27 +22,38 @@
 
         {{ content }}
 
-        <form onsubmit="return sendByEmail();" id="form" class="suggestion">
+        <form onsubmit="return onSubmit();" id="form" class="suggestion">
+            <button type="submit" disabled style="display: none" aria-hidden="true"></button>
             <div class="input-data">
-                <input type="text" id="name" name="user_name" required/>
+                <input type="text" id="name" name="user_name" required placeholder=" "/>
                 <div class="underline"></div>
                 <label for="name">Name</label>
             </div>
 
             <div class="input-data">
-                <input type="email" id="email" name="user_email" required/>
+                <input type="email" id="email" name="user_email" required placeholder=" "/>
                 <div class="underline"></div>
-                <label for="mail">Email</label>
+                <label for="email">Email</label>
             </div>
 
             <div class="input-data textarea">
                 <div class="grow-wrap">
-                <textarea id="msg" name="message" onInput="this.parentNode.dataset.replicatedValue = this.value">You can write your suggestion as text or edit this markdown example to see how your suggested content might look as a page on VisualPDE.</textarea>
+                <textarea id="msg" name="message" onInput="this.parentNode.dataset.replicatedValue = this.value">
+# Example
+You can write your suggestion as text in this box or edit this markdown example to see how your suggested content might look as a page on VisualPDE.
+
+You can easily include links to simulations [like this](https://visualpde.com/sim/?preset=GrayScott), and even typeset mathematics with LaTeX:
+
+$$ \pd{T}{t} = \nabla^2T. $$
+
+## Submission
+When you're happy with your suggestion, just press the **Send** button below this box.
+                </textarea>
                 </div>
                 <div class="underline"></div>
             </div>
 
-            <button class="button g-recaptcha" 
+            <button id="send" class="button g-recaptcha" 
                 data-sitekey="6Lem6lUpAAAAAElYDP09M4el7ZB-rsFEXsDqwB_o" 
                 data-callback="onSubmit">
                 Send
@@ -68,32 +79,65 @@
             var content = document.getElementById("msg");
             try {;
                 preview.innerHTML = DOMPurify.sanitize(marked.parse(content.value));
+                MathJax?.typesetPromise();
             }
             catch (e) {
                 // Couldn't parse the markdown.
             }
             return false;
         }
+        function setTextboxHeight() {
+            document.getElementById("msg").parentNode.dataset.replicatedValue = document.getElementById("msg").value
+        }
+        setTextboxHeight();
         window.onload = function () {
+            if (localStorage.getItem("name")) {
+                document.getElementById("name").value = localStorage.getItem("name");
+            }
+            if (localStorage.getItem("email")) {
+                document.getElementById("email").value = localStorage.getItem("email");
+            }
             updatePreview();
             setInterval(updatePreview, 1000);
+        }
+        window.onunload = function () {
+            localStorage.setItem("name", document.getElementById("name").value);
+            localStorage.setItem("email", document.getElementById("email").value);
         }
     </script>
 
     <script type="text/javascript">
         function onSubmit(token) {
+            document.getElementById("send").innerHTML = "Sending...";
             sendByEmail();
+            return false;
         }
-        function sendByEmail(e) {
-            if (emailjs) {
+        function wentWrong() {
+            document.getElementById("send").disabled = true;
+            document.getElementById("send").innerHTML = "Oops! Something went wrong. Get in touch at <a href='mailto:hello@visualpde.com?subject=Suggestion'>hello@visualpde.com</a>";
+            setTimeout(function() {
+                document.getElementById("send").innerHTML = "Send";
+                document.getElementById("send").disabled = false;
+            }, 5000);
+        }
+        function sendByEmail() {
+            if (false && emailjs) {
                 emailjs.sendForm('service_1mjzy8i', 'template_dqsw4kn', document.getElementById('form'), "Q7RWm9uAIDkNvRg78")
                 .then(function() {
+                    document.getElementById("send").innerHTML = "Sent!";
+                    document.getElementById("send").disabled = true;
+                    setTimeout(function() {
+                        document.getElementById("send").innerHTML = "Send";
+                        document.getElementById("send").disabled = false;
+                    }, 5000);
+                    document.getElementById("form").reset();
+                    setTextboxHeight();
                     console.log('SUCCESS!');
                 }, function(error) {
                     console.log('FAILED...', error);
                 });
             } else {
-                alert("Unable to send form. Please try again later or contact us directly at hello@visualpde.com.")
+                setTimeout(wentWrong, 1000);
             };
             return false;
         }

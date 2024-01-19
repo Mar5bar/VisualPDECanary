@@ -6,4 +6,4 @@ title: Suggestions
 layout: suggestions
 ---
 
-Some content
+We're always looking to expand and improve VisualPDE. If you have a suggestion for a new page, Visual Story, feature or improvement, we'd love to hear from you.
