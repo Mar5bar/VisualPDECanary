@@ -6,4 +6,4 @@ title: Suggestions
 layout: suggestions
 ---
 
-We're always looking to expand and improve VisualPDE. If you have a suggestion for a new page, Visual Story, feature or improvement, we'd love to hear from you.
+We would love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com), or you can use the box below. If you have suggestion for a new page, Visual Story, feature or improvement, we'd love to hear some details below -- the box includes a basic Markdown preview so feel free to type \LaTeX directly. 
