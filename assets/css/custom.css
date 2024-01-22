@@ -121,7 +121,7 @@ p {
   position: sticky;
   top: 0;
   background-color: var(--background-color);
-  z-index: 1;
+  z-index: 2;
   border-bottom: 1px solid var(--tile-border-color);
   /* Fix for Safari not respecting z-index */
   -webkit-transform: translate3d(0, 0, 0);

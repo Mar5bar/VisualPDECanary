@@ -6,4 +6,4 @@ title: Contact
 layout: suggestions
 ---
 
-We would love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com), or you can use the box below. If you have suggestion for a new page, Visual Story, feature or improvement, we'd love to hear some details below -- the box includes a basic Markdown preview so feel free to type $\LaTeX$ directly. 
+We would love to hear from you at [hello@visualpde.com](mailto:hello@visualpde.com), or you can use the box below. If you have suggestion for a new page, Visual Story, feature or improvement, we'd love to hear some details below -- the box includes a basic Markdown preview, so you can type $\LaTeX$ directly and see your suggestion typeset automatically.
