@@ -840,9 +840,16 @@ input[type="range"] {
 #siteSearchForm {
   position: absolute;
   left: 20px;
-  right: 300px;
+  right: 134px;
   height: 54px;
   vertical-align: middle;
+  pointer-events: none;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#siteSearchForm > * {
+  pointer-events: all;
 }
 
 #pageSearchForm {
@@ -868,7 +875,8 @@ input[type="range"] {
   width: 0;
   vertical-align: middle;
   transition: all 0.5s ease;
-  right: 49px;
+  right: 44px;
+  pointer-events: all;
 }
 
 #siteSearchForm:focus-within #siteSearchInput {
@@ -980,7 +988,7 @@ input[type="range"] {
 
 @media screen and (max-width: 600px) {
   #siteSearchForm {
-    right: 50px;
+    right: 56px;
   }
 }
 
@@ -1110,6 +1118,12 @@ input[type="range"] {
 
 #toc > ul > ul > ul {
   list-style-type: disc !important;
+}
+
+.gap {
+  display: inline-block;
+  width: 24px;
+  pointer-events: none;
 }
 
 /* Dark mode */
