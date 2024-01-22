@@ -839,7 +839,7 @@ input[type="range"] {
 
 #siteSearchForm {
   position: absolute;
-  left: 20px;
+  left: 28px;
   right: 134px;
   height: 54px;
   vertical-align: middle;
@@ -1122,7 +1122,7 @@ input[type="range"] {
 
 .gap {
   display: inline-block;
-  width: 24px;
+  width: 27px;
   pointer-events: none;
 }
 

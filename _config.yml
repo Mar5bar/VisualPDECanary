@@ -37,7 +37,7 @@ plugins:
 header_pages:
   - about.md
   - user-guide.md
-  - suggestions.md
+  - contact.md
 
 collections:
   basic-pdes:
