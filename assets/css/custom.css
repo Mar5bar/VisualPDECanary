@@ -575,11 +575,13 @@ span.click_sequence {
 
 .sim {
   display: block;
-  width: 90%;
+  width: 70%;
   aspect-ratio: 1;
   border: 2px solid black;
   margin: auto;
   background-color: black;
+  max-width: min(80dvh, calc(100dvh - 80px));
+  max-height: min(80dvh, calc(100dvh - 80px));
 }
 @media only screen and (max-width: 600px) {
   .sim {
