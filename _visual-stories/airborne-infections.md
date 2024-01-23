@@ -33,7 +33,7 @@ It's fairly rare for air to stay still. Let's see what effect the movement of ai
 <p style="text-align:center;margin-top:0;"><vpde-slider
     iframe="simA"
     name="V"
-    label="Airflow:"
+    label="Airflow"
     min="-40"
     max="40"
     value="40"
@@ -59,7 +59,7 @@ In this scenario, what do you think happens if we turn on the air conditioner? T
 <p style="text-align:center;margin-top:0;"><vpde-slider
     iframe="simD"
     name="V"
-    label="Airflow:"
+    label="Airflow"
     min="-40"
     max="40"
     value="40"

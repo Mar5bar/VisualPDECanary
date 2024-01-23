@@ -651,9 +651,31 @@ input[type="range"] {
   -webkit-appearance: none;
 }
 
+vpde-slider > span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.vpde-slider-label {
+  position: absolute;
+  text-align: center;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(100% - 8px);
+}
+
+.vpde-slider-label.above {
+  top: unset;
+  bottom: calc(100% - 8px);
+}
+
 .vpde-slider-valLabel {
   font-size: 0.7rem;
   vertical-align: middle;
+}
+
+.vpde-slider-valLabel.left {
+  padding-left: 0.6em;
 }
 
 /*progress support*/

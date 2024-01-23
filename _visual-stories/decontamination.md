@@ -21,7 +21,8 @@ The simulation below lets us explore the effect of one of these factors: the che
 <p style="text-align:center;margin-bottom:0;"><vpde-slider
     iframe="simA"
     name="k"
-    label="$k$:"
+    label="$k$"
+    label-position="above"
     min="0.01"
     max="0.5"
     value="0.25"
@@ -69,7 +70,8 @@ Use the slider below to adjust the strength of the applied cleanser throughout t
 <p style="text-align:center;margin-bottom:0;"><vpde-slider
     iframe="simD simE"
     name="BC"
-    label="Strength:"
+    label="Strength"
+    label-position="above"
     min="0"
     max="5"
     value="5"
