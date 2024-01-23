@@ -651,6 +651,10 @@ input[type="range"] {
   -webkit-appearance: none;
 }
 
+input.vpde-slider {
+  padding: 0;
+}
+
 vpde-slider > span {
   display: inline-flex;
   align-items: center;
@@ -672,10 +676,7 @@ vpde-slider > span {
 .vpde-slider-valLabel {
   font-size: 0.7rem;
   vertical-align: middle;
-}
-
-.vpde-slider-valLabel.left {
-  padding-left: 0.6em;
+  padding: 0 0.2rem;
 }
 
 /*progress support*/
