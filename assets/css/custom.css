@@ -40,7 +40,7 @@ a:visited {
   text-decoration: none;
 }
 
-a[href*='//']:not([href*='visualpde.com'])
+a[href*='//']:not([href*='visualpde.com' i])
 {
   color: var(--text-color);
 }
@@ -141,7 +141,8 @@ code {
 
 .nav-button,
 .nav-button:visited,
-a[href*="/sim/"] {
+a[href^="/sim/"],
+a[href*="visualpde.com/sim/" i] {
   background-color: var(--play-button-color);
   border: 1px solid;
   border-radius: 6px;
@@ -154,13 +155,15 @@ a[href*="/sim/"] {
   white-space: nowrap;
 }
 
-a[href*="/sim/"] {
+a[href^="/sim/"],
+a[href*="visualpde.com/sim/" i] {
   text-decoration: none;
 }
 
 @media (hover: hover) {
   .nav-button:hover,
-  a[href*="/sim/"]:hover {
+  a[href^="/sim/"]:hover,
+  a[href*="visualpde.com/sim/" i]:hover {
     background-color: var(--play-button-hover-color);
     border-color: rgba(27, 31, 36, 0.15);
     transition-duration: 0.1s;
@@ -982,7 +985,7 @@ vpde-slider > span {
   white-space: nowrap;
 }
 
-.links-wrapper a:not([href*="/sim/"]) {
+.links-wrapper a:not([href^="/sim/"]):not([href*="visualpde.com/sim/" i]) {
   background-color: color-mix(in srgb, var(--button-color) 90%, transparent);
 }
 
@@ -1247,7 +1250,8 @@ vpde-slider > span {
 
 .dark-mode .nav-button,
 .dark-mode .nav-button:visited,
-.dark-mode a[href*="/sim/"] {
+.dark-mode a[href^="/sim/"],
+.dark-mode a[href*="visualpde.com/sim/" i] {
   color: #ffffff;
   text-decoration: none;
 }

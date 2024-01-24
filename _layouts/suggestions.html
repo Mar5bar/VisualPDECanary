@@ -87,6 +87,7 @@ When you're happy with your suggestion, just press the **Send** button.</textare
             document.getElementById("msg").parentNode.dataset.replicatedValue = document.getElementById("msg").value
         }
         setTextboxHeight();
+        let previewInterval;
         window.onload = function () {
             if (localStorage.getItem("name")) {
                 document.getElementById("name").value = localStorage.getItem("name");
@@ -95,7 +96,7 @@ When you're happy with your suggestion, just press the **Send** button.</textare
                 document.getElementById("email").value = localStorage.getItem("email");
             }
             updatePreview();
-            setInterval(updatePreview, 1000);
+            previewInterval = setInterval(updatePreview, 1000);
         }
         window.onunload = function () {
             localStorage.setItem("name", document.getElementById("name").value);
