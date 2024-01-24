@@ -514,6 +514,7 @@ presets["differentialStiffness"] = {
   neumannStr_1: "0.1*sin(t/100)",
   numAlgebraicSpecies: 2,
   numSpecies: "3",
+  numTimestepsPerFrame: 200,
   overlay: true,
   overlayColour: 8355711,
   overlayExpr: "0",
