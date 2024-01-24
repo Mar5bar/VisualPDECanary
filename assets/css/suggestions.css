@@ -79,6 +79,7 @@
 .textarea textarea {
   resize: none;
   padding-top: 10px;
+  overflow-y: scroll;
 }
 .input-data label {
   position: absolute;

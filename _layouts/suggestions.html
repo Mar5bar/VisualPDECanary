@@ -37,7 +37,7 @@
 
             <div class="input-data textarea">
                 <div class="grow-wrap">
-                <textarea id="msg" name="message" onInput="this.parentNode.dataset.replicatedValue = this.value">
+                <textarea id="msg" name="message" onInput="setTextboxHeight()" onfocus="setTextboxHeight()" onfocusout="setTextboxHeight()">
 # Example
 You can write your suggestion as text in this box or edit this markdown example to see how your suggested content might look as a page on VisualPDE.
 
@@ -46,8 +46,7 @@ You can easily include links to simulations [like this](https://visualpde.com/si
 $$\begin{aligned} \pd{T}{t} &= \nabla^2T +\nabla \cdot (\v{a}T)\\\\ &= \pdd{T}{x}+\pdd{T}{y}+\pd{a_xT}{x}+\pd{a_yT}{y}.\end{aligned} $$
 
 ## Submission
-When you're happy with your suggestion, just press the **Send** button below this box.
-                </textarea>
+When you're happy with your suggestion, just press the **Send** button.</textarea>
                 </div>
             </div>
 
@@ -127,7 +126,6 @@ When you're happy with your suggestion, just press the **Send** button below thi
                     setTimeout(function() {
                         document.getElementById("send").innerHTML = "Send";
                         document.getElementById("send").disabled = false;
-                        document.getElementById("form").reset();
                         setTextboxHeight();
                     }, 5000);
                 }, function(error) {
