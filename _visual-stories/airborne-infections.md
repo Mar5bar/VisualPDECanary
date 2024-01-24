@@ -29,11 +29,22 @@ As you might expect, the probability of being infected increases with the amount
 # Recirculation
 It's fairly rare for air to stay still. Let's see what effect the movement of air can have on the distribution of a virus and the chance of infection. In the simulation below, we've added in the effects of the air being blown from left to right, mimicking an air conditioner, with anything that reaches the right-hand side of the room being blown back over everyone's heads before being recycled back into the left-hand side.
 
-<iframe class="sim" src="/sim/?preset=CovidInARoom&story&nomathjax&sf=1" frameborder="0" loading="lazy"></iframe>
+<iframe class="sim" id="simA" src="/sim/?preset=CovidInARoom&story&nomathjax&sf=1" frameborder="0" loading="lazy"></iframe>
+<p style="text-align:center;margin-top:0;"><vpde-slider
+    iframe="simA"
+    name="V"
+    label="Airflow"
+    min="-40"
+    max="40"
+    value="40"
+    step="1"
+    min-label="Left"
+    max-label="Right"
+></vpde-slider></p>
 
 With this new air movement, it now looks like standing downwind of the infected person is a bad idea: particles carrying the virus are swept from left to right by the air current, and the probability of being infected is much higher on the right of the infected person. Eventually, the recirculation of the air means that viral particles reach even the left-hand side of the room, leading to a large zone in the room where the probability of infection is high. 
 
-Remember, you can swap between Views to see the effects on both probability and concentration. Try clicking while viewing the concentration to really see how the air drives the spread of the virus in one direction then blows it back from right to left, recirculating the virus over the room. This is in stark contrast to the behaviour of a cough in the earlier flow-free room.
+Remember, you can swap between Views to see the effects on both probability and concentration. Try clicking while viewing the concentration to really see how the air drives the spread of the virus in one direction then blows it back from right to left, recirculating the virus over the room. This is in stark contrast to the behaviour of a cough in the earlier flow-free room. Explore further by changing the direction of airflow using the slider beneath the simulation.
 
 # A meandering infection
 People don't always stay still in the middle of rooms. Unsurprisingly, the movement of an infected individual can have a big impact on the spread of a virus. In the next simulation, we've set it up so that the source of the infection moves around the room, as if they were a waiter going between tables in a restaurant, perhaps. We've also turned off the air conditioner, so that the air in the room is still.
@@ -44,11 +55,22 @@ The Probability View shows the build-up of a ring of likely infections as the in
 
 In this scenario, what do you think happens if we turn on the air conditioner? The next simulation does just this. Start the simulation by pressing {{ layout.play }}
 
-<iframe class="sim" src="/sim/?preset=CovidInARoomCircling&story&nomathjax&sf=1" frameborder="0" loading="lazy"></iframe>
+<iframe class="sim" id="simD" src="/sim/?preset=CovidInARoomCircling&story&nomathjax&sf=1" frameborder="0" loading="lazy"></iframe>
+<p style="text-align:center;margin-top:0;"><vpde-slider
+    iframe="simD"
+    name="V"
+    label="Airflow"
+    min="-40"
+    max="40"
+    value="40"
+    step="1"
+    min-label="Left"
+    max-label="Right"
+></vpde-slider></p>
 
 Now, instead of a nice clean ring of likely infections, we immediately see that people on the downwind side of the room are much more likely to be infected – people that had a lower chance of infection in a room with no air circulation. If we keep watching, we can see this effect increasing and increasing. Eventually, even those that seemed to be far upwind of the source of infection have some chance of being infected, as the recirculating air slowly carries the virus with it across the room, just like it did in our earlier example.
 
-Finally, we can look at the Concentration View to see how the airflow is breaking not only the left–right symmetry of the room, but also the up–down symmetry. What do you think would happen if we reverse the direction that the waiter is circling the room? How would the picture change?
+Finally, we can look at the Concentration View to see how the airflow is breaking not only the left–right symmetry of the room, but also the up–down symmetry. What do you think would happen if we reverse the direction that the waiter is circling the room? How would the picture change? Try changing the speed and direction of the airflow by dragging the slider found below the simulation to further explore the impact of flow.
 
 # Epilogue
 The story of airborne infections is far from over, but our viral Visual Story has reached its end. Using nothing more than your browser and your curiosity, we've explored how airflow might alter the spread of an airborne virus, witnessed the transient and long-term effects that a simple cough can have, and seen the potentially superspreading effects of a wandering waiter.

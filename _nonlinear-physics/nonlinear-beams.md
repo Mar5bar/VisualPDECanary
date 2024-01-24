@@ -21,10 +21,11 @@ for baseline stiffness $E^\star$, stiffness change $\Delta_E$, and sensitivity $
 
 We can play with $\Delta_E$ using the slider below. The minimum value corresponds to a beam with constant stiffness, while the maximum value corresponds to a beam with a stiffness that depends strongly on the curvature. A quick exploration highlights that the dynamics of the beam depend significantly on the differential stiffness.
 
-<p style="text-align:center;"><vpde-slider
+<p style="text-align:center;margin-bottom:0"><vpde-slider
     iframe="sim"
     name="Delta_E"
-    label="$\Delta_E$: "
+    label="$\Delta_E$"
+    label-position="above"
     min="0"
     max="24"
     value="0"
@@ -34,7 +35,7 @@ We can play with $\Delta_E$ using the slider below. The minimum value correspond
     host="/"
     ></vpde-slider></p>
 
-<iframe id="sim" class="sim" src="/sim/?preset=differentialStiffness&story&sf=1" frameborder="0" loading="lazy"></iframe>
+<iframe id="sim" class="sim" src="/sim/?preset=differentialStiffness&story&sf=1" frameborder="0" loading="lazy" style="margin-bottom:1em"></iframe>
 
 Play with this example in more detail in this [customisable simulation](/sim/?preset=differentialStiffness).
 

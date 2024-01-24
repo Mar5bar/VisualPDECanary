@@ -21,14 +21,15 @@ The simulation below lets us explore the effect of one of these factors: the che
 <p style="text-align:center;margin-bottom:0;"><vpde-slider
     iframe="simA"
     name="k"
-    label="$k$:"
+    label="$k$"
+    label-position="above"
     min="0.01"
     max="0.5"
     value="0.25"
     step="0.01"
 ></vpde-slider></p>
 
-<iframe id="simA" class="sim" style="margin-left:calc(15% - 2px);margin-right:calc(15% - 2px);width:70%" src="/sim/?preset=DecontaminationDemoSpots&story&lite&no_ui" frameborder="0" loading="lazy"></iframe>
+<iframe id="simA" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=DecontaminationDemoSpots&story&lite&no_ui" frameborder="0" loading="lazy"></iframe>
 
 To explore the role that the reaction rate plays, try adjusting the slider found just above the simulation, and see what effect clicking has now. For larger rates, the reaction is faster, and this speeds up the overall decontamination of the concrete. 
 
@@ -69,7 +70,8 @@ Use the slider below to adjust the strength of the applied cleanser throughout t
 <p style="text-align:center;margin-bottom:0;"><vpde-slider
     iframe="simD simE"
     name="BC"
-    label="Strength:"
+    label="Strength"
+    label-position="above"
     min="0"
     max="5"
     value="5"

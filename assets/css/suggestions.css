@@ -1,0 +1,159 @@
+.suggestion .button {
+  display: block;
+  width: fit-content;
+  font-size: 0.9rem;
+  margin: auto;
+  margin-top: 20px;
+}
+
+@media (hover: hover) {
+  .suggestion .button:hover {
+    background-color: var(--hover-color);
+    border-color: rgba(27, 31, 36, 0.15) !important;
+    cursor: pointer;
+  }
+}
+
+.suggestion .button:disabled {
+  background-color: var(--input-background-color);
+  border-color: rgba(27, 31, 36, 0.15) !important;
+  cursor: not-allowed;
+  color: var(--text-color);
+}
+
+.suggestion .button:disabled a {
+  text-decoration: underline;
+}
+
+.preview-content {
+  width: calc(100% - 10px);
+  height: 100%;
+  outline: 2px solid var(--tile-border-color);
+  padding: 5px 5px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 5px;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.input-data {
+  position: relative;
+  height: 40px;
+  padding-top: 30px;
+  padding-bottom: 4px;
+  width: 100%;
+}
+
+.form-row .input-data {
+  width: 48%;
+  margin: 0;
+}
+
+.input-data input,
+.input-data textarea {
+  display: block;
+  width: calc(100% - 5px);
+  height: 100%;
+  border: none;
+  font-size: 17px;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.12);
+}
+
+.input-data.textarea {
+  height: fit-content;
+}
+
+.input-data input:focus ~ label,
+.input-data input:valid ~ label,
+.input-data input:invalid:not(:placeholder-shown) ~ label,
+.textarea textarea:focus ~ label {
+  transform: translateY(-34px);
+  font-size: 14px;
+  color: var(--soft-text-color);
+}
+.textarea textarea {
+  resize: none;
+  padding-top: 10px;
+  overflow-y: scroll;
+}
+.input-data label {
+  position: absolute;
+  pointer-events: none;
+  bottom: 11px;
+  left: 5px;
+  font-size: medium;
+  transition: all 0.3s ease;
+}
+.textarea label {
+  width: 100%;
+  bottom: 40px;
+}
+.input-data .underline {
+  position: relative;
+  bottom: 2px;
+  height: 2px;
+  width: calc(100% - 5px);
+}
+.input-data .grow-wrap + .underline {
+  bottom: -12px;
+}
+
+.input-data .underline:after,
+.textarea .underline:after {
+  position: absolute;
+  content: "";
+  height: 2px;
+  width: calc(100% + 5px);
+  background: var(--button-color);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.3s ease;
+}
+.input-data input:focus ~ .underline:after,
+.textarea textarea:focus ~ .underline:after,
+.textarea .grow-wrap:focus-within ~ .underline:after {
+  transform: scale(1);
+}
+
+.grow-wrap {
+  /* easy way to plop the elements on top of each other and have them both sized based on the tallest one's height */
+  display: grid;
+  font-size: 17px;
+  line-height: normal;
+}
+.grow-wrap::after {
+  /* Note the weird space! Needed to preventy jumpy behavior */
+  content: attr(data-replicated-value) " ";
+
+  /* This is how textarea text behaves */
+  white-space: pre-wrap;
+
+  /* Hidden from view, clicks, and screen readers */
+  visibility: hidden;
+}
+.grow-wrap > textarea {
+  /* You could leave this, but after a user resizes, then it ruins the auto sizing */
+  resize: none;
+
+  /* Firefox shows scrollbar on growth, you can hide like this. */
+  overflow: hidden;
+}
+.grow-wrap > textarea,
+.grow-wrap::after {
+  /* Place on top of each other */
+  grid-area: 1 / 1 / 2 / 2;
+}
+
+@media screen and (max-width: 600px) {
+  .form-row {
+    display: block;
+  }
+  .form-row .input-data {
+    width: 100%;
+  }
+}

@@ -40,7 +40,7 @@ a:visited {
   text-decoration: none;
 }
 
-a[href*='//']:not([href*='visualpde.com'])
+a[href*='//']:not([href*='visualpde.com' i])
 {
   color: var(--text-color);
 }
@@ -121,7 +121,7 @@ p {
   position: sticky;
   top: 0;
   background-color: var(--background-color);
-  z-index: 1;
+  z-index: 2;
   border-bottom: 1px solid var(--tile-border-color);
   /* Fix for Safari not respecting z-index */
   -webkit-transform: translate3d(0, 0, 0);
@@ -141,7 +141,8 @@ code {
 
 .nav-button,
 .nav-button:visited,
-a[href*="/sim/"] {
+a[href^="/sim/"],
+a[href*="visualpde.com/sim/" i] {
   background-color: var(--play-button-color);
   border: 1px solid;
   border-radius: 6px;
@@ -154,13 +155,15 @@ a[href*="/sim/"] {
   white-space: nowrap;
 }
 
-a[href*="/sim/"] {
+a[href^="/sim/"],
+a[href*="visualpde.com/sim/" i] {
   text-decoration: none;
 }
 
 @media (hover: hover) {
   .nav-button:hover,
-  a[href*="/sim/"]:hover {
+  a[href^="/sim/"]:hover,
+  a[href*="visualpde.com/sim/" i]:hover {
     background-color: var(--play-button-hover-color);
     border-color: rgba(27, 31, 36, 0.15);
     transition-duration: 0.1s;
@@ -175,6 +178,20 @@ a[href*="/sim/"] {
 
 .footer-col-wrapper {
   color: var(--soft-text-color);
+  display: flex;
+  justify-content: space-between;
+}
+
+@media screen and (max-width: 820px) {
+  .footer-col-2 {
+    display: none;
+  }
+}
+
+.footer-col-3 {
+  text-align: right;
+  max-width: 50%;
+  float: right;
 }
 
 div.home-banner {
@@ -400,7 +417,8 @@ div.subtitle_equation mjx-container mjx-math {
   font-size: 110%;
 }
 
-a.home_tile div.container div.button {
+a.home_tile div.container div.button,
+.button {
   background-color: var(--button-color);
   text-align: center;
   width: 60px;
@@ -560,11 +578,13 @@ span.click_sequence {
 
 .sim {
   display: block;
-  width: 90%;
+  width: 70%;
   aspect-ratio: 1;
   border: 2px solid black;
   margin: auto;
   background-color: black;
+  max-width: min(80dvh, calc(100dvh - 80px));
+  max-height: min(80dvh, calc(100dvh - 80px));
 }
 @media only screen and (max-width: 600px) {
   .sim {
@@ -606,6 +626,18 @@ span.click_sequence {
   }
 }
 
+input,
+textarea {
+  background-color: var(--input-background-color);
+  border: none;
+  border-radius: 5px;
+  color: var(--text-color);
+  font-size: medium;
+  height: 25px;
+  outline: none;
+  padding-left: 4px;
+}
+
 input[type="range"] {
   background: none;
 }
@@ -622,9 +654,32 @@ input[type="range"] {
   -webkit-appearance: none;
 }
 
+input.vpde-slider {
+  padding: 0;
+}
+
+vpde-slider > span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.vpde-slider-label {
+  position: absolute;
+  text-align: center;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(100% - 8px);
+}
+
+.vpde-slider-label.above {
+  top: unset;
+  bottom: calc(100% - 8px);
+}
+
 .vpde-slider-valLabel {
   font-size: 0.7rem;
   vertical-align: middle;
+  padding: 0 0.2rem;
 }
 
 /*progress support*/
@@ -812,10 +867,17 @@ input[type="range"] {
 
 #siteSearchForm {
   position: absolute;
-  left: 20px;
-  right: 300px;
+  left: 28px;
+  right: 134px;
   height: 54px;
   vertical-align: middle;
+  pointer-events: none;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#siteSearchForm > * {
+  pointer-events: all;
 }
 
 #pageSearchForm {
@@ -833,11 +895,7 @@ input[type="range"] {
 }
 
 #siteSearchInput {
-  border: none;
-  border-radius: 5px;
-  padding-left: 4px;
   background: none;
-  outline: none;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -845,10 +903,8 @@ input[type="range"] {
   width: 0;
   vertical-align: middle;
   transition: all 0.5s ease;
-  right: 49px;
-  font-size: medium;
-  height: 25px;
-  color: var(--text-color);
+  right: 44px;
+  pointer-events: all;
 }
 
 #siteSearchForm:focus-within #siteSearchInput {
@@ -858,15 +914,7 @@ input[type="range"] {
 
 #pageSearchInput {
   width: 100%;
-  color: var(--text-color);
-  background-color: var(--input-background-color);
-  outline: none;
-  font-size: medium;
-  border: none;
-  border-radius: 5px;
-  padding-left: 4px;
   vertical-align: middle;
-  height: 25px;
 }
 
 #pageSearchInput::placeholder,
@@ -937,7 +985,7 @@ input[type="range"] {
   white-space: nowrap;
 }
 
-.links-wrapper a:not([href*="/sim/"]) {
+.links-wrapper a:not([href^="/sim/"]):not([href*="visualpde.com/sim/" i]) {
   background-color: color-mix(in srgb, var(--button-color) 90%, transparent);
 }
 
@@ -968,7 +1016,7 @@ input[type="range"] {
 
 @media screen and (max-width: 600px) {
   #siteSearchForm {
-    right: 50px;
+    right: 56px;
   }
 }
 
@@ -1100,10 +1148,16 @@ input[type="range"] {
   list-style-type: disc !important;
 }
 
+.gap {
+  display: inline-block;
+  width: 27px;
+  pointer-events: none;
+}
+
 /* Dark mode */
 .darkmode-button {
   position: absolute;
-  right: 37px;
+  right: 24px;
   top: 1px;
   color: var(--link-color);
   cursor: pointer;
@@ -1113,12 +1167,13 @@ input[type="range"] {
 }
 
 .darkmode-button .svg-inline--fa {
-  margin-left: 5px;
+  margin-right: 5px;
+  vertical-align: -0.2em;
 }
 
 @media screen and (max-width: 600px) {
   .darkmode-button {
-    right: 30px;
+    right: 0px;
   }
 }
 
@@ -1195,7 +1250,8 @@ input[type="range"] {
 
 .dark-mode .nav-button,
 .dark-mode .nav-button:visited,
-.dark-mode a[href*="/sim/"] {
+.dark-mode a[href^="/sim/"],
+.dark-mode a[href*="visualpde.com/sim/" i] {
   color: #ffffff;
   text-decoration: none;
 }

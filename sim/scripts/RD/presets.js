@@ -514,6 +514,7 @@ presets["differentialStiffness"] = {
   neumannStr_1: "0.1*sin(t/100)",
   numAlgebraicSpecies: 2,
   numSpecies: "3",
+  numTimestepsPerFrame: 200,
   overlay: true,
   overlayColour: 8355711,
   overlayExpr: "0",
@@ -2202,7 +2203,7 @@ presets["CovidInARoom"] = {
   domainScale: "150",
   dt: 0.001,
   kineticParams:
-    "V = 40 in [0,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 0.5;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
+    "V = 40 in [-40,40];X = 0.5 in [0,1]; Y = 0.5 in [0,1];R = 10 in [0,20];lambda = 0.5;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
   numAlgebraicSpecies: 1,
   numSpecies: "4",
   numTimestepsPerFrame: 20,
@@ -2245,7 +2246,7 @@ presets["CovidInARoomCircling"] = {
   parent: "CovidInARoom",
   preset: "CovidInARoomCircling",
   kineticParams:
-    "V = 40 in [0,40];R = 10 in [0,20];lambda = 0.5;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
+    "V = 40 in [-40,40];R = 10 in [0,20];lambda = 0.5;beta = 0;sigma = 0;eta_sus = 0.1 in [0,1];rho_sus = 0.1 in [0,1];I = 1;",
   reactionStr_1:
     "R*exp(-0.01*((x-L_x/2 + 0.3*cos(t)*L_min)^2+(y-L_y/2 + 0.3*sin(t)*L_min)^2))-(lambda+beta+sigma)*C_low-V*C_low_x",
   runningOnLoad: false,
