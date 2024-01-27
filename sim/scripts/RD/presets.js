@@ -1,6 +1,25 @@
 // presets.js
 
 let presets = {};
+presets["BMB"] = {
+  boundaryConditions_1: "neumann",
+  boundaryConditions_2: "neumann",
+  colourmap: "viridis",
+  diffusionStr_1_1: "0.03",
+  domainScale: "75",
+  flippedColourmap: true,
+  imagePathOne: "./images/bmb.webp",
+  initCond_1: "1-2*I_S",
+  maxColourValue: "2.3",
+  minColourValue: "0",
+  numTimestepsPerFrame: 80,
+  parent: "Sofya",
+  preset: "BMB",
+  resetOnImageLoad: true,
+  reactionStr_1: "2*(1-2*I_S) - u + u^2*v",
+  spatialStep: "0.2",
+};
+
 presets["SMB"] = {
   boundaryConditionsU: "neumann",
   boundaryConditionsV: "neumann",
