@@ -67,6 +67,7 @@ import {
   getFieldsInView,
   getOldPresetFieldsToNew,
   getListOfPresetNames,
+  coerceOptions,
 } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
 import { auxiliary_GLSL_funs } from "../auxiliary_GLSL_funs.js";
@@ -435,6 +436,16 @@ import { createWelcomeTour } from "./tours.js";
   if (shouldLoadDefault) {
     // Load a specific preset as the default.
     loadPreset(defaultPreset);
+  } else {
+    // Loop through entries of params and check if any are fields in options.
+    // If so, apply them.
+    newParams = {};
+    for (let [key, value] of params) {
+      if (key in options && key != "preset") {
+        newParams[key] = value;
+      }
+    }
+    loadPreset(newParams, true);
   }
 
   if (params.has("view")) {
@@ -4384,10 +4395,7 @@ import { createWelcomeTour } from "./tours.js";
     );
   }
 
-  function loadPreset(preset) {
-    // First, reload the default preset.
-    loadOptions("default");
-
+  function loadPreset(preset, updateView = false) {
     // Updates the values stored in options.
     loadOptions(preset);
 
@@ -4420,6 +4428,14 @@ import { createWelcomeTour } from "./tours.js";
     if (options.activeViewInd >= options.views.length) {
       // No valid view has been specified, so apply the last view.
       options.activeViewInd = options.views.length - 1;
+    }
+    // If we should be updating the current view (ie when changing an option via the query string), update the current view before applying it.
+    if (updateView) {
+      Object.keys(preset).forEach(function (key) {
+        if (options.views[options.activeViewInd].hasOwnProperty(key)) {
+          options.views[options.activeViewInd][key] = preset[key];
+        }
+      });
     }
     applyView(options.views[options.activeViewInd], false);
 
@@ -4506,6 +4522,9 @@ import { createWelcomeTour } from "./tours.js";
     kineticParamsCounter = 0;
     kineticParamsLabels = [];
     kineticParamsStrs = {};
+
+    // Coerce the new options into the correct types.
+    coerceOptions(newOptions);
 
     // Loop through newOptions and overwrite anything already present.
     Object.assign(options, newOptions);

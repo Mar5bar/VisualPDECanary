@@ -4002,6 +4002,26 @@ function lowerCaseKeys(obj) {
   }, {});
 }
 
+export function coerceOptions(options) {
+  // Loop through entries of options and coerce to the type of the default options.
+  const defaultOptions = presets["default"];
+  for (const [key, value] of Object.entries(options)) {
+    if (defaultOptions.hasOwnProperty(key)) {
+      options[key] = coerceType(value, defaultOptions[key]);
+    }
+  }
+}
+
+function coerceType(value, defaultValue) {
+  if (typeof defaultValue === "number") {
+    return parseFloat(value);
+  } else if (typeof defaultValue === "boolean") {
+    return value === "true" || value == 1;
+  } else {
+    return value;
+  }
+}
+
 export function getUserTextFields() {
   return [
     "brushValue",
