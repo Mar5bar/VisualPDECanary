@@ -35,7 +35,7 @@ presets["SMB"] = {
   emboss: true,
   imagePathOne: "./images/smb_mask.webp",
   imagePathTwo: "./images/smb.webp",
-  initCond_1: "0.01*RAND",
+  initCond_1: "0.1*RAND",
   kineticParams:
     "c = 3.00 in [3, 0.1, 4];D = 4 in [0, 4];a = 0.1 in [0, 0.2];omega = 0.01;",
   maxColourValue: "1",
