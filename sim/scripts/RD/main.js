@@ -389,6 +389,15 @@ import { createWelcomeTour } from "./tours.js";
     uiHidden = true;
   }
 
+  if (params.has("reset_only")) {
+    // Hide all ui except the reset button.
+    $(".ui").addClass("hidden");
+    $("#erase").removeClass("hidden");
+    $("#erase").css("top", "0");
+    $("#logo").hide();
+    uiHidden = true;
+  }
+
   if (params.has("sf")) {
     // Set the domain scale factor from the search string.
     domainScaleFactor = parseFloat(params.get("sf"));
