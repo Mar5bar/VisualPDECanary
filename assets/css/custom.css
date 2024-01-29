@@ -25,6 +25,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 62px;
 }
 
 body {
@@ -1032,7 +1033,7 @@ vpde-slider > span {
   padding-left: 1rem;
   padding-right: 1rem;
   top: 90%;
-  max-width: 100%;
+  width: calc(100% - 76px);
   box-shadow: var(--hover-background-color) 0px 1px 0px 0px;
 }
 #siteSearchResults ul {
@@ -1089,7 +1090,7 @@ vpde-slider > span {
   padding-left: 1rem;
   padding-right: 1rem;
   top: 90%;
-  max-width: 95%;
+  width: calc(100% - 27px);
   box-shadow: var(--hover-background-color) 0px 1px 0px 0px;
 }
 #pageSearchResults ul {

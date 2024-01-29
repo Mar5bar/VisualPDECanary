@@ -73,6 +73,13 @@
         });
       });
     }
+
+    // Add a non-breaking zero-width space after all – in anchor tags.
+    window.addEventListener("DOMContentLoaded", function() {
+      $('a').each(function(index, element){
+        element.innerHTML = element.innerHTML.replaceAll(/–/g, "–&#65279;");
+      });
+    });
   </script>		
 
 </head>

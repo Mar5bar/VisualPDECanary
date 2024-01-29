@@ -1,6 +1,25 @@
 // presets.js
 
 let presets = {};
+presets["BMB"] = {
+  boundaryConditions_1: "neumann",
+  boundaryConditions_2: "neumann",
+  colourmap: "viridis",
+  diffusionStr_1_1: "0.03",
+  domainScale: "75",
+  flippedColourmap: true,
+  imagePathOne: "./images/bmb.webp",
+  initCond_1: "1-2*I_S",
+  maxColourValue: "2.3",
+  minColourValue: "0",
+  numTimestepsPerFrame: 80,
+  parent: "Sofya",
+  preset: "BMB",
+  resetOnImageLoad: true,
+  reactionStr_1: "2*(1-2*I_S) - u + u^2*v",
+  spatialStep: "0.2",
+};
+
 presets["SMB"] = {
   boundaryConditionsU: "neumann",
   boundaryConditionsV: "neumann",
@@ -16,7 +35,7 @@ presets["SMB"] = {
   emboss: true,
   imagePathOne: "./images/smb_mask.webp",
   imagePathTwo: "./images/smb.webp",
-  initCond_1: "0.01*RAND",
+  initCond_1: "0.1*RAND",
   kineticParams:
     "c = 3.00 in [3, 0.1, 4];D = 4 in [0, 4];a = 0.1 in [0, 0.2];omega = 0.01;",
   maxColourValue: "1",
@@ -4000,6 +4019,26 @@ function lowerCaseKeys(obj) {
     carry[key.toLowerCase()] = value;
     return carry;
   }, {});
+}
+
+export function coerceOptions(options) {
+  // Loop through entries of options and coerce to the type of the default options.
+  const defaultOptions = presets["default"];
+  for (const [key, value] of Object.entries(options)) {
+    if (defaultOptions.hasOwnProperty(key)) {
+      options[key] = coerceType(value, defaultOptions[key]);
+    }
+  }
+}
+
+function coerceType(value, defaultValue) {
+  if (typeof defaultValue === "number") {
+    return parseFloat(value);
+  } else if (typeof defaultValue === "boolean") {
+    return value === "true" || value == 1;
+  } else {
+    return value;
+  }
 }
 
 export function getUserTextFields() {
