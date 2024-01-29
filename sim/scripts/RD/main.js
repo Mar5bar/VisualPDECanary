@@ -454,7 +454,7 @@ import { createWelcomeTour } from "./tours.js";
         newParams[key] = value;
       }
     }
-    loadPreset(newParams, true);
+    if (Object.keys(newParams).length) loadPreset(newParams, true);
   }
 
   if (params.has("view")) {
@@ -4690,7 +4690,9 @@ import { createWelcomeTour } from "./tours.js";
       // Traverse through all the subfolders and recurse.
       for (let subfolderName in folder.__folders) {
         deleteGUI(folder.__folders[subfolderName]);
-        folder.removeFolder(folder.__folders[subfolderName]);
+        try {
+          folder.removeFolder(folder.__folders[subfolderName]);
+        } catch {}
       }
       // Delete all the controllers at this level.
       for (let i = 0; i < folder.__controllers.length; i++) {
