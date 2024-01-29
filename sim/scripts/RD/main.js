@@ -735,6 +735,19 @@ import { createWelcomeTour } from "./tours.js";
   );
   simObserver.observe(document.getElementById("simCanvas"));
 
+  // When navigating away from the page, store the URL reflecting the current state in history if anything has changed.
+  window.addEventListener("beforeunload", function (e) {
+    // Stop any recording.
+    if (isRecording) {
+      stopRecording();
+    }
+    // Check if the simulation has changed (options.preset will have changed).
+    if (Object.keys(diffObjects(getPreset(options.preset), options)).length) {
+      // If so, add the URL.
+      history.pushState({}, "", getSimURL());
+    }
+  });
+
   // Begin the simulation.
   isLoading = false;
   animate();
