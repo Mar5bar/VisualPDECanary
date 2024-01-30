@@ -235,7 +235,7 @@ presets["WaterOnTopography"] = {
       minColourValue: "-1",
       plotType: "surface",
       surfaceFun: "4*T",
-      whatToPlot: "ind(h>0.5)*(h+6) + ind(h<0.5)*(T-7)",
+      whatToPlot: "ind(h>0.5)*6.8 + ind(h<0.5)*(T-7)",
       name: "Water on Topography",
     },
   ],
