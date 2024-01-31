@@ -2645,6 +2645,7 @@ import { createWelcomeTour } from "./tours.js";
         Spooky: "spooky",
         Thermal: "thermal",
         Turbo: "turbo",
+        "Urban flooding": "urbanFlooding",
         Viridis: "viridis",
         Water: "water",
       })

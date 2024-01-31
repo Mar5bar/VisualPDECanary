@@ -43,6 +43,13 @@ export function getColours(sel) {
       colours.push([0.75, 0.75, 0.75, 0.75]);
       colours.push([1, 1, 1, 1]);
       break;
+    case "urbanFlooding":
+      colours.push([0.0, 0.0, 0.0, 0.0]);
+      colours.push([0.25, 0.25, 0.25, 0.25]);
+      colours.push([0.5, 0.5, 0.5, 0.5]);
+      colours.push([0.99, 0.99, 0.99, 0.99]);
+      colours.push([0.22, 0.28, 0.51, 1]);
+      break;
     case "BlackGreenYellowRedWhite":
       colours.push([0, 0, 0.0, 0]);
       colours.push([0, 1, 0, 0.25]);
