@@ -5988,7 +5988,10 @@ import { createWelcomeTour } from "./tours.js";
     str = replaceFunctionInTeX(str, "min", true);
     str = replaceFunctionInTeX(str, "ind", true);
 
-    // Remove *.
+    // Remove *, unless between two numbers, in which case insert \times.
+    while (
+      str != (str = str.replace(/([0-9\.])\s*\*\s*([0-9\.])/, "$1 \\times $2"))
+    );
     str = str.replaceAll(/\*/g, " ");
 
     // Replace powers with well-formatted ^, including nested powers.
