@@ -2643,6 +2643,7 @@ import { createWelcomeTour } from "./tours.js";
         "Snow Ghost": "snowghost",
         Squirrels: "squirrels",
         Spooky: "spooky",
+        Terrain: "terrain",
         Thermal: "thermal",
         Turbo: "turbo",
         "Urban flooding": "urbanFlooding",
