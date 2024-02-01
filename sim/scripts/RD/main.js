@@ -5701,6 +5701,12 @@ import { createWelcomeTour } from "./tours.js";
     regexes["TW"] = /\b(tau_{w})/g;
     regexes["TQ"] = /\b(tau_{q})/g;
 
+    // Define placeholders for substituting parameter names in custom-typeset equations.
+    let paramNames = getKineticParamNames();
+    let paramPlaceholders = Array.from(Array(paramNames.length).keys()).map(
+      (s) => "PARAMETER_" + s.toString()
+    );
+
     if (options.typesetCustomEqs) {
       // We'll work using the default notation, then convert at the end.
       let associatedStrs = {};
@@ -5744,6 +5750,17 @@ import { createWelcomeTour } from "./tours.js";
         if (!badSyntax) badSyntax |= !isValidSyntax(associatedStrs[key]);
       });
       if (badSyntax) return;
+
+      // Before we convert the associated strings to default notation, put in placeholders for all
+      // user-defined parameters to prevent them from being accidentally recognised as default notation
+      // eg if u is a parameter.
+      Object.keys(associatedStrs).forEach(function (key) {
+        associatedStrs[key] = replaceSymbolsInStr(
+          associatedStrs[key],
+          paramNames,
+          paramPlaceholders
+        );
+      });
 
       // Convert all the associated strings back to default notation.
       function toDefault(s) {
@@ -5955,6 +5972,9 @@ import { createWelcomeTour } from "./tours.js";
       listOfSpecies.concat(listOfReactions),
       "_(?:[xy][xybf]?)"
     );
+
+    // Remove parameter placeholders with parameter names.
+    str = replaceSymbolsInStr(str, paramPlaceholders, paramNames);
 
     str = parseStringToTEX(str);
 
