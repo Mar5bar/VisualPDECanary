@@ -479,7 +479,7 @@ import { createWelcomeTour } from "./tours.js";
     $("#play").css("top", "-=50");
     $("#pause").css("top", "-=50");
     $("#play_pause_placeholder").css("top", "-=50");
-    $("#erase").css("top", "-=50");
+    if (!params.has("reset_only")) $("#erase").css("top", "-=50");
     $("#views").css("top", "-=50");
     $("#views_ui").css("top", "-=50");
     viewUIOffsetInit = $(":root").css("--views-ui-offset");
