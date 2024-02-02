@@ -11,7 +11,7 @@ In this Story, we'll explore the most frequent type of natural disaster: floodin
 
 We've picked the city of Oxford (UK) as our case study, as it often falls foul of flooding and 2/3 of the VisualPDE team have lived there. The river Thames flows around the city centre, which is surrounded by natural floodplains and houses. The image below shows part of the landscape just south of the city centre, shaded by height, and includes one of the team's old houses. There is a river in the upper right corner, a housing estate on the left, and fields in between.
 
-<img class="center" style="width:70%" src="/assets/images/oxford-annotated.webp" alt="Topographical map of an area south of Oxford city centre">
+<img class="center" style="width:70%;aspect-ratio:1;background-image:url('/assets/images/oxford-annotated-low.webp');background-size:cover;" src="/assets/images/oxford-annotated.webp" alt="Topographical map of an area south of Oxford city centre">
 <small>Topographical LiDAR data from the [ARCHI MAPS UK website](https://www.archiuk.com); LiDAR tiles © Environment Agency copyright and/or database right 2022. All rights reserved.</small>
 
 # Breaking the banks
