@@ -3838,6 +3838,7 @@ import { createWelcomeTour } from "./tours.js";
     // Replace custom functions.
     str = replaceGauss(str);
     str = replaceBump(str);
+    str = replaceWhiteNoise(str);
 
     // Replace powers with safepow, including nested powers.
     str = replaceBinOperator(str, "^", function (m, p1, p2) {
@@ -6012,9 +6013,7 @@ import { createWelcomeTour } from "./tours.js";
     while (
       str != (str = str.replace(/([0-9\.])\s*\*\s*([0-9\.])/, "$1 \\times $2"))
     );
-    while (
-      str != (str = str.replace(/\*([\-\+])/, "\\times $1"))
-    );
+    while (str != (str = str.replace(/\*([\-\+])/, "\\times $1")));
     str = str.replaceAll(/\*/g, " ");
 
     // Replace powers with well-formatted ^, including nested powers.
@@ -9456,6 +9455,22 @@ import { createWelcomeTour } from "./tours.js";
       "$1*("
     );
 
+    return str;
+  }
+
+  /**
+   * Replaces occurrences of WhiteNoise with correct shader syntax.
+   *
+   * @param {string} str - The input string to be modified.
+   * @returns {string} The modified string.
+   */
+  function replaceWhiteNoise(str) {
+    // Replace WhiteNoise with RANDN*sqrt(1/(dt*dx^dim)), where dim is dimension.
+    if (options.dimension == 1) {
+      str = str.replaceAll(/\bWhiteNoise\b/g, "RANDN*sqrt(1/(dt*dx))");
+    } else {
+      str = str.replaceAll(/\bWhiteNoise\b/g, "RANDN*sqrt(1/(dt*pow(dx,2)))");
+    }
     return str;
   }
 
