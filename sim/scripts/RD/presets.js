@@ -1,6 +1,36 @@
 // presets.js
 
 let presets = {};
+
+presets["StochasticKlausmeier"] = {
+	"brushType": "vline",
+	"dimension": "1",
+	"domainScale": "100",
+	"dt": 0.0005,
+	"kineticParams": "a = 2 in [0.01, 0.01, 10];m = 0.540 in [0.2, 0.01, 1];V = 50;sigma = 0.4 in [0, 3];",
+	"minColourValue": 0,
+	"parent": "KlausmeierModel",
+	"preset": "PRESETNAME",
+	"reactionStr_1": "w*n^2-m*n+sigma*WhiteNoise*(n/(1+n))",
+	"spatialStep": "0.5",
+	"views": [{
+	"colourmap": "foliage",
+	"emboss": false,
+	"maxColourValue": "9",
+	"plotType": "line",
+	"whatToPlot": "n",
+	"name": "Foliage",
+},
+	{
+	"colourmap": "water",
+	"emboss": true,
+	"maxColourValue": 0.33,
+	"plotType": "plane",
+	"whatToPlot": "w",
+	"name": "Water",
+}],
+};
+
 presets["BMB"] = {
   boundaryConditions_1: "neumann",
   boundaryConditions_2: "neumann",
