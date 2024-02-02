@@ -6045,6 +6045,9 @@ import { createWelcomeTour } from "./tours.js";
     // Add spaces around strict inequalities.
     str = str.replaceAll(/([<>])/g, " $1 ");
 
+    // Replace WhiteNoise with dW_t/dt.
+    str = str.replaceAll(/\bWhiteNoise\b/g, "\\textstyle\\diff{W_t}{t}");
+
     return str;
   }
 
