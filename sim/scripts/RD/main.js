@@ -6008,9 +6008,12 @@ import { createWelcomeTour } from "./tours.js";
     str = replaceFunctionInTeX(str, "min", true);
     str = replaceFunctionInTeX(str, "ind", true);
 
-    // Remove *, unless between two numbers, in which case insert \times.
+    // Remove *, unless between two numbers or followed by + or -, in which case insert \times.
     while (
       str != (str = str.replace(/([0-9\.])\s*\*\s*([0-9\.])/, "$1 \\times $2"))
+    );
+    while (
+      str != (str = str.replace(/\*([\-\+])/, "\\times $1"))
     );
     str = str.replaceAll(/\*/g, " ");
 
