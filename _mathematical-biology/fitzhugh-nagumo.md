@@ -32,13 +32,13 @@ for some integer $m$ and domain length $L=280$.
 
 * Load the [Turing-Hopf simulation](/sim/?preset=FitzHugh-Nagumo-Hopf)
 
-* This simulation can display long-time solutions that exhibit all three kinds of behaviour, depending on the values of $m$, $D$, and the other parameters. Try $m=4$, $m=3$, and $m=6$ for example.
+* This simulation can display long-time solutions that exhibit all three kinds of behaviour, depending on the values of $m$, $D$, and the other parameters. Try $m=4$, $m=3$ and $m=6$ for example.
 
 # Three-species variant
 
 A three-species variant of the FitzHugh–Nagumo model is 
 
-$$\begin{aligned}\pd{u}{t}&=\nabla^2 u +u-u^3-v,\\ \pd{v}{t}&=D_v\nabla^2v+ \varepsilon_v(u-a_v v-a_w w-a_z)\\ \pd{w}{t}&=D_w\nabla^2w+ \varepsilon_w(u-w).\end{aligned}$$
+$$\begin{aligned}\pd{u}{t}&=\nabla^2 u +u-u^3-v,\\ \pd{v}{t}&=D_v\nabla^2v+ \varepsilon_v(u-a_v v-a_w w-a_z),\\ \pd{w}{t}&=D_w\nabla^2w+ \varepsilon_w(u-w).\end{aligned}$$
 
 * Load the [three-species simulation](/sim/?preset=FitzHugh-Nagumo-3) 
 

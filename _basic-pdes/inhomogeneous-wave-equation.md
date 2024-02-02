@@ -14,7 +14,7 @@ with homogeneous Neumann (aka no-flux) boundary conditions. This equation can be
 
 * Load the [interactive simulation](/sim/?preset=inhomogWaveEquation), which uses the example
 
-    $$f(x,y) = D(1+E\sin(m\pi x/L_x))(1+E\sin(n\pi y/L_y)).$$
+    $$f(x,y) = D\left[1+E\sin\left(\frac{m\pi x}{L_x}\right)\right]\left[1+E\sin\left(\frac{n\pi y}{L_y}\right)\right].$$
 
     Importantly, we need $\lvert E\rvert<1$ to ensure the solution makes sense.
 
@@ -30,6 +30,10 @@ $$\pdd{u}{t} +d\pd{u}{t}=D\nabla^2 u,$$
 
 with inhomogeneous Dirichlet boundary conditions,
 
-$$u|_{\partial \Omega} = \cos(m x \pi/100)\cos(m y \pi/100),$$
+$$u|_{\partial \Omega} = \cos\left(\frac{m \pi x}{100}\right)\cos\left(\frac{m \pi y}{100}\right),$$
 
-on a square domain. This [damped simulation](/sim/?preset=dampedWaveEquation) initially has ($d=0$). Try increasing the damping $d$ to, for example, $d=0.01$ to observe how this changes the wave propagation into the domain from the boundaries, or play with the frequency $m$.
+on a square domain. 
+
+* Load this [damped simulation](/sim/?preset=dampedWaveEquation), where initially $d=0$. 
+* Try increasing the damping $d$ to, for example, $d=0.01$ to observe how this changes the wave propagation into the domain from the boundaries.
+* What happens when you play with the frequency, $m$?

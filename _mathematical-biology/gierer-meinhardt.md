@@ -12,9 +12,11 @@ $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+a+\frac{u^2}{v}-bu,\\ \pd{v}{t}&=D\nabla^
 
 where we take $a,b,c>0$ and $D>1$.
 
-* Load the [interactive simulation](/sim/?preset=GiererMeinhardt). 
+* Load the [interactive simulation](/sim/?preset=GiererMeinhardt)
 
-* Changing any of the parameters can lead to different solutions, though this system generically favours spot-like patterns. Note that the colour scale here is fixed, but that changing parameters will lead to solutions with different maxima and minima, so using the auto-snap feature under <span class='click_sequence'>{{ layout.settings }} → **Colour** → **Auto snap**</span> may be advised.
+* Changing any of the parameters can lead to different solutions, though this system generically favours spot-like patterns.
+
+Note that the colour scale here is fixed, but that changing parameters will lead to solutions with different maxima and minima, so using the auto-snap feature under <span class='click_sequence'>{{ layout.settings }} → **Colour** → **Auto snap**</span> may be advised.
 
 # Stripes stability
 
@@ -26,7 +28,7 @@ $$
 
 with $n$ an integer. 
 
-* Load the [simulation](/sim/?preset=GiererMeinhardtStripeICs). 
+* Load the [simulation](/sim/?preset=GiererMeinhardtStripeICs)
 
 * Change the value of $n$ and restart the simulation by pressing {{ layout.erase }}. In each case a different number of initial stripes will evolve into some number of stripes, but they should persist indefinitely.
 
@@ -40,6 +42,7 @@ $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+a+\frac{u^2}{v(1+Ku^2)}-bu,\\ \pd{v}{t}&=
 
 where $K>0$ is a saturation constant. 
 
-For very large values of $K$, the system will not admit Turing patterns, and for very small values it will behave as in the above spot-forming model. However, for intermediate values of $K$ one can get labyrinthine patterns as in this [stripey simulation](/sim/?preset=GiererMeinhardtStripes). 
+For very large values of $K$, the system will not admit Turing patterns, and for very small values it will behave as in the above spot-forming model. However, for intermediate values of $K$ one can get labyrinthine patterns.
 
-Try increasing or decreasing the size of $K$ to observe how this influences spot/stripe selection in the system. Note that the colour scale is changing to match solution maxima/minima.
+* Observe the patterns in this [stripey simulation](/sim/?preset=GiererMeinhardtStripes)
+* Try increasing or decreasing the size of $K$ to observe how this influences spot/stripe selection in the system. Note that the colour scale is changing to match solution maxima and minima.

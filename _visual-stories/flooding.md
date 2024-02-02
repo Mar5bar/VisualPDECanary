@@ -38,8 +38,10 @@ This time, the river still bursts its banks but only manages to spread over the 
 
 # Defending against flooding
 There are many ways to prevent flooding. We'll use VisualPDE to explore the effects of two types of defence: 
-* Improving drainage into the ground
-* Diverting flood water
+
+* improving drainage into the ground,
+* diverting flood water.
+
 Naturally, our examples won't necessarily reflect the real thing, but they might help us see how these types of defence can be protective.
 
 ## Improving drainage

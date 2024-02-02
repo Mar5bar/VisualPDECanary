@@ -7,7 +7,7 @@ extract: Stripes moving towards water
 equation: $\pd{w}{t} = a-w -wn^2+v\pd{w}{x} + \nabla^2w$, $\pd{n}{t} = wn^2 - mn + \nabla^2n$ 
 ---
 
-Here we look at a model of vegetation patterning known as the [Klasumeier model](https://www.science.org/doi/full/10.1126/science.284.5421.1826), written in terms of water $w$ and plant biomass $n$.
+Here we look at a model of vegetation patterning known as the [Klausmeier model](https://www.science.org/doi/full/10.1126/science.284.5421.1826), written in terms of water $w$ and plant biomass $n$.
 
 $$\begin{aligned}\pd{w}{t} &= a-w -wn^2+v\pd{w}{x} + \nabla^2w,\\ \pd{n}{t} &= wn^2 - mn + \nabla^2n\end{aligned}$$
 
@@ -17,6 +17,6 @@ $$\begin{aligned}\pd{w}{t} &= a-w -wn^2+v\pd{w}{x} + \nabla^2w,\\ \pd{n}{t} &= w
 
 # Localised solutions
 
-Similarly to the [localised patterns in Swift-Hohenberg](/nonlinear-physics/swift-hohenberg), Dan Hill has provided examples of dihedrally symmetric localised patterns in this model.
+Similarly to the [localised patterns in Swift–Hohenberg](/nonlinear-physics/swift-hohenberg), Dan Hill has provided examples of dihedrally symmetric localised patterns in this model.
 
-You can find initial conditions that simulate such patterns in this [localised simulation](/sim/?preset=LocalisedVegetation), and more information about the rigorous theory underlying them in this [paper](https://arxiv.org/abs/2309.02956).
+You can find initial conditions that simulate such patterns in this [localised simulation](/sim/?preset=LocalisedVegetation), and more information about the rigorous theory underlying them in [his 2023 paper](https://arxiv.org/abs/2309.02956).
