@@ -2,8 +2,8 @@
 layout: page
 title: Urban flooding
 lesson_number: 40
-thumbnail: /assets/images/Decontamination.webp
-extract: Prediction, visualisation, and barriers
+thumbnail: /assets/images/flooding.webp
+extract: Defending against surging rivers
 equation:
 ---
 
@@ -12,6 +12,7 @@ In this Story, we'll explore the most frequent type of natural disaster: floodin
 We've picked the city of Oxford (UK) as our case study, as it often falls foul of flooding and 2/3 of the VisualPDE team have lived there. The river Thames flows around the city centre, which is surrounded by natural floodplains and houses. The image below shows part of the landscape just south of the city centre, shaded by height, and includes one of the team's old houses. There is a river in the upper right corner, a housing estate on the left, and fields in between.
 
 <img class="center" style="width:70%" src="/assets/images/oxford-annotated.webp" alt="Topographical map of an area south of Oxford city centre">
+<small>Topographical LiDAR data from the [ARCHI MAPS UK website](https://www.archiuk.com); LiDAR tiles © Environment Agency copyright and/or database right 2022. All rights reserved.</small>
 
 # Breaking the banks
 Flooding has a huge economic and social impact. In the simulation below, we'll explore what happens when a surge in the river causes the area around it to flood. Clicking in the simulation mimics emptying a (very large) bucket of water onto the environment, which spreads out and eventually seeps away into the ground. After you've played around with clicking, drag the slider to the right to increase the flow rate of the river to the maximum.
@@ -36,7 +37,7 @@ The surging river quickly runs over the fields and encroaches on the road and th
 This time, the river still bursts its banks but only manages to spread over the fields, with little to no impact on homes beyond the road.
 
 # Defending against flooding
-There are many ways to prevent flooding, often at some cost. We'll use VisualPDE to explore the effects of two types of defence: 
+There are many ways to prevent flooding. We'll use VisualPDE to explore the effects of two types of defence: 
 * Improving drainage into the ground
 * Diverting flood water
 Naturally, our examples won't necessarily reflect the real thing, but they might help us see how these types of defence can be protective.
@@ -90,7 +91,7 @@ An alternative to improving the absorption of the terrain is constructing channe
 ></vpde-slider></p>
 <iframe id="simC" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=floodingOxford&story&reset_only&whatToDraw=T&brushValue=-10&brushRadius=10" frameborder="0" loading="lazy"></iframe>
 
-In our simulations of continuous high flow, the river almost always wins, filling up the trenches and spilling past towards the city. However, the defences can be very effective against shorter periods of high flow.
+In our simulations of continuous high flow, the river almost always wins, filling up the trenches and spilling past towards the city. However, the defences can be very effective against shorter periods of high flow. Test this for yourself by only briefly increasing the flow rate.
 
 # Looking for more?
 Flooding is a complicated issue and we certainly haven't explored everything in this Story. Hopefully, however, we've seen how different types of management can help alleviate the effects of urban flooding. If you want to explore more water-based simulations on VisualPDE, try out our [page on the effects of topography](/mathematical-biology/topography) or our [Story exploring ripples on a pond](/visual-stories/ripples).
