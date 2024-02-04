@@ -9,17 +9,15 @@ equation: $\pd{u}{t}=D\nabla^2 u +f(u)+\frac{dW_t}{dt}$
 ---
 
 
-Here we present a few different models of random and stochastic PDEs.
-
 # Stochastic pattern formation
 
-First we consider a stochastic version of the [Gray-Scott model](nonlinear-physics/gray-scott)given by:
+First we consider a stochastic version of the [Gray-Scott model](/nonlinear-physics/gray-scott) given by:
 
 $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+u^2v - (a+b)u+\sigma\diff{W_t}{t}u,\\ \pd{v}{t}&=D\nabla^2v-u^2v + a(1 - v),\end{aligned}$$
 
 where $W_t$ is an approximation of a [Brownian sheet](https://en.wikipedia.org/wiki/Brownian_sheet), representing noise in both space and time, so its derivative is understood in the sense of [stochastic calculus](https://en.wikipedia.org/wiki/Stochastic_calculus).
 
-* Load the interactive [stochastic reaction-diffusion model](/sim/?preset=RandomWaveEquation). 
+* Load the interactive [stochastic reaction-diffusion model](/sim/?preset=StochasticGrayScott). 
 
 * The model is initially deterministic ($\sigma=0$), so the initial condition simply spreads out to make a homogeneous state across the domain. Clicking indicates that this homogeneous equilibrium is stable, even to large perturbations.
 
@@ -33,7 +31,7 @@ where $W_t$ is an approximation of a [Brownian sheet](https://en.wikipedia.org/w
 First we consider a version of the [inhomogeneous wave equation](/basic-pdes/inhomogeneous-wave-equation) where the diffusion coefficient is a random function of space:
 
 $$
-\pdd{u}{t} = \vnabla \cdot \left (\eta(\v{x};\sigma) \vnalba u, \right,
+\pdd{u}{t} = \vnabla \cdot \left (\eta(\v{x};\sigma) \vnalba u, \right),
 $$
 
 where $(\eta(\v{x})$ is a smoothed random variable seeded in a Gaussian way with mean $1$ and variance $\sigma$. 
