@@ -57,7 +57,7 @@ $$
 
 * The parameter $\sigma$ represents the strength of the noise, so increasing or decreasing it will lead to more stochastic/deterministic behaviour
 
-* The noise function should scale correctly independently of the geometry and dimension. You can see how it behaves in 2D by pressing <span class='click_sequence'>{{ layout.settings }} ? **Domain**</span> and changing the Dimension from 1 to 2.
+* The noise function should scale correctly independently of the geometry and dimension. You can see how it behaves in 2D by pressing <span class='click_sequence'>{{ layout.settings }} → **Domain**</span> and change **Dimension** from 1 to 2. Playing with $\sigma$ as well as other parameters, and clicking to perturb the waves, shows that irregularity of the waves can occur in different ways with stochastic forcing.
 
 # Numerical health warning
 
