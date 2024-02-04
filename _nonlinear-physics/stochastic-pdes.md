@@ -61,7 +61,7 @@ $$
 
 # Numerical health warning
 
-Random and stochastic forcing can lead to less regularity and stability of numerical schemes. Importantly, \emph{our method only works for the Forward-Euler timestepping scheme!} All other timestepping schemes will not scale properly with the timestep. 
+Random and stochastic forcing can lead to less regularity and stability of numerical schemes. **Warning:** the method only works for the Forward-Euler timestepping scheme! All other timestepping schemes will not scale properly with the timestep. 
 
 In implementing our random noise terms, we have taken
 
