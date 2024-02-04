@@ -12,7 +12,7 @@ presets["StochasticGrayScott"] = {
   maxColourValue: "0.5",
   numTimestepsPerFrame: 400,
   parent: "GrayScott",
-  preset: "PRESETNAME",
+  preset: "StochasticGrayScott",
   reactionStr_1: "u^2*v - (a+b)*u+sigma*WhiteNoise*u",
   spatialStep: "0.4",
 };
@@ -33,7 +33,7 @@ presets["RandomWaveEquation"] = {
   minColourValue: "0",
   numSpecies: "3",
   parent: "waveEquation",
-  preset: "PRESETNAME",
+  preset: "RandomWaveEquation",
   spatialStep: "0.2",
   speciesNames: "u v eta q",
   views: [
@@ -57,7 +57,7 @@ presets["StochasticKlausmeier"] = {
     "a = 2 in [0.01, 0.01, 10];m = 0.540 in [0.2, 0.01, 1];V = 50;sigma = 0.4 in [0, 3];",
   minColourValue: 0,
   parent: "KlausmeierModel",
-  preset: "PRESETNAME",
+  preset: "StochasticKlausmeier",
   reactionStr_1: "w*n^2-m*n+sigma*WhiteNoise*(n/(1+n))",
   spatialStep: "0.5",
   views: [

@@ -34,7 +34,7 @@ $$
 \pdd{u}{t} = \vnabla \cdot \left (\eta(\v{x};\sigma) \vnalba u, \right),
 $$
 
-where $(\eta(\v{x})$ is a smoothed random variable seeded in a Gaussian way with mean $1$ and variance $\sigma$. 
+where $\eta(\v{x})$ is a smoothed spatial random variable approximated as a Gaussian with mean $1$ and variance which scales with $\sigma$. 
 
 * Load the interactive [random wave equation](/sim/?preset=RandomWaveEquation). 
 
