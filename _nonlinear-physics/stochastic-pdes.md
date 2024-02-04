@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "Stochastic Partial Differential Equations"
+title: "Stochastic partial differential equations"
 # permalink: /stochastic-pdes/
 lesson_number: 120
 thumbnail: /assets/images/stochastic-pdes.png
