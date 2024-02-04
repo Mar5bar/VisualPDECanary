@@ -3,49 +3,50 @@
 let presets = {};
 
 presets["StochasticGrayScott"] = {
-	"diffusionStr_2_2": "4",
-	"domainScale": "300",
-	"dt": 0.005,
-	"initCond_1": "H(20-((x-L_x/2)^2+(y-L_y/2)^2))",
-	"kineticParams": "a = 0.037 in [0, 0.1];b = 0.04 in [0.04, 0.1];sigma = 0.00 in [0, 0.3];",
-	"maxColourValue": "0.5",
-	"numTimestepsPerFrame": 400,
-	"parent": "GrayScott",
-	"preset": "PRESETNAME",
-	"reactionStr_1": "u^2*v - (a+b)*u+sigma*WhiteNoise*u",
-	"spatialStep": "0.4",
+  diffusionStr_2_2: "4",
+  domainScale: "300",
+  dt: 0.005,
+  initCond_1: "H(20-((x-L_x/2)^2+(y-L_y/2)^2))",
+  kineticParams:
+    "a = 0.037 in [0, 0.1];b = 0.04 in [0.04, 0.1];sigma = 0.00 in [0, 0.3];",
+  maxColourValue: "0.5",
+  numTimestepsPerFrame: 400,
+  parent: "GrayScott",
+  preset: "PRESETNAME",
+  reactionStr_1: "u^2*v - (a+b)*u+sigma*WhiteNoise*u",
+  spatialStep: "0.4",
 };
-
 
 presets["RandomWaveEquation"] = {
-	"boundaryConditions_1": "periodic",
-	"boundaryConditions_2": "periodic",
-	"brushRadius": "1",
-	"brushValue": "10",
-	"diffusionStr_1_1": "d",
-	"diffusionStr_2_1": "eta",
-	"diffusionStr_3_3": "ind(t<d)",
-	"dt": 0.0005,
-	"initCond_1": "0",
-	"initCond_3": "max(1+sigma*RANDN/sqrt(dx^2),0)",
-	"kineticParams": "sigma = 0.5 in [0, 1];d=0.005;",
-	"maxColourValue": "1",
-	"minColourValue": "0",
-	"numSpecies": "3",
-	"parent": "waveEquation",
-	"preset": "PRESETNAME",
-	"spatialStep": "0.2",
-	"speciesNames": "u v eta q",
-	"views": [{
-	"name": "$u$",
-	"whatToPlot": "u",
-},
-	{
-	"name": "$v$",
-	"whatToPlot": "v",
-}],
+  boundaryConditions_1: "periodic",
+  boundaryConditions_2: "periodic",
+  brushRadius: "1",
+  brushValue: "10",
+  diffusionStr_1_1: "d",
+  diffusionStr_2_1: "eta",
+  diffusionStr_3_3: "ind(t<d)",
+  dt: 0.0005,
+  initCond_1: "0",
+  initCond_3: "max(1+sigma*RANDN/sqrt(dx^2),0)",
+  kineticParams: "sigma = 0.5 in [0, 1];d=0.005;",
+  maxColourValue: "1",
+  minColourValue: "0",
+  numSpecies: "3",
+  parent: "waveEquation",
+  preset: "PRESETNAME",
+  spatialStep: "0.2",
+  speciesNames: "u v eta q",
+  views: [
+    {
+      name: "$u$",
+      whatToPlot: "u",
+    },
+    {
+      name: "$v$",
+      whatToPlot: "v",
+    },
+  ],
 };
-
 
 presets["StochasticKlausmeier"] = {
   brushType: "vline",
