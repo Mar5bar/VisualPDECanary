@@ -3,8 +3,8 @@ layout: page
 title: "Stochastic Partial Differential Equations"
 # permalink: /stochastic-pdes/
 lesson_number: 120
-thumbnail: /assets/images/bistableTravellingWaves.webp
-extract: Randomness
+thumbnail: /assets/images/stochastic-pdes.png
+extract: Randomness in space and time
 equation: $\pd{u}{t}=D\nabla^2 u +f(u)+\frac{dW_t}{dt}$
 ---
 
@@ -21,7 +21,7 @@ where $W_t$ is an approximation of a [Brownian sheet](https://en.wikipedia.org/w
 
 * The model is initially deterministic ($\sigma=0$), so the initial condition simply spreads out to make a homogeneous state across the domain. Clicking indicates that this homogeneous equilibrium is stable, even to large perturbations.
 
-* Increasing the value of $\sigma$ in the range $(0.1,0.2)$, we can observe that noise destabilizes this equilibrium, forming spot-like patterns. This is an example of [stochastic resonance](https://en.wikipedia.org/wiki/Stochastic_resonance) in reaction-diffusion systems.
+* Increasing the value of $\sigma$ in the range $(0.1,0.2)$, we can observe that noise destabilizes this equilibrium, forming stripe and spot-like patterns. This is an example of [stochastic resonance](https://en.wikipedia.org/wiki/Stochastic_resonance) in reaction-diffusion systems. Smaller values of $\sigma$ will select for stripes, and larger for spots.
 
 * Further increasing $\sigma$ to the value of $0.3$ or so will destroy these patterns, as the noise eventually destabilizes everything. This is sometimes known as stochastic extinction or random attractor collapse.
 
@@ -31,7 +31,7 @@ where $W_t$ is an approximation of a [Brownian sheet](https://en.wikipedia.org/w
 First we consider a version of the [inhomogeneous wave equation](/basic-pdes/inhomogeneous-wave-equation) where the diffusion coefficient is a random function of space:
 
 $$
-\pdd{u}{t} = \vnabla \cdot \left (\eta(\v{x};\sigma) \vnalba u, \right),
+\pdd{u}{t} = \vnabla \cdot \left (\eta(\v{x};\sigma) \vnabla u, \right),
 $$
 
 where $\eta(\v{x})$ is a smoothed spatial random variable approximated as a Gaussian with mean $1$ and variance which scales with $\sigma$. 
@@ -66,7 +66,7 @@ Random and stochastic forcing can lead to less regularity and stability of numer
 In implementing our random noise terms, we have taken
 
 $$
-\diff{W_t}{t} \propto \frac{1}{\sqrt{\dt \dx^N}},
+\diff{W_t}{t} \propto \frac{1}{\sqrt{\dt \dx^N}}\xi(t,\v{x}),
 $$
 
-with $\dt$ and $\dx$ the space and time steps respectively, and $N$ the number of dimensions. The scaling in time is to preserve the Brownian increment scaling of $W_t \propto \sqrt{\dt}$ after the multiplication by $\dt$ from the Forward-Euler stepping. Similarly, we take $\eta$ to scale the same way in space, but it will not scale with time. We also mollify $\eta$ by running a diffusion smoothing on it for a short time.
+with $\dt$ and $\dx$ the space and time steps respectively, and $N$ is the number of dimensions. The variable $\xi$ represents (for each spatial point and every time step) an independently distributed Normal random variable with mean $0$ and variance $1$. The scaling in time is to preserve the Brownian increment scaling of $W_t \propto \sqrt{\dt}$ after the multiplication by $\dt$ from the Forward-Euler stepping. Similarly, we take $\eta$ to scale the same way in space, but it will not scale with time. We also mollify $\eta$ by running a diffusion smoothing on it for a short time. 
