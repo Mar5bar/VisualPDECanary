@@ -4,15 +4,15 @@ title: Schrödinger equation
 lesson_number: 50
 thumbnail: /assets/images/SchrodingerEquation.webp
 extract: Quantum mechanics
-equation: $i\hbar\pd{\psi}{t}=-\frac{\hbar}{2m}\nabla^2 \psi+V(x,t)\psi$
+equation: $\i\hbar\pd{\psi}{t}=-\frac{\hbar}{2m}\nabla^2 \psi+V(x,t)\psi$
 ---
 We now consider the [Schrödinger equation](https://en.wikipedia.org/wiki/Schrödinger_equation),
 
-$$i\hbar\pd{\psi}{t}=-\nabla^2 \psi+V(x,t)\psi,$$
+$$\i\hbar\pd{\psi}{t}=-\nabla^2 \psi+V(x,t)\psi,$$
 
 with homogeneous Dirichlet boundary conditions. We will first consider a variant of this equation with *artificial diffusion*, as in [the wave equation](/basic_pdes/wave-equation) shown before, which takes the form
 
-$$\pd{\psi}{t}=iD\nabla^2 \psi+DC\nabla^2 \psi,$$
+$$\pd{\psi}{t}=\i D\nabla^2 \psi+DC\nabla^2 \psi,$$
 
 where $D,C>0$ are positive constants. We use the initial condition 
 
@@ -33,7 +33,11 @@ We can also choose a potential $V(x,y)$ which has the effect of localising some 
 $$\begin{aligned}V(x,y) &= \sin(n \pi x)\sin(m\pi y),\\ \psi(x,y,0) &= (\sin(\pi x)\sin(\pi y))^{10},
 \end{aligned}$$
 
-which can be played with in this [heterogeneous simulation](/sim/?preset=stabilizedSchrodingerEquationPotential). As the solution evolves, one can observe *tunnelling* from local potential wells where the solution is highly concentrated, out to potential wells further away from the localised initial condition. Note that here the colour scale is constantly changing to observe the maximal and minimal values of $\lvert \psi \rvert$, as these vary substantially during an oscillation.
+which can be played with in this [heterogeneous simulation](/sim/?preset=stabilizedSchrodingerEquationPotential). 
+
+As the solution evolves, one can observe *tunnelling* from local potential wells where the solution is highly concentrated, out to potential wells further away from the localised initial condition. 
+
+Note that here the colour scale is constantly changing to observe the maximal and minimal values of $\lvert \psi \rvert$, as these vary substantially during an oscillation.
 
 ## Numerical notes
 
@@ -53,4 +57,10 @@ as can be seen in the 1D example below.
 
 ## Particle in a 1D potential well
 
-We can consider an analogue of a particle in a potential well by putting a [Gaussian wave packet](https://en.wikipedia.org/wiki/Wave_packet#Gaussian_wave_packets_in_quantum_mechanics) inside a quadratic potential. For short times, such a wave packet acts like a particle bouncing between the two walls of the potential with some fixed energy, as you can see in this [1D simulation](/sim/?preset=stabilizedSchrodinger1D). The total probability, shown in the bottom corner, is approximately conserved here as we have set $C=1$ and taken a sufficiently small simulation step, consistent with [more sophisticated simulation techniques](http://www.astro.utoronto.ca/~mahajan/notebooks/quantum_tunnelling.html). See the discussion at the bottom of [Validating VisualPDE](/numerical-methods/validating-VisualPDE) for more details about the sensitivity to timestepping accuracy.
+We can consider an analogue of a particle in a potential well by putting a [Gaussian wave packet](https://en.wikipedia.org/wiki/Wave_packet#Gaussian_wave_packets_in_quantum_mechanics) inside a quadratic potential. 
+
+For short times, such a wave packet acts like a particle bouncing between the two walls of the potential with some fixed energy, as you can see in this [1D simulation](/sim/?preset=stabilizedSchrodinger1D). 
+
+The total probability, shown in the bottom corner, is approximately conserved here as we have set $C=1$ and taken a sufficiently small simulation step, consistent with [more sophisticated simulation techniques](http://www.astro.utoronto.ca/~mahajan/notebooks/quantum_tunnelling.html). 
+
+See the discussion at the bottom of [Validating VisualPDE](/numerical-methods/validating-VisualPDE) for more details about the sensitivity to timestepping accuracy.

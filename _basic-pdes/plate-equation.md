@@ -6,7 +6,7 @@ thumbnail: /assets/images/plateEquation.webp
 extract: The plate equation
 equation: $\pdd{u}{t}=-D^2 \nabla^4 u-Q$
 ---
-We next consider a (damped) [beam equation](https://en.wikipedia.org/wiki/Euler%E2%80%93Bernoulli_beam_theory):
+Let's consider a (damped) [beam equation](https://en.wikipedia.org/wiki/Euler%E2%80%93Bernoulli_beam_theory):
 
 $$\pdd{u}{t}+ C\pd{u}{t}=-D^2 \frac{\partial^4 u}{\partial x^4} u-Q,$$
 
@@ -57,4 +57,5 @@ which is the plate equation for $D_c=0$. The parameter $D_c$ is used to prevent 
 ## 3D deformations
 
 
-* Load the [3D simulation](/sim/?preset=plateEquation3D) and click! This is the same simulation as in the 2D plate equation above, but shown in 3D with a view that can be rotated.
+* Load the [3D simulation](/sim/?preset=plateEquation3D).
+* Click! This is the same simulation as in the 2D plate equation above, but shown in 3D with a view that can be rotated.

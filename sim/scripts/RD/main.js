@@ -339,11 +339,11 @@ import { createWelcomeTour } from "./tours.js";
       event.preventDefault();
       if (/iPhone|iPad/i.test(navigator.userAgent)) {
         alert(
-          "Oops! An iOS/iPadOS bug has caused the simulation to crash. Fix this by quitting your browser and reopening the simulation (wait until the simulation has loaded before changing tab/application), and perform a software update if possible."
+          "Oops! An iOS/iPadOS bug has caused the simulation to crash. Fix this by quitting your browser and reopening the simulation (wait until the simulation has loaded before changing tab/application), and perform a software update if possible.",
         );
       }
     },
-    false
+    false,
   );
 
   // Warn the user if any errors occur.
@@ -356,7 +356,7 @@ import { createWelcomeTour } from "./tours.js";
     regex.test(errorStr) ? (errorStr = errorStr.match(regex)) : {};
     throwError(
       errorStr.toString().trim() +
-        ". Click <a href='/user-guide/FAQ#undeclared' target='blank'>here</a> for more information."
+        ". Click <a href='/user-guide/FAQ#undeclared' target='blank'>here</a> for more information.",
     );
   };
 
@@ -427,11 +427,11 @@ import { createWelcomeTour } from "./tours.js";
     window.gtag?.("event", "custom_link_followed");
     try {
       var newParams = JSON.parse(
-        LZString.decompressFromEncodedURIComponent(params.get("options"))
+        LZString.decompressFromEncodedURIComponent(params.get("options")),
       );
     } catch (e) {
       throwError(
-        "It looks like this link is missing something - please check that it has been copied and pasted correctly and try again."
+        "It looks like this link is missing something - please check that it has been copied and pasted correctly and try again.",
       );
       newParams = {};
     }
@@ -460,7 +460,7 @@ import { createWelcomeTour } from "./tours.js";
   if (params.has("view")) {
     options.activeViewInd = Number(params.get("view")).clamp(
       0,
-      options.views.length - 1
+      options.views.length - 1,
     );
     applyView(options.views[options.activeViewInd]);
   }
@@ -479,7 +479,7 @@ import { createWelcomeTour } from "./tours.js";
     $("#play").css("top", "-=50");
     $("#pause").css("top", "-=50");
     $("#play_pause_placeholder").css("top", "-=50");
-    $("#erase").css("top", "-=50");
+    if (!params.has("reset_only")) $("#erase").css("top", "-=50");
     $("#views").css("top", "-=50");
     $("#views_ui").css("top", "-=50");
     viewUIOffsetInit = $(":root").css("--views-ui-offset");
@@ -690,7 +690,7 @@ import { createWelcomeTour } from "./tours.js";
     // Fadeout either after the user clicks on the canvas or 5s passes.
     setTimeout(() => fadeout("#top_message"), 5000);
     $("#simCanvas").one("pointerdown touchstart", () =>
-      fadeout("#top_message")
+      fadeout("#top_message"),
     );
   }
 
@@ -731,9 +731,22 @@ import { createWelcomeTour } from "./tours.js";
     {
       root: null,
       threshold: 0,
-    }
+    },
   );
   simObserver.observe(document.getElementById("simCanvas"));
+
+  // When navigating away from the page, store the URL reflecting the current state in history if anything has changed.
+  window.addEventListener("beforeunload", function (e) {
+    // Stop any recording.
+    if (isRecording) {
+      stopRecording();
+    }
+    // Check if the simulation has changed (options.preset will have changed).
+    if (Object.keys(diffObjects(getPreset(options.preset), options)).length) {
+      // If so, add the URL.
+      history.pushState({}, "", getSimURL());
+    }
+  });
 
   // Begin the simulation.
   isLoading = false;
@@ -809,8 +822,8 @@ import { createWelcomeTour } from "./tours.js";
       new THREE.WebGLRenderTarget(
         options.maxDisc,
         options.maxDisc,
-        simTextureOpts
-      )
+        simTextureOpts,
+      ),
     );
     // Store all the simulation textures in an array. They'll be in history order, so that the first element is the most
     // recent. We'll write to the first texture, with later elements being further back in time.
@@ -1059,7 +1072,7 @@ import { createWelcomeTour } from "./tours.js";
         resize();
         renderIfNotRunning();
       },
-      false
+      false,
     );
 
     // Handle messages sent to the simulation.
@@ -1160,7 +1173,7 @@ import { createWelcomeTour } from "./tours.js";
         parser.evaluate(options.domainScale) * domainScaleFactor;
     } catch (error) {
       throwError(
-        "Unable to evaluate the domain length. Please check the definition."
+        "Unable to evaluate the domain length. Please check the definition.",
       );
       domainScaleValue = 100 * domainScaleFactor;
     }
@@ -1193,13 +1206,13 @@ import { createWelcomeTour } from "./tours.js";
       spatialStepValue = parser.evaluate(options.spatialStep);
     } catch (error) {
       throwError(
-        "Unable to evaluate the spatial step. Please check the definition."
+        "Unable to evaluate the spatial step. Please check the definition.",
       );
     }
     if (spatialStepValue <= 0) {
       // Prevent a crash if a <=0 spatial step is specified.
       throwError(
-        "Oops! A spatial step less than or equal to 0 would almost certainly crash your device. Please check the definition."
+        "Oops! A spatial step less than or equal to 0 would almost certainly crash your device. Please check the definition.",
       );
       spatialStepValue = domainScaleValue / 100;
     }
@@ -1211,13 +1224,13 @@ import { createWelcomeTour } from "./tours.js";
           maxTexSize +
           "). Please increase the space step to at least " +
           (Math.ceil((1e4 * domainScaleValue) / maxTexSize) / 1e4).toPrecision(
-            4
+            4,
           ) +
           " or reduce the domain size to at most " +
           (Math.floor(1e4 * maxTexSize * spatialStepValue) / 1e4).toPrecision(
-            4
+            4,
           ) +
-          "."
+          ".",
       );
       nXDisc = Math.min(nXDisc, maxTexSize);
       nYDisc = Math.min(nYDisc, maxTexSize);
@@ -1242,7 +1255,7 @@ import { createWelcomeTour } from "./tours.js";
       val += step;
     }
     xDisplayDomainCoords = xDisplayDomainCoords.map(
-      (x) => (x * domainWidth) / maxDim
+      (x) => (x * domainWidth) / maxDim,
     );
     // Set the size of the renderer, which will interpolate precisely from the textures.
     setDefaultRenderSize();
@@ -1260,7 +1273,7 @@ import { createWelcomeTour } from "./tours.js";
       domainWidth / maxDim,
       domainHeight / maxDim,
       displayDomainSize[0],
-      displayDomainSize[1]
+      displayDomainSize[1],
     );
     domain = new THREE.Mesh(plane, displayMaterial);
     domain.position.z = 0;
@@ -1352,7 +1365,7 @@ import { createWelcomeTour } from "./tours.js";
     // The interpolationTexture will match the number of pixels in the display.
     interpolationTexture.setSize(
       Math.round(devicePixelRatio * canvasWidth),
-      Math.round(devicePixelRatio * canvasHeight)
+      Math.round(devicePixelRatio * canvasHeight),
     );
   }
 
@@ -1559,7 +1572,7 @@ import { createWelcomeTour } from "./tours.js";
       '<i class="fa-regular fa-brush"></i> Enable brush',
       configureCursorDisplay,
       null,
-      "Toggle the brush on or off"
+      "Toggle the brush on or off",
     );
 
     controllers["brushAction"] = root
@@ -1674,7 +1687,7 @@ import { createWelcomeTour } from "./tours.js";
       null,
       null,
       null,
-      true
+      true,
     );
 
     addToggle(
@@ -1689,7 +1702,7 @@ import { createWelcomeTour } from "./tours.js";
         renderIfNotRunning();
       },
       null,
-      "Specify a custom domain"
+      "Specify a custom domain",
     );
 
     controllers["domainIndicatorFun"] = root
@@ -1742,7 +1755,7 @@ import { createWelcomeTour } from "./tours.js";
       '<i class="fa-regular fa-hourglass-half"></i> Elapsed time',
       configureTimeDisplay,
       null,
-      "Show/hide time display"
+      "Show/hide time display",
     );
 
     addToggle(
@@ -1754,7 +1767,7 @@ import { createWelcomeTour } from "./tours.js";
         configureGUI();
       },
       null,
-      "Toggle automatic pausing"
+      "Toggle automatic pausing",
     );
 
     addToggle(
@@ -1763,7 +1776,7 @@ import { createWelcomeTour } from "./tours.js";
       '<i class="fa-regular fa-gauge-high"></i> Performance mode',
       setDefaultRenderSize,
       null,
-      "Toggle performance mode, which lowers display quality to boost simulation speed"
+      "Toggle performance mode, which lowers display quality to boost simulation speed",
     );
 
     controllers["autoPauseAt"] = root
@@ -1787,7 +1800,7 @@ import { createWelcomeTour } from "./tours.js";
       '<i class="fa-regular fa-square-root-variable"></i> Typeset',
       setEquationDisplayType,
       null,
-      "Typeset the specified equations"
+      "Typeset the specified equations",
     );
 
     controllers["TU"] = root
@@ -2263,7 +2276,7 @@ import { createWelcomeTour } from "./tours.js";
         updateProblem();
       },
       "cross_diffusion_controller",
-      "Toggle cross diffusion"
+      "Toggle cross diffusion",
     );
 
     addToggle(
@@ -2275,7 +2288,7 @@ import { createWelcomeTour } from "./tours.js";
         setEquationDisplayType();
       },
       "timescales_controller",
-      "Toggle the use of custom timescales"
+      "Toggle the use of custom timescales",
     );
 
     // Images folder.
@@ -2297,7 +2310,7 @@ import { createWelcomeTour } from "./tours.js";
       "resetFromCheckpoints",
       "Enable checkpoints",
       null,
-      "checkpointButton"
+      "checkpointButton",
     );
 
     // Force a newline.
@@ -2308,7 +2321,7 @@ import { createWelcomeTour } from "./tours.js";
       saveSimState,
       null,
       "Set a checkpoint at the current state",
-      ["narrow"]
+      ["narrow"],
     );
     addButton(
       checkpointButtons,
@@ -2316,7 +2329,7 @@ import { createWelcomeTour } from "./tours.js";
       exportSimState,
       null,
       "Download the last checkpoint as a file",
-      ["narrow"]
+      ["narrow"],
     );
     addButton(
       checkpointButtons,
@@ -2326,7 +2339,7 @@ import { createWelcomeTour } from "./tours.js";
       },
       null,
       "Upload a checkpoint file",
-      ["narrow"]
+      ["narrow"],
     );
 
     root
@@ -2359,7 +2372,7 @@ import { createWelcomeTour } from "./tours.js";
         renderIfNotRunning();
       },
       null,
-      "Compute the integral of the plotted expression over the domain"
+      "Compute the integral of the plotted expression over the domain",
     );
 
     addToggle(
@@ -2371,7 +2384,7 @@ import { createWelcomeTour } from "./tours.js";
         renderIfNotRunning();
       },
       "interpController",
-      "Override your device's default smoothing and perform bilinear interpolation of the display"
+      "Override your device's default smoothing and perform bilinear interpolation of the display",
     );
 
     addToggle(
@@ -2384,7 +2397,7 @@ import { createWelcomeTour } from "./tours.js";
         configureGUI();
       },
       null,
-      "Set the seed for random number generation"
+      "Set the seed for random number generation",
     );
 
     controllers["randSeed"] = root
@@ -2404,7 +2417,7 @@ import { createWelcomeTour } from "./tours.js";
       '<i class="fa-regular fa-copy"></i> Copy code',
       copyConfigAsJSON,
       null,
-      "Copy the simulation configuration as JSON to the clipboard"
+      "Copy the simulation configuration as JSON to the clipboard",
     );
 
     // Copy configuration as raw JSON.
@@ -2413,7 +2426,7 @@ import { createWelcomeTour } from "./tours.js";
       '<i class="fa-regular fa-bug"></i> Copy debug',
       copyDebug,
       null,
-      "Copy debug information to the clipboard"
+      "Copy debug information to the clipboard",
     );
 
     addToggle(
@@ -2424,7 +2437,7 @@ import { createWelcomeTour } from "./tours.js";
         configureStatsGUI();
       },
       "interpController",
-      "Show performance statistics"
+      "Show performance statistics",
     );
 
     addToggle(
@@ -2434,14 +2447,14 @@ import { createWelcomeTour } from "./tours.js";
       function () {
         localStorage.setItem("AA", localOpts.antialias);
         alert(
-          "Toggling antialiasing requires a page reload. We recommend generating a link to the current simulation if you've modified anything."
+          "Toggling antialiasing requires a page reload. We recommend generating a link to the current simulation if you've modified anything.",
         );
       },
       undefined,
       "Antialias the display (useful for vector fields on low-res displays). Requires page reload.",
       undefined,
       undefined,
-      localOpts
+      localOpts,
     );
 
     // Populate list of presets for parent selection.
@@ -2513,14 +2526,14 @@ import { createWelcomeTour } from "./tours.js";
       '<i class="fa-solid fa-pen-nib"></i> Rename',
       editCurrentViewName,
       null,
-      "Rename the current view"
+      "Rename the current view",
     ); // Rename
     addButton(
       editViewButtons,
       '<i class="fa-solid fa-xmark"></i> Delete',
       deleteView,
       "deleteViewButton",
-      "Delete view"
+      "Delete view",
     ); // Delete
 
     controllers["whatToPlot"] = root
@@ -2561,7 +2574,7 @@ import { createWelcomeTour } from "./tours.js";
       "contourButton",
       "Toggle contours",
       "contoursFolder",
-      ["wide"]
+      ["wide"],
     );
 
     addToggle(
@@ -2576,7 +2589,7 @@ import { createWelcomeTour } from "./tours.js";
       "embossButton",
       "Toggle lighting",
       "embossFolder",
-      ["wide"]
+      ["wide"],
     );
 
     addToggle(
@@ -2591,7 +2604,7 @@ import { createWelcomeTour } from "./tours.js";
       null,
       "Toggle overlay",
       "overlayFolder",
-      ["wide"]
+      ["wide"],
     );
 
     addToggle(
@@ -2606,7 +2619,7 @@ import { createWelcomeTour } from "./tours.js";
       "vectorFieldButton",
       "Toggle vector field",
       "vectorFieldFolder",
-      ["wide"]
+      ["wide"],
     );
 
     root = editViewFolder.addFolder("Colour");
@@ -2630,8 +2643,10 @@ import { createWelcomeTour } from "./tours.js";
         "Snow Ghost": "snowghost",
         Squirrels: "squirrels",
         Spooky: "spooky",
+        Terrain: "terrain",
         Thermal: "thermal",
         Turbo: "turbo",
+        "Urban flooding": "urbanFlooding",
         Viridis: "viridis",
         Water: "water",
       })
@@ -2676,7 +2691,7 @@ import { createWelcomeTour } from "./tours.js";
       },
       null,
       "Reverse the colour map",
-      ["wide"]
+      ["wide"],
     );
 
     addToggle(
@@ -2690,7 +2705,7 @@ import { createWelcomeTour } from "./tours.js";
       null,
       "Display the colourbar",
       null,
-      ["wide"]
+      ["wide"],
     );
 
     addButton(
@@ -2704,7 +2719,7 @@ import { createWelcomeTour } from "./tours.js";
       },
       null,
       "Snap min/max to visible",
-      ["wide"]
+      ["wide"],
     );
 
     addToggle(
@@ -2721,7 +2736,7 @@ import { createWelcomeTour } from "./tours.js";
       null,
       "Automatically snap range",
       null,
-      ["wide"]
+      ["wide"],
     );
 
     root = editViewFolder.addFolder("Contours");
@@ -2900,7 +2915,7 @@ import { createWelcomeTour } from "./tours.js";
         updateView("customSurface");
       },
       null,
-      "Plot the solution on a custom surface"
+      "Plot the solution on a custom surface",
     );
 
     controllers["surfaceFun"] = root
@@ -3089,12 +3104,12 @@ import { createWelcomeTour } from "./tours.js";
       lastFPS = Math.floor(fps);
       options.numTimestepsPerFrame = Math.max(
         1,
-        Math.floor((options.numTimestepsPerFrame * fps) / 30)
+        Math.floor((options.numTimestepsPerFrame * fps) / 30),
       );
       controllers["numTimestepsPerFrame"].updateDisplay();
       stabilisingFPSTimer = setTimeout(
         () => (stabilisingFPSTimer = null),
-        2200
+        2200,
       );
     } else {
       // If we haven't received a new FPS, we're probably at the limit of the device's performance.
@@ -3198,7 +3213,7 @@ import { createWelcomeTour } from "./tours.js";
     if (options.flippedColourmap) {
       colourmap.reverse();
       colourmap = colourmap.map((x) =>
-        x.slice(0, -1).concat([1 - x.slice(-1)])
+        x.slice(0, -1).concat([1 - x.slice(-1)]),
       );
     }
 
@@ -3219,7 +3234,7 @@ import { createWelcomeTour } from "./tours.js";
     if (options.overlay) {
       shader += overlayShader().replaceAll(
         "OVERLAYEXPR",
-        parseShaderString(options.overlayExpr)
+        parseShaderString(options.overlayExpr),
       );
       shader = replaceMINXMINY(shader);
       setOverlayUniforms();
@@ -3237,7 +3252,7 @@ import { createWelcomeTour } from "./tours.js";
     let regex = /COLOURSPEC/g;
     shaderStr = shaderStr.replace(
       regex,
-      speciesToChannelChar(options.whatToDraw)
+      speciesToChannelChar(options.whatToDraw),
     );
     return shaderStr;
   }
@@ -3382,8 +3397,8 @@ import { createWelcomeTour } from "./tours.js";
       // Use spline-smoothed points for plotting.
       let curve = new THREE.SplineCurve(
         xDisplayDomainCoords.map(
-          (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
-        )
+          (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
+        ),
       );
       let points;
       try {
@@ -3394,8 +3409,8 @@ import { createWelcomeTour } from "./tours.js";
         yDisplayDomainCoords = yDisplayDomainCoords.map(() => 0);
         curve = new THREE.SplineCurve(
           xDisplayDomainCoords.map(
-            (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
-          )
+            (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
+          ),
         );
         points = curve.getSpacedPoints(numPointsInLine);
       }
@@ -3408,8 +3423,8 @@ import { createWelcomeTour } from "./tours.js";
         }
         curve = new THREE.SplineCurve(
           xDisplayDomainCoords.map(
-            (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind])
-          )
+            (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
+          ),
         );
         points = curve.getSpacedPoints(numPointsInLine);
         setLineXY(overlayLine, points);
@@ -3436,7 +3451,7 @@ import { createWelcomeTour } from "./tours.js";
         arrow.lookAt(
           arrow.position.x + xComp,
           arrow.position.y + yComp,
-          arrow.position.z
+          arrow.position.z,
         );
         arrow.size = xComp ** 2 + yComp ** 2;
         sizes.push(arrow.size);
@@ -3505,7 +3520,7 @@ import { createWelcomeTour } from "./tours.js";
         .toDataURL()
         .replace(
           /^data:image\/?[A-z]*;base64,/,
-          "data:application/octet-stream;base64,"
+          "data:application/octet-stream;base64,",
         );
       link.click();
       setSizes();
@@ -3536,7 +3551,7 @@ import { createWelcomeTour } from "./tours.js";
         window.clearTimeout(brushDisabledTimer);
         brushDisabledTimer = setTimeout(
           () => $("#brush_disabled").fadeOut(1000),
-          3000
+          3000,
         );
       }
     }
@@ -3568,7 +3583,7 @@ import { createWelcomeTour } from "./tours.js";
         Math.floor(event.clientX - cRect.x),
         Math.floor(event.clientY - cRect.y),
         1,
-        1
+        1,
       );
       // Render to the click domain.
       domain.material = clickMaterial;
@@ -3691,7 +3706,7 @@ import { createWelcomeTour } from "./tours.js";
       // Add in the x diffusion coefficient.
       out += nonConstantDiffusionEvaluateInSpaceStr(
         parseShaderString(str) + ";\n",
-        label + "x"
+        label + "x",
       );
       // Add in the y diffusion coefficients.
       if (!stry) {
@@ -3699,7 +3714,7 @@ import { createWelcomeTour } from "./tours.js";
       } else {
         out += nonConstantDiffusionEvaluateInSpaceStr(
           parseShaderString(stry) + ";\n",
-          label + "y"
+          label + "y",
         );
       }
     }
@@ -3750,7 +3765,7 @@ import { createWelcomeTour } from "./tours.js";
       // Add in the x diffusion coefficient.
       out += nonConstantDiffusionEvaluateInSpaceStr(
         parseShaderString(str) + ";\n",
-        label + "x"
+        label + "x",
       );
       // Add in the y diffusion coefficients.
       if (!stry) {
@@ -3758,7 +3773,7 @@ import { createWelcomeTour } from "./tours.js";
       } else {
         out += nonConstantDiffusionEvaluateInSpaceStr(
           parseShaderString(stry) + ";\n",
-          label + "y"
+          label + "y",
         );
       }
     }
@@ -3823,6 +3838,7 @@ import { createWelcomeTour } from "./tours.js";
     // Replace custom functions.
     str = replaceGauss(str);
     str = replaceBump(str);
+    str = replaceWhiteNoise(str);
 
     // Replace powers with safepow, including nested powers.
     str = replaceBinOperator(str, "^", function (m, p1, p2) {
@@ -3837,7 +3853,7 @@ import { createWelcomeTour } from "./tours.js";
       RegExp("\\b(" + anySpeciesRegexStrs[0] + ")\\b", "g"),
       function (m, d) {
         return "uvwq." + speciesToChannelChar(d);
-      }
+      },
     );
 
     // Replace species_x, species_y etc with uvwqX.r and uvwqY.r, etc.
@@ -3847,7 +3863,7 @@ import { createWelcomeTour } from "./tours.js";
       function (m, d1, d2) {
         if (d2.includes("2")) d2 = d2.slice(0, -1).repeat(2);
         return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
-      }
+      },
     );
 
     // Replace species_xx, species_yy etc with uvwqXX.r and uvwqYY.r, etc.
@@ -3855,7 +3871,7 @@ import { createWelcomeTour } from "./tours.js";
       RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_(xx|yy)\\b", "g"),
       function (m, d1, d2) {
         return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
-      }
+      },
     );
 
     // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
@@ -3972,7 +3988,7 @@ import { createWelcomeTour } from "./tours.js";
       } else if (str == "combo") {
         [
           ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Neumann\s*=([^;]*);/g
+            /(Left|Right|Top|Bottom)\s*:\s*Neumann\s*=([^;]*);/g,
           ),
         ].forEach(function (m) {
           const side = m[1][0].toUpperCase();
@@ -3989,7 +4005,7 @@ import { createWelcomeTour } from "./tours.js";
       if (str == "combo") {
         [
           ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Ghost\s*=([^;]*);/g
+            /(Left|Right|Top|Bottom)\s*:\s*Ghost\s*=([^;]*);/g,
           ),
         ].forEach(function (m) {
           const side = m[1][0].toUpperCase();
@@ -4011,7 +4027,7 @@ import { createWelcomeTour } from "./tours.js";
         } else {
           let baseStr = RDShaderDirichletIndicatorFun().replace(
             /indicatorFun/g,
-            parseShaderString(getModifiedDomainIndicatorFun())
+            parseShaderString(getModifiedDomainIndicatorFun()),
           );
           dirichletShader +=
             selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
@@ -4021,7 +4037,7 @@ import { createWelcomeTour } from "./tours.js";
       } else if (str == "combo") {
         [
           ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g
+            /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g,
           ),
         ].forEach(function (m) {
           const side = m[1][0].toUpperCase();
@@ -4034,7 +4050,7 @@ import { createWelcomeTour } from "./tours.js";
         // Zero-out anything outside of the domain if we're using an indicator function.
         let baseStr = RDShaderDirichletIndicatorFun().replace(
           /indicatorFun/g,
-          parseShaderString(getModifiedDomainIndicatorFun())
+          parseShaderString(getModifiedDomainIndicatorFun()),
         );
         dirichletShader +=
           selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
@@ -4057,7 +4073,7 @@ import { createWelcomeTour } from "./tours.js";
       } else if (str == "combo") {
         [
           ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Robin\s*=([^;]*);/g
+            /(Left|Right|Top|Bottom)\s*:\s*Robin\s*=([^;]*);/g,
           ),
         ].forEach(function (m) {
           const side = m[1][0].toUpperCase();
@@ -4109,7 +4125,7 @@ import { createWelcomeTour } from "./tours.js";
           let regex = new RegExp(
             "\\b" +
               listOfSpecies[specInd] +
-              "(_(x|xb|xf|xb2|xf2|xx|y|yb|yf|yb2|yf2|yy))?\\b"
+              "(_(x|xb|xf|xb2|xf2|xx|y|yb|yf|yb2|yf2|yy))?\\b",
           );
           if (
             regex.test(strToTest) ||
@@ -4136,14 +4152,14 @@ import { createWelcomeTour } from "./tours.js";
           doneDict,
           stack,
           allDependencies,
-          badNames
+          badNames,
         );
       }
       if (badNames.length > 0) {
         throwError(
           "Cyclic variables detected. Please check the definition(s) of " +
             badNames.join(", ") +
-            ". Click <a href='/user-guide/FAQ#cyclic' target='blank'>here</a> for more information."
+            ". Click <a href='/user-guide/FAQ#cyclic' target='blank'>here</a> for more information.",
         );
         return;
       }
@@ -4153,7 +4169,7 @@ import { createWelcomeTour } from "./tours.js";
     if (algebraicV && options.crossDiffusion) {
       algebraicShader += selectSpeciesInShaderStr(
         RDShaderAlgebraicSpecies(),
-        listOfSpecies[1]
+        listOfSpecies[1],
       );
     }
 
@@ -4161,7 +4177,7 @@ import { createWelcomeTour } from "./tours.js";
     if (algebraicW && options.crossDiffusion) {
       algebraicShader += selectSpeciesInShaderStr(
         RDShaderAlgebraicSpecies(),
-        listOfSpecies[2]
+        listOfSpecies[2],
       );
     }
 
@@ -4169,7 +4185,7 @@ import { createWelcomeTour } from "./tours.js";
     if (algebraicQ && options.crossDiffusion) {
       algebraicShader += selectSpeciesInShaderStr(
         RDShaderAlgebraicSpecies(),
-        listOfSpecies[3]
+        listOfSpecies[3],
       );
     }
 
@@ -4178,7 +4194,7 @@ import { createWelcomeTour } from "./tours.js";
     let match = diffusionShader.match(/\buvwq[XY]\.[rgba]\b/);
     if (match) {
       throwError(
-        "Including derivatives in the diffusion coefficients is not supported. Try casting your PDE in another form."
+        "Including derivatives in the diffusion coefficients is not supported. Try casting your PDE in another form.",
       );
       return;
     }
@@ -4246,8 +4262,8 @@ import { createWelcomeTour } from "./tours.js";
           middle,
           insertRates(RDShaderMain(type)),
           bot,
-        ].join(" ")
-      )
+        ].join(" "),
+      ),
     );
 
     type = "AB2";
@@ -4260,8 +4276,8 @@ import { createWelcomeTour } from "./tours.js";
           middle,
           insertRates(RDShaderMain(type)),
           bot,
-        ].join(" ")
-      )
+        ].join(" "),
+      ),
     );
 
     type = "Mid";
@@ -4275,8 +4291,8 @@ import { createWelcomeTour } from "./tours.js";
             middle,
             insertRates(RDShaderMain(type + ind.toString())),
             bot,
-          ].join(" ")
-        )
+          ].join(" "),
+        ),
       );
     }
 
@@ -4291,13 +4307,13 @@ import { createWelcomeTour } from "./tours.js";
             middle,
             insertRates(RDShaderMain(type + ind.toString())),
             bot,
-          ].join(" ")
-        )
+          ].join(" "),
+        ),
       );
     }
 
     Object.keys(simMaterials).forEach(
-      (key) => (simMaterials[key].needsUpdate = true)
+      (key) => (simMaterials[key].needsUpdate = true),
     );
 
     // We will use a shader to enforce Dirichlet BCs before each timestep, but only if some Dirichlet
@@ -4309,7 +4325,7 @@ import { createWelcomeTour } from "./tours.js";
         let str = RDShaderDirichletIndicatorFun()
           .replace(
             /indicatorFun/,
-            parseShaderString(getModifiedDomainIndicatorFun())
+            parseShaderString(getModifiedDomainIndicatorFun()),
           )
           .replace(/updated/, "gl_FragColor");
         DStrs.forEach(function (D, ind) {
@@ -4330,20 +4346,20 @@ import { createWelcomeTour } from "./tours.js";
           if (str == "dirichlet") {
             dirichletShader += parseDirichletRHS(
               DStrs[ind],
-              listOfSpecies[ind]
+              listOfSpecies[ind],
             );
             dirichletShader += dirichletEnforceShader(ind);
           } else if (str == "combo") {
             [
               ...MStrs[ind].matchAll(
-                /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g
+                /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g,
               ),
             ].forEach(function (m) {
               const side = m[1][0].toUpperCase();
               dirichletShader += parseDirichletRHS(
                 m[2],
                 listOfSpecies[ind],
-                side
+                side,
               );
               dirichletShader += dirichletEnforceShader(ind, side);
             });
@@ -4490,7 +4506,7 @@ import { createWelcomeTour } from "./tours.js";
     let newOptions;
     const listOfPresetNames = getListOfPresetNames();
     const listOfPresetNamesLower = listOfPresetNames.map((x) =>
-      x.toLowerCase()
+      x.toLowerCase(),
     );
     if (preset == undefined) {
       // If no argument is given, load whatever is set in options.preset.
@@ -4509,7 +4525,7 @@ import { createWelcomeTour } from "./tours.js";
             (closest != null
               ? " We've loaded the closest match, '" + closest + "'."
               : "") +
-            " Please check the preset specified in the URL."
+            " Please check the preset specified in the URL.",
         );
         // Load the default preset or the closest match.
         newOptions = getPreset(closest ? closest : defaultPreset);
@@ -4553,12 +4569,12 @@ import { createWelcomeTour } from "./tours.js";
       options.guiUpdatePeriod = Math.max(options.guiUpdatePeriod, 3);
       options.tryClickingText = options.tryClickingText.replaceAll(
         "clicking",
-        "tapping"
+        "tapping",
       );
     } else {
       options.tryClickingText = options.tryClickingText.replaceAll(
         "tapping",
-        "clicking"
+        "clicking",
       );
     }
 
@@ -4836,16 +4852,16 @@ import { createWelcomeTour } from "./tours.js";
         updateGUIDropdown(
           cont,
           ["Dirichlet", "Neumann", "Robin"],
-          ["dirichlet", "neumann", "robin"]
-        )
+          ["dirichlet", "neumann", "robin"],
+        ),
       );
     } else {
       BCsControllers.forEach((cont) =>
         updateGUIDropdown(
           cont,
           ["Periodic", "Dirichlet", "Neumann", "Robin", "Combination"],
-          ["periodic", "dirichlet", "neumann", "robin", "combo"]
-        )
+          ["periodic", "dirichlet", "neumann", "robin", "combo"],
+        ),
       );
     }
     refreshGUI(leftGUI);
@@ -5037,8 +5053,8 @@ import { createWelcomeTour } from "./tours.js";
   function diffObjects(o1, o2) {
     return Object.fromEntries(
       Object.entries(o1).filter(
-        ([k, v]) => JSON.stringify(o2[k]) !== JSON.stringify(v)
-      )
+        ([k, v]) => JSON.stringify(o2[k]) !== JSON.stringify(v),
+      ),
     );
   }
 
@@ -5073,21 +5089,21 @@ import { createWelcomeTour } from "./tours.js";
     if (options.domainViaIndicatorFun) {
       shaderStr += postShaderDomainIndicator().replace(
         /indicatorFun/g,
-        parseShaderString(getModifiedDomainIndicatorFun())
+        parseShaderString(getModifiedDomainIndicatorFun()),
       );
     }
     // Substitute the placeholder string used for remove vectors when near custom boundaries.
     let replacement = "";
     if (options.vectorField && options.domainViaIndicatorFun) {
       replacement = postShaderDomainIndicatorVField(
-        parseShaderString(options.domainIndicatorFun)
+        parseShaderString(options.domainIndicatorFun),
       );
     }
     shaderStr = shaderStr.replace("VECFIELDPLACEHOLDER", replacement);
     // Substitute the overlay expression.
     shaderStr = shaderStr.replaceAll(
       "OVERLAYEXPR",
-      parseShaderString(options.overlay ? options.overlayExpr : "1.0")
+      parseShaderString(options.overlay ? options.overlayExpr : "1.0"),
     );
     shaderStr = replaceMINXMINY(shaderStr);
     setOverlayUniforms();
@@ -5100,7 +5116,7 @@ import { createWelcomeTour } from "./tours.js";
     // Limit the number of algebraic species to at most one less than the number of species.
     options.numAlgebraicSpecies = Math.min(
       parseInt(options.numAlgebraicSpecies),
-      parseInt(options.numSpecies) - 1
+      parseInt(options.numSpecies) - 1,
     );
     algebraicV = options.numAlgebraicSpecies >= options.numSpecies - 1;
     algebraicW =
@@ -5202,7 +5218,7 @@ import { createWelcomeTour } from "./tours.js";
       if (!updatingAlgebraicSpecies) {
         updateGUIDropdown(
           controllers["algebraicSpecies"],
-          Array.from(Array(parseInt(options.numSpecies)).keys())
+          Array.from(Array(parseInt(options.numSpecies)).keys()),
         );
       }
       controllers["algebraicSpecies"].show();
@@ -5213,11 +5229,11 @@ import { createWelcomeTour } from "./tours.js";
       updateGUIDropdown(
         controllers["brushAction"],
         brushActions.filter((x) => !x.includes("smooth")),
-        brushActionVals.filter((x) => !x.includes("smooth"))
+        brushActionVals.filter((x) => !x.includes("smooth")),
       );
       if (options.brushAction.includes("smooth")) {
         controllers["brushAction"].setValue(
-          options.brushAction.replaceAll("smooth", "")
+          options.brushAction.replaceAll("smooth", ""),
         );
       }
       // Rename the Radius field to Indicator.
@@ -5226,7 +5242,7 @@ import { createWelcomeTour } from "./tours.js";
       updateGUIDropdown(
         controllers["brushAction"],
         brushActions,
-        brushActionVals
+        brushActionVals,
       );
       controllers["brushRadius"].name("Radius");
     }
@@ -5406,7 +5422,7 @@ import { createWelcomeTour } from "./tours.js";
     // Update the options available in whatToDraw based on the number of species.
     updateGUIDropdown(
       controllers["whatToDraw"],
-      listOfSpecies.slice(0, options.numSpecies)
+      listOfSpecies.slice(0, options.numSpecies),
     );
     // Update emboss sliders.
     updateViewSliders();
@@ -5469,7 +5485,7 @@ import { createWelcomeTour } from "./tours.js";
         options.whatToDraw = listOfSpecies[0];
         if (
           new RegExp("\\b(" + anySpeciesRegexStrs[1] + ")\\b").test(
-            options.whatToPlot
+            options.whatToPlot,
           )
         ) {
           options.whatToPlot = listOfSpecies[0];
@@ -5519,7 +5535,7 @@ import { createWelcomeTour } from "./tours.js";
         }
         if (
           new RegExp("\\b(" + anySpeciesRegexStrs[2] + ")\\b").test(
-            options.whatToPlot
+            options.whatToPlot,
           )
         ) {
           options.whatToPlot = listOfSpecies[0];
@@ -5564,7 +5580,7 @@ import { createWelcomeTour } from "./tours.js";
         }
         if (
           new RegExp("\\b(" + anySpeciesRegexStrs[3] + ")\\b").test(
-            options.whatToPlot
+            options.whatToPlot,
           )
         ) {
           options.whatToPlot = listOfSpecies[0];
@@ -5686,6 +5702,12 @@ import { createWelcomeTour } from "./tours.js";
     regexes["TW"] = /\b(tau_{w})/g;
     regexes["TQ"] = /\b(tau_{q})/g;
 
+    // Define placeholders for substituting parameter names in custom-typeset equations.
+    let paramNames = getKineticParamNames();
+    let paramPlaceholders = Array.from(Array(paramNames.length).keys()).map(
+      (s) => "PARAMETER_" + s.toString(),
+    );
+
     if (options.typesetCustomEqs) {
       // We'll work using the default notation, then convert at the end.
       let associatedStrs = {};
@@ -5730,13 +5752,24 @@ import { createWelcomeTour } from "./tours.js";
       });
       if (badSyntax) return;
 
+      // Before we convert the associated strings to default notation, put in placeholders for all
+      // user-defined parameters to prevent them from being accidentally recognised as default notation
+      // eg if u is a parameter.
+      Object.keys(associatedStrs).forEach(function (key) {
+        associatedStrs[key] = replaceSymbolsInStr(
+          associatedStrs[key],
+          paramNames,
+          paramPlaceholders,
+        );
+      });
+
       // Convert all the associated strings back to default notation.
       function toDefault(s) {
         return replaceSymbolsInStr(
           s,
           listOfSpecies,
           defaultSpecies,
-          "_(?:[xy][xybf]?)"
+          "_(?:[xy][xybf]?)",
         );
       }
 
@@ -5799,7 +5832,7 @@ import { createWelcomeTour } from "./tours.js";
           str,
           regexes[key],
           associatedStrs[key],
-          delims
+          delims,
         );
       });
 
@@ -5911,7 +5944,7 @@ import { createWelcomeTour } from "./tours.js";
       str = replaceSymbolsInStr(
         str,
         ["UFUN", "VFUN", "WFUN", "QFUN"],
-        defaultReactions
+        defaultReactions,
       );
     }
 
@@ -5938,8 +5971,11 @@ import { createWelcomeTour } from "./tours.js";
       str,
       defaultSpecies.concat(defaultReactions),
       listOfSpecies.concat(listOfReactions),
-      "_(?:[xy][xybf]?)"
+      "_(?:[xy][xybf]?)",
     );
+
+    // Remove parameter placeholders with parameter names.
+    str = replaceSymbolsInStr(str, paramPlaceholders, paramNames);
 
     str = parseStringToTEX(str);
 
@@ -5973,7 +6009,11 @@ import { createWelcomeTour } from "./tours.js";
     str = replaceFunctionInTeX(str, "min", true);
     str = replaceFunctionInTeX(str, "ind", true);
 
-    // Remove *.
+    // Remove *, unless between two numbers or followed by + or -, in which case insert \times.
+    while (
+      str != (str = str.replace(/([0-9\.])\s*\*\s*([0-9\.])/, "$1 \\times $2"))
+    );
+    while (str != (str = str.replace(/\*([\-\+])/, "\\times $1")));
     str = str.replaceAll(/\*/g, " ");
 
     // Replace powers with well-formatted ^, including nested powers.
@@ -6004,6 +6044,9 @@ import { createWelcomeTour } from "./tours.js";
 
     // Add spaces around strict inequalities.
     str = str.replaceAll(/([<>])/g, " $1 ");
+
+    // Replace WhiteNoise with dW_t/dt.
+    str = str.replaceAll(/\bWhiteNoise\b/g, "\\textstyle\\diff{W_t}{t}");
 
     return str;
   }
@@ -6125,7 +6168,7 @@ import { createWelcomeTour } from "./tours.js";
           newStr,
           toAdd,
           funcInd + offset,
-          endInd + 1 + offset
+          endInd + 1 + offset,
         );
         offset += toAdd.length - endInd + funcInd - 1;
       }
@@ -6221,7 +6264,7 @@ import { createWelcomeTour } from "./tours.js";
       if (match) {
         // Add a CSS class highlighting that this controller now contains a slider too.
         controller.domElement.parentElement.parentElement.classList.add(
-          "parameterSlider"
+          "parameterSlider",
         );
         // Create a range input object and tie it to the controller.
         controller.slider = document.createElement("input");
@@ -6241,11 +6284,11 @@ import { createWelcomeTour } from "./tours.js";
             Math.max(
               parseFloat(match[2]).countDecimals(),
               parseFloat(match[3]).countDecimals(),
-              parseFloat(match[5]).countDecimals()
+              parseFloat(match[5]).countDecimals(),
             ) + 1;
           step = Math.min(
             (parseFloat(match[5]) - parseFloat(match[3])) / 20,
-            10 ** -controller.slider.precision
+            10 ** -controller.slider.precision,
           );
         } else {
           controller.slider.precision =
@@ -6253,14 +6296,14 @@ import { createWelcomeTour } from "./tours.js";
               parseFloat(match[2]).countDecimals(),
               parseFloat(match[3]).countDecimals(),
               parseFloat(match[4]).countDecimals(),
-              parseFloat(match[5]).countDecimals()
+              parseFloat(match[5]).countDecimals(),
             ) + 1;
           step = match[4];
           match[4] += ", ";
         }
         controller.slider.precision = Math.max(
           controller.slider.precision,
-          parseFloat(step).countDecimals()
+          parseFloat(step).countDecimals(),
         );
         controller.slider.step = step.toString();
 
@@ -6271,7 +6314,7 @@ import { createWelcomeTour } from "./tours.js";
         controller.slider.addEventListener("input", function () {
           controller.slider.style.setProperty(
             "--value",
-            controller.slider.value
+            controller.slider.value,
           );
           let valueRegex = /\s*(\w+)\s*=\s*(\S*)\s*/g;
           kineticParamsStrs[label] = kineticParamsStrs[label].replace(
@@ -6281,7 +6324,7 @@ import { createWelcomeTour } from "./tours.js";
               parseFloat(controller.slider.value)
                 .toFixed(controller.slider.precision)
                 .toString() +
-              " "
+              " ",
           );
           refreshGUI(parametersFolder);
           setKineticStringFromParams();
@@ -6321,7 +6364,7 @@ import { createWelcomeTour } from "./tours.js";
         const index = kineticParamsLabels.indexOf(label);
         // Remove excess whitespace.
         let str = removeWhitespace(
-          kineticParamsStrs[kineticParamsLabels.at(index)]
+          kineticParamsStrs[kineticParamsLabels.at(index)],
         );
         if (str == "") {
           // If the string is empty, do nothing.
@@ -6330,7 +6373,7 @@ import { createWelcomeTour } from "./tours.js";
           // delete this controller, and make a new blank controller.
           let newController = createParameterController(
             kineticParamsLabels.at(index),
-            false
+            false,
           );
           // We record the name of the parameter in the controller.
           const match = str.match(/\s*(\w+)\s*=/);
@@ -6523,8 +6566,8 @@ import { createWelcomeTour } from "./tours.js";
           $("#midLabel").html(
             options.views[options.activeViewInd].name.replaceAll(
               /\s*<br \/>\s*/g,
-              " "
-            )
+              " ",
+            ),
           );
         } else {
           $("#midLabel").html("$" + parseStringToTEX(options.whatToPlot) + "$");
@@ -6707,11 +6750,11 @@ import { createWelcomeTour } from "./tours.js";
           0,
           nXDisc,
           nYDisc,
-          buffer
+          buffer,
         );
       } catch {
         alert(
-          "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!"
+          "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!",
         );
       }
       bufferFilled = true;
@@ -6730,7 +6773,7 @@ import { createWelcomeTour } from "./tours.js";
       minMaxUniforms.textureSource.value = curTex.texture;
       minMaxUniforms.srcResolution.value = new THREE.Vector2(
         curTex.width,
-        curTex.height
+        curTex.height,
       );
       minMaxUniforms.firstFlag.value = false;
     }
@@ -6742,12 +6785,12 @@ import { createWelcomeTour } from "./tours.js";
         0,
         1,
         1,
-        smallBuffer
+        smallBuffer,
       );
       return [smallBuffer[0], smallBuffer[1]];
     } catch {
       alert(
-        "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!"
+        "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!",
       );
       return [0, 1];
     }
@@ -6963,7 +7006,7 @@ import { createWelcomeTour } from "./tours.js";
     const pos = new THREE.Vector3().setFromSphericalCoords(
       1,
       Math.PI / 2 - (theta * Math.PI) / 180,
-      -(phi * Math.PI) / 180
+      -(phi * Math.PI) / 180,
     );
     camera.position.set(pos.x, pos.y, pos.z);
     camera.lookAt(0, 0, 0);
@@ -7025,7 +7068,7 @@ import { createWelcomeTour } from "./tours.js";
           throwError(
             "Unable to evaluate the parameter definition '" +
               x +
-              "'. Please check for syntax errors."
+              "'. Please check for syntax errors.",
           );
         }
       });
@@ -7046,7 +7089,7 @@ import { createWelcomeTour } from "./tours.js";
       throwError(
         "It looks like there are multiple definitions of '" +
           dups.join("', '") +
-          "'. Please check your parameters to ensure everything has a unique definition."
+          "'. Please check your parameters to ensure everything has a unique definition.",
       );
       return false;
     }
@@ -7075,7 +7118,7 @@ import { createWelcomeTour } from "./tours.js";
           name +
           "' is used under the hood, so can't be used as a parameter name. Please use a different name for " +
           name +
-          "."
+          ".",
       );
       errorFlag = true;
     } else {
@@ -7096,7 +7139,7 @@ import { createWelcomeTour } from "./tours.js";
     return sanitise(
       getKineticParamNames()
         .map((x) => "uniform float " + x + ";")
-        .join("\n")
+        .join("\n"),
     );
   }
 
@@ -7127,7 +7170,7 @@ import { createWelcomeTour } from "./tours.js";
           valDict,
           [name],
           names,
-          []
+          [],
         );
       }
     }
@@ -7136,7 +7179,7 @@ import { createWelcomeTour } from "./tours.js";
       throwError(
         "Cyclic parameters detected. Please check the definition(s) of " +
           badNames.join(", ") +
-          ". Click <a href='/user-guide/FAQ#cyclic' target='blank'>here</a> for more information."
+          ". Click <a href='/user-guide/FAQ#cyclic' target='blank'>here</a> for more information.",
       );
     }
     return Object.keys(valDict).map((x) => [x, valDict[x]]);
@@ -7177,11 +7220,11 @@ import { createWelcomeTour } from "./tours.js";
           valDict,
           [...stack, otherName],
           names,
-          badNames
+          badNames,
         );
         strDict[name] = strDict[name].replaceAll(
           regex,
-          valDict[otherName].toString()
+          valDict[otherName].toString(),
         );
       }
     }
@@ -7192,7 +7235,7 @@ import { createWelcomeTour } from "./tours.js";
       throwError(
         "Unable to evaluate the definition of " +
           name +
-          ". Please check for syntax errors or undefined parameters."
+          ". Please check for syntax errors or undefined parameters.",
       );
       valDict[name] = 0;
     }
@@ -7231,14 +7274,14 @@ import { createWelcomeTour } from "./tours.js";
       cLims[0] = parser.evaluate(min);
     } catch (error) {
       throwError(
-        "Unable to evaluate the minimum colour limit. Please check the definition."
+        "Unable to evaluate the minimum colour limit. Please check the definition.",
       );
     }
     try {
       cLims[1] = parser.evaluate(max);
     } catch (error) {
       throwError(
-        "Unable to evaluate the maximum colour limit. Please check the definition."
+        "Unable to evaluate the maximum colour limit. Please check the definition.",
       );
     }
     return cLims;
@@ -7317,7 +7360,7 @@ import { createWelcomeTour } from "./tours.js";
     // Set the left gui max height based on its position.
     $(":root").css(
       "--left-ui-v-offset",
-      $("#leftGUI")[0].getBoundingClientRect().top
+      $("#leftGUI")[0].getBoundingClientRect().top,
     );
   }
 
@@ -7386,7 +7429,7 @@ import { createWelcomeTour } from "./tours.js";
 
     // If not enough species have been provided, add placeholders for those remaining.
     const tempListOfSpecies = newSpecies.concat(
-      placeholderSp.slice(newSpecies.length)
+      placeholderSp.slice(newSpecies.length),
     );
 
     // Check if any reserved names have been used, and stop if so.
@@ -7406,7 +7449,7 @@ import { createWelcomeTour } from "./tours.js";
             message +
             ", so can't be used as a species name. Please use a different name for " +
             tempListOfSpecies[ind] +
-            "."
+            ".",
         );
         return;
       }
@@ -7431,8 +7474,8 @@ import { createWelcomeTour } from "./tours.js";
           defaultStrings[key],
           defaultSpecies,
           listOfSpecies,
-          "_(?:[xy][xybf]?)"
-        )
+          "_(?:[xy][xybf]?)",
+        ),
       );
     });
 
@@ -7444,8 +7487,8 @@ import { createWelcomeTour } from "./tours.js";
         replaceSymbolsInStr(
           defaultStrings[key],
           defaultReactions,
-          listOfReactions
-        )
+          listOfReactions,
+        ),
       );
     });
 
@@ -7467,7 +7510,7 @@ import { createWelcomeTour } from "./tours.js";
             options[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf]?)"
+            "_(?:[xy][xybf]?)",
           );
         }
       }
@@ -7481,7 +7524,7 @@ import { createWelcomeTour } from "./tours.js";
             view[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf]?)"
+            "_(?:[xy][xybf]?)",
           );
         }
       });
@@ -7495,7 +7538,7 @@ import { createWelcomeTour } from "./tours.js";
             savedOptions[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf]?)"
+            "_(?:[xy][xybf]?)",
           );
         }
       }
@@ -7509,7 +7552,7 @@ import { createWelcomeTour } from "./tours.js";
             view[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf]?)"
+            "_(?:[xy][xybf]?)",
           );
         }
       });
@@ -7537,7 +7580,7 @@ import { createWelcomeTour } from "./tours.js";
             .sort((a, b) => b.length - a.length)
             .map((x) => "(?:" + x + ")")
             .join("|") +
-          ")"
+          ")",
       );
     }
   }
@@ -7560,7 +7603,7 @@ import { createWelcomeTour } from "./tours.js";
     for (var ind = 0; ind < originals.length; ind++) {
       regex = new RegExp(
         "\\b(" + originals[ind] + ")(" + optional + ")?\\b",
-        "g"
+        "g",
       );
       str = str.replaceAll(regex, placeholders[ind] + "$2");
     }
@@ -7568,7 +7611,7 @@ import { createWelcomeTour } from "./tours.js";
     for (var ind = 0; ind < placeholders.length; ind++) {
       regex = new RegExp(
         "\\b(" + placeholders[ind] + ")(" + optional + ")?\\b",
-        "g"
+        "g",
       );
       str = str.replaceAll(regex, replacements[ind] + "$2");
     }
@@ -7632,7 +7675,7 @@ import { createWelcomeTour } from "./tours.js";
       colourmap[ind],
       colourmap[ind + 1],
       (val - colourmapEndpoints[ind]) /
-        (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind])
+        (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind]),
     ).map((x) => x.clamp(0, 1));
   }
 
@@ -7732,7 +7775,7 @@ import { createWelcomeTour } from "./tours.js";
       0,
       nXDisc,
       nYDisc,
-      stateBuffer
+      stateBuffer,
     );
   }
 
@@ -7747,7 +7790,7 @@ import { createWelcomeTour } from "./tours.js";
       0,
       nXDisc,
       nYDisc,
-      postBuffer
+      postBuffer,
     );
   }
 
@@ -7778,7 +7821,7 @@ import { createWelcomeTour } from "./tours.js";
     var link = document.createElement("a");
     link.download = "VisualPDEState";
     link.href = URL.createObjectURL(
-      new Blob([new Float32Array([nXDisc, nYDisc]), stateBuffer])
+      new Blob([new Float32Array([nXDisc, nYDisc]), stateBuffer]),
     );
     document.body.appendChild(link);
     link.click();
@@ -7845,7 +7888,7 @@ import { createWelcomeTour } from "./tours.js";
       dims[0],
       dims[1],
       THREE.RGBAFormat,
-      THREE.FloatType
+      THREE.FloatType,
     );
     checkpointTexture.needsUpdate = true;
     manualInterpolationNeeded
@@ -7874,7 +7917,7 @@ import { createWelcomeTour } from "./tours.js";
     renderer.setSize(
       Math.round(scaleFactor * canvasWidth),
       Math.round(scaleFactor * canvasHeight),
-      false
+      false,
     );
   }
 
@@ -7923,7 +7966,7 @@ import { createWelcomeTour } from "./tours.js";
       throwError(
         "Empty parentheses in: " +
           highlightStringinString(str, matches[0]).trim() +
-          "."
+          ".",
       );
       return false;
     }
@@ -7958,7 +8001,7 @@ import { createWelcomeTour } from "./tours.js";
           " in: " +
           (str.slice(0, startInd) +
             highlightStringinString(str.slice(startInd), str.slice(startInd))) +
-          "."
+          ".",
       );
       return false;
     } else if (bracketDepth < 0) {
@@ -7970,10 +8013,10 @@ import { createWelcomeTour } from "./tours.js";
           (
             highlightStringinString(
               str.slice(0, endInd),
-              str.slice(0, endInd)
+              str.slice(0, endInd),
             ) + str.slice(endInd)
           ).trim() +
-          "."
+          ".",
       );
       return false;
     }
@@ -7985,7 +8028,7 @@ import { createWelcomeTour } from "./tours.js";
       throwError(
         "A binary operator is missing an operand in: " +
           highlightStringinString(str, matches[0]).trim() +
-          "."
+          ".",
       );
       return false;
     }
@@ -7997,7 +8040,7 @@ import { createWelcomeTour } from "./tours.js";
       throwError(
         "Missing operator in: " +
           highlightStringinString(str, matches[0]).trim() +
-          "<br>You might be missing a '*' for multiplication."
+          "<br>You might be missing a '*' for multiplication.",
       );
       return false;
     }
@@ -8009,7 +8052,7 @@ import { createWelcomeTour } from "./tours.js";
       throwError(
         "Operator missing after a number in: " +
           highlightStringinString(str, matches[0]).trim() +
-          "<br> You might be missing a '*' for multiplication."
+          "<br> You might be missing a '*' for multiplication.",
       );
       return false;
     }
@@ -8103,7 +8146,7 @@ import { createWelcomeTour } from "./tours.js";
   function editCurrentViewName() {
     let name = prompt(
       "Enter a name for the current View. You can enclose mathematics in $ $.",
-      options.views[options.activeViewInd].name
+      options.views[options.activeViewInd].name,
     );
     if (name != null) {
       options.views[options.activeViewInd].name = name;
@@ -8179,12 +8222,12 @@ import { createWelcomeTour } from "./tours.js";
     let str = "";
     str += selectSpeciesInShaderStr(
       RDShaderGhostX(side),
-      listOfSpecies[speciesInd]
+      listOfSpecies[speciesInd],
     );
     if (options.dimension > 1) {
       str += selectSpeciesInShaderStr(
         RDShaderGhostY(side),
-        listOfSpecies[speciesInd]
+        listOfSpecies[speciesInd],
       );
     }
     // Replace the placeholder GHOST with the specified value.
@@ -8202,12 +8245,12 @@ import { createWelcomeTour } from "./tours.js";
     let str = "";
     str += selectSpeciesInShaderStr(
       RDShaderDirichletX(side),
-      listOfSpecies[speciesInd]
+      listOfSpecies[speciesInd],
     );
     if (options.dimension > 1) {
       str += selectSpeciesInShaderStr(
         RDShaderDirichletY(side),
-        listOfSpecies[speciesInd]
+        listOfSpecies[speciesInd],
       );
     }
     return str;
@@ -8223,12 +8266,12 @@ import { createWelcomeTour } from "./tours.js";
     let str = "";
     str += selectSpeciesInShaderStr(
       RDShaderRobinX(side),
-      listOfSpecies[speciesInd]
+      listOfSpecies[speciesInd],
     );
     if (options.dimension > 1) {
       str += selectSpeciesInShaderStr(
         RDShaderRobinY(side),
-        listOfSpecies[speciesInd]
+        listOfSpecies[speciesInd],
       );
     }
     return str;
@@ -8245,17 +8288,17 @@ import { createWelcomeTour } from "./tours.js";
     str += selectSpeciesInShaderStr(
       RDShaderRobinCustomDomainX(
         side,
-        parseShaderString(options.domainIndicatorFun)
+        parseShaderString(options.domainIndicatorFun),
       ),
-      listOfSpecies[speciesInd]
+      listOfSpecies[speciesInd],
     );
     if (options.dimension > 1) {
       str += selectSpeciesInShaderStr(
         RDShaderRobinCustomDomainY(
           side,
-          parseShaderString(options.domainIndicatorFun)
+          parseShaderString(options.domainIndicatorFun),
         ),
-        listOfSpecies[speciesInd]
+        listOfSpecies[speciesInd],
       );
     }
     return str;
@@ -8271,12 +8314,12 @@ import { createWelcomeTour } from "./tours.js";
     let str = "";
     str += selectSpeciesInShaderStr(
       RDShaderDirichletX(side).replaceAll(/updated/g, "gl_FragColor"),
-      listOfSpecies[speciesInd]
+      listOfSpecies[speciesInd],
     );
     if (options.dimension > 1) {
       str += selectSpeciesInShaderStr(
         RDShaderDirichletY(side).replaceAll(/updated/g, "gl_FragColor"),
-        listOfSpecies[speciesInd]
+        listOfSpecies[speciesInd],
       );
     }
     return str;
@@ -8344,7 +8387,7 @@ import { createWelcomeTour } from "./tours.js";
     folderID,
     classes,
     obj,
-    negate
+    negate,
   ) {
     // Create the toggle button.
     const toggle = document.createElement("a");
@@ -8397,7 +8440,7 @@ import { createWelcomeTour } from "./tours.js";
   function copyConfigAsJSON() {
     const parentOptions = Object.assign(
       getPreset("default"),
-      getPreset(options.parent)
+      getPreset(options.parent),
     );
 
     // Get the options that differ from the default.
@@ -8510,7 +8553,7 @@ import { createWelcomeTour } from "./tours.js";
    */
   function onMobile() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
+      navigator.userAgent,
     );
   }
 
@@ -8581,9 +8624,9 @@ import { createWelcomeTour } from "./tours.js";
       () => {
         // Failure.
         throwError(
-          "For some reason, we couldn't copy to your device's clipboard. You might not be using HTTPS or there's something wrong on our end - sorry!"
+          "For some reason, we couldn't copy to your device's clipboard. You might not be using HTTPS or there's something wrong on our end - sorry!",
         );
-      }
+      },
     );
   }
 
@@ -8657,7 +8700,7 @@ import { createWelcomeTour } from "./tours.js";
     uniforms.embossLightDir.value = new THREE.Vector3(
       Math.sin(options.embossTheta) * Math.cos(options.embossPhi),
       Math.sin(options.embossTheta) * Math.sin(options.embossPhi),
-      Math.cos(options.embossTheta)
+      Math.cos(options.embossTheta),
     );
   }
 
@@ -8724,7 +8767,7 @@ import { createWelcomeTour } from "./tours.js";
     // Add the slider to the DOM.
     controller.domElement.appendChild(controller.slider);
     controller.domElement.parentElement.parentElement.classList.add(
-      "parameterSlider"
+      "parameterSlider",
     );
   }
 
@@ -8847,7 +8890,7 @@ import { createWelcomeTour } from "./tours.js";
     scene.add(arrowGroup);
     const maxDisc = Math.max(nXDisc, nYDisc);
     const denom = Math.round(
-      lerp(3, onSmallScreen() ? 20 : 64, options.arrowDensity)
+      lerp(3, onSmallScreen() ? 20 : 64, options.arrowDensity),
     );
     let stride = Math.max(Math.floor(maxDisc / denom), 1);
     const xNum = Math.floor(nXDisc / stride);
@@ -8919,7 +8962,7 @@ import { createWelcomeTour } from "./tours.js";
           arrowGroup.customMax = parser.evaluate(options.arrowLengthMax);
         } catch (error) {
           throwError(
-            "Unable to evaluate the maximum arrow length. Please check the definition."
+            "Unable to evaluate the maximum arrow length. Please check the definition.",
           );
           arrowGroup.customMax = 1;
         }
@@ -8955,7 +8998,7 @@ import { createWelcomeTour } from "./tours.js";
           name +
           "' is already in use, so can't be used as a parameter name. Please use a different name for " +
           name +
-          "."
+          ".",
       );
     }
     return !val;
@@ -9015,7 +9058,7 @@ import { createWelcomeTour } from "./tours.js";
     doneDict,
     stack,
     dependencies,
-    badNames
+    badNames,
   ) {
     // ...
   }
@@ -9024,7 +9067,7 @@ import { createWelcomeTour } from "./tours.js";
     doneDict,
     stack,
     dependencies,
-    badNames
+    badNames,
   ) {
     // If we know the name is safe already, don't do anything.
     if (name in doneDict) return [doneDict, stack.slice(0, -1), badNames];
@@ -9042,7 +9085,7 @@ import { createWelcomeTour } from "./tours.js";
           doneDict,
           [...stack, otherName],
           dependencies,
-          badNames
+          badNames,
         );
       }
     }
@@ -9079,25 +9122,25 @@ import { createWelcomeTour } from "./tours.js";
       case "circle":
         $("#simCanvas").css(
           "cursor",
-          "url('images/cursor-circle.svg') 12 12, auto"
+          "url('images/cursor-circle.svg') 12 12, auto",
         );
         break;
       case "hline":
         $("#simCanvas").css(
           "cursor",
-          "url('images/cursor-hline.svg') 32 32, auto"
+          "url('images/cursor-hline.svg') 32 32, auto",
         );
         break;
       case "vline":
         $("#simCanvas").css(
           "cursor",
-          "url('images/cursor-vline.svg') 32 32, auto"
+          "url('images/cursor-vline.svg') 32 32, auto",
         );
         break;
       case "custom":
         $("#simCanvas").css(
           "cursor",
-          "url('images/cursor-droplet.svg') 12 12, auto"
+          "url('images/cursor-droplet.svg') 12 12, auto",
         );
         break;
     }
@@ -9265,7 +9308,7 @@ import { createWelcomeTour } from "./tours.js";
           `${mimeType};codecs=${codec.toUpperCase()}`,
         ].forEach((variation) => {
           if (isSupported(variation)) supported.push(variation);
-        })
+        }),
       );
       if (isSupported(mimeType)) supported.push(mimeType);
     });
@@ -9345,7 +9388,7 @@ import { createWelcomeTour } from "./tours.js";
     }
     return str.replaceAll(
       substr,
-      `<span class="${highlightClass}">${substr}</span>`
+      `<span class="${highlightClass}">${substr}</span>`,
     );
   }
 
@@ -9396,14 +9439,14 @@ import { createWelcomeTour } from "./tours.js";
           // Replace all occurrences of name1 followed by name2 with name1*name2.
           str = str.replaceAll(
             new RegExp("\\b" + name1 + name2 + "\\b", "g"),
-            name1 + "*" + name2
+            name1 + "*" + name2,
           );
         }
         if (!listOfSpecies.includes(name2 + name1)) {
           // Replace all occurrences of name1 followed by name2 with name1*name2.
           str = str.replaceAll(
             new RegExp("\\b" + name2 + name1 + "\\b", "g"),
-            name2 + "*" + name1
+            name2 + "*" + name1,
           );
         }
       });
@@ -9412,9 +9455,25 @@ import { createWelcomeTour } from "./tours.js";
     // If the string contains a single species name followed by a (, add a *.
     str = str.replaceAll(
       new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")\\(", "g"),
-      "$1*("
+      "$1*(",
     );
 
+    return str;
+  }
+
+  /**
+   * Replaces occurrences of WhiteNoise with correct shader syntax.
+   *
+   * @param {string} str - The input string to be modified.
+   * @returns {string} The modified string.
+   */
+  function replaceWhiteNoise(str) {
+    // Replace WhiteNoise with RANDN*sqrt(1/(dt*dx^dim)), where dim is dimension.
+    if (options.dimension == 1) {
+      str = str.replaceAll(/\bWhiteNoise\b/g, "RANDN*sqrt(1/(dt*dx))");
+    } else {
+      str = str.replaceAll(/\bWhiteNoise\b/g, "RANDN*sqrt(1/(dt*pow(dx,2)))");
+    }
     return str;
   }
 
@@ -9428,25 +9487,25 @@ import { createWelcomeTour } from "./tours.js";
     // Replace Gauss(meanx, meany, sx, sy, rho) with Gauss(x, y, meanx, meany, sx, sy, rho).
     str = str.replaceAll(
       /\bGauss\(([^,]*),([^,]*),([^,]*),([^,]*),([^,]*)\)/g,
-      "Gauss(x,y,$1,$2,$3,$4,$5)"
+      "Gauss(x,y,$1,$2,$3,$4,$5)",
     );
 
     // Replace Gauss(meanx, meany, sx, sy) with Gauss(x, y, meanx, meany, sx, sy, 0).
     str = str.replaceAll(
       /\bGauss\(([^,]*),([^,]*),([^,]*),([^,]*)\)/g,
-      "Gauss(x,y,$1,$2,$3,$4,0)"
+      "Gauss(x,y,$1,$2,$3,$4,0)",
     );
 
     // Replace Gauss(meanx, meany, sd) with Gauss(x, y, meanx, meany, sd).
     str = str.replaceAll(
       /\bGauss\(([^,]*),([^,]*),([^,]*)\)/g,
-      "Gauss(x,y,$1,$2,$3,$3,0)"
+      "Gauss(x,y,$1,$2,$3,$3,0)",
     );
 
     // Replace Gauss(mean, sd) with Gauss(x, y, mean, sd).
     str = str.replaceAll(
       /\bGauss\(([^,]*),([^,]*)\)/g,
-      "Gauss(x,y,$1,$1,$2,$2,0)"
+      "Gauss(x,y,$1,$1,$2,$2,0)",
     );
 
     return str;
@@ -9462,7 +9521,7 @@ import { createWelcomeTour } from "./tours.js";
     // Replace Bump(meanx, meany, radius) with Bump(x, y, meanx, meany, radius).
     str = str.replaceAll(
       /\bBump\(([^,]*),([^,]*),([^,]*)\)/g,
-      "Bump(x,y,$1,$2,$3)"
+      "Bump(x,y,$1,$2,$3)",
     );
 
     // Replace Bump(mean, radius) with Bump(x, y, mean, mean, radius).
@@ -9474,7 +9533,7 @@ import { createWelcomeTour } from "./tours.js";
   function assignFragmentShader(material, shader) {
     material.fragmentShader = shader.replaceAll(
       /\bAUXILIARY_GLSL_FUNS\b/g,
-      auxiliary_GLSL_funs()
+      auxiliary_GLSL_funs(),
     );
   }
 

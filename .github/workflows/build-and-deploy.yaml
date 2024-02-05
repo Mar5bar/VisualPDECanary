@@ -5,8 +5,29 @@ on:
       - main
 
 jobs:
+
+  format:
+    runs-on: ubuntu-latest
+    name: Format RD files
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+      - name: Prettier
+        run: npx prettier --write **/*.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ./sim/scripts/RD/
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+        with:
+          commit_message: "style: format files"
+
   # Build job
   build:
+    needs: format
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

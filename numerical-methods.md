@@ -9,5 +9,5 @@ thumbnail: /assets/images/NumericalMethodsImage.webp
 extract: Adventures in numerical analysis
 
 ---
-This is a collection of topics on numerical methods/analysis relevant to solving PDEs numerically. These are particularly tailored for how VisualPDE works `under the hood', which is described in more detail in the [solver documentation](user-guide/solver) and the [advanced documentation](user-guide/advanced-options).
+This is a collection of topics on numerical methods and analysis relevant to solving PDEs numerically. These are particularly tailored for how VisualPDE works 'under the hood', which is described in more detail in the [solver documentation](user-guide/solver) and the [advanced documentation](user-guide/advanced-options).
 

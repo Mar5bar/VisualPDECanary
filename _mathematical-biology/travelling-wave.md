@@ -32,7 +32,11 @@ Travelling waves also occur in multispecies models. A model of two competing pop
 
 $$\begin{aligned}\pd{R}{t}&=D\nabla^2 R+R(1-c_{RR}R-c_{RG}G),\\ \pd{G}{t}&=D\nabla^2 G+ G(1-c_{GR}R-c_{GG}G),\end{aligned}$$
 
-where $D$ is a diffusion coefficient,  $c_{RG}, c_{GR}$ are [interspecific](https://en.wikipedia.org/wiki/Interspecific_competition), and $c_{RR},c_{GG}$ are [intraspecific](https://en.wikipedia.org/wiki/Intraspecific_competition) competition coefficients. [Competitive exclusion](https://en.wikipedia.org/wiki/Competitive_exclusion_principle) can lead to one of the species being driven to extinction by the other. This [squirrel simulation](/sim/?preset=RedGreyInvasionUK) explores the grey squirrels driving the red to extinction across a map of the United Kingdom.
+where $D$ is a diffusion coefficient,  $c_{RG}, c_{GR}$ are [interspecific](https://en.wikipedia.org/wiki/Interspecific_competition), and $c_{RR},c_{GG}$ are [intraspecific](https://en.wikipedia.org/wiki/Intraspecific_competition) competition coefficients. 
+
+[Competitive exclusion](https://en.wikipedia.org/wiki/Competitive_exclusion_principle) can lead to one of the species being driven to extinction by the other. 
+
+* This [squirrel simulation](/sim/?preset=RedGreyInvasionUK) explores the grey squirrels driving the red to extinction across a map of the United Kingdom.
 
 # Epidemic waves
 
@@ -40,8 +44,14 @@ As another example of logistic travelling waves, we can consider the [SIS model]
 
 $$\begin{aligned}\diff{S}{t}&=d I - b S I,\\ \diff{I}{t}&=b S I - d I,\end{aligned}$$
 
-where $S$ is the number of susceptible individuals, $I$ the number of infected individuals, $d$ a recovery rate, and $b$ an infection rate. Since this system is mass conserving (that is, $N=S + I$ must be a constant), we can rewrite this model purely in terms of the proportion of infected individuals $p = I/N$ to get
+where $S$ is the number of susceptible individuals, $I$ the number of infected individuals, $d$ a recovery rate, and $b$ an infection rate. 
+
+Since this system is mass conserving (that is, $N=S + I$ must be a constant), we can rewrite this model purely in terms of the proportion of infected individuals $p = I/N$ to get
 
 $$\pd{p}{t}=\nabla^2 p+\beta p(1-p)-\delta p,$$
 
-where we have rescaled the infection and recovery rates and added a diffusion term to model spatial movement of infected individuals. As long as $R_0 = \beta/\delta > 1$, this model will have the same travelling-wave behaviour as the Fisher-KPP equation above, where $p=0$ is an unstable steady state, and $p=(\beta - \delta)/\beta$ is a stable endemic equilibrium. You can see an epidemiological [travelling wave across the USA](/sim/?preset=SpanishFluWave) to see how this plays out in time and space.
+where we have rescaled the infection and recovery rates and added a diffusion term to model spatial movement of infected individuals. 
+
+As long as $R_0 = \beta/\delta > 1$, this model will have the same travelling-wave behaviour as the Fisher–KPP equation above, where $p=0$ is an unstable steady state, and $p=(\beta - \delta)/\beta$ is a stable endemic equilibrium. 
+
+* Visualise an epidemiological [travelling wave across the USA](/sim/?preset=SpanishFluWave) to see how this plays out in time and space.
