@@ -91,7 +91,7 @@ function createWelcomeTour(onMobile) {
         addStepCounter();
         addMoreInfoLink(
           "/user-guide/advanced-options.html#checkpoints",
-          "Advanced"
+          "Advanced",
         );
       },
     },
@@ -194,7 +194,7 @@ function addStepCounter() {
   } / ${Shepherd.activeTour?.steps.length}`;
   header?.insertBefore(
     progress,
-    currentStepElement.querySelector(".shepherd-cancel-icon")
+    currentStepElement.querySelector(".shepherd-cancel-icon"),
   );
 }
 

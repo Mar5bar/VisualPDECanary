@@ -22,7 +22,7 @@ $$\pd{T}{x}(0,y,t) = \pd{T}{x}(L_x,y,t) = \pd{T}{y}(x,0,t) = \pd{T}{y}(x,L_y,t) 
 
 1. Press {{ layout.erase }} to clear the screen.
 
-1. You can press {{ layout.views }} to change from a plot of just the density of $T$ to a plot of $T$ augmented with the vector field given by $-\nabla T$. This makes arrows that show the flux of heat as it dissipates and moves around the domain.
+1. You can press {{ layout.views }} to change from a plot of just the density of $T$ to a plot of $T$ augmented with the vector field given by $-\vnabla T$. This makes arrows that show the flux of heat as it dissipates and moves around the domain.
 
 ### Playing with the diffusion coefficient, $D_T$
 
@@ -54,4 +54,6 @@ $$
 T(x,0) = \cos\left(\frac{m\pi}{L}\right) \implies T(x,t) = \mathrm{e}^{-Dt\left(\frac{m\pi}{L}\right)^2}\cos\left(\frac{m\pi x}{L}\right),
 $$
 
-with $m$ a positive integer. These solutions decay to 0 as time increases. Importantly, the rate of decay depends on the frequency of the initial perturbation $m$, with larger $m$ (or larger $D_T$) leading to more quickly decaying solutions. You can explore these solutions in this [1D simulation](/sim/?preset=heatEquation1D).
+with $m$ a positive integer. These solutions decay to 0 as time increases. Importantly, the rate of decay depends on the frequency of the initial perturbation $m$, with larger $m$ (or larger $D_T$) leading to more quickly decaying solutions. 
+
+* You can explore these solutions in this [1D simulation](/sim/?preset=heatEquation1D).

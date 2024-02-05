@@ -61,12 +61,16 @@ which oscillates in time and space.
 
 You can play with such an initial condition in this [initialised simulation](/sim/?preset=waveEquationICs), changing $n$ and $m$ in <span class='click_sequence'>{{ layout.equations }} → **Parameters**</span> and restarting the simulation by pressing {{ layout.erase }} to see how these parameters influence the solution. 
 
-The damping factor $C$ is also set to zero in this case. If you increase its value, the solution amplitude will decay over time. If you change the boundary conditions to Dirichlet (and set $C=0.01$), the simulation will exhibit some fascinatingly symmetric oscillations.
+The damping factor $C$ is also set to zero in this case. If you increase its value, the solution amplitude will decay over time. 
+
+If you change the boundary conditions to Dirichlet (and set $C=0.01$), the simulation will exhibit some fascinatingly symmetric oscillations.
 
 
 ## 1D and 2D waves
 
-In a 1D domain, [d'Alembert's solution](https://mathworld.wolfram.com/dAlembertsSolution.html) to the wave equation can be used to show that an initial disturbance in $u$ (and not $u_t$) will cause rightward and leftward moving waves.
+In a 1D domain, [d'Alembert's solution](https://mathworld.wolfram.com/dAlembertsSolution.html) to the wave equation can be used to show that an initial disturbance in $u$ (and not $\partial u/\partial t$) will cause rightward and leftward moving waves.
 
-This can be seen in this [1D simulation](/sim/?preset=waveEquation1D). In principle the same concept works for higher dimensions, though reflections from boundary conditions can lead to more complicated behaviour, as seen in this [2D simulation](/sim/?preset=waveEquation3D) plotted as a surface.
+* See this in a [1D simulation](/sim/?preset=waveEquation1D). 
+
+In principle the same concept works for higher dimensions, though reflections from boundary conditions can lead to more complicated behaviour, as seen in this [2D simulation](/sim/?preset=waveEquation3D) plotted as a surface.
 

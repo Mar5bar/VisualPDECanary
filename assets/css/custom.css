@@ -872,7 +872,7 @@ vpde-slider > span {
 
 #siteSearchForm {
   position: absolute;
-  left: 270px;
+  width: 400px;
   right: 134px;
   height: 54px;
   vertical-align: middle;
@@ -883,7 +883,7 @@ vpde-slider > span {
 
 @media screen and (max-width: 800px) {
   #siteSearchForm {
-    left: 28px;
+    width: calc(100% - 150px);
   }
   #siteSearchForm:focus-within ~ .site-title {
     opacity: 0;
@@ -1027,6 +1027,7 @@ vpde-slider > span {
 @media screen and (max-width: 600px) {
   #siteSearchForm {
     right: 56px;
+    width: calc(100% - 72px);
   }
 }
 

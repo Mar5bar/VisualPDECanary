@@ -41,12 +41,16 @@ In the above simulations, we considered $a$ near the boundary, and initial waves
 
 * Alternatively, for smaller values of $R$, try pausing the simulation {{ layout.pause }}, painting a larger initial region of $u=1$, and then pressing {{ layout.play }} to set it in motion. You will notice that, for sufficiently large initial regions, the steady state $u=1$ can invade the steady state $u=0$. 
 
-* The precise quantities and geometry of these initial conditions can influence persistence. It is difficult to analytically determine conditions for when an invasion is successful or not, as it can depend on both the size and shape of the initial perturbation, as well as the parameters $a$ and $D$. You can explore different values of these parameters and how they influence the success or failure of a population to persist in a new environment. 
+The precise quantities and geometry of these initial conditions can influence persistence. It is difficult to analytically determine conditions for when an invasion is successful or not, as it can depend on both the size and shape of the initial perturbation, as well as the parameters $a$ and $D$. 
 
-# Advection & spatial Allee effects
+You can explore different values of these parameters and how they influence the success or failure of a population to persist in a new environment. 
 
-We can add an advection term to the equation to model movement due to, e.g., putting our population in a flowing body of water. The equation now looks like:
+# Advection and spatial Allee effects
+
+We can add an advection term to the equation to model movement due to, for example, putting our population in a flowing body of water. The equation now looks like:
 
 $$\pd{u}{t}=D\nabla^2u +u(u-a)(1-u)+V(\cos(\theta)u_x + \sin(\theta)u_y),$$
 
-where $V$ is a velocity and $\theta$ is a direction of advection. We implement this in this [advective bistable simulation](/sim/?preset=BistableAdvection), starting near the critical Allee threshold with $a=0.48$. It can be an interesting task to paint an initial condition capable of surviving so close to this boundary to extinction.
+where $V$ is a velocity and $\theta$ is a direction of advection. 
+
+We implement this in this [advective bistable simulation](/sim/?preset=BistableAdvection), starting near the critical Allee threshold with $a=0.48$. It can be an interesting task to paint an initial condition capable of surviving so close to this boundary to extinction.

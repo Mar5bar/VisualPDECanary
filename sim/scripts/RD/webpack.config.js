@@ -1,7 +1,7 @@
 const path = require("path");
 
 module.exports = {
-  mode: "production",     
+  mode: "production",
   entry: "./main.js",
   output: {
     filename: "main.js",

@@ -12,7 +12,7 @@ $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+a-u+u^2v,\\ \pd{v}{t}&=D\nabla^2v+ b-u^2v
 
 where we need $D>1$ to form patterns, and typically take $a,b>0$.
 
-* Load the [Schnakenberg simulation](/sim/?preset=Schnakenberg). 
+* Load the [Schnakenberg simulation](/sim/?preset=Schnakenberg)
 
 * Click within the box to visualise a pulse of a population, which will then spread out as a planar wave leaving patterns behind it. 
 
