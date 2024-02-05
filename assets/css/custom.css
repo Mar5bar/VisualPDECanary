@@ -118,6 +118,10 @@ p {
   position: relative;
 }
 
+.site-header .wrapper {
+  max-width: unset;
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -868,13 +872,23 @@ vpde-slider > span {
 
 #siteSearchForm {
   position: absolute;
-  left: 28px;
+  left: 270px;
   right: 134px;
   height: 54px;
   vertical-align: middle;
   pointer-events: none;
   z-index: 2;
   pointer-events: none;
+}
+
+@media screen and (max-width: 800px) {
+  #siteSearchForm {
+    left: 28px;
+  }
+  #siteSearchForm:focus-within ~ .site-title {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 #siteSearchForm > * {
@@ -948,11 +962,6 @@ vpde-slider > span {
   transition: opacity 0.5s ease;
   z-index: 1;
   color: var(--text-color);
-}
-
-#siteSearchForm:focus-within ~ .site-title {
-  opacity: 0;
-  pointer-events: none;
 }
 
 .links-wrapper {
