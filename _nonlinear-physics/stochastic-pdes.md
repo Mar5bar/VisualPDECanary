@@ -3,7 +3,7 @@ layout: page
 title: "Stochastic partial differential equations"
 # permalink: /stochastic-pdes/
 lesson_number: 120
-thumbnail: /assets/images/stochastic-pdes.png
+thumbnail: /assets/images/stochastic-pdes.webp
 extract: Randomness in space and time
 equation: $\pd{u}{t}=D\nabla^2 u +f(u)+\frac{dW_t}{dt}$
 ---
@@ -28,7 +28,7 @@ where $W_t$ is an approximation of a [Brownian sheet](https://en.wikipedia.org/w
 
 # Wave propagation through a random medium
 
-First we consider a version of the [inhomogeneous wave equation](/basic-pdes/inhomogeneous-wave-equation) where the diffusion coefficient is a random function of space,
+Next we consider a version of the [inhomogeneous wave equation](/basic-pdes/inhomogeneous-wave-equation) where the diffusion coefficient is a random function of space,
 
 $$
 \pdd{u}{t} = \vnabla \cdot \left[\eta(\v{x},\sigma) \vnabla u \right],
@@ -61,7 +61,7 @@ $$
 
 # Numerical health warning
 
-Random and stochastic forcing can lead to less regularity and stability of numerical schemes. 
+Randomness and stochastic forcing can lead to less regularity and stability of numerical schemes. 
 
 **Warning:** the method only works for the forward Euler timestepping scheme! All other timestepping schemes will not scale properly with the timestep. 
 
