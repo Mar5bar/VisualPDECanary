@@ -8,7 +8,8 @@ async function setupSiteSearch() {
   // If there is no index saved in local storage, build one.
   if (
     !localStorage.getItem("index") ||
-    localStorage.getItem("index").expiryTime < Date.now()
+    !localStorage.getItem("indexExpiryTime") ||
+    parseInt(localStorage.getItem("indexExpiryTime")) < Date.now()
   ) {
     let documents = await getDocs();
     frontmatter = documents.map((doc) => {
@@ -30,7 +31,10 @@ async function setupSiteSearch() {
         this.add(doc);
       }, this);
     });
-    siteIndex.expiryTime = Date.now() + 1000 * 60 * 60 * 24 * 1;
+    localStorage.setItem(
+      "indexExpiryTime",
+      Date.now() + 1000 * 60 * 60 * 24 * 1
+    );
     localStorage.setItem("index", JSON.stringify(siteIndex));
   } else {
     siteIndex = lunr.Index.load(JSON.parse(localStorage.getItem("index")));
