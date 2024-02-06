@@ -3,7 +3,7 @@ layout: page
 title: Schrödinger equation
 lesson_number: 50
 thumbnail: /assets/images/SchrodingerEquation.webp
-extract: Quantum mechanics
+extract: Interactive quantum mechanics
 equation: $\i\hbar\pd{\psi}{t}=-\frac{\hbar}{2m}\nabla^2 \psi+V(x,t)\psi$
 ---
 We now consider the [Schrödinger equation](https://en.wikipedia.org/wiki/Schrödinger_equation),

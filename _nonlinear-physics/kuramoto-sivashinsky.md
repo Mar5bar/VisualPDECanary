@@ -3,7 +3,7 @@ layout: page
 title: Kuramoto–Sivashinsky equation
 lesson_number: 40
 thumbnail: /assets/images/KuramotoSivashinsky.webp
-extract: Phase separation
+extract: Chaos at your fingertips
 equation: $\pd{u}{t}=-\nabla^2u-\nabla^4u-|\vnabla u|^2 $
 ---
 We now study the [Kuramoto–Sivashinsky equation](https://en.wikipedia.org/wiki/Kuramoto%E2%80%93Sivashinsky_equation),

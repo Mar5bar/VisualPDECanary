@@ -3,7 +3,7 @@ layout: page
 title: Pattern formation & advection
 lesson_number: 70
 thumbnail: /assets/images/GrayScottAdvection.webp
-extract: Moving patterns
+extract: Going with the flow?
 equation: 
 ---
 Each of the examples on this page will be a variation of a previous example incorporating one or more linear advection terms. This will introduce a velocity parameter $V$ and, in the unidrectional case, a direction $\theta$.
