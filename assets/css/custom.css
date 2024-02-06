@@ -189,10 +189,6 @@ main a[href*="visualpde.com/sim/" i] {
   main a[href*="visualpde.com/sim/" i]:hover {
     border-color: var(--play-button-hover-color);
     border-radius: 3px;
-    margin-right: -1px;
-    margin-left: -1px;
-    padding-right: 1px;
-    padding-left: 1px;
   }
 }
 
