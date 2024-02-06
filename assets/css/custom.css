@@ -154,7 +154,7 @@ main a[href*="visualpde.com/sim/" i] {
   font-weight: 700;
   padding: 1px 0px;
   color: var(--play-button-color);
-  transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
+  transition: 0.5s cubic-bezier(0.33, 1, 0.68, 1);
   white-space: nowrap;
   text-decoration: none;
 }
@@ -180,7 +180,7 @@ main a[href*="visualpde.com/sim/" i] {
   a[href*="visualpde.com/sim/" i]:hover {
     background-color: var(--play-button-hover-color);
     border-color: rgba(27, 31, 36, 0.15);
-    transition-duration: 0.1s;
+    transition-duration: 0.4s;
     text-decoration: none;
     color: white;
   }
@@ -188,7 +188,13 @@ main a[href*="visualpde.com/sim/" i] {
   main a[href^="/sim/"]:hover,
   main a[href*="visualpde.com/sim/" i]:hover {
     border-color: var(--play-button-hover-color);
-    border-radius: 3px;
+    border-radius: 6px;
+    padding: 6px 16px;
+  }
+
+  main a[href="/sim/"]:hover {
+    border-radius: inherit;
+    padding: initial;
   }
 }
 
