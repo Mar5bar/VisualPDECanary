@@ -3,7 +3,7 @@ layout: page
 title: Get started with the heat equation
 lesson_number: 10
 thumbnail: /assets/images/heat-equation.webp
-extract: Let's see how heat diffuses over time
+extract: Explore how heat diffuses over time
 equation: $\pd{T}{t}=D_T \nabla^2 T$
 ---
 Let's start by solving the [heat equation](https://en.wikipedia.org/wiki/Heat_equation),
