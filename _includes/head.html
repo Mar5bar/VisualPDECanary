@@ -21,14 +21,17 @@
   <meta name="msapplication-config" content="/assets/favicons/browserconfig.xml">
   <meta name="theme-color" content="#dfdfdf">
   <meta name="twitter:card" content="summary" /> 
-  <meta name="twitter:site:id" content="@bj_w95" /> 
-  <meta name="twitter:title" content="VisualPDE" /> 
-  <meta name="twitter:description" content="VisualPDE brings the world of partial differential equations to a wider audience through  real-time interactive web-based simulations  on almost any device." /> 
-  <meta name="twitter:image" content="https://visualpde.com/assets/favicons/twitter-icon.webp" />
+  {% if page.title != "VisualPDE" %}
+    {% assign title = page.title | append: ' | VisualPDE' %}
+  {% endif %}
+  <meta name="twitter:site:id" content="@visualpde" /> 
+  <meta name="twitter:title" content="{{ title | default: 'VisualPDE' }}" /> 
+  <meta name="twitter:description" content="{{ page.extract | default: 'VisualPDE brings the world of partial differential equations to a wider audience through real-time interactive web-based simulations on almost any device.' }}" /> 
+  <meta name="twitter:image" content="{{ site.url }}{{ page.thumbnail | default: '/assets/favicons/twitter-icon.webp' }}" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="VisualPDE" />
-  <meta property="og:description" content="VisualPDE brings the world of partial differential equations to a wider audience through  real-time interactive web-based simulations  on almost any device." />
-  <meta property="og:image" content="https://visualpde.com/assets/favicons/android-chrome-512x512.webp" />
+  <meta property="og:title" content="{{ title | default: 'VisualPDE' }}" />
+  <meta property="og:description" content="{{ page.extract | default: 'VisualPDE brings the world of partial differential equations to a wider audience through real-time interactive web-based simulations on almost any device.' }}" />
+  <meta property="og:image" content="{{ site.url }}{{ page.thumbnail | default: '/assets/favicons/android-chrome-1200x630.webp' }}" />
   <meta property="og:url" content="https://visualpde.com" />
   <meta property="og:site_name" content="VisualPDE" />
   <meta name="apple-mobile-web-app-capable" content="yes">
