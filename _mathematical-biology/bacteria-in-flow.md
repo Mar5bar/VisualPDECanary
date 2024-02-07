@@ -53,7 +53,7 @@ We can adjust the inlet concentration, the decay rate of the bacteria, or the fl
 
 <iframe id="simA" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=bacteriaInAReach&story&reset_only" frameborder="0" loading="lazy"></iframe>
 
-Phrased mathematically, we are solving an advection–diffusion equation for the concentration $C$ of bacteria, given by
+Phrased mathematically, we are solving an advection–reaction equation for the concentration $C$ of bacteria, given by
 
 $$\pd{C}{t}= - u\pd{C}{x} - kC,$$
 
