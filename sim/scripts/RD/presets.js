@@ -2,6 +2,40 @@
 
 let presets = {};
 
+presets["bacteriaInAReach"] = {
+  boundaryConditions_1: "combo",
+  brushAction: "smoothadd",
+  brushRadius: "20",
+  brushType: "vline",
+  brushValue: "min(0.02, 1-C)",
+  colourbar: true,
+  colourmap: "turbo",
+  comboStr_1: "Left: Dirichlet = c0",
+  diffusionStr_1_1: "0",
+  diffusionStr_2_2: "0",
+  dimension: "1",
+  domainScale: "320",
+  dt: 0.01,
+  initCond_2: "0",
+  kineticParams:
+    "c0 = 0.77 in [0, 1];k = 0.006 in [0, 0.1];u = 0.62 in [0.1, 2];",
+  maxColourValue: "1",
+  numSpecies: 1,
+  plotType: "line",
+  preset: "bacteriaInAReach",
+  reactionStr_1: "-u*C_xb - k*C",
+  reactionStr_2: "0",
+  spatialStep: "1.5",
+  speciesNames: "C",
+  views: [
+    {
+      name: "Concentration",
+    },
+  ],
+  whatToDraw: "C",
+  whatToPlot: "C",
+};
+
 presets["StochasticGrayScott"] = {
   diffusionStr_2_2: "4",
   domainScale: "300",
