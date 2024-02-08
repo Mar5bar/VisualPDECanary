@@ -1,6 +1,8 @@
 // auxiliary_GLSL_funs.js
 export function auxiliary_GLSL_funs() {
-  return `float H(float VALUE) 
+  return `const float pi = 3.141592653589793;
+  const float e = 2.718281828459045;
+  float H(float VALUE) 
     {
         float RES = smoothstep(-0.01, 0.01, VALUE);
         return RES;

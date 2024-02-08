@@ -14,7 +14,6 @@ export function drawShaderTop() {
     uniform float t;
     uniform float dx;
     uniform float dy;
-    const float pi = 3.141592653589793;
 
     AUXILIARY_GLSL_FUNS
 

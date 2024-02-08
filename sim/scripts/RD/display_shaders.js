@@ -6,7 +6,6 @@ export function fiveColourDisplayTop() {
     uniform sampler2D textureSource1;
     uniform float minColourValue;
     uniform float maxColourValue;
-    const float pi = 3.141592653589793;
     uniform float dx;
     uniform float dy;
     uniform float L;

@@ -54,7 +54,6 @@ export function RDShaderTop(type) {
     uniform float seed;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
-    const float pi = 3.141592653589793;
 
     AUXILIARY_GLSL_FUNS
 
@@ -739,7 +738,6 @@ export function RDShaderEnforceDirichletTop() {
     uniform float t;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
-    const float pi = 3.141592653589793;
 
     AUXILIARY_GLSL_FUNS
 
