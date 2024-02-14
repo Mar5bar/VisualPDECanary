@@ -141,6 +141,9 @@ import { createWelcomeTour } from "./tours.js";
     imControllerOne,
     imControllerTwo,
     editEquationsFolder,
+    boundaryConditionsFolder,
+    initialConditionsFolder,
+    advancedOptionsFolder,
     editViewFolder,
     linesAnd3DFolder,
     vectorFieldFolder,
@@ -2046,10 +2049,12 @@ import { createWelcomeTour } from "./tours.js";
 
     parametersFolder = leftGUI.addFolder("Parameters");
     addInfoButton(parametersFolder, "/user-guide/advanced-options#parameters");
+    addFocusParamsButton();
     setParamsFromKineticString();
 
     // Boundary conditions folder.
-    root = leftGUI.addFolder("Boundary conditions");
+    boundaryConditionsFolder = leftGUI.addFolder("Boundary conditions");
+    root = boundaryConditionsFolder;
     addInfoButton(root, "/user-guide/advanced-options#boundary-conditions");
 
     controllers["uBCs"] = root
@@ -2202,7 +2207,8 @@ import { createWelcomeTour } from "./tours.js";
       });
 
     // Initial conditions folder.
-    root = leftGUI.addFolder("Initial conditions");
+    initialConditionsFolder = leftGUI.addFolder("Initial conditions");
+    root = initialConditionsFolder;
     addInfoButton(root, "/user-guide/advanced-options#initial-conditions");
 
     controllers["initCond_1"] = root
@@ -2234,7 +2240,8 @@ import { createWelcomeTour } from "./tours.js";
       });
 
     // Equations folder.
-    root = leftGUI.addFolder("Advanced options");
+    advancedOptionsFolder = leftGUI.addFolder("Advanced options");
+    root = advancedOptionsFolder;
     root.domElement.classList.add("advancedOptions");
     addInfoButton(root, "/user-guide/advanced-options#advanced-options-");
 
@@ -9407,6 +9414,27 @@ import { createWelcomeTour } from "./tours.js";
     // infoButton.title = "More information";
     folder.domElement.classList.add("has-info-link");
     folder.domElement.insertBefore(infoButton, folder.domElement.firstChild);
+  }
+
+  /**
+   * Adds a focus button to the dat.GUI Parameters folder that hides other folders.
+   */
+  function addFocusParamsButton() {
+    const folder = parametersFolder;
+    const focusButton = document.createElement("button");
+    focusButton.classList.add("focus-params");
+    focusButton.innerHTML = `<i class="fa-solid fa-eye"></i>`;
+    focusButton.onclick = function () {
+      focusButton.classList.toggle("active");
+      advancedOptionsFolder.domElement.classList.toggle("hidden");
+      boundaryConditionsFolder.domElement.classList.toggle("hidden");
+      document.getElementById("equation_display").classList.toggle("hidden");
+      editEquationsFolder.domElement.classList.toggle("hidden");
+      initialConditionsFolder.domElement.classList.toggle("hidden");
+      leftGUI.domElement.firstChild.classList.toggle("hidden");
+      document.getElementById("left_ui_arrow").classList.toggle("hidden");
+    };
+    folder.domElement.insertBefore(focusButton, folder.domElement.firstChild);
   }
 
   /**
