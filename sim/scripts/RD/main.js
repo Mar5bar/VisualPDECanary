@@ -1040,6 +1040,8 @@ import { createWelcomeTour } from "./tours.js";
             $(":root").css("--views-ui-offset", viewUIOffsetInit);
             // Ensure that the correct play/pause button is showing.
             isRunning ? playSim() : pauseSim();
+            $("#pause").css("display", "");
+            $("#play").css("display", "");
             // Check for any positioning that relies on elements being visible.
             checkColourbarPosition();
             checkColourbarLogoCollision();
@@ -9426,13 +9428,16 @@ import { createWelcomeTour } from "./tours.js";
     focusButton.innerHTML = `<i class="fa-solid fa-eye"></i>`;
     focusButton.onclick = function () {
       focusButton.classList.toggle("active");
-      advancedOptionsFolder.domElement.classList.toggle("hidden");
-      boundaryConditionsFolder.domElement.classList.toggle("hidden");
-      document.getElementById("equation_display").classList.toggle("hidden");
-      editEquationsFolder.domElement.classList.toggle("hidden");
-      initialConditionsFolder.domElement.classList.toggle("hidden");
-      leftGUI.domElement.firstChild.classList.toggle("hidden");
-      document.getElementById("left_ui_arrow").classList.toggle("hidden");
+      advancedOptionsFolder.domElement.classList.toggle("hidden-aug");
+      boundaryConditionsFolder.domElement.classList.toggle("hidden-aug");
+      document
+        .getElementById("equation_display")
+        .classList.toggle("hidden-aug");
+      editEquationsFolder.domElement.classList.toggle("hidden-aug");
+      initialConditionsFolder.domElement.classList.toggle("hidden-aug");
+      leftGUI.domElement.firstChild.classList.toggle("hidden-aug");
+      document.getElementById("left_ui_arrow").classList.toggle("hidden-aug");
+      $(".ui.ui_button").toggleClass("hidden-aug");
     };
     folder.domElement.insertBefore(focusButton, folder.domElement.firstChild);
   }
