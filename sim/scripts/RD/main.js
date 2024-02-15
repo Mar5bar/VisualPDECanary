@@ -1799,7 +1799,7 @@ import { createWelcomeTour } from "./tours.js";
     addInfoButton(root, "/user-guide/advanced-options#edit");
     addFocusLeftGUIButton(editEquationsFolder);
 
-    const defButtonList = addButtonList(root);
+    const defButtonList = addButtonList(root, "typesetCustomEqsButtonRow");
     addToggle(
       defButtonList,
       "typesetCustomEqs",
@@ -9439,6 +9439,9 @@ import { createWelcomeTour } from "./tours.js";
       folder.domElement.classList.toggle("hidden-aug");
       document
         .getElementById("equation_display")
+        .classList.toggle("hidden-aug");
+      document
+        .getElementById("typesetCustomEqsButtonRow")
         .classList.toggle("hidden-aug");
       leftGUI.domElement.firstChild.classList.toggle("hidden-aug");
       document.getElementById("left_ui_arrow").classList.toggle("hidden-aug");
