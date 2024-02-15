@@ -9416,7 +9416,7 @@ import { createWelcomeTour } from "./tours.js";
     infoButton.innerHTML = `<i class="fa-regular fa-circle-info"></i>`;
     infoButton.href = link;
     infoButton.target = "_blank";
-    // infoButton.title = "More information";
+    infoButton.title = "More information";
     folder.domElement.classList.add("has-info-link");
     folder.domElement.insertBefore(infoButton, folder.domElement.firstChild);
   }
@@ -9428,6 +9428,7 @@ import { createWelcomeTour } from "./tours.js";
     const focusButton = document.createElement("button");
     focusButton.classList.add("focus-params");
     focusButton.innerHTML = `<i class="fa-solid fa-eye"></i>`;
+    focusButton.title = "Focus this folder";
     focusButton.onclick = function () {
       focusButton.classList.toggle("active");
       advancedOptionsFolder.domElement.classList.toggle("hidden-aug");
@@ -9454,11 +9455,13 @@ import { createWelcomeTour } from "./tours.js";
         $("#play").css("top", "-=50");
         $("#pause").css("top", "-=50");
         $("#erase").css("top", "-=50");
+        focusButton.title = "Unfocus this folder";
       } else {
         // Reset play, pause, and erase position.
         $("#play").css("top", "");
         $("#pause").css("top", "");
         $("#erase").css("top", "");
+        focusButton.title = "Focus this folder";
       }
     };
     folder.domElement.insertBefore(focusButton, folder.domElement.firstChild);
