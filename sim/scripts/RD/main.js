@@ -1220,7 +1220,13 @@ import { createWelcomeTour } from "./tours.js";
         "Oops! A spatial step less than or equal to 0 would almost certainly crash your device. Please check the definition.",
       );
       spatialStepValue = domainScaleValue / 100;
+    } else if (spatialStepValue >= domainScaleValue) {
+      throwError(
+        "Oops! The spatial step was set to be larger than the domain size. Please reduce the step size or increase the domain size.",
+      );
+      spatialStepValue = domainScaleValue / 100;
     }
+
     nXDisc = Math.floor(domainWidth / spatialStepValue);
     nYDisc = Math.floor(domainHeight / spatialStepValue);
     if (nXDisc > maxTexSize || nYDisc > maxTexSize) {
