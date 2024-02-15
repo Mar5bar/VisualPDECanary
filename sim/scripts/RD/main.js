@@ -1797,6 +1797,7 @@ import { createWelcomeTour } from "./tours.js";
     editEquationsFolder = leftGUI.addFolder("Edit");
     root = editEquationsFolder;
     addInfoButton(root, "/user-guide/advanced-options#edit");
+    addFocusLeftGUIButton(editEquationsFolder);
 
     const defButtonList = addButtonList(root);
     addToggle(
@@ -2051,13 +2052,14 @@ import { createWelcomeTour } from "./tours.js";
 
     parametersFolder = leftGUI.addFolder("Parameters");
     addInfoButton(parametersFolder, "/user-guide/advanced-options#parameters");
-    addFocusParamsButton();
+    addFocusLeftGUIButton(parametersFolder);
     setParamsFromKineticString();
 
     // Boundary conditions folder.
     boundaryConditionsFolder = leftGUI.addFolder("Boundary conditions");
     root = boundaryConditionsFolder;
     addInfoButton(root, "/user-guide/advanced-options#boundary-conditions");
+    addFocusLeftGUIButton(boundaryConditionsFolder);
 
     controllers["uBCs"] = root
       .add(options, "boundaryConditions_1", {})
@@ -2212,6 +2214,7 @@ import { createWelcomeTour } from "./tours.js";
     initialConditionsFolder = leftGUI.addFolder("Initial conditions");
     root = initialConditionsFolder;
     addInfoButton(root, "/user-guide/advanced-options#initial-conditions");
+    addFocusLeftGUIButton(initialConditionsFolder);
 
     controllers["initCond_1"] = root
       .add(options, "initCond_1")
@@ -9419,10 +9422,9 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   /**
-   * Adds a focus button to the dat.GUI Parameters folder that hides other folders.
+   * Adds a focus button to a leftGUI folder that hides other folders.
    */
-  function addFocusParamsButton() {
-    const folder = parametersFolder;
+  function addFocusLeftGUIButton(folder = parametersFolder) {
     const focusButton = document.createElement("button");
     focusButton.classList.add("focus-params");
     focusButton.innerHTML = `<i class="fa-solid fa-eye"></i>`;
@@ -9430,11 +9432,14 @@ import { createWelcomeTour } from "./tours.js";
       focusButton.classList.toggle("active");
       advancedOptionsFolder.domElement.classList.toggle("hidden-aug");
       boundaryConditionsFolder.domElement.classList.toggle("hidden-aug");
+      editEquationsFolder.domElement.classList.toggle("hidden-aug");
+      initialConditionsFolder.domElement.classList.toggle("hidden-aug");
+      parametersFolder.domElement.classList.toggle("hidden-aug");
+      // Repeat this toggle for the target folder.
+      folder.domElement.classList.toggle("hidden-aug");
       document
         .getElementById("equation_display")
         .classList.toggle("hidden-aug");
-      editEquationsFolder.domElement.classList.toggle("hidden-aug");
-      initialConditionsFolder.domElement.classList.toggle("hidden-aug");
       leftGUI.domElement.firstChild.classList.toggle("hidden-aug");
       document.getElementById("left_ui_arrow").classList.toggle("hidden-aug");
       $(".ui.ui_button").toggleClass("hidden-aug");
