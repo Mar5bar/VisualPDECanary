@@ -9438,6 +9438,20 @@ import { createWelcomeTour } from "./tours.js";
       leftGUI.domElement.firstChild.classList.toggle("hidden-aug");
       document.getElementById("left_ui_arrow").classList.toggle("hidden-aug");
       $(".ui.ui_button").toggleClass("hidden-aug");
+      $("#play").toggleClass("hidden-aug");
+      $("#pause").toggleClass("hidden-aug");
+      $("#erase").toggleClass("hidden-aug");
+      if (focusButton.classList.contains("active")) {
+        // Move play, pause, and erase up.
+        $("#play").css("top", "-=50");
+        $("#pause").css("top", "-=50");
+        $("#erase").css("top", "-=50");
+      } else {
+        // Reset play, pause, and erase position.
+        $("#play").css("top", "");
+        $("#pause").css("top", "");
+        $("#erase").css("top", "");
+      }
     };
     folder.domElement.insertBefore(focusButton, folder.domElement.firstChild);
   }
