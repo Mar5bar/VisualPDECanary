@@ -364,7 +364,9 @@ import { createWelcomeTour } from "./tours.js";
   };
 
   // Check URL for any specified options.
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(
+    window.location.search.replaceAll("&amp;", "&"),
+  );
 
   if (params.has("no_ui")) {
     // Hide all the ui, including buttons.
