@@ -134,8 +134,8 @@ presets["BMB"] = {
 };
 
 presets["SMB"] = {
-  boundaryConditionsU: "neumann",
-  boundaryConditionsV: "neumann",
+  boundaryConditions_1: "neumann",
+  boundaryConditions_2: "neumann",
   brushRadius: "5.6",
   brushValue: "1",
   colourmap: "midnight",
@@ -2338,8 +2338,8 @@ presets["swiftHohenbergLocalisedRotationalAdvection"] = {
 };
 
 presets["GrayScottBanner"] = {
-  boundaryConditionsU: "periodic",
-  boundaryConditionsV: "periodic",
+  boundaryConditions_1: "periodic",
+  boundaryConditions_2: "periodic",
   colourmap: "turbo",
   contours: true,
   contourNum: 2,
