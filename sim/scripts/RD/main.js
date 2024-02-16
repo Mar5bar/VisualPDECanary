@@ -746,11 +746,11 @@ import { createWelcomeTour } from "./tours.js";
     if (isRecording) {
       stopRecording();
     }
-    // Check if the simulation has changed (options.preset will have changed).
-    if (Object.keys(diffObjects(getPreset(options.preset), options)).length) {
-      // If so, add the URL.
-      history.pushState({}, "", getSimURL());
-    }
+    // // Check if the simulation has changed (options.preset will have changed).
+    // if (Object.keys(diffObjects(getPreset(options.preset), options)).length) {
+    //   // If so, add the URL.
+    //   history.pushState({}, "", getSimURL());
+    // }
   });
 
   // Begin the simulation.
