@@ -9518,10 +9518,10 @@ import { createWelcomeTour } from "./tours.js";
       });
     });
 
-    // If the string contains a single species name followed by a (, add a *.
+    // If the string contains a single species name (with optional _[xy]) followed by a (, add a *.
     str = str.replaceAll(
-      new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")\\(", "g"),
-      "$1*(",
+      new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")(_[xy])?\\(", "g"),
+      "$1$2*(",
     );
 
     return str;
