@@ -8224,7 +8224,7 @@ import { createWelcomeTour } from "./tours.js";
   function buildViewFromOptions() {
     let view = {};
     fieldsInView.forEach(function (key) {
-      view[key] = options[key];
+      view[key] = options[key]?.valueOf();
     });
     return view;
   }
@@ -8236,7 +8236,8 @@ import { createWelcomeTour } from "./tours.js";
   function updateView(property) {
     // Update the active view with options.property.
     if (options.activeViewInd < options.views.length)
-      options.views[options.activeViewInd][property] = options[property];
+      options.views[options.activeViewInd][property] =
+        options[property]?.valueOf();
   }
 
   /**
