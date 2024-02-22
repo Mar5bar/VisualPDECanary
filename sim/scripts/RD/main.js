@@ -7333,6 +7333,7 @@ import { createWelcomeTour } from "./tours.js";
 
   /**
    * Replaces any digits [0-9] in the input string with their word equivalents, so long as they follow at least one letter in a word.
+   * Do not replace texture2 or vec2 to allow for special GLSL functions.
    * @param {string} strIn - The input string to replace digits in.
    * @returns {string} The output string with digits replaced by their word equivalents.
    */
@@ -7342,7 +7343,11 @@ import { createWelcomeTour } from "./tours.js";
     for (let num = 0; num < 10; num++) {
       regex = new RegExp("([a-zA-Z_]+[0-9]*)(" + num.toString() + ")", "g");
       while (
-        strOut != (strOut = strOut.replace(regex, "$1" + numsAsWords[num]))
+        strOut !=
+        (strOut = strOut.replace(regex, function (m, d1) {
+          if (m == "texture2" || m == "vec2") return m;
+          return d1 + numsAsWords[num];
+        }))
       );
     }
     return strOut;
@@ -7978,6 +7983,9 @@ import { createWelcomeTour } from "./tours.js";
    * @returns {boolean} - Returns true if the syntax is valid, false otherwise.
    */
   function isValidSyntax(str) {
+    // Replace vec2 with a placeholder to prevent accidental detection of bad syntax due to number followed by (.
+    str = str.replaceAll(/\bvec2\(/g, "__VECTWO__(");
+
     let regex, matches;
     // Empty parentheses?
     regex = /\(\s*\)/;
@@ -9487,6 +9495,10 @@ import { createWelcomeTour } from "./tours.js";
       return "0";
     }
 
+    // Replace texture2D and vec2 with placeholders to prevent accidental multiplication.
+    str = str.replaceAll(/\btexture2D\b/g, "__TEXTURETWOD__");
+    str = str.replaceAll(/\bvec2\(/g, "__VECTWOPAREN__");
+
     // If a number is followed by a letter or (, add a *.
     str = str.replaceAll(/(\d)([a-zA-Z(])/g, "$1*$2");
 
@@ -9523,6 +9535,10 @@ import { createWelcomeTour } from "./tours.js";
       new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")(_[xy])?\\(", "g"),
       "$1$2*(",
     );
+
+    // Replace texture2D and vec2 placeholders back to original.
+    str = str.replaceAll(/__TEXTURETWOD__/g, "texture2D");
+    str = str.replaceAll(/__VECTWOPAREN__/g, "vec2(");
 
     return str;
   }
