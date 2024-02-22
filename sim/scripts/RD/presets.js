@@ -2,6 +2,48 @@
 
 let presets = {};
 
+presets["dynamicalSystemsVisualisationTopography"] = {
+  arrowX: "u",
+  arrowY: "v",
+  brushAction: "smoothadd",
+  brushRadius: "2",
+  brushValue: "1",
+  colourbar: true,
+  colourmap: "greyscale",
+  crossDiffusion: true,
+  diffusionStr_1_1: "0.1",
+  diffusionStr_2_2: "10*ind(t<1)",
+  domainScale: "100",
+  dt: 0.001,
+  emboss: true,
+  embossSpecular: 0.1,
+  embossTheta: 0.2,
+  guiUpdatePeriod: 3,
+  imagePathTwo: "./images/topography.webp",
+  initCond_1: "1",
+  initCond_2: "10*I_T(x/2,y/2)+20*(x/L_x-0.5)",
+  kineticParams:
+    "a = 1.1 in [0.01, 0.01, 10];m = 0.630 in [0.2, 0.01, 1];V = 100;",
+  numAlgebraicSpecies: 2,
+  numSpecies: 4,
+  numTimestepsPerFrame: 50,
+  preset: "dynamicalSystemsVisualisationTopography",
+  resetOnImageLoad: true,
+  reactionStr_1: "-c*(u_x+v_y) - u*c_x - v*c_y",
+  reactionStr_2: "0",
+  reactionStr_3: "-T_x",
+  reactionStr_4: "-T_y",
+  spatialStep: "0.5",
+  speciesNames: "c T u v",
+  squareCanvas: true,
+  surfaceFun: "3*u",
+  vectorField: true,
+  maxColourValue: "1",
+  minColourValue: "0",
+  whatToDraw: "c",
+  whatToPlot: "c",
+};
+
 presets["bacteriaInAReach"] = {
   boundaryConditions_1: "combo",
   brushAction: "smoothadd",
