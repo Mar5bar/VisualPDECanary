@@ -2420,6 +2420,23 @@ import { createWelcomeTour } from "./tours.js";
       "Set the seed for random number generation",
     );
 
+    addButton(
+      miscButtons,
+      '<i class="fa-solid fa-arrow-rotate-left"></i> Clean slate',
+      function () {
+        // Check with the user before resetting everything.
+        if (
+          confirm(
+            "Are you sure you want to reset everything to a blank simulation?",
+          )
+        ) {
+          window.location.replace(window.location.pathname + "?preset=blank");
+        }
+      },
+      null,
+      "Load a blank simulation",
+    );
+
     controllers["randSeed"] = root
       .add(options, "randSeed")
       .name("Random seed")
