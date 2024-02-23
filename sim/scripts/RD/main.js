@@ -411,6 +411,11 @@ import { createWelcomeTour } from "./tours.js";
     }
   }
 
+  if (inIframe()) {
+    // If we're in an iframe, disable the header.
+    $("#header").hide();
+  }
+
   // Load default options.
   loadOptions("default");
 
@@ -700,7 +705,7 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   // If we're in an iframe, set the logo to be a link to the current simulation on the main site just as it is clicked.
-  if (window.self !== window.top) {
+  if (inIframe()) {
     $("#logo").click(function (e) {
       e.preventDefault();
       window.open(getSimURL());
@@ -1205,6 +1210,7 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   function setSizes() {
+    setSimCSS();
     computeCanvasSizesAndAspect();
     // Using the user-specified spatial step size, compute as close a discretisation as possible that
     // doesn't reduce the step size below the user's choice.
@@ -1335,6 +1341,16 @@ import { createWelcomeTour } from "./tours.js";
     options.squareCanvas
       ? $("#simCanvas").addClass("squareCanvas")
       : $("#simCanvas").removeClass("squareCanvas");
+  }
+
+  function setSimCSS() {
+    // Set the CSS of simulation page, accounting for the header visible on larger screens.
+    const headerStyles = window.getComputedStyle(
+      document.getElementById("header"),
+    );
+    const hasHeader = headerStyles.getPropertyValue("display") != "none";
+    // Set CSS variables for the simulation.
+    $(":root").css("--header-height", hasHeader ? headerStyles.height : "0px");
   }
 
   function resizeTextures() {
@@ -9669,5 +9685,9 @@ import { createWelcomeTour } from "./tours.js";
     document.addEventListener("visibilitychange", becomingVisible, {
       once: true,
     });
+  }
+
+  function inIframe() {
+    return window.self !== window.top;
   }
 })();

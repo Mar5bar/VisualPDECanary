@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <title>VisualPDE | Interactive simulation</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="Cache-control" content="public" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#202124"
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site:id" content="@visualpde" />
+    <meta name="twitter:title" content="Interactive simulation | VisualPDE" />
+    <meta
+      name="twitter:description"
+      content="An interactive simulation of a partial differential equation, live in your browser with VisualPDE."
+    />
+    <meta
+      name="twitter:image"
+      content="https://visualpde.com/assets/favicons/twitter-icon.webp"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Interactive simulation | VisualPDE" />
+    <meta
+      property="og:description"
+      content="An interactive simulation of a partial differential equation, live in your browser with VisualPDE."
+    />
+    <meta
+      property="og:image"
+      content="https://visualpde.com/assets/favicons/android-chrome-1200x630.webp"
+    />
+    <meta property="og:url" content="https://visualpde.com" />
+    <meta property="og:site_name" content="VisualPDE" />
+    <link rel="stylesheet" href="{{ "/assets/main.css" | relative_url }}">
+    <link type="text/css" rel="stylesheet" href="/assets/css/shepherd.css" />
+    <link type="text/css" rel="stylesheet" href="/assets/css/custom.css" />
+    <link type="text/css" rel="stylesheet" href="/sim/css/main.css" />
+    <script src="/assets/js/jQuery.js"></script>
+    <script src="/assets/js/dark_mode.js"></script>
+    <script
+      defer
+      type="text/javascript"
+      src="/sim/scripts/dat.gui.min.js"
+    ></script>
+
+    <script type="text/javascript">
+      window.MathJax = {
+        loader: {
+          load: ["ui/menu", "[tex]/ams"],
+        },
+      };
+      window.MathJax = {
+        tex: {
+          macros: {
+            pd: ["\\frac{\\partial #1}{\\partial #2}", 2],
+            pdd: ["\\frac{\\partial^2 #1}{\\partial #2^2}", 2],
+            pdn: ["\\frac{\\partial^{#3} #1}{\\partial #2^{#3}}", 3],
+            vnabla: "\\boldsymbol{\\nabla}",
+            lap: "\\nabla^2",
+            m: ["{\\large\\symbfsfit{#1}}", 1],
+            v: ["\\boldsymbol{#1}", 1],
+            d: "\\mathrm{d}",
+            i: "\\mathrm{i}",
+            dx: "\\mathrm{dx}",
+            dy: "\\mathrm{dy}",
+            dt: "\\mathrm{dt}",
+            domain: "\\mathit{\\Omega}",
+            boundary: "\\partial\\mathit{\\Omega}",
+            onboundary: "\\vert_{\\boundary}",
+            selectedLight: ["{\\bbox[GreenYellow]{#1}}", 1],
+            selectedDark: ["{\\bbox[Purple]{#1}}", 1],
+            floor: ["\\left\\lfloor#1\\right\\rfloor", 1],
+            ind: ["\\mathbb{1}_{#1}", 1],
+            dmat: ["\\begin{bmatrix}#1&0\\\\0&#2\\end{bmatrix}", 2],
+            diff: ["\\frac{\\d #1}{\\d #2}", 2],
+          },
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+        options: {
+          menuOptions: {
+            settings: {
+              inTabOrder: false,
+            },
+          },
+        },
+      };
+    </script>
+    <!-- Prevent loading of accessory scripts if the query string contains lite -->
+    <script type="text/javascript">
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has("lite")) {
+        if (!params.has("nomathjax")) {
+          document.write(
+            '<script id="MathJax-script" async src="/assets/js/mathjax/es5/tex-chtml-full.js"><\/script>',
+          );
+        }
+        document.write(
+          '<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"><\/script>',
+        );
+        document.write(
+          '<script defer src="/assets/fontawesome/solid.js"><\/script>',
+        );
+        document.write(
+          '<script defer src="/assets/fontawesome/fontawesome.min.js"><\/script>',
+        );
+        document.write(
+          '<link href="/assets/fontawesome/css/fontawesome.min.css" rel="stylesheet">',
+        );
+        document.write(
+          '<link href="/assets/fontawesome/css/solid.min.css" rel="stylesheet">',
+        );
+        document.write(
+          '<script type="module" src="/assets/js/shepherd.min.js"><\/script>',
+        );
+      }
+    </script>
+    <script type="module" src="/sim/scripts/dat_gui_mods.js"></script>
+    <script type="module" src="/sim/scripts/RD/main.js"></script>
+    <script src="/sim/scripts/fitty.min.js"></script>
+    <script src="/sim/scripts/expr-eval.js"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-ZDK91GRY6Y", { client_storage: "none" });
+      // If we're on localhost, disable GA.
+      if (
+        location.hostname === "localhost" ||
+        location.hostname === "127.0.0.1"
+      ) {
+        window["ga-disable-G-ZDK91GRY6Y"] = true;
+      }
+    </script>
+
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/assets/favicons/apple-touch-icon.webp"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/assets/favicons/favicon-32x32.webp"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/assets/favicons/favicon-16x16.webp"
+    />
+    <link rel="manifest" href="/assets/favicons/site.webmanifest" />
+    <link
+      rel="mask-icon"
+      href="/assets/favicons/safari-pinned-tab.svg"
+      color="#5bbad5"
+    />
+    <link rel="shortcut icon" href="/assets/favicons/favicon.ico" />
+    <meta name="msapplication-TileColor" content="#da532c" />
+    <meta
+      name="msapplication-config"
+      content="/assets/favicons/browserconfig.xml"
+    />
+    <meta name="theme-color" content="#ffffff" />
+  </head>
+
+  <body>
+    {%- include sim-header.html -%}
+  </body>
+
+  <div id="simulation">
+    <!-- The canvas for drawing on -->
+    <canvas id="simCanvas"></canvas>
+
+    <div class="message big-popup" id="welcome">
+      <p>
+        <img
+          src="/assets/favicons/android-chrome-192x192.webp"
+          width="48"
+          height="48"
+        />
+      </p>
+      <p>Welcome to VisualPDE!</p>
+      <div id="tour_question">
+        <p>There is so much to explore. Would you like a tour?</p>
+        <br />
+        <button id="welcome_ok" class="btn-primary highlight">
+          Yes, show me round!
+        </button>
+        <br />
+        <button id="welcome_no" class="btn-primary">No, let me jump in!</button>
+      </div>
+      <p>
+        Some simulations on VisualPDE.com may contain flashing images and
+        patterns.
+      </p>
+      <div id="lets_go_cont" style="display: none">
+        <button id="lets_go" class="btn-primary highlight">
+          Ok, let's go!
+        </button>
+      </div>
+    </div>
+
+    <div class="ui hidden ui_button" id="settings" title="Settings">
+      <i class="fa-solid fa-wrench"></i>
+    </div>
+    <div class="ui hidden ui_button" id="play_pause_placeholder"></div>
+    <div class="ui hidden ui_button" id="play" title="Play (space)">
+      <i class="fa-solid fa-play"></i>
+    </div>
+    <div class="ui hidden ui_button" id="pause" title="Pause (space)">
+      <i class="fa-solid fa-pause"></i>
+    </div>
+    <div class="ui hidden ui_button" id="erase" title="Restart (R)">
+      <i class="fa-solid fa-arrow-rotate-left"></i>
+    </div>
+    <div class="ui hidden ui_button" id="share" title="Share">
+      <i class="fa-solid fa-share-from-square"></i>
+    </div>
+    <div class="message small" id="link_copied"><p>Copied to clipboard</p></div>
+    <div class="message small" id="get_help"><p>Get help here anytime</p></div>
+    <div class="message small mid" id="brush_disabled">
+      <p>Brush disabled</p>
+    </div>
+    <div class="message small mid" id="recording">
+      <div class="circle"></div>
+      <p>Recording <span id="recording_time"></span></p>
+      <div class="ui_button" id="stop_recording" title="Stop recording">
+        <i class="fa-solid fa-video-slash"></i>
+      </div>
+    </div>
+    <div class="message small" id="use_Chrome">
+      <p>Chrome/Firefox on desktop are recommended for video recording</p>
+    </div>
+    <div class="ui hidden ui_button" id="help" title="Help">
+      <i class="fa-solid fa-circle-question"></i>
+    </div>
+    <div class="ui hidden ui_button" id="views" title="Views">
+      <i class="fa-solid fa-layer-group"></i>
+    </div>
+
+    <div
+      class="ui hidden ui_button"
+      id="equations"
+      title="Edit equations"
+    ></div>
+
+    <a
+      id="logo"
+      title="To VisualPDE.com"
+      class="ui hidden"
+      href="/"
+      target="_blank"
+      >VisualPDE</a
+    >
+
+    <div class="message" id="top_message" title="Try clicking!">
+      <p>Try clicking!</p>
+    </div>
+    <div class="message big-popup" id="oops_hit_nan">
+      <div class="centre_symbol">
+        <i class="fa-sharp fa-solid fa-infinity"></i>
+      </div>
+      <p class="error_para">
+        <strong>Oops!</strong> It looks like things have spiralled off to
+        infinity, or the numerical solver is unstable.
+      </p>
+      <p class="error_para">
+        Check the equations, or try reducing the timestep, and restart the
+        simulation.
+      </p>
+      <button class="btn-primary message_dismiss" id="oops_hit_nan_close">
+        <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
+      </button>
+    </div>
+    <div class="message big-popup" id="error">
+      <div class="centre_symbol">
+        <i class="fa-solid fa-clipboard-question"></i>
+      </div>
+      <p class="error_para">VisualPDE is throwing an error.</p>
+      <p class="error_para" id="error_description"></p>
+      <p class="error_para">
+        Check for
+        <a
+          href="/user-guide/advanced-options.html#writing-valid-expressions"
+          target="_blank"
+          >syntax errors</a
+        >, and reload the page if the interface is unresponsive.
+      </p>
+      <button class="btn-primary message_dismiss" id="error_close_button">
+        <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
+      </button>
+    </div>
+    <div class="message big-popup" id="bad_preset">
+      <div class="centre_symbol">
+        <i class="fa-solid fa-clipboard-question"></i>
+      </div>
+      <p class="error_para"><strong>Hmmm...</strong></p>
+      <p class="error_para" id="preset_description"></p>
+      <button
+        class="btn-primary message_dismiss"
+        id="preset_error_close_button"
+      >
+        <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
+      </button>
+    </div>
+    <div class="message big-popup" id="first_video">
+      <div class="centre_symbol"><i class="fa-solid fa-file-video"></i></div>
+      <p>
+        Congratulations! You've recorded your first video clip with VisualPDE!
+      </p>
+      <br />
+      <p>
+        If you're planning to share it on social media or messaging apps, check
+        out our
+        <a href="/user-guide/FAQ.html#videoHelp" target="_blank"
+          >FAQ on video compatibility</a
+        >.
+      </p>
+      <button class="btn-primary message_dismiss" id="first_video_close">
+        <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
+      </button>
+    </div>
+
+    <div id="right_ui" class="ui hidden">
+      <div
+        class="dg ac"
+        id="rightGUIContainer"
+        style="position: relative"
+      ></div>
+      <div id="right_ui_arrow"></div>
+    </div>
+
+    <div id="left_ui" class="ui hidden">
+      <div id="equation_display">
+        <div id="equation_display_box">
+          <div id="typeset_equation"></div>
+        </div>
+      </div>
+      <div class="dg ac" id="leftGUIContainer" style="position: relative"></div>
+      <div id="left_ui_arrow" class="ui"></div>
+    </div>
+
+    <div id="views_ui" class="ui hidden">
+      <div
+        class="dg ac"
+        id="viewsGUIContainer"
+        style="position: relative"
+      ></div>
+      <div id="views_ui_arrow"></div>
+    </div>
+
+    <div id="share_panel" class="ui hidden popout_panel">
+      <div class="container">
+        <div id="title">Share your simulation</div>
+        <div id="link" class="button">
+          <i class="share-icon fa-solid fa-link"></i>Copy link
+        </div>
+        <div id="screenshot" class="button">
+          <i class="share-icon fa-solid fa-camera"></i>Save image
+        </div>
+        <div>
+          <div id="record" class="button">
+            <i class="share-icon fa-solid fa-video"></i>Record clip
+          </div>
+          <select id="video_quality">
+            <option value="SD">SD</option>
+            <option value="HD" selected>HD</option>
+            <option value="UHD">UHD</option>
+          </select>
+        </div>
+        <div>
+          <div id="embed" class="button">
+            <i class="share-icon fa-solid fa-code"></i>Embed
+          </div>
+          <select id="embed_ui_type">
+            <option value="full">Full UI</option>
+            <option value="story">Basic UI</option>
+            <option value="none">No UI</option>
+          </select>
+        </div>
+      </div>
+      <div class="arrow"></div>
+    </div>
+
+    <div id="help_panel" class="ui hidden popout_panel">
+      <div class="container">
+        <div id="title">Help</div>
+        <a
+          ><div id="start_tour" class="button">
+            <i class="share-icon fa-solid fa-route"></i>Give me the tour
+          </div></a
+        >
+        <a href="/user-guide/quick-start" target="_blank"
+          ><div id="quick_start" class="button">
+            <i class="share-icon fa-solid fa-forward"></i>Quick start
+          </div></a
+        >
+        <a href="/user-guide/FAQ" target="_blank"
+          ><div id="faqs" class="button">
+            <i class="share-icon fa-solid fa-clipboard-question"></i>FAQs
+          </div></a
+        >
+        <a href="/user-guide/advanced-options" target="_blank"
+          ><div id="advanced" class="button">
+            <i class="share-icon fa-solid fa-gears"></i>Advanced options
+          </div></a
+        >
+        <a href="/user-guide" target="_blank"
+          ><div id="more" class="button">
+            <i class="share-icon fa-solid fa-question"></i>More...
+          </div></a
+        >
+      </div>
+      <div class="arrow"></div>
+    </div>
+
+    <div class="ui hidden colourbarMain prevent-select" id="colourbar">
+      <div class="label colourbarLabel" id="minLabel">0</div>
+      <div class="label colourbarLabel" id="midLabel">0.5</div>
+      <div class="label colourbarLabel" id="maxLabel">1</div>
+    </div>
+
+    <div class="ui hidden dataContainer" id="dataContainer">
+      <div class="dataItem prevent-select" id="timeDisplay">
+        <div class="label timeLabel" id="timeLabel">$t=$</div>
+        <div class="label timeLabel" id="timeValue"></div>
+      </div>
+      <div class="dataItem prevent-select" id="integralDisplay">
+        <div class="label integralLabel" id="integralLabel"></div>
+        <div class="label integralLabel" id="integralValue"></div>
+      </div>
+    </div>
+
+    <input id="checkpointInput" type="file" style="visibility: hidden" />
+
+    <div
+      class="ui dataContainer"
+      id="dataContainerStats"
+      style="visibility: hidden; display: block"
+    >
+      <div class="dataItem prevent-select" id="rateOfProgressDisplay">
+        <div class="label rateOfProgressLabel">$\frac{\d t}{\d t}=$</div>
+        <div class="label rateOfProgressLabel" id="rateOfProgressValue"></div>
+      </div>
+    </div>
+  </div>
+
+  <noscript>
+    <link rel="stylesheet" href="/assets/css/noscript.css" />
+    <a href="/"
+      ><img class="logo" src="/assets/images/logo_title_white.webp"
+    /></a>
+    <p class="noscript">
+      VisualPDE makes heavy use of JavaScript to enable in-browser
+      simulations.<br />Enable JavaScript in your browser settings to experience
+      this simulation.
+    </p>
+  </noscript>
+</html>
