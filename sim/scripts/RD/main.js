@@ -169,6 +169,7 @@ import { createWelcomeTour } from "./tours.js";
     brushDisabledTimer,
     recordingTimer,
     stabilisingFPSTimer,
+    titleBlurTimer,
     recordingTextInterval,
     uiHidden = false,
     checkpointExists = false,
@@ -1035,7 +1036,7 @@ import { createWelcomeTour } from "./tours.js";
       var target = event.target;
       var targetTagName =
         target.nodeType == 1 ? target.nodeName.toUpperCase() : "";
-      if (!/INPUT|SELECT|TEXTAREA/.test(targetTagName)) {
+      if (!/INPUT|SELECT|TEXTAREA|SPAN/.test(targetTagName)) {
         if (event.key === "h") {
           if (uiHidden) {
             uiHidden = false;
@@ -1076,6 +1077,38 @@ import { createWelcomeTour } from "./tours.js";
         }
       }
     });
+
+    $("#simTitle")
+      .on("paste", function (e) {
+        // Strips elements added to the editable tag when pasting
+        var $self = $(this);
+        setTimeout(function () {
+          $self.html($self.text());
+        }, 0);
+      })
+      .on("keydown keypress", function (e) {
+        // Save the title after each keypress.
+        options.simTitle = $(this).text();
+        // Reset timer that blurs after inactivity.
+        clearTimeout(titleBlurTimer);
+        // Blur on enter key.
+        if (e.which == 13) {
+          this.blur();
+          return false;
+        }
+        var $self = $(this);
+        titleBlurTimer = setTimeout(function () {
+          $self.blur();
+          window.getSelection().removeAllRanges();
+        }, 5000);
+      })
+      .on("focus", function () {
+        var $self = $(this);
+        titleBlurTimer = setTimeout(function () {
+          $self.blur();
+          window.getSelection().removeAllRanges();
+        }, 5000);
+      });
 
     // Listen for resize events.
     window.addEventListener(
@@ -4677,6 +4710,11 @@ import { createWelcomeTour } from "./tours.js";
 
     // Save these loaded options if we ever need to revert.
     savedOptions = JSON.parse(JSON.stringify(options));
+
+    // Update the simulation title if one is provided.
+    $("#simTitle").text(
+      options.simTitle ? options.simTitle : "Interactive simulation",
+    );
 
     // If either of the images are used in the simulation, ensure that the simulation resets when the images are
     // actually loaded in.
