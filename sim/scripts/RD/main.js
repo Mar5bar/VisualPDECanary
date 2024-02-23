@@ -1385,6 +1385,10 @@ import { createWelcomeTour } from "./tours.js";
     const hasHeader = headerStyles.getPropertyValue("display") != "none";
     // Set CSS variables for the simulation.
     $(":root").css("--header-height", hasHeader ? headerStyles.height : "0px");
+    // Hide the logo if we can see the header. Don't worry about making it visible again if the header disappears.
+    if (hasHeader) {
+      $("#logo").hide();
+    }
   }
 
   function resizeTextures() {
