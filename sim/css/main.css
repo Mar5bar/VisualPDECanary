@@ -103,10 +103,6 @@ noscript > p {
   left: 50%;
   transform: translateX(-50%);
   width: calc(80% - 360px);
-  background-color: var(--background-color);
-  color: var(--text-color);
-  z-index: 1;
-  box-shadow: 0 5px 10px #1113;
   text-decoration: none !important;
   overflow: hidden;
   white-space: nowrap;

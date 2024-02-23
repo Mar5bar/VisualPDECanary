@@ -1102,8 +1102,9 @@ import { createWelcomeTour } from "./tours.js";
           window.getSelection().removeAllRanges();
         }, 5000);
       })
-      .on("focus", function () {
+      .on("focus click", function () {
         var $self = $(this);
+        clearTimeout(titleBlurTimer);
         titleBlurTimer = setTimeout(function () {
           $self.blur();
           window.getSelection().removeAllRanges();

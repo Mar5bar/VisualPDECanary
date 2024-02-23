@@ -444,8 +444,7 @@ div.subtitle_equation mjx-container mjx-math {
   font-size: 110%;
 }
 
-a.home_tile div.container div.button,
-.button {
+a.home_tile div.container div.button {
   background-color: var(--button-color);
   text-align: center;
   width: 60px;
