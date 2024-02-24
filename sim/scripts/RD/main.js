@@ -128,10 +128,12 @@ import { createWelcomeTour } from "./tours.js";
     minMaxUniforms,
     funsObj,
     savedOptions,
+    comboBCsOptions = { type: "", value: "" },
     localOpts = {};
   let leftGUI,
     rightGUI,
     viewsGUI,
+    comboBCsGUI,
     root,
     controllers = [],
     contoursControllers = [],
@@ -616,6 +618,9 @@ import { createWelcomeTour } from "./tours.js";
     $("#welcome").css("display", "none");
     tour.start();
     window.gtag?.("event", "manual_intro_tour");
+  });
+  $("#close-bcs-ui").click(function () {
+    closeComboBCsGUI();
   });
   // Open the Definitions tab when the user clicks on the equation display.
   $("#equation_display").click(function () {
@@ -1103,8 +1108,7 @@ import { createWelcomeTour } from "./tours.js";
       })
       .on("blur", function () {
         // Save the title.
-        let val = this.value.trim();
-        while (val != (val = val.replace(/\s\s/g, " ")));
+        let val = removeExtraWhitespace(this.value.trim());
         options.simTitle = val;
         this.value = val;
       });
@@ -1616,9 +1620,16 @@ import { createWelcomeTour } from "./tours.js";
       .getElementById("viewsGUIContainer")
       .appendChild(viewsGUI.domElement);
 
+    comboBCsGUI = new dat.GUI({ closeOnTop: false, autoPlace: false });
+    comboBCsGUI.domElement.id = "comboBCsGUI";
+    document
+      .getElementById("comboBCsGUIContainer")
+      .appendChild(comboBCsGUI.domElement);
+
     leftGUI.open();
     rightGUI.open();
     viewsGUI.open();
+    comboBCsGUI.open();
     if (startOpen != undefined && startOpen) {
       $("#right_ui").show();
       $("#left_ui").show();
@@ -2130,6 +2141,7 @@ import { createWelcomeTour } from "./tours.js";
         setBCsGUI();
         document.activeElement.blur();
       });
+    addComboBCsButton(controllers["uBCs"], 0);
 
     controllers["dirichletU"] = root
       .add(options, "dirichletStr_1")
@@ -2167,6 +2179,7 @@ import { createWelcomeTour } from "./tours.js";
         setBCsGUI();
         document.activeElement.blur();
       });
+    addComboBCsButton(controllers["vBCs"], 1);
 
     controllers["dirichletV"] = root
       .add(options, "dirichletStr_2")
@@ -2204,6 +2217,7 @@ import { createWelcomeTour } from "./tours.js";
         setBCsGUI();
         document.activeElement.blur();
       });
+    addComboBCsButton(controllers["wBCs"], 2);
 
     controllers["dirichletW"] = root
       .add(options, "dirichletStr_3")
@@ -2242,6 +2256,7 @@ import { createWelcomeTour } from "./tours.js";
         setBCsGUI();
         document.activeElement.blur();
       });
+    addComboBCsButton(controllers["qBCs"], 3);
 
     controllers["dirichletQ"] = root
       .add(options, "dirichletStr_4")
@@ -3130,6 +3145,57 @@ import { createWelcomeTour } from "./tours.js";
         updateView(this.property);
       })
       .name("Max length");
+
+    // ComboBCs GUI.
+    // Add a title to the comboBCs GUI.
+    const comboBCsTitle = document.createElement("div");
+    comboBCsTitle.classList.add("ui_title");
+    comboBCsTitle.id = "comboBCsTitle";
+    comboBCsGUI.domElement.prepend(comboBCsTitle);
+    root = comboBCsGUI;
+
+    controllers["comboBCsType"] = root
+      .add(comboBCsOptions, "type", {})
+      .name("Type")
+      .onChange(function () {
+        // Set the value string to empty.
+        controllers["comboBCsVal"].setValue("");
+        configureComboBCsGUI();
+      });
+    updateGUIDropdown(
+      controllers["comboBCsType"],
+      ["Periodic", "Dirichlet", "Neumann", "Robin"],
+      ["periodic", "dirichlet", "neumann", "robin"],
+    );
+
+    controllers["comboBCsVal"] = root
+      .add(comboBCsOptions, "value")
+      .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
+        // Remove any BCs already set for the current side.
+        let str = options[
+          "comboStr_" + (comboBCsOptions.speciesInd + 1).toString()
+        ]
+          .split(";")
+          .filter(
+            (str) => str.toLowerCase().indexOf(comboBCsOptions.side) == -1,
+          )
+          .filter((str) => str.trim() != "")
+          .join("; ");
+        if (str.trim() != "") str += "; ";
+        // Add the new BC.
+        str +=
+          capitaliseFirstLetter(comboBCsOptions.side) +
+          " : " +
+          capitaliseFirstLetter(comboBCsOptions.type) +
+          " = " +
+          this.getValue() +
+          ";";
+        options["comboStr_" + (comboBCsOptions.speciesInd + 1).toString()] =
+          removeExtraWhitespace(str.trim());
+        setRDEquations();
+        refreshGUI(leftGUI);
+      });
 
     const inputs = document.querySelectorAll("input");
     inputs.forEach((input) => disableAutocorrect(input));
@@ -4795,6 +4861,7 @@ import { createWelcomeTour } from "./tours.js";
     deleteGUI(leftGUI, true);
     deleteGUI(rightGUI, true);
     deleteGUI(viewsGUI, true);
+    deleteGUI(comboBCsGUI, true);
   }
 
   function deleteGUI(folder, topLevel) {
@@ -4916,25 +4983,41 @@ import { createWelcomeTour } from "./tours.js";
       controllers["robinQ"].hide();
     }
 
+    let button =
+      controllers["uBCs"].domElement.getElementsByClassName("combo-bcs")[0];
     if (options.boundaryConditions_1 == "combo") {
       controllers["comboU"].show();
+      button.classList.remove("hidden");
     } else {
       controllers["comboU"].hide();
+      button.classList.add("hidden");
     }
+    button =
+      controllers["vBCs"].domElement.getElementsByClassName("combo-bcs")[0];
     if (options.boundaryConditions_2 == "combo") {
       controllers["comboV"].show();
+      button.classList.remove("hidden");
     } else {
       controllers["comboV"].hide();
+      button.classList.add("hidden");
     }
+    button =
+      controllers["wBCs"].domElement.getElementsByClassName("combo-bcs")[0];
     if (options.boundaryConditions_3 == "combo") {
       controllers["comboW"].show();
+      button.classList.remove("hidden");
     } else {
       controllers["comboW"].hide();
+      button.classList.add("hidden");
     }
+    button =
+      controllers["qBCs"].domElement.getElementsByClassName("combo-bcs")[0];
     if (options.boundaryConditions_4 == "combo") {
       controllers["comboQ"].show();
+      button.classList.remove("hidden");
     } else {
       controllers["comboQ"].hide();
+      button.classList.add("hidden");
     }
 
     const BCsControllers = [
@@ -9560,6 +9643,58 @@ import { createWelcomeTour } from "./tours.js";
     folder.domElement.insertBefore(focusButton, folder.domElement.firstChild);
   }
 
+  function addComboBCsButton(controller, speciesInd) {
+    const BCsButton = document.createElement("button");
+    BCsButton.classList.add("info-link", "combo-bcs", "hidden");
+    BCsButton.innerHTML = `<i class="fa-solid fa-bullseye"></i>`;
+    BCsButton.onclick = function () {
+      comboBCsOptions.speciesInd = speciesInd;
+      comboBCsOptions.side = "left";
+      comboBCsOptions.type = "periodic";
+      // Fill the combo string with the current boundary conditions, unless combo is the current type.
+      const indText = (comboBCsOptions.speciesInd + 1).toString();
+      const oldType = options["boundaryConditions_" + indText];
+      if (oldType != "combo") {
+        comboBCsOptions.type = oldType;
+        let strs = ["Left", "Right", "Top", "Bottom"].map(
+          (side) => side + " : " + capitaliseFirstLetter(oldType),
+        );
+        if (oldType != "periodic") {
+          strs.map((s) => s + " = " + options[oldType + "Str_" + indText]);
+        }
+        options["comboStr_" + indText] = strs.join("; ");
+        // Set the boundary conditions to "combo" for the selected species.
+        options["boundaryConditions_" + (speciesInd + 1).toString()] = "combo";
+      } else {
+        if (
+          options["comboStr_" + indText]
+            .toLowerCase()
+            .indexOf(comboBCsOptions.side.toLowerCase()) != -1
+        ) {
+          comboBCsOptions.type =
+            options["comboStr_" + indText]
+              .split(";")
+              ?.filter(
+                (s) =>
+                  s.toLowerCase().indexOf(comboBCsOptions.side.toLowerCase()) !=
+                  -1,
+              )[0]
+              .split(":")[1]
+              ?.split("=")[0]
+              .trim()
+              .toLowerCase() || "periodic";
+        }
+      }
+      setRDEquations();
+      setBCsGUI();
+      refreshGUI(leftGUI);
+      openComboBCsGUI();
+    };
+    BCsButton.title = "Configure boundary conditions for this species";
+    controller.domElement.classList.add("has-info-link");
+    controller.domElement.appendChild(BCsButton);
+  }
+
   /**
    * Corrects the syntax of a given expression by performing specific replacements (primarily multiplication).
    *
@@ -9732,5 +9867,45 @@ import { createWelcomeTour } from "./tours.js";
 
   function inIframe() {
     return window.self !== window.top;
+  }
+
+  function openComboBCsGUI() {
+    document.getElementById("comboBCs_ui").style.display = "block";
+    $("#equations").click();
+    configureComboBCsGUI();
+  }
+
+  function closeComboBCsGUI() {
+    document.getElementById("comboBCs_ui").style.display = "none";
+    // If the equations are not already open, open them.
+    if (!$("#leftGUI").is(":visible")) $("#equations").click();
+  }
+
+  function configureComboBCsGUI() {
+    document.getElementById("comboBCsTitle").innerHTML =
+      capitaliseFirstLetter(comboBCsOptions.side) + " boundary condition";
+    setGUIControllerName(
+      controllers["comboBCsType"],
+      TeXStrings[defaultSpecies[comboBCsOptions.speciesInd]],
+    );
+    if (comboBCsOptions.type == "periodic") {
+      controllers["comboBCsVal"].hide();
+    } else {
+      controllers["comboBCsVal"].show();
+      let label = comboBCsOptions.type[0].toUpperCase();
+      if (label == "R") label = "N";
+      label = defaultSpecies[comboBCsOptions.speciesInd] + label;
+      setGUIControllerName(controllers["comboBCsVal"], TeXStrings[label]);
+    }
+    runMathJax();
+  }
+
+  function capitaliseFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  function removeExtraWhitespace(str) {
+    while (str != (str = str.replace(/\s\s/g, " ")));
+    return str;
   }
 })();

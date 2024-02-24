@@ -161,6 +161,54 @@ span.highlight {
   position: absolute;
 }
 
+.clickArea {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  opacity: 50%;
+  background: var(--link-color);
+  transition: opacity 0.3s ease;
+}
+
+@media (hover: hover) {
+  .clickArea:hover {
+    opacity: 90%;
+  }
+}
+
+.clickArea.top {
+  top: 0;
+  left: 50%;
+  width: 100%;
+  transform: translateX(-50%);
+  border-bottom: 1px solid var(--text-color);
+}
+
+.clickArea.bottom {
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  transform: translateX(-50%);
+  border-top: 1px solid var(--text-color);
+}
+
+.clickArea.left {
+  left: 0;
+  top: 50%;
+  height: 100%;
+  transform: translateY(-50%);
+  border-right: 1px solid var(--text-color);
+}
+
+.clickArea.right {
+  right: 0;
+  top: 50%;
+  height: 100%;
+  transform: translateY(-50%);
+  border-left: 1px solid var(--text-color);
+}
+
 .dg .a {
   margin-right: 15px;
 }
@@ -233,7 +281,8 @@ a.info-link:has(+ ul:not(.closed)) {
   }
 }
 
-button.focus-params {
+button.focus-params,
+button.combo-bcs {
   background: none;
   border: none;
   color: var(--link-color);
@@ -244,6 +293,13 @@ button.focus-params {
   pointer-events: none;
   cursor: pointer;
   padding: 2px 6px 3px 6px;
+}
+
+button.combo-bcs {
+  opacity: 100%;
+  right: -2px;
+  pointer-events: all;
+  font-size: 0.9rem;
 }
 
 button.focus-params:has(~ ul:not(.closed)) {
@@ -265,6 +321,9 @@ button.focus-params:has(~ ul:not(.closed)) {
     opacity: 100%;
     pointer-events: all;
   }
+  button.combo-bcs:hover {
+    color: var(--text-color);
+  }
 }
 
 button.focus-params.active {
@@ -277,7 +336,8 @@ button.focus-params.active {
 
 #leftGUI,
 #rightGUI,
-#viewsGUI {
+#viewsGUI,
+#comboBCsGUI {
   padding: 10px 6px 10px 3px;
   background-color: var(--background-color);
   overflow-y: auto;
@@ -315,7 +375,8 @@ button.focus-params.active {
 
 #left_ui,
 #right_ui,
-#views_ui {
+#views_ui,
+#comboBCs_ui {
   display: none;
   position: absolute;
   pointer-events: none;
@@ -335,6 +396,12 @@ button.focus-params.active {
 #views_ui {
   top: 85px;
   left: var(--ui-h-gap);
+}
+
+#comboBCs_ui {
+  top: 50%;
+  right: 50%;
+  transform: translateX(50%) translateY(-50%);
 }
 
 #equation_display {
@@ -587,6 +654,23 @@ button.focus-params.active {
 
 .close-button {
   display: none;
+}
+
+#close-bcs-ui {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  pointer-events: all;
+  color: var(--link-color);
+}
+
+@media (hover: hover) {
+  #close-bcs-ui:hover {
+    color: var(--text-color);
+  }
 }
 
 #top_message {
