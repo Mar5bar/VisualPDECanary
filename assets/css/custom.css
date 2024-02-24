@@ -584,6 +584,9 @@ span.click_sequence {
   align-items: center;
   transition: opacity 1s ease 0.5s;
   text-align: center;
+  border: 1px solid var(--tile-border-color);
+  border-radius: 6px;
+  margin-bottom: 20px;
 }
 
 #post-of-the-week-container p {
@@ -606,6 +609,7 @@ span.click_sequence {
 #post-of-the-week {
   display: inline-block;
   margin-top: 15px;
+  margin-bottom: 15px;
 }
 
 #function_button_f {
