@@ -1103,7 +1103,8 @@ import { createWelcomeTour } from "./tours.js";
       })
       .on("blur", function () {
         // Save the title.
-        options.simTitle = this.value;
+        options.simTitle = this.value.trim();
+        this.value = this.value.trim();
       });
 
     // Listen for resize events.
