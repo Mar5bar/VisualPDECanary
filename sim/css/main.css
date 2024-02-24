@@ -107,10 +107,14 @@ noscript > p {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  transition: font-weight 0.3s ease;
 }
 
-[contenteditable] {
-  outline: 0px solid transparent;
+@media (hover: hover) {
+  .site-title.sim-title:hover,
+  .site-title.sim-title:focus-within {
+    font-weight: 500;
+  }
 }
 
 canvas {
