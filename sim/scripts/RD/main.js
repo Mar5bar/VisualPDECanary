@@ -1079,16 +1079,7 @@ import { createWelcomeTour } from "./tours.js";
     });
 
     $("#simTitle")
-      .on("paste", function (e) {
-        // Strips elements added to the editable tag when pasting
-        var $self = $(this);
-        setTimeout(function () {
-          $self.html($self.text());
-        }, 0);
-      })
       .on("keydown keypress", function (e) {
-        // Save the title after each keypress.
-        options.simTitle = $(this).text();
         // Reset timer that blurs after inactivity.
         clearTimeout(titleBlurTimer);
         // Blur on enter key.
@@ -1109,6 +1100,10 @@ import { createWelcomeTour } from "./tours.js";
           $self.blur();
           window.getSelection().removeAllRanges();
         }, 5000);
+      })
+      .on("blur", function () {
+        // Save the title.
+        options.simTitle = this.value;
       });
 
     // Listen for resize events.
@@ -4717,7 +4712,7 @@ import { createWelcomeTour } from "./tours.js";
     savedOptions = JSON.parse(JSON.stringify(options));
 
     // Update the simulation title if one is provided.
-    $("#simTitle").text(
+    $("#simTitle").val(
       options.simTitle ? options.simTitle : "Interactive simulation",
     );
 
