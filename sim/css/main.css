@@ -171,6 +171,12 @@ span.highlight {
   transition: opacity 0.3s ease;
 }
 
+.clickArea.selected {
+  opacity: 90%;
+  outline: 2px solid white;
+  z-index: 1;
+}
+
 @media (hover: hover) {
   .clickArea:hover {
     opacity: 90%;
