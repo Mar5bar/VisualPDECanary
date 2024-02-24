@@ -33,6 +33,7 @@ presets["dynamicalSystemsVisualisationTopography"] = {
   reactionStr_2: "0",
   reactionStr_3: "-T_x",
   reactionStr_4: "-T_y",
+  simTitle: "Dynamical systems visualisation",
   spatialStep: "0.5",
   speciesNames: "c T u v",
   squareCanvas: true,
@@ -67,6 +68,7 @@ presets["bacteriaInAReach"] = {
   preset: "bacteriaInAReach",
   reactionStr_1: "-u*C_xb - k*C",
   reactionStr_2: "0",
+  simTitle: "Modelling bacteria in a reach",
   spatialStep: "1.5",
   speciesNames: "C",
   views: [
@@ -90,6 +92,7 @@ presets["StochasticGrayScott"] = {
   parent: "GrayScott",
   preset: "StochasticGrayScott",
   reactionStr_1: "u^2*v - (a+b)*u+sigma*WhiteNoise*u",
+  simTitle: "Stochastic Gray-Scott",
   spatialStep: "0.4",
 };
 
@@ -110,6 +113,7 @@ presets["RandomWaveEquation"] = {
   numSpecies: "3",
   parent: "waveEquation",
   preset: "RandomWaveEquation",
+  simTitle: "Random wave equation",
   spatialStep: "0.2",
   speciesNames: "u v eta q",
   views: [
@@ -135,6 +139,7 @@ presets["StochasticKlausmeier"] = {
   parent: "KlausmeierModel",
   preset: "StochasticKlausmeier",
   reactionStr_1: "w*n^2-m*n+sigma*WhiteNoise*(n/(1+n))",
+  simTitle: "Stochastic Klausmeier",
   spatialStep: "0.5",
   views: [
     {
@@ -172,6 +177,7 @@ presets["BMB"] = {
   preset: "BMB",
   resetOnImageLoad: true,
   reactionStr_1: "2*(1-2*I_S) - u + u^2*v",
+  simTitle: "Bulletin of Mathematical Biology",
   spatialStep: "0.2",
 };
 
@@ -199,6 +205,7 @@ presets["SMB"] = {
   reactionStr_1: "u*(I_T-u)*min(max(omega*t - 1+I_SR, 0),1)",
   reactionStr_2: "(u-a*v)*min(max(omega*t - 1+I_SR, 0),1)",
   reactionStr_3: "0",
+  simTitle: "Society for Mathematical Biology",
   spatialStep: "0.5",
   squareCanvas: true,
   suppressTryClickingPopup: true,
@@ -239,6 +246,7 @@ presets["WavesOnABeach"] = {
   reactionStr_2: "0",
   reactionStr_3:
     "0.1 +(k*(x/L_x - LHS))*ind(x/L_x>LHS)*ind(x/L_x < LHS+(m-0.1)/k) + (m-0.1)*ind(x/L_x > LHS+(m-0.1)/k)",
+  simTitle: "Waves on a beach",
   spatialStep: "3",
   speciesNames: "u v h q",
   whatToDraw: "u",
@@ -251,10 +259,12 @@ presets["landslides"] = {
   contourNum: 6,
   customSurface: true,
   diffusionStrVV: "0.1*ind(t<3)",
-  surfaceFun: "4*T",
   imagePathTwo: "./images/landslides.jpeg",
   initCond_2: "20*(1-I_T)",
   parent: "WaterOnTopography",
+  preset: "landslides",
+  simTitle: "Landslides on a landscape",
+  surfaceFun: "4*T",
   views: [
     {
       colourmap: "terrain",
@@ -266,16 +276,6 @@ presets["landslides"] = {
       whatToPlot: "T/30",
       name: "Topography",
     },
-    // {
-    //   colourmap: "retro",
-    //   contours: false,
-    //   emboss: false,
-    //   maxColourValue: "1",
-    //   minColourValue: "0",
-    //   plotType: "plane",
-    //   whatToPlot: "s",
-    //   name: "Sources",
-    // },
     {
       colourmap: "terrain",
       contours: true,
@@ -287,7 +287,6 @@ presets["landslides"] = {
       name: "Mud on Topography",
     },
   ],
-  preset: "landslides",
 };
 
 presets["floodingOxford"] = {
@@ -309,6 +308,7 @@ presets["floodingOxford"] = {
   parent: "WaterOnTopography",
   reactionStr_1: "r*ind(s>0) - a*h*ind(s<1)",
   reactionStrQ: "ind(h>0.5)*ind(d<1)",
+  simTitle: "Flooding in Oxford (UK)",
   spatialStep: "0.6",
   speciesNames: "h T s d",
   surfaceFun: "2*T",
@@ -419,6 +419,7 @@ presets["WaterOnTopography"] = {
   reactionStr_2: "(T_xx + T_yy)*ind(T_xx^2 + T_yy^2 > 0.5)",
   reactionStr_3: "0",
   robinStr_1: "-0.01*h",
+  simTitle: "Water on a landscape",
   spatialStep: "0.8",
   speciesNames: "h T s",
   squareCanvas: true,
@@ -531,6 +532,7 @@ presets["ZKSoliton"] = {
   reactionStr_1: "-u*v",
   reactionStr_2: "u_x",
   reactionStr_3: "0",
+  simTitle: "Zakharov-Kuznetsov with solitons",
   spatialStep: "1",
   squareCanvas: true,
   threeDHeightScale: 0.5,
@@ -559,6 +561,7 @@ presets["SpanishFluWave"] = {
   reactionStr_1: "beta*p*(1-p)-delta*p",
   reactionStr_2: "0",
   reactionStr_3: "0",
+  simTitle: "Spanish flu in the USA",
   spatialStep: "0.3",
   speciesNames: "p v w q",
   squareCanvas: true,
@@ -596,6 +599,7 @@ presets["lavaFlow"] = {
   reactionStr_2: "0",
   reactionStr_3: "0",
   robinStr_1: "-0.01*u",
+  simTitle: "Lava flow",
   spatialStep: "1",
   speciesNames: "u T s",
   squareCanvas: true,
@@ -654,6 +658,7 @@ presets["DecontaminationDemo"] = {
   overlayExpr: "y-h*L_y",
   parent: "DecontaminationAgentOnWalls",
   preset: "DecontaminationDemo",
+  simTitle: "Chemical decontamination",
   views: [
     {
       colourmap: "chemicalBlue",
@@ -705,6 +710,7 @@ presets["DecontaminationAgentOnWalls"] = {
   reactionStr_2: "-chi * k * c * H(R - R_0)",
   reactionStr_3: "1-pi*R^2",
   reactionStr_4: "D_c*sqrt(max(1 - 4*R^2,0))",
+  simTitle: "Chemical decontamination",
   spatialStep: "0.005",
   speciesNames: "c R phi D",
   timescales: true,
@@ -762,6 +768,7 @@ presets["Jack"] = {
   maxColourValue: "0.3",
   minColourValue: "0",
   parent: "GrayScott",
+  simTitle: "Jack-o'-lantern",
   spatialStep: "5",
   squareCanvas: true,
   suppressTryClickingPopup: true,
@@ -803,6 +810,7 @@ presets["differentialStiffness"] = {
   reactionStr_1: "0",
   reactionStr_2: "0",
   reactionStr_3: "E*((1+tanh(v/0.01))*Delta_E/2+1)*v",
+  simTitle: "Beams with differential stiffness",
   spatialStep: "0.04",
   timesteppingScheme: "Mid",
   views: [
@@ -869,6 +877,7 @@ presets["Benchmarking"] = {
   reactionStr_2: "0",
   reactionStr_3: "0",
   showStats: true,
+  simTitle: "Benchmarking",
   spatialStep: "1.5",
   speciesNames: "T",
   views: [
@@ -908,6 +917,7 @@ presets["GrayScottPearsonClassificationRescaled"] = {
   reactionStr_1: "u^2*v - (0.001+0.069*(y/L_y)^(s)+0.01+0.057*(x/L_x)^(1/s))*u",
   reactionStr_2: "-u^2*v + (0.001+0.069*(y/L_y)^(s))*(1 - v)",
   reactionStr_3: "0",
+  simTitle: "Gray-Scott with Pearson's classification",
   views: [
     {
       maxColourValue: "1",
@@ -936,6 +946,7 @@ presets["GrayScottPearsonClassification"] = {
   parent: "GrayScott",
   reactionStr_1: "u^2*v - (0.07*y/L_y+0.02+0.048*x/L_x)*u",
   reactionStr_2: "-u^2*v + 0.07*y/L_y*(1 - v)",
+  simTitle: "Gray-Scott with Pearson's classification",
   spatialStep: "5",
   preset: "GrayScottPearsonClassification",
 };
@@ -973,6 +984,7 @@ presets["RedGreyInvasionUK"] = {
   reactionStr_1: "R*(1-c_RR*R-c_RG*G)",
   reactionStr_2: "G*(1-c_GR*R-c_GG*G)",
   reactionStr_3: "0",
+  simTitle: "Red and Grey Squirrels in the UK",
   spatialStep: "0.2",
   speciesNames: "R G",
   squareCanvas: true,
@@ -1012,6 +1024,7 @@ presets["snail-trail"] = {
   reactionStr_1: "lambda*n*c - beta_e*n*e - beta_n*n^2",
   reactionStr_2: "kappa*sqrt((chi*n*c_x - D*c_x)^2 + (chi*n*c_y - D*c_y)^2)",
   reactionStr_3: "(x/L_x)^2",
+  simTitle: "Snail-trail vasculogenesis",
   spatialStep: "3",
   speciesNames: "n e c",
   views: [
@@ -1051,6 +1064,7 @@ presets["SofyaCGLEChaos"] = {
   parent: "complexGinzburgLandau",
   reactionStr_1: "(a_r*u-a_i*v)+(b_r*u*(1.05-I_S)-b_i*v)*(u^2+v^2)",
   reactionStr_2: "(a_r*v+a_i*u)+(b_r*v*(1.05-I_S)+b_i*u)*(u^2+v^2)",
+  simTitle: "Sofya and chaos",
   spatialStep: "1",
   squareCanvas: true,
   preset: "SofyaCGLEChaos",
@@ -1072,6 +1086,7 @@ presets["SofyaCGLEFireflies"] = {
   resetOnImageLoad: true,
   reactionStr_1: "(a_r*u-a_i*v)+(b_r*u-b_i*v)*(I_S+1)*(u^2+v^2)",
   reactionStr_2: "(a_r*v+a_i*u)+(b_r*v+b_i*u)*(I_S+1)*(u^2+v^2)",
+  simTitle: "Sofya and fireflies",
   spatialStep: "1",
   squareCanvas: true,
 };
@@ -1092,6 +1107,7 @@ presets["SofyaCGLEDuckPinning"] = {
   resetOnImageLoad: true,
   reactionStr_1: "a_r*u*(1-I_S)-a_i*v+(b_r*u-b_i*v)*(u^2+v^2)",
   reactionStr_2: "a_r*v*(1-I_S)+a_i*u+(b_r*v+b_i*u)*(u^2+v^2)",
+  simTitle: "Sofya and vortex pinning",
   spatialStep: "1",
   squareCanvas: true,
 };
@@ -1118,6 +1134,7 @@ presets["TaylorGreen"] = {
   reactionStr_1: "- u*n_x - v*n_y - 0.001*n",
   reactionStr_2: "cos(a*2*pi*x/L_x)*sin(b*2*pi*y/L_y)",
   reactionStr_3: "-sin(a*2*pi*x/L_x)*cos(b*2*pi*y/L_y)",
+  simTitle: "Tracers in Taylor-Green vortices",
   spatialStep: "3",
   speciesNames: "n u v q",
   threeDHeightScale: 0.3,
@@ -1147,6 +1164,7 @@ presets["KlausmeierOnTopography"] = {
   preset: "KlausmeierOnTopography",
   resetOnImageLoad: true,
   reactionStr_2: "a-w-w*n^2",
+  simTitle: "Klausmeier on a landscape",
   spatialStep: "0.5",
   speciesNames: "n w T",
   surfaceFun: "3*T",
@@ -1194,6 +1212,7 @@ presets["LocalisedVegetation"] = {
   plotType: "surface",
   preset: "LocalisedVegetation",
   reactionStr_2: "a-w-w*n^2",
+  simTitle: "Klausmeier with localised vegetation",
   spatialStep: "0.375",
   threeDHeightScale: 0.05999999999999967,
   timeDisplay: true,
@@ -1254,6 +1273,7 @@ presets["RainbowASHBI"] = {
   reactionStr_1: "a*u-(u+c*v)*(u^2+v^2)",
   reactionStr_2: "a*v+(c*u-v)*(u^2+v^2)",
   reactionStr_3: "0",
+  simTitle: "ASHBi",
   spatialStep: "0.1",
   squareCanvas: true,
   suppressTryClickingPopup: true,
@@ -1325,6 +1345,7 @@ presets["GeneralisedWavePinningModel"] = {
   reactionStr_1: "(k+gamma*u^n/(1+u^n))*v-(eta+s*F/(1+F))*u-c*theta*u",
   reactionStr_2: "-(k+gamma*u^n/(1+u^n))*v+(eta+s*F/(1+F))*u+c*alpha",
   reactionStr_3: "epsilon*(k_n*u-k_s*F)",
+  simTitle: "Generalised wave pinning",
   spatialStep: "0.01",
   speciesNames: "u v F q",
   squareCanvas: true,
@@ -1352,6 +1373,7 @@ presets["urticaria"] = {
     "gamma*u*ind(U<=U_t) - alpha_2*u/(alpha_1 + u^2) + mu - alpha_0*u",
   reactionStr_2: "gamma*u*ind(U<=U_t)",
   reactionStr_3: "0",
+  simTitle: "Urticaria",
   spatialStep: "0.0025",
   speciesNames: "u U",
   views: [
@@ -1388,6 +1410,7 @@ presets["TuringNotEnoughRD"] = {
   reactionStr_1: "u-v-E*u^3",
   reactionStr_2: "a*v*(v+c)*(v-d)+b*u-E*v^3",
   reactionStr_3: "0",
+  simTitle: "Transient patterns: reaction-diffusion",
   spatialStep: "0.5",
   threeDHeightScale: 0.3,
   timeDisplay: true,
@@ -1416,6 +1439,7 @@ presets["TuringNotEnoughKellerSegel"] = {
   reactionStr_1: "u*(b-u)*(u-d)",
   reactionStr_2: "u-a*v",
   reactionStr_3: "0",
+  simTitle: "Transient patterns: Keller-Segel",
   spatialStep: "0.2",
   suppressTryClickingPopup: true,
   threeDHeightScale: 0.3,
@@ -1445,6 +1469,7 @@ presets["TuringNotEnoughBiharmonic"] = {
   reactionStr_1: "a*u*(c-u)*(u-b)",
   reactionStr_2: "0",
   reactionStr_3: "0",
+  simTitle: "Transient patterns: biharmonic",
   spatialStep: "0.5",
   threeDHeightScale: 0.3,
   timeDisplay: true,
@@ -1469,6 +1494,7 @@ presets["InhomogeneousFisherKPP"] = {
   reactionStr_1: "1*u*(1-u/(0.8+0.55*cos(n*pi*x/L_x)*cos(m*pi*y/L_y)))",
   reactionStr_2: "0",
   reactionStr_3: "0",
+  simTitle: "Inhomogeneous Fisher-KPP",
   spatialStep: "0.2",
   speciesNames: "u",
   suppressTryClickingPopup: true,
@@ -1477,20 +1503,21 @@ presets["InhomogeneousFisherKPP"] = {
 };
 
 presets["TuringWaveFHN2D"] = {
-  initCond_1: "0.816682 + 0.2*RAND",
+  brushType: "circle",
   dimension: "2",
   emboss: true,
-  numTimestepsPerFrame: 100,
+  initCond_1: "0.816682 + 0.2*RAND",
   kineticParams:
     "delta = 1.1;a = 0.32;b = 5.0;d11 = -1;d12 = -1;d21 = 0;d22 = -2;tau = 0.1;D2 = 1",
+  numTimestepsPerFrame: 100,
   parent: "TuringWaveFHN",
   plotType: "plane",
   preset: "TuringWaveFHN2D",
-  brushType: "circle",
 };
 
 presets["TuringWaveFHN"] = {
   brushRadius: "2",
+  brushType: "vline",
   initCond_1: "0.816682 + 0.05*RAND",
   initCond_2: "4.35762",
   colourbar: true,
@@ -1523,8 +1550,8 @@ presets["TuringWaveFHN"] = {
   reactionStr_2: "q",
   reactionStr_3: "(u - a*u^3 + v - b - w)/tau",
   reactionStr_4: "(b - u - 3*a*v - q)/tau",
+  simTitle: "Turing waves in the FHN model",
   spatialStep: "0.1",
-  brushType: "vline",
   whatToDraw: "u",
   whatToPlot: "u",
 };
@@ -1552,6 +1579,7 @@ presets["SpuriousOscillations"] = {
   reactionStr_1: "-c*u_x",
   reactionStr_2: "0",
   reactionStr_3: "0",
+  simTitle: "Spurious oscillations",
   spatialStep: "0.05",
   timeDisplay: true,
   timesteppingScheme: "AB2",
@@ -1591,6 +1619,7 @@ presets["BrusselatorTuringWave1D"] = {
   reactionStr_2: "q",
   reactionStr_3: "(a+u^2*v-(b+1)*u-w)/tau",
   reactionStr_4: "(b*u-u^2*v-q)/tau",
+  simTitle: "Brusselator with Turing waves",
   spatialStep: "0.01",
   timeDisplay: true,
   brushType: "vline",
@@ -1628,6 +1657,7 @@ presets["BrusselatorTuringWave2D"] = {
   reactionStr_2: "q",
   reactionStr_3: "(a+u^2*v-(b+1)*u-w)/tau",
   reactionStr_4: "(b*u-u^2*v-q)/tau",
+  simTitle: "Brusselator with Turing waves",
   spatialStep: "0.02",
   timeDisplay: true,
   whatToDraw: "u",
@@ -1656,6 +1686,7 @@ presets["TuringTiling"] = {
   reactionStr_1: "2*((1-I_T) - u + u^2*v)",
   reactionStr_2: "1 - u^2*v",
   reactionStr_3: "0",
+  simTitle: "Aperiodic tiling",
   spatialStep: "0.1",
   suppressTryClickingPopup: true,
   whatToDraw: "u",
@@ -1683,6 +1714,7 @@ presets["SimplePKPDTumour"] = {
   reactionStr_1: "-alpha*C",
   reactionStr_2: "beta*C - gamma*d",
   reactionStr_3: "r*u*(1-u/K) - d*u",
+  simTitle: "PKPD tumour model",
   spatialStep: "3",
   speciesNames: "C d u",
   views: [
@@ -1762,6 +1794,7 @@ presets["heatHeart"] = {
     "exp(-0.3*((x-L_x/2 - 40*sqrt(2)* (sin(t*k))^3)^2 + (y-L_y*0.7 - 40*(-(cos(t*k))^3 - (cos(t*k))^2 + 2*cos(t*k)))^2))",
   reactionStr_2: "0",
   reactionStr_3: "0",
+  simTitle: "A heart in the heat equation",
   spatialStep: "1.5",
   speciesNames: "T",
   typesetCustomEqs: false,
@@ -1804,6 +1837,7 @@ presets["CoupledCGL"] = {
     "a_2r*u_2-a_2i*v_2+(b_2r*u_2-b_2i*v_2)*((u_2^2+v_2^2)+alpha_2*(u_1^2+v_1^2))",
   reactionStr_4:
     "a_2r*v_2+a_2i*u_2+(b_2r*v_2+b_2i*u_2)*((u_2^2+v_2^2)+alpha_2*(u_1^2+v_1^2))",
+  simTitle: "Coupled complex Ginzburg-Landau",
   speciesNames: "u_1 v_1 u_2 v_2",
   views: [
     {
@@ -1842,6 +1876,7 @@ presets["NonlinearSchrodingerSoliton"] = {
   reactionStr_1: "(-kappa*v)*(u^2+v^2)",
   reactionStr_2: "(kappa*u)*(u^2+v^2)",
   reactionStr_3: "0",
+  simTitle: "Nonlinear Schr\u00f6dinger with solitons",
   spatialStep: "0.1",
   suppressTryClickingPopup: true,
   timesteppingScheme: "Mid",
@@ -1878,6 +1913,7 @@ presets["PeronaMalik"] = {
   reactionStr_2: "u_x^2+u_y^2",
   reactionStr_3: "0",
   runningOnLoad: false,
+  simTitle: "Perona-Malik",
   spatialStep: "0.2",
   timeDisplay: true,
   tryClickingText: "Press play!",
@@ -1967,6 +2003,7 @@ presets["Test"] = {
   comboStr_2:
     "Left: Dirichlet = 1; Right: Neumann = 0; Top: Robin = 0.2; Bottom: Dirichlet = 0",
   preset: "Test",
+  simTitle: "Testing testing...",
 };
 
 presets["ShallowWaterBox"] = {
@@ -2002,6 +2039,7 @@ presets["ShallowWaterBox"] = {
   reactionStr_1: "- (u_x + v_y)",
   reactionStr_2: "-g*h_x - k*u",
   reactionStr_3: "-g*h_y - k*v",
+  simTitle: "Shallow water in a box",
   spatialStep: "2",
   speciesNames: "h u v w",
   views: [
@@ -2044,6 +2082,7 @@ presets["ShallowWaterDisk"] = {
   reactionStr_2: "-g*h_x - k*u",
   reactionStr_3: "-g*h_y - k*v",
   runningOnLoad: false,
+  simTitle: "Shallow water in a disk",
   spatialStep: "2",
   speciesNames: "h u v w",
   squareCanvas: true,
@@ -2075,6 +2114,7 @@ presets["Shell"] = {
   reactionStr_1: "- u*(1-0.9*I_S)+ u^2*v",
   reactionStr_2: "0.3 - u^2*v",
   reactionStr_3: "0",
+  simTitle: "Shell",
   spatialStep: "0.2",
   squareCanvas: true,
   whatToDraw: "u",
@@ -2088,6 +2128,7 @@ presets["Banner"] = {
   numTimestepsPerFrame: 10,
   preset: "Banner",
   runningOnLoad: false,
+  simTitle: "VisualPDE's original banner",
   spatialStep: "0.25",
 };
 
@@ -2116,6 +2157,7 @@ presets["KdV"] = {
   reactionStr_1: "-6*v*phi",
   reactionStr_2: "phi_x",
   reactionStr_3: "0",
+  simTitle: "Korteweg-De Vries equation",
   spatialStep: "0.25",
   speciesNames: "phi v",
   suppressTryClickingPopup: true,
@@ -2148,6 +2190,7 @@ presets["KlausmeierModel"] = {
   reactionStr_1: "w*n^2-m*n",
   reactionStr_2: "a-w-w*n^2+V*w_x",
   reactionStr_3: "0",
+  simTitle: "Klausmeier model",
   speciesNames: "n w",
   views: [
     {
@@ -2187,6 +2230,7 @@ presets["BistableAdvection"] = {
   reactionStr_1: "u*(u-a)*(1-u)+V*(cos(theta)*u_x + sin(theta)*u_y)",
   reactionStr_2: "0",
   reactionStr_3: "0",
+  simTitle: "Bistable advection",
   spatialStep: "0.3",
   whatToDraw: "u",
   whatToPlot: "u",
@@ -2209,6 +2253,7 @@ presets["AdvectionEquationRotational"] = {
   reactionStr_1: "V*((y-L_y/2)*u_x-(x-L_x/2)*u_y)",
   reactionStr_2: "0",
   reactionStr_3: "0",
+  simTitle: "Advection-diffusion equation",
   spatialStep: "1.25",
   views: [
     {
@@ -2249,6 +2294,7 @@ presets["AdvectionEquationDirected"] = {
   reactionStr_1: "V*(cos(theta)*u_x + sin(theta)*u_y)",
   reactionStr_2: "0",
   reactionStr_3: "0",
+  simTitle: "Advection-diffusion equation",
   spatialStep: "1.25",
   views: [
     {
