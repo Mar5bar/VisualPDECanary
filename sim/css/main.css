@@ -99,25 +99,26 @@ noscript > p {
   height: calc(100dvh - var(--header-height));
 }
 
-.site-title.sim-title {
+#simTitle {
   position: absolute;
   text-align: center;
   left: 50%;
   transform: translateX(-50%);
   width: calc(80% - 360px);
-  text-decoration: none !important;
-  overflow: hidden;
-  white-space: nowrap;
+  transition: font-weight 0.3s ease;
+  background: none;
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 54px;
+  height: 54px;
+  letter-spacing: -1px;
+  text-align: center;
   text-overflow: ellipsis;
 }
 
-.site-title.sim-title > span {
-  transition: font-weight 0.3s ease;
-}
-
 @media (hover: hover) {
-  .site-title.sim-title > span:hover,
-  .site-title.sim-title span:focus {
+  #simTitle:hover,
+  #simTitle:focus {
     font-weight: 500;
   }
 }
