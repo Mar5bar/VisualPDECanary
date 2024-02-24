@@ -3,6 +3,7 @@
 
   {%- include head.html -%}
   <link rel="stylesheet" href="{{ '/assets/css/home.css' | relative_url }}">
+  <script type="module" src="/assets/js/post_of_the_week.js" async></script>
 
   <body>
 
@@ -26,6 +27,20 @@
       <div class="wrapper">
 
         {{ content }}
+
+        <div id="post-of-the-week-container" style="opacity:0;display:none;">
+          <p>Looking for something new?<br>Check out the post of the week<br><i class="fa-solid fa-arrow-right-long pulse" style="position:relative;left:3px;top:2px;"></i></p>
+          <i class="fa-solid fa-arrow-right-long pulse" style="position:relative;left:3px;top:2px;"></i>
+            <a id="post-of-the-week" class='topic_tile'>
+              <div class='topic_banner' style="background-image:url('{{ item.thumbnail }}')">
+              </div>
+              <div class='container'>
+                <div class='title'></div>
+                <div class='subtitle'></div>
+                <div class='subtitle_equation'></div>
+              </div>
+            </a>
+        </div>
 
         <div class='home_tiles'>
           <a class='home_tile' href='visual-stories'>

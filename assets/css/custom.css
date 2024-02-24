@@ -578,6 +578,36 @@ span.click_sequence {
   margin-bottom: 0.3rem;
 }
 
+#post-of-the-week-container {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  transition: opacity 1s ease 0.5s;
+  text-align: center;
+}
+
+#post-of-the-week-container p {
+  margin: 0;
+}
+
+#post-of-the-week-container > p > svg {
+  display: none;
+}
+
+@media screen and (max-width: 600px) {
+  #post-of-the-week-container > svg {
+    display: none;
+  }
+  #post-of-the-week-container > p > svg {
+    display: inline;
+  }
+}
+
+#post-of-the-week {
+  display: inline-block;
+  margin-top: 15px;
+}
+
 #function_button_f {
   font-size: 1.3rem;
   font-family: "Comic Sans", "Comic Sans MS", Arial, Times, serif;
