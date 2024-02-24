@@ -85,7 +85,7 @@ noscript > p {
   font-size: min(3vw, 3vh);
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 650px), screen and (max-height: 600px) {
   .site-header {
     display: none;
   }
@@ -93,8 +93,10 @@ noscript > p {
 
 #simulation {
   position: relative;
-  width: 100%;
+  width: 100vw;
   height: calc(100% - var(--header-height));
+  height: calc(100vh - var(--header-height));
+  height: calc(100dvh - var(--header-height));
 }
 
 .site-title.sim-title {
