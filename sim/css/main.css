@@ -404,6 +404,11 @@ button.focus-params.active {
   transform: translateX(50%) translateY(-50%);
 }
 
+#comboBCs_ui input {
+  position: relative;
+  right: 2px !important;
+}
+
 #equation_display {
   padding: 5px;
   border-radius: 5px;
