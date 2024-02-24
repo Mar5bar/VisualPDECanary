@@ -35,15 +35,8 @@ post.getElementsByClassName("topic_banner")[0].style.backgroundImage =
   "url('" + postOfTheWeek.img + "')";
 post.getElementsByClassName("title")[0].textContent = postOfTheWeek.title;
 post.getElementsByClassName("subtitle")[0].textContent = postOfTheWeek.extract;
-post.getElementsByClassName("subtitle_equation")[0].textContent =
-  postOfTheWeek.equation;
 
 // Make the post visible.
 document
   .getElementById("post-of-the-week-container")
   .classList.remove("hiddenPost");
-
-// Try to run MathJax to render the equation.
-try {
-  MathJax.typesetPromise();
-} catch (e) {}
