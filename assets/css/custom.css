@@ -586,8 +586,9 @@ span.click_sequence {
   border: 1px solid var(--tile-border-color);
   border-radius: 6px;
   margin-bottom: 20px;
-  max-height: 223px;
+  max-height: 300px;
   transition: all 0.7s ease 1s;
+  column-gap: 2px;
 }
 
 #post-of-the-week-container.hiddenPost {
@@ -604,6 +605,7 @@ span.click_sequence {
   display: inline-block;
   margin-top: 15px;
   margin-bottom: 15px;
+  min-width: 300px;
 }
 
 #function_button_f {
