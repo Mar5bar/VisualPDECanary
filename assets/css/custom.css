@@ -582,28 +582,22 @@ span.click_sequence {
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  transition: opacity 1s ease 0.5s;
   text-align: center;
   border: 1px solid var(--tile-border-color);
   border-radius: 6px;
   margin-bottom: 20px;
+  max-height: 223px;
+  transition: all 0.7s ease 1s;
+}
+
+#post-of-the-week-container.hiddenPost {
+  visibility: hidden;
+  opacity: 0;
+  max-height: 0px;
 }
 
 #post-of-the-week-container p {
   margin: 0;
-}
-
-#post-of-the-week-container > p > svg {
-  display: none;
-}
-
-@media screen and (max-width: 600px) {
-  #post-of-the-week-container > svg {
-    display: none;
-  }
-  #post-of-the-week-container > p > svg {
-    display: inline;
-  }
 }
 
 #post-of-the-week {
