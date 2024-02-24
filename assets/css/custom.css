@@ -21,6 +21,7 @@
   --input-border-color: #e8e8e8;
   --table-header-background-color: #f0f0f0;
   --table-even-row-background-color: #f0f0f0;
+  --post-of-the-week-height: 0px;
 }
 
 html {
@@ -586,7 +587,7 @@ span.click_sequence {
   border: 1px solid var(--tile-border-color);
   border-radius: 6px;
   margin-bottom: 20px;
-  max-height: 300px;
+  max-height: var(--post-of-the-week-height);
   transition: all 0.7s ease 1s;
   column-gap: 2px;
 }

@@ -19,15 +19,15 @@ let pages = documents
   .filter((doc) => doc.layout === "page")
   .filter((doc) => doc.url.indexOf("/user-guide/") === -1);
 
-// Get the number of weeks since a fixed baseline date.
+// Get the number of days since a fixed baseline date.
 const now = new Date();
 const baseline = new Date(2024, 0, 1);
-const weeks = Math.ceil(
-  ((now.getTime() - baseline.getTime()) / 86400000 + baseline.getDay() + 1) / 7,
+const days = Math.ceil(
+  (now.getTime() - baseline.getTime()) / 86400000 + baseline.getDay() + 1,
 );
 
-// Generate the post of the week. Note that adding new posts to the site will likely change the post of the week.
-let postOfTheWeek = pages[weeks % pages.length];
+// Generate the post of the day. Note that adding new posts to the site will likely change the post of the week.
+let postOfTheWeek = pages[days % pages.length];
 // Assign the content to the post of the week section.
 let post = document.getElementById("post-of-the-week");
 post.href = postOfTheWeek.url;
@@ -37,6 +37,15 @@ post.getElementsByClassName("title")[0].textContent = postOfTheWeek.title;
 post.getElementsByClassName("subtitle")[0].textContent = postOfTheWeek.extract;
 
 // Make the post visible.
+let styles = window.getComputedStyle(post);
+let margin =
+  parseFloat(styles["marginTop"]) + parseFloat(styles["marginBottom"]);
+document
+  .querySelector(":root")
+  .style.setProperty(
+    "--post-of-the-week-height",
+    post.getBoundingClientRect().height + margin + "px",
+  );
 document
   .getElementById("post-of-the-week-container")
   .classList.remove("hiddenPost");
