@@ -4079,7 +4079,7 @@ import { createWelcomeTour } from "./tours.js";
       } else if (str == "combo") {
         [
           ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Neumann\s*=([^;]*);/g,
+            /(Left|Right|Top|Bottom)\s*:\s*Neumann\s*=([^;]*);/gi,
           ),
         ].forEach(function (m) {
           const side = m[1][0].toUpperCase();
@@ -4096,7 +4096,7 @@ import { createWelcomeTour } from "./tours.js";
       if (str == "combo") {
         [
           ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Ghost\s*=([^;]*);/g,
+            /(Left|Right|Top|Bottom)\s*:\s*Ghost\s*=([^;]*);/gi,
           ),
         ].forEach(function (m) {
           const side = m[1][0].toUpperCase();
@@ -4128,7 +4128,7 @@ import { createWelcomeTour } from "./tours.js";
       } else if (str == "combo") {
         [
           ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g,
+            /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/gi,
           ),
         ].forEach(function (m) {
           const side = m[1][0].toUpperCase();
@@ -4164,7 +4164,7 @@ import { createWelcomeTour } from "./tours.js";
       } else if (str == "combo") {
         [
           ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Robin\s*=([^;]*);/g,
+            /(Left|Right|Top|Bottom)\s*:\s*Robin\s*=([^;]*);/gi,
           ),
         ].forEach(function (m) {
           const side = m[1][0].toUpperCase();
@@ -4443,7 +4443,7 @@ import { createWelcomeTour } from "./tours.js";
           } else if (str == "combo") {
             [
               ...MStrs[ind].matchAll(
-                /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/g,
+                /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/gi,
               ),
             ].forEach(function (m) {
               const side = m[1][0].toUpperCase();
