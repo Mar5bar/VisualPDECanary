@@ -592,6 +592,16 @@ span.click_sequence {
   column-gap: 2px;
 }
 
+@media screen and (max-width: 600px) {
+  #post-of-the-week-container {
+    flex-direction: column;
+  }
+
+  #post-of-the-week-container > p {
+    padding-top: 15px;
+  }
+}
+
 #post-of-the-week-container.hiddenPost {
   visibility: hidden;
   opacity: 0;
@@ -606,7 +616,7 @@ span.click_sequence {
   display: inline-block;
   margin-top: 15px;
   margin-bottom: 15px;
-  min-width: 300px;
+  min-width: min(300px, 90vw);
 }
 
 #function_button_f {
