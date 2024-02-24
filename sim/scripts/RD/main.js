@@ -1103,8 +1103,10 @@ import { createWelcomeTour } from "./tours.js";
       })
       .on("blur", function () {
         // Save the title.
-        options.simTitle = this.value.trim();
-        this.value = this.value.trim();
+        let val = this.value.trim();
+        while (val != (val = val.replace(/\s\s/g, " ")));
+        options.simTitle = val;
+        this.value = val;
       });
 
     // Listen for resize events.
