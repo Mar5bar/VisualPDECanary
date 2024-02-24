@@ -1131,6 +1131,36 @@ import { createWelcomeTour } from "./tours.js";
       loadSimState(this.files[0]);
       this.value = null;
     });
+
+    // Listen for clicks on the clickAreas for setting the boundary conditions.
+    document
+      .getElementById("topClickArea")
+      .addEventListener("click", function () {
+        comboBCsOptions.side = "top";
+        configureComboBCsSide();
+        configureComboBCsGUI();
+      });
+    document
+      .getElementById("bottomClickArea")
+      .addEventListener("click", function () {
+        comboBCsOptions.side = "bottom";
+        configureComboBCsSide();
+        configureComboBCsGUI();
+      });
+    document
+      .getElementById("leftClickArea")
+      .addEventListener("click", function () {
+        comboBCsOptions.side = "left";
+        configureComboBCsSide();
+        configureComboBCsGUI();
+      });
+    document
+      .getElementById("rightClickArea")
+      .addEventListener("click", function () {
+        comboBCsOptions.side = "right";
+        configureComboBCsSide();
+        configureComboBCsGUI();
+      });
   }
 
   function resize() {
@@ -3159,7 +3189,7 @@ import { createWelcomeTour } from "./tours.js";
       .name("Type")
       .onChange(function () {
         // Set the value string to empty.
-        controllers["comboBCsVal"].setValue("");
+        controllers["comboBCsValue"].setValue("");
         configureComboBCsGUI();
       });
     updateGUIDropdown(
@@ -3168,7 +3198,7 @@ import { createWelcomeTour } from "./tours.js";
       ["periodic", "dirichlet", "neumann", "robin"],
     );
 
-    controllers["comboBCsVal"] = root
+    controllers["comboBCsValue"] = root
       .add(comboBCsOptions, "value")
       .onFinishChange(function () {
         this.setValue(autoCorrectSyntax(this.getValue()));
@@ -9649,7 +9679,7 @@ import { createWelcomeTour } from "./tours.js";
     BCsButton.innerHTML = `<i class="fa-solid fa-bullseye"></i>`;
     BCsButton.onclick = function () {
       comboBCsOptions.speciesInd = speciesInd;
-      comboBCsOptions.side = "left";
+      comboBCsOptions.side = comboBCsOptions.side || "left";
       comboBCsOptions.type = "periodic";
       // Fill the combo string with the current boundary conditions, unless combo is the current type.
       const indText = (comboBCsOptions.speciesInd + 1).toString();
@@ -9666,24 +9696,7 @@ import { createWelcomeTour } from "./tours.js";
         // Set the boundary conditions to "combo" for the selected species.
         options["boundaryConditions_" + (speciesInd + 1).toString()] = "combo";
       } else {
-        if (
-          options["comboStr_" + indText]
-            .toLowerCase()
-            .indexOf(comboBCsOptions.side.toLowerCase()) != -1
-        ) {
-          comboBCsOptions.type =
-            options["comboStr_" + indText]
-              .split(";")
-              ?.filter(
-                (s) =>
-                  s.toLowerCase().indexOf(comboBCsOptions.side.toLowerCase()) !=
-                  -1,
-              )[0]
-              .split(":")[1]
-              ?.split("=")[0]
-              .trim()
-              .toLowerCase() || "periodic";
-        }
+        configureComboBCsSide();
       }
       setRDEquations();
       setBCsGUI();
@@ -9871,12 +9884,15 @@ import { createWelcomeTour } from "./tours.js";
 
   function openComboBCsGUI() {
     document.getElementById("comboBCs_ui").style.display = "block";
-    $("#equations").click();
+    // If the equations are open, close them.
+    if ($("#leftGUI").is(":visible")) $("#equations").click();
     configureComboBCsGUI();
+    $(".clickArea").removeClass("hidden");
   }
 
   function closeComboBCsGUI() {
     document.getElementById("comboBCs_ui").style.display = "none";
+    $(".clickArea").addClass("hidden");
     // If the equations are not already open, open them.
     if (!$("#leftGUI").is(":visible")) $("#equations").click();
   }
@@ -9889,15 +9905,39 @@ import { createWelcomeTour } from "./tours.js";
       TeXStrings[defaultSpecies[comboBCsOptions.speciesInd]],
     );
     if (comboBCsOptions.type == "periodic") {
-      controllers["comboBCsVal"].hide();
+      controllers["comboBCsValue"].hide();
     } else {
-      controllers["comboBCsVal"].show();
+      controllers["comboBCsValue"].show();
       let label = comboBCsOptions.type[0].toUpperCase();
       if (label == "R") label = "N";
       label = defaultSpecies[comboBCsOptions.speciesInd] + label;
-      setGUIControllerName(controllers["comboBCsVal"], TeXStrings[label]);
+      setGUIControllerName(controllers["comboBCsValue"], TeXStrings[label]);
     }
     runMathJax();
+  }
+
+  function configureComboBCsSide() {
+    const indText = (comboBCsOptions.speciesInd + 1).toString();
+    if (
+      options["comboStr_" + indText]
+        .toLowerCase()
+        .indexOf(comboBCsOptions.side.toLowerCase()) != -1
+    ) {
+      const bc = options["comboStr_" + indText]
+        .split(";")
+        ?.filter(
+          (s) =>
+            s.toLowerCase().indexOf(comboBCsOptions.side.toLowerCase()) != -1,
+        )[0]
+        .split(":")[1]
+        ?.split("=");
+      console.log(bc);
+      comboBCsOptions.type = [0].trim().toLowerCase() || "periodic";
+      comboBCsOptions.value = bc[1]?.trim() || "";
+    } else {
+      comboBCsOptions.value = "";
+    }
+    controllers["comboBCsValue"].setValue(comboBCsOptions.value);
   }
 
   function capitaliseFirstLetter(string) {
