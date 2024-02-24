@@ -1137,6 +1137,8 @@ import { createWelcomeTour } from "./tours.js";
       .getElementById("topClickArea")
       .addEventListener("click", function () {
         comboBCsOptions.side = "top";
+        $(".clickArea").removeClass("selected");
+        $("#topClickArea").addClass("selected");
         configureComboBCsSide();
         configureComboBCsGUI();
       });
@@ -1144,6 +1146,8 @@ import { createWelcomeTour } from "./tours.js";
       .getElementById("bottomClickArea")
       .addEventListener("click", function () {
         comboBCsOptions.side = "bottom";
+        $(".clickArea").removeClass("selected");
+        $("#bottomClickArea").addClass("selected");
         configureComboBCsSide();
         configureComboBCsGUI();
       });
@@ -1151,6 +1155,8 @@ import { createWelcomeTour } from "./tours.js";
       .getElementById("leftClickArea")
       .addEventListener("click", function () {
         comboBCsOptions.side = "left";
+        $(".clickArea").removeClass("selected");
+        $("#leftClickArea").addClass("selected");
         configureComboBCsSide();
         configureComboBCsGUI();
       });
@@ -1158,6 +1164,8 @@ import { createWelcomeTour } from "./tours.js";
       .getElementById("rightClickArea")
       .addEventListener("click", function () {
         comboBCsOptions.side = "right";
+        $(".clickArea").removeClass("selected");
+        $("#rightClickArea").addClass("selected");
         configureComboBCsSide();
         configureComboBCsGUI();
       });
