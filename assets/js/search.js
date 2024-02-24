@@ -12,6 +12,11 @@ async function setupSiteSearch() {
     parseInt(localStorage.getItem("indexExpiryTime")) < Date.now()
   ) {
     let documents = await getDocs();
+    localStorage.setItem(
+      "documentsExpiryTime",
+      Date.now() + 1000 * 60 * 60 * 24 * 1,
+    );
+    localStorage.setItem("documents", JSON.stringify(documents));
     frontmatter = documents.map((doc) => {
       delete doc.body;
       return doc;
@@ -33,7 +38,7 @@ async function setupSiteSearch() {
     });
     localStorage.setItem(
       "indexExpiryTime",
-      Date.now() + 1000 * 60 * 60 * 24 * 1
+      Date.now() + 1000 * 60 * 60 * 24 * 1,
     );
     localStorage.setItem("index", JSON.stringify(siteIndex));
   } else {
