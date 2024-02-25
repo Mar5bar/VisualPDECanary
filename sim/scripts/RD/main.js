@@ -9996,8 +9996,8 @@ import { createWelcomeTour } from "./tours.js";
         if (label == "R") label = "N";
         label = defaultSpecies[comboBCsOptions.speciesInd] + label;
         node.innerHTML =
-          TeXStrings[label].slice(0, -1) +
-          (match[2] ? " = " + match[2].trim() : "") +
+          removeEvalAt(TeXStrings[label].slice(0, -1)) +
+          (match[2] ? " = " + parseStringToTEX(match[2].trim()) : "") +
           "$";
       } else {
         node.innerHTML = "Periodic";
@@ -10013,5 +10013,11 @@ import { createWelcomeTour } from "./tours.js";
   function removeExtraWhitespace(str) {
     while (str != (str = str.replace(/\s\s/g, " ")));
     return str;
+  }
+
+  function removeEvalAt(str) {
+    return str
+      .replace("\\left.", "")
+      .replace("\\right\\rvert_{\\boundary}", "");
   }
 })();
