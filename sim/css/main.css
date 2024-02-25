@@ -172,7 +172,11 @@ span.highlight {
   text-align: center;
 }
 
-.clickArea > span {
+.clickArea > div {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   color: #fdfdfd;
   font-weight: 500;
   line-height: 30px;
@@ -210,9 +214,11 @@ span.highlight {
   left: 0;
   top: 50%;
   height: 100%;
-  transform: translateY(-50%) scale(-1);
+  transform: translateY(-50%);
   border-left: 1px solid var(--text-color);
-  writing-mode: vertical-rl;
+}
+.clickArea.left > div {
+  transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 .clickArea.right {
@@ -221,7 +227,10 @@ span.highlight {
   height: 100%;
   transform: translateY(-50%);
   border-left: 1px solid var(--text-color);
-  writing-mode: vertical-rl;
+}
+
+.clickArea.right > div {
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 .dg .a {
