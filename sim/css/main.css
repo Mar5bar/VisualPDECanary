@@ -379,6 +379,10 @@ button.focus-params.active {
   direction: ltr;
 }
 
+#comboBCsGUI {
+  padding-top: 0;
+}
+
 #left_ui,
 #right_ui,
 #views_ui,
