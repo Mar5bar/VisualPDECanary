@@ -128,7 +128,7 @@ import { createWelcomeTour } from "./tours.js";
     minMaxUniforms,
     funsObj,
     savedOptions,
-    comboBCsOptions = { type: "", value: "" },
+    comboBCsOptions = { type: "", value: "", open: false },
     localOpts = {};
   let leftGUI,
     rightGUI,
@@ -5067,7 +5067,7 @@ import { createWelcomeTour } from "./tours.js";
       controllers["uBCs"].domElement.getElementsByClassName("combo-bcs")[0];
     if (options.boundaryConditions_1 == "combo") {
       controllers["comboU"].show();
-      button.classList.remove("hidden");
+      if (options.plotType != "surface") button.classList.remove("hidden");
     } else {
       controllers["comboU"].hide();
       button.classList.add("hidden");
@@ -5076,7 +5076,7 @@ import { createWelcomeTour } from "./tours.js";
       controllers["vBCs"].domElement.getElementsByClassName("combo-bcs")[0];
     if (options.boundaryConditions_2 == "combo") {
       controllers["comboV"].show();
-      button.classList.remove("hidden");
+      if (options.plotType != "surface") button.classList.remove("hidden");
     } else {
       controllers["comboV"].hide();
       button.classList.add("hidden");
@@ -5085,7 +5085,7 @@ import { createWelcomeTour } from "./tours.js";
       controllers["wBCs"].domElement.getElementsByClassName("combo-bcs")[0];
     if (options.boundaryConditions_3 == "combo") {
       controllers["comboW"].show();
-      button.classList.remove("hidden");
+      if (options.plotType != "surface") button.classList.remove("hidden");
     } else {
       controllers["comboW"].hide();
       button.classList.add("hidden");
@@ -5094,10 +5094,15 @@ import { createWelcomeTour } from "./tours.js";
       controllers["qBCs"].domElement.getElementsByClassName("combo-bcs")[0];
     if (options.boundaryConditions_4 == "combo") {
       controllers["comboQ"].show();
-      button.classList.remove("hidden");
+      if (options.plotType != "surface") button.classList.remove("hidden");
     } else {
       controllers["comboQ"].hide();
       button.classList.add("hidden");
+    }
+
+    // If the comboBCsGUI is visible, make all clickAreas visible.
+    if (comboBCsOptions.open) {
+      $(".clickArea").removeClass("hidden");
     }
 
     const BCsControllers = [
@@ -5632,6 +5637,7 @@ import { createWelcomeTour } from "./tours.js";
       controllers["cameraTheta"].show();
       controllers["cameraPhi"].show();
       controllers["cameraZoom"].show();
+      $(".combo-bcs").addClass("hidden");
     } else if (options.plotType == "line") {
       $("#contourButton").hide();
       $("#embossButton").hide();
@@ -5643,6 +5649,12 @@ import { createWelcomeTour } from "./tours.js";
       controllers["cameraTheta"].hide();
       controllers["cameraPhi"].hide();
       controllers["cameraZoom"].hide();
+      $("#topClickArea").addClass("hidden");
+      $("#bottomClickArea").addClass("hidden");
+      if (["top", "bottom"].includes(comboBCsOptions.side)) {
+        comboBCsOptions.side = "left";
+        configureComboBCsGUI();
+      }
     } else {
       $("#contourButton").show();
       $("#embossButton").show();
@@ -9924,6 +9936,7 @@ import { createWelcomeTour } from "./tours.js";
     $(".clickArea").removeClass("selected");
     $("#" + comboBCsOptions.side + "ClickArea").addClass("selected");
     $("#logo").hide();
+    comboBCsOptions.open = true;
   }
 
   function closeComboBCsGUI() {
@@ -9931,6 +9944,7 @@ import { createWelcomeTour } from "./tours.js";
     $(".clickArea").addClass("hidden");
     // If the equations are not already open, open them.
     if (!$("#leftGUI").is(":visible")) $("#equations").click();
+    comboBCsOptions.open = true;
   }
 
   function configureComboBCsGUI(type) {
