@@ -417,7 +417,6 @@ import { createWelcomeTour } from "./tours.js";
   if (inIframe()) {
     // If we're in an iframe, disable the header.
     $("#header").hide();
-    setSimCSS();
   }
 
   // Load default options.
@@ -1058,7 +1057,7 @@ import { createWelcomeTour } from "./tours.js";
             $("#play").css("display", "");
             if (!inIframe()) {
               $("#header").show();
-              setSimCSS();
+              resize();
             }
             // Check for any positioning that relies on elements being visible.
             checkColourbarPosition();
@@ -1068,7 +1067,7 @@ import { createWelcomeTour } from "./tours.js";
             uiHidden = true;
             $(".ui").addClass("hidden");
             $("#header").hide();
-            setSimCSS();
+            resize();
           }
         } else if (!(isStory && uiHidden)) {
           // Don't allow for keyboard input if the ui is hidden in a Story.
@@ -1146,7 +1145,6 @@ import { createWelcomeTour } from "./tours.js";
         comboBCsOptions.side = "top";
         $(".clickArea").removeClass("selected");
         $("#topClickArea").addClass("selected");
-        configureComboBCsSide();
         configureComboBCsGUI();
       });
     document
@@ -1155,7 +1153,6 @@ import { createWelcomeTour } from "./tours.js";
         comboBCsOptions.side = "bottom";
         $(".clickArea").removeClass("selected");
         $("#bottomClickArea").addClass("selected");
-        configureComboBCsSide();
         configureComboBCsGUI();
       });
     document
@@ -1164,7 +1161,6 @@ import { createWelcomeTour } from "./tours.js";
         comboBCsOptions.side = "left";
         $(".clickArea").removeClass("selected");
         $("#leftClickArea").addClass("selected");
-        configureComboBCsSide();
         configureComboBCsGUI();
       });
     document
@@ -1173,7 +1169,6 @@ import { createWelcomeTour } from "./tours.js";
         comboBCsOptions.side = "right";
         $(".clickArea").removeClass("selected");
         $("#rightClickArea").addClass("selected");
-        configureComboBCsSide();
         configureComboBCsGUI();
       });
   }
@@ -2215,6 +2210,7 @@ import { createWelcomeTour } from "./tours.js";
       .onFinishChange(function () {
         this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
+        if (options.boundaryConditions_1 == "combo") configureComboBCsGUI();
       });
 
     controllers["vBCs"] = root
@@ -2253,6 +2249,7 @@ import { createWelcomeTour } from "./tours.js";
       .onFinishChange(function () {
         this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
+        if (options.boundaryConditions_2 == "combo") configureComboBCsGUI();
       });
 
     controllers["wBCs"] = root
@@ -2291,6 +2288,7 @@ import { createWelcomeTour } from "./tours.js";
       .onFinishChange(function () {
         this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
+        if (options.boundaryConditions_3 == "combo") configureComboBCsGUI();
       });
 
     controllers["qBCs"] = root
@@ -2330,6 +2328,7 @@ import { createWelcomeTour } from "./tours.js";
       .onFinishChange(function () {
         this.setValue(autoCorrectSyntax(this.getValue()));
         setRDEquations();
+        if (options.boundaryConditions_4 == "combo") configureComboBCsGUI();
       });
 
     // Initial conditions folder.
@@ -3203,9 +3202,9 @@ import { createWelcomeTour } from "./tours.js";
       .add(comboBCsOptions, "type", {})
       .name("Type")
       .onChange(function () {
-        // Set the value string to empty.
-        controllers["comboBCsValue"].setValue("");
-        configureComboBCsGUI();
+        // Set the value string to 0.
+        controllers["comboBCsValue"].setValue("0");
+        configureComboBCsGUI(comboBCsOptions.type);
       });
     updateGUIDropdown(
       controllers["comboBCsType"],
@@ -3231,7 +3230,7 @@ import { createWelcomeTour } from "./tours.js";
         // Add the new BC.
         str +=
           capitaliseFirstLetter(comboBCsOptions.side) +
-          " : " +
+          ": " +
           capitaliseFirstLetter(comboBCsOptions.type) +
           " = " +
           this.getValue() +
@@ -9695,24 +9694,7 @@ import { createWelcomeTour } from "./tours.js";
     BCsButton.onclick = function () {
       comboBCsOptions.speciesInd = speciesInd;
       comboBCsOptions.side = comboBCsOptions.side || "left";
-      comboBCsOptions.type = "periodic";
-      // Fill the combo string with the current boundary conditions, unless combo is the current type.
-      const indText = (comboBCsOptions.speciesInd + 1).toString();
-      const oldType = options["boundaryConditions_" + indText];
-      if (oldType != "combo") {
-        comboBCsOptions.type = oldType;
-        let strs = ["Left", "Right", "Top", "Bottom"].map(
-          (side) => side + " : " + capitaliseFirstLetter(oldType),
-        );
-        if (oldType != "periodic") {
-          strs.map((s) => s + " = " + options[oldType + "Str_" + indText]);
-        }
-        options["comboStr_" + indText] = strs.join("; ");
-        // Set the boundary conditions to "combo" for the selected species.
-        options["boundaryConditions_" + (speciesInd + 1).toString()] = "combo";
-      } else {
-        configureComboBCsSide();
-      }
+      configureComboBCsGUI();
       setRDEquations();
       setBCsGUI();
       refreshGUI(leftGUI);
@@ -9905,6 +9887,7 @@ import { createWelcomeTour } from "./tours.js";
     $(".clickArea").removeClass("hidden");
     $(".clickArea").removeClass("selected");
     $("#" + comboBCsOptions.side + "ClickArea").addClass("selected");
+    $("#logo").hide();
   }
 
   function closeComboBCsGUI() {
@@ -9914,7 +9897,30 @@ import { createWelcomeTour } from "./tours.js";
     if (!$("#leftGUI").is(":visible")) $("#equations").click();
   }
 
-  function configureComboBCsGUI() {
+  function configureComboBCsGUI(type) {
+    comboBCsOptions.type = type || "periodic";
+    comboBCsOptions.value = "0";
+    const indText = (comboBCsOptions.speciesInd + 1).toString();
+    if (
+      options["comboStr_" + indText]
+        .toLowerCase()
+        .indexOf(comboBCsOptions.side.toLowerCase()) != -1
+    ) {
+      const bc = options["comboStr_" + indText]
+        .split(";")
+        ?.filter(
+          (s) =>
+            s.toLowerCase().indexOf(comboBCsOptions.side.toLowerCase()) != -1,
+        )[0]
+        .split(":")[1]
+        ?.split("=");
+      comboBCsOptions.type = bc[0].trim().toLowerCase() || comboBCsOptions.type;
+      comboBCsOptions.value = bc[1].trim() || comboBCsOptions.value;
+    }
+    // Set the values of the controllers.
+    // Don't use setValue on the Type controller as it will trigger the onChange event and overwrite the value.
+    controllers["comboBCsType"].updateDisplay();
+    controllers["comboBCsValue"].setValue(comboBCsOptions.value);
     document.getElementById("comboBCsTitle").innerHTML =
       capitaliseFirstLetter(comboBCsOptions.side) + " boundary condition";
     setGUIControllerName(
@@ -9931,30 +9937,6 @@ import { createWelcomeTour } from "./tours.js";
       setGUIControllerName(controllers["comboBCsValue"], TeXStrings[label]);
     }
     runMathJax();
-  }
-
-  function configureComboBCsSide() {
-    const indText = (comboBCsOptions.speciesInd + 1).toString();
-    if (
-      options["comboStr_" + indText]
-        .toLowerCase()
-        .indexOf(comboBCsOptions.side.toLowerCase()) != -1
-    ) {
-      const bc = options["comboStr_" + indText]
-        .split(";")
-        ?.filter(
-          (s) =>
-            s.toLowerCase().indexOf(comboBCsOptions.side.toLowerCase()) != -1,
-        )[0]
-        .split(":")[1]
-        ?.split("=");
-      console.log(bc);
-      comboBCsOptions.type = [0].trim().toLowerCase() || "periodic";
-      comboBCsOptions.value = bc[1]?.trim() || "";
-    } else {
-      comboBCsOptions.value = "";
-    }
-    controllers["comboBCsValue"].setValue(comboBCsOptions.value);
   }
 
   function capitaliseFirstLetter(string) {
