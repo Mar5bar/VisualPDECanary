@@ -417,6 +417,7 @@ import { createWelcomeTour } from "./tours.js";
   if (inIframe()) {
     // If we're in an iframe, disable the header.
     $("#header").hide();
+    setSimCSS();
   }
 
   // Load default options.
@@ -1055,6 +1056,10 @@ import { createWelcomeTour } from "./tours.js";
             isRunning ? playSim() : pauseSim();
             $("#pause").css("display", "");
             $("#play").css("display", "");
+            if (!inIframe()) {
+              $("#header").show();
+              setSimCSS();
+            }
             // Check for any positioning that relies on elements being visible.
             checkColourbarPosition();
             checkColourbarLogoCollision();
@@ -1062,6 +1067,8 @@ import { createWelcomeTour } from "./tours.js";
           } else {
             uiHidden = true;
             $(".ui").addClass("hidden");
+            $("#header").hide();
+            setSimCSS();
           }
         } else if (!(isStory && uiHidden)) {
           // Don't allow for keyboard input if the ui is hidden in a Story.
