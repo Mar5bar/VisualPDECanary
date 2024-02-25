@@ -3270,6 +3270,7 @@ import { createWelcomeTour } from "./tours.js";
         options["comboStr_" + (comboBCsOptions.speciesInd + 1).toString()] =
           removeExtraWhitespace(str.trim());
         setRDEquations();
+        setClickAreaLabels();
         refreshGUI(leftGUI);
       });
 
@@ -9935,13 +9936,13 @@ import { createWelcomeTour } from "./tours.js";
   function configureComboBCsGUI(type) {
     comboBCsOptions.type = type || "periodic";
     comboBCsOptions.value = "0";
+    let indText = (comboBCsOptions.speciesInd + 1).toString();
     if (!type) {
-      const indText = (comboBCsOptions.speciesInd + 1).toString();
-      const sideRegex = new RegExp(
+      let sideRegex = new RegExp(
         "\\b" + comboBCsOptions.side + "\\s*:\\s*([^=]*)\\s*=([^;]*);",
         "i",
       );
-      const match = options["comboStr_" + indText].match(sideRegex);
+      let match = options["comboStr_" + indText].match(sideRegex);
       if (match) {
         comboBCsOptions.type =
           match[1].trim().toLowerCase() || comboBCsOptions.type;
@@ -9974,7 +9975,30 @@ import { createWelcomeTour } from "./tours.js";
       label = defaultSpecies[comboBCsOptions.speciesInd] + label;
       setGUIControllerName(controllers["comboBCsValue"], TeXStrings[label]);
     }
+    setClickAreaLabels();
     runMathJax();
+  }
+
+  function setClickAreaLabels() {
+    let indText = (comboBCsOptions.speciesInd + 1).toString();
+    // Set the labels for the click areas.
+    let sides = ["left", "right", "top", "bottom"];
+    sides.forEach(function (side) {
+      let node = document.getElementById(side + "ClickArea").childNodes[1];
+      node.innerHTML = "Periodic";
+      let sideRegex = new RegExp(
+        "\\b" + side + "\\s*:\\s*([^=]*)\\s*=([^;]*);",
+        "i",
+      );
+      let match = options["comboStr_" + indText].match(sideRegex);
+      if (match) {
+        node.innerHTML =
+          capitaliseFirstLetter(match[1].trim()) +
+          (match[2] ? " = " + match[2].trim() : "");
+      } else {
+        node.innerHTML = "Periodic";
+      }
+    });
   }
 
   function capitaliseFirstLetter(string) {
