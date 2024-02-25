@@ -9992,13 +9992,18 @@ import { createWelcomeTour } from "./tours.js";
       );
       let match = options["comboStr_" + indText].match(sideRegex);
       if (match) {
+        let label = match[1].trim()[0].toUpperCase();
+        if (label == "R") label = "N";
+        label = defaultSpecies[comboBCsOptions.speciesInd] + label;
         node.innerHTML =
-          capitaliseFirstLetter(match[1].trim()) +
-          (match[2] ? " = " + match[2].trim() : "");
+          TeXStrings[label].slice(0, -1) +
+          (match[2] ? " = " + match[2].trim() : "") +
+          "$";
       } else {
         node.innerHTML = "Periodic";
       }
     });
+    runMathJax();
   }
 
   function capitaliseFirstLetter(string) {
