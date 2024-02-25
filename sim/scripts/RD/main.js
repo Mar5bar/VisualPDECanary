@@ -3217,24 +3217,56 @@ import { createWelcomeTour } from "./tours.js";
       .onFinishChange(function () {
         this.setValue(autoCorrectSyntax(this.getValue()));
         // Remove any BCs already set for the current side.
-        let str = options[
-          "comboStr_" + (comboBCsOptions.speciesInd + 1).toString()
-        ]
-          .split(";")
-          .filter(
-            (str) => str.toLowerCase().indexOf(comboBCsOptions.side) == -1,
-          )
-          .filter((str) => str.trim() != "")
-          .join("; ");
-        if (str.trim() != "") str += "; ";
-        // Add the new BC.
-        str +=
-          capitaliseFirstLetter(comboBCsOptions.side) +
-          ": " +
-          capitaliseFirstLetter(comboBCsOptions.type) +
-          " = " +
-          this.getValue() +
-          ";";
+        const isPeriodic = comboBCsOptions.type.toLowerCase() == "periodic";
+        let str =
+          options["comboStr_" + (comboBCsOptions.speciesInd + 1).toString()];
+        str = str.replaceAll(
+          new RegExp(
+            comboBCsOptions.side + "\\s*:\\s*([^=]*)\\s*=([^;]*);",
+            "gi",
+          ),
+          "",
+        );
+        let oppositeSide = "";
+        switch (comboBCsOptions.side) {
+          case "left":
+            oppositeSide = "right";
+            break;
+          case "right":
+            oppositeSide = "left";
+            break;
+          case "bottom":
+            oppositeSide = "top";
+            break;
+          case "top":
+            oppositeSide = "bottom";
+            break;
+        }
+        // Add the new BC, unless it's periodic.
+        if (!isPeriodic) {
+          const newBCs = [comboBCsOptions.side, oppositeSide].map(
+            (s) =>
+              capitaliseFirstLetter(s) +
+              ": " +
+              capitaliseFirstLetter(comboBCsOptions.type) +
+              " = " +
+              this.getValue() +
+              ";",
+          );
+          str += newBCs[0];
+          // If the BC on the opposite side is periodic, remove the opposite BC and duplicate this BC.
+          let oppRegex = new RegExp("\\b" + oppositeSide + "\\b", "gi");
+          if (!oppRegex.test(str)) {
+            str += newBCs[1];
+          }
+        } else {
+          // If the new BC is periodic, replace the BC on the opposite side with (blank) periodic one.
+          let regex = new RegExp(
+            oppositeSide + "\\s*:\\s*([^=]*)\\s*=([^;]*);",
+            "gi",
+          );
+          str = str.replaceAll(regex, "");
+        }
         options["comboStr_" + (comboBCsOptions.speciesInd + 1).toString()] =
           removeExtraWhitespace(str.trim());
         setRDEquations();
@@ -3243,6 +3275,9 @@ import { createWelcomeTour } from "./tours.js";
 
     const inputs = document.querySelectorAll("input");
     inputs.forEach((input) => disableAutocorrect(input));
+    inputs.forEach((input) =>
+      input.addEventListener("blur", () => window.scrollTo(0, 0)),
+    );
   }
 
   function animate() {
@@ -9900,27 +9935,30 @@ import { createWelcomeTour } from "./tours.js";
   function configureComboBCsGUI(type) {
     comboBCsOptions.type = type || "periodic";
     comboBCsOptions.value = "0";
-    const indText = (comboBCsOptions.speciesInd + 1).toString();
-    if (
-      options["comboStr_" + indText]
-        .toLowerCase()
-        .indexOf(comboBCsOptions.side.toLowerCase()) != -1
-    ) {
-      const bc = options["comboStr_" + indText]
-        .split(";")
-        ?.filter(
-          (s) =>
-            s.toLowerCase().indexOf(comboBCsOptions.side.toLowerCase()) != -1,
-        )[0]
-        .split(":")[1]
-        ?.split("=");
-      comboBCsOptions.type = bc[0].trim().toLowerCase() || comboBCsOptions.type;
-      comboBCsOptions.value = bc[1].trim() || comboBCsOptions.value;
+    if (!type) {
+      const indText = (comboBCsOptions.speciesInd + 1).toString();
+      const sideRegex = new RegExp(
+        "\\b" + comboBCsOptions.side + "\\s*:\\s*([^=]*)\\s*=([^;]*);",
+        "i",
+      );
+      const match = options["comboStr_" + indText].match(sideRegex);
+      if (match) {
+        comboBCsOptions.type =
+          match[1].trim().toLowerCase() || comboBCsOptions.type;
+        comboBCsOptions.value = match[2].trim() || comboBCsOptions.value;
+      }
     }
     // Set the values of the controllers.
     // Don't use setValue on the Type controller as it will trigger the onChange event and overwrite the value.
     controllers["comboBCsType"].updateDisplay();
     controllers["comboBCsValue"].setValue(comboBCsOptions.value);
+    // Make sure that the onFinishChange event is triggered.
+    controllers["comboBCsValue"].__onFinishChange(
+      controllers["comboBCsValue"],
+      comboBCsOptions.value,
+    );
+
+    // Configure the GUI based on the options.
     document.getElementById("comboBCsTitle").innerHTML =
       capitaliseFirstLetter(comboBCsOptions.side) + " boundary condition";
     setGUIControllerName(
