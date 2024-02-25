@@ -9896,6 +9896,8 @@ import { createWelcomeTour } from "./tours.js";
     if ($("#leftGUI").is(":visible")) $("#equations").click();
     configureComboBCsGUI();
     $(".clickArea").removeClass("hidden");
+    $(".clickArea").removeClass("selected");
+    $("#" + comboBCsOptions.side + "ClickArea").addClass("selected");
   }
 
   function closeComboBCsGUI() {
