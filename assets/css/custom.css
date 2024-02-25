@@ -347,7 +347,7 @@ a.home_tile {
 
 a.topic_tile {
   border: 1px solid;
-  border-radius: 6px;
+  border-radius: 7px;
   border-color: var(--tile-border-color);
   line-height: 1.3;
   color: var(--tile-highlight-color);
