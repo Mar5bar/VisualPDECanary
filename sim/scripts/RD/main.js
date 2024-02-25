@@ -5637,6 +5637,7 @@ import { createWelcomeTour } from "./tours.js";
       controllers["cameraTheta"].show();
       controllers["cameraPhi"].show();
       controllers["cameraZoom"].show();
+      if (comboBCsOptions.open) closeComboBCsGUI();
       $(".combo-bcs").addClass("hidden");
     } else if (options.plotType == "line") {
       $("#contourButton").hide();
@@ -5649,12 +5650,7 @@ import { createWelcomeTour } from "./tours.js";
       controllers["cameraTheta"].hide();
       controllers["cameraPhi"].hide();
       controllers["cameraZoom"].hide();
-      $("#topClickArea").addClass("hidden");
-      $("#bottomClickArea").addClass("hidden");
-      if (["top", "bottom"].includes(comboBCsOptions.side)) {
-        comboBCsOptions.side = "left";
-        configureComboBCsGUI();
-      }
+      disableTopBottomClickAreas();
     } else {
       $("#contourButton").show();
       $("#embossButton").show();
@@ -5666,7 +5662,10 @@ import { createWelcomeTour } from "./tours.js";
       controllers["cameraPhi"].hide();
       controllers["cameraZoom"].hide();
     }
-    if (options.dimension == 1) $("#vectorFieldButton").hide();
+    if (options.dimension == 1) {
+      $("#vectorFieldButton").hide();
+      disableTopBottomClickAreas();
+    }
     configureColourbar();
     configureTimeDisplay();
     configureIntegralDisplay();
@@ -9936,6 +9935,9 @@ import { createWelcomeTour } from "./tours.js";
     $(".clickArea").removeClass("selected");
     $("#" + comboBCsOptions.side + "ClickArea").addClass("selected");
     $("#logo").hide();
+    if (options.dimension == 1) {
+      disableTopBottomClickAreas();
+    }
     comboBCsOptions.open = true;
   }
 
@@ -10018,6 +10020,15 @@ import { createWelcomeTour } from "./tours.js";
       }
     });
     runMathJax();
+  }
+
+  function disableTopBottomClickAreas() {
+    $("#topClickArea").addClass("hidden");
+    $("#bottomClickArea").addClass("hidden");
+    if (["top", "bottom"].includes(comboBCsOptions.side)) {
+      comboBCsOptions.side = "left";
+      configureComboBCsGUI();
+    }
   }
 
   function capitaliseFirstLetter(string) {
