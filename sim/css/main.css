@@ -166,20 +166,27 @@ span.highlight {
   width: 30px;
   height: 30px;
   cursor: pointer;
-  opacity: 50%;
+  opacity: 70%;
   background: var(--link-color);
   transition: opacity 0.3s ease;
+  text-align: center;
+}
+
+.clickArea > span {
+  color: #fdfdfd;
+  font-weight: 500;
+  line-height: 30px;
 }
 
 .clickArea.selected {
-  opacity: 90%;
+  opacity: 100%;
   outline: 2px solid white;
   z-index: 1;
 }
 
 @media (hover: hover) {
   .clickArea:hover {
-    opacity: 90%;
+    opacity: 100%;
   }
 }
 
@@ -203,8 +210,9 @@ span.highlight {
   left: 0;
   top: 50%;
   height: 100%;
-  transform: translateY(-50%);
-  border-right: 1px solid var(--text-color);
+  transform: translateY(-50%) scale(-1);
+  border-left: 1px solid var(--text-color);
+  writing-mode: vertical-rl;
 }
 
 .clickArea.right {
@@ -213,6 +221,7 @@ span.highlight {
   height: 100%;
   transform: translateY(-50%);
   border-left: 1px solid var(--text-color);
+  writing-mode: vertical-rl;
 }
 
 .dg .a {
