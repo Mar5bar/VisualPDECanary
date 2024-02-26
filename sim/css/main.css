@@ -120,22 +120,13 @@ noscript > p {
 }
 
 #simTitle {
-  /*position: absolute;*/
   text-align: left;
-  /*left: 50%;
-  transform: translateX(-50%);
-  */
   width: calc(80% - 360px);
-  /*
-  transition: font-weight 0.3s ease;*/
   background: none;
-  /*font-size: 26px;
-  font-weight: 300;*/
   line-height: 50px;
   height: 48px;
-  /*letter-spacing: -1px;*/
   text-overflow: ellipsis;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 @media (hover: hover) {
