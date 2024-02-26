@@ -933,7 +933,7 @@ vpde-slider > span {
 #siteSearchForm {
   position: absolute;
   width: 400px;
-  right: 134px;
+  right: 127px;
   height: 50px;
   vertical-align: middle;
   pointer-events: none;
@@ -999,7 +999,8 @@ vpde-slider > span {
 }
 
 .site-nav {
-  /*position: absolute;*/
+  position: absolute;
+  top: 0px;
   right: 20px;
   line-height:50px;
 }
@@ -1009,6 +1010,9 @@ vpde-slider > span {
 }
 
 @media screen and (max-width: 600px) {
+  .site-nav {
+    top: 6px;
+  }
   .dark-mode .site-nav {
     background-color: #1c2133;
   }
@@ -1022,7 +1026,6 @@ vpde-slider > span {
   font-size: 24px;
   letter-spacing:-0.9px;
   line-height:49px;
-  /*position: absolute;*/
   transition: opacity 0.5s ease;
   z-index: 1;
   color: var(--text-color);
