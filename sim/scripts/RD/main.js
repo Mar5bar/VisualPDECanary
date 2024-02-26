@@ -3223,10 +3223,7 @@ import { createWelcomeTour } from "./tours.js";
         let str =
           options["comboStr_" + (comboBCsOptions.speciesInd + 1).toString()];
         str = str.replaceAll(
-          new RegExp(
-            comboBCsOptions.side + "\\s*:\\s*([^=]*)\\s*=([^;]*);",
-            "gi",
-          ),
+          new RegExp(comboBCsOptions.side + "([^;]*);", "gi"),
           "",
         );
         let oppositeSide = "";
@@ -3244,9 +3241,14 @@ import { createWelcomeTour } from "./tours.js";
             oppositeSide = "bottom";
             break;
         }
-        // Add the new BC, unless it's periodic.
-        if (!isPeriodic) {
-          const newBCs = [comboBCsOptions.side, oppositeSide].map(
+        // Add the new BC.
+        let newBCs;
+        if (isPeriodic) {
+          newBCs = [comboBCsOptions.side, oppositeSide].map(
+            (s) => capitaliseFirstLetter(s) + ": " + "Periodic;",
+          );
+        } else {
+          newBCs = [comboBCsOptions.side, oppositeSide].map(
             (s) =>
               capitaliseFirstLetter(s) +
               ": " +
@@ -3255,19 +3257,20 @@ import { createWelcomeTour } from "./tours.js";
               this.getValue() +
               ";",
           );
-          str += newBCs[0];
-          // If the BC on the opposite side is periodic, remove the opposite BC and duplicate this BC.
-          let oppRegex = new RegExp("\\b" + oppositeSide + "\\b", "gi");
-          if (!oppRegex.test(str)) {
-            str += newBCs[1];
-          }
-        } else {
-          // If the new BC is periodic, replace the BC on the opposite side with (blank) periodic one.
-          let regex = new RegExp(
+        }
+        str += newBCs[0];
+        let regex;
+        if (isPeriodic) {
+          // If the new BC is periodic, replace the BC on the opposite side with a periodic one.
+          regex = new RegExp(
             oppositeSide + "\\s*:\\s*([^=]*)\\s*=([^;]*);",
             "gi",
           );
-          str = str.replaceAll(regex, "");
+          str = str.replaceAll(regex, oppositeSide + ": Periodic;");
+        } else {
+          // If the BC on the opposite side is periodic, remove the opposite BC and duplicate this BC.
+          regex = new RegExp(oppositeSide + "\\s*:\\s*Periodic;", "gi");
+          str = str.replaceAll(regex, newBCs[1]);
         }
         options["comboStr_" + (comboBCsOptions.speciesInd + 1).toString()] =
           removeExtraWhitespace(str.trim());
@@ -5116,7 +5119,7 @@ import { createWelcomeTour } from "./tours.js";
       BCsControllers.forEach((cont) =>
         updateGUIDropdown(
           cont,
-          ["Periodic", "Dirichlet", "Neumann", "Robin", "Mixed"],
+          ["Periodic", "Dirichlet", "Neumann", "Robin", "Mixed..."],
           ["periodic", "dirichlet", "neumann", "robin", "combo"],
         ),
       );
@@ -9732,6 +9735,30 @@ import { createWelcomeTour } from "./tours.js";
     BCsButton.classList.add("info-link", "combo-bcs");
     BCsButton.innerHTML = `<i class="fa-solid fa-bullseye"></i>`;
     BCsButton.onclick = function () {
+      // If the current type of boundary conditions is not "combo", fill the combo string with the current type and value.
+      let indText = (speciesInd + 1).toString();
+      let oldType = options["boundaryConditions_" + indText];
+      if (oldType != "combo") {
+        if (oldType == "periodic") {
+          // Periodic BCs have no value.
+          options["comboStr_" + indText] = ["Left", "Right", "Top", "Bottom"]
+            .map((side) => side + ": Periodic;")
+            .join("");
+        } else {
+          options["comboStr_" + indText] = ["Left", "Right", "Top", "Bottom"]
+            .map((side) => {
+              return (
+                side +
+                ": " +
+                oldType +
+                " = " +
+                options[oldType + "Str_" + indText] +
+                ";"
+              );
+            })
+            .join("");
+        }
+      }
       controllers[defaultSpecies[speciesInd] + "BCs"].setValue("combo");
       comboBCsOptions.speciesInd = speciesInd;
       comboBCsOptions.side = comboBCsOptions.side || "left";
@@ -9921,6 +9948,7 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   function openComboBCsGUI() {
+    if (comboBCsOptions.open) return;
     document.getElementById("comboBCs_ui").style.display = "block";
     // If the equations are open, close them.
     if ($("#leftGUI").is(":visible")) $("#equations").click();
@@ -9994,20 +10022,24 @@ import { createWelcomeTour } from "./tours.js";
       let node = document.getElementById(side + "ClickArea").childNodes[1];
       node.innerHTML = "Periodic";
       let sideRegex = new RegExp(
-        "\\b" + side + "\\s*:\\s*([^=]*)\\s*=([^;]*);",
+        side + "\\s*:\\s*([^=;]*)\\s*(?:=)?([^;]*);",
         "i",
       );
       let match = options["comboStr_" + indText].match(sideRegex);
       if (match) {
         let label = match[1].trim()[0].toUpperCase();
-        if (label == "R") label = "N";
-        label = defaultSpecies[comboBCsOptions.speciesInd] + label;
-        node.innerHTML =
-          removeEvalAt(TeXStrings[label].slice(0, -1)) +
-          (match[2] ? " = " + parseStringToTEX(match[2].trim()) : "") +
-          "$";
+        if (label == "P") {
+          node.innerHTML = "Periodic";
+        } else {
+          if (label == "R") label = "N";
+          label = defaultSpecies[comboBCsOptions.speciesInd] + label;
+          node.innerHTML =
+            removeEvalAt(TeXStrings[label].slice(0, -1)) +
+            (match[2] ? " = " + parseStringToTEX(match[2].trim()) : "") +
+            "$";
+        }
       } else {
-        node.innerHTML = "Periodic";
+        node.innerHTML = "Unknown";
       }
     });
     runMathJax();

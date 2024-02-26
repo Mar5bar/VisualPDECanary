@@ -99,7 +99,7 @@ Boundary conditions can be specified for any species in the simulation. The foll
 
 Boundary conditions that allow you to specify values can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. Robin boundary conditions are the only type supported that allow you to use an unknown in the specification of its own boundary condition. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
-An additional option, **Mixed**, is also available, which allows you to specify different types of boundary condition on the Left, Right, Top and Bottom sides of rectangular domains.
+An additional option, **Mixed...**, is also available, which allows you to specify different types of boundary condition on the Left, Right, Top and Bottom sides of rectangular domains.
 
 The easiest way to do this is using the graphical interface by clicking <span><i class="fa-solid fa-bullseye"></i></span> beside the boundary condition selector (unavailable during surface plots). Click the various boundaries to set the desired condition on each. These conditions can also be specified directly as a string, e.g.
 
