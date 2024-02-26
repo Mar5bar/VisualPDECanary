@@ -1058,6 +1058,7 @@ import { createWelcomeTour } from "./tours.js";
             if (!inIframe()) {
               $("#header").show();
               resize();
+              renderIfNotRunning();
             }
             // Check for any positioning that relies on elements being visible.
             checkColourbarPosition();
@@ -1068,6 +1069,7 @@ import { createWelcomeTour } from "./tours.js";
             $(".ui").addClass("hidden");
             $("#header").hide();
             resize();
+            renderIfNotRunning();
           }
         } else if (!(isStory && uiHidden)) {
           // Don't allow for keyboard input if the ui is hidden in a Story.
