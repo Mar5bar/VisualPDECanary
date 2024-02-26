@@ -201,6 +201,7 @@ main a[href*="visualpde.com/sim/" i] {
   main a[href="/sim/"]:hover {
     border-radius: inherit;
     padding: initial;
+    margin: initial;
   }
 }
 
