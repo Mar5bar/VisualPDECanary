@@ -126,6 +126,7 @@ p {
 
 .site-header {
   position: sticky;
+  min-height: 50px;
   top: 0;
   background-color: var(--background-color);
   z-index: 2;
@@ -133,6 +134,7 @@ p {
   /* Fix for Safari not respecting z-index */
   -webkit-transform: translate3d(0, 0, 0);
   transform: translate3d(0, 0, 0);
+  border-top: none;
 }
 
 .highlighter-rouge .highlight {
@@ -198,10 +200,6 @@ main a[href*="visualpde.com/sim/" i] {
     border-radius: inherit;
     padding: initial;
   }
-}
-
-.trigger .nav-button {
-  margin-right: 10px;
 }
 
 .footer-col-wrapper {
@@ -914,8 +912,8 @@ vpde-slider > span {
 #search-button {
   display: flex;
   float: right;
-  line-height: 54px;
-  margin: 10px 5px 0 0;
+  line-height: 50px;
+  margin: 8px 5px 0 0;
   height: 35px;
   width: 35px;
   font-size: 0.9rem;
@@ -936,7 +934,7 @@ vpde-slider > span {
   position: absolute;
   width: 400px;
   right: 134px;
-  height: 54px;
+  height: 50px;
   vertical-align: middle;
   pointer-events: none;
   z-index: 2;
@@ -1001,8 +999,9 @@ vpde-slider > span {
 }
 
 .site-nav {
-  position: absolute;
+  /*position: absolute;*/
   right: 20px;
+  line-height:50px;
 }
 
 .site-nav .page-link {
@@ -1020,7 +1019,10 @@ vpde-slider > span {
 
 .site-title,
 .site-title:visited {
-  position: absolute;
+  font-size: 24px;
+  letter-spacing:-0.9px;
+  line-height:49px;
+  /*position: absolute;*/
   transition: opacity 0.5s ease;
   z-index: 1;
   color: var(--text-color);
@@ -1225,6 +1227,14 @@ vpde-slider > span {
   display: inline-block;
   width: 27px;
   pointer-events: none;
+}
+
+.light-mode-img, .dark-mode-img {
+  height:2rem;
+  width:2rem;
+  margin-right:7px;
+  vertical-align:text-top;
+  margin-top:-1px;
 }
 
 /* Dark mode */
