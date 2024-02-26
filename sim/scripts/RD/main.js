@@ -9750,7 +9750,7 @@ import { createWelcomeTour } from "./tours.js";
               return (
                 side +
                 ": " +
-                oldType +
+                capitaliseFirstLetter(oldType) +
                 " = " +
                 options[oldType + "Str_" + indText] +
                 ";"
