@@ -5065,41 +5065,32 @@ import { createWelcomeTour } from "./tours.js";
       controllers["robinQ"].hide();
     }
 
-    let button =
-      controllers["uBCs"].domElement.getElementsByClassName("combo-bcs")[0];
+    if (options.plotType != "surface") {
+      ["uBCs", "vBCs", "wBCs", "qBCs"].forEach((str) => {
+        controllers[str].domElement
+          .getElementsByClassName("combo-bcs")[0]
+          .classList.remove("hidden");
+      });
+    }
     if (options.boundaryConditions_1 == "combo") {
       controllers["comboU"].show();
-      if (options.plotType != "surface") button.classList.remove("hidden");
     } else {
       controllers["comboU"].hide();
-      button.classList.add("hidden");
     }
-    button =
-      controllers["vBCs"].domElement.getElementsByClassName("combo-bcs")[0];
     if (options.boundaryConditions_2 == "combo") {
       controllers["comboV"].show();
-      if (options.plotType != "surface") button.classList.remove("hidden");
     } else {
       controllers["comboV"].hide();
-      button.classList.add("hidden");
     }
-    button =
-      controllers["wBCs"].domElement.getElementsByClassName("combo-bcs")[0];
     if (options.boundaryConditions_3 == "combo") {
       controllers["comboW"].show();
-      if (options.plotType != "surface") button.classList.remove("hidden");
     } else {
       controllers["comboW"].hide();
-      button.classList.add("hidden");
     }
-    button =
-      controllers["qBCs"].domElement.getElementsByClassName("combo-bcs")[0];
     if (options.boundaryConditions_4 == "combo") {
       controllers["comboQ"].show();
-      if (options.plotType != "surface") button.classList.remove("hidden");
     } else {
       controllers["comboQ"].hide();
-      button.classList.add("hidden");
     }
 
     // If the comboBCsGUI is visible, make all clickAreas visible.
@@ -5125,7 +5116,7 @@ import { createWelcomeTour } from "./tours.js";
       BCsControllers.forEach((cont) =>
         updateGUIDropdown(
           cont,
-          ["Periodic", "Dirichlet", "Neumann", "Robin", "Combination"],
+          ["Periodic", "Dirichlet", "Neumann", "Robin", "Mixed"],
           ["periodic", "dirichlet", "neumann", "robin", "combo"],
         ),
       );
@@ -9738,9 +9729,10 @@ import { createWelcomeTour } from "./tours.js";
 
   function addComboBCsButton(controller, speciesInd) {
     const BCsButton = document.createElement("button");
-    BCsButton.classList.add("info-link", "combo-bcs", "hidden");
+    BCsButton.classList.add("info-link", "combo-bcs");
     BCsButton.innerHTML = `<i class="fa-solid fa-bullseye"></i>`;
     BCsButton.onclick = function () {
+      controllers[defaultSpecies[speciesInd] + "BCs"].setValue("combo");
       comboBCsOptions.speciesInd = speciesInd;
       comboBCsOptions.side = comboBCsOptions.side || "left";
       configureComboBCsGUI();
