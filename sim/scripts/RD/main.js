@@ -5095,7 +5095,7 @@ import { createWelcomeTour } from "./tours.js";
 
     // If the comboBCsGUI is visible, make all clickAreas visible.
     if (comboBCsOptions.open) {
-      $(".clickArea").removeClass("hidden");
+      revealClickAreas();
     }
 
     const BCsControllers = [
@@ -5643,7 +5643,7 @@ import { createWelcomeTour } from "./tours.js";
       controllers["cameraTheta"].hide();
       controllers["cameraPhi"].hide();
       controllers["cameraZoom"].hide();
-      disableTopBottomClickAreas();
+      hideTopBottomClickAreas();
     } else {
       $("#contourButton").show();
       $("#embossButton").show();
@@ -5657,7 +5657,7 @@ import { createWelcomeTour } from "./tours.js";
     }
     if (options.dimension == 1) {
       $("#vectorFieldButton").hide();
-      disableTopBottomClickAreas();
+      hideTopBottomClickAreas();
     }
     configureColourbar();
     configureTimeDisplay();
@@ -9925,13 +9925,10 @@ import { createWelcomeTour } from "./tours.js";
     // If the equations are open, close them.
     if ($("#leftGUI").is(":visible")) $("#equations").click();
     configureComboBCsGUI();
-    $(".clickArea").removeClass("hidden");
     $(".clickArea").removeClass("selected");
     $("#" + comboBCsOptions.side + "ClickArea").addClass("selected");
     $("#logo").hide();
-    if (options.dimension == 1) {
-      disableTopBottomClickAreas();
-    }
+    revealClickAreas();
     comboBCsOptions.open = true;
   }
 
@@ -9940,7 +9937,7 @@ import { createWelcomeTour } from "./tours.js";
     $(".clickArea").addClass("hidden");
     // If the equations are not already open, open them.
     if (!$("#leftGUI").is(":visible")) $("#equations").click();
-    comboBCsOptions.open = true;
+    comboBCsOptions.open = false;
   }
 
   function configureComboBCsGUI(type) {
@@ -10016,7 +10013,14 @@ import { createWelcomeTour } from "./tours.js";
     runMathJax();
   }
 
-  function disableTopBottomClickAreas() {
+  function revealClickAreas() {
+    $(".clickArea").removeClass("hidden");
+    if (options.dimension == 1) {
+      hideTopBottomClickAreas();
+    }
+  }
+
+  function hideTopBottomClickAreas() {
     $("#topClickArea").addClass("hidden");
     $("#bottomClickArea").addClass("hidden");
     if (["top", "bottom"].includes(comboBCsOptions.side)) {
