@@ -155,6 +155,7 @@ code {
 main a[href^="/sim/"],
 main a[href*="visualpde.com/sim/" i] {
   border-bottom: 3px var(--play-button-color) solid;
+  border-radius: 3px;
   font-weight: 700;
   padding: 1px 0px;
   color: var(--play-button-color);
@@ -193,7 +194,8 @@ main a[href*="visualpde.com/sim/" i] {
   main a[href*="visualpde.com/sim/" i]:hover {
     border-color: var(--play-button-hover-color);
     border-radius: 6px;
-    padding: 6px 16px;
+    padding: 2px 2px;
+    margin: -2px -2px;
   }
 
   main a[href="/sim/"]:hover {
