@@ -3273,9 +3273,8 @@ import { createWelcomeTour } from "./tours.js";
         }
         controllers[
           "combo" + defaultSpecies[comboBCsOptions.speciesInd].toUpperCase()
-        ].setValue(removeExtraWhitespace(str.trim()));
+        ].setValue(sortBCsString(removeExtraWhitespace(str.trim())));
         setClickAreaLabels();
-        console.log(options["comboStr_" + (comboBCsOptions.speciesInd + 1)]);
       });
 
     const inputs = document.querySelectorAll("input");
@@ -10061,6 +10060,17 @@ import { createWelcomeTour } from "./tours.js";
       comboBCsOptions.side = "left";
       configureComboBCsGUI();
     }
+  }
+
+  function sortBCsString(str) {
+    return (
+      str
+        .split(";")
+        .filter((s) => s.trim() != "")
+        .map((s) => s.trim())
+        .sort()
+        .join("; ") + ";"
+    );
   }
 
   function capitaliseFirstLetter(string) {
