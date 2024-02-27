@@ -2210,7 +2210,7 @@ import { createWelcomeTour } from "./tours.js";
       .add(options, "comboStr_1")
       .name("Details")
       .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
+        this.setValue(this.getValue());
         setRDEquations();
         if (options.boundaryConditions_1 == "combo") configureComboBCsGUI();
       });
@@ -2249,7 +2249,7 @@ import { createWelcomeTour } from "./tours.js";
       .add(options, "comboStr_2")
       .name("Details")
       .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
+        this.setValue(this.getValue());
         setRDEquations();
         if (options.boundaryConditions_2 == "combo") configureComboBCsGUI();
       });
@@ -2288,7 +2288,7 @@ import { createWelcomeTour } from "./tours.js";
       .add(options, "comboStr_3")
       .name("Details")
       .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
+        this.setValue(this.getValue());
         setRDEquations();
         if (options.boundaryConditions_3 == "combo") configureComboBCsGUI();
       });
@@ -2328,7 +2328,7 @@ import { createWelcomeTour } from "./tours.js";
       .add(options, "comboStr_4")
       .name("Details")
       .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
+        this.setValue(this.getValue());
         setRDEquations();
         if (options.boundaryConditions_4 == "combo") configureComboBCsGUI();
       });
@@ -3203,9 +3203,7 @@ import { createWelcomeTour } from "./tours.js";
     controllers["comboBCsType"] = root
       .add(comboBCsOptions, "type", {})
       .name("Type")
-      .onChange(function () {
-        // Set the value string to 0.
-        controllers["comboBCsValue"].setValue("0");
+      .onFinishChange(function () {
         configureComboBCsGUI(comboBCsOptions.type);
       });
     updateGUIDropdown(
@@ -3262,21 +3260,22 @@ import { createWelcomeTour } from "./tours.js";
         let regex;
         if (isPeriodic) {
           // If the new BC is periodic, replace the BC on the opposite side with a periodic one.
-          regex = new RegExp(
-            oppositeSide + "\\s*:\\s*([^=]*)\\s*=([^;]*);",
-            "gi",
-          );
-          str = str.replaceAll(regex, oppositeSide + ": Periodic;");
+          regex = new RegExp(oppositeSide + "[^;]*;", "gi");
+          str = str.replaceAll(regex, "");
+          str += newBCs[1];
         } else {
           // If the BC on the opposite side is periodic, remove the opposite BC and duplicate this BC.
           regex = new RegExp(oppositeSide + "\\s*:\\s*Periodic;", "gi");
-          str = str.replaceAll(regex, newBCs[1]);
+          if (regex.test(str)) {
+            str = str.replaceAll(regex, "");
+            str += newBCs[1];
+          }
         }
-        options["comboStr_" + (comboBCsOptions.speciesInd + 1).toString()] =
-          removeExtraWhitespace(str.trim());
-        setRDEquations();
+        controllers[
+          "combo" + defaultSpecies[comboBCsOptions.speciesInd].toUpperCase()
+        ].setValue(removeExtraWhitespace(str.trim()));
         setClickAreaLabels();
-        refreshGUI(leftGUI);
+        console.log(options["comboStr_" + (comboBCsOptions.speciesInd + 1)]);
       });
 
     const inputs = document.querySelectorAll("input");
@@ -9737,35 +9736,37 @@ import { createWelcomeTour } from "./tours.js";
     BCsButton.onclick = function () {
       // If the current type of boundary conditions is not "combo", fill the combo string with the current type and value.
       let indText = (speciesInd + 1).toString();
+      let speciesUpper = defaultSpecies[speciesInd].toUpperCase();
       let oldType = options["boundaryConditions_" + indText];
       if (oldType != "combo") {
         if (oldType == "periodic") {
           // Periodic BCs have no value.
-          options["comboStr_" + indText] = ["Left", "Right", "Top", "Bottom"]
-            .map((side) => side + ": Periodic;")
-            .join("");
+          controllers["combo" + speciesUpper].setValue(
+            ["Left", "Right", "Top", "Bottom"]
+              .map((side) => side + ": Periodic;")
+              .join(""),
+          );
         } else {
-          options["comboStr_" + indText] = ["Left", "Right", "Top", "Bottom"]
-            .map((side) => {
-              return (
-                side +
-                ": " +
-                capitaliseFirstLetter(oldType) +
-                " = " +
-                options[oldType + "Str_" + indText] +
-                ";"
-              );
-            })
-            .join("");
+          controllers["combo" + speciesUpper].setValue(
+            ["Left", "Right", "Top", "Bottom"]
+              .map(
+                (side) =>
+                  side +
+                  ": " +
+                  capitaliseFirstLetter(oldType) +
+                  " = " +
+                  options[oldType + "Str_" + indText] +
+                  ";",
+              )
+              .join(""),
+          );
         }
       }
       controllers[defaultSpecies[speciesInd] + "BCs"].setValue("combo");
       comboBCsOptions.speciesInd = speciesInd;
       comboBCsOptions.side = comboBCsOptions.side || "left";
       configureComboBCsGUI();
-      setRDEquations();
       setBCsGUI();
-      refreshGUI(leftGUI);
       openComboBCsGUI();
     };
     BCsButton.title = "Configure boundary conditions for this species";
@@ -9973,8 +9974,9 @@ import { createWelcomeTour } from "./tours.js";
     comboBCsOptions.value = "0";
     let indText = (comboBCsOptions.speciesInd + 1).toString();
     if (!type) {
+      // This won't find periodic BCs, but they are the default type so this doesn't need to find them.
       let sideRegex = new RegExp(
-        "\\b" + comboBCsOptions.side + "\\s*:\\s*([^=]*)\\s*=([^;]*);",
+        comboBCsOptions.side + "\\s*:\\s*([^=;]*)\\s*=([^;]*);",
         "i",
       );
       let match = options["comboStr_" + indText].match(sideRegex);
