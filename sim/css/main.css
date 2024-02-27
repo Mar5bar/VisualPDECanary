@@ -91,17 +91,18 @@ noscript > p {
   }
 }
 
-.site-title{
+.site-title {
   font-size: 24px !important;
-  letter-spacing:-0.9px !important;
+  letter-spacing: -0.9px !important;
 }
 
-.light-mode-img, .dark-mode-img {
-  height:2rem;
-  width:2rem;
-  margin-right:7px;
-  vertical-align:text-top;
-  margin-top:-1px;
+.light-mode-img,
+.dark-mode-img {
+  height: 2rem;
+  width: 2rem;
+  margin-right: 7px;
+  vertical-align: text-top;
+  margin-top: -1px;
 }
 
 #simulation {
@@ -112,11 +113,11 @@ noscript > p {
   height: calc(100dvh - var(--header-height));
 }
 
-#simTitle-divider{
-  display:inline-block;
-  margin-left:13px;
-  margin-right:2px;
-  margin-top:-2px;
+#simTitle-divider {
+  display: inline-block;
+  margin-left: 13px;
+  margin-right: 2px;
+  margin-top: -2px;
 }
 
 #simTitle {
@@ -132,9 +133,9 @@ noscript > p {
 @media (hover: hover) {
   #simTitle:hover,
   #simTitle:focus {
-    border:1px solid gray;
-    height:46px;
-    margin-left:-1px;
+    border: 1px solid gray;
+    height: 46px;
+    margin-left: -1px;
   }
 }
 
@@ -337,6 +338,7 @@ button.combo-bcs {
 button.combo-bcs {
   opacity: 100%;
   right: -2px;
+  top: 6px;
   pointer-events: all;
   font-size: 0.9rem;
 }
