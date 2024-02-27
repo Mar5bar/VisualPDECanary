@@ -101,7 +101,7 @@ Boundary conditions that allow you to specify values can be functions of space (
 
 An additional option, **Mixed...**, is also available, which allows you to specify different types of boundary condition on the Left, Right, Top and Bottom sides of rectangular domains.
 
-The easiest way to do this is using the graphical interface by clicking <span><i class="fa-solid fa-bullseye"></i></span> beside the boundary condition selector (unavailable during surface plots). Click the various boundaries to set the desired condition on each. These conditions can also be specified directly as a string, e.g.
+The easiest way to do this is using the graphical interface by clicking <span><i class="fa-solid fa-hand"></i></span> beside the boundary condition selector (unavailable during surface plots). Click the various boundaries to set the desired condition on each. These conditions can also be specified directly as a string, e.g.
 
 ```
 Left: Dirichlet = 0; Right: Neumann = 1; Top: Robin = u; Bottom: Dirichlet = sin(x)
