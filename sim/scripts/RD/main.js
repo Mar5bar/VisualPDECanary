@@ -1437,14 +1437,14 @@ import { createWelcomeTour } from "./tours.js";
     }
   }
 
-  function resizeTextures() {
+  function resizeTextures(shift = 0) {
     // Resize the computational domain by interpolating the existing domain onto the new discretisation.
     simDomain.material = copyMaterial;
 
     // Resize all history terms. We'll do 1->0 then 2->1 etc, then cycle.
     for (let ind = 1; ind < simTextures.length; ind++) {
       uniforms.textureSource.value = simTextures[ind].texture;
-      simTextures[ind - 1].setSize(nXDisc, nYDisc);
+      simTextures[ind - 1].setSize(nXDisc + shift, nYDisc + shift);
       renderer.setRenderTarget(simTextures[ind - 1]);
       renderer.render(simScene, simCamera);
     }
@@ -1452,14 +1452,14 @@ import { createWelcomeTour } from "./tours.js";
     simTextures[0].dispose();
     simTextures[0] = simTextures[1].clone();
 
-    postTexture.setSize(nXDisc, nYDisc);
+    postTexture.setSize(nXDisc + shift, nYDisc + shift);
     postprocess();
 
     // Dispose of and create new minmax textures.
     minMaxTextures.forEach((tex) => tex.dispose());
     minMaxTextures = [];
-    let w = nXDisc,
-      h = nYDisc;
+    let w = nXDisc + shift,
+      h = nYDisc + shift;
     const minmaxTextureOpts = {
       format: THREE.RGBAFormat,
       type: THREE.FloatType,
@@ -1480,6 +1480,12 @@ import { createWelcomeTour } from "./tours.js";
       Math.round(devicePixelRatio * canvasWidth),
       Math.round(devicePixelRatio * canvasHeight),
     );
+  }
+
+  function nudgeTextureSizeUpDown() {
+    // Force a texture reupload by modifying the size of the textures and then resetting it.
+    resizeTextures(1);
+    resizeTextures(0);
   }
 
   function initUniforms() {
@@ -7098,6 +7104,9 @@ import { createWelcomeTour } from "./tours.js";
       postTexture.texture.magFilter = THREE.LinearFilter;
       interpolationTexture.texture.magFilter = THREE.LinearFilter;
     }
+    // Trigger a refresh of the textures (oddly, setting needsUpdate doesn't seem to work).
+    nudgeTextureSizeUpDown();
+    // Refresh the GUI.
     configureGUI();
   }
 
