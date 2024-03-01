@@ -816,12 +816,6 @@ import { createWelcomeTour } from "./tours.js";
     gl = renderer.getContext();
     maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
-    // Check if we should be interpolating manually due to extensions not being supported.
-    manualInterpolationNeeded = !(
-      gl.getExtension("OES_texture_float_linear") &&
-      gl.getExtension("EXT_float_blend")
-    );
-
     // Configure textures with placeholder sizes. We'll need two textures for simulation (A,B), one for
     // post processing, and another for (optional) manual interpolation.
     simTextureOpts = {
@@ -829,8 +823,20 @@ import { createWelcomeTour } from "./tours.js";
       type: THREE.FloatType,
       minFilter: THREE.NearestFilter,
     };
-    // If you're on Android, you must use a NEAREST magnification filter to avoid rounding issues.
-    manualInterpolationNeeded |= /android/i.test(navigator.userAgent);
+
+    // Check if we should be interpolating manually due to extensions not being supported.
+    manualInterpolationNeeded = !(
+      gl.getExtension("OES_texture_float_linear") &&
+      gl.getExtension("EXT_float_blend")
+    );
+
+    // We'll assume that manual interpolation is necessary unless we can guarantee the user is on a desktop device.
+    // Crudely (but notably safely) we will check for a desktop by asking if no touch events are supported.
+    manualInterpolationNeeded |=
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0 ||
+      navigator.msMaxTouchPoints > 0;
+
     manualInterpolationNeeded
       ? (simTextureOpts.magFilter = THREE.NearestFilter)
       : (simTextureOpts.magFilter = THREE.LinearFilter);
