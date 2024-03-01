@@ -2631,6 +2631,17 @@ import { createWelcomeTour } from "./tours.js";
       localOpts,
     );
 
+    addToggle(
+      devButtons,
+      "showComboStr",
+      '<i class="fa-regular fa-font"></i> Mixed strings',
+      function () {
+        setBCsGUI();
+      },
+      null,
+      "Show strings associated with mixed BCs",
+    );
+
     // Populate list of presets for parent selection.
     let listOfPresets = {};
     getListOfPresetNames().forEach(function (key) {
@@ -5101,6 +5112,13 @@ import { createWelcomeTour } from "./tours.js";
     controllers["comboV"].hide();
     controllers["comboW"].hide();
     controllers["comboQ"].hide();
+
+    if (options.showComboStr) {
+      if (options.boundaryConditions_1 == "combo") controllers["comboU"].show();
+      if (options.boundaryConditions_2 == "combo") controllers["comboV"].show();
+      if (options.boundaryConditions_3 == "combo") controllers["comboW"].show();
+      if (options.boundaryConditions_4 == "combo") controllers["comboQ"].show();
+    }
 
     // If the comboBCsGUI is visible, make all clickAreas visible.
     if (comboBCsOptions.open) {
@@ -10036,7 +10054,7 @@ import { createWelcomeTour } from "./tours.js";
     let sides = ["left", "right", "top", "bottom"];
     sides.forEach(function (side) {
       let node = document.getElementById(side + "ClickArea").childNodes[1];
-      node.innerHTML = "Unknown";
+      node.innerHTML = "Periodic";
       let sideRegex = new RegExp(
         side + "\\s*:\\s*([^=;]*)\\s*(?:=)?([^;]*);",
         "i",
@@ -10047,6 +10065,7 @@ import { createWelcomeTour } from "./tours.js";
       if (label == "P") {
         node.innerHTML = "Periodic";
       } else {
+        node.innerHTML = "Unknown";
         if (label == "R") label = "N";
         label = defaultSpecies[comboBCsOptions.speciesInd] + label;
         if (!TeXStrings[label]) return;
@@ -10105,6 +10124,13 @@ import { createWelcomeTour } from "./tours.js";
     let str = options["comboStr_" + indText];
     if (str.trim() == "") return;
     if (str[str.length - 1] != ";") str += ";";
+    // If a side is absent, add in periodic.
+    let sides = ["Left", "Right", "Top", "Bottom"];
+    sides.forEach(function (side) {
+      if (!str.match(new RegExp(side + "\\s*:", "i"))) {
+        str += side + ": Periodic;";
+      }
+    });
     str = sortBCsString(str);
     options["comboStr_" + indText] = str;
   }

@@ -457,6 +457,8 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 
       ***Antialias*** will toggle the use of antialiasing when displaying the simulation. Antialiasing in VisualPDE smooths out the jagged edges of displayed vector fields, though always causes a slight device-dependent performance loss. This is off by default for mobile devices, but can be overridden. Toggle requires a page reload.
 
+      ***Mixed strings*** will toggle the visibility of verbose strings associated with mixed boundary conditions. These are off by default, but can be useful for advanced cases such as simultaneously imposing Dirichlet and Neumann conditions.
+
 ---
 
 ## Writing valid expressions <a class="anchor" id='writing-valid-expressions'>
