@@ -546,6 +546,9 @@ import { createWelcomeTour } from "./tours.js";
     if ($("#help_panel").is(":visible")) {
       toggleHelpPanel();
     }
+    if ($("#right_ui").is(":visible")) {
+      toggleRightUI();
+    }
   });
   $("#help").click(function () {
     window.gtag?.("event", "help_menu_open");

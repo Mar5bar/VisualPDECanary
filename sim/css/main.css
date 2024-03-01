@@ -383,12 +383,10 @@ button.focus-params.active {
   background-color: var(--background-color);
   overflow-y: auto;
   overflow-x: hidden;
-  /* border: 5px white solid; */
-  border: 1px solid #ccc;
+  border: 1px solid var(--ui-button-border-color);
   border-radius: 6px;
   box-shadow: 0 5px 10px #1113;
   pointer-events: all;
-  /* transform: translate3d(0, 0, 0); */
 }
 
 #rightGUI {
@@ -418,10 +416,15 @@ button.focus-params.active {
   padding-top: 0;
 }
 
+#comboBCsGUIContainer {
+  height: auto;
+}
+
 #left_ui,
 #right_ui,
 #views_ui,
 #comboBCs_ui {
+  margin: 5px 0;
   display: none;
   position: absolute;
   pointer-events: none;
@@ -1416,7 +1419,7 @@ select {
 
 #right_ui_arrow {
   right: -11px;
-  top: 10px;
+  top: 5px;
   border-width: 14px 0px 14px 14px;
   border-left-color: var(--background-color);
 }
@@ -1432,7 +1435,7 @@ select {
 
 #left_ui_arrow {
   left: -11px;
-  top: 10px;
+  top: 5px;
   border-width: 14px 14px 14px 0px;
   border-right-color: var(--equation-background-color);
 }
@@ -1448,7 +1451,7 @@ select {
 
 #views_ui_arrow {
   left: -11px;
-  top: 55px;
+  top: 50px;
   border-width: 14px 14px 14px 0px;
   border-right-color: var(--background-color);
 }
