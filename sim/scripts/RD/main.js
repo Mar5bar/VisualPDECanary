@@ -2187,6 +2187,10 @@ import { createWelcomeTour } from "./tours.js";
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
+        // Show the combo BCs GUI if the user has selected combo.
+        if (this.getValue() == "combo") {
+          document.getElementById("comboBCsButton0").click();
+        }
         document.activeElement.blur();
       });
     addComboBCsButton(controllers["uBCs"], 0);
@@ -2226,6 +2230,10 @@ import { createWelcomeTour } from "./tours.js";
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
+        // Show the combo BCs GUI if the user has selected combo.
+        if (this.getValue() == "combo") {
+          document.getElementById("comboBCsButton1").click();
+        }
         document.activeElement.blur();
       });
     addComboBCsButton(controllers["vBCs"], 1);
@@ -2265,6 +2273,10 @@ import { createWelcomeTour } from "./tours.js";
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
+        // Show the combo BCs GUI if the user has selected combo.
+        if (this.getValue() == "combo") {
+          document.getElementById("comboBCsButton2").click();
+        }
         document.activeElement.blur();
       });
     addComboBCsButton(controllers["wBCs"], 2);
@@ -2305,6 +2317,10 @@ import { createWelcomeTour } from "./tours.js";
       .onChange(function () {
         setRDEquations();
         setBCsGUI();
+        // Show the combo BCs GUI if the user has selected combo.
+        if (this.getValue() == "combo") {
+          document.getElementById("comboBCsButton3").click();
+        }
         document.activeElement.blur();
       });
     addComboBCsButton(controllers["qBCs"], 3);
@@ -5079,26 +5095,12 @@ import { createWelcomeTour } from "./tours.js";
           .classList.remove("hidden");
       });
     }
-    if (options.boundaryConditions_1 == "combo") {
-      controllers["comboU"].show();
-    } else {
-      controllers["comboU"].hide();
-    }
-    if (options.boundaryConditions_2 == "combo") {
-      controllers["comboV"].show();
-    } else {
-      controllers["comboV"].hide();
-    }
-    if (options.boundaryConditions_3 == "combo") {
-      controllers["comboW"].show();
-    } else {
-      controllers["comboW"].hide();
-    }
-    if (options.boundaryConditions_4 == "combo") {
-      controllers["comboQ"].show();
-    } else {
-      controllers["comboQ"].hide();
-    }
+
+    // Always hide the combo BCs string.
+    controllers["comboU"].hide();
+    controllers["comboV"].hide();
+    controllers["comboW"].hide();
+    controllers["comboQ"].hide();
 
     // If the comboBCsGUI is visible, make all clickAreas visible.
     if (comboBCsOptions.open) {
@@ -9739,6 +9741,7 @@ import { createWelcomeTour } from "./tours.js";
 
   function addComboBCsButton(controller, speciesInd) {
     const BCsButton = document.createElement("button");
+    BCsButton.id = "comboBCsButton" + speciesInd;
     BCsButton.classList.add("info-link", "combo-bcs");
     BCsButton.innerHTML = `<i class="fa-solid fa-hand"></i>`;
     BCsButton.onclick = function () {
