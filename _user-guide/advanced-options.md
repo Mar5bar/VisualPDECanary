@@ -109,7 +109,7 @@ Left: Dirichlet = 0; Right: Neumann = 1; Top: Robin = u; Bottom: Dirichlet = sin
 
 for the species $u$ would specify $u = 0$ on the left boundary, $\pd{u}{n} = 1$ on the right boundary, $\pd{u}{n} = u$ on the top boundary and $u = \sin(x)$ on the bottom boundary. Sides can be specified in any order and are case sensitive. Omitting any side will default to periodic boundary conditions (beware, this may have unexpected results if the matching side is not also periodic; using the graphical interface prevents this).
 
-An additional type of condition, 'Ghost', can also be specified with Mixed boundary conditions. This advanced option pushes VisualPDE to its limits, overriding the value of the ghost nodes used in the spatial discretisation of the PDE, and should be used with caution. We make use of this option in our Visual Story on [virus transmission](/visual-stories/airborne-infections) to effectively double the size of the computational domain in one direction.
+An additional type of condition, 'Ghost', can also be specified with Mixed boundary conditions. This advanced option pushes VisualPDE to its limits, overriding the value of the [ghost nodes](https://kyleniemeyer.github.io/ME373-book/content/bvps/finite-difference.html#using-central-differences-for-derivative-bcs) used in the spatial discretisation of the PDE, and should be used with caution. We make use of this option in our Visual Story on [virus transmission](/visual-stories/airborne-infections) to effectively double the size of the computational domain in one direction.
 
 ### Initial conditions <a class="anchor" id='initial-conditions'>
 
