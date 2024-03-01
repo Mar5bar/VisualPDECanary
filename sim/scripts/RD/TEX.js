@@ -137,6 +137,10 @@ export function getDefaultTeXLabelsBCsICs() {
   TeXStrings["vN"] = "$\\left.\\pd{v}{n}\\right\\rvert_{\\boundary}$";
   TeXStrings["wN"] = "$\\left.\\pd{w}{n}\\right\\rvert_{\\boundary}$";
   TeXStrings["qN"] = "$\\left.\\pd{q}{n}\\right\\rvert_{\\boundary}$";
+  TeXStrings["uG"] = "$\\text{Ghost node}$";
+  TeXStrings["vG"] = "$\\text{Ghost node}$";
+  TeXStrings["wG"] = "$\\text{Ghost node}$";
+  TeXStrings["qG"] = "$\\text{Ghost node}$";
 
   return TeXStrings;
 }

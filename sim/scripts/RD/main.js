@@ -3230,8 +3230,8 @@ import { createWelcomeTour } from "./tours.js";
       });
     updateGUIDropdown(
       controllers["comboBCsType"],
-      ["Periodic", "Dirichlet", "Neumann", "Robin"],
-      ["periodic", "dirichlet", "neumann", "robin"],
+      ["Periodic", "Dirichlet", "Neumann", "Robin", "Ghost"],
+      ["periodic", "dirichlet", "neumann", "robin", "ghost"],
     );
 
     controllers["comboBCsValue"] = root
@@ -9984,6 +9984,7 @@ import { createWelcomeTour } from "./tours.js";
     comboBCsOptions.type = type || "periodic";
     comboBCsOptions.value = "0";
     let indText = (comboBCsOptions.speciesInd + 1).toString();
+    validateComboStr(indText);
     if (!type) {
       // This won't find periodic BCs, but they are the default type so this doesn't need to find them.
       let sideRegex = new RegExp(
@@ -10017,11 +10018,13 @@ import { createWelcomeTour } from "./tours.js";
     if (comboBCsOptions.type == "periodic") {
       controllers["comboBCsValue"].hide();
     } else {
+      setGUIControllerName(controllers["comboBCsValue"], "Unknown");
       controllers["comboBCsValue"].show();
       let label = comboBCsOptions.type[0].toUpperCase();
       if (label == "R") label = "N";
       label = defaultSpecies[comboBCsOptions.speciesInd] + label;
-      setGUIControllerName(controllers["comboBCsValue"], TeXStrings[label]);
+      if (TeXStrings[label])
+        setGUIControllerName(controllers["comboBCsValue"], TeXStrings[label]);
     }
     setClickAreaLabels();
     runMathJax();
@@ -10033,26 +10036,24 @@ import { createWelcomeTour } from "./tours.js";
     let sides = ["left", "right", "top", "bottom"];
     sides.forEach(function (side) {
       let node = document.getElementById(side + "ClickArea").childNodes[1];
-      node.innerHTML = "Periodic";
+      node.innerHTML = "Unknown";
       let sideRegex = new RegExp(
         side + "\\s*:\\s*([^=;]*)\\s*(?:=)?([^;]*);",
         "i",
       );
       let match = options["comboStr_" + indText].match(sideRegex);
-      if (match) {
-        let label = match[1].trim()[0].toUpperCase();
-        if (label == "P") {
-          node.innerHTML = "Periodic";
-        } else {
-          if (label == "R") label = "N";
-          label = defaultSpecies[comboBCsOptions.speciesInd] + label;
-          node.innerHTML =
-            removeEvalAt(TeXStrings[label].slice(0, -1)) +
-            (match[2] ? " = " + parseStringToTEX(match[2].trim()) : "") +
-            "$";
-        }
+      if (!match) return;
+      let label = match[1].trim()[0].toUpperCase();
+      if (label == "P") {
+        node.innerHTML = "Periodic";
       } else {
-        node.innerHTML = "Unknown";
+        if (label == "R") label = "N";
+        label = defaultSpecies[comboBCsOptions.speciesInd] + label;
+        if (!TeXStrings[label]) return;
+        node.innerHTML =
+          removeEvalAt(TeXStrings[label].slice(0, -1)) +
+          (match[2] ? " = " + parseStringToTEX(match[2].trim()) : "") +
+          "$";
       }
     });
     runMathJax();
@@ -10098,5 +10099,13 @@ import { createWelcomeTour } from "./tours.js";
     return str
       .replace("\\left.", "")
       .replace("\\right\\rvert_{\\boundary}", "");
+  }
+
+  function validateComboStr(indText) {
+    let str = options["comboStr_" + indText];
+    if (str.trim() == "") return;
+    if (str[str.length - 1] != ";") str += ";";
+    str = sortBCsString(str);
+    options["comboStr_" + indText] = str;
   }
 })();
