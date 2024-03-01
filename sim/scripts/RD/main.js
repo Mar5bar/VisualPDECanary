@@ -10036,6 +10036,17 @@ import { createWelcomeTour } from "./tours.js";
     );
 
     // Configure the GUI based on the options.
+    let parent = document.getElementById("comboBCs_ui");
+    parent.classList.remove("left", "right", "top", "bottom");
+    parent.classList.add(comboBCsOptions.side);
+    let arrows = parent.getElementsByClassName("arrow");
+    for (var arrow of arrows) {
+      arrow.style.display = "none";
+    }
+    parent.getElementsByClassName(
+      "arrow " + comboBCsOptions.side,
+    )[0].style.display = "block";
+
     document.getElementById("comboBCsTitle").innerHTML =
       capitaliseFirstLetter(comboBCsOptions.side) + " boundary condition";
     setGUIControllerName(
