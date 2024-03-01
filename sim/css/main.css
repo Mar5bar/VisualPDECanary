@@ -486,30 +486,30 @@ button.focus-params.active {
 #comboBCs_ui .arrow {
   position: absolute;
   display: none;
+}
 
-  &.left {
-    left: -21px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
+#comboBCs_ui .arrow.left {
+  left: -21px;
+  top: 50%;
+  transform: translateY(-50%);
+}
 
-  &.right {
-    right: -21px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
+#comboBCs_ui .arrow.right {
+  right: -21px;
+  top: 50%;
+  transform: translateY(-50%);
+}
 
-  &.top {
-    top: -21px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
+#comboBCs_ui .arrow.top {
+  top: -21px;
+  left: 50%;
+  transform: translateX(-50%);
+}
 
-  &.bottom {
-    bottom: -21px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
+#comboBCs_ui .arrow.bottom {
+  bottom: -21px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 #equation_display {
