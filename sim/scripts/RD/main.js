@@ -3313,10 +3313,13 @@ import { createWelcomeTour } from "./tours.js";
             str += newBCs[1];
           }
         }
-        controllers[
-          "combo" + defaultSpecies[comboBCsOptions.speciesInd].toUpperCase()
-        ].setValue(sortBCsString(removeExtraWhitespace(str.trim())));
+        let controller =
+          controllers[
+            "combo" + defaultSpecies[comboBCsOptions.speciesInd].toUpperCase()
+          ];
+        controller.setValue(sortBCsString(removeExtraWhitespace(str.trim())));
         setClickAreaLabels();
+        setRDEquations();
       });
 
     const inputs = document.querySelectorAll("input");
