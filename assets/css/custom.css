@@ -598,7 +598,7 @@ span.click_sequence {
     flex-direction: column;
   }
 
-  #post-of-the-week-container > p {
+  #post-of-the-week-container > h3 {
     padding-top: 15px;
   }
 }
@@ -609,7 +609,7 @@ span.click_sequence {
   max-height: 0px;
 }
 
-#post-of-the-week-container p {
+#post-of-the-week-container h3 {
   margin: 0;
 }
 
