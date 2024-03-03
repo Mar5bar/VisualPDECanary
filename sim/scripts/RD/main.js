@@ -9773,7 +9773,7 @@ import { createWelcomeTour } from "./tours.js";
     const BCsButton = document.createElement("button");
     BCsButton.id = "comboBCsButton" + speciesInd;
     BCsButton.classList.add("info-link", "combo-bcs");
-    BCsButton.innerHTML = `<i class="fa-solid fa-hand"></i>`;
+    BCsButton.innerHTML = `<i class="fa-solid fa-cube"></i>`;
     BCsButton.onclick = function () {
       // If the current type of boundary conditions is not "combo", fill the combo string with the current type and value.
       let indText = (speciesInd + 1).toString();
