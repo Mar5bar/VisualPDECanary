@@ -3812,7 +3812,7 @@ presets["waveEquationICs"] = {
 presets["waveEquation1D"] = {
   arrowDensity: 1,
   brushAction: "smoothreplace",
-	brushEnabled: false,
+  brushEnabled: false,
   brushRadius: "5",
   initCond_1: "exp(-(35*pi)*(x/100-0.5)^2)",
   crossDiffusion: true,
@@ -3883,7 +3883,7 @@ presets["waveEquation3D"] = {
   simTitle: "Wave equation in 3D",
   spatialStep: "0.5",
   squareCanvas: true,
-	whatToDraw: "u",
+  whatToDraw: "u",
   whatToPlot: "u",
 };
 
