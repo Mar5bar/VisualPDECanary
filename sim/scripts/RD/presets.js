@@ -4356,6 +4356,7 @@ presets["default"] = {
   runningOnLoad: true,
   setSeed: false,
   showComboStr: false,
+  showGhostBCs: false,
   showStats: false,
   spatialStep: "0.5",
   speciesNames: "u v w q",
