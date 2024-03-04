@@ -598,7 +598,7 @@ span.click_sequence {
     flex-direction: column;
   }
 
-  #post-of-the-week-container > h3 {
+  #post-of-the-week-container > p {
     padding-top: 15px;
   }
 }
@@ -609,7 +609,7 @@ span.click_sequence {
   max-height: 0px;
 }
 
-#post-of-the-week-container h3 {
+#post-of-the-week-container p {
   margin: 0;
 }
 
@@ -1005,7 +1005,7 @@ vpde-slider > span {
   position: absolute;
   top: 0px;
   right: 20px;
-  line-height:50px;
+  line-height: 50px;
 }
 
 .site-nav .page-link {
@@ -1027,8 +1027,8 @@ vpde-slider > span {
 .site-title,
 .site-title:visited {
   font-size: 24px;
-  letter-spacing:-0.9px;
-  line-height:49px;
+  letter-spacing: -0.9px;
+  line-height: 49px;
   transition: opacity 0.5s ease;
   z-index: 1;
   color: var(--text-color);
@@ -1235,12 +1235,13 @@ vpde-slider > span {
   pointer-events: none;
 }
 
-.light-mode-img, .dark-mode-img {
-  height:2rem;
-  width:2rem;
-  margin-right:7px;
-  vertical-align:text-top;
-  margin-top:-1px;
+.light-mode-img,
+.dark-mode-img {
+  height: 2rem;
+  width: 2rem;
+  margin-right: 7px;
+  vertical-align: text-top;
+  margin-top: -1px;
 }
 
 /* Dark mode */
