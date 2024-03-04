@@ -2583,6 +2583,24 @@ import { createWelcomeTour } from "./tours.js";
       "Load a blank simulation",
     );
 
+    addToggle(
+      miscButtons,
+      "showGhostBCs",
+      '<i class="fa-solid fa-ghost"></i> Ghost BCs',
+      function () {
+        if (!checkGhostBCs()) return configureComboBCsDropdown();
+        if (!options.showGhostBCs) {
+          alert(
+            "Ghost boundary conditions are currently in use so cannot be hidden.",
+          );
+        }
+        options.showGhostBCs = true;
+        updateToggle(document.getElementById("ghostToggle"));
+      },
+      "ghostToggle",
+      "Toggle visibility of advanced 'ghost' boundary conditions",
+    );
+
     controllers["randSeed"] = root
       .add(options, "randSeed")
       .name("Random seed")
@@ -3248,11 +3266,7 @@ import { createWelcomeTour } from "./tours.js";
       .onFinishChange(function () {
         configureComboBCsGUI(comboBCsOptions.type);
       });
-    updateGUIDropdown(
-      controllers["comboBCsType"],
-      ["Periodic", "Dirichlet", "Neumann", "Robin", "Ghost"],
-      ["periodic", "dirichlet", "neumann", "robin", "ghost"],
-    );
+    configureComboBCsDropdown();
 
     controllers["comboBCsValue"] = root
       .add(comboBCsOptions, "value")
@@ -4914,6 +4928,11 @@ import { createWelcomeTour } from "./tours.js";
     $("#simTitle").val(
       options.simTitle ? options.simTitle : "Interactive simulation",
     );
+
+    // If Ghost nodes are specified in any comboStr, set showGhostBCs to true.
+    if (checkGhostBCs()) {
+      options.showGhostBCs = true;
+    }
 
     // If either of the images are used in the simulation, ensure that the simulation resets when the images are
     // actually loaded in.
@@ -10156,5 +10175,38 @@ import { createWelcomeTour } from "./tours.js";
     });
     str = sortBCsString(str);
     options["comboStr_" + indText] = str;
+  }
+
+  function configureComboBCsDropdown() {
+    if (options.showGhostBCs) {
+      updateGUIDropdown(
+        controllers["comboBCsType"],
+        ["Periodic", "Dirichlet", "Neumann", "Robin", "Ghost"],
+        ["periodic", "dirichlet", "neumann", "robin", "ghost"],
+      );
+    } else {
+      updateGUIDropdown(
+        controllers["comboBCsType"],
+        ["Periodic", "Dirichlet", "Neumann", "Robin"],
+        ["periodic", "dirichlet", "neumann", "robin"],
+      );
+    }
+  }
+
+  function checkGhostBCs() {
+    let res = false;
+    res |=
+      /Ghost/i.test(options.comboStr_1) &&
+      options.boundaryConditions_1 == "combo";
+    res |=
+      /Ghost/i.test(options.comboStr_2) &&
+      options.boundaryConditions_2 == "combo";
+    res |=
+      /Ghost/i.test(options.comboStr_3) &&
+      options.boundaryConditions_3 == "combo";
+    res |=
+      /Ghost/i.test(options.comboStr_4) &&
+      options.boundaryConditions_4 == "combo";
+    return res;
   }
 })();
