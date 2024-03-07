@@ -417,6 +417,8 @@ import { createWelcomeTour } from "./tours.js";
   if (inIframe()) {
     // If we're in an iframe, disable the header.
     $("#header").hide();
+  } else {
+    $("#header").show();
   }
 
   // Load default options.
@@ -753,6 +755,13 @@ import { createWelcomeTour } from "./tours.js";
     },
   );
   simObserver.observe(document.getElementById("simCanvas"));
+
+  // Listen for dark-mode changes in local storage.
+  window.addEventListener("storage", function (e) {
+    if (e.key == "dark-mode") {
+      toggleDarkMode(e.newValue == "true", true);
+    }
+  });
 
   // When navigating away from the page, store the URL reflecting the current state in history if anything has changed.
   window.addEventListener("beforeunload", function (e) {
