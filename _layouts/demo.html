@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+
+  {%- include head.html -%}
+
+  <style>
+    .sim {
+      padding: 0;
+      margin: 0;
+      height: min(90dvh, 70vw);
+      width: min(90dvh, 70vw);
+      max-width: unset;
+      max-height: unset;
+    }
+
+    .page-content {
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+    }
+
+    .site-title {
+      position: absolute;
+      top: 0;
+      right: 20px;
+    }
+
+    .footer-heading {
+        position: absolute;
+        bottom: 20px;
+        width: 100%;
+    }
+
+    .darkmode-button {
+        right: 0px;
+    }
+
+    vpde-slider {
+        zoom: 150%;
+    }
+  </style>
+
+  <body>
+
+    <main class="page-content" aria-label="Content">
+    
+        {{ content }}
+
+    </main>
+
+    {%- include mathjax.html -%}
+
+  </body>
+
+  <a class="site-title" rel="author" href="{{ "/" | relative_url }}" target="_blank">
+    <img
+        class="light-mode-img"
+        src="/assets/images/logo.webp"
+        alt="Heart-shaped logo"
+    /><img
+        class="dark-mode-img"
+        src="/assets/images/logo-dark.webp"
+        alt="Heart-shaped logo"
+    />{{ site.title | escape }}</a>
+
+    <h2 class="footer-heading">
+        <button class="darkmode-button" id="dark-on" onclick="toggleDarkMode(true,true)"><span><i class="fa-solid fa-moon"></i></span></button>
+        <button class="darkmode-button" id="light-on" onclick="toggleDarkMode(false,true)"><span><i class="fa-solid fa-sun"></i></span></button>
+    </h2>
+
+</html>
