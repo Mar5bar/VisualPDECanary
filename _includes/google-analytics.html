@@ -1,8 +1,16 @@
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"></script>
+<script
+  async
+  src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"
+></script>
 <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-
-    gtag('config', 'G-ZDK91GRY6Y', {client_storage: 'none'});
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  gtag("js", new Date());
+  gtag("config", "G-ZDK91GRY6Y", { client_storage: "none" });
+  // If we're on localhost, disable GA.
+  if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    window["ga-disable-G-ZDK91GRY6Y"] = true;
+  }
 </script>
