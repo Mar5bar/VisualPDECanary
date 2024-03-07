@@ -93,6 +93,8 @@
         },
       };
     </script>
+    {%- if jekyll.environment == 'production' and site.google_analytics -%} {%-
+    include google-analytics.html -%} {%- endif -%}
     <!-- Prevent loading of accessory scripts if the query string contains lite -->
     <script type="text/javascript">
       const params = new URLSearchParams(window.location.search);
@@ -102,9 +104,6 @@
             '<script id="MathJax-script" async src="/assets/js/mathjax/es5/tex-chtml-full.js"><\/script>',
           );
         }
-        document.write(
-          '<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZDK91GRY6Y"><\/script>',
-        );
         document.write(
           '<script defer src="/assets/fontawesome/solid.js"><\/script>',
         );
@@ -126,21 +125,6 @@
     <script type="module" src="/sim/scripts/RD/main.js"></script>
     <script src="/sim/scripts/fitty.min.js"></script>
     <script src="/sim/scripts/expr-eval.js"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-      gtag("config", "G-ZDK91GRY6Y", { client_storage: "none" });
-      // If we're on localhost, disable GA.
-      if (
-        location.hostname === "localhost" ||
-        location.hostname === "127.0.0.1"
-      ) {
-        window["ga-disable-G-ZDK91GRY6Y"] = true;
-      }
-    </script>
 
     <link
       rel="apple-touch-icon"
