@@ -417,9 +417,9 @@ import { createWelcomeTour } from "./tours.js";
 
   if (inIframe()) {
     // If we're in an iframe, disable the header.
-    $("#header").hide();
+    $("#header").addClass("hidden");
   } else {
-    $("#header").show();
+    $("#header").removeClass("hidden");
   }
 
   // Load default options.
@@ -1077,7 +1077,7 @@ import { createWelcomeTour } from "./tours.js";
             $("#pause").css("display", "");
             $("#play").css("display", "");
             if (!inIframe()) {
-              $("#header").show();
+              $("#header").removeClass("hidden");
               resize();
               renderIfNotRunning();
             }
@@ -1088,7 +1088,7 @@ import { createWelcomeTour } from "./tours.js";
           } else {
             uiHidden = true;
             $(".ui").addClass("hidden");
-            $("#header").hide();
+            $("#header").addClass("hidden");
             resize();
             renderIfNotRunning();
           }
