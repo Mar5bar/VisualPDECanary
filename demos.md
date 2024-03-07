@@ -9,4 +9,4 @@ thumbnail: /assets/images/OnceUponATime.webp
 extract: Not a mathematician? No problem
 ---
 
-A collection a full-screen demos.
+A collection of full-screen demos.
