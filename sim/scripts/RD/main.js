@@ -174,6 +174,7 @@ import { createWelcomeTour } from "./tours.js";
     titleBlurTimer,
     recordingTextInterval,
     uiHidden = false,
+    showColourbarOverride = false,
     checkpointExists = false,
     nextViewNumber = 0,
     frameCount = 0,
@@ -469,6 +470,8 @@ import { createWelcomeTour } from "./tours.js";
         newParams[key] = value;
       }
     }
+    showColourbarOverride =
+      newParams.colourbar == "true" || newParams.colourbar == true;
     if (Object.keys(newParams).length) loadPreset(newParams, true);
   }
 
@@ -6874,7 +6877,8 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   function configureColourbar() {
-    if (options.colourbar) {
+    if (options.colourbar || showColourbarOverride) {
+      if (showColourbarOverride) $("#colourbar").removeClass("hidden");
       $("#colourbar").show();
       let cString = "linear-gradient(90deg, ";
       for (var val = 0; val < 1; val += 0.01) {

@@ -1,7 +1,7 @@
 ---
 layout: demo
 lesson_number: 10
-title: Flooding Oxford - basic
+title: Flooding Oxford - rain
 thumbnail: /assets/images/flooding.webp
 ---
 

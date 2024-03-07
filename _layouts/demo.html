@@ -4,6 +4,9 @@
   {%- include head.html -%}
 
   <style>
+    p, h1, h2, h3, h4, h5 {
+      text-align: center;
+    }
     .sim {
       padding: 0;
       margin: 0;
@@ -37,6 +40,14 @@
 
     vpde-slider {
         zoom: 150%;
+    }
+
+    .vpde-slider-valLabel {
+      width: 40px;
+      text-align: right;
+    }
+    span + .vpde-slider-valLabel {
+      text-align: left;
     }
   </style>
 
