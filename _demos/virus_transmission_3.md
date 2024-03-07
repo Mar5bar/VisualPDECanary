@@ -6,13 +6,14 @@ thumbnail: /assets/images/VirusTransmission.webp
 ---
 
 <!-- Simulation -->
-<iframe class="sim" id="simD" src="/sim/?preset=CovidInARoomCircling&story&nomathjax&sf=1&activeViewInd=1&runningOnLoad=true" frameborder="0" loading="lazy"></iframe>
+<iframe class="sim" id="simD" src="/sim/?preset=CovidInARoomCircling&story&nomathjax&sf=1&activeViewInd=1&runningOnLoad=true&no_ui&colourbar=true" frameborder="0" loading="lazy"></iframe>
 
 <!-- Sliders -->
 <div style="display:flex;flex-direction:column;row-gap:10dvh;">
 <div>
     <h1>Airborne virus transmission</h1>
     <h3>Click to introduce virus to the air</h3>
+    <p><vpde-reset iframe="simD"></vpde-reset></p>
 </div>
 <p style="text-align:center;margin-top:0;"><vpde-slider
     iframe="simD"
