@@ -2,6 +2,19 @@
 
 let presets = {};
 
+presets["maskFrontBreathing"] = {
+  kineticParams:
+    "k = 8.000 in [0.25, 8];mu = 1.0 in [0, 1];y_offset = 0.0;f = 1/500;s = 0.025 in [0,0.05];",
+  parent: "maskFront",
+  reactionStr_1:
+    "-c*(u_x + v_y) - u*c_x - v*c_y + s*mu*sin(t*f)*ind((x/L_x)^2 + 5*(y/L_y+y_offset)^2 < 0.02)",
+  reactionStr_2:
+    "mu*sin(t*f)*(ind(k<=1)*(I_SR + (I_SB-I_SR)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SB + (I_TR-I_SB)*(k-1)/(4-1)) + ind(k>4)*(I_TR + (I_TB-I_TR)*(k-4)/(8-4))-0.5)",
+  reactionStr_3:
+    "mu*sin(t*f)*(ind(k<=1)*(I_SG + (I_SA-I_SG)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SA + (I_TG-I_SA)*(k-1)/(4-1)) + ind(k>4)*(I_TG + (I_TA-I_TG)*(k-4)/(8-4))-0.5)",
+  preset: "maskFrontBreathing",
+};
+
 presets["maskFrontFace"] = {
   imagePathOne: "./images/maskFrontFaceA.webp",
   imagePathTwo: "./images/maskFrontFaceB.webp",
