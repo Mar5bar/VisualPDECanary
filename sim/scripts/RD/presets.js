@@ -19,7 +19,7 @@ presets["maskFront"] = {
   initCond_1: "0",
   initCond_2: "0",
   kineticParams: "k = 8.000 in [0.25, 8];mu = 1.0 in [-1, 1];",
-  maxColourValue: "5",
+  maxColourValue: "3",
   minColourValue: "0.0",
   minX: "-L_x/2",
   minY: "-L_y/2",
