@@ -2,6 +2,48 @@
 
 let presets = {};
 
+presets["maskFront"] = {
+  arrowLengthMax: "0.5",
+  arrowScale: "relative",
+  arrowX: "u * ind((x/L_x)^2 + 5*(y/L_y)^2 >= 0.02)",
+  arrowY: "v * ind((x/L_x)^2 + 5*(y/L_y)^2 >= 0.02)",
+  boundaryConditions_1: "dirichlet",
+  brushRadius: "3",
+  colourmap: "turbo",
+  crossDiffusion: true,
+  diffusionStr_1_1: "0.1",
+  diffusionStr_2_2: "0",
+  domainScale: "100",
+  imagePathOne: "./images/maskFrontA.png",
+  imagePathTwo: "./images/maskFrontB.png",
+  initCond_1: "0",
+  initCond_2: "0",
+  kineticParams: "k = 8.000 in [0.25, 8];mu = 1.0 in [-1, 1];",
+  maxColourValue: "5",
+  minColourValue: "0.0",
+  minX: "-L_x/2",
+  minY: "-L_y/2",
+  numAlgebraicSpecies: 2,
+  numSpecies: 3,
+  overlay: true,
+  overlayColour: 16777215,
+  overlayEpsilon: 0.01,
+  overlayExpr: "(x/L_x)^2 + 5*(y/L_y)^2 - 0.005",
+  preset: "PRESETNAME",
+  resetOnImageLoad: true,
+  reactionStr_1: "-c*(u_x + v_y) - u*c_x - v*c_y - 0.001*c",
+  reactionStr_2:
+    "mu*(ind(k<=1)*(I_SR + (I_SB-I_SR)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SB + (I_TR-I_SB)*(k-1)/(4-1)) + ind(k>4)*(I_TR + (I_TB-I_TR)*(k-4)/(8-4))-0.5)",
+  reactionStr_3:
+    "mu*(ind(k<=1)*(I_SG + (I_SA-I_SG)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SA + (I_TG-I_SA)*(k-1)/(4-1)) + ind(k>4)*(I_TG + (I_TA-I_TG)*(k-4)/(8-4))-0.5)",
+  spatialStep: "0.5",
+  speciesNames: "c u v q",
+  vectorField: true,
+  whatToDraw: "c",
+  whatToPlot: "c",
+  simTitle: "Virus transport in a permeable mask",
+};
+
 presets["dynamicalSystemsVisualisationTopography"] = {
   arrowX: "u",
   arrowY: "v",
