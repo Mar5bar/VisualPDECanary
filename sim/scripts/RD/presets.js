@@ -32,7 +32,7 @@ presets["maskFront"] = {
   overlayExpr: "(x/L_x)^2 + 5*(y/L_y)^2 - 0.005",
   preset: "PRESETNAME",
   resetOnImageLoad: true,
-  reactionStr_1: "-c*(u_x + v_y) - u*c_x - v*c_y - 0.001*c",
+  reactionStr_1: "-c*(u_x + v_y) - u*c_x - v*c_y",
   reactionStr_2:
     "mu*(ind(k<=1)*(I_SR + (I_SB-I_SR)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SB + (I_TR-I_SB)*(k-1)/(4-1)) + ind(k>4)*(I_TR + (I_TB-I_TR)*(k-4)/(8-4))-0.5)",
   reactionStr_3:
