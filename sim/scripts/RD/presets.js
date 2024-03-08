@@ -2,13 +2,21 @@
 
 let presets = {};
 
+presets["maskFrontFace"] = {
+  imagePathOne: "./images/maskFrontFaceA.webp",
+  imagePathTwo: "./images/maskFrontFaceB.webp",
+  kineticParams: "k = 8.000 in [0.25, 8];mu = 1.0 in [0, 1]; y_offset = 0.22",
+  parent: "maskFront",
+  preset: "maskFrontFace",
+};
+
 presets["maskFront"] = {
   arrowLengthMax: "0.5",
   arrowScale: "relative",
-  arrowX: "u * ind((x/L_x)^2 + 5*(y/L_y)^2 >= 0.02)",
-  arrowY: "v * ind((x/L_x)^2 + 5*(y/L_y)^2 >= 0.02)",
+  arrowX: "u * ind((x/L_x)^2 + 5*(y/L_y+y_offset)^2 >= 0.02)",
+  arrowY: "v * ind((x/L_x)^2 + 5*(y/L_y+y_offset)^2 >= 0.02)",
   boundaryConditions_1: "dirichlet",
-  brushRadius: "ind((x/L_x)^2 + 5*(y/L_y)^2 <= 0.01)",
+  brushRadius: "ind((x/L_x)^2 + 5*(y/L_y+y_offset)^2 <= 0.01)",
   brushType: "custom",
   colourmap: "turbo",
   crossDiffusion: true,
@@ -19,7 +27,7 @@ presets["maskFront"] = {
   imagePathTwo: "./images/maskFrontB.png",
   initCond_1: "0",
   initCond_2: "0",
-  kineticParams: "k = 8.000 in [0.25, 8];mu = 1.0 in [-1, 1];",
+  kineticParams: "k = 8.000 in [0.25, 8];mu = 1.0 in [0, 1]; y_offset = 0.0",
   maxColourValue: "2",
   minColourValue: "0",
   minX: "-L_x/2",
@@ -29,7 +37,7 @@ presets["maskFront"] = {
   overlay: true,
   overlayColour: 16777215,
   overlayEpsilon: 0.01,
-  overlayExpr: "(x/L_x)^2 + 5*(y/L_y)^2 - 0.005",
+  overlayExpr: "(x/L_x)^2 + 5*(y/L_y+y_offset)^2 - 0.005",
   preset: "PRESETNAME",
   resetOnImageLoad: true,
   reactionStr_1: "-c*(u_x + v_y) - u*c_x - v*c_y",
@@ -39,6 +47,7 @@ presets["maskFront"] = {
     "mu*(ind(k<=1)*(I_SG + (I_SA-I_SG)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SA + (I_TG-I_SA)*(k-1)/(4-1)) + ind(k>4)*(I_TG + (I_TA-I_TG)*(k-4)/(8-4))-0.5)",
   spatialStep: "0.5",
   speciesNames: "c u v q",
+  squareCanvas: true,
   vectorField: true,
   whatToDraw: "c",
   whatToPlot: "c",
