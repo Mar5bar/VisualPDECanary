@@ -1,5 +1,5 @@
 ---
-layout: demo
+layout: demo_custom
 lesson_number: 80
 title: Chemical decontamination - how much
 thumbnail: /assets/images/Decontamination.webp
@@ -11,6 +11,16 @@ thumbnail: /assets/images/Decontamination.webp
 
 <!-- Sliders -->
 <div style="display:flex;flex-direction:column;row-gap:10dvh;">
+<a class="site-title" rel="author" href="{{ "/demos" | relative_url }}">
+        <img
+            class="light-mode-img"
+            src="/assets/images/logo.webp"
+            alt="Heart-shaped logo"
+        /><img
+            class="dark-mode-img"
+            src="/assets/images/logo-dark.webp"
+            alt="Heart-shaped logo"
+        />VisualPDE</a>
 <div>
     <h1>Cleaning up chemical spills</h1>
     <h3>Adjust the slider to change the amount of<br> cleanser being added to the top</h3>
