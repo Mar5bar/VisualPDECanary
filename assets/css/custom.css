@@ -753,8 +753,17 @@ vpde-slider > span {
 /*progress support*/
 .vpde-slider.slider-progress {
   --range: calc(var(--max) - var(--min));
-  --ratio: calc((var(--value) - var(--min)) / var(--range));
+  --distance: calc(
+    (var(--value) - var(--min)) * (1 - var(--reversed)) +
+      (var(--max) - var(--value)) * var(--reversed)
+  );
+  --ratio: calc(var(--distance) / var(--range));
   --sx: calc(0.5 * 2em + var(--ratio) * (100% - 2em));
+  padding: 0 0.4em;
+}
+
+input.reversed {
+  direction: rtl;
 }
 
 .vpde-slider:focus {

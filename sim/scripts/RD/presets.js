@@ -44,6 +44,7 @@ presets["maskFront"] = {
   boundaryConditions_1: "dirichlet",
   brushRadius: "ind((x/L_x)^2 + 5*(y/L_y+y_offset)^2 <= 0.01)",
   brushType: "custom",
+  colourbar: true,
   colourmap: "turbo",
   crossDiffusion: true,
   diffusionStr_1_1: "0.1",
@@ -54,7 +55,7 @@ presets["maskFront"] = {
   initCond_1: "0",
   initCond_2: "0",
   kineticParams: "k = 8.000 in [0.25, 8];mu = 1.0 in [0, 1]; y_offset = 0.0",
-  maxColourValue: "2",
+  maxColourValue: "1",
   minColourValue: "0",
   minX: "-L_x/2",
   minY: "-L_y/2",
@@ -75,8 +76,13 @@ presets["maskFront"] = {
   speciesNames: "c u v q",
   squareCanvas: true,
   vectorField: true,
+  views: [
+    {
+      name: "Concentration",
+    },
+  ],
   whatToDraw: "c",
-  whatToPlot: "c",
+  whatToPlot: "c/2",
   simTitle: "Virus transport in a permeable mask",
 };
 
