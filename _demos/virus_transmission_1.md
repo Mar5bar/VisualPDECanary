@@ -2,7 +2,7 @@
 layout: demo
 lesson_number: 40
 title: Virus transmission - still air
-thumbnail: /assets/images/maskFront.webp
+thumbnail: /assets/images/VirusTransmission.webp
 ---
 
 <!-- Simulation -->

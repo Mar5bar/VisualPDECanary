@@ -2,7 +2,7 @@
 layout: demo
 lesson_number: 90
 title: Mask dynamics - breathing
-thumbnail: /assets/images/flooding.webp
+thumbnail: /assets/images/maskFront.webp
 ---
 
 <!-- Simulation -->
