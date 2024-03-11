@@ -2,7 +2,7 @@
 layout: demo
 lesson_number: 100
 title: Mask dynamics - realistic geometry
-thumbnail: /assets/images/flooding.webp
+thumbnail: /assets/images/maskFront.webp
 ---
 
 <!-- Simulation -->
