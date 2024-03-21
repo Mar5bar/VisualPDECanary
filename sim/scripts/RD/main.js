@@ -786,11 +786,6 @@ import { createWelcomeTour } from "./tours.js";
   // Begin the simulation.
   isLoading = false;
   animate();
-  // setInterval(function () {
-  //   const val = uniforms.t.value;
-  //   addProbeData(val, Math.sin(0.01 * val));
-  //   updateProbeDisplay();
-  // }, 10);
 
   // Monitor the rate at which time is being increased in the simulation.
   setInterval(function () {
@@ -1078,7 +1073,7 @@ import { createWelcomeTour } from "./tours.js";
     // Create a probe chart.
     document
       .getElementById("chartScript")
-      .addEventListener("load", createProbeChart);
+      ?.addEventListener("load", createProbeChart);
 
     // Listen for pointer events.
     canvas.addEventListener("pointerdown", onDocumentPointerDown);
@@ -10423,12 +10418,12 @@ import { createWelcomeTour } from "./tours.js";
         datasets: [{ data: [], pointStyle: false }],
       },
     });
+    configureProbe();
   }
 
   function addProbeData(x, y) {
-    if (probeChart) {
-      addChartData(probeChart, x, y);
-    }
+    if (!probeChart) return;
+    addChartData(probeChart, x, y);
   }
 
   function addChartData(chart, label, value) {
@@ -10446,36 +10441,31 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   function updateProbeDisplay() {
+    if (!probeChart) return;
     // If the probeChart is visible, update it.
-    if (probeChart && $("#probeChart").is(":visible"))
-      probeChart.update("none");
+    if ($("#probeChart").is(":visible")) probeChart.update("none");
   }
 
   function configureProbe() {
+    if (!probeChart) return;
     clearProbe();
     $("#probeChart").toggleClass("hidden", !options.probing);
   }
 
   function clearProbe() {
-    if (probeChart) {
-      probeChart.data.datasets[0].data = [];
-      probeChart.update("none");
-    }
+    if (!probeChart) return;
+    probeChart.data.datasets[0].data = [];
+    probeChart.update("none");
   }
 
   function setProbeAxes(min, max) {
-    if (probeChart) {
-      let opts = probeChart.options.scales;
-      opts.y.min = min;
-      opts.y.max = max;
-    }
+    if (!probeChart) return;
+    let opts = probeChart.options.scales;
+    opts.y.min = min;
+    opts.y.max = max;
   }
 
   function clearProbeAxes(min, max) {
-    if (probeChart) {
-      let opts = probeChart.options.scales;
-      delete opts.y.min;
-      delete opts.y.max;
-    }
+    if (!probeChart) return;
   }
 })();
