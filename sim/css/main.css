@@ -159,7 +159,7 @@ noscript > p {
   position: absolute;
   width: 400px;
   height: 200px;
-  bottom: 40px;
+  bottom: 20px;
   left: 20px;
   background-color: var(--background-color);
   border: 1px solid var(--ui-button-border-color);

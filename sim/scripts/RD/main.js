@@ -170,6 +170,7 @@ import { createWelcomeTour } from "./tours.js";
     shaderContainsRAND = false,
     anyDirichletBCs,
     dataNudgedUp = false,
+    probeNudgedUp = false,
     compileErrorOccurred = false,
     NaNTimer,
     brushDisabledTimer,
@@ -7028,11 +7029,12 @@ import { createWelcomeTour } from "./tours.js";
         }
       }
       runMathJax($("#midLabel"));
-      checkColourbarLogoCollision();
       updateColourbarLims();
     } else {
       $("#colourbar").hide();
     }
+    checkColourbarPosition();
+    checkColourbarLogoCollision();
   }
 
   function updateColourbarLims() {
@@ -7271,6 +7273,30 @@ import { createWelcomeTour } from "./tours.js";
           nudgeUIUp("#dataContainer", 0);
           dataNudgedUp = false;
         }
+      }
+    }
+    // If there's a potential overlap of the probe display and the colourbar, move the former up.
+    if (options.colourbar && options.probing) {
+      console.log("here");
+      let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
+      let probeDims = $("#probeChart")[0].getBoundingClientRect();
+      // If the colour overlaps the bottom element (or is above it and would otherwise overlap).
+      if (probeDims.right >= colourbarDims.left) {
+        if (colourbarDims.top <= probeDims.bottom) {
+          nudgeUIUp("#probeChart", 40);
+          console.log("nudging");
+          probeNudgedUp = true;
+        }
+      } else {
+        if (probeNudgedUp) {
+          nudgeUIUp("#probeChart", 0);
+          probeNudgedUp = false;
+        }
+      }
+    } else {
+      if (probeNudgedUp) {
+        nudgeUIUp("#probeChart", 0);
+        probeNudgedUp = false;
       }
     }
   }
@@ -10391,6 +10417,7 @@ import { createWelcomeTour } from "./tours.js";
             title: {
               display: true,
               text: "Time",
+              padding: { top: -18 },
             },
             ticks: {
               maxTicksLimit: 2,
@@ -10401,6 +10428,10 @@ import { createWelcomeTour } from "./tours.js";
           },
           y: {
             type: "linear",
+            title: {
+              display: true,
+              text: "Probe value"
+            },
             ticks: {
               maxTicksLimit: 10,
               callback: function (value, index, ticks) {
@@ -10450,6 +10481,7 @@ import { createWelcomeTour } from "./tours.js";
     if (!probeChart) return;
     clearProbe();
     $("#probeChart").toggleClass("hidden", !options.probing);
+    checkColourbarPosition();
   }
 
   function clearProbe() {
