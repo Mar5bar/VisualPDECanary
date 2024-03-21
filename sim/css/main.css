@@ -139,7 +139,7 @@ noscript > p {
   }
 }
 
-canvas {
+#simCanvas {
   background: no-repeat center/40vw url(/assets/images/logo_loading.webp);
   background-color: black;
   display: block;
@@ -153,6 +153,18 @@ canvas {
   -ms-user-select: none;
   /* IE 10 and IE 11 */
   user-select: none;
+}
+
+#probeChart {
+  position: absolute;
+  width: 400px;
+  height: 200px;
+  bottom: 40px;
+  left: 20px;
+  background-color: var(--background-color);
+  border: 1px solid var(--ui-button-border-color);
+  border-radius: 5px;
+  box-sizing: border-box;
 }
 
 .hidden {
@@ -1837,7 +1849,7 @@ video {
   display: inline;
 }
 
-.dark-mode canvas,
+.dark-mode #simCanvas,
 .colourbarMain {
   filter: brightness(90%);
 }

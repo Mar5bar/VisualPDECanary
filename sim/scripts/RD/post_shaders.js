@@ -194,3 +194,76 @@ export function minMaxShader() {
       gl_FragColor = vec4(minVal, maxVal, 0.0, 0.0);
     }`;
 }
+
+export function probeShader() {
+  return `varying vec2 textureCoords;
+    uniform sampler2D textureSource;
+    uniform float dx;
+    uniform float dy;
+    uniform float L;
+    uniform float L_x;
+    uniform float L_y;
+    uniform float L_min;
+    uniform float t;
+    uniform bool probeUVs;
+    uniform float probeU;
+    uniform float probeV;
+    uniform sampler2D imageSourceOne;
+    uniform sampler2D imageSourceTwo;
+
+    AUXILIARY_GLSL_FUNS
+    
+    void main() 
+    {
+      // x and y coordinates of the probe point.
+      float x;
+      float y;
+      if (probeUVs) {
+        x = probeU * L_x + MINX;
+        y = probeV * L_y + MINY;
+      } else {
+        x = PROBE_X;
+        y = PROBE_Y;
+      }
+      vec2 probeTexCoords = vec2((x - MINX) / L_x, (y - MINY) / L_y);
+      ivec2 texSize = textureSize(textureSource,0);
+      float step_x = 1.0 / float(texSize.x);
+      float step_y = 1.0 / float(texSize.y);
+      vec2 probeTexCoordsL = probeTexCoords + vec2(-step_x, 0.0);
+      vec2 probeTexCoordsLL = probeTexCoordsL + vec2(-step_x, 0.0);
+      vec2 probeTexCoordsR = probeTexCoords + vec2(+step_x, 0.0);
+      vec2 probeTexCoordsRR = probeTexCoordsR + vec2(+step_x, 0.0);
+      vec2 probeTexCoordsT = probeTexCoords + vec2(0.0, +step_y);
+      vec2 probeTexCoordsTT = probeTexCoordsT + vec2(0.0, +step_y);
+      vec2 probeTexCoordsB = probeTexCoords + vec2(0.0, -step_y);
+      vec2 probeTexCoordsBB = probeTexCoordsB + vec2(0.0, -step_y);
+
+      // Sample.
+      vec4 uvwq = texture2D(textureSource, probeTexCoords);
+      vec4 uvwqL = texture2D(textureSource, probeTexCoordsL);
+      vec4 uvwqR = texture2D(textureSource, probeTexCoordsR);
+      vec4 uvwqT = texture2D(textureSource, probeTexCoordsT);
+      vec4 uvwqB = texture2D(textureSource, probeTexCoordsB);
+      vec4 uvwqLL = texture2D(textureSource, probeTexCoordsLL);
+      vec4 uvwqRR = texture2D(textureSource, probeTexCoordsRR);
+      vec4 uvwqTT = texture2D(textureSource, probeTexCoordsTT);
+      vec4 uvwqBB = texture2D(textureSource, probeTexCoordsBB);
+
+      // Compute derivatives.
+      vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
+      vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
+      vec4 uvwqXF = (uvwqR - uvwq) / dx;
+      vec4 uvwqYF = (uvwqT - uvwq) / dy;
+      vec4 uvwqXB = (uvwq - uvwqL) / dx;
+      vec4 uvwqYB = (uvwq - uvwqB) / dy;
+      vec4 uvwqXFXF = (4.0*uvwqR - 3.0*uvwq - uvwqRR) / (2.0*dx);
+      vec4 uvwqYFYF = (4.0*uvwqT - 3.0*uvwq - uvwqTT) / (2.0*dy);
+      vec4 uvwqXBXB = (3.0*uvwq - 4.0*uvwqL + uvwqLL) / (2.0*dx);
+      vec4 uvwqYBYB = (3.0*uvwq - 4.0*uvwqB + uvwqBB) / (2.0*dy);
+      vec4 uvwqXX = (uvwqR - 2.0*uvwq + uvwqL) / (dx*dx);
+      vec4 uvwqYY = (uvwqT - 2.0*uvwq + uvwqB) / (dy*dy);
+
+      // Compute the probe value.
+      gl_FragColor = vec4(PROBE_FUN, x, y, 0.0);
+    }`;
+}

@@ -24,6 +24,7 @@ import {
   postShaderDomainIndicatorVField,
   interpolationShader,
   minMaxShader,
+  probeShader,
 } from "./post_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import {
@@ -96,6 +97,7 @@ import { createWelcomeTour } from "./tours.js";
   let simTextures = [],
     postTexture,
     interpolationTexture,
+    probeTexture,
     clickTexture,
     simTextureOpts,
     minMaxTextures = [],
@@ -109,6 +111,7 @@ import { createWelcomeTour } from "./tours.js";
     clearMaterial,
     copyMaterial,
     postMaterial,
+    probeMaterial,
     lineMaterial,
     overlayLineMaterial,
     arrowMaterial,
@@ -134,6 +137,7 @@ import { createWelcomeTour } from "./tours.js";
     rightGUI,
     viewsGUI,
     comboBCsGUI,
+    probeChart,
     root,
     controllers = [],
     contoursControllers = [],
@@ -782,6 +786,11 @@ import { createWelcomeTour } from "./tours.js";
   // Begin the simulation.
   isLoading = false;
   animate();
+  // setInterval(function () {
+  //   const val = uniforms.t.value;
+  //   addProbeData(val, Math.sin(0.01 * val));
+  //   updateProbeDisplay();
+  // }, 10);
 
   // Monitor the rate at which time is being increased in the simulation.
   setInterval(function () {
@@ -894,6 +903,16 @@ import { createWelcomeTour } from "./tours.js";
     clickTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
     clickTexture.texture.wrapT = THREE.ClampToEdgeWrapping;
 
+    // Create a 1x1 texture for probing simulations at a single point.
+    probeTexture = new THREE.WebGLRenderTarget(1, 1, {
+      type: THREE.FloatType,
+      format: THREE.RGBAFormat,
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+    });
+    probeTexture.texture.wrapS = THREE.ClampToEdgeWrapping;
+    probeTexture.texture.wrapT = THREE.ClampToEdgeWrapping;
+
     // Create cameras for the simulation domain and the final output.
     camera = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5, -1, 10);
     controls = new OrbitControls(camera, canvas);
@@ -949,6 +968,11 @@ import { createWelcomeTour } from "./tours.js";
       uniforms: uniforms,
       vertexShader: genericVertexShader(),
       fragmentShader: uvFragShader(),
+    });
+    // This material allows for the probing of simulation output at a single point.
+    probeMaterial = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: genericVertexShader(),
     });
     clearColour = new THREE.Color().setRGB(-1, -1, -1);
 
@@ -1050,6 +1074,11 @@ import { createWelcomeTour } from "./tours.js";
 
     // Set the initial condition.
     resetSim();
+
+    // Create a probe chart.
+    document
+      .getElementById("chartScript")
+      .addEventListener("load", createProbeChart);
 
     // Listen for pointer events.
     canvas.addEventListener("pointerdown", onDocumentPointerDown);
@@ -1630,6 +1659,18 @@ import { createWelcomeTour } from "./tours.js";
       overlayLine: {
         type: "bool",
         value: true,
+      },
+      probeUVs: {
+        type: "bool",
+        value: false,
+      },
+      probeU: {
+        type: "f",
+        value: 0.0,
+      },
+      probeV: {
+        type: "f",
+        value: 0.0,
       },
       seed: {
         type: "f",
@@ -2846,6 +2887,21 @@ import { createWelcomeTour } from "./tours.js";
       ["wide"],
     );
 
+    addToggle(
+      effectsButtons,
+      "probing",
+      '<i class="fa-solid fa-thermometer"></i> Probe',
+      function () {
+        configureProbe();
+        renderIfNotRunning();
+        updateView("probing");
+      },
+      "probeButton",
+      "Toggle simulation probe",
+      "probeFolder",
+      ["wide"],
+    );
+
     root = editViewFolder.addFolder("Colour");
     addInfoButton(root, "/user-guide/advanced-options#colour");
 
@@ -3263,6 +3319,37 @@ import { createWelcomeTour } from "./tours.js";
         updateView(this.property);
       })
       .name("Max length");
+
+    root = editViewFolder.addFolder("Probe");
+    addInfoButton(root, "/user-guide/advanced-options#probe");
+    root.domElement.id = "probeFolder";
+
+    root
+      .add(options, "probeX")
+      .name("$x$ location")
+      .onFinishChange(function () {
+        setProbeShader();
+        renderIfNotRunning();
+        updateView(this.property);
+      });
+
+    root
+      .add(options, "probeY")
+      .name("$y$ location")
+      .onFinishChange(function () {
+        setProbeShader();
+        renderIfNotRunning();
+        updateView(this.property);
+      });
+
+    root
+      .add(options, "probeFun")
+      .name("Expression:")
+      .onFinishChange(function () {
+        setProbeShader();
+        renderIfNotRunning();
+        updateView(this.property);
+      });
 
     // ComboBCs GUI.
     // Add a title to the comboBCs GUI.
@@ -3846,6 +3933,19 @@ import { createWelcomeTour } from "./tours.js";
     uniforms.textureSource.value = simTextures[1].texture;
     renderer.setRenderTarget(postTexture);
     renderer.render(simScene, simCamera);
+    // If we're probing, probe the simulation texture.
+    if (options.probing) {
+      simDomain.material = probeMaterial;
+      renderer.setRenderTarget(probeTexture);
+      renderer.render(simScene, simCamera);
+      // Create a buffer for reading single pixel
+      const pixelBuffer = new Float32Array(4);
+
+      // Read the pixel and push to the probe plot.
+      renderer.readRenderTargetPixels(probeTexture, 0, 0, 1, 1, pixelBuffer);
+      addProbeData(uniforms.t.value, pixelBuffer[0]);
+      updateProbeDisplay();
+    }
     uniforms.textureSource.value = postTexture.texture;
     bufferFilled = false;
     uniforms.textureSource1.value = simTextures[1].texture;
@@ -3968,6 +4068,7 @@ import { createWelcomeTour } from "./tours.js";
     canAutoPause = true;
     updateTimeDisplay();
     clearTextures();
+    clearProbe();
     render(true);
     // Reset time-tracking stats.
     lastT = uniforms.t.value;
@@ -5225,6 +5326,22 @@ import { createWelcomeTour } from "./tours.js";
     clearMaterial.needsUpdate = true;
   }
 
+  function setProbeShader() {
+    // Insert any user-defined kinetic parameters, as uniforms.
+    let shaderStr = kineticUniformsForShader() + probeShader();
+    shaderStr = replaceMINXMINY(shaderStr);
+    // Insert the user-defined location of the probe.
+    shaderStr = shaderStr.replace("PROBE_X", parseShaderString(options.probeX));
+    shaderStr = shaderStr.replace("PROBE_Y", parseShaderString(options.probeY));
+    // Insert the user-defined probe function.
+    shaderStr = shaderStr.replace(
+      "PROBE_FUN",
+      parseShaderString(options.probeFun),
+    );
+    assignFragmentShader(probeMaterial, shaderStr);
+    probeMaterial.needsUpdate = true;
+  }
+
   function loadImageSourceOne() {
     let image = new Image();
     image.src = imControllerOne.__image.src;
@@ -5730,6 +5847,7 @@ import { createWelcomeTour } from "./tours.js";
       hideTopBottomClickAreas();
     }
     configureColourbar();
+    configureProbe();
     configureTimeDisplay();
     configureIntegralDisplay();
     configureDataContainer();
@@ -6919,7 +7037,7 @@ import { createWelcomeTour } from "./tours.js";
     if (options.whatToPlot != "MAX") {
       // We want to display a string that is the shorter of 3 sig. fig. and 3 dec. places.
       let minStr, maxStr;
-      [minStr, maxStr] = formatColourbarLabels(cLims[0], cLims[1]);
+      [minStr, maxStr] = formatLabels(cLims[0], cLims[1]);
       // If either strings are just zeros, simply write 0.
       const regex = /[1-9]/;
       if (!regex.test(minStr)) minStr = "0";
@@ -6961,12 +7079,13 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   function shortestStringNum(num, depth) {
+    num = parseFloat(num);
     const dec = num.toFixed(depth);
     const sig = num.toPrecision(depth);
     return dec.length < sig.length ? dec : sig;
   }
 
-  function formatColourbarLabels(min, max) {
+  function formatLabels(min, max) {
     const depth = 3;
     // Check if both numbers are close to zero, in which case use exponential notation.
     if (Math.abs(min) < 0.001 && Math.abs(max) < 0.001) {
@@ -7642,6 +7761,7 @@ import { createWelcomeTour } from "./tours.js";
   function updateShaders() {
     setRDEquations();
     setClearShader();
+    setProbeShader();
     setBrushType();
     updateWhatToPlot();
     setDrawAndDisplayShaders();
@@ -8478,6 +8598,7 @@ import { createWelcomeTour } from "./tours.js";
       updateUniforms();
       updateColourbarLims();
       configureColourbar();
+      configureProbe();
       configureVectorField();
       updateViewSliders();
       render();
@@ -10221,5 +10342,102 @@ import { createWelcomeTour } from "./tours.js";
       /Ghost/i.test(options.comboStr_4) &&
       options.boundaryConditions_4 == "combo";
     return res;
+  }
+
+  function createProbeChart() {
+    Chart.defaults.font.family = `400 2rem/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol"`;
+    probeChart = new Chart(document.getElementById("probeChart"), {
+      type: "line",
+      options: {
+        responsive: false,
+        scales: {
+          x: {
+            type: "linear",
+            title: {
+              display: true,
+              text: "Time",
+            },
+            ticks: {
+              maxTicksLimit: 2,
+              callback: function (value, index, ticks) {
+                return shortestStringNum(value, 3);
+              },
+            },
+          },
+          y: {
+            type: "linear",
+            ticks: {
+              maxTicksLimit: 10,
+              callback: function (value, index, ticks) {
+                return shortestStringNum(value, 3);
+              },
+            },
+          },
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false },
+        },
+      },
+      data: {
+        datasets: [{ data: [], pointStyle: false }],
+      },
+    });
+  }
+
+  function addProbeData(x, y) {
+    if (probeChart) {
+      addChartData(probeChart, x, y);
+    }
+  }
+
+  function addChartData(chart, label, value) {
+    if (chart.data.datasets[0].data.length > 200) {
+      chart.data.datasets.forEach((dataset) => {
+        dataset.data.shift();
+      });
+    }
+    chart.data.datasets.forEach((dataset) => {
+      dataset.data.push({ x: label, y: value });
+    });
+    let opts = chart.options.scales;
+    opts.x.min = chart.data.datasets[0].data[0].x;
+    opts.x.max = chart.data.datasets[0].data.slice(-1)[0].x;
+  }
+
+  function updateProbeDisplay() {
+    // If the probeChart is visible, update it.
+    if (probeChart && $("#probeChart").is(":visible"))
+      probeChart.update("none");
+  }
+
+  function configureProbe() {
+    clearProbe();
+    $("#probeChart").toggleClass("hidden", !options.probing);
+  }
+
+  function clearProbe() {
+    if (probeChart) {
+      probeChart.data.datasets[0].data = [];
+      probeChart.update("none");
+    }
+  }
+
+  function setProbeAxes(min, max) {
+    if (probeChart) {
+      let opts = probeChart.options.scales;
+      opts.y.min = min;
+      opts.y.max = max;
+    }
+  }
+
+  function clearProbeAxes(min, max) {
+    if (probeChart) {
+      let opts = probeChart.options.scales;
+      delete opts.y.min;
+      delete opts.y.max;
+    }
   }
 })();
