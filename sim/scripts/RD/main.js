@@ -7279,23 +7279,23 @@ import { createWelcomeTour } from "./tours.js";
     if (options.colourbar && options.probing) {
       console.log("here");
       let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
-      let probeDims = $("#probeChart")[0].getBoundingClientRect();
+      let probeDims = $("#probeChartContainer")[0].getBoundingClientRect();
       // If the colour overlaps the bottom element (or is above it and would otherwise overlap).
       if (probeDims.right >= colourbarDims.left) {
         if (colourbarDims.top <= probeDims.bottom) {
-          nudgeUIUp("#probeChart", 40);
+          nudgeUIUp("#probeChartContainer", 40);
           console.log("nudging");
           probeNudgedUp = true;
         }
       } else {
         if (probeNudgedUp) {
-          nudgeUIUp("#probeChart", 0);
+          nudgeUIUp("#probeChartContainer", 0);
           probeNudgedUp = false;
         }
       }
     } else {
       if (probeNudgedUp) {
-        nudgeUIUp("#probeChart", 0);
+        nudgeUIUp("#probeChartContainer", 0);
         probeNudgedUp = false;
       }
     }
@@ -10411,7 +10411,8 @@ import { createWelcomeTour } from "./tours.js";
     probeChart = new Chart(document.getElementById("probeChart"), {
       type: "line",
       options: {
-        responsive: false,
+        responsive: true,
+        maintainAspectRatio: false,
         scales: {
           x: {
             type: "linear",
@@ -10475,18 +10476,19 @@ import { createWelcomeTour } from "./tours.js";
   function updateProbeDisplay() {
     if (!probeChart) return;
     // If the probeChart is visible, update it.
-    if ($("#probeChart").is(":visible")) probeChart.update("none");
+    if ($("#probeChartContainer").is(":visible")) probeChart.update("none");
   }
 
   function configureProbe() {
     if (!probeChart) return;
     clearProbe();
     if (options.probing) {
-      $("#probeChart").show();
+      $("#probeChartContainer").show();
     } else {
-      $("#probeChart").hide();
+      $("#probeChartContainer").hide();
     }
     checkColourbarPosition();
+    $("#logo").hide();
   }
 
   function clearProbe() {

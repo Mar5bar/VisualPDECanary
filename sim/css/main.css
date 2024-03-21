@@ -155,10 +155,10 @@ noscript > p {
   user-select: none;
 }
 
-#probeChart {
+.probeChart {
   position: absolute;
-  width: 400px;
-  height: 200px;
+  width: min(400px, calc(100% - 40px)) !important;
+  height: 200px !important;
   bottom: 20px;
   left: 20px;
   background-color: var(--background-color);
