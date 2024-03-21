@@ -1072,9 +1072,7 @@ import { createWelcomeTour } from "./tours.js";
     resetSim();
 
     // Create a probe chart.
-    document
-      .getElementById("chartScript")
-      ?.addEventListener("load", createProbeChart);
+    createProbeChart();
 
     // Listen for pointer events.
     canvas.addEventListener("pointerdown", onDocumentPointerDown);
