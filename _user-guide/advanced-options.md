@@ -316,6 +316,18 @@ Toggle the rendering of a vector field on top of the simulation. The definition,
 - #### Max length
   Specify the constant length by which all arrows will be normalised. Must be a mathematical expression that is not written in terms of any parameters or user-defined quantities.
 
+### Probe
+
+Toggle the display of a live probe graph of the simulation, which shows the value of the **Expression** at a single (configurable) position. The location can be typed in directly, or set by clicking in the domain using the <span><i class="fa-solid fa-crosshairs"></i></span> button (not available in surface plots).
+
+- #### Expression
+
+  Specify the expression to be sampled at the specified location. This can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$). Boundary conditions may not be accurately reflected in computed values using the probe.
+
+- #### $x$, $y$
+
+  Specify the position at which the probe will sample the **Expression**. This can be a function of time ($t$), any user-defined parameters, and the size of the domain ($L$, $L_x$, $L_y$). This can be automatically filled in using the <span><i class="fa-solid fa-crosshairs"></i></span> button.
+
 ---
 
 ## Settings {{ layout.settings }} <a class="anchor" id='settings'>

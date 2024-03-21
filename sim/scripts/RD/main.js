@@ -5809,7 +5809,9 @@ import { createWelcomeTour } from "./tours.js";
     // Hide or show GUI elements that depend on the BCs.
     setBCsGUI();
     // Hide or show GUI elements to do with surface plotting.
+    $("#probeTargetButton").show();
     if (options.plotType == "surface") {
+      $("#probeTargetButton").hide();
       $("#contourButton").show();
       $("#embossButton").show();
       $("#vectorFieldButton").hide();
@@ -9956,6 +9958,7 @@ import { createWelcomeTour } from "./tours.js";
   function addProbeTargetButton(folder) {
     const targetButton = document.createElement("button");
     targetButton.classList.add("focus-params");
+    targetButton.id = "probeTargetButton";
     targetButton.innerHTML = `<i class="fa-solid fa-crosshairs"></i>`;
     targetButton.title = "Select probe location";
     targetButton.onclick = function () {
@@ -10480,7 +10483,11 @@ import { createWelcomeTour } from "./tours.js";
   function configureProbe() {
     if (!probeChart) return;
     clearProbe();
-    $("#probeChart").toggleClass("hidden", !options.probing);
+    if (options.probing) {
+      $("#probeChart").show();
+    } else {
+      $("#probeChart").hide();
+    }
     checkColourbarPosition();
   }
 
