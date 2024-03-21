@@ -10433,7 +10433,7 @@ import { createWelcomeTour } from "./tours.js";
             type: "linear",
             title: {
               display: true,
-              text: "Probe value"
+              text: "Probe value",
             },
             ticks: {
               maxTicksLimit: 10,
