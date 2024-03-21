@@ -3323,6 +3323,16 @@ import { createWelcomeTour } from "./tours.js";
     root = editViewFolder.addFolder("Probe");
     addInfoButton(root, "/user-guide/advanced-options#probe");
     root.domElement.id = "probeFolder";
+    addProbeTargetButton(root);
+
+    root
+      .add(options, "probeFun")
+      .name("Expression:")
+      .onFinishChange(function () {
+        setProbeShader();
+        renderIfNotRunning();
+        updateView(this.property);
+      });
 
     root
       .add(options, "probeX")
@@ -3336,15 +3346,6 @@ import { createWelcomeTour } from "./tours.js";
     root
       .add(options, "probeY")
       .name("$y$ location")
-      .onFinishChange(function () {
-        setProbeShader();
-        renderIfNotRunning();
-        updateView(this.property);
-      });
-
-    root
-      .add(options, "probeFun")
-      .name("Expression:")
       .onFinishChange(function () {
         setProbeShader();
         renderIfNotRunning();
@@ -3928,7 +3929,7 @@ import { createWelcomeTour } from "./tours.js";
     frameCount = (frameCount + 1) % options.guiUpdatePeriod;
   }
 
-  function postprocess() {
+  function postprocess(updateProbeXY = false) {
     simDomain.material = postMaterial;
     uniforms.textureSource.value = simTextures[1].texture;
     renderer.setRenderTarget(postTexture);
@@ -3945,6 +3946,12 @@ import { createWelcomeTour } from "./tours.js";
       renderer.readRenderTargetPixels(probeTexture, 0, 0, 1, 1, pixelBuffer);
       addProbeData(uniforms.t.value, pixelBuffer[0]);
       updateProbeDisplay();
+      if (updateProbeXY) {
+        // Read in the computed X,Y coords from the buffer.
+        options.probeX = pixelBuffer[1];
+        options.probeY = pixelBuffer[2];
+        refreshGUI(viewsGUI);
+      }
     }
     uniforms.textureSource.value = postTexture.texture;
     bufferFilled = false;
@@ -9920,6 +9927,37 @@ import { createWelcomeTour } from "./tours.js";
       }
     };
     folder.domElement.insertBefore(focusButton, folder.domElement.firstChild);
+  }
+
+  /**
+   * Adds a target button to the probe folder that enables probe location selection.
+   */
+  function addProbeTargetButton(folder) {
+    const targetButton = document.createElement("button");
+    targetButton.classList.add("focus-params");
+    targetButton.innerHTML = `<i class="fa-solid fa-crosshairs"></i>`;
+    targetButton.title = "Select probe location";
+    targetButton.onclick = function () {
+      document.getElementById("clickDetector").classList.remove("hidden");
+      document.getElementById("clickDetector").addEventListener(
+        "click",
+        function (event) {
+          const rect = canvas.getBoundingClientRect();
+          let x = ((event.clientX - rect.left) / rect.width).clamp(0, 1);
+          let y = (1 - (event.clientY - rect.top) / rect.height).clamp(0, 1);
+          uniforms.probeU.value = x;
+          uniforms.probeV.value = y;
+          uniforms.probeUVs.value = true;
+          // Update the stored XY location of the probe, performed during postprocessing.
+          postprocess(true);
+          setProbeShader();
+          uniforms.probeUVs.value = false;
+          document.getElementById("clickDetector").classList.add("hidden");
+        },
+        { once: true },
+      );
+    };
+    folder.domElement.insertBefore(targetButton, folder.domElement.firstChild);
   }
 
   function addComboBCsButton(controller, speciesInd) {
