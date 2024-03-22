@@ -1088,29 +1088,14 @@ import { createWelcomeTour } from "./tours.js";
       if (!/INPUT|SELECT|TEXTAREA|SPAN/.test(targetTagName)) {
         if (event.key === "h") {
           if (uiHidden) {
-            uiHidden = false;
-            $(".ui").removeClass("hidden");
-            editViewFolder.domElement.classList.remove("hidden");
-            $("#add_view").removeClass("hidden");
-            // Reset any custom positioning for the Story ui.
-            $(".ui").css("top", "");
-            $(":root").css("--views-ui-offset", viewUIOffsetInit);
-            // Ensure that the correct play/pause button is showing.
-            isRunning ? playSim() : pauseSim();
-            $("#pause").css("display", "");
-            $("#play").css("display", "");
             if (!inIframe()) {
               $("#header").removeClass("hidden");
               resize();
               renderIfNotRunning();
             }
-            // Check for any positioning that relies on elements being visible.
-            checkColourbarPosition();
-            checkColourbarLogoCollision();
-            resizeEquationDisplay();
+            showAllUI();
           } else {
-            uiHidden = true;
-            $(".ui").addClass("hidden");
+            hideAllUI();
             $("#header").addClass("hidden");
             resize();
             renderIfNotRunning();
@@ -3324,9 +3309,8 @@ import { createWelcomeTour } from "./tours.js";
     root = editViewFolder.addFolder("Time series");
     addInfoButton(root, "/user-guide/advanced-options#timeseries");
     root.domElement.id = "probeFolder";
-    addProbeTargetButton(root);
 
-    root
+    controllers["probeType"] = root
       .add(options, "probeType", { Sample: "sample", Integral: "integral" })
       .name("Type")
       .onFinishChange(function () {
@@ -3335,6 +3319,7 @@ import { createWelcomeTour } from "./tours.js";
         configureProbe();
         updateView(this.property);
       });
+    addProbeTargetButton();
 
     root
       .add(options, "probeFun")
@@ -3982,8 +3967,6 @@ import { createWelcomeTour } from "./tours.js";
       updateProbeDisplay();
       if (updateProbeXY) {
         // Read in the computed X,Y coords from the buffer.
-        console.log(uniforms.probeUVs.value);
-        console.log(pixelBuffer[2], pixelBuffer[3]);
         options.probeX = pixelBuffer[2];
         options.probeY = pixelBuffer[3];
         refreshGUI(viewsGUI);
@@ -10000,16 +9983,20 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   /**
-   * Adds a target button to the probe folder that enables probe location selection.
+   * Adds a target button to the probeType controller that enables probe location selection.
    */
-  function addProbeTargetButton(folder) {
+  function addProbeTargetButton() {
     const targetButton = document.createElement("button");
-    targetButton.classList.add("focus-params");
+    targetButton.classList.add("target");
     targetButton.id = "probeTargetButton";
     targetButton.innerHTML = `<i class="fa-solid fa-crosshairs"></i>`;
     targetButton.title = "Select probe location";
     targetButton.onclick = function () {
+      // Hide all the UI.
+      hideAllUI();
+      // Show the click detector.
       document.getElementById("clickDetector").classList.remove("hidden");
+      // Add a click event listener to the click detector.
       document.getElementById("clickDetector").addEventListener(
         "click",
         function (event) {
@@ -10024,11 +10011,13 @@ import { createWelcomeTour } from "./tours.js";
           setProbeShader();
           uniforms.probeUVs.value = false;
           document.getElementById("clickDetector").classList.add("hidden");
+          // Show the UI again.
+          showAllUI();
         },
         { once: true },
       );
     };
-    folder.domElement.insertBefore(targetButton, folder.domElement.firstChild);
+    controllers["probeType"].domElement.appendChild(targetButton);
   }
 
   function addComboBCsButton(controller, speciesInd) {
@@ -10576,5 +10565,30 @@ import { createWelcomeTour } from "./tours.js";
 
   function clearProbeAxes(min, max) {
     if (!probeChart) return;
+  }
+
+  function showAllUI() {
+    if (!uiHidden) return;
+    uiHidden = false;
+    $(".ui").removeClass("hidden");
+    editViewFolder.domElement.classList.remove("hidden");
+    $("#add_view").removeClass("hidden");
+    // Reset any custom positioning for the Story ui.
+    $(".ui").css("top", "");
+    $(":root").css("--views-ui-offset", viewUIOffsetInit);
+    // Ensure that the correct play/pause button is showing.
+    isRunning ? playSim() : pauseSim();
+    $("#pause").css("display", "");
+    $("#play").css("display", "");
+    // Check for any positioning that relies on elements being visible.
+    checkColourbarPosition();
+    checkColourbarLogoCollision();
+    resizeEquationDisplay();
+  }
+
+  function hideAllUI() {
+    if (uiHidden) return;
+    uiHidden = true;
+    $(".ui").addClass("hidden");
   }
 })();

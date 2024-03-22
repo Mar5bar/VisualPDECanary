@@ -174,7 +174,7 @@ noscript > p {
   top: 0;
   left: 0;
   z-index: 100;
-  background-color: rgba(0,0,0,0.15);
+  background-color: rgba(0, 0, 0, 0.15);
   cursor: url(/sim/images/cursor-crosshairs.svg) 12 12, crosshair;
 }
 
@@ -345,7 +345,8 @@ a.info-link:has(+ ul:not(.closed)) {
 }
 
 button.focus-params,
-button.combo-bcs {
+button.combo-bcs,
+button.target {
   background: none;
   border: none;
   color: var(--link-color);
@@ -371,6 +372,13 @@ button.focus-params:has(~ ul:not(.closed)) {
   pointer-events: all;
 }
 
+button.target {
+  right: 0px;
+  opacity: 100%;
+  pointer-events: all;
+  cursor: pointer;
+}
+
 @media (hover: hover) {
   button.focus-params:hover {
     color: var(--text-color);
@@ -386,6 +394,9 @@ button.focus-params:has(~ ul:not(.closed)) {
     pointer-events: all;
   }
   button.combo-bcs:hover {
+    color: var(--text-color);
+  }
+  button.target:hover {
     color: var(--text-color);
   }
 }
