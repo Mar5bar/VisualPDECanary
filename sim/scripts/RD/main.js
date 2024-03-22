@@ -3350,7 +3350,7 @@ import { createWelcomeTour } from "./tours.js";
 
     root
       .add(options, "probeLength")
-      .name("Series length")
+      .name("Duration")
       .onFinishChange(function () {
         this.setValue(
           Math.min(Math.max(1, Math.round(this.getValue())), 10000),
@@ -3934,7 +3934,11 @@ import { createWelcomeTour } from "./tours.js";
     }
 
     // If we're probing via an integral, we overwrite postTexture (now that we're done with it) to compute the integral.
-    if (options.probing && options.probeType == "integral") {
+    if (
+      options.probing &&
+      options.probeType == "integral" &&
+      readyForProbeUpdate()
+    ) {
       bufferFilled = false;
       simDomain.material = probeMaterial;
       uniforms.textureSource.value = simTextures[1].texture;
@@ -3965,7 +3969,11 @@ import { createWelcomeTour } from "./tours.js";
     renderer.setRenderTarget(postTexture);
     renderer.render(simScene, simCamera);
     // If we're probing, probe the simulation texture.
-    if (options.probing && options.probeType == "sample") {
+    if (
+      options.probing &&
+      options.probeType == "sample" &&
+      (readyForProbeUpdate() || updateProbeXY)
+    ) {
       simDomain.material = probeMaterial;
       renderer.setRenderTarget(probeTexture);
       renderer.render(simScene, simCamera);
@@ -10457,11 +10465,26 @@ import { createWelcomeTour } from "./tours.js";
     Chart.defaults.font.family = `400 2rem/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol"`;
+    const textCol = getComputedStyle(document.documentElement).getPropertyValue(
+      "--text-color",
+    );
+    Chart.defaults.color = textCol;
+    if (inDarkMode()) {
+      Chart.defaults.borderColor = getComputedStyle(
+        document.documentElement,
+      ).getPropertyValue("--ui-button-border-color");
+    }
     probeChart = new Chart(document.getElementById("probeChart"), {
       type: "line",
       options: {
+        borderWidth: 2.5,
+        borderColor: getComputedStyle(
+          document.documentElement,
+        ).getPropertyValue("--link-color"),
         responsive: true,
+        animation: false,
         maintainAspectRatio: false,
+        parsing: false,
         scales: {
           x: {
             type: "linear",
@@ -10479,6 +10502,7 @@ import { createWelcomeTour } from "./tours.js";
           },
           y: {
             type: "linear",
+            grace: "5%",
             ticks: {
               maxTicksLimit: 10,
               callback: function (value, index, ticks) {
@@ -10490,7 +10514,11 @@ import { createWelcomeTour } from "./tours.js";
         plugins: {
           legend: { display: false },
           tooltip: { enabled: false },
-          decimation: { enabled: true },
+          decimation: {
+            enabled: true,
+            algorithm: "lttb",
+            threshold: 200,
+          },
         },
       },
       data: {
@@ -10499,26 +10527,36 @@ import { createWelcomeTour } from "./tours.js";
     });
     probeChart.limMax = -Infinity;
     probeChart.limMin = Infinity;
+    probeChart.nextUpdateTime = 0;
+    probeChart.targetDataLength = 200;
+    probeChart.dataStore = [];
     configureProbe();
   }
 
   function addProbeData(x, y) {
     if (!probeChart) return;
+    if (!readyForProbeUpdate()) return;
+    // We try to target a certain number of data points in order to make the chart display nicely
+    // in a small area.
+    probeChart.nextUpdateTime =
+      uniforms.t.value + options.probeLength / probeChart.targetDataLength;
     addChartData(probeChart, x, y);
   }
 
   function addChartData(chart, label, value) {
-    while (chart.data.datasets[0].data.length > options.probeLength) {
-      chart.data.datasets.forEach((dataset) => {
-        dataset.data.shift();
-      });
+    // Throw away values that are too old.
+    const threshold = uniforms.t.value - options.probeLength;
+    for (var i = 0; i < chart.dataStore.length; i++) {
+      if (chart.dataStore[i].x >= threshold) break;
     }
-    chart.data.datasets.forEach((dataset) => {
-      dataset.data.push({ x: label, y: value });
-    });
+    chart.dataStore = chart.dataStore.slice(i);
+
+    // Add the new value.
+    chart.dataStore.push({ x: label, y: value });
+    chart.data.datasets[0].data = chart.dataStore;
     let opts = chart.options.scales;
-    opts.x.min = chart.data.datasets[0].data[0].x;
-    opts.x.max = chart.data.datasets[0].data.slice(-1)[0].x;
+    opts.x.max = chart.dataStore.slice(-1)[0].x;
+    opts.x.min = opts.x.max - options.probeLength;
     chart.limMin = Math.min(chart.limMin, value);
     chart.limMax = Math.max(chart.limMax, value);
     if (isNaN(value)) {
@@ -10560,7 +10598,8 @@ import { createWelcomeTour } from "./tours.js";
 
   function clearProbe() {
     if (!probeChart) return;
-    probeChart.data.datasets[0].data = [];
+    probeChart.dataStore = [];
+    probeChart.nextUpdateTime = 0;
     probeChart.limMax = -Infinity;
     probeChart.limMin = Infinity;
     delete probeChart.options.scales.y.suggestedMin;
@@ -10577,6 +10616,10 @@ import { createWelcomeTour } from "./tours.js";
 
   function clearProbeAxes(min, max) {
     if (!probeChart) return;
+  }
+
+  function readyForProbeUpdate() {
+    return uniforms.t.value >= probeChart.nextUpdateTime;
   }
 
   function showAllUI() {
