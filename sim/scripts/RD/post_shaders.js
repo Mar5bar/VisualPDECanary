@@ -205,6 +205,7 @@ export function probeShader() {
     uniform float L_y;
     uniform float L_min;
     uniform float t;
+		uniform bool pointProbe;
     uniform bool probeUVs;
     uniform float probeU;
     uniform float probeV;
@@ -215,17 +216,26 @@ export function probeShader() {
     
     void main() 
     {
+			
       // x and y coordinates of the probe point.
       float x;
       float y;
-      if (probeUVs) {
-        x = probeU * L_x + MINX;
-        y = probeV * L_y + MINY;
-      } else {
-        x = PROBE_X;
-        y = PROBE_Y;
-      }
-      vec2 probeTexCoords = vec2((x - MINX) / L_x, (y - MINY) / L_y);
+			vec2 probeTexCoords;
+			if (pointProbe)
+			{
+      	if (probeUVs) {
+        	x = probeU * L_x + MINX;
+        	y = probeV * L_y + MINY;
+     		} else {
+        	x = PROBE_X;
+        	y = PROBE_Y;
+      	}
+      	probeTexCoords = vec2((x - MINX) / L_x, (y - MINY) / L_y);
+			} else {
+				probeTexCoords = textureCoords;
+				x = textureCoords.x * L_x + MINX;
+				y = textureCoords.y * L_y + MINY;
+			}
       ivec2 texSize = textureSize(textureSource,0);
       float step_x = 1.0 / float(texSize.x);
       float step_y = 1.0 / float(texSize.y);
@@ -264,6 +274,7 @@ export function probeShader() {
       vec4 uvwqYY = (uvwqT - 2.0*uvwq + uvwqB) / (dy*dy);
 
       // Compute the probe value.
-      gl_FragColor = vec4(PROBE_FUN, x, y, 0.0);
+      gl_FragColor = vec4(PROBE_FUN, 0.0, x, y);
+      gl_FragColor.g = float(float(indicatorFun) <= 0.0);
     }`;
 }

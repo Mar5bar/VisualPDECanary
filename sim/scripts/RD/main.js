@@ -1285,6 +1285,7 @@ import { createWelcomeTour } from "./tours.js";
     uniforms.heightScale.value = options.threeDHeightScale;
     uniforms.customSurface.value = options.customSurface;
     uniforms.vectorField.value = options.vectorField;
+    uniforms.pointProbe.value = options.probeType == "sample";
     updateSizeUniforms();
     setColourRangeFromDef();
     setEmbossUniforms();
@@ -1654,6 +1655,10 @@ import { createWelcomeTour } from "./tours.js";
         type: "bool",
         value: true,
       },
+      pointProbe: {
+        type: "bool",
+        value: true,
+      },
       probeUVs: {
         type: "bool",
         value: false,
@@ -1881,6 +1886,7 @@ import { createWelcomeTour } from "./tours.js";
         configureGUI();
         setRDEquations();
         setPostFunFragShader();
+        setProbeShader();
         renderIfNotRunning();
       },
       null,
@@ -1895,6 +1901,7 @@ import { createWelcomeTour } from "./tours.js";
         configureOptions();
         configureGUI();
         setRDEquations();
+        setProbeShader();
         updateWhatToPlot();
         renderIfNotRunning();
       });
@@ -2884,14 +2891,14 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       effectsButtons,
       "probing",
-      '<i class="fa-solid fa-thermometer"></i> Probe',
+      '<i class="fa-solid fa-chart-line"></i> Time series',
       function () {
         configureProbe();
         renderIfNotRunning();
         updateView("probing");
       },
       "probeButton",
-      "Toggle simulation probe",
+      "Toggle display of time series",
       "probeFolder",
       ["wide"],
     );
@@ -3314,10 +3321,20 @@ import { createWelcomeTour } from "./tours.js";
       })
       .name("Max length");
 
-    root = editViewFolder.addFolder("Probe");
-    addInfoButton(root, "/user-guide/advanced-options#probe");
+    root = editViewFolder.addFolder("Time series");
+    addInfoButton(root, "/user-guide/advanced-options#timeseries");
     root.domElement.id = "probeFolder";
     addProbeTargetButton(root);
+
+    root
+      .add(options, "probeType", { Sample: "sample", Integral: "integral" })
+      .name("Type")
+      .onFinishChange(function () {
+        uniforms.pointProbe.value = options.probeType == "sample";
+        renderIfNotRunning();
+        configureProbe();
+        updateView(this.property);
+      });
 
     root
       .add(options, "probeFun")
@@ -3328,7 +3345,7 @@ import { createWelcomeTour } from "./tours.js";
         updateView(this.property);
       });
 
-    root
+    controllers["prX"] = root
       .add(options, "probeX")
       .name("$x$ location")
       .onFinishChange(function () {
@@ -3337,7 +3354,7 @@ import { createWelcomeTour } from "./tours.js";
         updateView(this.property);
       });
 
-    root
+    controllers["prY"] = root
       .add(options, "probeY")
       .name("$y$ location")
       .onFinishChange(function () {
@@ -3920,6 +3937,29 @@ import { createWelcomeTour } from "./tours.js";
       render();
     }
 
+    // If we're probing via an integral, we overwrite postTexture (now that we're done with it) to compute the integral.
+    if (options.probing && options.probeType == "integral") {
+      bufferFilled = false;
+      simDomain.material = probeMaterial;
+      uniforms.textureSource.value = simTextures[1].texture;
+      renderer.setRenderTarget(postTexture);
+      renderer.render(simScene, simCamera);
+      fillBuffer();
+      let dA;
+      if (options.dimension == 1) {
+        dA = uniforms.dx.value;
+      } else if (options.dimension == 2) {
+        dA = uniforms.dx.value * uniforms.dy.value;
+      }
+      let total = 0;
+      for (let i = 0; i < buffer.length; i += 4) {
+        total += buffer[i] * (1 - buffer[i + 1]);
+      }
+      total *= dA;
+      addProbeData(uniforms.t.value, total);
+      updateProbeDisplay();
+    }
+
     frameCount = (frameCount + 1) % options.guiUpdatePeriod;
   }
 
@@ -3929,7 +3969,7 @@ import { createWelcomeTour } from "./tours.js";
     renderer.setRenderTarget(postTexture);
     renderer.render(simScene, simCamera);
     // If we're probing, probe the simulation texture.
-    if (options.probing) {
+    if (options.probing && options.probeType == "sample") {
       simDomain.material = probeMaterial;
       renderer.setRenderTarget(probeTexture);
       renderer.render(simScene, simCamera);
@@ -3942,9 +3982,13 @@ import { createWelcomeTour } from "./tours.js";
       updateProbeDisplay();
       if (updateProbeXY) {
         // Read in the computed X,Y coords from the buffer.
-        options.probeX = pixelBuffer[1];
-        options.probeY = pixelBuffer[2];
+        console.log(uniforms.probeUVs.value);
+        console.log(pixelBuffer[2], pixelBuffer[3]);
+        options.probeX = pixelBuffer[2];
+        options.probeY = pixelBuffer[3];
         refreshGUI(viewsGUI);
+        updateView("probeX");
+        updateView("probeY");
       }
     }
     uniforms.textureSource.value = postTexture.texture;
@@ -5339,6 +5383,11 @@ import { createWelcomeTour } from "./tours.js";
       "PROBE_FUN",
       parseShaderString(options.probeFun),
     );
+    let replacement = "1";
+    if (options.domainViaIndicatorFun) {
+      replacement = parseShaderString(getModifiedDomainIndicatorFun());
+    }
+    shaderStr = shaderStr.replace(/indicatorFun/g, replacement);
     assignFragmentShader(probeMaterial, shaderStr);
     probeMaterial.needsUpdate = true;
   }
@@ -10430,10 +10479,6 @@ import { createWelcomeTour } from "./tours.js";
           },
           y: {
             type: "linear",
-            title: {
-              display: true,
-              text: "Probe value",
-            },
             ticks: {
               maxTicksLimit: 10,
               callback: function (value, index, ticks) {
@@ -10451,6 +10496,8 @@ import { createWelcomeTour } from "./tours.js";
         datasets: [{ data: [], pointStyle: false }],
       },
     });
+    probeChart.limMax = -Infinity;
+    probeChart.limMin = Infinity;
     configureProbe();
   }
 
@@ -10471,12 +10518,20 @@ import { createWelcomeTour } from "./tours.js";
     let opts = chart.options.scales;
     opts.x.min = chart.data.datasets[0].data[0].x;
     opts.x.max = chart.data.datasets[0].data.slice(-1)[0].x;
+    chart.limMin = Math.min(chart.limMin, value);
+    chart.limMax = Math.max(chart.limMax, value);
+    if (isNaN(value)) {
+      chart.limMax = -Infinity;
+      chart.limMin = Infinity;
+    }
+    opts.y.suggestedMin = chart.limMin;
+    opts.y.suggestedMax = chart.limMax;
   }
 
   function updateProbeDisplay() {
     if (!probeChart) return;
     // If the probeChart is visible, update it.
-    if ($("#probeChartContainer").is(":visible")) probeChart.update("none");
+    if (options.probing) probeChart.update("none");
   }
 
   function configureProbe() {
@@ -10489,11 +10544,26 @@ import { createWelcomeTour } from "./tours.js";
     }
     checkColourbarPosition();
     $("#logo").hide();
+    if (options.probeType == "sample") {
+      // Show probeX and probeY controllers.
+      controllers["prX"].show();
+      controllers["prY"].show();
+      if (options.plotType != "surface") $("#probeTargetButton").show();
+    } else {
+      // Hide probeX and probeY controllers.
+      controllers["prX"].hide();
+      controllers["prY"].hide();
+      $("#probeTargetButton").hide();
+    }
   }
 
   function clearProbe() {
     if (!probeChart) return;
     probeChart.data.datasets[0].data = [];
+    probeChart.limMax = -Infinity;
+    probeChart.limMin = Infinity;
+    delete probeChart.options.scales.y.suggestedMin;
+    delete probeChart.options.scales.y.suggestedMax;
     probeChart.update("none");
   }
 
