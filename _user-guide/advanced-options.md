@@ -332,6 +332,10 @@ Toggle the display of a live time series graph of the simulation. This can show 
 
   Specify the position at which to sample the **Expression**. This can be a function of time ($t$), any user-defined parameters, and the size of the domain ($L$, $L_x$, $L_y$). This can be automatically filled in using the <span><i class="fa-solid fa-crosshairs"></i></span> button.
 
+- #### Series length
+
+  Specify the maximum number of timepoints to show in the time series before forgetting the oldest data. This can be an integer between 1 and 10,000.
+
 ---
 
 ## Settings {{ layout.settings }} <a class="anchor" id='settings'>
