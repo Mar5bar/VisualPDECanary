@@ -2789,7 +2789,7 @@ import { createWelcomeTour } from "./tours.js";
 
     controllers["whatToPlot"] = root
       .add(options, "whatToPlot")
-      .name("Expression: ")
+      .name("Expression")
       .onFinishChange(function () {
         this.setValue(autoCorrectSyntax(this.getValue()));
         updateWhatToPlot();
@@ -3323,7 +3323,7 @@ import { createWelcomeTour } from "./tours.js";
 
     root
       .add(options, "probeFun")
-      .name("Expression:")
+      .name("Expression")
       .onFinishChange(function () {
         setProbeShader();
         renderIfNotRunning();
