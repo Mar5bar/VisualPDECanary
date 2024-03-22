@@ -3348,6 +3348,17 @@ import { createWelcomeTour } from "./tours.js";
         updateView(this.property);
       });
 
+    root
+      .add(options, "probeLength")
+      .name("Series length")
+      .onFinishChange(function () {
+        this.setValue(
+          Math.min(Math.max(1, Math.round(this.getValue())), 10000),
+        );
+        renderIfNotRunning();
+        updateView(this.property);
+      });
+
     // ComboBCs GUI.
     // Add a title to the comboBCs GUI.
     const comboBCsTitle = document.createElement("div");
@@ -10479,6 +10490,7 @@ import { createWelcomeTour } from "./tours.js";
         plugins: {
           legend: { display: false },
           tooltip: { enabled: false },
+          decimation: { enabled: true },
         },
       },
       data: {
@@ -10496,7 +10508,7 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   function addChartData(chart, label, value) {
-    if (chart.data.datasets[0].data.length > 200) {
+    while (chart.data.datasets[0].data.length > options.probeLength) {
       chart.data.datasets.forEach((dataset) => {
         dataset.data.shift();
       });
