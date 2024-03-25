@@ -4426,7 +4426,7 @@ presets["default"] = {
   preset: "default",
   probing: false,
   probeFun: "1",
-  probeLength: 1000,
+  probeLength: 0,
   probeType: "sample",
   probeX: "0",
   probeY: "0",

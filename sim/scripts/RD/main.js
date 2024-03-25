@@ -3352,9 +3352,8 @@ import { createWelcomeTour } from "./tours.js";
       .add(options, "probeLength")
       .name("Duration")
       .onFinishChange(function () {
-        this.setValue(
-          Math.min(Math.max(1, Math.round(this.getValue())), 10000),
-        );
+        if (options.probeLength <= 0) autoSetProbeLength();
+        this.setValue(Math.min((0, options.probeLength)));
         renderIfNotRunning();
         updateView(this.property);
       });
@@ -5080,6 +5079,9 @@ import { createWelcomeTour } from "./tours.js";
     options.domainScale = options.domainScale.toString();
     // If options.spatialStep is not a string, convert it to one.
     options.spatialStep = options.spatialStep.toString();
+
+    // If the probeLength is zero, automatically configure it.
+    if (options.probeLength == 0) autoSetProbeLength();
 
     // Save these loaded options if we ever need to revert.
     savedOptions = JSON.parse(JSON.stringify(options));
@@ -10620,6 +10622,12 @@ import { createWelcomeTour } from "./tours.js";
 
   function readyForProbeUpdate() {
     return uniforms.t.value >= probeChart.nextUpdateTime;
+  }
+
+  function autoSetProbeLength() {
+    if (!probeChart) return;
+    options.probeLength =
+      300 * options.dt * options.numTimestepsPerFrame;
   }
 
   function showAllUI() {
