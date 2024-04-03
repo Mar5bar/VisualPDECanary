@@ -13,6 +13,7 @@ onSubmit="site_search(document.getElementById('siteSearchInput').value); return 
       maxlength="255"
       value=""
       placeholder="Search"
+      autocomplete="off"
       onfocus="document.getElementById('siteSearchForm').onsubmit();window.gtag?.('event', 'site_search');"
       oninput="document.getElementById('siteSearchForm').onsubmit();"
       />
