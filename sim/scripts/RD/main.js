@@ -172,6 +172,7 @@ import { createWelcomeTour } from "./tours.js";
     dataNudgedUp = false,
     probeNudgedUp = false,
     compileErrorOccurred = false,
+    probeFunIsDefault = false,
     NaNTimer,
     brushDisabledTimer,
     recordingTimer,
@@ -3311,7 +3312,7 @@ import { createWelcomeTour } from "./tours.js";
     root.domElement.id = "probeFolder";
 
     controllers["probeType"] = root
-      .add(options, "probeType", { Sample: "sample", Integral: "integral" })
+      .add(options, "probeType", { Point: "sample", Integral: "integral" })
       .name("Type")
       .onFinishChange(function () {
         uniforms.pointProbe.value = options.probeType == "sample";
@@ -5000,6 +5001,7 @@ import { createWelcomeTour } from "./tours.js";
     if (newOptions.hasOwnProperty("parent") && newOptions.parent != null) {
       loadOptions(newOptions.parent);
     }
+    probeFunIsDefault |= options.probeFun == "DEFAULT";
 
     // Reset the kinetic parameters.
     kineticParamsCounter = 0;
@@ -5017,6 +5019,7 @@ import { createWelcomeTour } from "./tours.js";
 
     // Set custom species names and reaction names.
     setCustomNames();
+    if (probeFunIsDefault) options.probeFun = listOfSpecies[0];
 
     // Ensure that the correct play/pause button is showing.
     isRunning ? playSim() : pauseSim();
