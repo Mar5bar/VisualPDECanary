@@ -10626,8 +10626,7 @@ import { createWelcomeTour } from "./tours.js";
 
   function autoSetProbeLength() {
     if (!probeChart) return;
-    options.probeLength =
-      300 * options.dt * options.numTimestepsPerFrame;
+    options.probeLength = 300 * options.dt * options.numTimestepsPerFrame;
   }
 
   function showAllUI() {
