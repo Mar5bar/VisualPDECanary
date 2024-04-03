@@ -18,8 +18,9 @@ async function setupSiteSearch() {
     );
     localStorage.setItem("documents", JSON.stringify(documents));
     frontmatter = documents.map((doc) => {
-      delete doc.body;
-      return doc;
+      const newDoc = { ...doc };
+      delete newDoc.body;
+      return newDoc;
     });
     siteIndex = lunr(function () {
       this.ref("id");
@@ -167,7 +168,7 @@ function site_search(term) {
           str +
           "^10 body:" +
           str +
-          "^0.0001 ";
+          "^10 ";
       });
     var results = siteIndex.search(searchterm);
 

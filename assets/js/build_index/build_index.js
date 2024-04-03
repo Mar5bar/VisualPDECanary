@@ -3,13 +3,20 @@ var fs = require("fs"),
 var path = require("path");
 var jsdom = require("jsdom");
 var { JSDOM } = jsdom;
-const { document } = (new JSDOM(`<!DOCTYPE html>`)).window;
+const { document } = new JSDOM(`<!DOCTYPE html>`).window;
 
 try {
   // Loop through all the markdown files in the site.
   let docs = [];
   counter = 0;
-  var files = getFiles("../../../").filter((fn) => fn.endsWith(".md"));
+  var files = getFiles("../../../").filter(
+    (fn) =>
+      fn.endsWith(".md") &&
+      !fn.endsWith("parser.md") &&
+      !fn.endsWith("demos.md") &&
+      !fn.endsWith("index.md") &&
+      !fn.includes("_demos/"),
+  );
   files.forEach((file) => {
     // Read the file and extract the front matter.
     var content = fs.readFileSync(file, "utf8");
@@ -63,14 +70,7 @@ function getFiles(dir, files = []) {
 function stripHTML(content) {
   let div = document.createElement("div");
   div.innerHTML = content;
-  let textContent = "";
-  while (div.firstChild) {
-    // If the first child is a text node, add it to the textContent.
-    if (div.firstChild.nodeType === 3) {
-      textContent += div.firstChild.textContent;
-    }
-    div.removeChild(div.firstChild);
-  }
+  let textContent = div.textContent || div.innerText || "";
   div.remove();
   return textContent;
 }
@@ -78,9 +78,11 @@ function stripHTML(content) {
 function minify(content) {
   content = stripHTML(content);
   content = content.replace(/\s+/g, " ");
-  content = content.replaceAll(/\$\$[^\$]+\$\$/g,"");
-  content = content.replaceAll(/\$[^\$]+\$/g,"");
-  content = content.replaceAll(/\[([^\]]+)\]\([^\)]+\)/g,"$1");
-  content = content.replaceAll(/\{\{[^\}]+\}\}/g,"");
+  content = content.replaceAll(/\$\$[^\$]+\$\$/g, "");
+  content = content.replaceAll(/\$[^\$]+\$/g, "");
+  content = content.replaceAll(/\[([^\]]+)\]\([^\)]+\)/g, "$1");
+  content = content.replaceAll(/\{\{[^\}]+\}\}/g, "");
+  content = content.replaceAll(/[\#\*→]/g, "");
+  content = content.replaceAll(/\s+/g, " ");
   return content;
 }
