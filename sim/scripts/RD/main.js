@@ -172,7 +172,6 @@ import { createWelcomeTour } from "./tours.js";
     dataNudgedUp = false,
     probeNudgedUp = false,
     compileErrorOccurred = false,
-    probeFunIsDefault = false,
     NaNTimer,
     brushDisabledTimer,
     recordingTimer,
@@ -4900,6 +4899,10 @@ import { createWelcomeTour } from "./tours.js";
       }
       delete options.oneDimensional;
     }
+    // If a default probeFun is specified, set it to the first species.
+    if (options.probeFun == "DEFAULT") {
+      options.probeFun = listOfSpecies[0];
+    }
 
     // Configure views.
     configureViews();
@@ -5001,7 +5004,6 @@ import { createWelcomeTour } from "./tours.js";
     if (newOptions.hasOwnProperty("parent") && newOptions.parent != null) {
       loadOptions(newOptions.parent);
     }
-    probeFunIsDefault |= options.probeFun == "DEFAULT";
 
     // Reset the kinetic parameters.
     kineticParamsCounter = 0;
@@ -5019,7 +5021,6 @@ import { createWelcomeTour } from "./tours.js";
 
     // Set custom species names and reaction names.
     setCustomNames();
-    if (probeFunIsDefault) options.probeFun = listOfSpecies[0];
 
     // Ensure that the correct play/pause button is showing.
     isRunning ? playSim() : pauseSim();
@@ -6167,11 +6168,11 @@ import { createWelcomeTour } from "./tours.js";
     // Update the problem and any dependencies based on the current options.
     problemTypeFromOptions();
     configurePlotType();
-    configureDimension();
     configureOptions();
     configureGUI();
     setComputedUniforms();
     updateShaders();
+    configureDimension(); // Triggers a render via a resize, so must be called after updateShaders.
     setEquationDisplayType();
   }
 
@@ -7333,14 +7334,12 @@ import { createWelcomeTour } from "./tours.js";
     }
     // If there's a potential overlap of the probe display and the colourbar, move the former up.
     if (options.colourbar && options.probing) {
-      console.log("here");
       let colourbarDims = $("#colourbar")[0].getBoundingClientRect();
       let probeDims = $("#probeChartContainer")[0].getBoundingClientRect();
       // If the colour overlaps the bottom element (or is above it and would otherwise overlap).
       if (probeDims.right >= colourbarDims.left) {
         if (colourbarDims.top <= probeDims.bottom) {
           nudgeUIUp("#probeChartContainer", 40);
-          console.log("nudging");
           probeNudgedUp = true;
         }
       } else {
