@@ -9382,7 +9382,9 @@ import { createWelcomeTour } from "./tours.js";
           if (folders[i].id != toggle.folderID) {
             folders[i].getElementsByTagName("ul")[0]?.classList.add("closed");
           } else {
-            folders[i].getElementsByTagName("ul")[0]?.classList.remove("closed");
+            folders[i]
+              .getElementsByTagName("ul")[0]
+              ?.classList.remove("closed");
           }
         }
       }
