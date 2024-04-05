@@ -167,6 +167,45 @@ noscript > p {
   box-sizing: border-box;
 }
 
+.probeChart .title {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.8rem;
+}
+
+.probeChart .minimise {
+  position: absolute;
+  top: 0px;
+  right: -3px;
+  opacity: 100%;
+  transition: color 0.3s ease, opacity 0.2s ease;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--ui-button-color);
+  font-size: 10px;
+  width: 22px;
+}
+
+@media (hover: hover) {
+  .probeChart .minimise {
+    opacity: 0%;
+  }
+  .probeChart:hover .minimise {
+    opacity: 100%;
+  }
+  .probeChart .minimise:hover {
+    color: var(--ui-button-hover-color);
+  }
+}
+
+#probeChartMaximise {
+  bottom: 5px;
+  left: var(--ui-button-h-gap);
+}
+
 #clickDetector {
   position: absolute;
   width: 100%;

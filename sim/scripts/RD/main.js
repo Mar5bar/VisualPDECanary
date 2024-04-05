@@ -383,6 +383,7 @@ import { createWelcomeTour } from "./tours.js";
     uiHidden = true;
   } else {
     $(".ui").removeClass("hidden");
+    $("#probeChartMaximise").hide();
   }
 
   const logo_only = params.has("logo_only");
@@ -638,6 +639,14 @@ import { createWelcomeTour } from "./tours.js";
   // Open the Definitions tab when the user clicks on the equation display.
   $("#equation_display").click(function () {
     editEquationsFolder.open();
+  });
+  $("#probeChartMinimise").click(function () {
+    $("#probeChartContainer").hide();
+    $("#probeChartMaximise").show();
+  });
+  $("#probeChartMaximise").click(function () {
+    $("#probeChartContainer").show();
+    $("#probeChartMaximise").hide();
   });
 
   // New, rename, delete
@@ -10484,9 +10493,10 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   function createProbeChart() {
-    Chart.defaults.font.family = `400 2rem/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Chart.defaults.font.family = `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol"`;
+    Chart.defaults.font.size = "11";
     const textCol = getComputedStyle(document.documentElement).getPropertyValue(
       "--text-color",
     );
@@ -10503,6 +10513,7 @@ import { createWelcomeTour } from "./tours.js";
         borderColor: getComputedStyle(
           document.documentElement,
         ).getPropertyValue("--link-color"),
+        layout: { padding: { top: 15, right: 15 } },
         responsive: true,
         animation: false,
         maintainAspectRatio: false,
@@ -10510,15 +10521,10 @@ import { createWelcomeTour } from "./tours.js";
         scales: {
           x: {
             type: "linear",
-            title: {
-              display: true,
-              text: "Time",
-              padding: { top: -18 },
-            },
             ticks: {
               maxTicksLimit: 2,
               callback: function (value, index, ticks) {
-                return shortestStringNum(value, 3);
+                return " ";
               },
             },
           },
