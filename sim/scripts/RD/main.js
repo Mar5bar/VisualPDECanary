@@ -2890,6 +2890,8 @@ import { createWelcomeTour } from "./tours.js";
 
     root = editViewFolder.addFolder("Colour");
     addInfoButton(root, "/user-guide/advanced-options#colour");
+    root.domElement.id = "colourFolder";
+    root.domElement.classList.add("viewsFolder");
 
     root
       .add(options, "colourmap", {
@@ -3008,6 +3010,7 @@ import { createWelcomeTour } from "./tours.js";
     root = editViewFolder.addFolder("Contours");
     addInfoButton(root, "/user-guide/advanced-options#contours");
     root.domElement.id = "contoursFolder";
+    root.domElement.classList.add("viewsFolder");
 
     controllers["contourColour"] = root
       .addColor(options, "contourColour")
@@ -3043,6 +3046,7 @@ import { createWelcomeTour } from "./tours.js";
     root = editViewFolder.addFolder("Lighting");
     addInfoButton(root, "/user-guide/advanced-options#lighting");
     root.domElement.id = "embossFolder";
+    root.domElement.classList.add("viewsFolder");
 
     controllers["embossSmoothness"] = root
       .add(options, "embossSmoothness")
@@ -3124,6 +3128,7 @@ import { createWelcomeTour } from "./tours.js";
     root = editViewFolder.addFolder("Overlay");
     addInfoButton(root, "/user-guide/advanced-options#overlay");
     root.domElement.id = "overlayFolder";
+    root.domElement.classList.add("viewsFolder");
 
     root
       .addColor(options, "overlayColour")
@@ -3243,6 +3248,7 @@ import { createWelcomeTour } from "./tours.js";
     root = vectorFieldFolder;
     addInfoButton(root, "/user-guide/advanced-options#vector-field");
     root.domElement.id = "vectorFieldFolder";
+    root.domElement.classList.add("viewsFolder");
 
     root
       .addColor(options, "arrowColour")
@@ -3309,6 +3315,7 @@ import { createWelcomeTour } from "./tours.js";
     root = editViewFolder.addFolder("Time series");
     addInfoButton(root, "/user-guide/advanced-options#timeseries");
     root.domElement.id = "probeFolder";
+    root.domElement.classList.add("viewsFolder");
 
     controllers["probeType"] = root
       .add(options, "probeType", { Point: "sample", Integral: "integral" })
@@ -9368,12 +9375,21 @@ import { createWelcomeTour } from "./tours.js";
     if (toggle.obj[toggle.property] == !toggle.negate) {
       toggle.classList.add("toggled_on");
       if (toggle.folderID) {
-        $("#" + toggle.folderID).removeClass("hidden");
+        document.getElementById(toggle.folderID)?.classList.remove("hidden");
+        // Close all other Views folders.
+        const folders = document.getElementsByClassName("viewsFolder");
+        for (let i = 0; i < folders.length; i++) {
+          if (folders[i].id != toggle.folderID) {
+            folders[i].getElementsByTagName("ul")[0]?.classList.add("closed");
+          } else {
+            folders[i].getElementsByTagName("ul")[0]?.classList.remove("closed");
+          }
+        }
       }
     } else {
       toggle.classList.remove("toggled_on");
       if (toggle.folderID) {
-        $("#" + toggle.folderID).addClass("hidden");
+        document.getElementById(toggle.folderID)?.classList.add("hidden");
       }
     }
   }
