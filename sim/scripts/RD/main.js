@@ -2856,7 +2856,7 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       effectsButtons,
       "overlay",
-      '<i class="fa-solid fa-chart-line"></i> Overlay',
+      '<i class="fa-solid fa-clover"></i> Overlay',
       function () {
         setDisplayColourAndType();
         renderIfNotRunning();
@@ -3374,6 +3374,16 @@ import { createWelcomeTour } from "./tours.js";
         renderIfNotRunning();
         updateView(this.property);
       });
+
+    const probeButtons = addButtonList(root);
+    addButton(
+      probeButtons,
+      '<i class="fa-solid fa-arrows-left-right-to-line fa-rotate-90"></i> Snap range',
+      snapProbeAxes,
+      null,
+      "Snap vertical min/max to visible",
+      ["wide"],
+    );
 
     // ComboBCs GUI.
     // Add a title to the comboBCs GUI.
@@ -10630,11 +10640,25 @@ import { createWelcomeTour } from "./tours.js";
     if (!probeChart) return;
     probeChart.dataStore = [];
     probeChart.nextUpdateTime = 0;
-    probeChart.limMax = -Infinity;
     probeChart.limMin = Infinity;
+    probeChart.limMax = -Infinity;
     delete probeChart.options.scales.y.suggestedMin;
     delete probeChart.options.scales.y.suggestedMax;
     probeChart.update("none");
+  }
+
+  function snapProbeAxes() {
+    if (!probeChart) return;
+    const data = probeChart.dataStore;
+    if (data.length == 0) return;
+    let min = data[0].y;
+    let max = min;
+    for (let i = 1; i < data.length; i++) {
+      min = Math.min(min, data[i].y);
+      max = Math.max(max, data[i].y);
+    }
+    probeChart.limMin = min;
+    probeChart.limMax = max;
   }
 
   function setProbeAxes(min, max) {
