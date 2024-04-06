@@ -177,16 +177,18 @@ noscript > p {
 
 .probeChart .minimise {
   position: absolute;
+  margin: 0;
+  padding: 0;
   top: 0px;
-  right: -3px;
+  right: 0px;
   opacity: 100%;
   transition: color 0.3s ease, opacity 0.2s ease;
   cursor: pointer;
   border: none;
   background: none;
   color: var(--ui-button-color);
-  font-size: 10px;
-  width: 22px;
+  font-size: 1.1em;
+  line-height: 1.1em;
 }
 
 @media (hover: hover) {

@@ -496,6 +496,7 @@ import { createWelcomeTour } from "./tours.js";
     $("#equations").addClass("hidden");
     $("#help").addClass("hidden");
     $("#share").addClass("hidden");
+    $("#probeChartContainer").addClass("hidden");
     editViewFolder.domElement.classList.add("hidden");
     $("#add_view").addClass("hidden");
     configureColourbar();
@@ -10513,7 +10514,7 @@ import { createWelcomeTour } from "./tours.js";
         borderColor: getComputedStyle(
           document.documentElement,
         ).getPropertyValue("--link-color"),
-        layout: { padding: { top: 15, right: 15 } },
+        layout: { padding: { top: 17, right: 17 } },
         responsive: true,
         animation: false,
         maintainAspectRatio: false,
@@ -10609,6 +10610,7 @@ import { createWelcomeTour } from "./tours.js";
     } else {
       $("#probeChartContainer").hide();
     }
+    $("#probeChartMaximise").hide();
     checkColourbarPosition();
     $("#logo").hide();
     if (options.probeType == "sample") {
