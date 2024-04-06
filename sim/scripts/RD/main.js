@@ -9399,12 +9399,12 @@ import { createWelcomeTour } from "./tours.js";
         // Close all other Views folders.
         const folders = document.getElementsByClassName("viewsFolder");
         for (let i = 0; i < folders.length; i++) {
+          let list = folders[i].getElementsByTagName("ul")[0];
+          let title = list.firstChild;
           if (folders[i].id != toggle.folderID) {
-            folders[i].getElementsByTagName("ul")[0]?.classList.add("closed");
+            if (!list.classList.contains("closed")) title.click();
           } else {
-            folders[i]
-              .getElementsByTagName("ul")[0]
-              ?.classList.remove("closed");
+            if (list.classList.contains("closed")) title.click();
           }
         }
       }
