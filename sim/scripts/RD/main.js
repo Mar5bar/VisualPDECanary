@@ -2821,82 +2821,10 @@ import { createWelcomeTour } from "./tours.js";
         updateView(this.property);
       });
 
+    // Generate a list of buttons for turning on effects/advanced options.
+    // We'll populate this after the folders have been generated.
     const effectsButtons = addButtonList(root);
-
-    addToggle(
-      effectsButtons,
-      "contours",
-      '<i class="fa-solid fa-bullseye"></i> Contours',
-      function () {
-        setDisplayColourAndType();
-        renderIfNotRunning();
-        updateView("contours");
-      },
-      "contourButton",
-      "Toggle contours",
-      "contoursFolder",
-      ["wide"],
-    );
-
-    addToggle(
-      effectsButtons,
-      "emboss",
-      '<i class="fa-solid fa-lightbulb"></i> Lighting',
-      function () {
-        setDisplayColourAndType();
-        renderIfNotRunning();
-        updateView("emboss");
-      },
-      "embossButton",
-      "Toggle lighting",
-      "embossFolder",
-      ["wide"],
-    );
-
-    addToggle(
-      effectsButtons,
-      "overlay",
-      '<i class="fa-solid fa-clover"></i> Overlay',
-      function () {
-        setDisplayColourAndType();
-        renderIfNotRunning();
-        updateView("overlay");
-      },
-      null,
-      "Toggle overlay",
-      "overlayFolder",
-      ["wide"],
-    );
-
-    addToggle(
-      effectsButtons,
-      "vectorField",
-      '<i class="fa-solid fa-arrow-right-arrow-left"></i> Vector field',
-      function () {
-        configureVectorField();
-        renderIfNotRunning();
-        updateView("vectorField");
-      },
-      "vectorFieldButton",
-      "Toggle vector field",
-      "vectorFieldFolder",
-      ["wide"],
-    );
-
-    addToggle(
-      effectsButtons,
-      "probing",
-      '<i class="fa-solid fa-chart-line"></i> Time series',
-      function () {
-        configureProbe();
-        renderIfNotRunning();
-        updateView("probing");
-      },
-      "probeButton",
-      "Toggle display of time series",
-      "probeFolder",
-      ["wide"],
-    );
+    effectsButtons.submenuToggles = [];
 
     root = editViewFolder.addFolder("Colour");
     addInfoButton(root, "/user-guide/advanced-options#colour");
@@ -3022,6 +2950,20 @@ import { createWelcomeTour } from "./tours.js";
     root.domElement.id = "contoursFolder";
     root.domElement.classList.add("viewsFolder");
 
+    const contoursButtonList = addButtonList(root);
+    addToggle(
+      contoursButtonList,
+      "contours",
+      "Enabled",
+      function () {
+        setDisplayColourAndType();
+        renderIfNotRunning();
+        updateView("contours");
+      },
+      "contourButton",
+      "Toggle contours",
+    );
+
     controllers["contourColour"] = root
       .addColor(options, "contourColour")
       .name("Colour")
@@ -3057,6 +2999,20 @@ import { createWelcomeTour } from "./tours.js";
     addInfoButton(root, "/user-guide/advanced-options#lighting");
     root.domElement.id = "embossFolder";
     root.domElement.classList.add("viewsFolder");
+
+    const embossButtonList = addButtonList(root);
+    addToggle(
+      embossButtonList,
+      "emboss",
+      "Enabled",
+      function () {
+        setDisplayColourAndType();
+        renderIfNotRunning();
+        updateView("emboss");
+      },
+      "embossButton",
+      "Toggle lighting",
+    );
 
     controllers["embossSmoothness"] = root
       .add(options, "embossSmoothness")
@@ -3139,6 +3095,20 @@ import { createWelcomeTour } from "./tours.js";
     addInfoButton(root, "/user-guide/advanced-options#overlay");
     root.domElement.id = "overlayFolder";
     root.domElement.classList.add("viewsFolder");
+
+    const overlayButtonList = addButtonList(root);
+    addToggle(
+      overlayButtonList,
+      "overlay",
+      "Enabled",
+      function () {
+        setDisplayColourAndType();
+        renderIfNotRunning();
+        updateView("overlay");
+      },
+      null,
+      "Toggle overlay",
+    );
 
     root
       .addColor(options, "overlayColour")
@@ -3260,6 +3230,20 @@ import { createWelcomeTour } from "./tours.js";
     root.domElement.id = "vectorFieldFolder";
     root.domElement.classList.add("viewsFolder");
 
+    const vectorFieldButtons = addButtonList(root);
+    addToggle(
+      vectorFieldButtons,
+      "vectorField",
+      "Enabled",
+      function () {
+        configureVectorField();
+        renderIfNotRunning();
+        updateView("vectorField");
+      },
+      "vectorFieldButton",
+      "Toggle vector field",
+    );
+
     root
       .addColor(options, "arrowColour")
       .name("Colour")
@@ -3327,6 +3311,20 @@ import { createWelcomeTour } from "./tours.js";
     root.domElement.id = "probeFolder";
     root.domElement.classList.add("viewsFolder");
 
+    const probeTopButtons = addButtonList(root);
+    addToggle(
+      probeTopButtons,
+      "probing",
+      "Enabled",
+      function () {
+        configureProbe();
+        renderIfNotRunning();
+        updateView("probing");
+      },
+      "probeButton",
+      "Toggle display of time series",
+    );
+
     controllers["probeType"] = root
       .add(options, "probeType", { Point: "sample", Integral: "integral" })
       .name("Type")
@@ -3384,6 +3382,58 @@ import { createWelcomeTour } from "./tours.js";
       "Snap vertical min/max to visible",
       ["wide"],
     );
+
+    // Populate the toggle button list for turning on effects.
+    addViewsSubmenuToggle(
+      effectsButtons,
+      '<i class="fa-solid fa-palette"></i> Colour',
+      "Show colour options",
+      "colourFolder",
+      ["wide"],
+    );
+
+    addViewsSubmenuToggle(
+      effectsButtons,
+      '<i class="fa-solid fa-bullseye"></i> Contours',
+      "Show contour options",
+      "contoursFolder",
+      ["wide"],
+    );
+
+    addViewsSubmenuToggle(
+      effectsButtons,
+      '<i class="fa-solid fa-lightbulb"></i> Lighting',
+      "Show lighting options",
+      "embossFolder",
+      ["wide"],
+    );
+
+    addViewsSubmenuToggle(
+      effectsButtons,
+      '<i class="fa-solid fa-clover"></i> Overlay',
+      "Show overlay options",
+      "overlayFolder",
+      ["wide"],
+    );
+
+    addViewsSubmenuToggle(
+      effectsButtons,
+      '<i class="fa-solid fa-arrow-right-arrow-left"></i> Vector field',
+      "Show vector field options",
+      "vectorFieldFolder",
+      ["wide"],
+    );
+
+    addViewsSubmenuToggle(
+      effectsButtons,
+      '<i class="fa-solid fa-chart-line"></i> Time series',
+      "Show time series options",
+      "probeFolder",
+      ["wide"],
+    );
+
+    // Default to having colour be checked automatically.
+    effectsButtons.submenuToggles[0].click();
 
     // ComboBCs GUI.
     // Add a title to the comboBCs GUI.
@@ -8999,6 +9049,47 @@ import { createWelcomeTour } from "./tours.js";
     return toggle;
   }
 
+  function addViewsSubmenuToggle(parent, inner, title, folderID, classes) {
+    // Create the toggle button.
+    const toggle = document.createElement("a");
+    // Add the toggle_button class to the toggle button.
+    toggle.classList.add("toggle_button");
+    toggle.enabled = false;
+    toggle.onclick = function () {
+      const enabled = toggle.enabled;
+      // Turn off all the views submenus.
+      parent.submenuToggles.forEach((t) => {
+        updateToggle(t, false);
+      });
+      // Turn on this toggle if it was disabled.
+      updateToggle(toggle, !enabled);
+    };
+    if (title != undefined) toggle.title = title;
+    if (inner != undefined) toggle.innerHTML = inner;
+    if (folderID != undefined) {
+      toggle.folderID = folderID;
+      // When the folder title is clicked, toggle the whole submenu.
+      let folder = document.getElementById(folderID);
+      let title = folder.getElementsByTagName("ul")[0].firstChild;
+      title.addEventListener("click", function (e) {
+        if (toggle.enabled) updateToggle(toggle, false);
+      });
+      // title.onclick = function () {
+      //   updateToggle(toggle, false);
+      // };
+    }
+    // Add any classes to the toggle button.
+    if (classes != undefined) {
+      for (const c of classes) {
+        toggle.classList.add(c);
+      }
+    }
+    // Add the toggle button to the parent element.
+    parent.appendChild(toggle);
+    parent.submenuToggles.push(toggle);
+    return toggle;
+  }
+
   /**
    * Adds a new line element to the specified parent element.
    * @param {HTMLElement} parent - The parent element to append the new line element to.
@@ -9391,24 +9482,25 @@ import { createWelcomeTour } from "./tours.js";
    * Updates the toggle based on the state of the object property.
    * @param {HTMLElement} toggle - The toggle element to update.
    */
-  function updateToggle(toggle) {
-    if (toggle.obj[toggle.property] == !toggle.negate) {
+  function updateToggle(toggle, forcedState) {
+    // If there is no forced state and the toggle does not have an object property, return.
+    if (forcedState == undefined && !toggle.hasOwnProperty("obj")) return;
+    const toggleOn =
+      forcedState != undefined
+        ? forcedState
+        : toggle.obj[toggle.property] == !toggle.negate;
+    if (toggleOn) {
+      toggle.enabled = true;
       toggle.classList.add("toggled_on");
       if (toggle.folderID) {
-        document.getElementById(toggle.folderID)?.classList.remove("hidden");
-        // Close all other Views folders.
-        const folders = document.getElementsByClassName("viewsFolder");
-        for (let i = 0; i < folders.length; i++) {
-          let list = folders[i].getElementsByTagName("ul")[0];
-          let title = list.firstChild;
-          if (folders[i].id != toggle.folderID) {
-            if (!list.classList.contains("closed")) title.click();
-          } else {
-            if (list.classList.contains("closed")) title.click();
-          }
-        }
+        let folder = document.getElementById(toggle.folderID);
+        folder.classList.remove("hidden");
+        // Open the current folder if it is closed.
+        let list = folder.getElementsByTagName("ul")[0];
+        list.classList.remove("closed");
       }
     } else {
+      toggle.enabled = false;
       toggle.classList.remove("toggled_on");
       if (toggle.folderID) {
         document.getElementById(toggle.folderID)?.classList.add("hidden");
