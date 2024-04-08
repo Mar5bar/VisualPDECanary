@@ -132,7 +132,7 @@ import { createWelcomeTour } from "./tours.js";
     funsObj,
     savedOptions,
     comboBCsOptions = { type: "", value: "", open: false },
-    localOpts = {};
+    localOpts = {id: null};
   let leftGUI,
     rightGUI,
     viewsGUI,
@@ -9360,6 +9360,9 @@ import { createWelcomeTour } from "./tours.js";
       case "resume":
         isSuspended = false;
         break;
+      case "id":
+        localOpts.id = event.data.id;
+        break;
       default:
         // Maintain backwards compatibility with old messages.
         updateParamFromMessage(event.data);
@@ -10734,6 +10737,14 @@ import { createWelcomeTour } from "./tours.js";
     }
     opts.y.suggestedMin = chart.limMin;
     opts.y.suggestedMax = chart.limMax;
+
+    // If we're in an iframe, post the data to the parent window.
+    if (inIframe()) {
+      window.parent.postMessage(
+        { type: "probeData", data: chart.dataStore, id: localOpts.id },
+        "*",
+      );
+    }
   }
 
   function updateProbeDisplay() {
