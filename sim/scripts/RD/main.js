@@ -2957,7 +2957,7 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       contoursButtonList,
       "contours",
-      `<i class="fa-solid fa-circle-check"></i> Enabled`,
+      `<i class="fa-solid fa-bullseye"></i> Enable`,
       function () {
         setDisplayColourAndType();
         renderIfNotRunning();
@@ -2965,6 +2965,8 @@ import { createWelcomeTour } from "./tours.js";
       },
       "contourButton",
       "Toggle contours",
+      null,
+      ["wide"],
     );
 
     controllers["contourColour"] = root
@@ -3007,7 +3009,7 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       embossButtonList,
       "emboss",
-      `<i class="fa-solid fa-circle-check"></i> Enabled`,
+      `<i class="fa-solid fa-lightbulb"></i> Enable`,
       function () {
         setDisplayColourAndType();
         renderIfNotRunning();
@@ -3015,6 +3017,8 @@ import { createWelcomeTour } from "./tours.js";
       },
       "embossButton",
       "Toggle lighting",
+      null,
+      ["wide"],
     );
 
     controllers["embossSmoothness"] = root
@@ -3103,7 +3107,7 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       overlayButtonList,
       "overlay",
-      `<i class="fa-solid fa-circle-check"></i> Enabled`,
+      `<i class="fa-solid fa-clover"></i> Enable`,
       function () {
         setDisplayColourAndType();
         renderIfNotRunning();
@@ -3111,6 +3115,8 @@ import { createWelcomeTour } from "./tours.js";
       },
       null,
       "Toggle overlay",
+      null,
+      ["wide"],
     );
 
     root
@@ -3238,7 +3244,7 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       vectorFieldButtons,
       "vectorField",
-      `<i class="fa-solid fa-circle-check"></i> Enabled`,
+      `<i class="fa-solid fa-arrow-right-arrow-left"></i> Enable`,
       function () {
         configureVectorField();
         renderIfNotRunning();
@@ -3246,6 +3252,8 @@ import { createWelcomeTour } from "./tours.js";
       },
       "vectorFieldButton",
       "Toggle vector field",
+      null,
+      ["wide"],
     );
 
     root
@@ -3319,7 +3327,7 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       probeTopButtons,
       "probing",
-      `<i class="fa-solid fa-circle-check"></i> Enabled`,
+      `<i class="fa-solid fa-chart-line"></i> Enable`,
       function () {
         configureProbe();
         renderIfNotRunning();
@@ -3327,6 +3335,19 @@ import { createWelcomeTour } from "./tours.js";
       },
       "probeButton",
       "Toggle display of time series",
+      null,
+      ["wide"],
+    );
+    addButton(
+      probeTopButtons,
+      '<i class="fa-solid fa-arrows-left-right-to-line fa-rotate-90"></i> Snap range',
+      function () {
+        snapProbeAxes();
+        renderIfNotRunning();
+      },
+      null,
+      "Snap vertical min/max to visible",
+      ["wide"],
     );
 
     controllers["probeType"] = root
@@ -3376,16 +3397,6 @@ import { createWelcomeTour } from "./tours.js";
         renderIfNotRunning();
         updateView(this.property);
       });
-
-    const probeButtons = addButtonList(root);
-    addButton(
-      probeButtons,
-      '<i class="fa-solid fa-arrows-left-right-to-line fa-rotate-90"></i> Snap range',
-      snapProbeAxes,
-      null,
-      "Snap vertical min/max to visible",
-      ["wide"],
-    );
 
     // Populate the toggle button list for turning on effects.
     addViewsSubmenuToggle(
@@ -10778,6 +10789,10 @@ import { createWelcomeTour } from "./tours.js";
     }
     probeChart.limMin = min;
     probeChart.limMax = max;
+    let opts = probeChart.options.scales;
+    opts.y.suggestedMin = probeChart.limMin;
+    opts.y.suggestedMax = probeChart.limMax;
+    probeChart.update("none");
   }
 
   function setProbeAxes(min, max) {
