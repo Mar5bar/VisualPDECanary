@@ -1386,6 +1386,11 @@ a#add_view {
   height: fit-content !important;
 }
 
+.tab_list .toggle_button {
+  border: none;
+  background-color: var(--input-background-color);
+}
+
 .dg .closed li:not(.title) {
   padding: 0 !important;
   border-bottom: 0px !important;
@@ -1394,6 +1399,10 @@ a#add_view {
 .dg li:not(.folder) {
   background: var(--background-color) !important;
   border-bottom: 1px solid #eee !important;
+}
+
+.dg li:not(.folder).button_list.tab_list {
+  background-color: var(--input-background-color) !important;
 }
 
 ul li.folder .dg ul li.cr {

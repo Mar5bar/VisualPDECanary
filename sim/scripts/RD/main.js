@@ -2826,6 +2826,7 @@ import { createWelcomeTour } from "./tours.js";
     // Generate a list of buttons for turning on effects/advanced options.
     // We'll populate this after the folders have been generated.
     const effectsButtons = addButtonList(root);
+    effectsButtons.classList.add("tab_list");
     effectsButtons.submenuToggles = [];
 
     root = editViewFolder.addFolder("Colour options");
