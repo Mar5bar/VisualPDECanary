@@ -3452,6 +3452,10 @@ import { createWelcomeTour } from "./tours.js";
       ["wide"],
     );
 
+    // Hide all views submenus.
+    effectsButtons.submenuToggles[0].click();
+    effectsButtons.submenuToggles[0].click();
+
     // ComboBCs GUI.
     // Add a title to the comboBCs GUI.
     const comboBCsTitle = document.createElement("div");
