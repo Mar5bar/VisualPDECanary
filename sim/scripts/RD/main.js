@@ -152,6 +152,8 @@ import { createWelcomeTour } from "./tours.js";
     advancedOptionsFolder,
     editViewFolder,
     linesAnd3DFolder,
+    linesFolderButton,
+    threeDFolderButton,
     vectorFieldFolder,
     selectedEntries = new Set();
   let isRunning,
@@ -2826,7 +2828,7 @@ import { createWelcomeTour } from "./tours.js";
     const effectsButtons = addButtonList(root);
     effectsButtons.submenuToggles = [];
 
-    root = editViewFolder.addFolder("Colour");
+    root = editViewFolder.addFolder("Colour options");
     addInfoButton(root, "/user-guide/advanced-options#colour");
     root.domElement.id = "colourFolder";
     root.domElement.classList.add("viewsFolder");
@@ -2945,7 +2947,7 @@ import { createWelcomeTour } from "./tours.js";
       ["wide"],
     );
 
-    root = editViewFolder.addFolder("Contours");
+    root = editViewFolder.addFolder("Contour options");
     addInfoButton(root, "/user-guide/advanced-options#contours");
     root.domElement.id = "contoursFolder";
     root.domElement.classList.add("viewsFolder");
@@ -2954,7 +2956,7 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       contoursButtonList,
       "contours",
-      "Enabled",
+      `<i class="fa-solid fa-circle-check"></i> Enabled`,
       function () {
         setDisplayColourAndType();
         renderIfNotRunning();
@@ -2995,7 +2997,7 @@ import { createWelcomeTour } from "./tours.js";
     createOptionSlider(controllers["contourEpsilon"], 0.001, 0.05, 0.001);
     contoursControllers.push(controllers["contourEpsilon"]);
 
-    root = editViewFolder.addFolder("Lighting");
+    root = editViewFolder.addFolder("Lighting options");
     addInfoButton(root, "/user-guide/advanced-options#lighting");
     root.domElement.id = "embossFolder";
     root.domElement.classList.add("viewsFolder");
@@ -3004,7 +3006,7 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       embossButtonList,
       "emboss",
-      "Enabled",
+      `<i class="fa-solid fa-circle-check"></i> Enabled`,
       function () {
         setDisplayColourAndType();
         renderIfNotRunning();
@@ -3091,7 +3093,7 @@ import { createWelcomeTour } from "./tours.js";
     createOptionSlider(controllers["embossPhi"], 0, 3.1456, 0.001);
     embossControllers.push(controllers["embossPhi"]);
 
-    root = editViewFolder.addFolder("Overlay");
+    root = editViewFolder.addFolder("Overlay options");
     addInfoButton(root, "/user-guide/advanced-options#overlay");
     root.domElement.id = "overlayFolder";
     root.domElement.classList.add("viewsFolder");
@@ -3100,7 +3102,7 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       overlayButtonList,
       "overlay",
-      "Enabled",
+      `<i class="fa-solid fa-circle-check"></i> Enabled`,
       function () {
         setDisplayColourAndType();
         renderIfNotRunning();
@@ -3148,7 +3150,8 @@ import { createWelcomeTour } from "./tours.js";
         updateView(this.property);
       });
 
-    linesAnd3DFolder = editViewFolder.addFolder("3D");
+    linesAnd3DFolder = editViewFolder.addFolder("3D options");
+    linesAnd3DFolder.domElement.id = "linesAnd3DFolder";
     root = linesAnd3DFolder;
     addInfoButton(root, "/user-guide/advanced-options#3d-options");
 
@@ -3224,7 +3227,7 @@ import { createWelcomeTour } from "./tours.js";
         updateView(this.property);
       });
 
-    vectorFieldFolder = editViewFolder.addFolder("Vector field");
+    vectorFieldFolder = editViewFolder.addFolder("Vector field options");
     root = vectorFieldFolder;
     addInfoButton(root, "/user-guide/advanced-options#vector-field");
     root.domElement.id = "vectorFieldFolder";
@@ -3234,7 +3237,7 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       vectorFieldButtons,
       "vectorField",
-      "Enabled",
+      `<i class="fa-solid fa-circle-check"></i> Enabled`,
       function () {
         configureVectorField();
         renderIfNotRunning();
@@ -3306,7 +3309,7 @@ import { createWelcomeTour } from "./tours.js";
       })
       .name("Max length");
 
-    root = editViewFolder.addFolder("Time series");
+    root = editViewFolder.addFolder("Time series options");
     addInfoButton(root, "/user-guide/advanced-options#timeseries");
     root.domElement.id = "probeFolder";
     root.domElement.classList.add("viewsFolder");
@@ -3315,7 +3318,7 @@ import { createWelcomeTour } from "./tours.js";
     addToggle(
       probeTopButtons,
       "probing",
-      "Enabled",
+      `<i class="fa-solid fa-circle-check"></i> Enabled`,
       function () {
         configureProbe();
         renderIfNotRunning();
@@ -3432,8 +3435,21 @@ import { createWelcomeTour } from "./tours.js";
       ["wide"],
     );
 
-    // Default to having colour be checked automatically.
-    effectsButtons.submenuToggles[0].click();
+    threeDFolderButton = addViewsSubmenuToggle(
+      effectsButtons,
+      '<i class="fa-solid fa-cube"></i> 3D',
+      "Show 3D options",
+      "linesAnd3DFolder",
+      ["wide"],
+    );
+
+    linesFolderButton = addViewsSubmenuToggle(
+      effectsButtons,
+      '<i class="fa-solid fa-bezier-curve"></i> Line',
+      "Show line options",
+      "linesAnd3DFolder",
+      ["wide"],
+    );
 
     // ComboBCs GUI.
     // Add a title to the comboBCs GUI.
@@ -5949,6 +5965,8 @@ import { createWelcomeTour } from "./tours.js";
       $("#vectorFieldButton").hide();
       linesAnd3DFolder.name = "3D options";
       linesAnd3DFolder.domElement.classList.remove("hidden");
+      threeDFolderButton.classList.remove("hidden");
+      linesFolderButton.classList.add("hidden");
       controllers["lineWidthMul"].hide();
       controllers["threeDHeightScale"].show();
       controllers["cameraTheta"].show();
@@ -5962,6 +5980,8 @@ import { createWelcomeTour } from "./tours.js";
       $("#vectorFieldButton").hide();
       linesAnd3DFolder.name = "Line options";
       linesAnd3DFolder.domElement.classList.remove("hidden");
+      threeDFolderButton.classList.add("hidden");
+      linesFolderButton.classList.remove("hidden");
       controllers["lineWidthMul"].show();
       controllers["threeDHeightScale"].show();
       controllers["cameraTheta"].hide();
@@ -5973,6 +5993,8 @@ import { createWelcomeTour } from "./tours.js";
       $("#embossButton").show();
       $("#vectorFieldButton").show();
       linesAnd3DFolder.domElement.classList.add("hidden");
+      threeDFolderButton.classList.add("hidden");
+      linesFolderButton.classList.add("hidden");
       controllers["lineWidthMul"].hide();
       controllers["threeDHeightScale"].hide();
       controllers["cameraTheta"].hide();
