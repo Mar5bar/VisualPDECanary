@@ -921,6 +921,12 @@ input.reversed {
   }
 }
 
+vpde-chart {
+  display: block;
+  margin: auto;
+  max-width: 100%;
+}
+
 #search-button {
   display: flex;
   float: right;

@@ -143,7 +143,7 @@ presets["bacteriaInAReach"] = {
   dimension: "1",
   domainScale: "320",
   dt: 0.01,
-  initCond_1: "c0",
+  initCond_1: "0",
   initCond_2: "0",
   kineticParams:
     "c0 = 0.77 in [0, 1];k = 0.006 in [0, 0.1];u = 0.62 in [0.1, 2];",
@@ -151,6 +151,8 @@ presets["bacteriaInAReach"] = {
   numSpecies: 1,
   plotType: "line",
   preset: "bacteriaInAReach",
+  probeType: "sample",
+  probeX: "0.99*L_x",
   reactionStr_1: "-u*C_xb - k*C",
   reactionStr_2: "0",
   simTitle: "Modelling bacteria in a reach",
