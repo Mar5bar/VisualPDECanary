@@ -143,6 +143,7 @@ presets["bacteriaInAReach"] = {
   dimension: "1",
   domainScale: "320",
   dt: 0.01,
+  initCond_1: "c0",
   initCond_2: "0",
   kineticParams:
     "c0 = 0.77 in [0, 1];k = 0.006 in [0, 0.1];u = 0.62 in [0.1, 2];",

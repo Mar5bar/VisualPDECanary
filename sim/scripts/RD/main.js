@@ -132,7 +132,7 @@ import { createWelcomeTour } from "./tours.js";
     funsObj,
     savedOptions,
     comboBCsOptions = { type: "", value: "", open: false },
-    localOpts = {id: null};
+    localOpts = { id: null };
   let leftGUI,
     rightGUI,
     viewsGUI,
@@ -5980,7 +5980,6 @@ import { createWelcomeTour } from "./tours.js";
       $("#embossButton").show();
       $("#vectorFieldButton").hide();
       linesAnd3DFolder.name = "3D options";
-      linesAnd3DFolder.domElement.classList.remove("hidden");
       threeDFolderButton.classList.remove("hidden");
       linesFolderButton.classList.add("hidden");
       controllers["lineWidthMul"].hide();
@@ -5995,7 +5994,6 @@ import { createWelcomeTour } from "./tours.js";
       $("#embossButton").hide();
       $("#vectorFieldButton").hide();
       linesAnd3DFolder.name = "Line options";
-      linesAnd3DFolder.domElement.classList.remove("hidden");
       threeDFolderButton.classList.add("hidden");
       linesFolderButton.classList.remove("hidden");
       controllers["lineWidthMul"].show();
@@ -6008,7 +6006,6 @@ import { createWelcomeTour } from "./tours.js";
       $("#contourButton").show();
       $("#embossButton").show();
       $("#vectorFieldButton").show();
-      linesAnd3DFolder.domElement.classList.add("hidden");
       threeDFolderButton.classList.add("hidden");
       linesFolderButton.classList.add("hidden");
       controllers["lineWidthMul"].hide();
