@@ -43,7 +43,7 @@ jobs:
         run: |
           npm install -g terser
           find . -name "*.js" | while read file; do
-            terser --compress --mangle --module --output "$file" -- "$file"
+            terser --compress --mangle --keep-classnames --module --output "$file" -- "$file"
           done
         working-directory: ./sim/scripts/
       - name: Webpack simulation scripts
