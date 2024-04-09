@@ -129,6 +129,11 @@ presets["dynamicalSystemsVisualisationTopography"] = {
   whatToPlot: "c",
 };
 
+presets["bacteriaInAReachOscillatoryDecay"] = {
+  parent: "bacteriaInAReach",
+  reactionStr_1: "-u*C_xb - k*C*(1 + 0.9*sin(t/30))",
+};
+
 presets["bacteriaInAReach"] = {
   boundaryConditions_1: "combo",
   brushAction: "smoothadd",
@@ -146,7 +151,7 @@ presets["bacteriaInAReach"] = {
   initCond_1: "0",
   initCond_2: "0",
   kineticParams:
-    "c0 = 0.77 in [0, 1];k = 0.006 in [0, 0.1];u = 0.62 in [0.1, 2];",
+    "c0 = 0.77 in [0, 1];k = 0.006 in [0, 0.1];u = 0.62 in [0.1, 4];",
   maxColourValue: "1",
   numSpecies: 1,
   plotType: "line",
