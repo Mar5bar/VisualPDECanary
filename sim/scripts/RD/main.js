@@ -6631,6 +6631,7 @@ import { createWelcomeTour } from "./tours.js";
     str = replaceFunctionInTeX(str, "max", true);
     str = replaceFunctionInTeX(str, "min", true);
     str = replaceFunctionInTeX(str, "ind", true);
+    str = replaceFunctionInTeX(str, "abs", false);
 
     // Remove *, unless between two numbers or followed by + or -, in which case insert \times.
     while (
