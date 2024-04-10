@@ -10381,7 +10381,7 @@ import { createWelcomeTour } from "./tours.js";
     );
 
     // Replace Bump(mean, radius) with Bump(x, y, mean, mean, radius).
-    str = str.replaceAll(/\bBump\(([^,]*),([^,]*)\)/g, "Bump(x,y,$1,$1,$2)");
+    str = str.replaceAll(/\bBump\(([^,]*),([^,]*)\)/g, "Bump(x,y,$1,0,$2)");
 
     return str;
   }
