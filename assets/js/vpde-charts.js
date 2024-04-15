@@ -51,7 +51,7 @@
       // Create a container, a canvas object, and a chart attached to the canvas.
       const container = document.createElement("div");
       container.classList.add("vpde-chart-container");
-      container.setAttribute("style", this.getAttribute("style") || "");
+      container.setAttribute("style", this.getAttribute("style") || "position:relative");
       this.appendChild(container);
 
       const canvas = document.createElement("canvas");
@@ -60,7 +60,7 @@
       const chart = new Chart(canvas, {
         type: "line",
         options: {
-          borderWidth: 2.5,
+          borderWidth: parseFloat(this.getAttribute("borderWidth")) || 2.5,
           borderColor:
             getComputedStyle(document.documentElement).getPropertyValue(
               "--link-color",
@@ -105,9 +105,11 @@
           datasets: [{ data: [], pointStyle: false }],
         },
       });
-      chart.limMax = -Infinity;
-      chart.limMin = Infinity;
+      chart.limMax = this.getAttribute("ymax") || -Infinity;
+      chart.limMin = this.getAttribute("ymin") || Infinity;
       chart.dataStore = [];
+      if (this.getAttribute("yticks") && this.getAttribute("yticks") == "false")
+        chart.options.scales.y.ticks.display = false;
 
       // Listen for the data from the simulation.
       window.addEventListener("message", (event) => {
@@ -143,6 +145,16 @@
         "position: absolute;bottom: 4px;left: 50%;transform: translateX(-50%);font-size: 0.8rem;",
       );
       container.appendChild(xLabelEl);
+
+      // Add an optional label for the y-axis.
+      const yLabel = this.getAttribute("ylabel") || "";
+      const yLabelEl = document.createElement("div");
+      yLabelEl.innerHTML = yLabel;
+      yLabelEl.setAttribute(
+        "style",
+        "position: absolute;left: -18px;top: 50%;transform: translateY(-50%) rotate(180deg);font-size: 0.8rem;writing-mode: vertical-rl;",
+      );
+      container.appendChild(yLabelEl);
     }
 
     // Send the ID of the simulation to the associated simulations.

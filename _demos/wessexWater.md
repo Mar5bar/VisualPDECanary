@@ -16,9 +16,9 @@ All styling and layout is incredibly basic and placeholder; I expect to spend a 
 
 ## A very customisable simulation
 
-The simulation below is a simple model of bacteria transport along a river. The user can change the initial concentration of bacteria at the inlet (LHS), the rate at which the bacteria decay, and the speed of the flow. The simulation is interactive, and the user can change the parameters using the sliders below the simulation.
+The simulation below is a simple model of bacteria transport along a river. The user can change the initial concentration of bacteria at the inlet (inlet/source = LHS), the rate at which the bacteria decay, and the speed of the flow. The simulation is interactive, and the user can change the parameters using the sliders below the simulation.
 
-It is possible (and straightforward) to have multiple simulations (with different parameters) running side-by-side. This could let us illustrate differences without having a user tweak sliders - perhaps useful for some topics?
+It is possible (and straightforward) to have multiple simulations (with different parameters) running side-by-side. This could let us illustrate differences without having a user tweak sliders - perhaps useful for some topics.
 
 <iframe class="sim" id="simA" src="/sim/?preset=bacteriaInAReach&story&lite&sf=1&clean&probing=true" frameborder="0" loading="lazy"></iframe>
 <p style="text-align:center;margin-top:0;"><vpde-slider
@@ -57,12 +57,22 @@ It is possible (and straightforward) to have multiple simulations (with differen
 
 ## Tracking quantities over time
 
-We can track a range of quantities from the simulation over time in a separate chart. This could be, say, the concentration of bacteria at the outlet of the river over time, or the total amount of bacteria in the river etc. This allows us to e.g.
+We can track a range of quantities from the simulation over time in a separate chart. This could be, say, the concentration of bacteria at the outlet of the river over time (shown in the example graph below), or the total amount of bacteria in the river etc. This allows us to e.g.
 
 1. see how quickly the bacteria are flushed out of the river, and how this changes with flow speed,
-1. talk about the source apportionment problem. For instance, we could have two side-by-side simulations with sources at different points upstream. They each generate downstream graphs, which would turn out to be the same but shifted in time. The big question to highlight here is how can we tell where the bacteria came from? There's no way to do this just from this information, so we are investing into research towards high-tech measurement devices that can take into account chemical markers to identify different sources, for instance.
+1. talk about the source apportionment problem. For instance: *we could have two side-by-side simulations with sources at different points upstream. They each generate downstream graphs, which would turn out to be the same but shifted in time. The big question to highlight here is how can we tell where the bacteria came from? There's no way to do this just from this information, so we are investing into research towards high-tech measurement devices that can take into account chemical markers to identify different sources, for instance.*
 
-<vpde-chart iframe="simA"> </vpde-chart>
+<iframe class="sim" id="simE" src="/sim/?preset=bacteriaInAReachOscillatoryDecay&story&lite&sf=1&clean&probing=true" frameborder="0" loading="lazy"></iframe><vpde-chart iframe="simE" ymin="0" ymax="0.7" ylabel="Outlet"> </vpde-chart><p style="display:none"><vpde-slider
+    iframe="simE"
+    name="u"
+    label="Flow"
+    min="0.1"
+    max="4"
+    value="4"
+    step="0.01"
+    min-label="Low"
+    max-label="High"
+></vpde-slider></p>
 
 ## The science of prediction (flow rate only)
 
@@ -72,7 +82,7 @@ Rivers transport a variety of materials downstream, ranging from objects like ro
 
 A big scientific challenge we face is prediction: if we know some information about the river now, what can we say about the river after a few hours or days? Here, we've put together a simulation[^1] with [VisualPDE](https://visualpde.com) that lets us explore a key part of that challenge: flow rate.
 
-In the box below, we're simulating the concentration of bacteria in a river from a source (left) as it is swept downstream (from left to right) by the flow. This is plotted on the vertical axis (higher is more) and also shown as colour. At any time, you can click to add bacteria to the river and watch it get carried downstream (drag to add more).
+In the box below, we're simulating the concentration of bacteria in a river from a source (left) as it is swept downstream (from left to right) by the flow. This is plotted on the vertical axis (higher is more) and also shown as colour. At any time, you can click to add bacteria to the river and watch it get carried downstream (drag to add more). ***The simulation could have 'upstream' and 'downstream' labels at the sides to make it clear to readers***
 
 <iframe class="sim" id="simB" src="/sim/?preset=bacteriaInAReach&story&lite&sf=1&clean&colourbar=true" frameborder="0" loading="lazy"></iframe>
 <p style="text-align:center;margin-top:0;"><vpde-slider
@@ -149,3 +159,5 @@ It turns out that the problem is even more complex than this. As the decay rate 
 The picture is now much more complicated, making the problem of prediction even more challenging. At Wessex Water, we include the effects of hourly and seasonal variations in lots of our river modelling, and are working with leading researchers to increase the level of detail included in our predictions and modelling.
 
 Enjoyed this Science Snapshot? Check out our other Snapshots at (link).
+
+### Footnotes
