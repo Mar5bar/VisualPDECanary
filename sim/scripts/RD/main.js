@@ -5438,13 +5438,16 @@ import { createWelcomeTour } from "./tours.js";
       controllers["qBCs"],
     ];
     if (options.domainViaIndicatorFun) {
-      BCsControllers.forEach((cont) =>
+      BCsControllers.forEach((cont) => {
         updateGUIDropdown(
           cont,
           ["Dirichlet", "Neumann", "Robin"],
           ["dirichlet", "neumann", "robin"],
-        ),
-      );
+        );
+        cont.domElement
+          .getElementsByClassName("combo-bcs")[0]
+          .classList.add("hidden");
+      });
     } else {
       BCsControllers.forEach((cont) =>
         updateGUIDropdown(
