@@ -3765,6 +3765,24 @@ presets["Alan"] = {
   whatToPlot: "u",
 };
 
+presets["heatEquationDrawDomain"] = {
+  boundaryConditions_1: "dirichlet",
+  boundaryConditions_2: "dirichlet",
+  brushRadius: "20",
+  dirichletStr_1:
+    "ind(y>0.99*L_y || y<0.01*L_y || x > 0.99*L_x || x < 0.01*L_x)",
+  dirichletStr_2: "1",
+  domainIndicatorFun: "d < 0.01",
+  domainViaIndicatorFun: true,
+  numSpecies: "2",
+  parent: "heatEquation",
+  probeFun: "T",
+  probeLength: 300,
+  speciesNames: "T d",
+  whatToDraw: "d",
+  preset: "heatEquationDrawDomain",
+};
+
 presets["heatEquation"] = {
   boundaryConditions_1: "neumann",
   brushRadius: 20,
@@ -4551,7 +4569,6 @@ export function getUserTextFields() {
     "domainIndicatorFun",
     "overlayExpr",
     "probeFun",
-    "probeLength",
     "probeX",
     "probeY",
     "neumannStr_1",
