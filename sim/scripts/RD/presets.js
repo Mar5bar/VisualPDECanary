@@ -2,6 +2,42 @@
 
 let presets = {};
 
+presets["forestFires"] = {
+  brushAction: "smoothadd",
+  crossDiffusion: true,
+  diffusionStr_1_1: "k",
+  diffusionStr_2_2: "0",
+  kineticParams:
+    "k = 0.001;A = 0.1;B = 0.1;C = 0.01;C_S = 0.01;V = 0.0000 in [0, 0.003];",
+  numAlgebraicSpecies: 2,
+  numSpecies: 4,
+  preset: "forestFires",
+  reactionStr_1: "-(u*T_x + v*T_y) + A*(S*exp(-B/abs(T)) - C*T)",
+  reactionStr_2: "-C_S*S*exp(-B/abs(T))*ind(T>0)",
+  reactionStr_3: "V",
+  spatialStep: "2",
+  speciesNames: "T S u v",
+  views: [
+    {
+      colourmap: "lavaflow",
+      flippedColourmap: false,
+      maxColourValue: "7.772217273712158",
+      whatToPlot: "T",
+      name: "Temperature",
+    },
+    {
+      colourmap: "retro",
+      flippedColourmap: true,
+      maxColourValue: "1",
+      whatToPlot: "S",
+      name: "Fuel",
+    },
+  ],
+  whatToDraw: "T",
+  simTitle: "Forest fires",
+};
+
+
 presets["maskFrontFaceBreathing"] = {
   kineticParams:
     "k = 8.000 in [0.25, 8];mu = 1.0 in [0, 1];y_offset = 0.22;f = 1/500;s = 0.025 in [0,0.05];",
