@@ -3806,7 +3806,7 @@ presets["heatEquationDrawDomain"] = {
   boundaryConditions_2: "dirichlet",
   brushRadius: "20",
   dirichletStr_1:
-    "ind(y>0.99*L_y || y<0.01*L_y || x > 0.99*L_x || x < 0.01*L_x)",
+    "1*exterior + 0*interior",
   dirichletStr_2: "1",
   domainIndicatorFun: "d < 0.01",
   domainViaIndicatorFun: true,
