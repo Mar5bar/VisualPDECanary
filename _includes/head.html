@@ -24,13 +24,14 @@
   {% if page.title != "VisualPDE" %}
     {% assign title = page.title | append: ' | VisualPDE' %}
   {% endif %}
+  <meta name="description" content="{{ page.extract | default: 'VisualPDE brings cutting-edge science and mathematics to a wider audience through real-time interactive web-based simulations on almost any device. Explore a range of topics, including waves, viruses and reaction—diffusion equations, or create your own simulation.' }}" />
   <meta name="twitter:site:id" content="@visualpde" /> 
   <meta name="twitter:title" content="{{ title | default: 'VisualPDE' }}" /> 
-  <meta name="twitter:description" content="{{ page.extract | default: 'VisualPDE brings the world of partial differential equations to a wider audience through real-time interactive web-based simulations on almost any device.' }}" /> 
+  <meta name="twitter:description" content="{{ page.extract | default: 'VisualPDE brings cutting-edge science and mathematics to a wider audience through real-time interactive web-based simulations on almost any device. Explore a range of topics, including waves, viruses and reaction—diffusion equations, or create your own simulation.' }}" /> 
   <meta name="twitter:image" content="{{ site.url }}{{ page.thumbnail | default: '/assets/favicons/twitter-icon.webp' }}" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="{{ title | default: 'VisualPDE' }}" />
-  <meta property="og:description" content="{{ page.extract | default: 'VisualPDE brings the world of partial differential equations to a wider audience through real-time interactive web-based simulations on almost any device.' }}" />
+  <meta property="og:description" content="{{ page.extract | default: 'VisualPDE brings cutting-edge science and mathematics to a wider audience through real-time interactive web-based simulations on almost any device. Explore a range of topics, including waves, viruses and reaction—diffusion equations, or create your own simulation.' }}" />
   <meta property="og:image" content="{{ site.url }}{{ page.thumbnail | default: '/assets/favicons/android-chrome-1200x630.webp' }}" />
   <meta property="og:url" content="https://visualpde.com" />
   <meta property="og:site_name" content="VisualPDE" />
