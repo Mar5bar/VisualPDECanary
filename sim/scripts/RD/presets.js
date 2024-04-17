@@ -37,7 +37,6 @@ presets["forestFires"] = {
   simTitle: "Forest fires",
 };
 
-
 presets["maskFrontFaceBreathing"] = {
   kineticParams:
     "k = 8.000 in [0.25, 8];mu = 1.0 in [0, 1];y_offset = 0.22;f = 1/500;s = 0.025 in [0,0.05];",
