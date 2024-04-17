@@ -11,6 +11,7 @@ presets["forestFires"] = {
     "k = 0.001;A = 0.1;B = 0.1;C = 0.01;C_S = 0.01;V = 0.0000 in [0, 0.003];",
   numAlgebraicSpecies: 2,
   numSpecies: 4,
+  parent: "grayScott",
   preset: "forestFires",
   reactionStr_1: "-(u*T_x + v*T_y) + A*(S*exp(-B/abs(T)) - C*T)",
   reactionStr_2: "-C_S*S*exp(-B/abs(T))*ind(T>0)",
@@ -36,7 +37,6 @@ presets["forestFires"] = {
   whatToDraw: "T",
   simTitle: "Forest fires",
 };
-
 
 presets["maskFrontFaceBreathing"] = {
   kineticParams:
