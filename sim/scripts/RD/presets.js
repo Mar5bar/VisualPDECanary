@@ -3810,7 +3810,7 @@ presets["heatEquationDrawDomain"] = {
   dirichletStr_2: "1",
   domainIndicatorFun: "d < 0.01",
   domainViaIndicatorFun: true,
-  numSpecies: "2",
+  numSpecies: 2,
   parent: "heatEquation",
   probeFun: "T",
   probeLength: 300,

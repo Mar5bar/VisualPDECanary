@@ -5130,7 +5130,6 @@ import { createWelcomeTour } from "./tours.js";
 
     // Set custom species names and reaction names.
     setCustomNames();
-
     // Ensure that the correct play/pause button is showing.
     isRunning ? playSim() : pauseSim();
 
@@ -9306,6 +9305,8 @@ import { createWelcomeTour } from "./tours.js";
     // First, get the options that differ from the default.
     let objDiff = diffObjects(options, getPreset("default"));
     objDiff.preset = "Custom";
+    // Remove any parents so that loading happens from the default sim.
+    delete objDiff.parent;
     // Minify the field names in order to generate shorter URLs.
     objDiff = minifyPreset(objDiff);
     let str = [

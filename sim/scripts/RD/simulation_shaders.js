@@ -79,7 +79,7 @@ export function RDShaderTop(type) {
         float x = textureCoords.x * L_x + MINX;
         float y = textureCoords.y * L_y + MINY;
         float interior = float(textureCoords.x > 0.75*step_x && textureCoords.x < 1.0 - 0.75*step_x && textureCoords.y > 0.5*step_y && textureCoords.y < 1.0 - 0.75*step_y);
-        float boundary = 1.0 - interior;
+        float exterior = 1.0 - interior;
         vec2 dSquared = 1.0/vec2(dx*dx, dy*dy);
         vec2 textureCoordsL = textureCoords + vec2(-step_x, 0.0);
         vec2 textureCoordsLL = textureCoordsL + vec2(-step_x, 0.0);
@@ -230,7 +230,7 @@ export function RDShaderMain(type) {
       float x = textureCoords.x * L_x + MINX;
       float y = textureCoords.y * L_y + MINY;
       float interior = float(textureCoords.x > 0.75*step_x && textureCoords.x < 1.0 - 0.75*step_x && textureCoords.y > 0.5*step_y && textureCoords.y < 1.0 - 0.75*step_y);
-      float boundary = 1.0 - interior;
+      float exterior = 1.0 - interior;
 
       vec2 textureCoordsL = textureCoords + vec2(-step_x, 0.0);
       vec2 textureCoordsLL = textureCoordsL + vec2(-step_x, 0.0);
@@ -767,7 +767,7 @@ export function RDShaderEnforceDirichletTop() {
         float x = textureCoords.x * L_x + MINX;
         float y = textureCoords.y * L_y + MINY;
         float interior = float(textureCoords.x > 0.75*step_x && textureCoords.x < 1.0 - 0.75*step_x && textureCoords.y > 0.5*step_y && textureCoords.y < 1.0 - 0.75*step_y);
-        float boundary = 1.0 - interior;
+        float exterior = 1.0 - interior;
 
         vec4 uvwq = texture2D(textureSource, textureCoords);
         gl_FragColor = uvwq;
