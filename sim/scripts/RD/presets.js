@@ -51,8 +51,6 @@ presets["ducks"] = {
   simTitle: "Ducks",
 };
 
-
-
 presets["forestFires"] = {
   brushAction: "smoothadd",
   crossDiffusion: true,
