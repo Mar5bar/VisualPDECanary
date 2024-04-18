@@ -4458,6 +4458,9 @@ import { createWelcomeTour } from "./tours.js";
     // Replace 'ind' with 'float' to cast the argument as a float.
     str = str.replaceAll(/\bind\b/g, "float");
 
+    // Insert MINX and MINY.
+    str = replaceMINXMINY(str);
+
     return str;
   }
 

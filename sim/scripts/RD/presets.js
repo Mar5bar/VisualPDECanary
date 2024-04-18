@@ -2,6 +2,57 @@
 
 let presets = {};
 
+presets["ducks"] = {
+  arrowColour: 1083014,
+  arrowX: "u",
+  arrowY: "v",
+  brushAction: "smoothadd",
+  brushValue: "0.1",
+  colourmap: "chemicalBlue",
+  contours: true,
+  contourNum: 1,
+  crossDiffusion: true,
+  diffusionStr_1_1: "0.01",
+  diffusionStr_2_2: "0",
+  domainScale: "100",
+  dt: 0.005,
+  imagePathOne: "./images/world_map.png",
+  imagePathTwo: "./images/world_flow.png",
+  initCond_1: "0",
+  initCond_2: "0",
+  kineticParams: "",
+  maxColourValue: "1.1202512979507446",
+  minColourValue: "-0.0007872119313105941",
+  minX: "-L_x/2",
+  minY: "-L_y/2",
+  numAlgebraicSpecies: 2,
+  numSpecies: 3,
+  overlay: true,
+  overlayColour: 7697781,
+  overlayExpr: "1-I_S",
+  preset: "ducks",
+  probeFun: "d",
+  probeLength: 150,
+  resetOnImageLoad: true,
+  renderSize: 1024,
+  reactionStr_1:
+    "-(u*d_x +v*d_y) - d*(u_x + v_y) - ind(I_S==1)*d + Bump(-L_x/2,-L_y/4,L/20)",
+  reactionStr_2: "I_TR-0.5",
+  reactionStr_3: "I_TG-0.5",
+  spatialStep: "0.2",
+  speciesNames: "d u v",
+  views: [
+    {
+      name: "🦆",
+    },
+  ],
+  whatToDraw: "d",
+  whatToPlot: "d",
+  simTitle: "Ducks",
+};
+
+
+
 presets["forestFires"] = {
   brushAction: "smoothadd",
   crossDiffusion: true,
