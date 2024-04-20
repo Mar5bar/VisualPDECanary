@@ -7363,14 +7363,23 @@ import { createWelcomeTour } from "./tours.js";
   function hitNaN() {
     shouldCheckNaN = false;
     if ($("#oops_hit_nan").is(":visible")) return;
+    if (!shouldShowErrors()) {
+      resetSim();
+      restartNaNChecking();
+      return;
+    }
     fadein("#oops_hit_nan");
     pauseSim();
     $("#erase").one("pointerdown", function () {
       fadeout("#oops_hit_nan");
-      shouldCheckNaN = true;
-      window.clearTimeout(NaNTimer);
-      NaNTimer = setTimeout(checkForNaN, 1000);
+      restartNaNChecking();
     });
+  }
+
+  function restartNaNChecking() {
+    shouldCheckNaN = true;
+    window.clearTimeout(NaNTimer);
+    NaNTimer = setTimeout(checkForNaN, 1000);
   }
 
   function fillBuffer() {
@@ -8589,6 +8598,7 @@ import { createWelcomeTour } from "./tours.js";
    * @param {string} message - The error message to display.
    */
   function throwError(message) {
+    if (!shouldShowErrors()) return;
     pauseSim();
     // If we're loading in, don't overwrite previous errors.
     if (isLoading && hasErrored) return;
@@ -8603,6 +8613,10 @@ import { createWelcomeTour } from "./tours.js";
       $("#error_description").html(message);
       fadein("#error");
     }
+  }
+
+  function shouldShowErrors() {
+    return !(cleanDisplay || uiHidden || logo_only || isStory);
   }
 
   /**
