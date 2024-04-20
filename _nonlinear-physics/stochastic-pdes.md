@@ -11,7 +11,7 @@ equation: $\pd{u}{t}=D\nabla^2 u +f(u)+\frac{dW_t}{dt}$
 
 # Stochastic pattern formation
 
-First we consider a stochastic version of the [Gray–Scott model](/nonlinear-physics/gray-scott) given by
+We consider a stochastic version of the [Gray–Scott model](/nonlinear-physics/gray-scott) given by
 
 $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+u^2v - (a+b)u+\sigma\diff{W_t}{t}u,\\ \pd{v}{t}&=D\nabla^2v-u^2v + a(1 - v),\end{aligned}$$
 
