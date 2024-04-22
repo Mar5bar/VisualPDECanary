@@ -16,9 +16,9 @@ All styling and layout is incredibly basic and placeholder; I expect to spend a 
 
 ## A very customisable simulation
 
-The simulation below is a simple model of bacteria transport along a river. The user can change the initial concentration of bacteria at the inlet (inlet/source = LHS), the rate at which the bacteria decay, and the speed of the flow. The simulation is interactive, and the user can change the parameters using the sliders below the simulation.
+The simulation below is a simple model of bacteria transport along a river. The user can change the initial concentration of bacteria at the inlet on the left, the rate at which the bacteria decay, and the speed of the flow. The simulation is interactive, and the user can change the parameters using the sliders below the simulation.
 
-It is possible (and straightforward) to have multiple simulations (with different parameters) running side-by-side. This could let us illustrate differences without having a user tweak sliders - perhaps useful for some topics.
+It is possible (and straightforward) to have multiple simulations (with different parameters) running side-by-side. This could allow us to illustrate differences without having a user tweak sliders - perhaps useful for some topics.
 
 <iframe class="sim" id="simA" src="/sim/?preset=bacteriaInAReach&story&lite&sf=1&clean&probing=true" frameborder="0" loading="lazy"></iframe>
 <p style="text-align:center;margin-top:0;"><vpde-slider
@@ -57,10 +57,10 @@ It is possible (and straightforward) to have multiple simulations (with differen
 
 ## Tracking quantities over time
 
-We can track a range of quantities from the simulation over time in a separate chart. This could be, say, the concentration of bacteria at the outlet of the river over time (shown in the example graph below), or the total amount of bacteria in the river etc. This allows us to e.g.
+We can track a range of quantities from the simulation over time in a separate chart. This could be, say, the concentration of bacteria at the outlet of the river over time (shown in the example graph below), or the total amount of bacteria in the river etc. This allows us to, for example,
 
 1. see how quickly the bacteria are flushed out of the river, and how this changes with flow speed,
-1. talk about the source apportionment problem. For instance: *we could have two side-by-side simulations with sources at different points upstream. They each generate downstream graphs, which would turn out to be the same but shifted in time. The big question to highlight here is how can we tell where the bacteria came from? There's no way to do this just from this information, so we are investing into research towards high-tech measurement devices that can take into account chemical markers to identify different sources, for instance.*
+1. talk about the source apportionment problem. For instance: *we could have two side-by-side simulations with sources at different points upstream. They each generate downstream graphs, which would turn out to be the same but shifted in time. The big question to highlight here is how can we tell where the bacteria came from? It's not clear how to do this using industry-standard sensors, so we are investing in research towards high-tech measurement devices that can take into account chemical markers to identify different sources, for instance.*
 
 <iframe class="sim" id="simE" src="/sim/?preset=bacteriaInAReachOscillatoryDecay&story&lite&sf=1&clean&probing=true" frameborder="0" loading="lazy"></iframe><vpde-chart iframe="simE" ymin="0" ymax="0.7" ylabel="Outlet"> </vpde-chart><p style="display:none"><vpde-slider
     iframe="simE"
@@ -76,7 +76,7 @@ We can track a range of quantities from the simulation over time in a separate c
 
 ## The science of prediction (flow rate only)
 
-**_This is an example of a short post that invites people to play with a simple river simulation and get an idea for one aspect of the challenges faced by WW. It can be easily extended to include bacteria decay rate (potentially including day-night cycles) if a longer post is wanted, though I expect that short and 'snappy' might be preferable?_**
+**_This is an example of a short post that invites people to play with a simple river simulation and get an idea for one aspect of the challenges faced by WW. It can be easily extended to include bacteria decay rate (potentially including day-night cycles) if a longer post is wanted. It might be the case that short and 'snappy' will be preferable._**
 
 Rivers transport a variety of materials downstream, ranging from objects like rocks and stones down to chemicals (such as phosphorous) and bacteria. At Wessex Water, we actively monitor the amount of various materials in rivers, which allows us to provide guidance for public bathing, for instance.
 
