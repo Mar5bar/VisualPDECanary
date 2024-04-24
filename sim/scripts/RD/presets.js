@@ -31,8 +31,6 @@ presets["IMILogo"] = {
   simTitle: "Institute for Mathematical Innovation, University of Bath",
 };
 
-
-
 presets["ducksSource"] = {
   brushAction: "replace",
   brushRadius: "1",
