@@ -2,6 +2,37 @@
 
 let presets = {};
 
+presets["IMILogo"] = {
+  brushEnabled: false,
+  brushRadius: "2",
+  colourmap: "water",
+  diffusionStr_1_1: "0.042",
+  diffusionStr_2_2: "2",
+  domainScale: "100",
+  dt: 0.001,
+  imagePathOne: "./images/IMI_logo.png",
+  initCond_1: "Bump(0,0,L/40)",
+  kineticParams: "",
+  maxColourValue: "3",
+  minColourValue: "-2",
+  minX: "-L_x/2",
+  minY: "-L_y/2",
+  numTimestepsPerFrame: 200,
+  preset: "IMILogo",
+  probeFun: "u",
+  probeLength: 60,
+  resetOnImageLoad: true,
+  renderSize: 652,
+  reactionStr_1: "- u*(1-0.9*I_S)+ u^2*v",
+  reactionStr_2: "0.3 - u^2*v",
+  spatialStep: "0.2",
+  squareCanvas: true,
+  whatToPlot: "-u",
+  simTitle: "Institute for Mathematical Innovation, University of Bath",
+};
+
+
+
 presets["ducksSource"] = {
   brushAction: "replace",
   brushRadius: "1",
@@ -43,7 +74,6 @@ presets["ducks"] = {
   overlayExpr: "1-I_S",
   preset: "ducks",
   probeFun: "d",
-  probeLength: 150,
   resetOnImageLoad: true,
   renderSize: 1024,
   reactionStr_1:
@@ -4594,10 +4624,10 @@ presets["default"] = {
 export function getPreset(id) {
   // Case insensitive lookup.
   const lowerCasePresets = lowerCaseKeys(presets);
-  if (id == null || id == undefined) return presets["GrayScott"];
+  if (id == null || id == undefined) return presets["default"];
   id = id.toLowerCase();
   if (lowerCasePresets.hasOwnProperty(id)) return lowerCasePresets[id];
-  return presets["GrayScott"];
+  return presets["default"];
 }
 
 export function getListOfPresetNames() {
