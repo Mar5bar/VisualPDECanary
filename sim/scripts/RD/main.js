@@ -2838,10 +2838,10 @@ import { createWelcomeTour } from "./tours.js";
       .add(options, "colourmap", {
         BlckGrnYllwRdWht: "BlackGreenYellowRedWhite",
         "Blue-Magenta": "blue-magenta",
-        "Chemical (green)": "chemicalGreen",
         "Chemical (blue)": "chemicalBlue",
+        "Chemical (green)": "chemicalGreen",
+        "Chemical (yellow)": "chemicalYellow",
         Diverging: "diverging",
-        Yellow: "yellow",
         Greyscale: "greyscale",
         Foliage: "foliage",
         Ice: "ice",

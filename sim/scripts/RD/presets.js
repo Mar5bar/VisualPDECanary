@@ -8,7 +8,7 @@ presets["ducks"] = {
   arrowY: "v",
   brushAction: "smoothadd",
   brushValue: "0.1",
-  colourmap: "yellow",
+  colourmap: "chemicalYellow",
   contours: true,
   contourNum: 1,
   crossDiffusion: true,

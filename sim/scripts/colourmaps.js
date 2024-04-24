@@ -1,13 +1,6 @@
 export function getColours(sel) {
   let colours = [];
   switch (sel) {
-    case "yellow":
-      colours.push([1.0, 1.0, 1.0, 0.0]);
-      colours.push([0.99, 0.98, 0.35, 1.0]);
-      colours.push([0.99, 0.98, 0.35, 1.0]);
-      colours.push([0.99, 0.98, 0.35, 1.0]);
-      colours.push([0.99, 0.98, 0.35, 1.0]);
-      break;
     case "terrain":
       colours.push([0, 0.78, 0.46, 0.0]);
       colours.push([1, 0.99, 0.59, 0.25]);
@@ -28,6 +21,13 @@ export function getColours(sel) {
       colours.push([1.0, 1.0, 1.0, 0.0]);
       colours.push([0.57, 0.59, 0.93, 1.0]);
       colours.push([0.57, 0.59, 0.93, 1.0]);
+      break;
+    case "chemicalYellow":
+      colours.push([1.0, 1.0, 1.0, 0.0]);
+      colours.push([1.0, 1.0, 1.0, 0.0]);
+      colours.push([1.0, 1.0, 1.0, 0.0]);
+      colours.push([0.99, 0.98, 0.35, 1.0]);
+      colours.push([0.99, 0.98, 0.35, 1.0]);
       break;
     case "chemicalGreen":
       colours.push([1.0, 1.0, 1.0, 0.0]);
