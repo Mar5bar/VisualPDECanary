@@ -9,7 +9,7 @@ presets["IMILogo2"] = {
   numTimestepsPerFrame: 100,
   overlay: true,
   overlayColour: 16777215,
-  overlayExpr: "I_S",
+  overlayExpr: "I_S*(1-I_T)",
 };
 
 presets["IMILogo"] = {
@@ -21,6 +21,7 @@ presets["IMILogo"] = {
   domainScale: "100",
   dt: 0.001,
   imagePathOne: "./images/IMI_logo.png",
+  imagePathTwo: "./images/IMI_mask.png",
   initCond_1: "Bump(0,0,L/40)",
   kineticParams: "",
   maxColourValue: "3",

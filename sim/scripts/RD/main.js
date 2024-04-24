@@ -4112,7 +4112,7 @@ import { createWelcomeTour } from "./tours.js";
     if (isDrawing) {
       if (options.brushEnabled && options.plotType == "surface") {
         controls.enabled = false;
-      } else if (!options.brushEnabled) {
+      } else if (!options.brushEnabled && !uiHidden) {
         // Display a message saying that the brush is disabled.")
         $("#brush_disabled").fadeIn(1000);
         window.clearTimeout(brushDisabledTimer);
