@@ -2,6 +2,17 @@
 
 let presets = {};
 
+presets["ducksSource"] = {
+  brushAction: "replace",
+  brushRadius: "1",
+  brushType: "custom",
+  brushValue: "ind(Bump(x,y,xB,yB,L/20) > 0.0)",
+  parent: "ducks",
+  preset: "ducksSource",
+  reactionStr_1: "-(u*d_x +v*d_y) - d*(u_x + v_y) - ind(I_S==1)*d + s",
+  whatToDraw: "s",
+};
+
 presets["ducks"] = {
   arrowColour: 1083014,
   arrowX: "u",
@@ -20,13 +31,13 @@ presets["ducks"] = {
   imagePathTwo: "./images/world_flow.png",
   initCond_1: "0",
   initCond_2: "0",
-  kineticParams: "",
+  kineticParams: "mu = 0 in [0,1]",
   maxColourValue: "1.1202512979507446",
   minColourValue: "-0.0007872119313105941",
   minX: "-L_x/2",
   minY: "-L_y/2",
   numAlgebraicSpecies: 2,
-  numSpecies: 3,
+  numSpecies: 4,
   overlay: true,
   overlayColour: 2327662,
   overlayExpr: "1-I_S",
@@ -37,10 +48,11 @@ presets["ducks"] = {
   renderSize: 1024,
   reactionStr_1:
     "-(u*d_x +v*d_y) - d*(u_x + v_y) - ind(I_S==1)*d + Bump(-L_x/2,-L_y/4,L/20)",
-  reactionStr_2: "I_TR-0.5",
-  reactionStr_3: "I_TG-0.5",
+  reactionStr_2: "0",
+  reactionStr_3: "mu*I_TR+(1-mu)*I_TB-0.5",
+  reactionStr_4: "mu*I_TG+(1-mu)*I_TA-0.5",
   spatialStep: "0.2",
-  speciesNames: "d u v",
+  speciesNames: "d s u v",
   views: [
     {
       name: "🦆",
@@ -4614,6 +4626,8 @@ function coerceType(value, defaultValue) {
     return parseFloat(value);
   } else if (typeof defaultValue === "boolean") {
     return value === "true" || value == 1;
+  } else if (typeof defaultValue === "string") {
+    return String(value);
   } else {
     return value;
   }
