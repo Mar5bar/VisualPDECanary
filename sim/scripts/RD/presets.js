@@ -2,6 +2,16 @@
 
 let presets = {};
 
+presets["IMILogo2"] = {
+  parent: "IMILogo",
+  preset: "IMILogo2",
+  diffusionStr_2_2: "0.02",
+  numTimestepsPerFrame: 100,
+  overlay: true,
+  overlayColour: 16777215,
+  overlayExpr: "I_S",
+};
+
 presets["IMILogo"] = {
   brushEnabled: false,
   brushRadius: "2",
