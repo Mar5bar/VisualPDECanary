@@ -3589,7 +3589,10 @@ import { createWelcomeTour } from "./tours.js";
     const inputs = document.querySelectorAll("input");
     inputs.forEach((input) => disableAutocorrect(input));
     inputs.forEach((input) =>
-      input.addEventListener("blur", () => window.scrollTo(0, 0)),
+      input.addEventListener("blur", function () {
+        window.scrollTo(0, 0);
+        document.body.scrollTo(0, 0);
+      }),
     );
   }
 
