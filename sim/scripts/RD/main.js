@@ -146,6 +146,7 @@ import { createWelcomeTour } from "./tours.js";
     fIm,
     imControllerOne,
     imControllerTwo,
+    imControllerBlend,
     editEquationsFolder,
     boundaryConditionsFolder,
     initialConditionsFolder,
@@ -155,6 +156,7 @@ import { createWelcomeTour } from "./tours.js";
     linesFolderButton,
     threeDFolderButton,
     vectorFieldFolder,
+    devFolder,
     selectedEntries = new Set();
   let isRunning,
     isSuspended = false,
@@ -1287,6 +1289,8 @@ import { createWelcomeTour } from "./tours.js";
     setColourRangeFromDef();
     setEmbossUniforms();
     updateRandomSeed();
+    uniforms.blendImage.value = options.blendImage == true;
+    uniforms.blendImageAmount.value = Number(options.blendImageAmount);
   }
 
   function updateSizeUniforms() {
@@ -1533,6 +1537,14 @@ import { createWelcomeTour } from "./tours.js";
   function initUniforms() {
     // Initialise the uniforms to be passed to the shaders.
     uniforms = {
+      blendImage: {
+        type: "bool",
+        value: false,
+      },
+      blendImageAmount: {
+        type: "f",
+        value: 0,
+      },
       brushCoords: {
         type: "v2",
         value: new THREE.Vector2(0.5, 0.5),
@@ -1623,6 +1635,9 @@ import { createWelcomeTour } from "./tours.js";
         type: "t",
       },
       imageSourceTwo: {
+        type: "t",
+      },
+      imageSourceBlend: {
         type: "t",
       },
       L: {
@@ -2512,8 +2527,6 @@ import { createWelcomeTour } from "./tours.js";
     fIm = rightGUI.addFolder("Images");
     root = fIm;
     addInfoButton(root, "/user-guide/advanced-options#images");
-    // Always make images controller, but hide them if they're not wanted.
-    createImageControllers();
 
     // Saving/loading folder.
     root = rightGUI.addFolder("Checkpoints");
@@ -2652,6 +2665,23 @@ import { createWelcomeTour } from "./tours.js";
       "Toggle visibility of advanced 'ghost' boundary conditions",
     );
 
+    addToggle(
+      miscButtons,
+      "blendImage",
+      '<i class="fa-solid fa-image"></i> Blend image',
+      updateUniforms,
+      null,
+      "Toggle the blending of an image into the simulation colour output",
+    );
+
+    controllers["blendImageAmount"] = root
+      .add(options, "blendImageAmount")
+      .name("Blend amount")
+      .onChange(function () {
+        updateUniforms();
+      });
+    createOptionSlider(controllers["blendImageAmount"], 0, 1, 0.01);
+
     controllers["randSeed"] = root
       .add(options, "randSeed")
       .name("Random seed")
@@ -2659,7 +2689,8 @@ import { createWelcomeTour } from "./tours.js";
         updateRandomSeed();
       });
 
-    root = root.addFolder("Dev");
+    devFolder = root.addFolder("Dev");
+    root = devFolder;
     addInfoButton(root, "/user-guide/advanced-options#dev");
     // Dev.
     const devButtons = addButtonList(root);
@@ -3551,6 +3582,9 @@ import { createWelcomeTour } from "./tours.js";
         setClickAreaLabels();
         setRDEquations();
       });
+
+    // Always make images controller, but hide them if they're not wanted.
+    createImageControllers();
 
     const inputs = document.querySelectorAll("input");
     inputs.forEach((input) => disableAutocorrect(input));
@@ -5071,6 +5105,7 @@ import { createWelcomeTour } from "./tours.js";
     // a preset.
     imControllerOne.remove();
     imControllerTwo.remove();
+    imControllerBlend.remove();
     createImageControllers();
 
     // Configure interpolation.
@@ -5529,6 +5564,7 @@ import { createWelcomeTour } from "./tours.js";
         resetSim();
       }
     };
+    texture.dispose();
   }
 
   function loadImageSourceTwo() {
@@ -5541,6 +5577,23 @@ import { createWelcomeTour } from "./tours.js";
     image.onload = function () {
       texture.needsUpdate = true;
       uniforms.imageSourceTwo.value = texture;
+      if (options.resetOnImageLoad) {
+        resetSim();
+      }
+    };
+    texture.dispose();
+  }
+
+  function loadImageSourceBlend() {
+    let image = new Image();
+    image.src = imControllerBlend.__image.src;
+    let texture = new THREE.Texture();
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.NearestFilter;
+    texture.image = image;
+    image.onload = function () {
+      texture.needsUpdate = true;
+      uniforms.imageSourceBlend.value = texture;
       if (options.resetOnImageLoad) {
         resetSim();
       }
@@ -5561,6 +5614,11 @@ import { createWelcomeTour } from "./tours.js";
       .addImage(options, "imagePathTwo")
       .name("$I_T(x,y)$")
       .onChange(loadImageSourceTwo);
+    root = devFolder;
+    imControllerBlend = root
+      .addImage(options, "blendImagePath")
+      .name("To blend")
+      .onChange(loadImageSourceBlend);
     runMathJax();
   }
 

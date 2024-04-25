@@ -2217,23 +2217,6 @@ presets["FlowSimplePeriodicNetwork"] = {
   whatToPlot: "c",
 };
 
-presets["Test"] = {
-  activeViewInd: 1,
-  views: [
-    { name: "Activator", whatToPlot: "u" },
-    { name: "Inhibitor", whatToPlot: "v" },
-  ],
-  colourmap: "BlackGreenYellowRedWhite",
-  boundaryConditions_1: "combo",
-  boundaryConditions_2: "combo",
-  comboStr_1:
-    "Left: Dirichlet = 1; Right: Neumann = 0; Top: Robin = 0.2; Bottom: Dirichlet = 0;",
-  comboStr_2:
-    "Left: Dirichlet = 1; Right: Neumann = 0; Top: Robin = 0.2; Bottom: Dirichlet = 0;",
-  preset: "Test",
-  simTitle: "Testing testing...",
-};
-
 presets["ShallowWaterBox"] = {
   boundaryConditions_1: "neumann",
   boundaryConditions_2: "combo",
@@ -4491,6 +4474,9 @@ presets["default"] = {
   autoPauseAt: 10,
   autoSetColourRange: false,
   backgroundColour: 0xffffff,
+  blendImage: false,
+  blendImageAmount: 0.5,
+  blendImagePath: "./images/Alan.webp",
   boundaryConditions_1: "periodic",
   boundaryConditions_2: "periodic",
   boundaryConditions_3: "periodic",
