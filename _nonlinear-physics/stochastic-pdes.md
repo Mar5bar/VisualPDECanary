@@ -5,7 +5,7 @@ title: "Stochastic partial differential equations"
 lesson_number: 120
 thumbnail: /assets/images/stochastic-pdes.webp
 extract: Randomness in time and space
-equation: $\pd{u}{t}=D\nabla^2 u +f(u)+\frac{dW_t}{dt}$
+equation: $\pd{u}{t}=D\nabla^2 u +f(u)+\frac{\mathrm{d}W_t}{\mathrm{d}t}$
 ---
 
 
@@ -17,7 +17,7 @@ $$\begin{aligned}\pd{u}{t}&=\nabla^2 u+u^2v - (a+b)u+\sigma\diff{W_t}{t}u,\\ \pd
 
 where $W_t$ is an approximation of a [Brownian sheet](https://en.wikipedia.org/wiki/Brownian_sheet), representing noise in both space and time, so its derivative is understood in the sense of [stochastic calculus](https://en.wikipedia.org/wiki/Stochastic_calculus).
 
-* Load the interactive [stochastic reaction–diffusion model](/sim/?preset=StochasticGrayScott) 
+* Load the interactive [stochastic reaction–diffusion model](/sim/?preset=StochasticGrayScott)
 
 * The model is initially deterministic ($\sigma=0$), so the initial condition simply spreads out to make a homogeneous state across the domain. Clicking indicates that this homogeneous equilibrium is stable, even to large perturbations.
 
@@ -34,15 +34,15 @@ $$
 \pdd{u}{t} = \vnabla \cdot \left[\eta(\v{x},\sigma) \vnabla u \right],
 $$
 
-where $\eta(\v{x},\sigma)$ is a smoothed spatial random variable approximated as a Gaussian with mean $1$ and variance which scales with $\sigma$. 
+where $\eta(\v{x},\sigma)$ is a smoothed spatial random variable approximated as a Gaussian with mean $1$ and variance which scales with $\sigma$.
 
-* Load the interactive [random wave equation](/sim/?preset=RandomWaveEquation) 
+* Load the interactive [random wave equation](/sim/?preset=RandomWaveEquation)
 
 * Click to initiate a wave at some point in the domain.
 
-* The default noise level is $\sigma=0.5$. If you change this value and restart the simulation by pressing {{ layout.restart }}, you can observe deterministic wave propagation for small values of $\sigma$, and noisier wave behaviour for larger values. 
+* The default noise level is $\sigma=0.5$. If you change this value and restart the simulation by pressing {{ layout.restart }}, you can observe deterministic wave propagation for small values of $\sigma$, and noisier wave behaviour for larger values.
 
-# Stochastic vegetation waves 
+# Stochastic vegetation waves
 
 Consider a stochastic version of the [Klausmeier model](/mathematical-biology/vegetation-patterns) in 1D of the form:
 
@@ -61,9 +61,9 @@ $$
 
 # Numerical health warning
 
-Randomness and stochastic forcing can lead to less regularity and stability of numerical schemes. 
+Randomness and stochastic forcing can lead to less regularity and stability of numerical schemes.
 
-**Warning:** the method only works for the forward Euler timestepping scheme! All other timestepping schemes will not scale properly with the timestep. 
+**Warning:** the method only works for the forward Euler timestepping scheme! All other timestepping schemes will not scale properly with the timestep.
 
 In implementing our random noise terms, we have taken
 
@@ -71,4 +71,4 @@ $$
 \diff{W_t}{t} \propto \frac{1}{\sqrt{\dt \, \dx^N}}\xi(t,\v{x}),
 $$
 
-with $\dt$ and $\dx$ the space and time steps respectively, and $N$ is the number of dimensions. The variable $\xi$ represents (for each spatial point and every time step) an independently distributed normal random variable with mean $0$ and variance $1$. The scaling in time is to preserve the Brownian increment scaling of $W_t \propto \sqrt{\dt}$ after the multiplication by $\dt$ from the forward Euler stepping. Similarly, we take $\eta$ to scale the same way in space, but it will not scale with time. We also mollify $\eta$ by running a diffusion smoothing on it for a short time. 
+with $\dt$ and $\dx$ the space and time steps respectively, and $N$ is the number of dimensions. The variable $\xi$ represents (for each spatial point and every time step) an independently distributed normal random variable with mean $0$ and variance $1$. The scaling in time is to preserve the Brownian increment scaling of $W_t \propto \sqrt{\dt}$ after the multiplication by $\dt$ from the forward Euler stepping. Similarly, we take $\eta$ to scale the same way in space, but it will not scale with time. We also mollify $\eta$ by running a diffusion smoothing on it for a short time.
