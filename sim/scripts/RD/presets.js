@@ -4476,7 +4476,7 @@ presets["default"] = {
   backgroundColour: 0xffffff,
   blendImage: false,
   blendImageAmount: 0.5,
-  blendImagePath: "./images/Alan.webp",
+  blendImagePath: "./images/qr-code-home.webp",
   boundaryConditions_1: "periodic",
   boundaryConditions_2: "periodic",
   boundaryConditions_3: "periodic",
