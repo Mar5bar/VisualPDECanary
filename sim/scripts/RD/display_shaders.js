@@ -103,7 +103,8 @@ export function fiveColourDisplayTop() {
 export function fiveColourDisplayBot() {
   return `
     if (blendImage) {
-      col = mix(col, texture2D(imageSourceBlend, textureCoords).rgb, clamp(blendImageAmount,0.0,1.0));
+      vec4 blendCol = texture2D(imageSourceBlend, textureCoords);
+      col = mix(col, blendCol.rgb, clamp(blendImageAmount * blendCol.a,0.0,1.0));
     }
     gl_FragColor = vec4(col, 1.0);
 	}`;
