@@ -61,8 +61,9 @@ presets["ducks"] = {
   blendImageAmount: 1.0,
   blendImagePath: "./images/world_map.webp",
   brushAction: "smoothadd",
+  brushRadius: "2",
   brushValue: "0.1",
-  colourmap: "chemicalYellow",
+  colourmap: "blue-magenta",
   contours: true,
   contourNum: 1,
   crossDiffusion: true,
@@ -74,7 +75,7 @@ presets["ducks"] = {
   imagePathTwo: "./images/world_flow.png",
   initCond_1: "0",
   initCond_2: "0",
-  kineticParams: "mu = 0 in [0,1]",
+  kineticParams: "m = 0 in [0,12]",
   maxColourValue: "1.1202512979507446",
   minColourValue: "-0.0007872119313105941",
   minX: "-L_x/2",
@@ -88,10 +89,11 @@ presets["ducks"] = {
   reactionStr_1:
     "-(u*d_x +v*d_y) - d*(u_x + v_y) - 0.1*ind(I_SA>0)*d + Bump(-L_x/2,-L_y/4,L/20)",
   reactionStr_2: "0",
-  reactionStr_3: "mu*I_TR+(1-mu)*I_TB-0.5",
-  reactionStr_4: "mu*I_TG+(1-mu)*I_TA-0.5",
+  reactionStr_3: "(abs(m-6)/6*I_TR+(1-abs(m-6)/6)*I_TB-0.5)*ind(I_SA==0)",
+  reactionStr_4: "(abs(m-6)/6*I_TG+(1-abs(m-6)/6)*I_TA-0.5)*ind(I_SA==0)",
   spatialStep: "0.2",
   speciesNames: "d s u v",
+  vectorField: true,
   views: [
     {
       name: "🦆",
