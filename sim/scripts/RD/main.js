@@ -6985,8 +6985,12 @@ import { createWelcomeTour } from "./tours.js";
 
     // Define a function that we can use to concisely add in a slider depending on the string.
     function createSlider() {
-      // Remove any existing sliders.
+      const hasChanged = controller.lastString != kineticParamsStrs[label];
+      if (!hasChanged) return;
+      // Remove any existing sliders is anything has changed.
       if (controller.hasOwnProperty("slider")) {
+        // Check if the slider has changed.
+        let hasChanged = controller.lastString != kineticParamsStrs[label];
         // Remove any existing sliders.
         controller.slider.remove();
         delete controller.slider;
@@ -7089,6 +7093,10 @@ import { createWelcomeTour } from "./tours.js";
 
         // Add the slider to the DOM.
         controller.domElement.appendChild(controller.slider);
+        // Focus the slider.
+        controller.slider.focus();
+        // Record the string for checking for changes later.
+        controller.lastString = kineticParamsStrs[label];
       }
     }
     if (isNextParam) {

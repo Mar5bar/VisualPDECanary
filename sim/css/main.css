@@ -1130,7 +1130,7 @@ input[type="range"] {
 }
 
 .dg .parameterSlider:not(.closed) {
-  height: 62px;
+  height: 70px;
 }
 
 /* Slider */
