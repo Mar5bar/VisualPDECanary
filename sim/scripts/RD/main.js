@@ -2669,7 +2669,10 @@ import { createWelcomeTour } from "./tours.js";
       miscButtons,
       "blendImage",
       '<i class="fa-solid fa-image"></i> Blend image',
-      updateUniforms,
+      function () {
+        updateUniforms();
+        renderIfNotRunning();
+      },
       null,
       "Toggle the blending of an image into the simulation colour output",
     );
@@ -2679,6 +2682,7 @@ import { createWelcomeTour } from "./tours.js";
       .name("Blend amount")
       .onChange(function () {
         updateUniforms();
+        renderIfNotRunning();
       });
     createOptionSlider(controllers["blendImageAmount"], 0, 1, 0.01);
 
