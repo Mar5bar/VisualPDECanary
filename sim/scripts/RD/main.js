@@ -9121,7 +9121,7 @@ import { createWelcomeTour } from "./tours.js";
    * @param {Array<string>} [classes] - An array of classes to be added to the button.
    */
   function addButton(parent, inner, onclick, id, title, classes) {
-    const button = document.createElement("a");
+    const button = document.createElement("button");
     if (onclick != undefined) button.onclick = onclick;
     if (id != undefined) button.id = id;
     if (title != undefined) button.title = title;
@@ -9161,7 +9161,7 @@ import { createWelcomeTour } from "./tours.js";
     negate,
   ) {
     // Create the toggle button.
-    const toggle = document.createElement("a");
+    const toggle = document.createElement("button");
     // If obj is undefined, use options.
     if (obj == undefined) obj = options;
     toggle.obj = obj;
@@ -9195,7 +9195,7 @@ import { createWelcomeTour } from "./tours.js";
 
   function addViewsSubmenuToggle(parent, inner, title, folderID, classes) {
     // Create the toggle button.
-    const toggle = document.createElement("a");
+    const toggle = document.createElement("button");
     // Add the toggle_button class to the toggle button.
     toggle.classList.add("toggle_button");
     toggle.enabled = false;
@@ -9218,9 +9218,6 @@ import { createWelcomeTour } from "./tours.js";
       title.addEventListener("click", function (e) {
         if (toggle.enabled) updateToggle(toggle, false);
       });
-      // title.onclick = function () {
-      //   updateToggle(toggle, false);
-      // };
     }
     // Add any classes to the toggle button.
     if (classes != undefined) {

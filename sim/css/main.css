@@ -1422,23 +1422,30 @@ select {
   max-width: 100%;
 }
 
-.button_list a {
-  display: flex;
-  justify-content: center;
+.button_list a,
+.button_list button {
   align-items: center;
+  background-color: unset;
   border: 1px solid var(--ui-button-border-color);
-  height: 1.8rem;
-  padding-left: 0.6rem;
-  padding-right: 0.6rem;
   border-radius: 5px;
-  text-align: center;
+  box-sizing: content-box;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.9rem;
+  height: 1.8rem;
+  justify-content: center;
   margin-top: 3px;
   margin-bottom: 3px;
-  cursor: pointer;
-  color: var(--text-color);
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  text-align: center;
 }
 
-.button_list a.wide {
+.button_list a.wide,
+.button_list button.wide {
   width: 7em;
   padding-left: 0.3rem;
   padding-right: 0.2rem;
@@ -1450,7 +1457,8 @@ select {
   padding-right: 0.4rem;
 }
 
-.button_list a .svg-inline--fa {
+.button_list a .svg-inline--fa,
+.button_list button .svg-inline--fa {
   margin-right: 5px;
   color: var(--button-inline-icon-color);
 }
