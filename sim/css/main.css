@@ -221,6 +221,7 @@ noscript > p {
 
 .hidden {
   display: none !important;
+  visibility: hidden !important;
 }
 
 .hidden-aug {
@@ -366,11 +367,13 @@ a.info-link {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.1s ease;
+  visibility: hidden;
 }
 
 a.info-link:has(+ ul:not(.closed)) {
   opacity: 100%;
   pointer-events: all;
+  visibility: visible;
 }
 
 @media (hover: hover) {
@@ -378,14 +381,16 @@ a.info-link:has(+ ul:not(.closed)) {
     color: var(--text-color);
     opacity: 100%;
     pointer-events: all;
+    visibility: visible;
   }
   a.info-link:has(~ :hover) {
     opacity: 100%;
     pointer-events: all;
+    visibility: visible;
   }
 }
 
-ul.closed .c {
+ul.closed > *:not(.title) {
   visibility: hidden;
 }
 
@@ -1135,6 +1140,10 @@ input[type="range"].styled-slider {
   -webkit-appearance: none;
 }
 
+input[type="range"]:focus-visible {
+  outline: auto;
+}
+
 /*progress support*/
 input[type="range"].styled-slider.slider-progress {
   --range: calc(var(--max) - var(--min));
@@ -1142,7 +1151,7 @@ input[type="range"].styled-slider.slider-progress {
   --sx: calc(0.5 * 2em + var(--ratio) * (100% - 2em));
 }
 
-input[type="range"].styled-slider:focus {
+input[type="range"].styled-slider:focus:not(:focus-visible) {
   outline: none;
 }
 
@@ -1635,7 +1644,16 @@ select {
 .dg li.title {
   background: var(--background-color) !important;
   overflow: hidden;
+  outline-width: 0px;
+  outline-offset: -3px;
   /* background: #fff url(data:image/gif;base64,R0lGODlhBQAFAJEAAP////Pz8////////yH5BAEAAAIALAAAAAAFAAUAAAIIlI+hKgFxoCgAOw==) 6px 13px no-repeat !important; */
+}
+
+.dg li.title:focus-visible {
+  outline-style: auto;
+}
+.dg li.title:focus:not(:focus-visible) {
+  outline-style: none;
 }
 @media (hover: hover) {
   .dg li.title:hover {

@@ -346,6 +346,20 @@ import { createWelcomeTour } from "./tours.js";
     };
   })();
 
+  // Define some handy functions for making things invisible or visible.
+  (function ($) {
+    $.fn.invisible = function () {
+      return this.each(function () {
+        $(this).css("visibility", "hidden");
+      });
+    };
+    $.fn.visible = function () {
+      return this.each(function () {
+        $(this).css("visibility", "visible");
+      });
+    };
+  })(jQuery);
+
   // Get the canvas to draw on, as specified by the html.
   canvas = document.getElementById("simCanvas");
   // If the webgl context is lost, the user is likely encountering a Safari bug (https://developer.apple.com/forums/thread/737042).
@@ -548,9 +562,11 @@ import { createWelcomeTour } from "./tours.js";
   });
   $("#pause").click(function () {
     pauseSim();
+    document.getElementById("play").focus();
   });
   $("#play").click(function () {
     playSim();
+    document.getElementById("pause").focus();
   });
   $("#erase").click(function () {
     window.gtag?.("event", "sim_reset");
@@ -1071,8 +1087,7 @@ import { createWelcomeTour } from "./tours.js";
 
     // Add tabIndex="0" to all ui_buttons, unless they have tabindex="-1".
     document.querySelectorAll(".ui_button").forEach((button) => {
-      button.tabIndex = 0;
-      if (!button.tabIndex || button.tabIndex != -1) {
+      if (!button.getAttribute("tabindex")) {
         button.tabIndex = 0;
         button.addEventListener("keydown", function (e) {
           if (e.key == "Enter") {
@@ -4262,7 +4277,9 @@ import { createWelcomeTour } from "./tours.js";
   function pauseSim() {
     if (!uiHidden) {
       $("#pause").hide();
+      $("#pause").invisible();
       $("#play").show();
+      $("#play").visible();
     }
     isRunning = false;
     renderIfNotRunning();
@@ -4271,7 +4288,9 @@ import { createWelcomeTour } from "./tours.js";
   function playSim() {
     if (!uiHidden) {
       $("#play").hide();
+      $("#play").invisible();
       $("#pause").show();
+      $("#pause").visible();
     }
     shouldCheckNaN = true;
     window.clearTimeout(NaNTimer);
@@ -10231,6 +10250,7 @@ import { createWelcomeTour } from "./tours.js";
     infoButton.href = link;
     infoButton.target = "_blank";
     infoButton.title = "More information";
+    infoButton.tabIndex = 0;
     folder.domElement.classList.add("has-info-link");
     folder.domElement.insertBefore(infoButton, folder.domElement.firstChild);
   }
