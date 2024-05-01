@@ -1069,6 +1069,19 @@ import { createWelcomeTour } from "./tours.js";
     // Configure the GUI.
     configureGUI();
 
+    // Add tabIndex="0" to all ui_buttons, unless they have tabindex="-1".
+    document.querySelectorAll(".ui_button").forEach((button) => {
+      button.tabIndex = 0;
+      if (!button.tabIndex || button.tabIndex != -1) {
+        button.tabIndex = 0;
+        button.addEventListener("keydown", function (e) {
+          if (e.key == "Enter") {
+            button.click();
+          }
+        });
+      }
+    });
+
     // Set up the problem.
     updateProblem();
 
@@ -3598,6 +3611,16 @@ import { createWelcomeTour } from "./tours.js";
         document.body.scrollTo(0, 0);
       }),
     );
+
+    // Put all title elements in the taborder, and make Enter key click them.
+    document.querySelectorAll(".dg li.title").forEach((title) => {
+      title.tabIndex = 0;
+      title.addEventListener("keydown", function (e) {
+        if (e.key == "Enter") {
+          title.click();
+        }
+      });
+    });
   }
 
   function animate() {

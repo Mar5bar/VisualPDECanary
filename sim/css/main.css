@@ -385,6 +385,10 @@ a.info-link:has(+ ul:not(.closed)) {
   }
 }
 
+ul.closed .c {
+  visibility: hidden;
+}
+
 button.focus-params,
 button.combo-bcs,
 button.target {
@@ -395,6 +399,7 @@ button.target {
   top: 0.5rem;
   right: 30px;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
   cursor: pointer;
   padding: 2px 6px 3px 6px;
@@ -411,6 +416,7 @@ button.combo-bcs {
 button.focus-params:has(~ ul:not(.closed)) {
   opacity: 100%;
   pointer-events: all;
+  visibility: visible;
 }
 
 button.target {
@@ -425,13 +431,11 @@ button.target {
     color: var(--text-color);
     pointer-events: all;
     opacity: 100%;
-  }
-  button.focus-params:has(~ :hover) {
-    pointer-events: all;
-    opacity: 100%;
+    visibility: visible;
   }
   button.focus-params:hover ~ a.info-link {
     opacity: 100%;
+    visibility: visible;
     pointer-events: all;
   }
   button.combo-bcs:hover {
@@ -446,6 +450,7 @@ button.focus-params.active {
   color: var(--text-color);
   pointer-events: all;
   opacity: 100%;
+  visibility: visible;
 }
 
 /* Simulation GUI */

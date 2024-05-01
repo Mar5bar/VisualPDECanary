@@ -197,10 +197,21 @@
       </div>
     </div>
 
-    <div class="ui hidden ui_button" id="settings" title="Settings">
-      <i class="fa-solid fa-wrench"></i>
+    <div
+      class="ui hidden ui_button"
+      id="equations"
+      title="Edit equations"
+    ></div>
+    <div id="left_ui" class="ui hidden">
+      <div id="equation_display">
+        <div id="equation_display_box">
+          <div id="typeset_equation"></div>
+        </div>
+      </div>
+      <div class="dg ac" id="leftGUIContainer" style="position: relative"></div>
+      <div id="left_ui_arrow" class="ui"></div>
     </div>
-    <div class="ui hidden ui_button" id="play_pause_placeholder"></div>
+    <div tabIndex="-1" class="ui hidden ui_button" id="play_pause_placeholder"></div>
     <div class="ui hidden ui_button" id="play" title="Play (space)">
       <i class="fa-solid fa-play"></i>
     </div>
@@ -210,9 +221,35 @@
     <div class="ui hidden ui_button" id="erase" title="Restart (R)">
       <i class="fa-solid fa-arrow-rotate-left"></i>
     </div>
+    <div class="ui hidden ui_button" id="views" title="Views">
+      <i class="fa-solid fa-layer-group"></i>
+    </div>
+    <div id="views_ui" class="ui hidden">
+      <div
+        class="dg ac"
+        id="viewsGUIContainer"
+        style="position: relative"
+      ></div>
+      <div id="views_ui_arrow"></div>
+    </div>
+    <div class="ui hidden ui_button" id="settings" title="Settings">
+      <i class="fa-solid fa-wrench"></i>
+    </div>
+    <div id="right_ui" class="ui hidden">
+      <div
+        class="dg ac"
+        id="rightGUIContainer"
+        style="position: relative"
+      ></div>
+      <div id="right_ui_arrow"></div>
+    </div>
+    <div class="ui hidden ui_button" id="help" title="Help">
+      <i class="fa-solid fa-circle-question"></i>
+    </div>
     <div class="ui hidden ui_button" id="share" title="Share">
       <i class="fa-solid fa-share-from-square"></i>
     </div>
+    
     <div class="message small" id="link_copied"><p>Copied to clipboard</p></div>
     <div class="message small" id="get_help"><p>Get help here anytime</p></div>
     <div class="message small mid" id="brush_disabled">
@@ -228,18 +265,6 @@
     <div class="message small" id="use_Chrome">
       <p>Chrome/Firefox on desktop are recommended for video recording</p>
     </div>
-    <div class="ui hidden ui_button" id="help" title="Help">
-      <i class="fa-solid fa-circle-question"></i>
-    </div>
-    <div class="ui hidden ui_button" id="views" title="Views">
-      <i class="fa-solid fa-layer-group"></i>
-    </div>
-
-    <div
-      class="ui hidden ui_button"
-      id="equations"
-      title="Edit equations"
-    ></div>
 
     <a
       id="logo"
@@ -316,34 +341,6 @@
       <button class="btn-primary message_dismiss" id="first_video_close">
         <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
       </button>
-    </div>
-
-    <div id="right_ui" class="ui hidden">
-      <div
-        class="dg ac"
-        id="rightGUIContainer"
-        style="position: relative"
-      ></div>
-      <div id="right_ui_arrow"></div>
-    </div>
-
-    <div id="left_ui" class="ui hidden">
-      <div id="equation_display">
-        <div id="equation_display_box">
-          <div id="typeset_equation"></div>
-        </div>
-      </div>
-      <div class="dg ac" id="leftGUIContainer" style="position: relative"></div>
-      <div id="left_ui_arrow" class="ui"></div>
-    </div>
-
-    <div id="views_ui" class="ui hidden">
-      <div
-        class="dg ac"
-        id="viewsGUIContainer"
-        style="position: relative"
-      ></div>
-      <div id="views_ui_arrow"></div>
     </div>
 
     <div id="comboBCs_ui" class="ui hidden">
@@ -481,10 +478,12 @@
       <div></div>
     </div>
 
-    <div id="probeChartContainer" class="ui probeChart" style="display:none">
+    <div id="probeChartContainer" class="ui probeChart" style="display: none">
       <canvas id="probeChart"></canvas>
       <div id="probeChartTitle" class="title">Time</div>
-      <button id="probeChartMinimise" class="minimise"><i class="fa-solid fa-circle-xmark"></i></button>
+      <button id="probeChartMinimise" class="minimise">
+        <i class="fa-solid fa-circle-xmark"></i>
+      </button>
     </div>
     <div class="ui hidden ui_button" id="probeChartMaximise">
       <i class="fa-solid fa-chart-line"></i>
