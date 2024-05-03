@@ -4465,11 +4465,11 @@ import { createWelcomeTour } from "./tours.js";
   // Set the y diffusion coefficients to be equal to the x counterparts.
   function setEqualYDiffusionCoefficientsShader(label) {
     let out = "";
-    out += "#define D" + label + "y D" + label + "x\n";
-    out += "#define D" + label + "yL D" + label + "xL\n";
-    out += "#define D" + label + "yR D" + label + "xR\n";
-    out += "#define D" + label + "yT D" + label + "xT\n";
-    out += "#define D" + label + "yB D" + label + "xB\n";
+    out += "float D" + label + "y = D" + label + "x;\n";
+    out += "float D" + label + "yL = D" + label + "xL;\n";
+    out += "float D" + label + "yR = D" + label + "xR;\n";
+    out += "float D" + label + "yT = D" + label + "xT;\n";
+    out += "float D" + label + "yB = D" + label + "xB;\n";
     return out;
   }
 
