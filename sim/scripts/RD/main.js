@@ -6084,8 +6084,10 @@ import { createWelcomeTour } from "./tours.js";
     setBCsGUI();
     // Hide or show GUI elements to do with surface plotting.
     $("#probeTargetButton").show();
+    $("#probeTargetButton").visible();
     if (options.plotType == "surface") {
       $("#probeTargetButton").hide();
+      $("#probeTargetButton").invisible();
       $("#contourButton").show();
       $("#embossButton").show();
       $("#vectorFieldButton").hide();
@@ -10898,12 +10900,16 @@ import { createWelcomeTour } from "./tours.js";
       // Show probeX and probeY controllers.
       controllers["prX"].show();
       controllers["prY"].show();
-      if (options.plotType != "surface") $("#probeTargetButton").show();
+      if (options.plotType != "surface") {
+        $("#probeTargetButton").show();
+        $("#probeTargetButton").visible();
+      }
     } else {
       // Hide probeX and probeY controllers.
       controllers["prX"].hide();
       controllers["prY"].hide();
       $("#probeTargetButton").hide();
+      $("#probeTargetButton").invisible();
     }
   }
 
