@@ -5643,9 +5643,6 @@ import { createWelcomeTour } from "./tours.js";
     image.onload = function () {
       texture.needsUpdate = true;
       uniforms.imageSourceBlend.value = texture;
-      if (options.resetOnImageLoad) {
-        resetSim();
-      }
     };
     texture.dispose();
   }
