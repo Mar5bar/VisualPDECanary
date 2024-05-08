@@ -3,34 +3,37 @@
 let presets = {};
 
 presets["ShallowWaterEqns"] = {
-	"activeViewInd": 1,
-	"boundaryConditions_2": "dirichlet",
-	"boundaryConditions_3": "dirichlet",
-	"brushRadius": "20",
-	"brushValue": "-0.2",
-	"comboStr_2": "Bottom: Neumann = 0; Left: Dirichlet = 0; Right: Dirichlet = 0; Top: Neumann = 0;",
-	"domainScale": "400",
-	"kineticParams": "He = 1;D = 0.3;g = 9.81;f = 1;k = 0.00;nu = 0.3;epsilon = 0.0001;",
-	"parent": "ShallowWaterEqns",
-	"probeFun": "h",
-	"probeLength": 150,
-	"reactionStr_1": "- (u_x + v_y)-epsilon*h",
-	"squareCanvas": true,
-	"views": [{
-	"cameraTheta": 30,
-	"cameraPhi": 30,
-	"plotType": "plane",
-	"name": "From<br />above",
-},
-	{
-	"cameraTheta": 30.786885245901622,
-	"cameraPhi": 29.999999999999993,
-	"plotType": "surface",
-	"name": "3D",
-}],
-	"preset": "PRESETNAME",
+  activeViewInd: 1,
+  boundaryConditions_2: "dirichlet",
+  boundaryConditions_3: "dirichlet",
+  brushRadius: "20",
+  brushValue: "-0.2",
+  comboStr_2:
+    "Bottom: Neumann = 0; Left: Dirichlet = 0; Right: Dirichlet = 0; Top: Neumann = 0;",
+  domainScale: "400",
+  kineticParams:
+    "He = 1;D = 0.3;g = 9.81;f = 1;k = 0.00;nu = 0.3;epsilon = 0.0001;",
+  parent: "ShallowWaterEqns",
+  probeFun: "h",
+  probeLength: 150,
+  reactionStr_1: "- (u_x + v_y)-epsilon*h",
+  squareCanvas: true,
+  views: [
+    {
+      cameraTheta: 30,
+      cameraPhi: 30,
+      plotType: "plane",
+      name: "From<br />above",
+    },
+    {
+      cameraTheta: 30.786885245901622,
+      cameraPhi: 29.999999999999993,
+      plotType: "surface",
+      name: "3D",
+    },
+  ],
+  preset: "PRESETNAME",
 };
-
 
 presets["IMILogo2"] = {
   parent: "IMILogo",
