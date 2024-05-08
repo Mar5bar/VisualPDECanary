@@ -32,7 +32,7 @@ presets["ShallowWaterEqns"] = {
       name: "3D",
     },
   ],
-  preset: "PRESETNAME",
+  preset: "ShallowWaterEqns",
 };
 
 presets["IMILogo2"] = {
