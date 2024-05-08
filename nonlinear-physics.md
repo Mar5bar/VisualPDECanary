@@ -6,5 +6,5 @@ layout: topic
 title: Nonlinear physics
 collection_to_list: nonlinear-physics
 thumbnail: /assets/images/optics.webp
-extract: Optics, QFT and the rest
+extract: Solitons, stochastic PDEs, and more
 ---
