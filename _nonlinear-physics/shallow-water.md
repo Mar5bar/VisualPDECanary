@@ -15,6 +15,7 @@ $$\begin{aligned}
       \pd{u}{t} &= \nu \nabla^2  u -g \pd{h}{x} - k u-u  \pd{u}{x}+f v\\
       \pd{v}{t} &= \nu \nabla^2  v -g  \pd{h}{y} - k v-v  \pd{v}{x}-f u
     \end{aligned}$$
+    
 where $h$ is is the water height, $u$ and $v$ are the fluid velocities in $x$ and $y$ directions, and all of the parameters are as described in the article linked above except for $H_e$ replacing the mean height of the surface $H$, and the term involving $\varepsilon$ representing a weak dissipation of the wave height $h$.
 
 * Load the interactive [shallow water equations model](/sim/?preset=ShallowWaterEqns).
