@@ -28,4 +28,4 @@ A linearized version of this model underlies the Visual Story [Ripples on a Pond
 
 # 1D Solitary Waves
 
-We can also study one-dimensional versions of this model to observe soliton-like traveling waves. This [nonlinear solitary wave model](/sim/?preset=1DShallowWaterEqns) can be compared to a [linearized solitary wave model](/sim/?preset=1DShallowWaterEqns), showing qualitatively comparable behaviour but quantitative differences, particularly as the solutions evolve over time.
+We can also study one-dimensional versions of this model to observe soliton-like traveling waves. This [nonlinear solitary wave model](/sim/?preset=1DShallowWaterEqns) can be compared to a [linearized solitary wave model](/sim/?preset=1DLinearizedShallowWaterEqns), showing qualitatively comparable behaviour but quantitative differences, particularly as the solutions evolve over time.
