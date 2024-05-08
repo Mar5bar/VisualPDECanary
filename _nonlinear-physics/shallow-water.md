@@ -8,9 +8,6 @@ extract: Water waves and ripples
 equation: $\pd{h}{t} = - \left( \pd{u}{x\v{y}} + \pd{v}{y\v{y}}\right) \left(h+H_{e}\right)-\left( \pd{h}{x\v{y}} u+ \pd{h}{y\v{y}} v\right)$
 ---
 
-
-# Stochastic pattern formation
-
 We consider a form of the [shallow water equations](https://en.wikipedia.org/wiki/Shallow_water_equations) given by
 
 $$\begin{aligned}
