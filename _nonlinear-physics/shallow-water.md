@@ -5,7 +5,7 @@ title: "Shallow water equations"
 lesson_number: 130
 thumbnail: /assets/images/shallow-water-waves.webp
 extract: Water waves and ripples
-equation: $\pd{h}{t} = - \vnabla \cdot \left( \v{u} \left(h+H_{e}\right)\right)$, $\pd{\v{u}}{t} = \nu \nabla^2  {\v{u}} -g \vnabla h - k {\v{u}}-({\v{u}}\cdot \vnabla){\v{u}}+\v{f}\times \v{u}$
+equation: $\pd{h}{t} = - \vnabla \cdot \left( \v{u} \left(h+H_{e}\right)\right)$, $\pd{\v{u}}{t} = \nu \nabla^2  {\v{u}} -g \vnabla h - k {\v{u}}-({\v{u}}\cdot \vnabla){\v{u}}-\v{f}\times \v{u}$
 ---
 
 We consider a form of the [shallow water equations](https://en.wikipedia.org/wiki/Shallow_water_equations) given by
@@ -30,7 +30,7 @@ The simulation above sets $f=0$, representing no influence of the fluid from the
 
 * We first consider an initial condition of a sharp gradient in wave height $h$ in this [dam breaking model](/sim/?preset=ShallowWaterEqnsDamBreaking). Initially we have set $f=0$, but if you instead make it larger (e.g. $f=0.4$ or even $f=1$) and restart the simulation with {{ layout.erase }}, you can see that this force can stabilize the front of the wave after an initial transient. This is a counter-intuitive result indicating that different parts of the ocean can be deeper than others due to Coriolis forces.
 
-* If we instead set $f=1$, and plot the vorticity $\omega=\pd{v}{x}-\pd{u}{y}$ in colour, we can simulate a [model with geostrophically balanced vortices](/sim/?preset=ShallowWaterEqnsVorticalSolitons). Clicking will place such a solution on the domain, which has a positive vorticity inside of it, indicating a clockwise rotation. You can press for longer periods of time to make deeper vortices, and rotate the 3D solution around to see how these look like underneath the surface.
+* If we instead set $f=1$, and plot the vorticity $\omega=\pd{v}{x}-\pd{u}{y}$ in colour, we can simulate a [model with geostrophically balanced vortices](/sim/?preset=ShallowWaterEqnsVorticalSolitons). Clicking will place such a solution on the domain, which has a positive vorticity inside of it, indicating an anti-clockwise rotation. You can press for longer periods of time to make deeper vortices, and rotate the 3D solution around to see how these look like underneath the surface.
 
 # 1D Solitary Waves
 
