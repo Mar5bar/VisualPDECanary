@@ -90,7 +90,7 @@ presets["ShallowWaterEqnsVorticalSolitons"] = {
       name: "3D $h$",
     },
     {
-      colourmap: "lavaflow",
+      colourmap: "blue-magenta",
       colourbar: true,
       customSurface: true,
       maxColourValue: "0.005",
