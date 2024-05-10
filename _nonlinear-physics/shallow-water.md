@@ -5,7 +5,7 @@ title: "Shallow water equations"
 lesson_number: 130
 thumbnail: /assets/images/shallow-water-waves.webp
 extract: Water waves and ripples
-equation: $\pd{h}{t} = - \left( \pd{u}{x} + \pd{v}{y}\right) \left(h+H_{e}\right)-\left( \pd{h}{x} u+ \pd{h}{y} v\right)$, $\pd{u}{t} = \nu \nabla^2  u -g \pd{h}{x} - k u-u  \pd{u}{x}-v  \pd{u}{y}+f v$, $\pd{v}{t} = \nu \nabla^2  v -g  \pd{h}{y} - k v-u  \pd{v}{x}-v  \pd{v}{y}-f u$
+equation: $\pd{h}{t} = - \left( \pd{u}{x} + \pd{v}{y}\right) \left(h+H_{e}\right)-\left( \pd{h}{x} u+ \pd{h}{y} v\right)$, $\pd{\v{u}}{t} = \nu \nabla^2  {\v{u}} -g \pd{h}{x} - k {\v{u}}-({\v{u}}\cdot \vnabla){\v{u}}+f (v,-u)^T$
 ---
 
 We consider a form of the [shallow water equations](https://en.wikipedia.org/wiki/Shallow_water_equations) given by
