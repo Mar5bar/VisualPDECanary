@@ -3,23 +3,25 @@
 let presets = {};
 
 presets["ShallowWaterEqnsDamBreaking"] = {
-	"boundaryConditions_2": "periodic",
-	"boundaryConditions_3": "periodic",
-	"diffusionStr_1_1": "0.01",
-	"initCond_1": "0.05*(1+tanh(x-L_x/2))",
-	"kineticParams": "H_e = 1;g = 9.81;f = 0.00 in [0, 1];k = 0.001;nu = 0.5;epsilon = 0.0001;",
-	"parent": "ShallowWaterEqns",
-	"preset": "ShallowWaterEqnsDamBreaking",
-	"views": [{
-	"plotType": "plane",
-	"name": "From<br />above",
-},
-	{
-	"plotType": "surface",
-	"name": "3D",
-}],
+  boundaryConditions_2: "periodic",
+  boundaryConditions_3: "periodic",
+  diffusionStr_1_1: "0.01",
+  initCond_1: "0.05*(1+tanh(x-L_x/2))",
+  kineticParams:
+    "H_e = 1;g = 9.81;f = 0.00 in [0, 1];k = 0.001;nu = 0.5;epsilon = 0.0001;",
+  parent: "ShallowWaterEqns",
+  preset: "ShallowWaterEqnsDamBreaking",
+  views: [
+    {
+      plotType: "plane",
+      name: "From<br />above",
+    },
+    {
+      plotType: "surface",
+      name: "3D",
+    },
+  ],
 };
-
 
 presets["1DShallowWaterEqns"] = {
   boundaryConditions_1: "periodic",
@@ -92,53 +94,54 @@ presets["1DLinearizedShallowWaterEqns"] = {
 };
 
 presets["ShallowWaterEqnsVorticalSolitons"] = {
-	"brushAction": "smoothadd",
-	"brushValue": "-0.01",
-	"kineticParams": "H_e = 1;g = 9.81;f = 1;k = 0.001;nu = 0.5;epsilon = 0.001;",
-	"parent": "ShallowWaterEqns",
-	"preset": "ShallowWaterEqnsVorticalSolitons",
-	"surfaceFun": "h*1000",
-	"views": [{
-	"cameraTheta": 30,
-	"cameraPhi": 30,
-	"colourmap": "blue",
-	"colourbar": false,
-	"customSurface": false,
-	"maxColourValue": "0.1",
-	"minColourValue": "-0.05",
-	"plotType": "surface",
-	"vectorField": true,
-	"whatToPlot": "h",
-	"name": "3D $h$",
-},
-	{
-	"cameraTheta": 53.01633615065788,
-	"cameraPhi": 39.836065573770426,
-	"colourmap": "blue-magenta",
-	"colourbar": true,
-	"customSurface": true,
-	"maxColourValue": "0.005",
-	"minColourValue": "-0.005",
-	"plotType": "surface",
-	"vectorField": false,
-	"whatToPlot": "v_x-u_y",
-	"name": "3D $\\omega$",
-},
-	{
-	"cameraTheta": 30,
-	"cameraPhi": 30,
-	"colourmap": "blue-magenta",
-	"colourbar": true,
-	"customSurface": true,
-	"maxColourValue": "0.005",
-	"minColourValue": "-0.005",
-	"plotType": "plane",
-	"vectorField": false,
-	"whatToPlot": "v_x-u_y",
-	"name": "2D $\\omega$",
-}],
+  brushAction: "smoothadd",
+  brushValue: "-0.01",
+  kineticParams: "H_e = 1;g = 9.81;f = 1;k = 0.001;nu = 0.5;epsilon = 0.001;",
+  parent: "ShallowWaterEqns",
+  preset: "ShallowWaterEqnsVorticalSolitons",
+  surfaceFun: "h*1000",
+  views: [
+    {
+      cameraTheta: 30,
+      cameraPhi: 30,
+      colourmap: "blue",
+      colourbar: false,
+      customSurface: false,
+      maxColourValue: "0.1",
+      minColourValue: "-0.05",
+      plotType: "surface",
+      vectorField: true,
+      whatToPlot: "h",
+      name: "3D $h$",
+    },
+    {
+      cameraTheta: 53.01633615065788,
+      cameraPhi: 39.836065573770426,
+      colourmap: "blue-magenta",
+      colourbar: true,
+      customSurface: true,
+      maxColourValue: "0.005",
+      minColourValue: "-0.005",
+      plotType: "surface",
+      vectorField: false,
+      whatToPlot: "v_x-u_y",
+      name: "3D $\\omega$",
+    },
+    {
+      cameraTheta: 30,
+      cameraPhi: 30,
+      colourmap: "blue-magenta",
+      colourbar: true,
+      customSurface: true,
+      maxColourValue: "0.005",
+      minColourValue: "-0.005",
+      plotType: "plane",
+      vectorField: false,
+      whatToPlot: "v_x-u_y",
+      name: "2D $\\omega$",
+    },
+  ],
 };
-
 
 presets["ShallowWaterEqns"] = {
   activeViewInd: 1,
