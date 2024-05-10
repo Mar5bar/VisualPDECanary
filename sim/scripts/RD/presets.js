@@ -3,6 +3,7 @@
 let presets = {};
 
 presets["ShallowWaterEqnsDamBreaking"] = {
+  boundaryConditions_1: "periodic",
   boundaryConditions_2: "periodic",
   boundaryConditions_3: "periodic",
   diffusionStr_1_1: "0.01",
