@@ -7090,7 +7090,8 @@ import { createWelcomeTour } from "./tours.js";
         controller.slider.style.setProperty("--min", controller.slider.min);
         controller.slider.style.setProperty("--max", controller.slider.max);
 
-        // Add the slider to the DOM.
+        // Add the slider to the DOM with an aria-label.
+        controller.slider.setAttribute("aria-label", "Custom parameter slider");
         controller.domElement.appendChild(controller.slider);
         // Focus the slider.
         controller.slider.focus();
@@ -7211,6 +7212,11 @@ import { createWelcomeTour } from "./tours.js";
     createSlider();
     // Disable autocorrect on the controller.
     disableAutocorrect(controller.domElement.firstChild);
+    // Add an aria-label.
+    controller.domElement.firstChild.setAttribute(
+      "aria-label",
+      "Custom parameter definition",
+    );
     // Return the controller in case it is needed.
     return controller;
   }
@@ -9604,8 +9610,10 @@ import { createWelcomeTour } from "./tours.js";
       });
     }
 
-    // Add the slider to the DOM.
-    controller.domElement.appendChild(controller.slider);
+    // Add the slider to the DOM with a label element.
+    controller.sliderLabel = document.createElement("label");
+    controller.sliderLabel.appendChild(controller.slider);
+    controller.domElement.appendChild(controller.sliderLabel);
     controller.domElement.parentElement.parentElement.classList.add(
       "parameterSlider",
     );
