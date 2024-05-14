@@ -7,7 +7,7 @@ extract: Ducks, advection and ocean flows
 equation:
 ---
 
-On the 10th January 1992, during a storm, a container full of bath toys fell off a ship travelling across the Pacific ocean. The container opened and the 28,000 toys, including yellow rubber ducks, were released.
+On 10 January 1992, during a storm, a container full of bath toys fell off a ship travelling across the Pacific ocean. The container opened and the 28,000 toys, including yellow rubber ducks, were released.
 
 Over the next few months and years, the toys began to wash up on coastlines around the world, arriving in Alaska after about 10 months and Britain and Ireland around 15 years later. It is estimated that some travelled almost 30,000 km, carried by the ocean currents. This story has captured many imaginations over the years (including ours) and led to documentaries, scientific papers, news articles, children's books and more. You can read more about it on [Wikipedia](https://en.wikipedia.org/wiki/Friendly_Floatees_spill).
 
@@ -19,7 +19,7 @@ We'll model the ducks as 'tracer particles' in the ocean. The term 'tracer parti
 
 <video autoplay loop playsinline muted disableRemotePlayback width="80%" style="display:block;margin:0 auto;"><source src='../assets/ani/ocean_flow.mp4' type='video/mp4'><p>Magnitude of east-west flow in the world's oceans.</p></video><br>
 
-To do this, we'll need to know how water moves around in the ocean. Determining the fluid flow, however, is a difficult and time-consuming process that requires running large numerical simulations and cutting-edge science. We'll cheat and use existing simulations from [NASA](https://podaac.jpl.nasa.gov)[^1], which take into account factors including the Earth's rotation, the temperature of the water, and the phase of the moon (really). The video above shows the east-west flow velocity for 2023 from one of these simulations (eastward in red, westward in blue).
+To do this, we'll need to know how water moves around in the ocean. Determining the fluid flow, however, is a difficult and time-consuming process that requires running large numerical simulations and cutting-edge science. We'll cheat and use existing simulations from [NASA](https://podaac.jpl.nasa.gov)[^1], which take into account factors including the Earth's rotation, the temperature of the water, and the phase of the moon (really). The video above shows the east–west flow velocity for 2023 from one of these simulations (eastward in red, westward in blue).
 
 We've taken this data and put it into the VisualPDE simulation below, along with a map of the world. You can click to add some ducks to the oceans, or watch as the ducks from the original spill spread across the ocean. Adjust the slider below the simulation to change the month of the year (which alters the flow) and see how that impacts the duck spill.
 
@@ -72,7 +72,7 @@ There's so much to find in these simulations, so here is some food for thought t
 
 # Looking for more?
 
-Did we whet your appetite for ducks? Check out the full screen, [fully customisable simulation](/sim/?preset=ducks) to play with more ducks and more parameters.
+Did we whet your appetite for ducks? Check out the fullscreen, [fully customisable simulation](/sim/?preset=ducks) to play with more ducks and more parameters.
 
 Enjoyed this Visual Story? We'd love to hear your feedback at [hello@visualpde.com](mailto:hello@visualpde.com).
 
