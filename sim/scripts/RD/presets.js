@@ -267,7 +267,7 @@ presets["ducks"] = {
   diffusionStr_1_1: "0.01",
   diffusionStr_2_2: "0",
   domainScale: "100",
-  dt: 0.005,
+  dt: 0.01,
   flippedColourmap: true,
   imagePathOne: "./images/world_map.webp",
   imagePathTwo: "./images/world_flow.png",
@@ -285,7 +285,7 @@ presets["ducks"] = {
   resetOnImageLoad: true,
   renderSize: 1024,
   reactionStr_1:
-    "-(u*d_x +v*d_y) - d*(u_x + v_y) - 0.1*ind(I_SA>0)*d + Bump(-L_x/2,0,L/20)*(S-d)",
+    "-(u*d_x +v*d_y) - d*(u_x + v_y) - 0.1*ind(I_SA>0)*d + Bump(-L_x/2,-L_y/4,L/20)*(S-d)",
   reactionStr_2: "0",
   reactionStr_3: "(abs(m-6)/6*I_TR+(1-abs(m-6)/6)*I_TB-0.5)*ind(I_SA==0)",
   reactionStr_4: "(abs(m-6)/6*I_TG+(1-abs(m-6)/6)*I_TA-0.5)*ind(I_SA==0)",

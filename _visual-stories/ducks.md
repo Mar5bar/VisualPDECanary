@@ -38,7 +38,13 @@ We've taken this data and put it into the VisualPDE simulation below, along with
 
 # Strategic spillage
 
-An interesting question comes to mind: what if the ducks had been released elsewhere in the world? To explore this, we've set up another simulation, but now clicking moves the source of ducks around. We've also added a slider that lets you control the amount of ducks being released[^2].
+An interesting question comes to mind: what if the ducks had been released elsewhere in the world? To explore this, we've set up another simulation down the page, but now clicking moves the source of ducks around. We've also added a slider that lets you control the amount of ducks being released[^2].
+
+There's so much to find in these simulations, so here is some food for thought to guide your own exploration:
+
+1. Do the ducks spread out faster when released at particular points?
+1. Where is a good place to release the ducks such that they're washed up around your favourite coastal location (e.g. the UK)?
+1. Are there any regions of the ocean that seem to collect ducks? Where are they, and why?
 
 <iframe class="sim" id="simB" src="/sim/?preset=ducksSource&story&sf=1&reset_only&nomathjax" style="width:100%;max-width:100%;aspect-ratio:2/1" frameborder="0" loading="lazy"></iframe>
 <p style="text-align:center;margin-top:0;"><vpde-slider
@@ -63,12 +69,6 @@ An interesting question comes to mind: what if the ducks had been released elsew
     min-label="None"
     max-label="Lots"
 ></vpde-slider></p>
-
-There's so much to find in these simulations, so here is some food for thought to guide your own exploration:
-
-1. Do the ducks spread out faster when released at particular points?
-1. Where is a good place to release the ducks such that they're washed up around your favourite coastal location (e.g. the UK)?
-1. Are there any regions of the ocean that seem to collect ducks? Where are they, and why?
 
 # Looking for more?
 
