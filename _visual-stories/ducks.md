@@ -82,3 +82,7 @@ Looking for more VisualPDE? Try out our other [Visual Stories](/visual-stories) 
 
 [^1]: The ocean simulation data was obtained from the [NASA ECCO2 dataset](https://ecco.jpl.nasa.gov/drive/files/ECCO2/cube92_latlon_quart_90S90N) (requires login).
 [^2]: Here, the amount of ducks released is technically infinite, but that's a limitation of our model rather than a reflection of the number of ducks in the ocean.
+
+<script type='text/javascript'>
+    run_only_one_sim(['simA', 'simB'])
+</script>
