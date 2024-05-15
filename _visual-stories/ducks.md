@@ -78,6 +78,8 @@ Enjoyed this Visual Story? We'd love to hear your feedback at [hello@visualpde.c
 
 Looking for more VisualPDE? Try out our other [Visual Stories](/visual-stories) or some mathematically flavoured content from [Introductory PDEs](/basic-pdes).
 
+This Story was written in collaboration with [Dr Matthew Crowe](https://mncrowe.github.io/).
+
 ### Footnotes
 
 [^1]: The ocean simulation data was obtained from the [NASA ECCO2 dataset](https://ecco.jpl.nasa.gov/drive/files/ECCO2/cube92_latlon_quart_90S90N) (requires login).
