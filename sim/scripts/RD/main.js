@@ -3622,7 +3622,7 @@ import { createWelcomeTour } from "./tours.js";
     inputs.forEach((input) => disableAutocorrect(input));
     inputs.forEach((input) =>
       input.addEventListener("blur", function () {
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: -1, left: 0, behaviour: "smooth" });
         document.body.scrollTo(0, 0);
       }),
     );
