@@ -5,6 +5,7 @@ let presets = {};
 presets["pride"] = {
   boundaryConditions_1: "dirichlet",
   brushRadius: "20",
+  colourmap: "pride",
   diffusionStr_1_1: "0.5",
   diffusionStr_2_2: "0",
   diffusionStr_3_3: "0",
@@ -14,9 +15,8 @@ presets["pride"] = {
   domainScale: "280",
   domainViaIndicatorFun: true,
   dt: 0.02,
-  flippedColourmap: true,
   initCond_1: "0",
-  maxColourValue: "1",
+  maxColourValue: "0.9",
   minColourValue: "0.1",
   numSpecies: 1,
   numTimestepsPerFrame: 200,

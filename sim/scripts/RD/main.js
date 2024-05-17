@@ -2911,6 +2911,7 @@ import { createWelcomeTour } from "./tours.js";
         "Lava flow": "lavaflow",
         Midnight: "midnight",
         Pastels: "pastels",
+        Pride: "pride",
         Retro: "retro",
         "Simply blue": "blue",
         "Snow Ghost": "snowghost",
