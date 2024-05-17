@@ -2,6 +2,37 @@
 
 let presets = {};
 
+presets["pride"] = {
+  boundaryConditions_1: "dirichlet",
+  brushRadius: "20",
+  diffusionStr_1_1: "0.5",
+  diffusionStr_2_2: "0",
+  diffusionStr_3_3: "0",
+  dirichletStr_1: "1",
+  domainIndicatorFun:
+    "(((x-140)/80)^2 + ((y-140)/80)^2 - 1)^3 - ((x-140)/80)^2*((y-140)/80)^3 < 0",
+  domainScale: "280",
+  domainViaIndicatorFun: true,
+  dt: 0.02,
+  flippedColourmap: true,
+  initCond_1: "0",
+  maxColourValue: "1",
+  minColourValue: "0.1",
+  numSpecies: 1,
+  numTimestepsPerFrame: 200,
+  preset: "pride",
+  probeFun: "u",
+  reactionStr_1: "-0.001*u*(1+0.9*sin(t/200))",
+  reactionStr_2: "0",
+  reactionStr_3: "0",
+  setSeed: true,
+  squareCanvas: true,
+  suppressTryClickingPopup: true,
+  whatToDraw: "u",
+  whatToPlot: "u",
+  simTitle: "Pride",
+};
+
 presets["ShallowWaterEqnsDamBreaking"] = {
   boundaryConditions_1: "periodic",
   boundaryConditions_2: "periodic",
