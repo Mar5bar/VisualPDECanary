@@ -1253,7 +1253,7 @@ presets["differentialStiffness"] = {
   diffusionStr_3_3: "0",
   dimension: "1",
   domainScale: "1",
-  dt: 0.00005,
+  dt: 0.00004,
   initCond_1: "0",
   kineticParams: "E = 0.0001;Delta_E = 24 in [0, 24];",
   neumannStr_1: "0.1*sin(t/100)",
@@ -1271,7 +1271,7 @@ presets["differentialStiffness"] = {
   reactionStr_3: "E*((1+tanh(v/0.01))*Delta_E/2+1)*v",
   simTitle: "Beams with differential stiffness",
   spatialStep: "0.04",
-  timesteppingScheme: "Mid",
+  timesteppingScheme: "Euler",
   views: [
     {
       colourmap: "blue",
