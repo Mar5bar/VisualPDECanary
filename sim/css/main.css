@@ -416,6 +416,7 @@ button.combo-bcs {
   top: 6px;
   pointer-events: all;
   font-size: 0.9rem;
+  visibility: visible;
 }
 
 button.focus-params:has(~ ul:not(.closed)) {
