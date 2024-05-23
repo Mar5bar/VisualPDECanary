@@ -4494,6 +4494,24 @@ import { createWelcomeTour } from "./tours.js";
     str = replaceBump(str);
     str = replaceWhiteNoise(str);
 
+    // Replace at(species,x,y) with a texture lookup.
+    str = str.replaceAll(
+      new RegExp(
+        "\\bat\\((" + anySpeciesRegexStrs[0] + "),([^,]+),([^)]+)\\)",
+        "g",
+      ),
+      function (m, d1, d2, d3) {
+        return (
+          "texture(textureSource, vec2((" +
+          d2 +
+          "-MINX)/L_x,(" +
+          d3 +
+          "-MINY)/L_y))." +
+          speciesToChannelChar(d1)
+        );
+      },
+    );
+
     // Replace powers with safepow, including nested powers.
     str = replaceBinOperator(str, "^", function (m, p1, p2) {
       if (p2 == "0") return "1";
