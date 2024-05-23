@@ -2905,6 +2905,7 @@ import { createWelcomeTour } from "./tours.js";
         "Chemical (blue)": "chemicalBlue",
         "Chemical (green)": "chemicalGreen",
         "Chemical (yellow)": "chemicalYellow",
+        Cyclic: "cyclic",
         Diverging: "diverging",
         Greyscale: "greyscale",
         Foliage: "foliage",
