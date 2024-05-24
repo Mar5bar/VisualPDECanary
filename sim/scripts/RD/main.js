@@ -817,6 +817,7 @@ import { createWelcomeTour } from "./tours.js";
 
   // Begin the simulation.
   isLoading = false;
+  resetSim();
   animate();
 
   // Monitor the rate at which time is being increased in the simulation.

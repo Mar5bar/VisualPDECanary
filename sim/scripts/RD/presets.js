@@ -2,6 +2,37 @@
 
 let presets = {};
 
+presets["synchroRotors"] = {
+  brushRadius: "100",
+  brushValue: "2*pi*RAND",
+  colourbar: true,
+  colourmap: "cyclic",
+  diffusionStr_1_1: "0",
+  diffusionStr_2_2: "0",
+  diffusionStr_3_3: "0",
+  dt: 0.0001,
+  initCond_1: "2*pi*RAND",
+  kineticParams: "d = 0.0000000 in [0, 1.507];",
+  maxColourValue: "1",
+  minColourValue: "-1",
+  numSpecies: 1,
+  numTimestepsPerFrame: 200,
+  preset: "synchroRotors",
+  probeFun: "Phi",
+  reactionStr_1:
+    "-(sin(at(Phi,x,y)-d-at(Phi,x-dx,y))+sin(at(Phi,x,y)-d-at(Phi,x+dx,y))+sin(at(Phi,x,y)-d-at(Phi,x,y-dy))+sin(at(Phi,x,y)-d-at(Phi,x,y+dy)))/1-(sin(at(Phi,x,y)-d-at(Phi,x+dx,y+dy))+sin(at(Phi,x,y)-d-at(Phi,x+dx,y-dy))+sin(at(Phi,x,y)-d-at(Phi,x-dx,y+dy))+sin(at(Phi,x,y)-d-at(Phi,x-dx,y-dy)))/2.828-(sin(at(Phi,x,y)-d-at(Phi,x+2*dx,y))+sin(at(Phi,x,y)-d-at(Phi,x-2*dx,y))+sin(at(Phi,x,y)-d-at(Phi,x,y+2*dy))+sin(at(Phi,x,y)-d-at(Phi,x,y-2*dy)))/8-(sin(at(Phi,x,y)-d-at(Phi,x+2*dx,y-dy))+sin(at(Phi,x,y)-d-at(Phi,x+2*dx,y+dy))+sin(at(Phi,x,y)-d-at(Phi,x-2*dx,y-dy))+sin(at(Phi,x,y)-d-at(Phi,x-2*dx,y+dy))+sin(at(Phi,x,y)-d-at(Phi,x-dx,y+2*dy))+sin(at(Phi,x,y)-d-at(Phi,x+dx,y+2*dy))+sin(at(Phi,x,y)-d-at(Phi,x-dx,y-2*dy))+sin(at(Phi,x,y)-d-at(Phi,x+dx,y-2*dy)))/11.18-(sin(at(Phi,x,y)-d-at(Phi,x+2*dx,y+2*dy))+sin(at(Phi,x,y)-d-at(Phi,x+2*dx,y-2*dy))+sin(at(Phi,x,y)-d-at(Phi,x-2*dx,y+2*dy))+sin(at(Phi,x,y)-d-at(Phi,x-2*dx,y-2*dy)))/22.63",
+  reactionStr_2: "0",
+  reactionStr_3: "0",
+  runningOnLoad: true,
+  setSeed: true,
+  speciesNames: "Phi",
+  squareCanvas: true,
+  typesetCustomEqs: false,
+  whatToDraw: "Phi",
+  whatToPlot: "cos(Phi+t)",
+  simTitle: "Rotor synchronisation",
+};
+
 presets["pride"] = {
   boundaryConditions_1: "dirichlet",
   brushRadius: "20",
