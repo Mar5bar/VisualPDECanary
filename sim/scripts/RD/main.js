@@ -4495,11 +4495,11 @@ import { createWelcomeTour } from "./tours.js";
     str = replaceBump(str);
     str = replaceWhiteNoise(str);
 
-    // Replace species(x,y) with a texture lookup. Note that this regex doesn't handle
-    // x being an expression containing a comma, and y cannot contain a closing parenthesis.
+    // Replace species[x,y] with a texture lookup. Note that this regex doesn't handle
+    // x being an expression containing a comma.
     str = str.replaceAll(
       new RegExp(
-        "\\b(" + anySpeciesRegexStrs[0] + ")\\(([^,]*),([^)]*)\\)",
+        "\\b(" + anySpeciesRegexStrs[0] + ")\\[([^,]*),([^\\]]*)\\]",
         "g",
       ),
       function (m, d1, d2, d3) {
