@@ -10470,11 +10470,11 @@ import { createWelcomeTour } from "./tours.js";
       });
     });
 
-    // // If the string contains a single species name (with optional _[xy]) followed by a (, add a *.
-    // str = str.replaceAll(
-    //   new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")(_[xy])?\\(", "g"),
-    //   "$1$2*(",
-    // );
+    // If the string contains a single species name (with optional _[xy]) followed by a (, add a *.
+    str = str.replaceAll(
+      new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")(_[xy])?\\(", "g"),
+      "$1$2*(",
+    );
 
     // Replace texture2D and vec2 placeholders back to original.
     str = str.replaceAll(/__TEXTURETWOD__/g, "texture2D");
