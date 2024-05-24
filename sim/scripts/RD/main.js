@@ -4495,10 +4495,11 @@ import { createWelcomeTour } from "./tours.js";
     str = replaceBump(str);
     str = replaceWhiteNoise(str);
 
-    // Replace at(species,x,y) with a texture lookup.
+    // Replace species(x,y) with a texture lookup. Note that this regex doesn't handle
+    // x being an expression containing a comma, and y cannot contain a closing parenthesis.
     str = str.replaceAll(
       new RegExp(
-        "\\bat\\((" + anySpeciesRegexStrs[0] + "),([^,]+),([^)]+)\\)",
+        "\\b(" + anySpeciesRegexStrs[0] + ")\\(([^,]*),([^)]*)\\)",
         "g",
       ),
       function (m, d1, d2, d3) {
@@ -10469,11 +10470,11 @@ import { createWelcomeTour } from "./tours.js";
       });
     });
 
-    // If the string contains a single species name (with optional _[xy]) followed by a (, add a *.
-    str = str.replaceAll(
-      new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")(_[xy])?\\(", "g"),
-      "$1$2*(",
-    );
+    // // If the string contains a single species name (with optional _[xy]) followed by a (, add a *.
+    // str = str.replaceAll(
+    //   new RegExp("\\b(" + anySpeciesRegexStrs[0] + ")(_[xy])?\\(", "g"),
+    //   "$1$2*(",
+    // );
 
     // Replace texture2D and vec2 placeholders back to original.
     str = str.replaceAll(/__TEXTURETWOD__/g, "texture2D");
