@@ -534,3 +534,9 @@ Throughout VisualPDE, you can make use of the special functions `sin`, `cos`, `t
 A [bump function](https://en.m.wikipedia.org/wiki/Bump_function) with compact support can be used via the syntax `Bump(X, Y, radius)` (or `Bump(X, radius)` in 1D), which localises a bump of unit maximum of the given radius at the point $(X, Y)$.
 
 A [bivariate Gaussian function](https://en.wikipedia.org/wiki/Multivariate_normal_distribution) can be used with similar syntax to the bump function: `Gauss(X, Y, s)` is a correctly normalised Gaussian function centred at $(X,Y)$ with standard deviation `s`. The extended syntax `Gauss(X, Y, s_x, s_y)` produces a potentially asymmetric Gaussian with standard deviations `s_x` and `s_y` in the $x$ and $y$ directions, with zero correlation. Correlation can be specified via `Gauss(X, Y, s_x, s_y, r)`, where `r` is the correlation between the two directions.
+
+### Non-local evaluation
+
+Sometimes, you might want direct access to the values of a species at points other than `(x,y)`, such as if you wanted to implement a higher order derivative or a lattice dynamical system. You can access a species (e.g. `u`) at an arbitrary position via the syntax `u[x,y]`, where `x` and `y` can be any valid expression that points to somewhere in the domain. For instance, writing `u[x+dx,y+dy] - u[x-dx,y-dy]` will lookup nearby values of `u`, offset by the step sizes `dx` and `dy`.
+
+The behaviour of non-local evaluations using these expressions is undefined at boundaries (so that Neumann boundary conditions may not behave as expected, for instance), unless periodic boundary conditions are used.
