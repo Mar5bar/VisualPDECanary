@@ -9021,7 +9021,8 @@ import { createWelcomeTour } from "./tours.js";
   function buildViewFromOptions() {
     let view = {};
     fieldsInView.forEach(function (key) {
-      view[key] = options[key]?.valueOf();
+      if (options.hasOwnProperty(key))
+        view[key] = JSON.parse(JSON.stringify(options[key]));
     });
     return view;
   }
