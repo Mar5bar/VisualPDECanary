@@ -2503,7 +2503,7 @@ import { createWelcomeTour } from "./tours.js";
     // Number of species.
     root
       .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
-      .name("Num. species")
+      .name("# Species")
       .onChange(function () {
         document.activeElement.blur();
         updateProblem();
@@ -2513,7 +2513,7 @@ import { createWelcomeTour } from "./tours.js";
     // Number of algebraic species.
     controllers["algebraicSpecies"] = root
       .add(options, "numAlgebraicSpecies", { 0: 0, 1: 1, 2: 2, 3: 3 })
-      .name("Num. algebraic")
+      .name("# Algebraic")
       .onChange(function () {
         updatingAlgebraicSpecies = true;
         updateProblem();
