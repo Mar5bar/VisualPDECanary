@@ -88,6 +88,10 @@ export function fiveColourDisplayTop() {
         vec2 values = texture2D(textureSource, textureCoords).rg;
         if (values.g > 0.5)
         {
+            if (blendImage) {
+                gl_FragColor = texture2D(imageSourceBlend, textureCoords);
+                return;
+            }
             gl_FragColor = vec4(0);
             return;
         }
