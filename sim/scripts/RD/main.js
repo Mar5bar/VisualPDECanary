@@ -4092,7 +4092,7 @@ import { createWelcomeTour } from "./tours.js";
     }
 
     // If we want to smooth manually, apply a bilinear filter.
-    if (isManuallyInterpolating()) {
+    if (isManuallyInterpolating() & !options.automataMode) {
       simDomain.material = interpolationMaterial;
       renderer.setRenderTarget(interpolationTexture);
       renderer.render(simScene, simCamera);
@@ -4257,8 +4257,13 @@ import { createWelcomeTour } from "./tours.js";
       y = 0.5;
     }
     // Round to near-pixel coordinates.
-    x = Math.round(x * nXDisc) / nXDisc;
-    y = Math.round(y * nYDisc) / nYDisc;
+    if (options.automataMode) {
+      x = (Math.ceil(x * nXDisc) - 0.5) / nXDisc;
+      y = (Math.ceil(y * nYDisc) - 0.5) / nYDisc;
+    } else {
+      x = Math.round(x * nXDisc) / nXDisc;
+      y = Math.round(y * nYDisc) / nYDisc;
+    }
     uniforms.brushCoords.value = new THREE.Vector2(x, y);
     return 0 <= x && x <= 1 && 0 <= y && y <= 1;
   }
@@ -4780,7 +4785,7 @@ import { createWelcomeTour } from "./tours.js";
     }
 
     // If 2 or more variables are algebraic, check that we don't have any cyclic dependencies.
-    if (options.numAlgebraicSpecies >= 2) {
+    if (options.numAlgebraicSpecies >= 2 && !options.automataMode) {
       const start = options.numSpecies - options.numAlgebraicSpecies;
       // Check what each algebraic species depends on.
       let allDependencies = {};
@@ -7648,7 +7653,11 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   function isManuallyInterpolating() {
-    return manualInterpolationNeeded || options.forceManualInterpolation;
+    return (
+      manualInterpolationNeeded ||
+      options.forceManualInterpolation ||
+      options.automataMode
+    );
   }
 
   function isReturningUser() {
@@ -9319,7 +9328,7 @@ import { createWelcomeTour } from "./tours.js";
     for (const key of Object.keys(options.views[0])) {
       if (options.hasOwnProperty(key)) {
         if (options.views.map((e) => e[key]).every((v) => v == options[key])) {
-          options.views.forEach((v) => delete v[key]);
+          objDiff.views?.forEach((v) => delete v[key]);
         }
       }
     }

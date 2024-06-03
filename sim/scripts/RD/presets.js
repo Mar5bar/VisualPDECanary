@@ -2,6 +2,85 @@
 
 let presets = {};
 
+presets["Conway"] = {
+  automataMode: true,
+  activeViewInd: 1,
+  brushRadius: "10",
+  colourmap: "viridis",
+  crossDiffusion: true,
+  diffusionStr_1_1: "1",
+  diffusionStr_2_2: "0",
+  diffusionStr_3_3: "0",
+  domainScale: "1000",
+  forceManualInterpolation: true,
+  initCond_1: "0",
+  minColourValue: "0",
+  numAlgebraicSpecies: 1,
+  numSpecies: "2",
+  numTimestepsPerFrame: 1,
+  preset: "Conway",
+  probeFun: "u",
+  probeLength: 3000,
+  reactionStr_1: "0",
+  reactionStr_2:
+    "ind(v==0 && (ind(v[x+dx,y+dy]>0) + ind(v[x-dx,y+dy]>0) + ind(v[x,y+dy]>0) + ind(v[x,y-dy]>0) + ind(v[x-dx,y]>0) + ind(v[x-dx,y-dy]>0) + ind(v[x+dx,y-dy]>0) + ind(v[x+dx,y]>0))>2.5 && (ind(v[x+dx,y+dy]>0) + ind(v[x-dx,y+dy]>0) + ind(v[x,y+dy]>0) + ind(v[x,y-dy]>0) + ind(v[x-dx,y]>0) + ind(v[x-dx,y-dy]>0) + ind(v[x+dx,y-dy]>0) + ind(v[x+dx,y]>0))<3.5) + ind(v>0 && (ind(v[x+dx,y+dy]>0) + ind(v[x-dx,y+dy]>0) + ind(v[x,y+dy]>0) + ind(v[x,y-dy]>0) + ind(v[x-dx,y]>0) + ind(v[x-dx,y-dy]>0) + ind(v[x+dx,y-dy]>0) + ind(v[x+dx,y]>0))>1.5 && (ind(v[x+dx,y+dy]>0) + ind(v[x-dx,y+dy]>0) + ind(v[x,y+dy]>0) + ind(v[x,y-dy]>0) + ind(v[x-dx,y]>0) + ind(v[x-dx,y-dy]>0) + ind(v[x+dx,y-dy]>0) + ind(v[x+dx,y]>0))<3.5)",
+  reactionStr_3: "0",
+  spatialStep: "25",
+  typesetCustomEqs: false,
+  simTitle: "Conway's Game of Life",
+  whatToPlot: "v",
+  whatToDraw: "v",
+};
+
+presets["Richards"] = {
+  brushAction: "smoothadd",
+  brushValue: "-1",
+  colourbar: true,
+  colourmap: "viridis",
+  crossDiffusion: true,
+  diffusionStr_1_1: "K",
+  diffusionStr_2_2: "0",
+  diffusionStr_3_3: "0",
+  domainScale: "40",
+  initCond_1: "0",
+  initCond_2: "1",
+  kineticParams:
+    "A = 1175000;alpha = 1610000;beta = 3.96;gamma = 4.74;theta_s = 0.278;theta_r = 0.075;K_s = 0.00944;",
+  numAlgebraicSpecies: 2,
+  numSpecies: 3,
+  preset: "Richards",
+  probeFun: "h",
+  probeLength: 3000,
+  reactionStr_1: "K_y",
+  reactionStr_2: "K_s*A/(A + abs(h)^gamma)",
+  reactionStr_3: "alpha*(theta_s - theta_r)/(alpha + abs(h)^beta) + theta_r",
+  spatialStep: "0.2",
+  speciesNames: "h K theta q",
+  timescales: true,
+  views: [
+    {
+      maxColourValue: "0.9998674392700195",
+      minColourValue: "0.9518983364105225",
+      whatToPlot: "theta",
+      name: "1",
+    },
+    {
+      maxColourValue: "0",
+      minColourValue: "-1",
+      whatToPlot: "h",
+      name: 2,
+    },
+    {
+      maxColourValue: "1",
+      minColourValue: "0.9766130447387695",
+      whatToPlot: "K",
+      name: 3,
+    },
+  ],
+  whatToDraw: "h",
+  simTitle: "Richard's equation",
+};
+
 presets["synchroRotors"] = {
   brushRadius: "100",
   brushValue: "2*pi*RAND",
@@ -4725,6 +4804,7 @@ presets["blank"] = {
 };
 
 presets["default"] = {
+  automataMode: false,
   activeViewInd: 0,
   arrowColour: 0x00ffff,
   arrowDensity: 0.5,
