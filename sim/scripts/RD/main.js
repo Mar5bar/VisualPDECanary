@@ -163,6 +163,7 @@ import { createWelcomeTour } from "./tours.js";
     isLoading = true,
     isRecording = false,
     isOptimising = false,
+    canTimeStep = true,
     simObserver,
     hasErrored = false,
     canAutoPause = true,
@@ -1967,7 +1968,7 @@ import { createWelcomeTour } from "./tours.js";
     controllers["dt"].min(0);
     controllers["dt"].updateDisplay();
 
-    root
+    controllers["timesteppingScheme"] = root
       .add(options, "timesteppingScheme", {
         "Forward Euler": "Euler",
         "Adams-Bashforth 2": "AB2",
@@ -3656,7 +3657,7 @@ import { createWelcomeTour } from "./tours.js";
     }
 
     // Only timestep if the simulation is running.
-    if (isRunning) {
+    if (isRunning && canTimeStep) {
       // Ensure that any Dirichlet BCs are satisfied before timestepping (required due to brushes/init condition).
       anyDirichletBCs ? enforceDirichlet() : {};
       // Perform a number of timesteps per frame.
@@ -3673,6 +3674,14 @@ import { createWelcomeTour } from "./tours.js";
         }
         if (shaderContainsRAND && !options.setSeed) updateRandomSeed();
         timestep();
+        // Leave the loop after one timestep if we're in automata mode.
+        if (options.automataMode) {
+          canTimeStep = false;
+          setTimeout(() => {
+            canTimeStep = true;
+          }, 1000 / options.numTimestepsPerFrame);
+          break;
+        }
       }
     }
 
@@ -6102,6 +6111,22 @@ import { createWelcomeTour } from "./tours.js";
     setGUIControllerName(controllers["initCond_3"], TeXStrings["wInit"]);
     setGUIControllerName(controllers["initCond_4"], TeXStrings["qInit"]);
 
+    // Configure timestepping folder for automata mode.
+    let controller = controllers["numTimestepsPerFrame"];
+    if (options.automataMode) {
+      setGUIControllerName(controller, "Speed");
+      controller.slider.max = 50;
+      controller.slider.style.setProperty("--max", controller.slider.max);
+      controllers["dt"].hide();
+      controllers["timesteppingScheme"].hide();
+    } else {
+      setGUIControllerName(controllers["numTimestepsPerFrame"], "Steps/frame");
+      controller.slider.max = 400;
+      controller.slider.style.setProperty("--max", controller.slider.max);
+      controllers["dt"].show();
+      controllers["timesteppingScheme"].show();
+    }
+
     // Show/hide the indicator function controller.
     if (options.domainViaIndicatorFun) {
       controllers["domainIndicatorFun"].show();
@@ -6409,6 +6434,11 @@ import { createWelcomeTour } from "./tours.js";
         options.diffusionStr_3_3 = "0";
         options.diffusionStr_4_4 = "0";
         break;
+    }
+
+    // If we're in automata mode, specify forward Euler.
+    if (options.automataMode) {
+      options.timesteppingScheme = "Euler";
     }
 
     // Refresh the GUI displays.

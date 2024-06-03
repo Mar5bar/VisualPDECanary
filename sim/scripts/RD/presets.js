@@ -6,7 +6,7 @@ presets["Conway"] = {
   automataMode: true,
   activeViewInd: 1,
   brushRadius: "10",
-  colourmap: "viridis",
+  colourmap: "greyscale",
   crossDiffusion: true,
   diffusionStr_1_1: "1",
   diffusionStr_2_2: "0",
