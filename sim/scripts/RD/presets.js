@@ -8,6 +8,7 @@ presets["potentialFlowDipoleClick"] = {
   initCond_2: "0",
   parent: "potentialFlowDipoleSlider",
   reactionStr_1: "-10*(ind(Bump(L_x/2,L_y/2,L/100)>0) - ind(s > 0.1))",
+  squareCanvas: true,
   typesetCustomEqs: false,
   preset: "potentialFlowDipoleClick",
 };
