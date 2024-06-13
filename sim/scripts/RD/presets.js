@@ -3498,6 +3498,26 @@ presets["FHNGrowingHeart"] = {
   timesteppingScheme: "Mid",
 };
 
+presets["CahnHilliardNonreciprocal"] = {
+  brushRadius: "5",
+  diffusionStr_1_1: "D_1*(3*u^2-1)",
+  diffusionStr_1_2: "-D_2",
+  diffusionStr_1_3: "-1",
+  diffusionStr_2_1: "D_2",
+  diffusionStr_2_2: "0.1",
+  diffusionStr_3_1: "kappa",
+  initCond_1: "cos(x/4)",
+  initCond_2: "sin(x/4)",
+  initCond_3: "-kappa*cos(x/4)/16",
+  kineticParams:
+    "D_1 = 1.000 in [0, 0.01, 1];kappa = 0.10 in [0.1, 0.1, 1];D_2 = 1.000 in [-2, 0.01, 1];",
+  numAlgebraicSpecies: 1,
+  numSpecies: 3,
+  parent: "CahnHilliard",
+  preset: "CahnHilliardNonreciprocal",
+  reactionStr_1: "0",
+};
+
 presets["CahnHilliard"] = {
   algebraicV: true,
   brushRadius: 5,
