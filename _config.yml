@@ -67,6 +67,9 @@ collections:
   demos:
     output: true
     title: Demos
+  fluids:
+    output: true
+    title: Fluids and waves
 
 defaults:
   - scope:
