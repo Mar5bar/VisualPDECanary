@@ -246,34 +246,6 @@ div.home-banner {
   pointer-events: none;
 }
 
-div.home-banner-content {
-  position: absolute;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  pointer-events: none;
-  transition: background 0.5s ease 1s;
-}
-
-.home-banner-subtitle,
-.home-banner-title,
-#try-clicking {
-  transition: background-color 1s ease;
-  color: white;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-  margin-bottom: 0;
-  pointer-events: none;
-  border-radius: 5px;
-  overflow: hidden;
-
-  & > div {
-    transform: translateY(115%);
-  }
-}
-
 .sliding-in {
   animation: up 0.8s;
   animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
@@ -285,14 +257,6 @@ div.home-banner-content {
   100% {
     transform: translateY(0%);
   }
-}
-
-#try-clicking {
-  background: none;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  position: relative;
-  top: 1rem;
 }
 
 .home-banner-title {
@@ -446,7 +410,7 @@ div.subtitle_equation mjx-container mjx-math {
   font-size: 110%;
 }
 
-a.home_tile div.container div.button {
+a.home_tile div.container div.button{
   background-color: var(--button-color);
   text-align: center;
   width: 60px;
