@@ -13,163 +13,66 @@
     <link rel="stylesheet" href="{{ '/assets/css/noscript.css' | relative_url }}">
   </noscript>
 
-  <div id="tagline">
-    Explore mathematics and science through interactive simulations, live on your device.
-  </div>
-
-  <div id="home_box_wrapper">
-    <div id="home_box_1">
-      <iframe id="sim" src="/sim/?preset=GrayScottBanner&lite&clean&noop" style="visibility:hidden"></iframe>
-      <div id='content' class='no-select'>
-        <div id='title'>
-          <span class='text_on_sim'>Endless examples</span>
-        </div>
-        <div id='subtitle'>
-          <span class='text_on_sim'>Dive into partial differential equations (PDEs) from across science and maths</span>
-        </div>
-        <div id='button_wrapper'>
-          <a id='button' href='explore' target="_blank">
-            <span class='nav-button' style='line-height:30px'>Explore</span>
-          </a>
-          <div id="try_clicking"><i class="fa-solid fa-arrow-left-long"
-            style="position:relative;right:3px;top:2px;"></i> Try clicking
-          </div>
-        </div>
-      </div>
-    </div>
-    <a id='home_box_2' class='home_box_s' href='create'>
-      <div class='container main'>
-        <div class='title'>
-          Solve <em>your</em> equations
-        </div>
-        <div class='subtitle'>
-          Create simulations with our guides and examples
-        </div>
-        <div class='button'>Create</div>
-      </div>
-
-      <div class='container'>
-        <img alt="A squirrel sat with its front paws to its mouth" src='/assets/images/squirrel.webp' />
-      </div>
-    </a>
-    <a id='home_box_3' class='home_box_s' href='visual-stories'>
-      <div class='container main'>
-        <div class='title'>What is VisualPDE?</div>
-        <div class='subtitle'>Discover the ideas behind the simulations</div>
-        <div class='button'>Learn more</div>
-      </div>
-      <div class='container'>
-        <img alt="Heatmap of concentration of a substance diffusing with circular symmetry"
-          src='/assets/images/InhomHeatEquation.webp' />
-      </div>
-    </a>
-  </div>
-
-  <!-- <div class="home-banner">
-    <div class='home-banner-content no-select'>
-      <p class='home-banner-title'>Interactive solutions of partial differential equations</p>
-      <p class='home-banner-subtitle'>live on your device.</p>
-      <p id="try-clicking">Try clicking <i class="fa-solid fa-arrow-right-long pulse"
-          style="position:relative;left:3px;top:2px;"></i></p>
-    </div>
-  </div> -->
-  <a id="collections"></a>
   <main class="page-content" aria-label="Content">
+
     <div class="wrapper">
 
-      <h1 style="display:none;">{{ page.title }}</h1>
+    <h1>VisualPDE</h1>
 
-      {{ content }}
+    <div id="tagline">
+      Explore mathematics and science through interactive simulations, live on your device.
+    </div>
 
-      <!-- <div id="post-of-the-week-container" class="hiddenPost">
-        <p>Looking for something new?</p>
-        <a id="post-of-the-week" class='topic_tile'>
-          <div class='topic_banner' style="background-image:url('{{ item.thumbnail }}')">
+    <div id="home_box_wrapper">
+      <div id="home_box_1">
+        <iframe id="sim" src="/sim/?preset=GrayScottBanner&lite&clean&noop" style="visibility:hidden"></iframe>
+        <div id='content' class='no-select'>
+          <div id='title'>
+            <span class='text_on_sim'>Endless examples</span>
           </div>
-          <div class='container'>
-            <div class='title'></div>
-            <div class='subtitle'></div>
+          <div id='subtitle'>
+            <span class='text_on_sim'>Dive into partial differential equations (PDEs) from across science and maths</span>
           </div>
-        </a>
-      </div> -->
-
-      <h2 style="text-align:center">Collections</h2>
-
-      <div class='home_tiles'>
-        <a class='home_tile' href='visual-stories'>
-          <div class='container'>
-            <img alt="A crescent moon with text 'Once upon a time'" src='/assets/images/OnceUponATime.webp' />
-          </div>
-          <div class='container'>
-            <div class='title'>Visual stories</div>
-            <div class='subtitle'>Not a mathematician? No problem</div>
-            <div class='button'>Browse</div>
-          </div>
-        </a>
-        <a class='home_tile' href='art-pdes'>
-          <div class='container'>
-            <img alt="Alan Turing surrounded by a simulated Turing pattern in a reaction diffusion system"
-              src='/assets/images/alan4.webp' />
-          </div>
-          <div class='container'>
-            <div class='title'>Art of PDEs</div>
-            <div class='subtitle'>Beauty in time and space</div>
-            <div class='button'>Browse</div>
-          </div>
-        </a>
-        <a class='home_tile' href='basic-pdes'>
-          <div class='container'>
-            <img alt="Heatmap of concentration of a substance diffusing with circular symmetry"
-              src='/assets/images/heat-equation.webp' />
-          </div>
-          <div class='container'>
-            <div class='title'>Introductory PDEs</div>
-            <div class='subtitle'>Explore simple models interactively</div>
-            <div class='button'>Browse</div>
-          </div>
-        </a>
-        <a class='home_tile' href='mathematical-biology'>
-          <div class='container'>
-            <img alt="A squirrel sat with its front paws to its mouth" src='/assets/images/squirrel.webp' />
-          </div>
-          <div class='container'>
-            <div class='title'>Mathematical biology</div>
-            <div class='subtitle'>Squirrels, waves and patterns</div>
-            <div class='button'>Browse</div>
-          </div>
-        </a>
-        <a class='home_tile' href='nonlinear-physics'>
-          <div class='container'>
-            <img alt="Stone spiral staircase viewed from above" src='/assets/images/optics.webp' />
-          </div>
-          <div class='container'>
-            <div class='title'>Nonlinear physics</div>
-            <div class='subtitle'>Solitons, stochastic PDEs, and more</div>
-            <div class='button'>Browse</div>
-          </div>
-        </a>
-        <a class='home_tile' href='fluids'>
-          <div class='container'>
-            <img alt="Symmetric evolution of waves in a disk" src='/assets/images/Fluids.webp' />
-          </div>
-          <div class='container'>
-            <div class='title'>Fluids and waves</div>
-            <div class='subtitle'>Splash about with virtual fluids</div>
-            <div class='button'>Browse</div>
-          </div>
-        </a>
-        <!-- <a class='home_tile' href='numerical-methods'>
-            <div class='container'>
-              <img alt="Spot-like pattern of numerical instability on a grid" src='/assets/images/NumericalMethodsImage.webp' />
+          <div id='button_wrapper'>
+            <a id='button' href='explore' target="_blank">
+              <div class='button'>Explore</div>
+            </a>
+            <div id="try_clicking"><i class="fa-solid fa-arrow-left-long pulse"
+              style="position:relative;right:3px;top:2px;"></i> Try clicking
             </div>
-            <div class='container'>
-              <div class='title'>Numerical methods</div>
-              <div class='subtitle'>Adventures in numerical analysis</div>
-              <div class='button'>Browse</div>
-            </div>
-          </a> -->
+          </div>
+        </div>
       </div>
+      <a id='home_box_2' class='home_box_s' href='create'>
+        <div class='container main'>
+          <div class='title'>
+            Solve <em>your</em> equations
+          </div>
+          <div class='subtitle'>
+            Create simulations with our guides and examples
+          </div>
+          <div class='button'>Create</div>
+        </div>
 
+        <div class='container'>
+          <img alt="A squirrel sat with its front paws to its mouth" src='/assets/images/squirrel.webp' />
+        </div>
+      </a>
+      <a id='home_box_3' class='home_box_s' href='visual-stories'>
+        <div class='container main'>
+          <div class='title'>What is VisualPDE?</div>
+          <div class='subtitle'>Discover the ideas behind the simulations</div>
+          <div class='button'>Learn more</div>
+        </div>
+        <div class='container'>
+          <img alt="Heatmap of concentration of a substance diffusing with circular symmetry"
+            src='/assets/images/InhomHeatEquation.webp' />
+        </div>
+      </a>
+    </div>
+    <p id="jumpin">
+      Jump right into an <a class='button' href='/sim' target="_blank"><span class='nav-button' style='line-height:30px'>interactive simulation</span></a>
+    </p>
     </div>
   </main>
 

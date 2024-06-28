@@ -53,6 +53,10 @@ p > a:visited {
   text-decoration: underline;
 }
 
+a.button {
+  text-decoration: none;
+}
+
 table {
   color: var(--text-color);
 }
@@ -118,6 +122,7 @@ p {
 
 .wrapper {
   position: relative;
+  max-width: 100%;
 }
 
 .site-header .wrapper {
@@ -276,7 +281,7 @@ div.home-banner {
     transform: scale(1) translateX(0);
   }
   100% {
-    transform: scale(1.2) translateX(2px);
+    transform: scale(1.2) translateX(-2px);
   }
 }
 
@@ -410,7 +415,7 @@ div.subtitle_equation mjx-container mjx-math {
   font-size: 110%;
 }
 
-a.home_tile div.container div.button{
+div#home_box_s div.button{
   background-color: var(--button-color);
   text-align: center;
   width: 60px;
@@ -424,7 +429,7 @@ a.home_tile div.container div.button{
   transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
 }
 
-a.home_tile div.container div.button:hover {
+div#home_box_s div.button:hover {
   background-color: var(--hover-color);
   border-color: rgba(27, 31, 36, 0.15);
   transition-duration: 0.1s;
