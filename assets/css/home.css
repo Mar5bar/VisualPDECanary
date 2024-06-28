@@ -26,6 +26,10 @@ vpde-reset {
   }
 }
 
+.wrapper {
+  max-width: 100%;
+}
+
 .wrapper > p {
   text-align: center;
 }
