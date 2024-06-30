@@ -26,8 +26,8 @@ vpde-reset {
   }
 }
 
-#simulator {
-  display: none;
+.page-content {
+  padding: 0;
 }
 
 .wrapper {
@@ -292,15 +292,6 @@ div#home_box_1 div.button {
   }
 }
 
-@media screen and (max-width: 600px) {
-  #simulator {
-    display: block;
-  }
-  #try_out_highlight {
-    display: none;
-  }
-}
-
 @media screen and (max-width: 480px) {
   div#home_box_1 div#content div#subtitle {
     max-width: 85%;
@@ -325,7 +316,7 @@ div#home_box_1 div.button {
   text-align: center;
   transition: opacity 0.7s ease 1s;
   transition: none;
-  column-gap: 2px;
+  column-gap: 20px;
 }
 
 @media screen and (max-width: 600px) {
@@ -339,7 +330,7 @@ div#home_box_1 div.button {
   }
 
   .post-of-the-week {
-    width: 80vw;
+    width: 60vw;
   }
 }
 
