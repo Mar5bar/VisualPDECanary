@@ -1,3 +1,7 @@
+:root {
+  --inverse-text-color: white;
+}
+
 vpde-reset {
   transition: opacity 1s ease;
 }
@@ -62,16 +66,17 @@ div#home_box_wrapper {
   max-width: 1300px;
   padding: 0 1.25rem;
   margin: 1.25rem auto 3.375rem;
-  color: white;
 }
 
 div#home_box_1 {
   grid-row: span 2;
   min-height: 22rem;
   background-color: #2e1338;
+  border: 1px solid var(--tile-border-color);
   border-radius: 10px;
   position: relative;
   font-size: 16px;
+  color: var(--inverse-text-color);
 }
 
 #sim {
@@ -118,7 +123,6 @@ div#home_box_1 div#content div#button_wrapper a#button {
 div#home_box_1 div#content div#try_clicking {
   float: right;
   margin-top: -2.12rem;
-  opacity: 50%;
   font-size: 1.25rem;
 }
 
@@ -144,19 +148,31 @@ a.home_box_s {
 }
 
 a#home_box_2 {
-  background-color: white;
+  background-color: none;
   color: var(--tile-text-color);
 }
 
 a#home_box_3 {
   background-color: #f72167;
-  color: white;
+  color: var(--inverse-text-color);
+}
+
+.dark-mode a#home_box_3 {
+  background-color: #f7216868;
 }
 
 @media (hover: hover) {
   a.home_box_s:hover {
     text-decoration: none;
     background-color: var(--hover-background-color);
+  }
+
+  a#home_box_3:hover {
+    background-color: #e91e62;
+  }
+
+  .dark-mode a#home_box_3:hover {
+    background-color: #e91e6288;
   }
 }
 
@@ -341,4 +357,8 @@ div#home_box_1 div.button {
 
 #post-of-the-week-container p {
   margin: 0;
+}
+
+.dark-mode {
+  --inverse-text-color: var(--tile-text-color);
 }
