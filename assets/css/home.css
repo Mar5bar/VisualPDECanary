@@ -26,6 +26,10 @@ vpde-reset {
   }
 }
 
+#simulator {
+  display: none;
+}
+
 .wrapper {
   max-width: 100%;
 }
@@ -38,7 +42,7 @@ h1 {
   text-align: center;
 }
 
-div#tagline {
+.emphasize {
   text-align: center;
   font-weight: 300;
   font-size: 1.25rem;
@@ -57,7 +61,7 @@ div#home_box_wrapper {
   width: 100%;
   max-width: 1300px;
   padding: 0 1.25rem;
-  margin: 1.25rem auto 1.375rem;
+  margin: 1.25rem auto 3.375rem;
   color: white;
 }
 
@@ -288,6 +292,15 @@ div#home_box_1 div.button {
   }
 }
 
+@media screen and (max-width: 600px) {
+  #simulator {
+    display: block;
+  }
+  #try_out_highlight {
+    display: none;
+  }
+}
+
 @media screen and (max-width: 480px) {
   div#home_box_1 div#content div#subtitle {
     max-width: 85%;
@@ -296,4 +309,45 @@ div#home_box_1 div.button {
   div#home_box_1 div#content div#button_wrapper div#try_clicking {
     display: none;
   }
+}
+
+.post-of-the-week {
+  display: inline-block;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  width: min(30vw, 400px);
+}
+
+#post-of-the-week-container {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: stretch;
+  text-align: center;
+  transition: opacity 0.7s ease 1s;
+  transition: none;
+  column-gap: 2px;
+}
+
+@media screen and (max-width: 600px) {
+  #post-of-the-week-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #post-of-the-week-container > p {
+    padding-top: 15px;
+  }
+
+  .post-of-the-week {
+    width: 80vw;
+  }
+}
+
+#post-of-the-week-container.hiddenPost {
+  visibility: hidden;
+  opacity: 0;
+}
+
+#post-of-the-week-container p {
+  margin: 0;
 }
