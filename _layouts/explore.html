@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+
+  {%- include head.html -%}
+  <script src="{{ site.baseurl }}/assets/js/load_manifests.js"></script>
+
+  <body>
+
+    {%- include header.html -%}
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+
+        <header class="post-header">
+          <h1 class="post-title">{{ page.title }}</h1>
+        </header>
+
+        {{ content }}
+    
+        <br />
+        
+        <h2>Explore an example</h2>
+        <div class='topic_tiles'>
+
+        {% assign lessons = site[page.collection_to_list] 
+          | sort: 'lesson_number' %}
+        
+        {% for item in lessons %}
+          <a class='topic_tile' href='{{ item.url }}'>
+            <div class='topic_banner' style="background-image:url('{{ item.thumbnail }}')">
+            </div>
+            <div class='container'>
+              <div class='title'>{{ item.title }}</div>
+              <div class='subtitle'>{{ item.extract }}</div>
+              <div class='subtitle_equation'>{{ item.equation }}</div>
+            </div>
+          </a>
+        {% endfor %}
+
+        </div>
+
+      </div>
+    </main>
+
+    {%- include footer.html -%}
+    {%- include mathjax.html -%}
+
+  </body>
+
+  <script>
+    (async () => {
+        // Build the list of pages to display.
+        let documents, tags;
+        if (
+        !localStorage.getItem("documents") ||
+        !localStorage.getItem("documentsExpiryTime") ||
+        parseInt(localStorage.getItem("documentsExpiryTime")) < Date.now()
+        ) {
+        documents = await getDocs();
+        localStorage.setItem(
+            "documentsExpiryTime",
+            Date.now() + 1000 * 60 * 60 * 24 * 1,
+        );
+        localStorage.setItem("documents", JSON.stringify(documents));
+        } else {
+        documents = JSON.parse(localStorage.getItem("documents"));
+        }
+
+        // Exclude user guide and topic pages.
+        let pages = documents
+        .filter((doc) => doc.layout === "page")
+        .filter((doc) => doc.url.indexOf("/user-guide/") === -1);
+
+        // Sort the pages by title.
+        pages.sort((a, b) => a.title.localeCompare(b.title));
+
+        // For each page, add a topic tile.
+        let topicTiles = document.querySelector(".topic_tiles");
+        pages.forEach((page) => {
+        let topicTile = document.createElement("a");
+        topicTile.classList.add("topic_tile");
+        topicTile.href = page.url;
+        let topicBanner = document.createElement("div");
+        topicBanner.classList.add("topic_banner");
+        topicBanner.style.backgroundImage = `url(${page.thumbnail})`;
+        topicTile.appendChild(topicBanner);
+        let container = document.createElement("div");
+        container.classList.add("container");
+        let title = document.createElement("div");
+        title.classList.add("title");
+        title.textContent = page.title;
+        container.appendChild(title);
+        let subtitle = document.createElement("div");
+        subtitle.classList.add("subtitle");
+        subtitle.textContent = page.extract;
+        container.appendChild(subtitle);
+        topicTile.appendChild(container);
+        topicTile.dataset.tags = page.tags;
+        topicTiles.appendChild(topicTile);
+        });
+    })();
+  </script>
+
+</html>
