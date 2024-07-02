@@ -8,17 +8,17 @@ extract: What is VisualPDE, where did it come from and who is behind it?
 
 ## The idea
 
-Communicating mathematics can be challenging. This is especially true of [partial differential equations](https://en.wikipedia.org/wiki/Partial_differential_equation)(PDEs), which are a staple of undergraduate mathematics courses and almost ubiquitous in mathematical modelling of the real world.
+Communicating mathematics can be challenging. This is especially true for [partial differential equations](https://en.wikipedia.org/wiki/Partial_differential_equation) (PDEs), which are a staple of undergraduate mathematics courses and almost ubiquitous in mathematical modelling of the real world.
 
-Many of these equations exhibit intuitive behaviours, but it can be hard to see that just by looking at the symbols. We set out to create a tool for solving this problem, aiming to allow anyone to type in their PDE and instantly visualise and interact with solutions of these equation. Crucially, we wanted people to be able to do this without needing to go through a course of numerical methods, or even one on PDEs.
+Many of these equations exhibit intuitive behaviours, but it can be hard to see that just by looking at the symbols. We set out to create a tool for solving this problem, aiming to allow anyone to type in their PDE and instantly visualise and interact with solutions of these equations. Crucially, we wanted people to be able to do this without needing to take a course on numerical methods, or even one on PDEs.
 
-Through a [Durham Centre for Academic Development](https://www.durham.ac.uk/departments/centres/academic-development/) collaborative innovation grant titled _Accessible interactive visualisations in mathematical biology_, Alex Chudasama (a final-year undergraduate at Durham University) designed an early version of an interactive PDE solver based on this [Gray–Scott reaction–diffusion simulator](https://pmneila.github.io/jsexp/grayscott/).
+Through a [Durham Centre for Academic Development](https://www.durham.ac.uk/departments/centres/academic-development/) collaborative innovation grant, Alex Chudasama (a final-year undergraduate at Durham University) designed an early version based on this [Gray–Scott reaction–diffusion simulator](https://pmneila.github.io/jsexp/grayscott/).
 
-From this proof-of-concept, development of what became VisualPDE took off and we released the first public version of VisualPDE in April 2023. Since then, we've kept expanding VisualPDE and its applications, from education and research to knowledge exchange and public engagement.
+From this proof-of-concept, development of what became VisualPDE took off and we released the first public version in April 2023. Since then, we've kept expanding VisualPDE and its applications, from education and research to knowledge exchange and public engagement.
 
 ## VisualPDE today
 
-Today, VisualPDE is a suite of tools and examples for exploring the world of PDEs. VisualPDE has been used around the world to teach, engage and interact with mathematics and science through tens of thousands of simulations.
+Today, VisualPDE is a simulator and a collection of examples for exploring the world of PDEs. VisualPDE has been used around the world to teach, engage and interact with mathematics and science through tens of thousands of simulations.
 
 Some external applications of VisualPDE include:
 

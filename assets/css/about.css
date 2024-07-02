@@ -7,7 +7,7 @@ hr {
 }
 
 img {
-  max-width: 200px;
+  width: 200px;
   height: 200px;
 }
 
@@ -46,7 +46,7 @@ div.container img:has(~ img) {
     display: block;
   }
   img {
-    max-width: 150px;
+    width: 150px;
     height: 150px;
   }
   div.container {
