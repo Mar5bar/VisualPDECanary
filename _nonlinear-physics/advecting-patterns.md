@@ -5,6 +5,7 @@ lesson_number: 70
 thumbnail: /assets/images/GrayScottAdvection.webp
 extract: Going with the flow?
 equation: 
+categories: [nonlinear physics]
 ---
 Each of the examples on this page will be a variation of a previous example incorporating one or more linear advection terms. This will introduce a velocity parameter $V$ and, in the unidrectional case, a direction $\theta$.
 

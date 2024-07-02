@@ -5,6 +5,7 @@ lesson_number: 20
 thumbnail: /assets/images/complexGinzburgLandau.webp
 extract: A world of complexity
 equation: $\pd{\psi}{t}=(D_r+\i D_i)\nabla^2 \psi+(a_r+\i a_i)\psi+(b_r+\i b_i)\psi|\psi|^2$
+categories: [nonlinear physics]
 ---
 Here is an implementation of a [(complex) Ginzburg–Landau equation](https://arxiv.org/abs/cond-mat/0106115) given by
 

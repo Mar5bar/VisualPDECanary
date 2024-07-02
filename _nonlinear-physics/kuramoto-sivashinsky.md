@@ -5,6 +5,7 @@ lesson_number: 40
 thumbnail: /assets/images/KuramotoSivashinsky.webp
 extract: Chaos at your fingertips
 equation: $\pd{u}{t}=-\nabla^2u-\nabla^4u-|\vnabla u|^2 $
+categories: [nonlinear physics]
 ---
 We now study the [Kuramoto–Sivashinsky equation](https://en.wikipedia.org/wiki/Kuramoto%E2%80%93Sivashinsky_equation),
 

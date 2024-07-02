@@ -5,6 +5,7 @@ lesson_number: 30
 thumbnail: /assets/images/CahnHilliard.webp
 extract: Phase separation
 equation: $\pd{u}{t}=\nabla^2 (F(u)-g\nabla^2u)+f(u)$
+categories: [nonlinear physics]
 ---
 
 We now study the [Cahn–Hilliard equation](https://en.wikipedia.org/wiki/Cahn%E2%80%93Hilliard_equation) with an extra reaction term,

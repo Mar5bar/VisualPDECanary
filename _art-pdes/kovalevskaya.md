@@ -5,6 +5,7 @@ lesson_number: 5
 thumbnail: /assets/images/Kovalevskaya.webp
 extract: Playing in time and space
 equation: $\pd{\psi}{t}=(D_r+\i D_i)\nabla^2 \psi+(a_r+\i a_i)(1-I_S(x,y))\psi+(b_r+\i b_i)\psi|\psi|^2$
+categories: [art]
 ---
 Functions of space can allow us to change how a PDE solution varies in space and time. This page explores an example using an image of [Sofya Kovalevskaya](https://en.wikipedia.org/wiki/Sofya_Kovalevskaya) encoded as the function $I_S(x,y)$. The system uses the [complex Ginzburg–Landau equation](/nonlinear-physics/nls-cgl).
 

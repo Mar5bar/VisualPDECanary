@@ -6,6 +6,7 @@ thumbnail: /assets/images/VirusTransmission.webp
 extract: Testing tesing
 published: false
 equation:
+categories: [visual stories]
 ---
 
 Here's some text with an inline slider <vpde-slider iframe="sim" name="V" min=0 max=40 value=20></vpde-slider> in the middle. 

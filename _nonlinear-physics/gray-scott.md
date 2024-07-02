@@ -5,6 +5,7 @@ lesson_number: 50
 thumbnail: /assets/images/GrayScott.webp
 extract: Intricate reaction–diffusion patterning
 equation: $\pd{u}{t}=\nabla^2 u+u^2v - (a+b)u$, $\pd{v}{t}=D\nabla^2v -u^2v + a(1 - v)$
+categories: [nonlinear physics]
 ---
 A reaction–diffusion system heavily studied for its complex dynamics is the Gray–Scott system, given by
 

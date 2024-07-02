@@ -4,6 +4,7 @@ title: Hills and valleys
 lesson_number: 150
 thumbnail: /assets/images/SpringOnTopography.webp
 extract: Effects of topography on models of water and vegetation
+categories: [biology]
 ---
 
 Many of the spatial models that people study assume flat, homogeneous domains. In this example, we'll numerically explore what happens if we replace flatness with all of real life's roughness.

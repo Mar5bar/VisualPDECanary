@@ -5,6 +5,7 @@ lesson_number: 130
 thumbnail: /assets/images/VegetationPatterns.webp
 extract: Stripes moving towards water
 equation: $\pd{w}{t} = a-w -wn^2+v\pd{w}{x} + \nabla^2w$, $\pd{n}{t} = wn^2 - mn + \nabla^2n$ 
+categories: [biology]
 ---
 
 Here we look at a model of vegetation patterning known as the [Klausmeier model](https://www.science.org/doi/full/10.1126/science.284.5421.1826), written in terms of water $w$ and plant biomass $n$.
