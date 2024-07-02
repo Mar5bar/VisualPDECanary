@@ -6,12 +6,16 @@ hr {
   opacity: 25%;
 }
 
-img {
+main img {
   width: 200px;
   height: 200px;
+  border: 3px solid var(--tile-highlight-color);
+  object-fit: cover;
+  border-radius: 50%;
 }
 
-div.container {
+div.container,
+div.profiles {
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -22,10 +26,20 @@ div.container {
   text-align: center;
 }
 
-div.container img {
-  border: 3px solid var(--tile-highlight-color);
-  object-fit: cover;
-  border-radius: 50%;
+div.profiles {
+  margin-bottom: 0;
+}
+
+div.profile {
+    margin-bottom: 1rem;
+    transition: transform 0.5s;
+}
+
+@media (hover: hover) {
+    div.profile:hover {
+        transform: scale(1.05);
+    }
+    
 }
 
 div.container img:has(~ img) {
@@ -49,7 +63,8 @@ div.container img:has(~ img) {
     width: 150px;
     height: 150px;
   }
-  div.container {
+  div.container,
+  div.profiles {
     flex-direction: column;
     column-gap: 0;
     margin-top: 0;

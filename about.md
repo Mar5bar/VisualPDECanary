@@ -12,13 +12,18 @@ Communicating mathematics can be challenging. This is especially true for [parti
 
 Many of these equations exhibit intuitive behaviours, but it can be hard to see that just by looking at the symbols. We set out to create a tool for solving this problem, aiming to allow anyone to type in their PDE and instantly visualise and interact with solutions of these equations. Crucially, we wanted people to be able to do this without needing to take a course on numerical methods, or even one on PDEs.
 
-Through a [Durham Centre for Academic Development](https://www.durham.ac.uk/departments/centres/academic-development/) collaborative innovation grant, Alex Chudasama (a final-year undergraduate at Durham University) designed an early version based on this [Gray–Scott reaction–diffusion simulator](https://pmneila.github.io/jsexp/grayscott/).
+Read more about VisualPDE and its context in our article in the [Bulletin of Mathematical Biology](https://doi.org/10.1007/s11538-023-01218-4).
+
+## Beginnings
+
+Through a [Durham Centre for Academic Development](https://www.durham.ac.uk/departments/centres/academic-development/) collaborative innovation grant, Alex Chudasama (a final-year undergraduate at Durham University) designed an early version based on this [reaction–diffusion simulator](https://pmneila.github.io/jsexp/grayscott/).
 
 From this proof-of-concept, development of what became VisualPDE took off and we released the first public version in April 2023. Since then, we've kept expanding VisualPDE and its applications, from education and research to knowledge exchange and public engagement.
 
+
 ## VisualPDE today
 
-Today, VisualPDE is a simulator and a collection of examples for exploring the world of PDEs. VisualPDE has been used around the world to teach, engage and interact with mathematics and science through tens of thousands of simulations.
+Today, VisualPDE is both a simulator and a collection of examples for exploring the world of PDEs. VisualPDE has been used around the world to teach, engage and interact with mathematics and science through tens of thousands of simulations.
 
 Some external applications of VisualPDE include:
 
@@ -26,7 +31,7 @@ Some external applications of VisualPDE include:
 
 - [Visualising landslides](https://imibath.ac.uk/news/landslide-early-warning-system/) using real topographical data from Brazil, with the Institute for Mathematical Innovation, University of Bath
 
-- Providing figures and supporting simulations for a rigorous [study of localised pattern formation in dryalnd vegetation](https://arxiv.org/abs/2309.02956)
+- Providing figures and supporting simulations for a rigorous [study of localised pattern formation in dryland vegetation](https://arxiv.org/abs/2309.02956)
 
 - Numerical simulation of temporal and spatiotemporal oscillations in a [model of viral cancer therapy](https://doi.org/10.1101/2023.12.19.572433)
 
@@ -46,3 +51,4 @@ If you use VisualPDE in your research, we'd be grateful if you could cite our ar
 ## The team
 
 VisualPDE is a team effort, written and maintained by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/) and [Andrew Krause](https://www.andrewkrause.org/).
+
