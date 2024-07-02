@@ -147,18 +147,19 @@ a.home_box_s {
   column-gap: 20px;
 }
 
-a#home_box_2 {
-  background-color: none;
-  color: var(--tile-text-color);
-}
 
-a#home_box_3 {
+a#home_box_2 {
   background-color: #f72167;
   color: var(--inverse-text-color);
 }
 
-.dark-mode a#home_box_3 {
-  background-color: #f7216868;
+.dark-mode a#home_box_2 {
+  background-color: #c2a1ff4d;
+}
+
+a#home_box_3 {
+  background-color: none;
+  color: var(--tile-text-color);
 }
 
 @media (hover: hover) {
@@ -167,12 +168,12 @@ a#home_box_3 {
     background-color: var(--hover-background-color);
   }
 
-  a#home_box_3:hover {
+  a#home_box_2:hover {
     background-color: #e91e62;
   }
 
-  .dark-mode a#home_box_3:hover {
-    background-color: #e91e6288;
+  .dark-mode a#home_box_2:hover {
+    background-color: #c2a1ff62;
   }
 }
 
