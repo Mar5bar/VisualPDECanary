@@ -5,6 +5,7 @@ lesson_number: 120
 thumbnail: /assets/images/heterogeneousGiererMeinhardt.webp
 extract: Isolated patterns and moving spikes
 equation: $\pd{u}{t}=\nabla^2 u+a+G(x)+\frac{u^2}{v}-[b+H(x)]u,$ $\pd{v}{t}=D\nabla^2v+ u^2-cv$
+categories: [biology]
 ---
 
 This is a brief example of messy boundary conditions and spatial heterogeneity inducing complex dynamical behaviours. 

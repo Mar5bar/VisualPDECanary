@@ -5,6 +5,7 @@ lesson_number: 40
 thumbnail: /assets/images/flooding.webp
 extract: Defending against surging rivers
 equation:
+categories: [visual stories]
 ---
 
 In this Story, we'll explore the most frequent type of natural disaster: flooding. The prediction and prevention of flooding is difficult and far from solved, so we'll focus on visualising a caricature of a flood event rather than the real thing. 

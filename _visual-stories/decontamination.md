@@ -5,6 +5,7 @@ lesson_number: 30
 thumbnail: /assets/images/Decontamination.webp
 extract: Chemical decontamination in porous media
 equation:
+categories: [visual stories]
 ---
 
 In this Story, we'll explore removing a contaminant from within a porous material by neutralising it in a chemical reaction. For example, the contaminant might be a hazardous liquid chemical that has seeped into a porous building material like concrete. We'll keep safe while doing this by making use of VisualPDE simulations to explore what happens.

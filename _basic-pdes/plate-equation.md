@@ -5,6 +5,7 @@ lesson_number: 60
 thumbnail: /assets/images/plateEquation.webp
 extract: The plate equation
 equation: $\pdd{u}{t}=-D^2 \nabla^4 u-Q$
+categories: [classic]
 ---
 Let's consider a (damped) [beam equation](https://en.wikipedia.org/wiki/Euler%E2%80%93Bernoulli_beam_theory):
 

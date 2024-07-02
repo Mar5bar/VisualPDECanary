@@ -5,6 +5,7 @@ lesson_number: 110
 thumbnail: /assets/images/nonlinear-beam.webp
 extract: Exploring state-dependent stiffness
 equation: $\pd{y}{t}=-\pdd{}{x}[E(y)\pdd{y}{x}]$
+categories: [nonlinear physics]
 ---
 
 In the absence of inertia, the dimensionless equation of motion for a beam with a small deflection $y(x,t)$ is

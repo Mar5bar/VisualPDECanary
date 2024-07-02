@@ -5,6 +5,7 @@ lesson_number: 10
 thumbnail: /assets/images/ShallowWaterBox.webp
 extract: Making waves in shallow water
 equation:
+categories: [visual stories]
 ---
 
 Waves on water can be mesmerising, especially the ripples that spread out after an object breaks the surface of an otherwise still liquid. Using VisualPDE, we can play around with water waves without any risk of spillages.

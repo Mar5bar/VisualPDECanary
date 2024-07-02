@@ -5,6 +5,7 @@ lesson_number: 50
 thumbnail: /assets/images/Ducks.webp
 extract: Ducks, advection and ocean flows
 equation:
+categories: [visual stories]
 ---
 
 On 10 January 1992, during a storm, a container full of bath toys fell off a ship travelling across the Pacific ocean. The container opened and the 28,000 toys, including yellow rubber ducks, were released.

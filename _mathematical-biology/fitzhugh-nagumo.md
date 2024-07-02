@@ -5,6 +5,7 @@ lesson_number: 80
 thumbnail: /assets/images/FitzHugh-Nagumo.webp
 extract: Patterns, spiral waves, and chaos
 equation: $\pd{u}{t}=\nabla^2 u +u-u^3-v$, $\pd{v}{t}=D\nabla^2v+ \varepsilon_v(u-a_v v-a_z)$
+categories: [biology]
 ---
 Here we look at the  [FitzHugh–Nagumo model](https://en.wikipedia.org/wiki/FitzHugh%E2%80%93Nagumo_model), given by 
 
