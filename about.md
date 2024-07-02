@@ -1,20 +1,26 @@
 ---
-layout: page
+layout: about
 title: About
 permalink: /about/
 thumbnail: /assets/images/question-marks.webp
 extract: What is VisualPDE, where did it come from and who is behind it?
 ---
 
-VisualPDE is a website designed to bring the world of partial differential equations (PDEs) to a wider audience through the use of real-time interactive web-based simulations, usable on almost any device.
+## The idea
 
-<iframe class="sim" title="VisualPDE simulation" style="width:40%;margin-bottom:1em" src="/sim/?options=N4IgRgqiBcIHYFMCuBbAhnOIA04BqMIAJgJYBOJAxgBYA2CALjuGYQKwB0bzYAboQCUAggDkAIs0qEA7mgYJWuSgFEYABg5q2SidAZkkCXEQhRYARmYmCsALSUAVEgD0ACnMBqJAD0ATAEorPBsQS2MAdXDCNStCV3iAD1tzABY1f2cADnS-AAIPXPiAT2S0jOz-PNtc80qAZlzqxNL0rJzfB2KW8pyGgB5cmOMAZ0JfOqHifj0DI2ImaA01LSUzECW1MJAAa0JKAF4UgG40fY1zI+Z0QnMOTKuSaIe4AA0x7lwUEjgATUI6j7wAAqMAAbGpcAAHQgAYSQwwYAHsUMwyGskJ1zLYkIFcGQQkhbGgHPw8VFYJNhtCKVxmMMAI4wfSGXDDJBM2a4aYAbVAaDIZER0hhiNoiKQrGgoLYbABuH5gukYgQcGGJAYRXUXHlAqFABkVQBzBjUACyaASN2YCqFAGVKGh6IQ0EgkdbddI3rA9QB9BLOXyNXKWnWKv7en1FANBzXy12I22MEViiUCDCGhAwABmjuGcwdKAUaCB1EYaBgEyUaELZDQAAVqI9oJWQAWiwAtRHIrWZJSi8VkdDUkCyeSKVv9iVgfnZ3P5xFwJES0bQHO0PN9xcD5MD9SbpdkZSQtVirCLTTaCdbiUiVAwS+UeFIlC2iU5yiZ1dz3AIFBgRHDCua4biAv7-oBQh-iQKoLBol5gQBwxiCQWZZvCn4aKCP5-ohDZNrcbAAOxqL2oE4YBtqNnAmrQOYEJkeBwy2igXYmoggFar42GMbakIII+tAzueXEMYhJZllqhGZGwKS4FmtAkJCfFEDuEpDrO65zApiDhCQRAmqaSC0DA5ifBaqn4o6hg3HczwWXgVmfuszCIrwCiCTRwFzK57loEUFl7iAPlkB5R4nguWrLJewWhQkkKSqELluSFfl6t8CC6fpZpGSZUJigwQJFHxhCQoJiB0m+aAfgAYkgZ7ObgJpkAgCBiAAEggJCGtQDD2o6GEcIRXL8UiZDVdBtBEBpIHSNQchAoidb5YQ7K4HA1ZOZYAC+AC6uDSFNsCrSOw7sltQA&clean&sf=1" frameborder="0"></iframe>
+Communicating mathematics can be challenging. This is especially true of [partial differential equations](https://en.wikipedia.org/wiki/Partial_differential_equation)(PDEs), which are a staple of undergraduate mathematics courses and almost ubiquitous in mathematical modelling of the real world.
 
-This heart-shaped pattern isn't a video. It's a simulation of a PDE system running live on your device<noscript>, or it would be if JavaScript was enabled</noscript>. We provide numerous example simulations on the site, exploring a wide variety of topics from waves and transport theory, to chaotic nonlinear physical systems and pattern-forming models in mathematical biology. VisualPDE simulations can also be found in recent scientific works (see below), allowing you to instantly reproduce cutting-edge findings live on your device.
+Many of these equations exhibit intuitive behaviours, but it can be hard to see that just by looking at the symbols. We set out to create a tool for solving this problem, aiming to allow anyone to type in their PDE and instantly visualise and interact with solutions of these equation. Crucially, we wanted people to be able to do this without needing to go through a course of numerical methods, or even one on PDEs.
 
-## People using VisualPDE
+Through a [Durham Centre for Academic Development](https://www.durham.ac.uk/departments/centres/academic-development/) collaborative innovation grant titled _Accessible interactive visualisations in mathematical biology_, Alex Chudasama (a final-year undergraduate at Durham University) designed an early version of an interactive PDE solver based on this [Gray–Scott reaction–diffusion simulator](https://pmneila.github.io/jsexp/grayscott/).
 
-Tens of thousands of simulations have been performed using VisualPDE. External applications of VisualPDE include:
+From this proof-of-concept, development of what became VisualPDE took off and we released the first public version of VisualPDE in April 2023. Since then, we've kept expanding VisualPDE and its applications, from education and research to knowledge exchange and public engagement.
+
+## VisualPDE today
+
+Today, VisualPDE is a suite of tools and examples for exploring the world of PDEs. VisualPDE has been used around the world to teach, engage and interact with mathematics and science through tens of thousands of simulations.
+
+Some external applications of VisualPDE include:
 
 - An interactive logo for the [Society for Mathematical Biology](https://smb.org)
 
@@ -28,14 +34,15 @@ Tens of thousands of simulations have been performed using VisualPDE. External a
 
 - Exploring the principles behind the design of simple but effective robotic filaments for microscale swimming in a [multidisciplinary paper](https://doi.org/10.48550/arXiv.2402.13844)
 
+
 ## Using VisualPDE
 
-Our collections of [Visual Stories](/visual-stories) and [Introductory PDEs](/basic-pdes) are a good place to start exploring, after which you can delve into the other collections found on the home page. You can also check out our detailed [User guide](/user-guide) and the dedicated [Quick start guide](/user-guide/quick-start).
+Everyone is free to use VisualPDE (see our [licence](https://github.com/Pecnut/visual-pde/blob/main/LICENSE.md) if you're looking for industrial use). Anyone can [explore the examples](/explore), [design their own](/create) simulations and share them with a URL, or even copy the markdown-based website from [GitHub](https://github.com/Pecnut/visual-pde) to design their own version of our website.
 
-Beyond our curated examples, we hope to encourage advanced users to design their own simulations. Anyone can design their own model simulations and share them with a URL, or copy the markdown-based website from [GitHub](https://github.com/Pecnut/visual-pde) to design their own website for use in teaching or research communication (see our [licence](https://github.com/Pecnut/visual-pde/blob/main/LICENSE.md) if you're looking for industrial use).
+Our collections of [Visual Stories](/visual-stories) are a good place to start exploring, after which you can delve into our other [collections and examples](/explore). You can also check out our detailed [User guide](/user-guide) to dive under the hood.
 
-## Origins and contributors
+If you use VisualPDE in your research, we'd be grateful if you could cite our article about the context, design, and applications of VisualPDE in the [Bulletin of Mathematical Biology](https://doi.org/10.1007/s11538-023-01218-4).
 
-The ideas for this website originated in a [Durham Centre for Academic Development](https://www.durham.ac.uk/departments/centres/academic-development/) collaborative innovation grant titled _Accessible interactive visualisations in mathematical biology_, which supported Alex Chudasama (a final-year undergraduate at Durham University) to design an early version of an interactive PDE solver based on this [Gray–Scott reaction–diffusion simulator](https://pmneila.github.io/jsexp/grayscott/).
+## The team
 
-The current website and tools are written and maintained by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/) and [Andrew Krause](https://www.andrewkrause.org/). A detailed article about the context, design, and applications of VisualPDE can be found in the [Bulletin of Mathematical Biology](https://doi.org/10.1007/s11538-023-01218-4).
+VisualPDE is a team effort, written and maintained by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/) and [Andrew Krause](https://www.andrewkrause.org/).

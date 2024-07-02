@@ -3,7 +3,7 @@
 # To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 
 layout: topic
-title: Create
+title: Explore
 collection_to_list: create
 thumbnail: /assets/images/OnceUponATime.webp
 extract: Not a mathematician? No problem

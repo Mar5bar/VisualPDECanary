@@ -201,12 +201,6 @@ main a[href*="visualpde.com/sim/" i] {
     padding: 2px 2px;
     margin: -2px -2px;
   }
-
-  main a[href="/sim/"]:hover {
-    border-radius: inherit;
-    padding: initial;
-    margin: initial;
-  }
 }
 
 .footer-col-wrapper {
@@ -414,7 +408,7 @@ div.subtitle_equation mjx-container mjx-math {
   font-size: 110%;
 }
 
-div#home_box_s div.button{
+div#home_box_s div.button {
   background-color: var(--button-color);
   text-align: center;
   width: 60px;
