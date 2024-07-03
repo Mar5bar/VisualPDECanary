@@ -5113,10 +5113,15 @@ presets["default"] = {
 export function getPreset(id) {
   // Case insensitive lookup.
   const lowerCasePresets = lowerCaseKeys(presets);
-  if (id == null || id == undefined) return presets["default"];
+  if (id == null || id == undefined) return deepcopy(presets["default"]);
   id = id.toLowerCase();
-  if (lowerCasePresets.hasOwnProperty(id)) return lowerCasePresets[id];
-  return presets["default"];
+  if (lowerCasePresets.hasOwnProperty(id))
+    return deepcopy(lowerCasePresets[id]);
+  return deepcopy(presets["default"]);
+}
+
+function deepcopy(obj) {
+  return JSON.parse(JSON.stringify(obj));
 }
 
 export function getListOfPresetNames() {
