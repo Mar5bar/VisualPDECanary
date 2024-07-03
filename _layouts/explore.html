@@ -3,6 +3,7 @@
 
   {%- include head.html -%}
   <script src="{{ site.baseurl }}/assets/js/load_manifests.js"></script>
+  <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/explore.css">
 
   <body>
 
@@ -16,28 +17,19 @@
         </header>
 
         {{ content }}
-    
-        <br />
-        
-        <h2>Explore an example</h2>
-        <div class="filter_buttons"></div>
+  
+
+        <h2>Curated collections</h2>
+        Looking for a place to start? Check out these curated collections of articles and examples.
         <div class='topic_tiles'>
-
-        {% assign lessons = site[page.collection_to_list] 
-          | sort: 'lesson_number' %}
+        </div>
         
-        {% for item in lessons %}
-          <a class='topic_tile' href='{{ item.url }}'>
-            <div class='topic_banner' style="background-image:url('{{ item.thumbnail }}')">
-            </div>
-            <div class='container'>
-              <div class='title'>{{ item.title }}</div>
-              <div class='subtitle'>{{ item.extract }}</div>
-              <div class='subtitle_equation'>{{ item.equation }}</div>
-            </div>
-          </a>
-        {% endfor %}
-
+        <h2>The library</h2>
+        <p>Browse the complete library of VisualPDE pages below, or streamline your search using filters.</p>
+        <div class="filter_buttons">
+        </div>
+        <div id="library" class='topic_tiles'>
+          <p id="no_results">Sorry! Nothing in the library matches this combination of filters.</p>
         </div>
 
       </div>
@@ -73,10 +65,13 @@
         .filter((doc) => doc.url.indexOf("/user-guide/") === -1);
 
         // Sort the pages by title.
-        pages.sort((a, b) => a.title.localeCompare(b.title));
+        function removeThePrefix(title) {
+        return title.replace(/^The\s/i, "");
+        }
+        pages.sort((a, b) => removeThePrefix(a.title).localeCompare(removeThePrefix(b.title)));
 
         // For each page, add a topic tile and store the tags.
-        let topicTiles = document.querySelector(".topic_tiles");
+        let topicTiles = document.getElementById("library");
         let tags = new Set();
         pages.forEach((page) => {
             let topicTile = document.createElement("a");
@@ -102,13 +97,16 @@
             topicTiles.appendChild(topicTile);
         });
 
+        // Sort the tags alphabetically.
+        tags = new Set(Array.from(tags).sort());
+
         // For each tag, add a filter button.
         let filterButtons = document.querySelector(".filter_buttons");
         let activeTags = new Set();
         tags.forEach((tag) => {
             let filterButton = document.createElement("button");
             filterButton.classList.add("filter_button");
-            filterButton.textContent = tag;
+            filterButton.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
             filterButton.dataset.active = false;
             filterButton.addEventListener("click", () => {
                 filterButton.dataset.active = filterButton.dataset.active == "true" ? "false" : "true";
@@ -119,14 +117,18 @@
                 }
                 // Check if no filter buttons are active.
                 let noneActive = activeTags.size == 0;
+                let somethingShowing = false;
                 // Loop through topic tiles and display or hide them.
                 document.querySelectorAll(".topic_tile").forEach((tile) => {
                 if (noneActive || tile.tags.isSupersetOf(activeTags)) {
                     tile.style.display = "block";
+                    somethingShowing = true;
                 } else {
                     tile.style.display = "none";
                 }
                 });
+                document.getElementById("no_results").style.display = somethingShowing ? "none" : "block";
+                document.getElementById("library").classList.toggle("no_results", !somethingShowing);
             });
             filterButtons.appendChild(filterButton);
         })

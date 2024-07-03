@@ -4,9 +4,9 @@
 
 layout: explore
 title: Explore
-collection_to_list: create
-thumbnail: /assets/images/OnceUponATime.webp
-extract: Not a mathematician? No problem
+collection_to_list: explore
+thumbnail: /assets/images/Library.webp
+extract: Explore the VisualPDE library
 ---
 
-A collection of full-screen demonstrations of VisualPDE, ranging from virus dynamics to flood visualisation.
+We've put together dozens of articles and examples, covering a huge range of topics from across mathematics and science. Check out our themed <em>collections</em>, or delve into the full library below.
