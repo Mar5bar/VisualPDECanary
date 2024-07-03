@@ -16,9 +16,17 @@ message: If you use VisualPDE, please cite our article in the
   Bulletin of Mathematical Biology.
 preferred-citation:
   authors:
+  - family-names: Walker
+    given-names: Benjamin J.
+    orcid: "https://orcid.org/0000-0003-0853-267X"
   - family-names: Townsend
     given-names: Adam K.
     orcid: "https://orcid.org/0000-0003-1700-2873"
+  - family-names: Chudasama
+    given-names: Alexander K.
+  - family-names: Krause
+    given-names: Andrew L.
+    orcid: "https://orcid.org/0000-0001-9638-7278"
   date-published: 2023-10-12
   doi: 10.1007/s11538-023-01218-4
   issn: 1522-9602
