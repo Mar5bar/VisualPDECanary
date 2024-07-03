@@ -20,6 +20,7 @@
         <br />
         
         <h2>Explore an example</h2>
+        <div class="filter_buttons"></div>
         <div class='topic_tiles'>
 
         {% assign lessons = site[page.collection_to_list] 
@@ -50,7 +51,7 @@
   <script>
     (async () => {
         // Build the list of pages to display.
-        let documents, tags;
+        let documents;
         if (
         !localStorage.getItem("documents") ||
         !localStorage.getItem("documentsExpiryTime") ||
@@ -74,30 +75,61 @@
         // Sort the pages by title.
         pages.sort((a, b) => a.title.localeCompare(b.title));
 
-        // For each page, add a topic tile.
+        // For each page, add a topic tile and store the tags.
         let topicTiles = document.querySelector(".topic_tiles");
+        let tags = new Set();
         pages.forEach((page) => {
-        let topicTile = document.createElement("a");
-        topicTile.classList.add("topic_tile");
-        topicTile.href = page.url;
-        let topicBanner = document.createElement("div");
-        topicBanner.classList.add("topic_banner");
-        topicBanner.style.backgroundImage = `url(${page.thumbnail})`;
-        topicTile.appendChild(topicBanner);
-        let container = document.createElement("div");
-        container.classList.add("container");
-        let title = document.createElement("div");
-        title.classList.add("title");
-        title.textContent = page.title;
-        container.appendChild(title);
-        let subtitle = document.createElement("div");
-        subtitle.classList.add("subtitle");
-        subtitle.textContent = page.extract;
-        container.appendChild(subtitle);
-        topicTile.appendChild(container);
-        topicTile.dataset.tags = page.tags;
-        topicTiles.appendChild(topicTile);
+            let topicTile = document.createElement("a");
+            topicTile.classList.add("topic_tile");
+            topicTile.href = page.url;
+            let topicBanner = document.createElement("div");
+            topicBanner.classList.add("topic_banner");
+            topicBanner.style.backgroundImage = `url(${page.thumbnail})`;
+            topicTile.appendChild(topicBanner);
+            let container = document.createElement("div");
+            container.classList.add("container");
+            let title = document.createElement("div");
+            title.classList.add("title");
+            title.textContent = page.title;
+            container.appendChild(title);
+            let subtitle = document.createElement("div");
+            subtitle.classList.add("subtitle");
+            subtitle.textContent = page.extract;
+            container.appendChild(subtitle);
+            topicTile.appendChild(container);
+            topicTile.tags = page.tags ? new Set(page.tags.map((tag) => tag.toLowerCase())) : new Set();
+            tags = tags.union(topicTile.tags);
+            topicTiles.appendChild(topicTile);
         });
+
+        // For each tag, add a filter button.
+        let filterButtons = document.querySelector(".filter_buttons");
+        let activeTags = new Set();
+        tags.forEach((tag) => {
+            let filterButton = document.createElement("button");
+            filterButton.classList.add("filter_button");
+            filterButton.textContent = tag;
+            filterButton.dataset.active = false;
+            filterButton.addEventListener("click", () => {
+                filterButton.dataset.active = filterButton.dataset.active == "true" ? "false" : "true";
+                if (filterButton.dataset.active == "true") {
+                    activeTags.add(tag);
+                } else {
+                    activeTags.delete(tag);
+                }
+                // Check if no filter buttons are active.
+                let noneActive = activeTags.size == 0;
+                // Loop through topic tiles and display or hide them.
+                document.querySelectorAll(".topic_tile").forEach((tile) => {
+                if (noneActive || tile.tags.isSupersetOf(activeTags)) {
+                    tile.style.display = "block";
+                } else {
+                    tile.style.display = "none";
+                }
+                });
+            });
+            filterButtons.appendChild(filterButton);
+        })
     })();
   </script>
 
