@@ -25,12 +25,6 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
 
     <main class="page-content" aria-label="Content">
       <div class="wrapper">
-        {% assign collection = site.collections
-        | where_exp:"collection", "collection.label == page.collection"
-        | first %}
-        {% if collection %}
-        <a class='collection' href='/{{ page.collection }}'>{{ collection.title }}</a>
-        {% endif %}
         {{ content }}
       </div>
     </main>
