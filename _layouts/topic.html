@@ -18,24 +18,26 @@
     
         <br />
         
-        <h2>Explore an example</h2>
-        <div class='topic_tiles'>
+        <h2>Explore an article</h2>
+        <div id="topic_tiles" class='topic_tiles'>
 
-        {% assign lessons = site[page.collection_to_list] 
-          | sort: 'lesson_number' %}
-        
-        {% for item in lessons %}
-          <a class='topic_tile' href='{{ item.url }}'>
-            <div class='topic_banner' style="background-image:url('{{ item.thumbnail }}')">
-            </div>
-            <div class='container'>
-              <div class='title'>{{ item.title }}</div>
-              <div class='subtitle'>{{ item.extract }}</div>
-              <div class='subtitle_equation'>{{ item.equation }}</div>
-              <!-- <div class='button'>Explore</div> -->
-            </div>
-          </a>
-        {% endfor %}
+          {% if page.collection_to_list %}
+
+            {% assign lessons = site[page.collection_to_list] 
+            | sort: 'lesson_number' %}
+          
+            {% for item in lessons %}
+              <a class='topic_tile' href='{{ item.url }}'>
+                <div class='topic_banner' style="background-image:url('{{ item.thumbnail }}')">
+                </div>
+                <div class='container'>
+                  <div class='title'>{{ item.title }}</div>
+                  <div class='subtitle'>{{ item.extract }}</div>
+                  <div class='subtitle_equation'>{{ item.equation }}</div>
+                </div>
+              </a>
+            {% endfor %}
+          {% endif %}
 
         </div>
 
@@ -46,5 +48,52 @@
     {%- include mathjax.html -%}
 
   </body>
+
+  <script>
+    (async () => {
+        let toInclude = "{{ page.posts }}".split(" ");
+        if (toInclude.length == 0) return;
+        let pages = await loadDocs();
+        pages = pages.filter((x) => x.layout == "page");
+
+        // For each page, add a topic tile if its name is in the list specified for this topic.
+        let topicTiles = document.getElementById("topic_tiles");
+        let tiles = [];
+        pages.forEach((page) => {
+            let index = toInclude.indexOf(page.url.split("/").slice(-1)[0]);
+            if (index < 0) return;
+            let topicTile = document.createElement("a");
+            topicTile.index = index;
+            topicTile.classList.add("topic_tile");
+            topicTile.href = page.url;
+            let topicBanner = document.createElement("div");
+            topicBanner.classList.add("topic_banner");
+            topicBanner.style.backgroundImage = `url(${page.thumbnail})`;
+            topicTile.appendChild(topicBanner);
+            let container = document.createElement("div");
+            container.classList.add("container");
+            let title = document.createElement("div");
+            title.classList.add("title");
+            let isStory = page.tags.includes("visual stories");
+            title.textContent = page.title.trim() + (isStory ? " - a Visual Story " : "");
+            container.appendChild(title);
+            let subtitle = document.createElement("div");
+            subtitle.classList.add("subtitle");
+            subtitle.textContent = page.extract;
+            container.appendChild(subtitle);
+            if (page.equation) {
+              let equation = document.createElement("div");
+              equation.classList.add("subtitle_equation");
+              equation.innerHTML = page.equation;
+              container.appendChild(equation);
+            }
+            topicTile.appendChild(container);
+            tiles.push(topicTile);
+        });
+        tiles.sort((a,b) => a.index - b.index);
+        tiles.forEach((tile) => topicTiles.appendChild(tile));
+      })();
+
+      </script>
 
 </html>

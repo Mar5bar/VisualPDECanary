@@ -78,11 +78,11 @@ function stripHTML(content) {
 function minify(content) {
   content = stripHTML(content);
   content = content.replace(/\s+/g, " ");
-  content = content.replaceAll(/\$\$[^\$]+\$\$/g, "");
-  content = content.replaceAll(/\$[^\$]+\$/g, "");
-  content = content.replaceAll(/\[([^\]]+)\]\([^\)]+\)/g, "$1");
-  content = content.replaceAll(/\{\{[^\}]+\}\}/g, "");
-  content = content.replaceAll(/[\#\*→]/g, "");
+  // content = content.replaceAll(/\$\$[^\$]+\$\$/g, "");
+  // content = content.replaceAll(/\$[^\$]+\$/g, "");
+  // content = content.replaceAll(/\[([^\]]+)\]\([^\)]+\)/g, "$1");
+  // content = content.replaceAll(/\{\{[^\}]+\}\}/g, "");
+  // content = content.replaceAll(/[\#\*→]/g, "");
   content = content.replaceAll(/\s+/g, " ");
   return content;
 }
