@@ -17,10 +17,8 @@
         </header>
 
         {{ content }}
-  
-
-        <h2>Curated collections</h2>
-        <p>Looking for a place to start? Check out these curated collections of articles and examples.</p>
+        
+        <h2>Collections</h2>
         <div class='home_tiles'>
           <a class='home_tile' href='fluids'>
             <div class='container'>
@@ -44,8 +42,7 @@
 
         <br>
         
-        <h2>The library</h2>
-        <p>Browse the complete VisualPDE library below, or streamline your search using filters.</p>
+        <h2>Browse the library</h2>
         <div class="filter_buttons">
         </div>
         <div id="library" class='topic_tiles'>
@@ -75,6 +72,10 @@
         }
         pages.sort((a, b) => removeThePrefix(a.title).localeCompare(removeThePrefix(b.title)));
 
+        function startUpper(str) {
+          return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
         // For each page, add a topic tile and store the tags.
         let topicTiles = document.getElementById("library");
         let tags = new Set();
@@ -97,8 +98,20 @@
             subtitle.textContent = page.extract;
             container.appendChild(subtitle);
             topicTile.appendChild(container);
-            topicTile.tags = page.tags ? new Set(page.tags.map((tag) => tag.toLowerCase())) : new Set();
-            tags = tags.union(topicTile.tags);
+            page.tags = new Set(page.tags.map((tag) => startUpper(tag.toLowerCase())));
+            topicTile.tags = page.tags;
+            page.tags.forEach((x) => tags.add(x));
+            if (page.tags) {
+              let tagList = document.createElement("div");
+              tagList.classList.add("tag_list");
+              page.tags.forEach((tag) => {
+                let tagLabel = document.createElement("div");
+                tagLabel.classList.add("tag_label");
+                tagLabel.textContent = tag;
+                tagList.appendChild(tagLabel);
+              })
+              topicTile.appendChild(tagList);
+            }
             topicTiles.appendChild(topicTile);
         });
 
@@ -151,7 +164,7 @@
         tags.forEach((tag) => {
           let filterButton = document.createElement("button");
           filterButton.classList.add("filter_button");
-          filterButton.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+          filterButton.textContent = tag;
           filterButton.dataset.active = false;
           filterButton.addEventListener("click", () => {
               filterButton.dataset.active = filterButton.dataset.active != "true";
