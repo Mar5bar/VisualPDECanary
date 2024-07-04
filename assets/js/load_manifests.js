@@ -13,3 +13,23 @@ async function getFrontmatter() {
       return json;
     });
 }
+
+async function loadDocs() {
+  // Build the list of pages to display.
+  let documents;
+  if (
+    !localStorage.getItem("documents") ||
+    !localStorage.getItem("documentsExpiryTime") ||
+    parseInt(localStorage.getItem("documentsExpiryTime")) < Date.now()
+  ) {
+    documents = await getDocs();
+    localStorage.setItem(
+      "documentsExpiryTime",
+      Date.now() + 1000 * 60 * 60 * 24 * 1,
+    );
+    localStorage.setItem("documents", JSON.stringify(documents));
+  } else {
+    documents = JSON.parse(localStorage.getItem("documents"));
+  }
+  return documents;
+}

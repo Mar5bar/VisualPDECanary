@@ -11,12 +11,7 @@ async function setupSiteSearch() {
     !localStorage.getItem("indexExpiryTime") ||
     parseInt(localStorage.getItem("indexExpiryTime")) < Date.now()
   ) {
-    let documents = await getDocs();
-    localStorage.setItem(
-      "documentsExpiryTime",
-      Date.now() + 1000 * 60 * 60 * 24 * 1,
-    );
-    localStorage.setItem("documents", JSON.stringify(documents));
+    let documents = await loadDocs();
     frontmatter = documents.map((doc) => {
       const newDoc = { ...doc };
       delete newDoc.body;
