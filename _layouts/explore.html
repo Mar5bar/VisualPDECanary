@@ -25,7 +25,7 @@
         </div>
         
         <h2>The library</h2>
-        <p>Browse the complete library of VisualPDE pages below, or streamline your search using filters.</p>
+        <p>Browse the complete VisualPDE library below, or streamline your search using filters.</p>
         <div class="filter_buttons">
         </div>
         <div id="library" class='topic_tiles'>
@@ -99,23 +99,12 @@
 
         // Sort the tags alphabetically.
         tags = new Set(Array.from(tags).sort());
+				let activeTags = new Set();
 
         // For each tag, add a filter button.
-        let filterButtons = document.querySelector(".filter_buttons");
-        let activeTags = new Set();
-        tags.forEach((tag) => {
-            let filterButton = document.createElement("button");
-            filterButton.classList.add("filter_button");
-            filterButton.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-            filterButton.dataset.active = false;
-            filterButton.addEventListener("click", () => {
-                filterButton.dataset.active = filterButton.dataset.active == "true" ? "false" : "true";
-                if (filterButton.dataset.active == "true") {
-                    activeTags.add(tag);
-                } else {
-                    activeTags.delete(tag);
-                }
-                // Check if no filter buttons are active.
+				// First, define a function for refreshing the list of pages.
+				function refreshLibrary() {
+					// Check if no filter buttons are active.
                 let noneActive = activeTags.size == 0;
                 let somethingShowing = false;
                 // Loop through topic tiles and display or hide them.
@@ -129,8 +118,46 @@
                 });
                 document.getElementById("no_results").style.display = somethingShowing ? "none" : "block";
                 document.getElementById("library").classList.toggle("no_results", !somethingShowing);
-            });
-            filterButtons.appendChild(filterButton);
+                allButton.dataset.active = noneActive;
+				}
+				
+        let container = document.querySelector(".filter_buttons");
+				// Create an All button that disables all filters.
+				let allButton = document.createElement("button");
+				allButton.classList.add("filter_button");
+        allButton.id = "allButton"
+        allButton.textContent = "All";
+        allButton.dataset.active = true;
+				allButton.addEventListener("click", () => {
+          // Deselect all buttons.
+          document.querySelectorAll(".filter_button").forEach((button) => {
+            button.dataset.active = false;
+          });
+          // Clear all active filters.
+          activeTags.clear();
+          // Enable the All button.
+          allButton.dataset.active = true;
+          // Refresh the library.
+          refreshLibrary();
+				});
+        container.appendChild(allButton);
+				
+				// Create filter buttons for each tag.
+        tags.forEach((tag) => {
+          let filterButton = document.createElement("button");
+          filterButton.classList.add("filter_button");
+          filterButton.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+          filterButton.dataset.active = false;
+          filterButton.addEventListener("click", () => {
+              filterButton.dataset.active = filterButton.dataset.active != "true";
+              if (filterButton.dataset.active == "true") {
+                  activeTags.add(tag);
+              } else {
+                  activeTags.delete(tag);
+              }
+              refreshLibrary();
+          });
+          container.appendChild(filterButton);
         })
     })();
   </script>
