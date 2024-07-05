@@ -7,6 +7,12 @@ div.filter_buttons {
   flex-wrap: wrap;
   justify-content: center;
   margin-bottom: 1rem;
+  position: sticky;
+  top: 51px;
+  background-color: var(--background-color);
+  z-index: 10;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--tile-border-color);
 }
 
 button.filter_button,
@@ -31,9 +37,15 @@ button.filter_button,
 
 .tag_list {
   display: flex;
+  flex-direction: column;
   position: absolute;
-  right: 3px;
-  top: 3px;
+  right: 0px;
+  top: 0px;
+  max-width: 100%;
+  max-height: 5rem;
+  overflow: hidden;
+  flex-wrap: wrap;
+  justify-content: right;
 }
 
 button.filter_button[data-active="true"] {

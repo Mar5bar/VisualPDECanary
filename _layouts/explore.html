@@ -104,7 +104,7 @@
             if (page.tags) {
               let tagList = document.createElement("div");
               tagList.classList.add("tag_list");
-              page.tags.forEach((tag) => {
+              Array.from(page.tags).slice(0,2).forEach((tag) => {
                 let tagLabel = document.createElement("div");
                 tagLabel.classList.add("tag_label");
                 tagLabel.textContent = tag;
