@@ -8,5 +8,3 @@ collection_to_list: explore
 thumbnail: /assets/images/Library.webp
 extract: Explore the VisualPDE library
 ---
-
-We've put together dozens of articles and examples, covering a huge range of topics from across mathematics and science. Check out one of our themed collections, or delve into the full library below.
