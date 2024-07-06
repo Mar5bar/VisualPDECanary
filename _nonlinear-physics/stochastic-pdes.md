@@ -6,7 +6,7 @@ lesson_number: 120
 thumbnail: /assets/images/stochastic-pdes.webp
 extract: Randomness in time and space
 equation: $\pd{u}{t}=D\nabla^2 u +f(u)+\frac{\mathrm{d}W_t}{\mathrm{d}t}$
-categories: [nonlinear physics]
+categories: [patterns, waves]
 ---
 
 

@@ -4,7 +4,7 @@ title: Validating VisualPDE
 lesson_number: 10
 thumbnail: /assets/images/ValidatingVisualPDE.webp
 extract: VisualPDE versus exact solutions
-categories: [numerical methods]
+categories: [numerics]
 ---
 
 When implementing VisualPDE, we were somewhat sceptical of browser-based computation and questioned if it could be relied upon, especially in the context of PDEs. Here we showcase some of the examples that have convinced us of VisualPDE's surprising accuracy.

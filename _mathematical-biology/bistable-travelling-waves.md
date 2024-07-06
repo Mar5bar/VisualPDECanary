@@ -6,7 +6,7 @@ lesson_number: 30
 thumbnail: /assets/images/bistableTravellingWaves.webp
 extract: Spatial Allee effects and changing wavespeeds
 equation: $\pd{u}{t}=D\nabla^2 u +u(u-a)(1-u)$
-categories: [biology]
+categories: [biology, waves]
 ---
 
 

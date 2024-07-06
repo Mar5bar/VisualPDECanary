@@ -5,7 +5,7 @@ lesson_number: 20
 thumbnail: /assets/images/hearts.webp
 extract: Beating hearts and slime moulds
 equation: $\pd{u}{t}=\nabla^2 u+$❤️
-categories: [art]
+categories: [art, patterns, chaos]
 ---
 Here are some examples of a PDE solutions on a domain based on a [heart-shaped curve](https://mathworld.wolfram.com/HeartCurve.html). 
 

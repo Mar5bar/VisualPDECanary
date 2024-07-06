@@ -5,7 +5,7 @@ lesson_number: 80
 thumbnail: /assets/images/KdV.webp
 extract: Solitary movement through each other
 equation: $\pd{\phi}{t}=-\pdn{\phi}{x}{3}-6\phi \pd{\phi}{x}$
-categories: [nonlinear physics]
+categories: [integrable]
 ---
 
 
