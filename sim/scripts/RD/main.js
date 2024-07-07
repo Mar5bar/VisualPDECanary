@@ -387,7 +387,9 @@ import { createWelcomeTour } from "./tours.js";
     let regex = /ERROR.*/;
     regex.test(errorStr) ? (errorStr = errorStr.match(regex)) : {};
     if (/error C7532/.test(errorStr)) {
-      throwError("Oops! It looks like you're using Firefox on a Linux machine with an NVIDIA graphics card. Please use an alternative browser (e.g. Edge or Chrome) to use VisualPDE.");
+      throwError(
+        "Oops! It looks like you're using Firefox on a Linux machine with an NVIDIA graphics card. Please use an alternative browser (e.g. Edge or Chrome) to use VisualPDE.",
+      );
     } else {
       throwError(
         errorStr.toString().trim() +
