@@ -65,15 +65,17 @@ button.filter_button,
   padding: 4px 12px;
   border-color: black;
   border-width: 1px;
+  text-align: center;
+  min-width: 50px;
 }
 
 .tag_list {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   position: absolute;
   right: 0px;
   top: 0px;
-  max-width: 100%;
+  max-width: 80%;
   max-height: 5rem;
   overflow: hidden;
   flex-wrap: wrap;
