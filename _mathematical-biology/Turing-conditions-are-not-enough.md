@@ -4,7 +4,7 @@ title: "Turing instabilities are not enough"
 lesson_number: 140
 thumbnail: /assets/images/TuringNotEnough.webp
 extract: Beyond the limits of linear theory
-categories: [biology]
+categories: [biology, patterns]
 ---
 
 Linear stability theory is often used to predict regions of pattern-forming (or 'Turing') instabilities. However, in the presence of multiple homogeneous equilibria, these instabilities do not guarantee that a system develops a pattern. 

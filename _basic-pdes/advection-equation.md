@@ -5,7 +5,7 @@ lesson_number: 70
 thumbnail: /assets/images/AdvectionEquation.webp
 extract: Movement along streamlines
 equation: $\pd{u}{t}=D \nabla^2 u-\v{v}\cdot \vnabla u$
-categories: [classic]
+categories: [linear]
 ---
 We now look at the [advection equation](https://en.wikipedia.org/wiki/Advection#The_advection_equation) with diffusion (also known as the [convection–diffusion equation](https://en.wikipedia.org/wiki/Convection%E2%80%93diffusion_equation), or sometimes the damped one-way wave equation). This takes the form
 
