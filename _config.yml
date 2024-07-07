@@ -58,7 +58,7 @@ collections:
     title: User guide
   visual-stories:
     output: true
-    title: Visual stories
+    title: Visual Stories
   numerical-methods:
     output: true
     title: Numerical methods
