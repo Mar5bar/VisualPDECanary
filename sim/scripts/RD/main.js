@@ -386,10 +386,14 @@ import { createWelcomeTour } from "./tours.js";
     console.log(errorStr);
     let regex = /ERROR.*/;
     regex.test(errorStr) ? (errorStr = errorStr.match(regex)) : {};
-    throwError(
-      errorStr.toString().trim() +
-        ". Click <a href='/user-guide/FAQ#undeclared' target='blank'>here</a> for more information.",
-    );
+    if (/error C7532/.test(errorStr)) {
+      throwError("Oops! It looks like you're using Firefox on a Linux machine with an NVIDIA graphics card. Please use an alternative browser (e.g. Edge or Chrome) to use VisualPDE.");
+    } else {
+      throwError(
+        errorStr.toString().trim() +
+          ". Click <a href='/user-guide/FAQ#undeclared' target='blank'>here</a> for more information.",
+      );
+    }
   };
 
   // Check URL for any specified options.
