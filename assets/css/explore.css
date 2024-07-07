@@ -113,3 +113,17 @@ button.filter_button[data-active="true"] {
     cursor: default;
   }
 }
+
+@media screen and (max-width: 768px) {
+  .top_container iframe {
+    width: 150px;
+    height: 150px;
+  }
+  div.top_container,
+  div.profiles {
+    flex-direction: column;
+    column-gap: 0;
+    margin-top: 0;
+    margin-bottom: 3rem;
+  }
+}
