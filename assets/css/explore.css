@@ -59,10 +59,18 @@ button.filter_button {
   transition: background-color 0.2s, color 0.2s;
 }
 
+a.topic_tile div.container:has(> .tag_list) {
+  padding-top: calc(15px - 0.5rem);
+}
+
 .tag_list {
   font-size: 0.7rem;
   color: var(--soft-text-color);
   padding-bottom: 0.1rem;
+}
+
+a.topic_tile div.container div.subtitle {
+  padding-bottom: 0;
 }
 
 button.filter_button[data-active="true"] {

@@ -113,6 +113,9 @@ div#home_box_1 div#content div#subtitle {
 div#home_box_1 div#content div#button_wrapper {
   font-size: 1.25rem;
   line-height: 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 div#home_box_1 div#content div#button_wrapper a#button {
@@ -121,8 +124,6 @@ div#home_box_1 div#content div#button_wrapper a#button {
 }
 
 div#home_box_1 div#content div#try_clicking {
-  float: right;
-  margin-top: -2.12rem;
   font-size: 1.25rem;
 }
 
@@ -312,10 +313,6 @@ div#home_box_1 div.button {
 @media screen and (max-width: 480px) {
   div#home_box_1 div#content div#subtitle {
     max-width: 85%;
-  }
-
-  div#home_box_1 div#content div#button_wrapper div#try_clicking {
-    display: none;
   }
 }
 

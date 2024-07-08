@@ -19,7 +19,7 @@
         {{ content }}
 
         <div class="top_container">
-            <iframe id="sim" title="A simulation of a Keller-Segel equation" src="/sim/?preset=KellerSegel&initCond_1=RAND&initCond_2=RAND&lite&clean" style="visibility:hidden"></iframe>
+            <iframe id="sim" title="A simulation of a Keller-Segel equation" src="/sim/?preset=KellerSegel&initCond_1=RAND&initCond_2=RAND&lite&clean&sf=0.5" style="visibility:hidden"></iframe>
             <div>
                 <p>There's lots to explore with VisualPDE.</p>
                 <p>Check out our <a href=/visual-stories>Visual Stories</a> for accessible science, or dive into the full library of examples below.</p>
@@ -81,8 +81,12 @@
         pages.sort((a, b) => removeThePrefix(a.title).localeCompare(removeThePrefix(b.title)));
 
         function startUpper(str) {
-          return str.charAt(0).toUpperCase() + str.slice(1);
+          return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
+				
+				function wordsStartUpper(str) {
+					return str.split(" ").map((x) => startUpper(x)).join(" ");
+				}
 
         // For each page, add a topic tile and store the tags.
         let topicTiles = document.getElementById("library");
@@ -97,7 +101,7 @@
           topicTile.appendChild(topicBanner);
           let container = document.createElement("div");
           container.classList.add("container");
-          page.tags = new Set(page.tags.map((tag) => startUpper(tag.toLowerCase())));
+          page.tags = new Set(page.tags.map((tag) =>  wordsStartUpper(tag)));
           topicTile.tags = page.tags;
           page.tags.forEach((x) => tags.add(x));
           if (page.tags) {
