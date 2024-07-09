@@ -120,8 +120,7 @@
           container.appendChild(subtitle);
           let equation = document.createElement("div");
           equation.classList.add("subtitle_equation");
-          equation.innerHTML = page.equation;
-          console.log(page.equation)
+          equation.innerHTML = page.equation || "";
           container.appendChild(equation);
           topicTile.appendChild(container);
           topicTiles.appendChild(topicTile);
