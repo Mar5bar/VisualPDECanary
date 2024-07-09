@@ -30,8 +30,8 @@ try {
           parsedPath.dir.replaceAll(/\/_/g, "/") + "/" + parsedPath.name;
         obj.url = path.normalize(obj.url);
         obj.tags = obj.categories || "";
-        obj.extract = minify(obj.extract) || "";
-        obj.equation = minify(obj.equation) || "";
+        obj.extract = obj.extract ? minify(obj.extract) : "";
+        obj.equation = obj.equation ? minify(obj.equation) : "";
         obj.img = obj.thumbnail || "";
         obj.id = counter++;
         docs.push(obj);
