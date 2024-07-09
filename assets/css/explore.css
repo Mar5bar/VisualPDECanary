@@ -77,10 +77,6 @@ a.topic_tile div.container:has(> .tag_list) {
   padding-bottom: 0.1rem;
 }
 
-a.topic_tile div.container div.subtitle {
-  padding-bottom: 0;
-}
-
 button.filter_button[data-active="true"] {
   background-color: var(--button-color);
   color: white;
