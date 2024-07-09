@@ -4,7 +4,7 @@ title: Chemical Basis of Morphogenesis
 lesson_number: 30
 thumbnail: /assets/images/chemicalBasis.webp
 extract: A transformative text
-equation: $\pd{u}{t}=\nabla^2 u+a-u+u^2v$, $\pd{v}{t}=D\nabla^2v+ b-u^2v$
+equation: $\pd{u}{t}=\nabla^2 u+a-u+u^2v,$ $\pd{v}{t}=D\nabla^2v+ b-u^2v$
 categories: [art, patterns]
 ---
 This is the first page of Alan Turing's [The Chemical Basis of Morphogenesis](https://en.wikipedia.org/wiki/The_Chemical_Basis_of_Morphogenesis) paper undergoing pattern formation. The kinetics are exactly from the [Schnakenberg example](/mathematical-biology/schnakenberg):

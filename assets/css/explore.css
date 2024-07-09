@@ -1,3 +1,11 @@
+div.wrapper {
+  max-width: 1300px;
+}
+
+div#library {
+  padding: 0 1.25rem;
+}
+
 a.topic_tile {
   position: relative;
 }
