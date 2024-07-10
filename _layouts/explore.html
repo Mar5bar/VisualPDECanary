@@ -148,6 +148,14 @@
           document.getElementById("no_results").style.display = somethingShowing ? "none" : "block";
           document.getElementById("library").classList.toggle("no_results", !somethingShowing);
           allButton.dataset.active = noneActive;
+          // Loop through the filter buttons and update their appearance.
+          document.querySelectorAll(".filter_button").forEach((button) => {
+            if (noneActive) {
+              button.dataset.active = button.textContent === "All";
+            } else {
+              button.dataset.active = activeTags.has(button.textContent);
+            }
+          });
 				}
 				
         let container = document.querySelector(".filter_buttons");
@@ -158,14 +166,8 @@
         allButton.textContent = "All";
         allButton.dataset.active = true;
 				allButton.addEventListener("click", () => {
-          // Deselect all buttons.
-          document.querySelectorAll(".filter_button").forEach((button) => {
-            button.dataset.active = false;
-          });
           // Clear all active filters.
           activeTags.clear();
-          // Enable the All button.
-          allButton.dataset.active = true;
           // Refresh the library.
           refreshLibrary();
 				});
@@ -180,6 +182,7 @@
           filterButton.addEventListener("click", () => {
               filterButton.dataset.active = filterButton.dataset.active != "true";
               if (filterButton.dataset.active == "true") {
+                  activeTags.clear();
                   activeTags.add(tag);
               } else {
                   activeTags.delete(tag);
