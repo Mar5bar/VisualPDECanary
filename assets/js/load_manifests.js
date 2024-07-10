@@ -25,7 +25,7 @@ async function loadDocs() {
     documents = await getDocs();
     localStorage.setItem(
       "documentsExpiryTime",
-      Date.now() + 1000 * 60 * 60 * 24 * 1,
+      Date.now() + 1000 * 60 * 15,
     );
     localStorage.setItem("documents", JSON.stringify(documents));
   } else {
