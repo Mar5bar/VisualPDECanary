@@ -138,7 +138,7 @@
           let somethingShowing = false;
           // Loop through topic tiles and display or hide them.
           document.querySelectorAll(".topic_tile").forEach((tile) => {
-          if (noneActive || tile.tags.isSupersetOf(activeTags)) {
+          if (noneActive || Array.from(activeTags).every((tag) => tile.tags.has(tag))) {
               tile.style.display = "block";
               somethingShowing = true;
           } else {
