@@ -1,6 +1,6 @@
 ---
 layout: page
-title: The Perona–Malik equation
+title: Perona–Malik equation
 lesson_number: 90
 thumbnail: /assets/images/PeronaMalik.webp
 extract: Image denoising via nonlinear anisotropic diffusion

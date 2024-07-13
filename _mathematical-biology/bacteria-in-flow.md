@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Bacteria concentration in flow
+title: Flowing bacteria
 lesson_number: 160
 thumbnail: /assets/images/bacteriaInFlow.webp
 extract: A toy model of decay and advection in rivers

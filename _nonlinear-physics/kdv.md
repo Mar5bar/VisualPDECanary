@@ -1,9 +1,9 @@
 ---
 layout: page
-title: Solitons in the Korteweg–De Vries & Zakharov–Kuznetsov equations
+title: Solitons
 lesson_number: 80
 thumbnail: /assets/images/KdV.webp
-extract: Solitary movement through each other
+extract: Korteweg–De Vries & Zakharov–Kuznetsov equations
 equation: $\pd{\phi}{t}=-\pdn{\phi}{x}{3}-6\phi \pd{\phi}{x}$
 categories: [integrable]
 ---

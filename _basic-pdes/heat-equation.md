@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Get started with the heat equation
+title: Heat equation
 lesson_number: 10
 thumbnail: /assets/images/heat-equation.webp
 extract: Explore how heat diffuses over time

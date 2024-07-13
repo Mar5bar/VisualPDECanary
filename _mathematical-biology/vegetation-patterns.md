@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Banded vegetation patterns
+title: Vegetation patterns
 lesson_number: 130
 thumbnail: /assets/images/VegetationPatterns.webp
 extract: Stripes moving towards water
