@@ -113,7 +113,7 @@ div#home_box_1 div#content div#button_wrapper a#button {
   text-decoration: none;
 }
 
-div#home_box_1 div#content div#try_clicking {
+div#home_box_1 div#content span#try_clicking {
   border: 2px dotted white;
   border-radius: 10px;
   padding: 0px 16px;
