@@ -2,11 +2,9 @@
 # Feel free to add content and custom Front Matter to this file.
 # To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 
-layout: topic
+layout: create
 title: Create
-collection_to_list: create
 thumbnail: /assets/images/OnceUponATime.webp
-extract: Not a mathematician? No problem
+extract: Create and share your own simulations
 ---
 
-A collection of full-screen demonstrations of VisualPDE, ranging from virus dynamics to flood visualisation.

@@ -76,6 +76,16 @@ table tr:nth-child(even) {
   margin: 0 auto;
 }
 
+.emphasize {
+  text-align: center;
+  font-weight: 300;
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
 @media (hover: hover) {
   a:hover {
     color: var(--link-color);
@@ -271,10 +281,10 @@ div.home-banner {
 
 @keyframes pulse-animation {
   0% {
-    transform: scale(1) translateX(0);
+    transform: scale(1);
   }
   100% {
-    transform: scale(1.2) translateX(-2px);
+    transform: scale(1.02);
   }
 }
 

@@ -688,12 +688,13 @@ import { createWelcomeTour } from "./tours.js";
 
   // Welcome message. Display if someone is not a returning user, or if they haven't seen the full welcome message.
   const viewFullWelcome = !(isStory || uiHidden);
+  let wantsTour = params.has("tour");
+  let restart = isRunning;
   if (
     (!isReturningUser() || (viewFullWelcome && !seenFullWelcomeUser())) &&
     options.preset != "Banner" &&
     !(logo_only || cleanDisplay)
   ) {
-    let restart = isRunning;
     pauseSim();
     let noButtonId = "welcome_no";
     if (!viewFullWelcome) {
@@ -703,43 +704,48 @@ import { createWelcomeTour } from "./tours.js";
     }
     // Display the welcome message.
     $("#welcome").css("display", "block");
-    const wantsTour = await Promise.race([
-      waitListener(document.getElementById("welcome_ok"), "click", true),
-      waitListener(document.getElementById(noButtonId), "click", false),
-      // A promise that resolves when "visited" is added to localStorage.
-      new Promise(function (resolve) {
-        var listener = function (e) {
-          if (e.key == "visited") {
-            window.removeEventListener("storage", listener);
-            resolve(false);
-          }
-        };
-        window.addEventListener("storage", listener);
-      }),
-    ]);
+    wantsTour =
+      wantsTour ||
+      (await Promise.race([
+        waitListener(document.getElementById("welcome_ok"), "click", true),
+        waitListener(document.getElementById(noButtonId), "click", false),
+        // A promise that resolves when "visited" is added to localStorage.
+        new Promise(function (resolve) {
+          var listener = function (e) {
+            if (e.key == "visited") {
+              window.removeEventListener("storage", listener);
+              resolve(false);
+            }
+          };
+          window.addEventListener("storage", listener);
+        }),
+      ]));
     $("#welcome").css("display", "none");
     // If they've interacted with anything, note that they have visited the site.
     setReturningUser();
     // If someone hasn't seen the full welcome, don't stop them from seeing it next time.
     if (viewFullWelcome) setSeenFullWelcomeUser();
-    if (wantsTour) {
-      await new Promise(function (resolve) {
-        ["complete", "cancel"].forEach(function (event) {
-          Shepherd?.once(event, () => resolve());
-        });
-        tour.start();
-        window.gtag?.("event", "intro_tour");
+    if (!wantsTour && restart) {
+      playSim();
+    }
+  }
+  if (wantsTour) {
+    await new Promise(function (resolve) {
+      ["complete", "cancel"].forEach(function (event) {
+        Shepherd?.once(event, () => resolve());
       });
-    } else {
-      window.gtag?.("event", "skip_intro_tour");
-    }
-    if ($("#help").is(":visible")) {
-      $("#get_help").fadeIn(1000);
-      setTimeout(() => $("#get_help").fadeOut(1000), 4000);
-    }
+      tour.start();
+      window.gtag?.("event", "intro_tour");
+    });
     if (restart) {
       playSim();
     }
+  } else {
+    window.gtag?.("event", "skip_intro_tour");
+  }
+  if ($("#help").is(":visible")) {
+    $("#get_help").fadeIn(1000);
+    setTimeout(() => $("#get_help").fadeOut(1000), 4000);
   }
 
   // If the "Try clicking!" popup is allowed, show it iff we're from an external link
