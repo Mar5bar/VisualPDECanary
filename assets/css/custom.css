@@ -33,7 +33,6 @@ body {
   color: var(--text-color);
   background-color: var(--background-color);
   transition: color 0.5s ease, background-color 0.5s ease;
-  scrollbar-gutter: stable;
   overflow-x: hidden;
 }
 
