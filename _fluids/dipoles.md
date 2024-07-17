@@ -5,7 +5,7 @@ lesson_number: 30
 thumbnail: /assets/images/dipole.webp
 extract: Playing with dipoles
 equation: $\nabla^2 \phi = f,$ $(u,v) = \vnabla \phi$
-categories: [fluids]
+categories: [fluids, elliptic]
 ---
 
 In many fields, singularity solutions are commonplace. In 2D potential flows, singularity solutions representing point forces, vortices, sources and sinks occur all the time, often as approximations of more complex flow features. A flow field might include any number of these added together, yielding an intricate flow field.

@@ -5,7 +5,7 @@ lesson_number: 100
 thumbnail: /assets/images/FHNTuringWave.webp
 extract: Turing wave instabilities
 equation: $\tau\pdd{u}{t}+\pd{u}{t}=D_u\nabla^2 u+f(u,v),$ $\tau\pdd{v}{t}+\pd{v}{t}=D_v\nabla^2v+ g(u,v)$
-categories: [patterns, waves, chaos]
+categories: [patterns, waves, chaos, hyperbolic]
 ---
 
 One can show that two-species reaction–diffusion systems can only ever have Turing-like instabilities with real growth rates. 

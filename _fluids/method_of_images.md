@@ -5,7 +5,7 @@ lesson_number: 20
 thumbnail: /assets/images/methodOfImages.webp
 extract: Boundaries in potential flow
 equation: $\nabla^2 \phi = 0,$ $(u,v) = \vnabla \phi$
-categories: [fluids]
+categories: [fluids, elliptic]
 ---
 
 When studying fluid flows, it is often easiest to consider unbounded domains. In real life, however, boundaries inevitably come into play and we have to enforce appropriate boundary conditions. Doing so can be tricky in general.

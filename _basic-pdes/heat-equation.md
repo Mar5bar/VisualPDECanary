@@ -5,7 +5,7 @@ lesson_number: 10
 thumbnail: /assets/images/heat-equation.webp
 extract: Explore how heat diffuses over time
 equation: $\pd{T}{t}=D_T \nabla^2 T$
-categories: [linear]
+categories: [linear, parabolic]
 ---
 Let's start by solving the [heat equation](https://en.wikipedia.org/wiki/Heat_equation),
 

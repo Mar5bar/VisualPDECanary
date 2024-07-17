@@ -5,7 +5,7 @@ lesson_number: 30
 thumbnail: /assets/images/InhomHeatEquation.webp
 extract: Diffusion in an inhomogeneous medium
 equation: $\pd{T}{t}= \vnabla\cdot(g(x,y)\vnabla T)+f(x,y)$
-categories: [linear]
+categories: [linear, parabolic]
 ---
 We now consider an inhomogeneous [heat equation](https://en.wikipedia.org/wiki/Heat_equation) given by
 

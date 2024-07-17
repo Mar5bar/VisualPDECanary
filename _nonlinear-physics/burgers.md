@@ -5,7 +5,7 @@ lesson_number: 60
 thumbnail: /assets/images/BurgersEquation.webp
 extract: Nonlinear waves
 equation: $\pd{u}{t} =-u\pd{u}{x}+\varepsilon \pdd{u}{x}$
-categories: [waves]
+categories: [waves, parabolic]
 ---
 
 (Viscous) [Burgers' equation](https://en.wikipedia.org/wiki/Burgers%27_equation):

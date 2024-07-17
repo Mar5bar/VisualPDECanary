@@ -5,7 +5,7 @@ lesson_number: 20
 thumbnail: /assets/images/harsh-environment.webp
 extract: Exploring the effects of boundary conditions
 equation: $\pd{u}{t}=\nabla^2 u+u\left(1-\frac{u}{K}\right)$<br />with no-flux boundary conditions
-categories: [biology]
+categories: [biology, parabolic]
 ---
 We'll continue studying the logistic reaction-diffusion model,
 
