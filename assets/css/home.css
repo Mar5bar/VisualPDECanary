@@ -120,14 +120,6 @@ div#home_box_1 div#content span#try_clicking {
   border-radius: 2rem;
   padding: 0px 16px;
   font-size: 1.25rem;
-  /* display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 9rem;
-  width: 9rem;
-  box-sizing: border-box;
-  text-align: center;
-  line-height: 1.3; */
 }
 
 span.text_on_sim {
@@ -150,7 +142,6 @@ a.home_box_s {
   color: var(--tile-text-color);
   column-gap: 20px;
 }
-
 
 a#home_box_2 {
   background-color: #de1d5c;
@@ -313,12 +304,6 @@ div#home_box_1 div.button {
   }
 }
 
-@media screen and (max-width: 480px) {
-  div#home_box_1 div#content div#subtitle {
-    max-width: 85%;
-  }
-}
-
 .post-of-the-week {
   display: inline-block;
   margin-top: 15px;
@@ -353,6 +338,20 @@ div#home_box_1 div.button {
 
   .post-of-the-week {
     width: 60vw;
+  }
+
+  div#home_box_1 div#content span#try_clicking {
+    font-size: 1rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  div#home_box_1 div#content div#subtitle {
+    max-width: 85%;
+  }
+
+  div#home_box_1 div#content span#try_clicking {
+    font-size: 0.75rem;
   }
 }
 
