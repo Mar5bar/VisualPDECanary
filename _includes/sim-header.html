@@ -8,13 +8,23 @@
         <a class="site-title" rel="author" href="{{ "/" | relative_url }}" target="_blank">
             <img
                 class="light-mode-img"
-                src="/assets/images/logo.webp"
+                src="/assets/images/2heart-light.webp"
                 alt="Heart-shaped logo"
             /><img
                 class="dark-mode-img"
-                src="/assets/images/logo-dark.webp"
+                src="/assets/images/2heart-dark.webp"
                 alt="Heart-shaped logo"
-            />{{ site.title | escape }}</a>
+            />
+            <img
+                class="light-mode-title"
+                src="/assets/images/2title-light.webp"
+                alt="VisualPDE"
+            /><img
+                class="dark-mode-title"
+                src="/assets/images/2title-dark.webp"
+                alt="VisualPDE"
+            />{% if site.title == "VisualPDE Canary" %}
+              {{ "Canary" }}{% endif %}</a>
             <div id='simTitle-divider'>⟫</div>
         <input id="simTitle" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck=false>
 

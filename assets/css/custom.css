@@ -1185,8 +1185,8 @@ vpde-chart {
 .light-mode-img,
 .dark-mode-img {
   height: 2rem;
-  width: 2rem;
-  margin-right: 7px;
+  /* width: 2rem; */
+  margin-right: 4px;
   vertical-align: text-top;
   margin-top: -1px;
 }
@@ -1293,18 +1293,28 @@ vpde-chart {
   text-decoration: none;
 }
 
-.dark-mode-img {
+.dark-mode-img, .dark-mode-title {
   display: none;
 }
 
-.light-mode-img {
+.light-mode-img, .light-mode-title {
   display: unset;
 }
 
-.dark-mode .dark-mode-img {
+.dark-mode .dark-mode-img,
+.dark-mode .dark-mode-title{
   display: unset;
 }
 
-.dark-mode .light-mode-img {
+.dark-mode .light-mode-img,
+.dark-mode .light-mode-title{
   display: none;
+}
+
+.dark-mode-title, .light-mode-title {
+  height: 1.15rem;
+  margin-right: 7px;
+  vertical-align: text-top;
+  margin-top: 5px;
+  /* width:100px; */
 }

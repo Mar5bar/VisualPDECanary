@@ -99,8 +99,8 @@ noscript > p {
 .light-mode-img,
 .dark-mode-img {
   height: 2rem;
-  width: 2rem;
-  margin-right: 7px;
+  /* width: 2rem; */
+  margin-right: 4px;
   vertical-align: text-top;
   margin-top: -1px;
 }
