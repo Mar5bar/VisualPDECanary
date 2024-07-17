@@ -142,7 +142,7 @@ noscript > p {
 
 #simCanvas {
   background: no-repeat center/30vw url(/assets/images/loading.webp);
-  background-color: #bfcad2;
+  background-color: #c7d0d8;
   display: block;
   margin: auto;
   touch-action: none;
