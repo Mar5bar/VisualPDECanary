@@ -101,8 +101,8 @@ noscript > p {
   height: 2rem;
   /* width: 2rem; */
   margin-right: 4px;
-  vertical-align: text-top;
-  margin-top: -1px;
+  vertical-align: text-bottom;
+  margin-bottom: -2px;
 }
 
 #simulation {
