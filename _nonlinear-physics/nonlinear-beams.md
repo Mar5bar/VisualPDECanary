@@ -3,7 +3,7 @@ layout: page
 title: Bending in nonlinear beams
 lesson_number: 110
 thumbnail: /assets/images/nonlinear-beam.webp
-extract: Exploring state-dependent stiffness
+extract: Exploring state-dependent stiffness without inertia
 equation: $\pd{y}{t}=-\pdd{}{x}[E(y)\pdd{y}{x}]$
 categories: [elasticity, parabolic]
 ---
