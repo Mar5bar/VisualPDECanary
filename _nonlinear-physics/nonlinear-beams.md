@@ -3,12 +3,12 @@ layout: page
 title: Bending in nonlinear beams
 lesson_number: 110
 thumbnail: /assets/images/nonlinear-beam.webp
-extract: Exploring state-dependent stiffness without inertia
+extract: Exploring overdamped state-dependent stiffness
 equation: $\pd{y}{t}=-\pdd{}{x}[E(y)\pdd{y}{x}]$
 categories: [elasticity, parabolic]
 ---
 
-In the absence of inertia, the dimensionless equation of motion for a beam with a small deflection $y(x,t)$ is
+In the overdamped regime (i.e. in the absence of inertia), the dimensionless equation of motion for a beam with a small deflection $y(x,t)$ is
 
 $$\begin{aligned}\pdd{y}{t}=-\pdd{}{x}\left(E\pdd{y}{x}\right),\end{aligned}$$
 
