@@ -5,7 +5,7 @@
         {%- assign titles_size = site.pages | map: 'title' | join: '' | size -%}
         {%- include search-lunr.html -%}
         {% if site.title == "VisualPDE Canary" %}
-            <link rel="preload" as="image" href="/assets/images/2cheart-and-title-light.webp.webp"/>
+            <link rel="preload" as="image" href="/assets/images/2cheart-and-title-light.webp"/>
             <link rel="preload" as="image" href="/assets/images/2cheart-and-title-dark.webp"/>
         {% else %}
             <link rel="preload" as="image" href="/assets/images/2heart-and-title-light.webp"/>
