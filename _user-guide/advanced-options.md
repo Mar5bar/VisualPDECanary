@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Advanced documentation
+title: Complete documentation
 lesson_number: 20
 thumbnail: /assets/images/Brusselator.webp
 extract: A glossary of all the features you can play with

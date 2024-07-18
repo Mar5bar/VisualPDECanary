@@ -8,3 +8,5 @@ collection_to_list: user-guide
 thumbnail: /assets/images/squirrel-question.webp
 extract: Everything there is to know about VisualPDE
 ---
+
+VisualPDE is packed full of features. We've compiled a complete user guide, quick tips and much more to help you explore with VisualPDE.

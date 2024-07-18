@@ -22,6 +22,18 @@
 
         {{ content }}
 
+        <div class="top_container">
+            <iframe loading="lazy" id="sim" title="A simulation of the Kuramoto–Sivashinsky equation" src="/sim/?preset=KuramotoSivashinsky&initCond_1=RAND&lite&clean&sf=0.5" style="visibility:hidden"></iframe>
+            <div>
+                <p>We'd love to hear your feedback, questions, suggestions and ideas for collaboration.</p>
+                <p>Get in touch with us at <a href="mailto:hello@visualpde.com">hello@visualpde.com</a> or use the form below.</p>
+            </div>
+        </div>
+
+        <br>
+
+        <p>If you have suggestion for a new page, Visual Story, feature or improvement, we'd love to hear some details. The form below includes a basic markdown preview, so you can type $\mathrm{\LaTeX}$ directly and see your suggestion typeset automatically.</p>
+
         <form onsubmit="return onSubmit();" id="form" class="suggestion">
             <button type="submit" disabled style="display: none" aria-hidden="true"></button>
             <div class="form-row">
@@ -39,11 +51,7 @@
                 <div class="grow-wrap">
                 <textarea id="msg" name="message" onInput="setTextboxHeight()" onfocus="setTextboxHeight()" onfocusout="setTextboxHeight()">
 # Example
-You can write your suggestion as text in this box or edit this markdown example to see how your suggested content might look as a page on VisualPDE.
-
-You can easily include links to simulations [like this](https://visualpde.com/sim/?preset=GrayScott), and even typeset mathematics with LaTeX:
-
-$$\begin{aligned} \pd{T}{t} &= \nabla^2T +\nabla \cdot (\v{a}T)\\\\ &= \pdd{T}{x}+\pdd{T}{y}+\pd{(a_xT)}{x}+\pd{(a_yT)}{y}.\end{aligned} $$
+Feel free to use mathematics like $a$, $\pd{y}{x}$ and $\pdd{T}{t}$, and include links to simulations like [this](https://visualpde.com/sim/?preset=GrayScott).
 
 ## Submission
 When you're happy with your suggestion, just press the **Send** button.</textarea>
@@ -144,5 +152,12 @@ When you're happy with your suggestion, just press the **Send** button.</textare
             return false;
         }
     </script>
+
+    <script type="text/javascript">
+        document.querySelector("iframe").addEventListener("load", function (e) {
+        this.style.visibility = "visible";
+        document.getElementById("sim").contentWindow.document.getElementById("play").click();
+    });
+  </script>
 
 </html>
