@@ -1926,6 +1926,7 @@ video {
 
 .darkmode-button .svg-inline--fa {
   margin-right: 5px;
+  padding-bottom: 1px;
 }
 
 .darkmode-button span:first-child {
