@@ -195,7 +195,13 @@
 
         // Ensure typesetting of new content.
         if (MathJax.typesetPromise != undefined) {
-          MathJax.typesetPromise();
+          MathJax.typesetPromise().then(() => {
+                    fitty("mjx-container[display='true']", { minSize: 5, maxSize: 32 });
+                    jQuery('mjx-container[display="true"]').css("width", "100%");
+                    
+                    fitty(".subtitle_equation mjx-container", { minSize: 5, maxSize: 16 });
+              }
+          );
         }
     })();
   </script>
