@@ -3,28 +3,36 @@
         {%- assign default_paths = site.pages | map: "path" -%}
         {%- assign page_paths = site.header_pages | default: default_paths -%}
         {%- assign titles_size = site.pages | map: 'title' | join: '' | size -%}
-        <link rel="preload" as="image" href="/assets/images/logo.webp"/>
-        <link rel="preload" as="image" href="/assets/images/logo-dark.webp"/>
-        <a class="site-title" rel="author" href="{{ "/" | relative_url }}" target="_blank">
+        {% if site.title == "VisualPDE Canary" %}
+            <link rel="preload" as="image" href="/assets/images/2cheart-and-title-light.webp.webp"/>
+            <link rel="preload" as="image" href="/assets/images/2cheart-and-title-dark.webp"/>
+        {% else %}
+            <link rel="preload" as="image" href="/assets/images/2heart-and-title-light.webp"/>
+            <link rel="preload" as="image" href="/assets/images/2heart-dark.webp"/>
+        {% endif %}
+        <a class="site-title" rel="author" href="{{ "/" | relative_url }}">
+            {% if site.title == "VisualPDE Canary" %}
             <img
                 class="light-mode-img"
-                src="/assets/images/2heart-light.webp"
-                alt="Heart-shaped logo"
+                src="/assets/images/2cheart-and-title-light.webp"
+                alt="VisualPDE and a heart-shaped logo"
             /><img
                 class="dark-mode-img"
-                src="/assets/images/2heart-dark.webp"
-                alt="Heart-shaped logo"
+                src="/assets/images/2cheart-and-title-dark.webp"
+                alt="VisualPDE and a heart-shaped logo"
             />
-            <img
-                class="light-mode-title"
-                src="/assets/images/2title-light.webp"
-                alt="VisualPDE"
-            /><img
-                class="dark-mode-title"
-                src="/assets/images/2title-dark.webp"
-                alt="VisualPDE"
-            />{% if site.title == "VisualPDE Canary" %}
-              {{ "Canary" }}{% endif %}</a>
+            {% else %}
+                <img
+                    class="light-mode-img"
+                    src="/assets/images/2heart-and-title-light.webp"
+                    alt="VisualPDE and a heart-shaped logo"
+                /><img
+                    class="dark-mode-img"
+                    src="/assets/images/2heart-and-title-dark.webp"
+                    alt="VisualPDE and a heart-shaped logo"
+                />
+            {% endif %}
+        </a>
             <div id='simTitle-divider'>⟫</div>
         <input id="simTitle" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck=false>
 
