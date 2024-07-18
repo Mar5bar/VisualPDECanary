@@ -95,9 +95,10 @@
           let topicTile = document.createElement("a");
           topicTile.classList.add("topic_tile");
           topicTile.href = page.url;
-          let topicBanner = document.createElement("div");
+          let topicBanner = document.createElement("img");
           topicBanner.classList.add("topic_banner");
-          topicBanner.style.backgroundImage = `url(${page.thumbnail})`;
+          topicBanner.setAttribute("loading", "lazy");
+          topicBanner.src = page.thumbnail;
           topicTile.appendChild(topicBanner);
           let container = document.createElement("div");
           container.classList.add("container");
@@ -191,6 +192,11 @@
           });
           container.appendChild(filterButton);
         })
+
+        // Ensure typesetting of new content.
+        if (MathJax.typesetPromise != undefined) {
+          MathJax.typesetPromise();
+        }
     })();
   </script>
 
