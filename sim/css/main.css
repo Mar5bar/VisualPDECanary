@@ -85,7 +85,7 @@ noscript > p {
   font-size: min(3vw, 3vh);
 }
 
-@media screen and (max-width: 650px), screen and (max-height: 600px) {
+@media screen and (max-width: 800px), screen and (max-height: 600px) {
   .site-header {
     display: none;
   }
