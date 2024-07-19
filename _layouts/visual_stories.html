@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: site.lang | default: "en" }}">
+
+  {%- include head.html -%}
+
+  <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/visual_stories.css">
+  <script async src="{{ site.baseurl }}/assets/js/marked.js"></script>
+  <script async src="{{ site.baseurl }}/assets/js/DOMPurify.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script async defer src="https://www.google.com/recaptcha/api.js"></script>
+
+  <body>
+
+    {%- include header.html -%}
+
+    <main class="page-content" aria-label="Content">
+      <div class="wrapper">
+
+        <header class="post-header">
+          <h1 class="post-title">{{ page.title }}</h1>
+        </header>
+
+        {{ content }}
+
+        <div class="top_container">
+            <iframe loading="lazy" id="sim" title="A simulation of a reaction-diffusion model" src="/sim/?preset=OnceUponATime&lite&clean&sf=1" style="visibility:hidden"></iframe>
+            <div>
+                <p>You don't need to be a mathematician to explore with VisualPDE.</p>
+                <p>Try out our interactive Visual Stories and experience cutting-edge science and mathematics.</p>
+            </div>
+        </div>
+
+        <br/>
+        
+        <h2>Explore the Visual Story library</h2>
+        <div id="topic_tiles" class='topic_tiles'>
+
+          {% if page.collection_to_list %}
+
+            {% assign lessons = site[page.collection_to_list] 
+            | sort: 'lesson_number' %}
+          
+            {% for item in lessons %}
+              <a class='topic_tile' href='{{ item.url }}'>
+                <div class='topic_banner' style="background-image:url('{{ item.thumbnail }}')">
+                </div>
+                <div class='container'>
+                  <div class='title'>{{ item.title }}</div>
+                  <div class='subtitle'>{{ item.extract }}</div>
+                  <div class='subtitle_equation'>{{ item.equation }}</div>
+                </div>
+              </a>
+            {% endfor %}
+          {% endif %}
+
+        </div>
+
+      </div>
+    </main>
+
+    {%- include footer.html -%}
+    {%- include mathjax.html -%}
+
+  </body>
+
+    <script type="text/javascript">
+        document.querySelector("iframe").addEventListener("load", function (e) {
+        this.style.visibility = "visible";
+        document.getElementById("sim").contentWindow.document.getElementById("play").click();
+    });
+  </script>
+
+</html>

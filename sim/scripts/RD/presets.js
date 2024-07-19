@@ -3314,6 +3314,16 @@ presets["maze"] = {
   whatToPlot: "u",
 };
 
+presets["OnceUponATime"] = {
+  flippedColourmap: true,
+  imagePathOne: "./images/OnceUponATime.webp",
+  initCond_1: "Bump(L_x/2,L_y/2,L/20)",
+  numTimestepsPerFrame: 100,
+  parent: "QR",
+  preset: "OnceUponATime",
+  spatialStep: "0.4",
+};
+
 presets["QR"] = {
   brushRadius: "2",
   initCond_1: "0",
