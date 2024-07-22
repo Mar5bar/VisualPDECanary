@@ -1,8 +1,8 @@
 ---
 layout: page
-title: Wessex Water tech demo
+title: Water quality in 1D
 lesson_number: 110
-thumbnail: /assets/images/flooding.webp
+thumbnail: /assets/images/bacteriaInFlow.webp
 extract: Transport along rivers
 equation:
 ---

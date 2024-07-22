@@ -738,6 +738,32 @@ presets["dynamicalSystemsVisualisationTopography"] = {
   whatToPlot: "c",
 };
 
+presets["bacteriaInAReach2D"] = {
+  blendImage: true,
+  blendImagePath: "./images/river.png",
+  boundaryConditions_1: "neumann",
+  brushType: "circle",
+  diffusionStr_1_1: "2",
+  diffusionStr_3_3: "0",
+  dimension: "2",
+  domainIndicatorFun: "I_S==0",
+  domainViaIndicatorFun: true,
+  imagePathOne: "./images/river.png",
+  kineticParams:
+    "c0 = 0.1 in [0, 1];c1 = 0 in [0, 1];k = 0.006 in [0, 0.05];u = 1 in [0.1, 4];",
+  overlayExpr: "I_S",
+  parent: "bacteriaInAReach",
+  plotType: "plane",
+  reactionStr_1:
+    "-u*C_xb - 5*(0.4*L_y-y)*C_y/L_y - k*C + c0*0.1*Bump(0,L_y/2,L/20) + c1*0.1*Bump(L_x/2,0.7*L_y,L/20)",
+  views: [
+    {
+      name: "Concentration",
+    },
+  ],
+  preset: "bacteriaInAReach2D",
+};
+
 presets["bacteriaInAReachOscillatoryDecay"] = {
   parent: "bacteriaInAReach",
   reactionStr_1: "-u*C_xb - k*C*(1 + 0.9*sin(t/30))",
