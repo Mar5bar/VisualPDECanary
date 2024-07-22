@@ -751,6 +751,7 @@ presets["bacteriaInAReach2D"] = {
   imagePathOne: "./images/river.png",
   kineticParams:
     "c0 = 0.1 in [0, 1];c1 = 0 in [0, 1];k = 0.006 in [0, 0.05];u = 1 in [0.1, 4];",
+  maxColourValue: "5",
   overlayExpr: "I_S",
   parent: "bacteriaInAReach",
   plotType: "plane",
