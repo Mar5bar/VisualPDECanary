@@ -340,6 +340,7 @@ iframe.tutorial_video {
   margin: 10px auto;
   width: 80%;
   aspect-ratio: 16 / 9;
+  border-radius: 5px;
 }
 
 div.duration,
