@@ -35,9 +35,9 @@
                 <div class='topic_banner' style="background-image:url('{{ item.thumbnail }}')">
                 </div>
                 <div class='container'>
+                  <div class="duration">Video {{ item.video_length}} | {{ item.read_length }} read</div>
                   <div class='title'>{{ item.title }}</div>
                   <div class='subtitle'>{{ item.extract }}</div>
-                  <div class='subtitle_equation'>{{ item.equation }}</div>
                 </div>
               </a>
             {% endfor %}

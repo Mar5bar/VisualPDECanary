@@ -80,12 +80,6 @@ a.topic_tile div.container:has(> .tag_list) {
   padding-top: calc(15px - 0.5rem);
 }
 
-.tag_list {
-  font-size: 0.7rem;
-  color: var(--soft-text-color);
-  padding-bottom: 0.1rem;
-}
-
 button.filter_button[data-active="true"] {
   background-color: var(--button-color);
   color: white;
