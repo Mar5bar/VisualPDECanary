@@ -5196,6 +5196,8 @@ function coerceType(value, defaultValue) {
 
 export function getUserTextFields() {
   return [
+    "arrowX",
+    "arrowY",
     "brushValue",
     "initCond_1",
     "initCond_2",

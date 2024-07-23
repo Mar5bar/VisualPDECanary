@@ -8383,8 +8383,7 @@ import { createWelcomeTour } from "./tours.js";
       }
     });
     options.views = options.views.map(function (view) {
-      let newView = {};
-      newView.name = view.name;
+      let newView = JSON.parse(JSON.stringify(view));
       Object.keys(view).forEach(function (key) {
         if (userTextFields.includes(key)) {
           newView[key] = replaceSymbolsInStr(
@@ -8411,8 +8410,7 @@ import { createWelcomeTour } from "./tours.js";
       }
     });
     savedOptions.views = savedOptions.views.map(function (view) {
-      let newView = {};
-      newView.name = view.name;
+      let newView = JSON.parse(JSON.stringify(view));
       Object.keys(view).forEach(function (key) {
         if (userTextFields.includes(key)) {
           newView[key] = replaceSymbolsInStr(
