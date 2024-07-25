@@ -11,6 +11,8 @@ presets["Lorenz"] = {
   initCond_1: "0.3*RANDN+1",
   initCond_3: "29",
   kineticParams: "sigma = 10;rho = 30;beta = 8/3;D = 0.5;",
+  maxColourValue: "2.5",
+  minColourValue: "-2.5",
   numSpecies: 3,
   preset: "Lorenz",
   reactionStr_1: "sigma*(Y-X)",
