@@ -4,7 +4,7 @@ title: Diffusively-Coupled Chaos
 lesson_number: 20
 thumbnail: /assets/images/Lorenz.png
 extract: Butterfly effects in space
-equation: $\pd{\psi}{t}=(D_r+\i D_i)\nabla^2 \psi+(a_r+\i a_i)\psi+(b_r+\i b_i)\psi|\psi|^2$
+equation: $\pd{X}{t} = D \nabla^2 X + \sigma \left(Y-X\right)$, $\pd{Y}{t} = D \nabla^2 Y + X \left(\rho-Z\right)-Y$, $\pd{Z}{t} = D \nabla^2 Z + X Y-\beta Z$
 categories: [chaos, integrable, parabolic]
 ---
 
@@ -14,9 +14,9 @@ The [Lorenz system](https://arxiv.org/abs/cond-mat/0106115) is a well-known syst
 
 $$
 \begin{aligned}
-    \pd{X}{t} &= D \lap X + \sigma \left(Y-X\right),\\
-    \pd{Y}{t} &= D \lap Y + X \left(\rho-Z\right)-Y,\\
-    \pd{Z}{t} &= D \lap Z + X Y-\beta Z,
+    \pd{X}{t} &= D \nabla^2 X + \sigma \left(Y-X\right),\\
+    \pd{Y}{t} &= D \nabla^2 Y + X \left(\rho-Z\right)-Y,\\
+    \pd{Z}{t} &= D \nabla^2 Z + X Y-\beta Z,
     \end{aligned}
 $$
 
