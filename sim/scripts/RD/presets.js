@@ -21,7 +21,7 @@ presets["Lorenz"] = {
   speciesNames: "X Y Z q",
   squareCanvas: true,
   whatToDraw: "X",
-  simTitle: "Gray�Scott",
+  simTitle: "Lorenz",
 };
 
 presets["potentialFlowDipoleClick"] = {
