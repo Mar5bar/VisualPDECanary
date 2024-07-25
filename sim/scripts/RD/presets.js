@@ -2,6 +2,38 @@
 
 let presets = {};
 
+presets["VanDerPol"] = {
+	"brushAction": "smoothreplace",
+	"brushRadius": "1",
+	"crossDiffusion": true,
+	"diffusionStr_1_1": "0",
+	"diffusionStr_2_1": "D",
+	"diffusionStr_2_2": "0",
+	"diffusionStr_3_3": "0",
+	"domainScale": "75",
+	"dt": 0.002,
+	"initCond_1": "0.05*RANDN",
+	"kineticParams": "D = 1;mu = 8.53;",
+	"maxColourValue": "2.5",
+	"minColourValue": "-2.5",
+	"numTimestepsPerFrame": 100,
+	"preset": "VanDerPol",
+	"probeFun": "X",
+	"probeLength": 60,
+	"reactionStr_1": "Y",
+	"reactionStr_2": "mu*(1-X^2)*Y-X",
+	"reactionStr_3": "0",
+	"spatialStep": "0.12",
+	"speciesNames": "X Y",
+	"views": [{
+	"name": "$X$",
+}],
+	"whatToDraw": "X",
+	"whatToPlot": "X",
+	"simTitle": "VanDerPol",
+};
+
+
 presets["Lorenz"] = {
   brushEnabled: true,
   cameraPhi: 89.80548630112425,
@@ -25,7 +57,7 @@ presets["Lorenz"] = {
   reactionStr_2: "X*(rho-Z)-Y",
   reactionStr_3: "X*Y-beta*Z",
   setSeed: true,
-  spatialStep: "0.3",
+  spatialStep: "0.35",
   speciesNames: "X Y Z q",
   squareCanvas: true,
   whatToDraw: "X",
