@@ -160,10 +160,12 @@
           document.querySelectorAll(".filter_button").forEach((button) => {
             if (noneActive) {
               button.dataset.active = button.textContent === "All";
+              window.location.hash = "";
             } else {
               button.dataset.active = activeTags.has(button.textContent);
             }
           });
+          typeset();
 				}
 				
         let container = document.querySelector(".filter_buttons");
@@ -203,21 +205,23 @@
         })
 
         // Ensure typesetting of new content.
-        if (MathJax.typesetPromise != undefined) {
-          MathJax.typesetPromise().then(() => {
+        function typeset() {
+         if (MathJax.typesetPromise != undefined) {
+            MathJax.typesetPromise().then(() => {
                     fitty("mjx-container[display='true']", { minSize: 5, maxSize: 32 });
                     jQuery('mjx-container[display="true"]').css("width", "100%");
                     
                     fitty(".subtitle_equation mjx-container", { minSize: 5, maxSize: 16 });
               }
-          );
+            );
+          }
         }
+        typeset();
 
         // If a tag is present in the URL, activate it.
         if (window.location.hash) {
           let tag = window.location.hash.slice(1);
-          console.log(tag)
-          let button = document.getElementById("filter_button_" + tag.toLowerCase());
+          let button = document.getElementById("filter_button_" + decodeURI(tag).toLowerCase());
           if (button) {
             button.click();
           }
