@@ -9374,9 +9374,11 @@ import { createWelcomeTour } from "./tours.js";
     }
 
     // If every view specifies a value for a property, remove that property from options.
-    for (const key of Object.keys(options.views[0])) {
-      if (options.views.every((v) => v.hasOwnProperty(key))) {
-        delete objDiff[key];
+    if (options.views.length > 1) {
+      for (const key of Object.keys(options.views[0])) {
+        if (options.views.every((v) => v.hasOwnProperty(key))) {
+          delete objDiff[key];
+        }
       }
     }
 
