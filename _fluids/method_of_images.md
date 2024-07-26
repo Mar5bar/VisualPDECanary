@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "The method of images"
+title: "Method of images"
 lesson_number: 20
 thumbnail: /assets/images/methodOfImages.webp
 extract: Boundaries in potential flow

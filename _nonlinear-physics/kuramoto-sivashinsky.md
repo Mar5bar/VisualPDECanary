@@ -3,7 +3,7 @@ layout: page
 title: Kuramoto–Sivashinsky equation
 lesson_number: 40
 thumbnail: /assets/images/KuramotoSivashinsky.webp
-extract: Chaos at your fingertips
+extract: Spatiotemporal chaos
 equation: $\pd{u}{t}=-\nabla^2u-\nabla^4u-|\vnabla u|^2 $
 categories: [chaos, parabolic]
 ---

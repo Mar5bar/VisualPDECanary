@@ -1,9 +1,9 @@
 ---
 layout: page
-title: Bending beams and deforming plates
+title: Beam and plate equations
 lesson_number: 60
 thumbnail: /assets/images/plateEquation.webp
-extract: The plate equation
+extract: Bending beams and deforming membranes
 equation: $\pdd{u}{t}=-D^2 \nabla^4 u-Q$
 categories: [linear, elasticity, hyperbolic]
 ---

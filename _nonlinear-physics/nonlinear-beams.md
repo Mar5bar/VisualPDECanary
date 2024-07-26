@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Bending in nonlinear beams
+title: Nonlinearly elastic beams
 lesson_number: 110
 thumbnail: /assets/images/nonlinear-beam.webp
 extract: Exploring overdamped state-dependent stiffness

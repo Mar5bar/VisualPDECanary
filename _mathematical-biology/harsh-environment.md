@@ -3,7 +3,7 @@ layout: page
 title: Survival in a harsh environment
 lesson_number: 20
 thumbnail: /assets/images/harsh-environment.webp
-extract: Exploring the effects of boundary conditions
+extract: Impacts of boundary conditions on survival
 equation: $\pd{u}{t}=\nabla^2 u+u\left(1-\frac{u}{K}\right)$<br />with no-flux boundary conditions
 categories: [biology, parabolic]
 ---

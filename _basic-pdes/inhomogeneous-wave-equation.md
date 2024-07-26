@@ -1,9 +1,9 @@
 ---
 layout: page
-title: Inhomogeneous waves
+title: Inhomogeneous wave equation
 lesson_number: 40
 thumbnail: /assets/images/InhomWaveEquation.webp
-extract: Waves in an inhomogeneous medium
+extract: Waves through a complex medium
 equation: $\pdd{u}{t}= \vnabla\cdot(f(x,y)\vnabla u) $
 categories: [linear, hyperbolic]
 ---

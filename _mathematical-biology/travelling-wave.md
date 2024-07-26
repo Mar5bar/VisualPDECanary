@@ -3,7 +3,7 @@ layout: page
 title: Logistic travelling waves
 lesson_number: 10
 thumbnail: /assets/images/travelling-waves.webp
-extract: A classic example
+extract: Classic models of invasion
 equation: $\pd{u}{t}=\nabla^2 u+ru\left(1-\frac{u}{K}\right)$<br />with periodic boundary conditions
 categories: [biology, waves, parabolic]
 ---

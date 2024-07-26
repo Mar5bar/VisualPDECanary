@@ -1,9 +1,9 @@
 ---
 layout: page
-title: Sources and sinks of heat
+title: Inhomogeneous heat equation
 lesson_number: 30
 thumbnail: /assets/images/InhomHeatEquation.webp
-extract: Diffusion in an inhomogeneous medium
+extract: Sources and sinks of heat
 equation: $\pd{T}{t}= \vnabla\cdot(g(x,y)\vnabla T)+f(x,y)$
 categories: [linear, parabolic]
 ---

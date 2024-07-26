@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Dynamic bifurcations with heterogeneity
+title: Heterogeneous reaction-diffusion systems
 lesson_number: 120
 thumbnail: /assets/images/heterogeneousGiererMeinhardt.webp
 extract: Isolated patterns and moving spikes

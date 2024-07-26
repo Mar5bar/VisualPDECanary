@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Explore the wave equation
+title: Wave equation
 lesson_number: 20
 thumbnail: /assets/images/waveEquation.webp
 extract: Play with waves and vibrations
