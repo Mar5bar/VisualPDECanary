@@ -184,6 +184,7 @@
 				// Create filter buttons for each tag.
         tags.forEach((tag) => {
           let filterButton = document.createElement("button");
+          filterButton.id = "filter_button_" + tag.toLowerCase();
           filterButton.classList.add("filter_button");
           filterButton.textContent = tag;
           filterButton.dataset.active = false;
@@ -192,6 +193,7 @@
               if (filterButton.dataset.active == "true") {
                   activeTags.clear();
                   activeTags.add(tag);
+                  window.location.hash = tag.toLowerCase();
               } else {
                   activeTags.delete(tag);
               }
@@ -209,6 +211,16 @@
                     fitty(".subtitle_equation mjx-container", { minSize: 5, maxSize: 16 });
               }
           );
+        }
+
+        // If a tag is present in the URL, activate it.
+        if (window.location.hash) {
+          let tag = window.location.hash.slice(1);
+          console.log(tag)
+          let button = document.getElementById("filter_button_" + tag.toLowerCase());
+          if (button) {
+            button.click();
+          }
         }
     })();
   </script>
