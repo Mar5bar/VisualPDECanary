@@ -15,6 +15,8 @@ presets["Duffing"] = {
   initCond_1: "0.5*RANDN",
   kineticParams:
     "D = 0.5;alpha = -1;beta=0.25;delta=0.1;gamma=2;omega=2;C = 0.01;",
+  maxColourValue: "5",
+  minColourValue: "-5",
   preset: "Duffing",
   reactionStr_1: "Y",
   reactionStr_2: "-delta*Y-alpha*X-beta*X^3+gamma*cos(omega*t)",
