@@ -6,7 +6,7 @@ thumbnail: /assets/images/start.webp
 extract: Two-minute top tips
 ---
 
-VisualPDE is a web-based set of tools for solving partial differential equations (PDEs) via an interactive, easy-to-use simulation. To get started, try playing with some of the examples in [Introductory PDEs](/basic-pdes), or read on for some quick tips for using the solver.
+VisualPDE is a web-based set of tools for solving partial differential equations (PDEs) via an interactive, easy-to-use simulation. To get started, try playing with some of the [linear examples](/explore?tag=linear), or read on for some quick tips for using the solver.
 
 ### Interacting with the simulation <a class="anchor" id='interacting'>
 Clicking/pressing on the simulation draws values right onto the domain. You can customise exactly what this does under <span class='click_sequence'>{{ layout.settings }} → **Brush** </span> For example, the default settings in the [heat equation example](/basic-pdes/heat-equation) allow you to paint 'heat' of value 1 onto the domain, which acts like an initial condition for the rest of the simulation.

@@ -100,6 +100,6 @@ Not quite had enough of decontamination? To investigate other parameters in the 
 
 Enjoyed this Visual Story? We'd love to hear your feedback at [hello@visualpde.com](mailto:hello@visualpde.com).
 
-Looking for more VisualPDE? Try out our other [Visual Stories](/visual-stories) or some mathematically flavoured content from [Introductory PDEs](/basic-pdes).
+Looking for more VisualPDE? Try out our other [Visual Stories](/visual-stories) or some mathematically flavoured content from the [VisualPDE library](/explore).
 
 This Story was written in collaboration with [Dr Ellen Luckins](https://sites.google.com/view/ellen-luckins/).
