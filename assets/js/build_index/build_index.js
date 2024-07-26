@@ -33,6 +33,7 @@ try {
         obj.extract = obj.extract ? minify(obj.extract) : "";
         obj.equation = obj.equation ? minify(obj.equation) : "";
         obj.img = obj.thumbnail || "";
+        obj.page_number = obj.lesson_number || 100;
         obj.id = counter++;
         docs.push(obj);
       }

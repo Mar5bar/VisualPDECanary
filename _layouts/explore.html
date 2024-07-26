@@ -81,11 +81,8 @@
         .filter((doc) => doc.layout === "page")
         .filter((doc) => doc.url.indexOf("/user-guide/") === -1);
 
-        // Sort the pages by title.
-        function removeThePrefix(title) {
-        return title.replace(/^The\s/i, "");
-        }
-        pages.sort((a, b) => removeThePrefix(a.title).localeCompare(removeThePrefix(b.title)));
+        // Sort the pages by page_number.
+        pages.sort((a, b) => a.page_number - b.page_number);
 
         function startUpper(str) {
           return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
