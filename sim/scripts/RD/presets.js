@@ -23,6 +23,7 @@ presets["Duffing"] = {
   spatialStep: "0.15",
   speciesNames: "X Y",
   whatToDraw: "X",
+  whatToPlot: "X",
   simTitle: "Duffing",
 };
 
