@@ -8,7 +8,7 @@ equation: $\pd{X}{t} = D \nabla^2 X + \sigma \left(Y-X\right)$, $\pd{Y}{t} = D \
 categories: [chaos, integrable, parabolic]
 ---
 
-# Coupled Lorenz Equations
+# Coupled Lorenz equations
 
 The [Lorenz system](https://en.wikipedia.org/wiki/Lorenz_system) is a well-known system of three ordinary differential equations which exhibit chaotic dynamics. If we put a copy of this system at every spatial point and couple these via diffusion (that is, adding a Laplacian to each equation), we arrive at the following system:
 
@@ -28,12 +28,12 @@ which can exhibit a variety of spatiotemporal behaviours.
 
 * Modifying the value of $D$, which is effectively the coupling strength between local chaotic systems, can be one fun way to explore the parameter space. For large values (e.g. $D=5$) the system tends toward a uniform state with large-wavelength  oscillations, whereas for small values (e.g. $D=0.2$) it behaves more erratically, breaking up into local patches of oscillating and chaotic regions.
 
-# Coupled Van Der Pol Oscillators
+# Coupled Van der Pol oscillators
 
-The [Van der Pol Oscillator](https://en.wikipedia.org/wiki/Van_der_Pol_oscillator) is a well-known example of a nonlinear oscillator, where again we can add linear diffusive coupling to a spatial variant of it. 
+The [Van der Pol Oscillator](https://en.wikipedia.org/wiki/Van_der_Pol_oscillator) is a well-known example of a nonlinear oscillator, where again we can add linear diffusive coupling to a spatial variant of it.
 
-[interactive Van der Pol simulation](/sim/?preset=VanDerPol) 
+[interactive Van der Pol simulation](/sim/?preset=VanDerPol)
 
-The [Duffing equation](https://en.wikipedia.org/wiki/Duffing_equation) is another example of a nonlinear oscillator, where again we can add linear diffusive coupling to a spatial variant of it (though here we include a temporal forcing term to increase the variety of observed dynamics). 
+The [Duffing equation](https://en.wikipedia.org/wiki/Duffing_equation) is another example of a nonlinear oscillator, where again we can add linear diffusive coupling to a spatial variant of it (though here we include a temporal forcing term to increase the variety of observed dynamics).
 
-[interactive Duffing equation simulation](/sim/?preset=Duffing) 
+[interactive Duffing equation simulation](/sim/?preset=Duffing)
