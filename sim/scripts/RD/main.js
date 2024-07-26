@@ -2519,6 +2519,9 @@ import { createWelcomeTour } from "./tours.js";
       .name("# Species")
       .onChange(function () {
         document.activeElement.blur();
+        options.speciesNames = listOfSpecies
+          .slice(0, options.numSpecies)
+          .join(" ");
         updateProblem();
         resetSim();
       });
@@ -8280,6 +8283,18 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   /**
+   * Parses species names from options.
+   * @returns {string[]} An array of parsed species names.
+   */
+  function parseSpeciesNamesFromOptions() {
+    return options.speciesNames
+      .replaceAll(/\W+/g, " ")
+      .trim()
+      .split(" ")
+      .slice(0, defaultSpecies.length);
+  }
+
+  /**
    * Sets custom names for species and reactions, swapping out species in all user-editable strings.
    * @returns {void}
    */
@@ -8288,11 +8303,7 @@ import { createWelcomeTour } from "./tours.js";
     if (listOfSpecies != undefined) {
       oldListOfSpecies = listOfSpecies;
     }
-    const newSpecies = options.speciesNames
-      .replaceAll(/\W+/g, " ")
-      .trim()
-      .split(" ")
-      .slice(0, defaultSpecies.length);
+    const newSpecies = parseSpeciesNamesFromOptions();
 
     // If not enough species have been provided, add placeholders for those remaining.
     const tempListOfSpecies = newSpecies.concat(
