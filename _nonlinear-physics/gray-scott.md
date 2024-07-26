@@ -1,6 +1,6 @@
 ---
 layout: page
-title: The Gray–Scott model
+title: Gray–Scott model
 lesson_number: 50
 thumbnail: /assets/images/GrayScott.webp
 extract: Intricate reaction–diffusion patterning

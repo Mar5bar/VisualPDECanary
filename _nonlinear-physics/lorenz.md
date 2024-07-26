@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Diffusively-Coupled Chaos
+title: Diffusively coupled chaos
 lesson_number: 20
 thumbnail: /assets/images/Lorenz.webp
 extract: Butterfly effects in space
