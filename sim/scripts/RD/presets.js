@@ -7,7 +7,7 @@ presets["Duffing"] = {
   brushRadius: "1",
   colourmap: "ice",
   crossDiffusion: true,
-  diffusionStr_1_1: "C*D",
+  diffusionStr_1_1: "epsilon*D",
   diffusionStr_2_1: "D",
   diffusionStr_2_2: "0",
   diffusionStr_3_3: "0",
@@ -16,7 +16,7 @@ presets["Duffing"] = {
   emboss: true,
   initCond_1: "1*RANDN",
   kineticParams:
-    "D = 0.5;alpha = -1.0 in [-5,-1];beta = 0.25;delta = 0.1;gamma = 1;omega = 2;C = 0.01;",
+    "D = 0.5;alpha = -1.0 in [-5,-1];beta = 0.25;delta = 0.1;gamma = 1;omega = 2;epsilon = 0.01;",
   maxColourValue: "5",
   minColourValue: "-5",
   preset: "Duffing",
