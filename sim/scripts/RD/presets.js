@@ -16,7 +16,7 @@ presets["Duffing"] = {
   emboss: true,
   initCond_1: "1*RANDN",
   kineticParams:
-    "D = 0.5;alpha = -1.0 in [-5,-1];beta = 0.25;delta = 0.1;gamma = 1;omega = 2;epsilon = 0.01;",
+    "D = 0.5;alpha = -1.0 in [-5,-1];beta = 0.25;delta = 0.1;gamma = 2;omega = 2;epsilon = 0.01;",
   maxColourValue: "5",
   minColourValue: "-5",
   preset: "Duffing",
@@ -40,7 +40,7 @@ presets["VanDerPol"] = {
   diffusionStr_2_2: "D*epsilon",
   diffusionStr_3_3: "0",
   domainScale: "50",
-  dt: 0.002,
+  dt: 0.0015,
   initCond_1: "0.05*RANDN",
   kineticParams: "D = 1;mu = 8.53 in [1,30];epsilon=0.005;",
   maxColourValue: "2.5",
