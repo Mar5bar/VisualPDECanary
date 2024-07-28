@@ -23,7 +23,7 @@ where $\mu$ is a coefficient of nonlinear damping. We now consider adding linear
 $$
 \begin{aligned}
     \pd{X}{t} &= Y ,\\
-    \pd{Y}{t} &= D (\nabla^2 X + \varepsilon \nabla^2 Y) + \mu*(1-X^2)\fd{X}{t}-X,
+    \pd{Y}{t} &= D (\nabla^2 X + \varepsilon \nabla^2 Y) + \mu*(1-X^2)\pd{X}{t}-X,
     \end{aligned}
 $$
 
@@ -36,8 +36,8 @@ The [interactive Van der Pol simulation](/sim/?preset=VanDerPol) shows how this 
 The [Duffing equation](https://en.wikipedia.org/wiki/Duffing_equation) is another example of a nonlinear oscillator, where again we can add linear diffusive coupling to a spatial variant of it to get:
 
 \begin{aligned}
-    \textstyle  \pd{X}{t} &= \varepsilon D \lap X + Y\\
-    \textstyle  \pd{Y}{t} &= D \lap X -\delta Y-\alpha X-\beta {X}^{3}+\gamma \cos{\left(\omega t\right)}
+      \pd{X}{t} &= \varepsilon D \nabla^2 X + Y\\
+      \pd{Y}{t} &= D \nabla^2 X -\delta Y-\alpha X-\beta {X}^{3}+\gamma \cos{\left(\omega t\right)}
     \end{aligned}
 
 where $D$, $\alpha$, $\beta$ are parameters of the model, $\varepsilon$ is again an artificial diffusion term, and  we have included a temporal forcing term (with parameters $\gamma$ and $\omega$) to increase the variety of observed dynamics.
