@@ -13,7 +13,7 @@ presets["Duffing"] = {
   domainScale: "75",
   dt: 0.002,
   emboss: true,
-	initCond_1: "1*RANDN",
+  initCond_1: "1*RANDN",
   kineticParams:
     "D = 0.5;alpha = -1;beta=0.25;delta=0.1;gamma=2;omega=2;C = 0.01;",
   maxColourValue: "5",
@@ -29,7 +29,6 @@ presets["Duffing"] = {
   whatToPlot: "X",
   simTitle: "Duffing",
 };
-
 
 presets["VanDerPol"] = {
   brushAction: "smoothreplace",
