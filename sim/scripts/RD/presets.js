@@ -12,7 +12,8 @@ presets["Duffing"] = {
   diffusionStr_3_3: "0",
   domainScale: "75",
   dt: 0.002,
-  initCond_1: "0.5*RANDN",
+  emboss: true,
+	initCond_1: "1*RANDN",
   kineticParams:
     "D = 0.5;alpha = -1;beta=0.25;delta=0.1;gamma=2;omega=2;C = 0.01;",
   maxColourValue: "5",
@@ -22,12 +23,13 @@ presets["Duffing"] = {
   reactionStr_2: "-delta*Y-alpha*X-beta*X^3+gamma*cos(omega*t)",
   reactionStr_3: "0",
   setSeed: true,
-  spatialStep: "0.15",
+  spatialStep: "0.2",
   speciesNames: "X Y",
   whatToDraw: "X",
   whatToPlot: "X",
   simTitle: "Duffing",
 };
+
 
 presets["VanDerPol"] = {
   brushAction: "smoothreplace",
@@ -37,8 +39,8 @@ presets["VanDerPol"] = {
   diffusionStr_2_1: "D",
   diffusionStr_2_2: "0",
   diffusionStr_3_3: "0",
-  domainScale: "75",
-  dt: 0.002,
+  domainScale: "50",
+  dt: 0.003,
   initCond_1: "0.05*RANDN",
   kineticParams: "D = 1;mu = 8.53;",
   maxColourValue: "2.5",
@@ -50,7 +52,7 @@ presets["VanDerPol"] = {
   reactionStr_1: "Y",
   reactionStr_2: "mu*(1-X^2)*Y-X",
   reactionStr_3: "0",
-  spatialStep: "0.12",
+  spatialStep: "0.1",
   speciesNames: "X Y",
   views: [
     {
