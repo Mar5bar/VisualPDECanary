@@ -7086,6 +7086,13 @@ import { createWelcomeTour } from "./tours.js";
         controller.slider.type = "range";
         controller.slider.min = match[3];
         controller.slider.max = match[5];
+        if (
+          parseFloat(controller.slider.min) > parseFloat(controller.slider.max)
+        ) {
+          let temp = controller.slider.min;
+          controller.slider.min = controller.slider.max;
+          controller.slider.max = temp;
+        }
 
         let step;
         // Define the step of the slider, which may or may not have been given.
@@ -7096,20 +7103,22 @@ import { createWelcomeTour } from "./tours.js";
           controller.slider.precision =
             Math.max(
               parseFloat(match[2]).countDecimals(),
-              parseFloat(match[3]).countDecimals(),
-              parseFloat(match[5]).countDecimals(),
+              parseFloat(controller.slider.min).countDecimals(),
+              parseFloat(controller.slider.max).countDecimals(),
             ) + 1;
           step = Math.min(
-            (parseFloat(match[5]) - parseFloat(match[3])) / 20,
+            (parseFloat(controller.slider.max) -
+              parseFloat(controller.slider.min)) /
+              20,
             10 ** -controller.slider.precision,
           );
         } else {
           controller.slider.precision =
             Math.max(
               parseFloat(match[2]).countDecimals(),
-              parseFloat(match[3]).countDecimals(),
+              parseFloat(controller.slider.min).countDecimals(),
               parseFloat(match[4]).countDecimals(),
-              parseFloat(match[5]).countDecimals(),
+              parseFloat(controller.slider.max).countDecimals(),
             ) + 1;
           step = match[4];
           match[4] += ", ";
