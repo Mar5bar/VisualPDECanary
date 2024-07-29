@@ -3,16 +3,26 @@ div.wrapper {
 }
 
 div.topic_tiles {
-  padding: 0 1.25rem;
   display: flex;
   justify-content: space-evenly;
   align-items: stretch;
+  text-align: center;
+  transition: opacity 0.7s ease 1s;
+  transition: none;
   column-gap: 20px;
-  flex-wrap: wrap;
+  max-width: 1300px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+  padding: 0 1.25rem;
 }
 
 a.topic_tile {
   position: relative;
+  display: inline-block;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  width: min(30vw, 400px);
 }
 
 .top_container iframe {
@@ -54,5 +64,20 @@ div.top_container {
     column-gap: 0;
     margin-top: 0;
     margin-bottom: 3rem;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  div.topic_tiles {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  div.topic_tiles > p {
+    padding-top: 15px;
+  }
+
+  a.topic_tile {
+    width: 60vw;
   }
 }
