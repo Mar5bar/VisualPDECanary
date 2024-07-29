@@ -154,6 +154,10 @@ img.post-thumbnail {
   height: 10rem;
   width: 100%;
   object-fit: cover;
+  display: block;
+  margin: 0 auto;
+  border-radius: 6px;
+  border: 1px solid var(--tile-border-color);
 }
 
 .highlighter-rouge .highlight {
