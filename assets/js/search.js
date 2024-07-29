@@ -49,14 +49,14 @@ async function setupPageSearch() {
   // Find the highest level heading.
   let highestLevel = Infinity;
   document
-    .querySelector(".post-content")
+    .querySelector(".page-content")
     ?.querySelectorAll(selectors)
     .forEach((el) => {
       if (highestLevel > el.tagName[1]) highestLevel = el.tagName[1];
     });
   // Get all h2, h3, h4, h5 tags from the page.
   document
-    .querySelector(".post-content")
+    .querySelector(".page-content")
     ?.querySelectorAll("h2, h3, h4, h5, h6")
     .forEach((el) => {
       const obj = {};
