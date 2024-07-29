@@ -929,6 +929,7 @@ vpde-chart {
   transform: translateX(-50%);
   height: 30px;
   vertical-align: middle;
+  padding-bottom: 1rem;
 }
 
 #siteSearchForm p,
