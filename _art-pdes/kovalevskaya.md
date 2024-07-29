@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Kovalevskaya on chaos
-lesson_number: 5
+lesson_number: 150
 thumbnail: /assets/images/Kovalevskaya.webp
 extract: Playing in time and space
 equation: $\pd{\psi}{t}=(D_r+\i D_i)\nabla^2 \psi+(a_r+\i a_i)(1-I_S(x,y))\psi+(b_r+\i b_i)\psi|\psi|^2$
