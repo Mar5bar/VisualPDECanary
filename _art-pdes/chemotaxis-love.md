@@ -1,7 +1,7 @@
 ---
 layout: page
 title: We ❤️ PDEs
-lesson_number: 20
+lesson_number: 40
 thumbnail: /assets/images/hearts.webp
 extract: Beating hearts and slime moulds
 equation: $\pd{u}{t}=\nabla^2 u+$❤️
