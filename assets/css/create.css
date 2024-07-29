@@ -25,6 +25,13 @@ a.topic_tile {
   width: min(30vw, 400px);
 }
 
+div.video_container {
+  border: 1px solid var(--tile-border-color);
+  border-left: 0;
+  border-right: 0;
+  padding-bottom: 0.5rem;
+}
+
 .top_container iframe {
   width: 200px;
   height: 200px;
@@ -63,7 +70,7 @@ div.top_container {
     flex-direction: column;
     column-gap: 0;
     margin-top: 0;
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
   }
 }
 

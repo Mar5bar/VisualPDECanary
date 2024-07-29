@@ -342,6 +342,7 @@ iframe.tutorial_video {
   aspect-ratio: 16 / 9;
   border-radius: 5px;
   max-width: 600px;
+  padding-bottom: 1.5rem;
 }
 
 div.duration,
