@@ -7,7 +7,7 @@ extract: Playing with dipoles
 video: https://www.youtube-nocookie.com/embed/ly36kn0ug4k?si=h6RqHDxLJsePmYmG
 video_length: 1m 5s
 read_length: 30s
-published: true
+published: false
 ---
 
 In many fields, singularity solutions are commonplace. In 2D potential flows, singularity solutions representing point forces, vortices, sources and sinks occur all the time, often as approximations of more complex flow features. A flow field might include any number of these added together, yielding an intricate flow field.
