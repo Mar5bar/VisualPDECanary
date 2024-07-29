@@ -29,7 +29,16 @@ div.video_container {
   border: 1px solid var(--tile-border-color);
   border-left: 0;
   border-right: 0;
-  padding-bottom: 0.5rem;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  width: calc(100% - 3rem);
+}
+
+div.video_container > iframe.tutorial_video {
+  margin: 10px 10px;
 }
 
 .top_container iframe {
@@ -67,6 +76,12 @@ div.top_container {
     height: 150px;
   }
   div.top_container {
+    flex-direction: column;
+    column-gap: 0;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+  }
+  div.video_container {
     flex-direction: column;
     column-gap: 0;
     margin-top: 0;
