@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Klausmeier model
+title: Vegetation patterns
 lesson_number: 130
 thumbnail: /assets/images/VegetationPatterns.webp
 extract: Vegetation moving towards water

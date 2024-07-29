@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Turing on Turing
-lesson_number: 10
+lesson_number: 3
 thumbnail: /assets/images/alan4.webp
 extract: Turing patterns in Turing's image
 equation: $\pd{u}{t}=\nabla^2 u+(1-T(x,y)) - u + u^2v,$ $\pd{v}{t}=D\nabla^2v+ 1 - u^2v$
