@@ -159,7 +159,7 @@ a#home_box_3 {
 
 @media (hover: hover) {
   a.home_box_s:hover {
-    text-decoration: none;
+    text-decoration: none !important;
     background-color: var(--hover-background-color);
   }
 
