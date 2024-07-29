@@ -4,7 +4,7 @@ title: Diffusively coupled oscillators
 lesson_number: 140
 thumbnail: /assets/images/VanderPolOscillator.webp
 extract: Nonlinearity and oscillation in space
-equation: $\pdd{X}{t} = D \nabla^2 X+ \mu*(1-X^2)\pd{X}{t}-X,$
+equation: $\pdd{X}{t} = D \nabla^2 X+ \mu(1-X^2)\pd{X}{t}-X$
 categories: [chaos, integrable, parabolic]
 ---
 
