@@ -2,7 +2,7 @@
 layout: page
 title: "Shallow water equations"
 # permalink: /shallow-water/
-lesson_number: 10
+lesson_number: 4
 thumbnail: /assets/images/shallow-water-waves.webp
 extract: Water waves and ripples
 equation: $\pd{h}{t} = - \vnabla \cdot \left( \v{u} \left(h+H_{e}\right)\right)$, $\pd{\v{u}}{t} = \nu \nabla^2  {\v{u}} -g \vnabla h - k {\v{u}}-({\v{u}}\cdot \vnabla){\v{u}}-\v{f}\times \v{u}$
