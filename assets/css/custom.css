@@ -150,6 +150,12 @@ p {
   border-top: none;
 }
 
+img.post-thumbnail {
+  height: 10rem;
+  width: 100%;
+  object-fit: cover;
+}
+
 .highlighter-rouge .highlight {
   background-color: var(--hover-background-color);
 }

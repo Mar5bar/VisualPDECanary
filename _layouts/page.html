@@ -27,7 +27,6 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
       <div class="wrapper">
 
         <header class="post-header">
-          <h1 class="post-title">{{ page.title }}</h1>
           <div class="tag_list">
             {% if page.categories %}
                 {% assign formatted_categories = "" | split: "," %}
@@ -44,7 +43,11 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
                 {% endfor %}
                 {{ formatted_categories | join: " | " }}
             {% endif %}
-        </div>
+          </div>
+          <h1 class="post-title">{{ page.title }}</h1>
+          {% if page.thumbnail %}
+            <img src="{{ page.thumbnail }}" alt="{{ page.title }}" class="post-thumbnail">
+          {% endif %}
         </header>
 
         {{ content }}
