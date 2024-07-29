@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Diffusively-coupled oscillators
+title: Diffusively coupled oscillators
 lesson_number: 140
 thumbnail: /assets/images/VanderPolOscillator.webp
 extract: Nonlinearity and oscillation in space
@@ -12,19 +12,19 @@ Below are some examples of nonlinear oscillators where we think of each spatial 
 
 ## Coupled Van der Pol oscillators
 
-The (unforced) [Van der Pol Oscillator](https://en.wikipedia.org/wiki/Van_der_Pol_oscillator) is a well-known example of a nonlinear oscillator of the form,
+The (unforced) [Van der Pol oscillator](https://en.wikipedia.org/wiki/Van_der_Pol_oscillator) is a well-known example of a nonlinear oscillator of the form
 
 $$
-\diff{^2X}{t^2} = \mu*(1-X^2)\diff{X}{t}-X,\\
+\diff{^2X}{t^2} = \mu(1-X^2)\diff{X}{t}-X,\\
 $$
 
-where $\mu$ is a coefficient of nonlinear damping. We now consider adding linear diffusive coupling to a spatial variant of it. Writing this as a system of first-order equations in time, we then have,
+where $\mu$ is a coefficient of nonlinear damping. We now consider adding linear diffusive coupling to a spatial variant of it. Writing this as a system of first-order equations in time, we then have
 
 $$
 \begin{aligned}
     \pd{X}{t} &= Y ,\\
-    \pd{Y}{t} &= D (\nabla^2 X + \varepsilon \nabla^2 Y) + \mu*(1-X^2)\pd{X}{t}-X,
-    \end{aligned}
+    \pd{Y}{t} &= D (\nabla^2 X + \varepsilon \nabla^2 Y) + \mu(1-X^2)\pd{X}{t}-X,
+\end{aligned}
 $$
 
 where $D$ is a diffusion coefficient, and the term involving $\varepsilon$ is a kind of artificial diffusion to dampen numerical instabilities.
@@ -35,10 +35,12 @@ The [interactive Van der Pol simulation](/sim/?preset=VanDerPol) shows how this 
 
 The [Duffing equation](https://en.wikipedia.org/wiki/Duffing_equation) is another example of a nonlinear oscillator, where again we can add linear diffusive coupling to a spatial variant of it to get:
 
+$$
 \begin{aligned}
-      \pd{X}{t} &= \varepsilon D \nabla^2 X + Y\\
-      \pd{Y}{t} &= D \nabla^2 X -\delta Y-\alpha X-\beta {X}^{3}+\gamma \cos{\left(\omega t\right)}
-    \end{aligned}
+      \pd{X}{t} &= \varepsilon D \nabla^2 X + Y,\\
+      \pd{Y}{t} &= D \nabla^2 X -\delta Y-\alpha X-\beta {X}^{3}+\gamma \cos{\left(\omega t\right)},
+\end{aligned}
+$$
 
 where $D$, $\alpha$, $\beta$ are parameters of the model, $\varepsilon$ is again an artificial diffusion term, and  we have included a temporal forcing term (with parameters $\gamma$ and $\omega$) to increase the variety of observed dynamics.
 

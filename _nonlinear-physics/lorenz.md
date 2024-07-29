@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Diffusively-coupled Lorenz model
+title: Diffusively coupled Lorenz model
 lesson_number: 140
 thumbnail: /assets/images/Lorenz.webp
 extract: Butterfly effects in space
@@ -8,7 +8,7 @@ equation: $\pd{X}{t} = D \nabla^2 X + \sigma \left(Y-X\right)$, $\pd{Y}{t} = D \
 categories: [chaos, integrable, parabolic]
 ---
 
-The [Lorenz system](https://en.wikipedia.org/wiki/Lorenz_system) is a well-known system of three ordinary differential equations which exhibit chaotic dynamics. If we put a copy of this system at every spatial point and couple these via diffusion (that is, adding a Laplacian to each equation), we arrive at the following system:
+The [Lorenz system](https://en.wikipedia.org/wiki/Lorenz_system) is a well-known system of three ordinary differential equations that exhibit chaotic dynamics. If we put a copy of this system at every spatial point and couple these via diffusion (that is, adding a Laplacian to each equation), we arrive at the following system:
 
 $$
 \begin{aligned}
