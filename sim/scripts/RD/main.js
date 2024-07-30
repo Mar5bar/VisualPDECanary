@@ -740,8 +740,6 @@ import { createWelcomeTour } from "./tours.js";
     if (restart) {
       playSim();
     }
-  } else {
-    window.gtag?.("event", "skip_intro_tour");
   }
   if ($("#help").is(":visible")) {
     $("#get_help").fadeIn(1000);
