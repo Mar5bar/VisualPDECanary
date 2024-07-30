@@ -142,7 +142,7 @@ p {
   min-height: 50px;
   top: 0;
   background-color: var(--background-color);
-  z-index: 2;
+  z-index: 20;
   border-bottom: 1px solid var(--tile-border-color);
   /* Fix for Safari not respecting z-index */
   -webkit-transform: translate3d(0, 0, 0);
