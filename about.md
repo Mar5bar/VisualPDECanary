@@ -29,8 +29,6 @@ Some external applications of VisualPDE include:
 
 - An interactive logo for the [Society for Mathematical Biology](https://smb.org)
 
-- [Visualising landslides](https://imibath.ac.uk/news/landslide-early-warning-system/) using real topographical data from Brazil, with the Institute for Mathematical Innovation, University of Bath
-
 - Providing figures and supporting simulations for a rigorous [study of localised pattern formation in dryland vegetation](https://arxiv.org/abs/2309.02956)
 
 - Numerical simulation of temporal and spatiotemporal oscillations in a [model of viral cancer therapy](https://doi.org/10.1101/2023.12.19.572433)
