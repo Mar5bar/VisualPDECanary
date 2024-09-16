@@ -21,6 +21,7 @@ For instance, on macOS with Homebrew installed, the following will install and c
 ```
 brew install ruby@3.1
 gem install bundler jekyll
+bundle install
 ```
 
 To build and serve the site locally, download the entire VisualPDE source from this repo and navigate to it in your terminal. Hosting the site at `http://localhost:4000` is then as simple as running
