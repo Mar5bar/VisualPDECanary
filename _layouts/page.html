@@ -18,6 +18,7 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
 <html lang="{{ page.lang | default: site.lang | default: "en" }}">
 
   {%- include head.html -%}
+  <script type="module" src="/assets/js/related_posts.js" async></script>
 
   <body>
 
@@ -48,8 +49,48 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
         </header>
 
         {{ content }}
+
+        <hr style="margin-top:2em;margin-bottom:2em;color:var(--tile-border-color)">
+
+        <p class="emphasize" id="try_out_highlight">Looking for something similar? Try out these related examples:</p>
+
+        <div id="related_posts-container" class="hiddenPost">
+            <a class='topic_tile related_post'>
+              <div class='topic_banner'>
+              </div>
+              <div class='container'>
+                <div class='title'></div>
+                <div class='subtitle'></div>
+              </div>
+            </a>
+            <a class='topic_tile related_post'>
+              <div class='topic_banner'>
+              </div>
+              <div class='container'>
+                <div class='title'></div>
+                <div class='subtitle'></div>
+              </div>
+            </a>
+            <a class='topic_tile related_post'>
+              <div class='topic_banner'>
+              </div>
+              <div class='container'>
+                <div class='title'></div>
+                <div class='subtitle'></div>
+              </div>
+            </a>
+        </div>
+
       </div>
     </main>
+
+    <!-- If there are any related posts specified in the frontmatter, initialise a JS variable with those posts as strings -->
+    <script>
+      window.specifiedRelatedPosts = [];
+      {% if page.related_posts %}
+      window.specifiedRelatedPosts = {{ page.related_posts | jsonify }};
+      {% endif %}
+    </script>
 
     {%- include footer.html -%}
     {%- include mathjax.html -%}
