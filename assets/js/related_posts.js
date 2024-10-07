@@ -34,7 +34,6 @@ relatedPosts = relatedPosts.sort((a, b) => {
         return 0;
     }
     });
-console.log(relatedPosts);
 
 // Assign the content to the post of the week section.
 let posts = document.getElementsByClassName("related_post");
@@ -46,9 +45,11 @@ for (let post of posts) {
     "url('" + relatedPost.img + "')";
   post.getElementsByClassName("title")[0].textContent = relatedPost.title;
   post.getElementsByClassName("subtitle")[0].textContent = relatedPost.extract;
+  post.classList.remove("hiddenPost");
   index++;
 }
 
 // Make the post visible.
 let container = document.getElementById("related_posts-container");
 container.classList.remove("hiddenPost");
+document.getElementById("related_posts_wrapper").classList.remove("hiddenPost");

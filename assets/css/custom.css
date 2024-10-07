@@ -148,6 +148,8 @@ p {
 
 .wrapper {
   position: relative;
+  max-width: -webkit-calc(900px -(30px * 2));
+  max-width: calc(900px -(30px * 2));
 }
 
 .site-header .wrapper {
@@ -1261,6 +1263,10 @@ vpde-chart {
 
 #related_posts-container p {
   margin: 0;
+}
+
+.related_post.hiddenPost {
+  display: none;
 }
 
 .light-mode-img,

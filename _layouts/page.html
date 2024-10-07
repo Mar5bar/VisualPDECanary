@@ -49,13 +49,16 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
         </header>
 
         {{ content }}
-
+        
         <hr style="margin-top:2em;margin-bottom:2em;color:var(--tile-border-color)">
-
+      </div>
+      
+      <div id="related_posts_wrapper" class="hiddenPost">
+        
         <p class="emphasize" id="try_out_highlight">Looking for something similar? Try out these related examples:</p>
 
         <div id="related_posts-container" class="hiddenPost">
-            <a class='topic_tile related_post'>
+            <a class='topic_tile related_post hiddenPost'>
               <div class='topic_banner'>
               </div>
               <div class='container'>
@@ -63,7 +66,7 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
                 <div class='subtitle'></div>
               </div>
             </a>
-            <a class='topic_tile related_post'>
+            <a class='topic_tile related_post hiddenPost'>
               <div class='topic_banner'>
               </div>
               <div class='container'>
@@ -71,7 +74,7 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
                 <div class='subtitle'></div>
               </div>
             </a>
-            <a class='topic_tile related_post'>
+            <a class='topic_tile related_post hiddenPost'>
               <div class='topic_banner'>
               </div>
               <div class='container'>
@@ -80,8 +83,8 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
               </div>
             </a>
         </div>
-
       </div>
+
     </main>
 
     <!-- If there are any related posts specified in the frontmatter, initialise a JS variable with those posts as strings -->
