@@ -8,20 +8,22 @@ let pages = documents
 // Build the list of related posts, prioritising any specified in the frontmatter.
 // A related post is defined as one sharing categories with the current post. We'll sort by number of shared categories.
 let currentPost = pages.find((doc) => doc.url === window.location.pathname);
-let specifiedRelatedPosts = currentPost.related_posts;
-let relatedPosts = pages
-  .map((doc) => {
-    let sharedCats = doc.categories.filter((cat) =>
-      currentPost.categories.includes(cat),
-    );
-    return { doc, sharedCats };
-  })
-  .filter(
-    (post) =>
-      post.sharedCats.length > 0 && post.doc.url != window.location.pathname,
-  )
-  .sort((a, b) => b.sharedCats.length - a.sharedCats.length)
-  .map((post) => post.doc);
+let relatedPosts = [];
+if (currentPost && currentPost.categories) {
+  relatedPosts = pages
+    .map((doc) => {
+      let sharedCats =
+        doc.categories.filter((cat) => currentPost.categories.includes(cat)) ||
+        [];
+      return { doc, sharedCats };
+    })
+    .filter(
+      (post) =>
+        post.sharedCats.length > 0 && post.doc.url != window.location.pathname,
+    )
+    .sort((a, b) => b.sharedCats.length - a.sharedCats.length)
+    .map((post) => post.doc);
+}
 
 // If there are specified related posts, add them to the beginning of the list by sorting by inclusion in related_posts.
 relatedPosts = relatedPosts.sort((a, b) => {

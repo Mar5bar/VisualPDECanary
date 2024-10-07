@@ -6,7 +6,7 @@
   --tile-highlight-color: #1756a9;
   --hover-color: #134484;
   --button-color: #1756a9;
-  --hover-background-color: #f8f8f8;
+  --hover-background-color: #ececec;
   --background-color: #fdfdfd;
   --play-button-color: #23843e;
   --play-button-hover-color: #216d37;
@@ -148,8 +148,8 @@ p {
 
 .wrapper {
   position: relative;
-  max-width: -webkit-calc(900px -(30px * 2));
-  max-width: calc(900px -(30px * 2));
+  max-width: -webkit-calc(900px - (30px * 2));
+  max-width: calc(900px - (30px * 2));
 }
 
 .site-header .wrapper {
@@ -1265,7 +1265,8 @@ vpde-chart {
   margin: 0;
 }
 
-.related_post.hiddenPost {
+.related_post.hiddenPost,
+#related_posts_wrapper.hiddenPost {
   display: none;
 }
 

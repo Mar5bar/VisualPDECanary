@@ -32,15 +32,21 @@ async function setupSiteSearch() {
         this.add(doc);
       }, this);
     });
-    localStorage.setItem(
-      "indexExpiryTime",
-      Date.now() + 1000 * 60 * 15,
-    );
+    localStorage.setItem("indexExpiryTime", Date.now() + 1000 * 60 * 15);
     localStorage.setItem("index", JSON.stringify(siteIndex));
   } else {
     siteIndex = lunr.Index.load(JSON.parse(localStorage.getItem("index")));
     frontmatter = await getFrontmatter();
   }
+  // Add a listener to the search input to focus on the first input when down is pressed.
+  document
+    .getElementById("siteSearchInput")
+    .addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown" || e.key === "Enter" || e.key === "ArrowUp") {
+        e.preventDefault();
+        focus_results("siteSearchResults");
+      }
+    });
 }
 
 async function setupPageSearch() {
@@ -115,6 +121,16 @@ async function setupPageSearch() {
   });
   // Store the highestLevel in the page index for later.
   pageIndex.highestLevel = highestLevel;
+
+  // Add a listener to the search input to focus on the first input when down is pressed.
+  document
+    .getElementById("pageSearchInput")
+    .addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown" || e.key === "Enter" || e.key === "ArrowUp") {
+        e.preventDefault();
+        focus_results("pageSearchResults");
+      }
+    });
 }
 
 // Define a function that will skip a pipeline function for a specified field
@@ -189,12 +205,24 @@ function site_search(term) {
           "</span></p>";
         item.innerHTML =
           item.innerHTML +
-          "<li class='siteSearchResult'><a href='" +
+          "<li class='siteSearchResult'><a tabindex='0' href='" +
           url +
           "'>" +
           html +
           "</a></li>";
       }
+      // For each link element in the search results, add an event listener to focus on the next element when the down key is pressed.
+      document.querySelectorAll("#siteSearchResults a").forEach((el) =>
+        el.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            focus_next();
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            focus_previous();
+          }
+        }),
+      );
       return results;
     } else {
       document.querySelectorAll("#siteSearchResults ul")[0].innerHTML =
@@ -261,13 +289,25 @@ function page_search(term) {
           "</span></p>";
         item.innerHTML =
           item.innerHTML +
-          `<li class='pageSearchResult'><a onclick='document.getElementById("${id}").scrollIntoView({behaviour:"smooth"});'>` +
+          `<li class='pageSearchResult'><a tabindex='0' onclick='document.getElementById("${id}").scrollIntoView({behavior:"smooth"});' onkeydown='if(event.key === "Enter") { document.getElementById("${id}").scrollIntoView({behavior:"smooth"}); }'>` +
           html +
           "</a></li>";
       }
       if (typeof MathJax !== "undefined") {
         MathJax.typesetPromise();
       }
+      // For each link element in the search results, add an event listener to focus on the next element when the down key is pressed.
+      document.querySelectorAll("#pageSearchResults a").forEach((el) =>
+        el.addEventListener("keydown", (e) => {
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            focus_next();
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            focus_previous();
+          }
+        }),
+      );
       return results;
     } else {
       document.querySelectorAll("#pageSearchResults ul")[0].innerHTML =
@@ -277,4 +317,46 @@ function page_search(term) {
     document.getElementById("pageSearchResults").style.display = "none";
   }
   return false;
+}
+
+// Focus on the search results.
+function focus_results(results_id) {
+  document.querySelector("#" + results_id + " a")?.focus();
+}
+
+// Focus on the next item in a list (if it exists).
+function focus_next() {
+  var current = document.activeElement.parentElement;
+  if (current.nextElementSibling) {
+    current.nextElementSibling.firstElementChild.focus();
+  } else {
+    // Focus on the nearest input element in the DOM.
+    let parent = current.parentElement;
+    while (parent) {
+      const input = parent.querySelector("input");
+      if (input) {
+        input.focus();
+        break;
+      }
+      parent = parent.parentElement;
+    }
+  }
+}
+
+function focus_previous() {
+  var current = document.activeElement.parentElement;
+  if (current.previousElementSibling) {
+    current.previousElementSibling.firstElementChild.focus();
+  } else {
+    // Focus on the nearest input element in the DOM.
+    let parent = current.parentElement;
+    while (parent) {
+      const input = parent.querySelector("input");
+      if (input) {
+        input.focus();
+        break;
+      }
+      parent = parent.parentElement;
+    }
+  }
 }
