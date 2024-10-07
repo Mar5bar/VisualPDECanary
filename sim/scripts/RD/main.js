@@ -477,6 +477,7 @@ import { createWelcomeTour } from "./tours.js";
       var newParams = JSON.parse(
         LZString.decompressFromEncodedURIComponent(params.get("options")),
       );
+      console.log(newParams);
     } catch (e) {
       throwError(
         "It looks like this link is missing something - please check that it has been copied and pasted correctly and try again.",
@@ -8258,6 +8259,8 @@ import { createWelcomeTour } from "./tours.js";
     cLims = setMinMaxValGPU();
     options.minColourValue = String(cLims[0]);
     options.maxColourValue = String(cLims[1]);
+    updateView("minColourValue");
+    updateView("maxColourValue");
     uniforms.minColourValue.value = cLims[0];
     uniforms.maxColourValue.value = cLims[1];
     controllers["maxColourValue"].updateDisplay();
