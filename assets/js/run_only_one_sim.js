@@ -14,7 +14,6 @@ function run_only_one_sim(ids) {
         const distance =
           Math.abs(rect.top + rect.height / 2 - middleOfViewport[0]) +
           Math.abs(rect.left + rect.width / 2 - middleOfViewport[1]);
-        console.log(id, distance);
         if (distance < closestDistance) {
           closestId = id;
           closestDistance = distance;
@@ -28,7 +27,6 @@ function run_only_one_sim(ids) {
         if (id == closestId) {
           return;
         }
-        console.log("Pausing " + id);
         document.getElementById(id)?.contentWindow.postMessage(
           {
             type: "pauseSim",
@@ -38,7 +36,6 @@ function run_only_one_sim(ids) {
       });
 
       // Play the closest sim.
-      console.log("Playing " + closestId);
       document.getElementById(closestId)?.contentWindow.postMessage(
         {
           type: "playSim",

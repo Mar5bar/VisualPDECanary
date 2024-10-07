@@ -37,7 +37,6 @@
 
     connectedCallback() {
       // Get the associated iframe(s), and create a message template to send to it.
-      // console.log(this.getAttribute("iframe"));
       // this.frameIDs = this.getAttribute("iframe").split(" ");
       this.message = { type: "id" };
       // Specify a custom host if one is provided, otherwise use the default.
