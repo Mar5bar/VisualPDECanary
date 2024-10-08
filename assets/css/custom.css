@@ -1120,6 +1120,7 @@ vpde-chart {
   align-items: center;
   color: var(--soft-text-color);
   text-decoration: none !important;
+  border-radius: 5px;
 }
 .siteSearchResult a:hover,
 .siteSearchResult a:focus {
@@ -1179,6 +1180,7 @@ vpde-chart {
   align-items: center;
   color: var(--soft-text-color);
   text-decoration: none !important;
+  border-radius: 5px;
 }
 .pageSearchResult p {
   overflow: hidden;
