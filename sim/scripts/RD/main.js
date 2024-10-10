@@ -9031,6 +9031,10 @@ import { createWelcomeTour } from "./tours.js";
       configureVectorField();
       updateViewSliders();
       render();
+      if (options.autoSetColourRange) {
+        setColourRangeSnap();
+        render();
+      }
     }
   }
 
