@@ -4590,6 +4590,9 @@ import { createWelcomeTour } from "./tours.js";
       str != (str = str.replace(/([^.0-9a-zA-Z])(\d+)([^.0-9])/g, "$1$2.$3"))
     );
 
+    // Look for scientific notation and remove the "." from the exponent.
+    str = str.replaceAll(/([\d.])[eE]([+-]?\d+)\./g, "$1e$2");
+
     // Replace 'ind' with 'float' to cast the argument as a float.
     str = str.replaceAll(/\bind\b/g, "float");
 
@@ -8951,6 +8954,18 @@ import { createWelcomeTour } from "./tours.js";
       return false;
     }
 
+    // Scientific notation with a decimal point in the exponent?
+    regex = /\d*\.?\d*[eE][+-]?[0-9]*\.[0-9]*/;
+    matches = str.match(regex);
+    if (matches != null) {
+      throwError(
+        "Invalid scientific notation in: " +
+          highlightStringinString(str, matches[0]).trim() +
+          "<br> Exponents cannot include a decimal point.",
+      );
+      return false;
+    }
+
     // If we've not yet returned false, everything looks ok, so return true.
     return true;
   }
@@ -10516,6 +10531,9 @@ import { createWelcomeTour } from "./tours.js";
     str = str.replaceAll(/\btexture2D\b/g, "__TEXTURETWOD__");
     str = str.replaceAll(/\bvec2\(/g, "__VECTWOPAREN__");
 
+    // If an e or E is preceded by a number or . and is followed by a - or number, repkace it with a placeholder to enable scientific notation.
+    str = str.replaceAll(/([0-9\.])[eE]([0-9\-])/g, "$1__E__$2");
+
     // If a number is followed by a letter or (, add a *.
     str = str.replaceAll(/(\d)([a-zA-Z(])/g, "$1*$2");
 
@@ -10556,6 +10574,9 @@ import { createWelcomeTour } from "./tours.js";
     // Replace texture2D and vec2 placeholders back to original.
     str = str.replaceAll(/__TEXTURETWOD__/g, "texture2D");
     str = str.replaceAll(/__VECTWOPAREN__/g, "vec2(");
+
+    // Replace __E__ with e.
+    str = str.replaceAll(/__E__/g, "e");
 
     return str;
   }
