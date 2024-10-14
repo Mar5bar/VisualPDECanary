@@ -2,6 +2,50 @@
 
 let presets = {};
 
+presets["StokesLayer"] = {
+  arrowColour: 1710875,
+  arrowDensity: 0.34,
+  arrowScale: "relative",
+  arrowX: "u",
+  arrowY: "0",
+  boundaryConditions_1: "combo",
+  brushRadius: "1",
+  brushType: "custom",
+  brushValue: "Bump(xB,yB,L/10)",
+  colourbar: true,
+  colourmap: "diverging",
+  comboStr_1:
+    "Bottom: Dirichlet = U*cos(n*t); Left: Periodic; Right: Periodic; Top: Dirichlet = 0;",
+  contourEpsilon: 0.001,
+  contourNum: 16,
+  diffusionStr_1_1: "nu",
+  diffusionStr_2_2: "0",
+  diffusionStr_3_3: "0",
+  domainIndicatorFun: "x>L_x/2",
+  domainScale: "10",
+  dt: 0.0001,
+  initCond_1: "0",
+  kineticParams: "nu = 1.00 in [0, 0.1, 10];U = 1;n = 1.00 in [0, 0.1, 10];",
+  maxColourValue: "U",
+  minColourValue: "-U",
+  numSpecies: "1",
+  numTimestepsPerFrame: 200,
+  overlay: true,
+  overlayEpsilon: 0.02,
+  overlayExpr:
+    "(x-L_x/2) - U*exp(-y*sqrt(n/(2*nu)))*cos(n*(t - y/sqrt(2*nu*n)))",
+  preset: "Stokes-layer",
+  reactionStr_1: "0",
+  reactionStr_2: "0",
+  reactionStr_3: "0",
+  spatialStep: "0.1",
+  speciesNames: "u",
+  vectorField: true,
+  whatToDraw: "u",
+  whatToPlot: "u",
+  simTitle: "Stokes layer",
+};
+
 presets["Heterogeneous-Swift-Hohenberg"] = {
   autoSetColourRange: true,
   boundaryConditions_1: "neumann",
