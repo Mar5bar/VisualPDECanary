@@ -21,7 +21,6 @@ presets["FlowRectangularPipe"] = {
   maxColourValue: "0.25",
   minColourValue: "0",
   numSpecies: "1",
-  parent: "null",
   preset: "FlowRectangularPipe",
   probeFun: "u",
   probeLength: 3000,

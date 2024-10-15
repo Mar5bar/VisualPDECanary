@@ -9422,6 +9422,9 @@ import { createWelcomeTour } from "./tours.js";
     }
 
     objDiff.preset = "PRESETNAME";
+    if (objDiff.hasOwnProperty("parent") && objDiff.parent == "null") {
+      delete objDiff.parent;
+    }
     let str = JSON.stringify(objDiff)
       .replaceAll(/(:[^:]*),/g, "$1,\n\t")
       .replaceAll(":", ": ")
