@@ -2,6 +2,39 @@
 
 let presets = {};
 
+presets["FlowRectangularPipe"] = {
+  boundaryConditions_1: "dirichlet",
+  brushRadius: "0.05",
+  brushValue: "0.2",
+  colourbar: true,
+  colourmap: "viridis",
+  contours: true,
+  contourEpsilon: 0.001,
+  contourNum: 20,
+  diffusionStr_1_1: "1",
+  diffusionStr_2_2: "0",
+  diffusionStr_3_3: "0",
+  domainScale: "1",
+  dt: 0.00002,
+  initCond_1: "0",
+  kineticParams: "G = 4.0 in [0, 5];mu = 1;",
+  maxColourValue: "0.25",
+  minColourValue: "0",
+  numSpecies: "1",
+  parent: "null",
+  preset: "FlowRectangularPipe",
+  probeFun: "u",
+  probeLength: 3000,
+  reactionStr_1: "G/mu",
+  reactionStr_2: "0",
+  reactionStr_3: "0",
+  spatialStep: "0.01",
+  speciesNames: "u",
+  whatToDraw: "u",
+  whatToPlot: "u",
+  simTitle: "Flow through a rectangular pipe",
+};
+
 presets["StokesLayer"] = {
   arrowColour: 1710875,
   arrowDensity: 0.34,
