@@ -477,7 +477,6 @@ import { createWelcomeTour } from "./tours.js";
       var newParams = JSON.parse(
         LZString.decompressFromEncodedURIComponent(params.get("options")),
       );
-      console.log(newParams);
     } catch (e) {
       throwError(
         "It looks like this link is missing something - please check that it has been copied and pasted correctly and try again.",
