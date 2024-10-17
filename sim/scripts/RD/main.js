@@ -11021,12 +11021,12 @@ import { createWelcomeTour } from "./tours.js";
     clearProbe();
     if (options.probing) {
       $("#probeChartContainer").show();
+      $("#logo").hide();
     } else {
       $("#probeChartContainer").hide();
     }
     $("#probeChartMaximise").hide();
     checkColourbarPosition();
-    $("#logo").hide();
     if (options.probeType == "sample") {
       // Show probeX and probeY controllers.
       controllers["prX"].show();
