@@ -29,28 +29,30 @@
   class VPDEChart extends HTMLElement {
     constructor() {
       super();
-      // If the constructor is being called a second time (iff the element has children), remove the children.
-      while (this.firstChild) {
-        this.removeChild(this.firstChild);
-      }
     }
 
     connectedCallback() {
       // Get the associated iframe(s), and create a message template to send to it.
-      // this.frameIDs = this.getAttribute("iframe").split(" ");
+      this.frameIDs = this.getAttribute("iframe").split(" ");
       this.message = { type: "id" };
       // Specify a custom host if one is provided, otherwise use the default.
       this.host = this.getAttribute("host") || "https://visualpde.com";
 
       // Add a listener to the window that will send iframe IDs to the iframes on load.
-      window.addEventListener("DOMContentLoaded", () => {
-        if (this.frameIDs) this.sendIDs();
-      });
+      window.addEventListener(
+        "load",
+        (() => {
+          if (this.frameIDs) this.sendIDs();
+        }).bind(this),
+      );
 
       // Create a container, a canvas object, and a chart attached to the canvas.
       const container = document.createElement("div");
       container.classList.add("vpde-chart-container");
-      container.setAttribute("style", this.getAttribute("style") || "position:relative");
+      container.setAttribute(
+        "style",
+        this.getAttribute("style") || "position:relative",
+      );
       this.appendChild(container);
 
       const canvas = document.createElement("canvas");
@@ -139,6 +141,7 @@
       // Add an optional label for the x-axis.
       const xLabel = this.getAttribute("xlabel") || "Time";
       const xLabelEl = document.createElement("div");
+      xLabelEl.innerHTML = xLabel;
       xLabelEl.setAttribute(
         "style",
         "position: absolute;bottom: 4px;left: 50%;transform: translateX(-50%);font-size: 0.8rem;",
