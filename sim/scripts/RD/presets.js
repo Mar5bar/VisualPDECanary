@@ -10,6 +10,7 @@ presets["FlowImpulsiveChannel"] = {
     "(x-L_x/2)-U*(1-y/L_y-(sin(1*pi*y/L_y)/1*exp(-pi*pi*nu*t/(L_y^2))+sin(2*pi*y/L_y)/2*exp(-4*pi*pi*nu*t/(L_y^2))+sin(3*pi*y/L_y)/3*exp(-9*pi*pi*nu*t/(L_y^2))+sin(4*pi*y/L_y)/4*exp(-16*pi*pi*nu*t/(L_y^2)))*(2/pi))",
   parent: "StokesLayer",
   preset: "FlowImpulsiveChannel",
+  simTitle: "Flow in an impulsively driven channel",
 };
 
 presets["FlowRectangularPipe"] = {
