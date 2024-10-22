@@ -119,6 +119,7 @@ self.addEventListener("install", async (event) => {
 
 // Fetching resources
 self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return false;
   event.respondWith(
     (async () => {
       const cache = await caches.open(cacheName);
