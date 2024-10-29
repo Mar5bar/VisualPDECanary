@@ -2,6 +2,62 @@
 
 let presets = {};
 
+presets["NavierStokes"] = {
+  activeViewInd: 3,
+  diffusionStr_1_1: "1/Re",
+  diffusionStr_2_2: "1/Re",
+  diffusionStr_3_3: "0",
+  domainScale: "1000",
+  initCond_1: "0",
+  kineticParams: "Re = 1;",
+  numSpecies: 3,
+  preset: "NavierStokes",
+  reactionStr_1: "- u*u_x - v*u_y - p_x",
+  reactionStr_2: "- u*v_x - v*v_y - p_y",
+  reactionStr_3: "u_x + v_y - p",
+  spatialStep: "3",
+  speciesNames: "u v p",
+  views: [
+    {
+      colourmap: "diverging",
+      maxColourValue: "1",
+      minColourValue: "-1",
+      whatToPlot: "u",
+      name: "$u$",
+    },
+    {
+      colourmap: "diverging",
+      maxColourValue: "1",
+      minColourValue: "-1",
+      whatToPlot: "v",
+      name: "$v$",
+    },
+    {
+      colourmap: "diverging",
+      maxColourValue: "0.00043223047396168113",
+      minColourValue: "-0.00030826168949715793",
+      whatToPlot: "v_x - u_y",
+      name: "Vorticity",
+    },
+    {
+      colourmap: "viridis",
+      maxColourValue: "0.5",
+      minColourValue: "0",
+      whatToPlot: "sqrt(u^2 + v^2)",
+      name: "Speed",
+    },
+    {
+      colourmap: "diverging",
+      maxColourValue: "1",
+      minColourValue: "-1",
+      whatToPlot: "u_x + v_y",
+      name: "Divergence",
+    },
+  ],
+  whatToDraw: "u",
+  simTitle: "Navier-Stokes",
+};
+
 presets["FlowImpulsiveChannel"] = {
   brushEnabled: false,
   comboStr_1:
