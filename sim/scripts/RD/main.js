@@ -5825,11 +5825,12 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   function diffObjects(o1, o2) {
-    return Object.fromEntries(
+    const diff = Object.fromEntries(
       Object.entries(o1).filter(
         ([k, v]) => JSON.stringify(o2[k]) !== JSON.stringify(v),
       ),
     );
+    return JSON.parse(JSON.stringify(diff));
   }
 
   function getMinMaxVal() {
