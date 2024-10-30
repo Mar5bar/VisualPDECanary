@@ -4184,9 +4184,10 @@ import { createWelcomeTour } from "./tours.js";
     renderer.render(simScene, simCamera);
     // If we're probing, probe the simulation texture.
     if (
-      options.probing &&
-      options.probeType == "sample" &&
-      (readyForProbeUpdate() || updateProbeXY)
+      (options.probing &&
+        options.probeType == "sample" &&
+        (readyForProbeUpdate() || updateProbeXY)) ||
+      updateProbeXY
     ) {
       simDomain.material = probeMaterial;
       renderer.setRenderTarget(probeTexture);
@@ -11034,7 +11035,11 @@ import { createWelcomeTour } from "./tours.js";
     if (options.probeType == "sample") {
       // Show probeX and probeY controllers.
       controllers["prX"].show();
-      controllers["prY"].show();
+      if (options.dimension == 2) {
+        controllers["prY"].show();
+      } else {
+        controllers["prY"].hide();
+      }
       if (options.plotType != "surface") {
         $("#probeTargetButton").show();
         $("#probeTargetButton").visible();
