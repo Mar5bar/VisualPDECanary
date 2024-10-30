@@ -35,6 +35,22 @@ for some integer $m$ and domain length $L=280$.
 
 * This simulation can display long-time solutions that exhibit all three kinds of behaviour, depending on the values of $m$, $D$, and the other parameters. Try $m=4$, $m=3$ and $m=6$ for example.
 
+# Action potentials and travelling waves
+
+This model is often considered in the context of action potentials, which are nerve impulses that travel along neurons. We look at this model with an alternative parameterisation
+
+$$\begin{aligned}\pd{v}{t}&=D\nabla^2 v +v(v-a)(1-v) - w,\\ \pd{w}{t}&=\varepsilon(\gamma v - w),\end{aligned}$$
+
+where we've used $v$ and $w$ to follow the convention that $v$ represents the electrical voltage across the neuron. Here, $D$ and $\varepsilon$ are typically small positive constants.
+
+1. Load the [interactive simulation](/sim/?preset=FNWaves).
+
+1. Try clicking briefly. Small disturbances simply decay back to equilibrium.
+
+1. Now try clicking for longer to see large-amplitude travelling waves emerge, which model nerve impulses down neurons. This is an example of a threshold phenomenon, which occurs generically in so-called excitable systems.
+
+1. Try exploring this model in 2D by changing the domain via <span class='click_sequence'>{{ layout.settings }} → **Domain** → **Dimension**</span> to see waves spread out radially.
+
 # Three-species variant
 
 A three-species variant of the FitzHugh–Nagumo model is 
