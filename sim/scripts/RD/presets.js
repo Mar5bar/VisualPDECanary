@@ -2,6 +2,50 @@
 
 let presets = {};
 
+presets["FNWaves"] = {
+  brushAction: "add",
+  brushRadius: "0.5",
+  brushType: "vline",
+  brushValue: "0.1",
+  diffusionStr_1_1: "D",
+  diffusionStr_2_2: "0",
+  diffusionStr_3_3: "0",
+  dimension: "1",
+  dt: 0.02,
+  initCond_1: "0",
+  kineticParams: "a = 0.2;gamma = 2 in [0, 5];D = 0.01;epsilon = 0.001;",
+  plotType: "line",
+  preset: "FNWaves",
+  probeFun: "v",
+  probeLength: 30,
+  reactionStr_1: "v*(1-v)*(v-a) - w",
+  reactionStr_2: "epsilon*(gamma*v - w)",
+  reactionStr_3: "0",
+  setSeed: true,
+  spatialStep: "0.1",
+  speciesNames: "v w",
+  squareCanvas: true,
+  views: [
+    {
+      maxColourValue: "1",
+      minColourValue: "-0.2",
+      probeType: "sample",
+      probeX: "50",
+      whatToPlot: "v",
+      name: "$v$",
+    },
+    {
+      maxColourValue: "1.0",
+      minColourValue: "-1",
+      probeType: "integral",
+      probeX: "0",
+      whatToPlot: "w",
+      name: "$w$",
+    },
+  ],
+  simTitle: "FitzHugh–Nagumo",
+};
+
 presets["NavierStokes"] = {
   activeViewInd: 3,
   diffusionStr_1_1: "1/Re",
