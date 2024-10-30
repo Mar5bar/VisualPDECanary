@@ -7860,12 +7860,21 @@ import { createWelcomeTour } from "./tours.js";
       if (options.dimension != 1 && options.plotType == "line") {
         options.plotType = "plane";
         updateView("plotType");
+        // Loop through all the views and, if they specify a plotType, set it to plane.
+        options.views.forEach(function (view) {
+          if (view.plotType != undefined) view.plotType = "plane";
+        });
         configurePlotType();
       }
       if (options.dimension == 1 && options.plotType != "line") {
         options.plotType = "line";
         options.vectorField = false;
         updateView("plotType");
+        // Loop through all the views and, if they specify a plotType, set it to plane. Similarly, disable vector fields.
+        options.views.forEach(function (view) {
+          if (view.plotType != undefined) view.plotType = "plane";
+          if (view.vectorField != undefined) view.vectorField = false;
+        });
         configurePlotType();
       }
     }
