@@ -10540,6 +10540,9 @@ import { createWelcomeTour } from "./tours.js";
     // If a number is followed by a letter or (, add a *.
     str = str.replaceAll(/(\d)([a-zA-Z(])/g, "$1*$2");
 
+    // If a ) is followed by a (, add a *.
+    str = str.replaceAll(/\)\(/g, ")*(");
+
     // If the string contains xy or yx, replace with x*y.
     str = str.replaceAll(/\bxy\b/g, "x*y");
     str = str.replaceAll(/\byx\b/g, "y*x");
