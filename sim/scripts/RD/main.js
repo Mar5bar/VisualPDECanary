@@ -2561,6 +2561,7 @@ import { createWelcomeTour } from "./tours.js";
       '<i class="fa-regular fa-clock"></i>Scales',
       function () {
         configureGUI();
+        setRDEquations();
         setEquationDisplayType();
       },
       "timescales_controller",
@@ -10306,17 +10307,15 @@ import { createWelcomeTour } from "./tours.js";
    * @returns {string} - The modified string with all occurrences of 'TIMESCALES' replaced by the vec4 string.
    */
   function insertRates(str) {
-    const toSub =
-      "vec4(" +
-      [
-        options.timescale_1,
-        options.timescale_2,
-        options.timescale_3,
-        options.timescale_4,
-      ]
-        .map(parseShaderString)
-        .join(",") +
-      ")";
+    let scales = options.timescales
+      ? [
+          options.timescale_1,
+          options.timescale_2,
+          options.timescale_3,
+          options.timescale_4,
+        ]
+      : [1, 1, 1, 1];
+    const toSub = "vec4(" + scales.map(parseShaderString).join(",") + ")";
     return str.replaceAll(/TIMESCALES/g, toSub);
   }
 
