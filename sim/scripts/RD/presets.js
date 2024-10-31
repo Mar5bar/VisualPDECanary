@@ -2,6 +2,18 @@
 
 let presets = {};
 
+presets["NavierStokesForced"] = {
+  brushValue: "min(10, 10-f)",
+  numSpecies: "4",
+  parent: "NavierStokes",
+  reactionStr_1: "- u*u_x - v*u_y - p_x + f",
+  reactionStr_2: "- u*v_x - v*v_y - p_y + f",
+  reactionStr_4: "-10*f",
+  speciesNames: "u v p f",
+  whatToDraw: "f",
+  preset: "NavierStokesForced",
+};
+
 presets["FNWaves"] = {
   brushAction: "add",
   brushRadius: "0.5",
@@ -47,20 +59,35 @@ presets["FNWaves"] = {
 };
 
 presets["NavierStokes"] = {
-  activeViewInd: 3,
+  activeViewInd: 4,
+  arrowLengthMax: "1",
+  arrowScale: "relative",
+  arrowX: "u",
+  arrowY: "v",
+  brushAction: "smoothadd",
+  brushRadius: "10",
+  brushValue: "min(1, 1-u)",
+  boundaryConditions_1: "dirichlet",
+  boundaryConditions_2: "dirichlet",
+  boundaryConditions_3: "neumann",
   diffusionStr_1_1: "1/Re",
   diffusionStr_2_2: "1/Re",
-  diffusionStr_3_3: "0",
+  diffusionStr_3_3: "0.5",
   domainScale: "1000",
+  dt: 0.02,
   initCond_1: "0",
   kineticParams: "Re = 1;",
   numSpecies: 3,
+  numTimestepsPerFrame: 200,
   preset: "NavierStokes",
   reactionStr_1: "- u*u_x - v*u_y - p_x",
   reactionStr_2: "- u*v_x - v*v_y - p_y",
-  reactionStr_3: "u_x + v_y - p",
+  reactionStr_3: "-(u_x + v_y)",
   spatialStep: "3",
   speciesNames: "u v p",
+  timescale_3: "0.01",
+  timescales: true,
+  vectorField: true,
   views: [
     {
       colourmap: "diverging",
@@ -77,9 +104,16 @@ presets["NavierStokes"] = {
       name: "$v$",
     },
     {
+      colourmap: "viridis",
+      maxColourValue: "0.1",
+      minColourValue: "-0.1",
+      whatToPlot: "p",
+      name: "$p$",
+    },
+    {
       colourmap: "diverging",
-      maxColourValue: "0.00043223047396168113",
-      minColourValue: "-0.00030826168949715793",
+      maxColourValue: "0.001",
+      minColourValue: "-0.001",
       whatToPlot: "v_x - u_y",
       name: "Vorticity",
     },
