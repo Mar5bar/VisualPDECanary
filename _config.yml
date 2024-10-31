@@ -32,6 +32,8 @@ google_analytics: G-ZDK91GRY6Y
 theme: minima
 plugins:
   - jekyll-feed
+sass:
+  quiet_deps: true
 
 # Nav bar
 header_pages:
