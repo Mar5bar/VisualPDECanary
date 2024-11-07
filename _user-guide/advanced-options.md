@@ -345,7 +345,7 @@ Here you can edit a wide range of settings, from the size of the brush to the ti
 
 ### Brush <a class="anchor" id='brush'>
 
-VisualPDE allows you to interact directly with simulations via a brush by simply clicking/pressing on the domain. The brush paints values onto the discrete representation of the domain, which act like initial conditions for the rest of the simulation.
+VisualPDE allows you to interact directly with simulations via a brush by simply clicking/pressing on the domain. The brush paints values onto the discrete representation of the domain, which act like initial conditions for the rest of the simulation. Using the alternate mouse button (often the right mouse button) will negate the value of the brush. The brush can be used to create complex initial conditions, perturbations, or even to (crudely) simulate the effect of a moving boundary.
 
 - #### Enable brush
 
@@ -357,7 +357,7 @@ VisualPDE allows you to interact directly with simulations via a brush by simply
 
 - #### Value
 
-  Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), `RAND`, a uniformly random value in $[0,1]$, and `RANDN`, a normally-distributed random number with unit variance and zero mean.
+  Change the **value** that you are painting. This can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), `RAND`, a uniformly random value in $[0,1]$, and `RANDN`, a normally-distributed random number with unit variance and zero mean. Using the alternate mouse button (often the right mouse button) will negate the value of the brush (unavailable on touch devices).
 
 - #### Radius
 
