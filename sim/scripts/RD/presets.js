@@ -67,7 +67,7 @@ presets["NavierStokes"] = {
   numSpecies: "2",
   numTimestepsPerFrame: 200,
   preset: "NavierStokes",
-  reactionStr_1: "psi_y*omega_x - psi_x*omega_y",
+  reactionStr_1: "-psi_y*omega_x + psi_x*omega_y",
   reactionStr_2: "omega",
   reactionStr_3: "0",
   spatialStep: "1.5",
