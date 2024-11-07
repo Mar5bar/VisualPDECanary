@@ -6,6 +6,7 @@ export function drawShaderTop() {
 	  uniform sampler2D imageSourceOne;
 	  uniform sampler2D imageSourceTwo;
     uniform vec2 brushCoords;
+    uniform float brushValueModifier;
     uniform float L;
     uniform float L_x;
     uniform float L_y;
@@ -93,13 +94,13 @@ export function drawShaderCustom() {
 
 export function drawShaderBotReplace() {
   return ` if (factor > 0.0) {
-              gl_FragColor.COLOURSPEC = brushValue * factor;
+              gl_FragColor.COLOURSPEC = brushValueModifier * brushValue * factor;
           }
         }`;
 }
 
 export function drawShaderBotAdd() {
-  return `gl_FragColor.COLOURSPEC = uvwq.COLOURSPEC + brushValue * factor;
+  return `gl_FragColor.COLOURSPEC = uvwq.COLOURSPEC + brushValueModifier * brushValue * factor;
         }`;
 }
 

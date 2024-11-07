@@ -1131,6 +1131,8 @@ import { createWelcomeTour } from "./tours.js";
 
     // Listen for pointer events.
     canvas.addEventListener("pointerdown", onDocumentPointerDown);
+    canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+    canvas.addEventListener("pointerleave", onDocumentPointerUp);
     canvas.addEventListener("pointerup", onDocumentPointerUp);
     canvas.addEventListener("pointermove", onDocumentPointerMove);
 
@@ -1589,6 +1591,10 @@ import { createWelcomeTour } from "./tours.js";
       brushCoords: {
         type: "v2",
         value: new THREE.Vector2(0.5, 0.5),
+      },
+      brushValueModifier: {
+        type: "f",
+        value: 1.0,
       },
       colour1: {
         type: "v4",
@@ -4215,6 +4221,13 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   function onDocumentPointerDown(event) {
+    // If the event is a right-click, we'll want to negate the brush action.
+    if (event.button == 2) {
+      event.preventDefault();
+      uniforms.brushValueModifier.value = -1;
+    } else {
+      uniforms.brushValueModifier.value = 1;
+    }
     isDrawing = setBrushCoords(event, canvas);
     if (isDrawing) {
       if (options.brushEnabled && options.plotType == "surface") {
