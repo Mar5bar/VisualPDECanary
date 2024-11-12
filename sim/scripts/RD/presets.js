@@ -46,7 +46,7 @@ presets["FNWaves"] = {
   simTitle: "FitzHugh–Nagumo",
 };
 
-presets["NavierStokesMomentum"] = {
+presets["NavierStokes"] = {
   activeViewInd: 3,
   arrowX: "u",
   arrowY: "v",
@@ -65,7 +65,7 @@ presets["NavierStokesMomentum"] = {
   kineticParams: "Re = 10.5 in [1, 100];epsilon_1 = 0.1;epsilon_2 = 0.01",
   numSpecies: "3",
   numTimestepsPerFrame: 200,
-  preset: "NavierStokesMomentum",
+  preset: "NavierStokes",
   reactionStr_1: "-(u*u_x + v*u_y) - p_x",
   reactionStr_2: "-(u*v_x + v*v_y) - p_y",
   reactionStr_3: "-0.05*(u_x + v_y)",
@@ -107,8 +107,8 @@ presets["NavierStokesMomentum"] = {
   simTitle: "Navier-Stokes",
 };
 
-presets["NavierStokes"] = {
-  activeViewInd: 3,
+presets["NavierStokesVorticity"] = {
+  activeViewInd: 2,
   arrowLengthMax: "0.5",
   arrowScale: "relative",
   arrowX: "psi_y",
@@ -127,7 +127,7 @@ presets["NavierStokes"] = {
   kineticParams: "Re = 100 in [1, 100];epsilon = 0.05;",
   numSpecies: "2",
   numTimestepsPerFrame: 200,
-  preset: "NavierStokes",
+  preset: "NavierStokesVorticity",
   reactionStr_1: "-psi_y*omega_x + psi_x*omega_y",
   reactionStr_2: "omega",
   reactionStr_3: "0",
@@ -167,7 +167,7 @@ presets["NavierStokes"] = {
     },
   ],
   whatToDraw: "omega",
-  simTitle: "Navier-Stokes",
+  simTitle: "Navier-Stokes (Vorticity)",
 };
 
 presets["FlowImpulsiveChannel"] = {
