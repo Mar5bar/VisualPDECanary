@@ -57,6 +57,8 @@ export function computeDisplayFunShaderMid() {
         vec4 uvwqYF = (uvwqT - uvwq) / dy;
         vec4 uvwqXB = (uvwq - uvwqL) / dx;
         vec4 uvwqYB = (uvwq - uvwqB) / dy;
+        vec4 uvwqXX = (uvwqR - 2.0*uvwq + uvwqL) / (dx * dx);
+        vec4 uvwqYY = (uvwqT - 2.0*uvwq + uvwqB) / (dy * dy);
 
         // At boundaries, compute gradients using one-sided differences.
         if (textureCoords.x - step_x < 0.0) {
