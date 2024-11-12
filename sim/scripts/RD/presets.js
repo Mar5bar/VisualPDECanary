@@ -2,6 +2,70 @@
 
 let presets = {};
 
+presets["NavierStokesPoiseuilleFlow"] = {
+	"activeViewInd": 4,
+	"boundaryConditions_1": "combo",
+	"boundaryConditions_2": "combo",
+	"boundaryConditions_3": "combo",
+	"boundaryConditions_4": "combo",
+	"brushType": "vline",
+	"comboStr_1": "Bottom: Dirichlet = 0; Left: Periodic; Right: Periodic; Top: Dirichlet = 0;",
+	"comboStr_2": "Bottom: Dirichlet = 0; Left: Periodic; Right: Periodic; Top: Dirichlet = 0;",
+	"comboStr_3": "Bottom: Neumann = 0; Left: Dirichlet = 0; Right: Dirichlet = 1*.05/Re; Top: Neumann = 0;",
+	"comboStr_4": "Bottom: Neumann = 0; Left: Periodic; Right: Periodic; Top: Neumann = 0;",
+	"diffusionStr_4_4": "D",
+	"initCond_1": "-1.5*(y*(L_y-y)/(L_y^2))",
+	"initCond_3": "x/L_x",
+	"kineticParams": "Re = 0.050 in [0.05, 30];epsilon_1 = 0.1;epsilon_2 = 0.04;D = 0.01;",
+	"numSpecies": 4,
+	"parent": "NavierStokes",
+	"preset": "NavierStokesPoiseuilleFlow",
+	"reactionStr_4": "-(u*S_x + v*S_y)",
+	"speciesNames": "u v p S",
+	"views": [{
+	"colourmap": "diverging",
+	"maxColourValue": "0",
+	"minColourValue": "-0.4",
+	"vectorField": true,
+	"whatToPlot": "u",
+	"name": "$u$",
+},
+	{
+	"colourmap": "diverging",
+	"maxColourValue": "0.25",
+	"minColourValue": "-0.25",
+	"vectorField": false,
+	"whatToPlot": "v",
+	"name": "$v$",
+},
+	{
+	"colourmap": "diverging",
+	"maxColourValue": "0.01",
+	"minColourValue": "-0.01",
+	"vectorField": false,
+	"whatToPlot": "v_x - u_y",
+	"name": "Vorticity",
+},
+	{
+	"colourmap": "viridis",
+	"maxColourValue": "0.5",
+	"minColourValue": "0",
+	"vectorField": false,
+	"whatToPlot": "sqrt(u^2 + v^2)",
+	"name": "Speed",
+},
+	{
+	"colourmap": "viridis",
+	"maxColourValue": "0.5",
+	"minColourValue": "0",
+	"vectorField": false,
+	"whatToPlot": "S",
+	"name": "$S$",
+}],
+	"whatToDraw": "S",
+};
+
+
 presets["FNWaves"] = {
   brushAction: "add",
   brushRadius: "0.5",
