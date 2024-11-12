@@ -58,11 +58,11 @@ presets["NavierStokesMomentum"] = {
   brushValue: "0.1",
   diffusionStr_1_1: "1/Re",
   diffusionStr_2_2: "1/Re",
-  diffusionStr_3_3: "0.1",
+  diffusionStr_3_3: "epsilon_2",
   domainScale: "300",
   dt: 0.01,
   initCond_1: "0",
-  kineticParams: "Re = 10.5 in [1, 100];epsilon = 0.1;",
+  kineticParams: "Re = 10.5 in [1, 100];epsilon_1 = 0.1;epsilon_2 = 0.01",
   numSpecies: "3",
   numTimestepsPerFrame: 200,
   preset: "NavierStokesMomentum",
@@ -72,7 +72,7 @@ presets["NavierStokesMomentum"] = {
   spatialStep: "1.5",
   speciesNames: "u v p",
   timescales: true,
-  timescale_3: "epsilon",
+  timescale_3: "epsilon_1",
   views: [
     {
       colourmap: "diverging",
