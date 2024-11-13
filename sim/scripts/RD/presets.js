@@ -117,6 +117,8 @@ presets["FNWaves"] = {
 };
 
 presets["NavierStokes"] = {
+  arrowX: "u",
+  arrowY: "v",
   boundaryConditions_1: "dirichlet",
   boundaryConditions_2: "dirichlet",
   boundaryConditions_3: "neumann",
