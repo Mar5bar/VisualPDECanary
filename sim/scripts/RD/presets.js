@@ -151,7 +151,7 @@ presets["NavierStokes"] = {
   reactionStr_2: "-(u*v_x + v*v_y) - p_y",
   reactionStr_3: "-(u_x + v_y)",
   reactionStr_4: "-(u*S_x + v*S_y)",
-  spatialStep: "1.5",
+  spatialStep: "1",
   speciesNames: "u v p S",
   timescales: true,
   timescale_3: "epsilon_1",
