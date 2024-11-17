@@ -1305,20 +1305,21 @@ presets["bacteriaInAReach"] = {
 };
 
 presets["StochasticGrayScott"] = {
-  diffusionStr_2_2: "4",
-  domainScale: "300",
-  dt: 0.005,
-  initCond_1: "H(20-((x-L_x/2)^2+(y-L_y/2)^2))",
-  kineticParams:
-    "a = 0.037 in [0, 0.1];b = 0.04 in [0.04, 0.1];sigma = 0.00 in [0, 0.3];",
-  maxColourValue: "0.5",
-  numTimestepsPerFrame: 400,
-  parent: "GrayScott",
-  preset: "StochasticGrayScott",
-  reactionStr_1: "u^2*v - (a+b)*u+sigma*WhiteNoise*u",
-  simTitle: "Stochastic Gray–Scott",
-  spatialStep: "0.4",
+	"diffusionStr_2_2": "4",
+	"domainScale": "300",
+	"dt": 0.02,
+	"initCond_1": "H(20-((x-L_x/2)^2+(y-L_y/2)^2))",
+	"kineticParams": "a = 0.037 in [0, 0.1];b = 0.04 in [0.04, 0.1];sigma = 0.000 in [0, 0.8];",
+	"maxColourValue": "0.5",
+	"parent": "GrayScott",
+	"preset": "StochasticGrayScott",
+	"probeFun": "u",
+	"probeLength": 3000,
+	"reactionStr_1": "u^2*v - (a+b)*u+sigma*WhiteNoise*u",
+	"spatialStep": "0.6",
+	"simTitle": "Stochastic Gray–Scott",
 };
+
 
 presets["RandomWaveEquation"] = {
   boundaryConditions_1: "periodic",
