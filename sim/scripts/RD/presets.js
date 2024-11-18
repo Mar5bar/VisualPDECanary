@@ -2,6 +2,75 @@
 
 let presets = {};
 
+presets["StokesFlowCylinder"] = {
+  brushEnabled: true,
+  boundaryConditions_4: "dirichlet",
+  dirichletStr_1: "0.1*ind((x-L_x/2)^2 + (y-L_y/2)^2 > L_min^2 / 4.1)",
+  domainIndicatorFun: "-((a*L_min)^2 - ((x-L_x/2)^2 + (y-L_y/2)^2))",
+  domainViaIndicatorFun: true,
+  forceTryClickingPopup: true,
+  kineticParams:
+    "Re = 0.050 in [0.05, 100];epsilon_1 = 0.1;epsilon_2 = 1;D = 0.02;a = 0.1 in [0.025, 0.25];",
+  parent: "NavierStokes",
+  tryClickingText: "Try changing the parameter $a$",
+  vectorField: true,
+  views: [
+    {
+      arrowColour: 0,
+      arrowDensity: 0.4,
+      arrowLengthMax: "0.1",
+      colourmap: "viridis",
+      maxColourValue: "0.13",
+      minColourValue: "0",
+      whatToPlot: "u",
+      name: "$u$",
+    },
+    {
+      arrowColour: 0,
+      arrowDensity: 0.4,
+      arrowLengthMax: "1",
+      colourmap: "diverging",
+      maxColourValue: "0.02",
+      minColourValue: "-0.02",
+      whatToPlot: "v",
+      name: "$v$",
+    },
+    {
+      arrowColour: 65535,
+      arrowDensity: 0.5,
+      arrowLengthMax: "1",
+      colourmap: "diverging",
+      maxColourValue: "0.01",
+      minColourValue: "-0.01",
+      whatToPlot: "v_x - u_y",
+      name: "Vorticity",
+    },
+    {
+      arrowColour: 16777215,
+      arrowDensity: 0.4,
+      arrowLengthMax: "1",
+      colourmap: "viridis",
+      maxColourValue: "0.5",
+      minColourValue: "0",
+      whatToPlot: "sqrt(u^2 + v^2)",
+      name: "Speed",
+    },
+    {
+      arrowColour: 16777215,
+      arrowDensity: 0.403,
+      arrowLengthMax: "1",
+      colourmap: "turbo",
+      maxColourValue: "1",
+      minColourValue: "0",
+      whatToPlot: "S",
+      name: "$S$",
+    },
+  ],
+  whatToDraw: "S",
+  preset: "StokesFlowCylinder",
+};
+
+
 presets["NoisyFHN"] = {
   boundaryConditions_1: "combo",
   boundaryConditions_2: "neumann",
