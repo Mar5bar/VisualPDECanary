@@ -70,7 +70,6 @@ presets["StokesFlowCylinder"] = {
   preset: "StokesFlowCylinder",
 };
 
-
 presets["NoisyFHN"] = {
   boundaryConditions_1: "combo",
   boundaryConditions_2: "neumann",
