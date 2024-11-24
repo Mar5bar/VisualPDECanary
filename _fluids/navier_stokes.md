@@ -5,7 +5,7 @@ title: "2D Navier-Stokes"
 lesson_number: 4
 thumbnail: /assets/images/NavierStokes.webp
 extract: Fluid motion
-equation: $\pd{\v{u}} + \v{u}\cdot \vnabla \v{u} = \nu \nabla^2 \v{u} - \vnabla p$, $\vnabla \cdot \v{u} = 0$
+equation: $\pd{\v{u}}{t} + \v{u}\cdot \vnabla \v{u} = \nu \nabla^2 \v{u} - \vnabla p$, $\vnabla \cdot \v{u} = 0$
 categories: [fluids, waves, parabolic]
 ---
 
