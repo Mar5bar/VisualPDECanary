@@ -5,7 +5,7 @@ title: "Fluids via the vorticity equation"
 lesson_number: 4
 thumbnail: /assets/images/Vorticity.webp
 extract: Water waves and ripples
-equation: $\pd{\omega}{t} = \nu \lap \omega - \pd{\psi}{y}  \pd{\omega}{x} +  \pd{\psi}{x}  \pd{\omega}{y}$, $0 &= \lap \psi + \omega$
+equation: $\pd{\omega}{t} = \nu \nabla^2 \omega - \pd{\psi}{y}  \pd{\omega}{x} +  \pd{\psi}{x}  \pd{\omega}{y}$, $0 = \nabla^2 \psi + \omega$
 categories: [fluids, waves, parabolic]
 ---
 
