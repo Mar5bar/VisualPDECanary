@@ -89,7 +89,7 @@ presets["NoisyFHN"] = {
   dt: 0.01,
   initCond_1: "0",
   kineticParams:
-    "alpha = 0.37;beta = 0.131;gamma = 0.01;p = 0.005 in [0, 0.01];w = 14;sigma = 0.00 in [0,0.4];",
+    "alpha = 0.37;beta = 0.131;gamma = 0.01;sigma = 0.00 in [0,0.4];",
   minColourValue: "-1",
   plotType: "line",
   preset: "NoisyFHN",

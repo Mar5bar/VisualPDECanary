@@ -54,11 +54,30 @@ $$
     \end{aligned}
 $$
 
-* Load the interactive [stochastic Klausmeier model](/sim/?preset=StochasticKlausmeier)
+* Load the interactive [stochastic Klausmeier model](/sim/?preset=StochasticKlausmeier).
 
 * The parameter $\sigma$ represents the strength of the noise, so increasing or decreasing it will lead to more stochastic or more deterministic behaviour, respectively.
 
 * The noise function should scale correctly independently of the geometry and dimension. You can see how it behaves in 2D by pressing <span class='click_sequence'>{{ layout.settings }} → **Domain**</span> and change **Dimension** from 1 to 2. Playing with $\sigma$ as well as other parameters, and clicking to perturb the waves, shows that irregularity of the waves can occur in different ways with stochastic forcing.
+
+# Stochastic excitable wave propagation
+
+Consider a stochastic version of the [FitzHugh–Nagumo model](/mathematical-biology/fitzhugh-nagumo) in 1D of the form:
+
+$$
+\begin{aligned}
+    \textstyle  \pd{u_{1}}{t} &=  \pdd{u_{1}}{x} + u_{1} \left(1-u_{1}\right) \left(u_{1}-\beta\right)-u_{2}+\sigma u_{1} \diff{W_t}{t},\\
+      \pd{u_{2}}{t} &= \gamma \left(\alpha u_{1}-u_{2}\right),
+    \end{aligned}
+$$
+
+where we have added a multiplicative white noise term wit intensity $\sigma$.
+
+* Load the interactive [stochastic Klausmeier model](/sim/?preset=NoisyFHN) where $u_1$ is plotted in colour and $u_2$ is plotted as a black curve.
+
+* By default, the leftmost boundary oscillates to generate periodic travelling pulses. Clicking and holind introduces some of the inhibitor variable $u_2$, and hence one can destroy pulses by clicking on them.
+
+* Increasing the value of $\sigma$ from the initial zero value will induce some noise in the traveling pulses. Above some threshold around $\sigma \approx 0.3$, pulses will no longer remain stable and will decay back into the background.
 
 # Numerical health warning
 
