@@ -15,7 +15,7 @@ We consider a 2D incompressible version of the [Navier-Stokes equations](https:/
 $$\begin{aligned}
       \pd{u}{t} &= \nu \nabla^2 u -\left(u  \pd{u}{x} + v  \pd{u}{y}\right) -  \pd{p}{x},\\
       \pd{v}{t} &= \nu \nabla^2 v -\left(u  \pd{v}{x} + v  \pd{v}{y}\right) -  \pd{p}{y},\\
-     \pd{u}{x} + \pd{v}{u} = 0,\\
+     \pd{u}{x} + \pd{v}{u} &= 0,\\
       \pd{S}{t} &= D \nabla^2 S -\left(u  \pd{S}{x} + v  \pd{S}{y}\right),
     \end{aligned}$$
     
@@ -23,7 +23,7 @@ where $u$ and $v$ are the horizontal and vertical fluid velocities respectively,
 
 * Load the interactive [Navier-Stokes model](/sim/?preset=NavierStokes). By default, the speed (given by $u^2+v^2$) is plotted, with arrows indicating the flow of the fluid. You can press {{ layout.views }} to instead plot the horizontal fluid velocity $u$, the vertical fluid velocity $v$, the vorticity $\omega = \pd{v}{x} - \pd{u}{y}$, or the passive scalar $S$.
 
-* Clicking will add to $u$, so effectively cause the fluid to locally move to the right. Right-clicking will subtract from $u$< so lead to a left-moving fluid.
+* Clicking will add to $u$, so effectively cause the fluid to locally move to the right. Right-clicking will subtract from $u$, so lead to a left-moving fluid. 
 
 
 # Numerical Details
