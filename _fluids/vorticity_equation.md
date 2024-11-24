@@ -15,9 +15,9 @@ We consider a 2D form of the [vorticity equation](https://en.wikipedia.org/wiki/
 
 $$\begin{aligned}
 \begin{aligned}
-    \pd{\omega}{t} &= \nu \lap \omega - \pd{\psi}{y}  \pd{\omega}{x} +  \pd{\psi}{x}  \pd{\omega}{y}\\
-    0 &= \lap \psi + \omega\\
-    \pd{S}{t} &= D \lap S -\left( \pd{\psi}{y}  \pd{S}{x} -  \pd{\psi}{x}  \pd{S}{y}\right),
+    \pd{\omega}{t} &= \nu \nabla^2 \omega - \pd{\psi}{y}  \pd{\omega}{x} +  \pd{\psi}{x}  \pd{\omega}{y}\\
+    0 &= \nabla^2 \psi + \omega\\
+    \pd{S}{t} &= D \nabla^2 S -\left( \pd{\psi}{y}  \pd{S}{x} -  \pd{\psi}{x}  \pd{S}{y}\right),
     \end{aligned}
     \end{aligned}$$
     
@@ -39,7 +39,7 @@ The Poisson equation for $\psi$ is elliptic, and VisualPDE by default cannot sol
 
 $$\begin{aligned}
 \begin{aligned}
-    \epsilon \pd{\psi}{t} = \lap \psi + \omega,    \end{aligned}
+    \epsilon \pd{\psi}{t} = \nabla^2 \psi + \omega,    \end{aligned}
     \end{aligned}$$
 
 where $\epsilon$ is a small enough parameter to capture the behaviour we want.
