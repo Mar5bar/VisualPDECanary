@@ -120,6 +120,7 @@ presets["NoisyFHN"] = {
 
 presets["NavierStokesPoiseuilleFlow"] = {
   activeViewInd: 4,
+  arrowScale: "auto",
   boundaryConditions_1: "combo",
   boundaryConditions_2: "combo",
   boundaryConditions_3: "combo",
@@ -130,7 +131,7 @@ presets["NavierStokesPoiseuilleFlow"] = {
   comboStr_2:
     "Bottom: Dirichlet = 0; Left: Periodic; Right: Periodic; Top: Dirichlet = 0;",
   comboStr_3:
-    "Bottom: Neumann = 0; Left: Dirichlet = 0; Right: Dirichlet = 1*.05/Re; Top: Neumann = 0;",
+    "Bottom: Neumann = 0; Left: Dirichlet = 0; Right: Dirichlet = .05*nu; Top: Neumann = 0;",
   comboStr_4:
     "Bottom: Neumann = 0; Left: Periodic; Right: Periodic; Top: Neumann = 0;",
   diffusionStr_4_4: "D",
@@ -138,6 +139,7 @@ presets["NavierStokesPoiseuilleFlow"] = {
   initCond_3: "x/L_x",
   kineticParams:
     "Re = 0.050 in [0.05, 30];epsilon_1 = 0.1;epsilon_2 = 0.04;D = 0.01;",
+  kineticParams: "nu = 20.0 in [0.02, 20];Ma = 0.5;D = 0.05;",
   numSpecies: 4,
   parent: "NavierStokes",
   preset: "NavierStokesPoiseuilleFlow",
@@ -170,7 +172,7 @@ presets["NavierStokesPoiseuilleFlow"] = {
     },
     {
       colourmap: "viridis",
-      maxColourValue: "0.5",
+      maxColourValue: "2",
       minColourValue: "0",
       vectorField: false,
       whatToPlot: "sqrt(u^2 + v^2)",
@@ -178,7 +180,7 @@ presets["NavierStokesPoiseuilleFlow"] = {
     },
     {
       colourmap: "viridis",
-      maxColourValue: "0.5",
+      maxColourValue: "1",
       minColourValue: "0",
       vectorField: false,
       whatToPlot: "S",
