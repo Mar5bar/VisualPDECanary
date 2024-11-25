@@ -10,7 +10,7 @@ presets["StokesFlowCylinder"] = {
   domainViaIndicatorFun: true,
   forceTryClickingPopup: true,
   kineticParams:
-    "Re = 0.050 in [0.05, 100];epsilon_1 = 0.1;epsilon_2 = 1;D = 0.02;a = 0.1 in [0.025, 0.25];",
+    "nu = 20.0 in [0.02, 20];Ma = 0.5;D = 0.05;a = 0.1 in [0.025, 0.25];",
   parent: "NavierStokes",
   tryClickingText: "Try changing the parameter $a$",
   vectorField: true,
@@ -137,8 +137,6 @@ presets["NavierStokesPoiseuilleFlow"] = {
   diffusionStr_4_4: "D",
   initCond_1: "-1.5*(y*(L_y-y)/(L_y^2))",
   initCond_3: "x/L_x",
-  kineticParams:
-    "Re = 0.050 in [0.05, 30];epsilon_1 = 0.1;epsilon_2 = 0.04;D = 0.01;",
   kineticParams: "nu = 20.0 in [0.02, 20];Ma = 0.5;D = 0.05;",
   numSpecies: 4,
   parent: "NavierStokes",
