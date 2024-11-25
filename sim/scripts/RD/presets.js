@@ -234,6 +234,11 @@ presets["FNWaves"] = {
 
 presets["NavierStokes"] = {
   activeViewInd: 3,
+  arrowDensity: 0.4,
+  arrowLengthMax: "1",
+  arrowScale: "relative",
+  arrowX: "u",
+  arrowY: "v",
   boundaryConditions_1: "dirichlet",
   boundaryConditions_2: "dirichlet",
   boundaryConditions_3: "neumann",
@@ -271,7 +276,6 @@ presets["NavierStokes"] = {
   views: [
     {
       arrowColour: 0,
-      arrowDensity: 0.4,
       colourmap: "diverging",
       maxColourValue: "1",
       minColourValue: "-1",
@@ -280,10 +284,7 @@ presets["NavierStokes"] = {
       name: "$u$",
     },
     {
-      arrowColour: 16777215,
-      arrowDensity: 0.4,
-      arrowX: "u",
-      arrowY: "v",
+      arrowColour: 0,
       colourmap: "diverging",
       maxColourValue: "1",
       minColourValue: "-1",
@@ -293,9 +294,6 @@ presets["NavierStokes"] = {
     },
     {
       arrowColour: 16777215,
-      arrowDensity: 0.4,
-      arrowX: "u",
-      arrowY: "v",
       colourmap: "diverging",
       maxColourValue: "0.01",
       minColourValue: "-0.01",
@@ -305,9 +303,6 @@ presets["NavierStokes"] = {
     },
     {
       arrowColour: 16777215,
-      arrowDensity: 0.4,
-      arrowX: "u",
-      arrowY: "v",
       colourmap: "viridis",
       maxColourValue: "1.5",
       minColourValue: "0",
@@ -317,9 +312,6 @@ presets["NavierStokes"] = {
     },
     {
       arrowColour: 16777215,
-      arrowDensity: 0.4,
-      arrowX: "u",
-      arrowY: "v",
       colourmap: "turbo",
       maxColourValue: "1",
       minColourValue: "0",
@@ -352,15 +344,15 @@ presets["NavierStokesVorticityBounded"] = {
   views: [
     {
       colourmap: "diverging",
-      maxColourValue: "0.25",
-      minColourValue: "-0.25",
+      maxColourValue: "2",
+      minColourValue: "-2",
       whatToPlot: "psi_y",
       name: "$u$",
     },
     {
       colourmap: "diverging",
-      maxColourValue: "0.25",
-      minColourValue: "-0.25",
+      maxColourValue: "2",
+      minColourValue: "-2",
       whatToPlot: "-psi_x",
       name: "$v$",
     },
@@ -373,7 +365,7 @@ presets["NavierStokesVorticityBounded"] = {
     },
     {
       colourmap: "viridis",
-      maxColourValue: "0.5",
+      maxColourValue: "3",
       minColourValue: "0",
       whatToPlot: "sqrt(psi_x^2 + psi_y^2)",
       name: "Speed",
@@ -390,6 +382,8 @@ presets["NavierStokesVorticityBounded"] = {
 
 presets["NavierStokesVorticity"] = {
   activeViewInd: 2,
+  arrowX: "psi_y",
+  arrowY: "-psi_x",
   boundaryConditions_3: "combo",
   brushAction: "smoothadd",
   brushRadius: "10",
