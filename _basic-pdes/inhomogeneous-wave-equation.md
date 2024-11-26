@@ -23,7 +23,7 @@ with homogeneous Neumann (aka no-flux) boundary conditions. This equation can be
 
 * Unlike in the [homogeneous case](/basic-pdes/wave-equation), we by default plot $u$ here, but you can change this to $v$ by clicking {{ layout.views }}.
 
-### Damped waves and inhomogeneous boundaries
+# Damped waves and inhomogeneous boundaries
 
 We next consider the damped wave equation,
 
@@ -38,3 +38,11 @@ on a square domain.
 * Load this [damped simulation](/sim/?preset=dampedWaveEquation), where initially $d=0$. 
 * Try increasing the damping $d$ to, for example, $d=0.01$ to observe how this changes the wave propagation into the domain from the boundaries.
 * What happens when you play with the frequency, $m$?
+
+# Adding obstacles
+
+We can also add boundaries for waves to interact with by creating internal boundaries in the domain.
+
+* Load this [interactive simulation with internal boundaries](/sim/?preset=wavesAddedGeometry).
+
+* Click to paint a small circular obstruction which will deflect the initial wave; dragging across the screen allows you to remove larger parts of the domain. 
