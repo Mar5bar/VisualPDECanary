@@ -8,9 +8,8 @@ presets["NavierStokesFlowCylinder"] = {
   boundaryConditions_3: "combo",
   boundaryConditions_4: "dirichlet",
   brushAction: "replace",
-  brushRadius: "1",
-  brushType: "custom",
-  brushValue: "ind(Bump(xB,yB,a*L)>0)",
+  brushRadius: "a*L",
+  brushValue: "1",
   comboStr_1:
     "Bottom: Periodic; Left: Dirichlet = U; Right: Dirichlet = U; Top: Periodic;",
   comboStr_2:
