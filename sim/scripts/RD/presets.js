@@ -2,6 +2,86 @@
 
 let presets = {};
 
+presets["NavierStokesFlowCylinder"] = {
+  boundaryConditions_1: "combo",
+  boundaryConditions_2: "combo",
+  boundaryConditions_3: "combo",
+  boundaryConditions_4: "dirichlet",
+  brushAction: "replace",
+  brushRadius: "1",
+  brushType: "custom",
+  brushValue: "ind(Bump(xB,yB,a*L)>0)",
+  comboStr_1:
+    "Bottom: Periodic; Left: Dirichlet = U; Right: Dirichlet = U; Top: Periodic;",
+  comboStr_2:
+    "Bottom: Periodic; Left: Dirichlet = 0; Right: Dirichlet = 0; Top: Periodic;",
+  comboStr_3:
+    "Bottom: Periodic; Left: Neumann = 0; Right: Neumann = 0; Top: Periodic;",
+  dt: 0.03,
+  guiUpdatePeriod: 1,
+  initCond_1: "U",
+  initCond_4: "0",
+  kineticParams: "nu = 0.1 in [0.02, 20];Ma = 0.5;D = 0.00;U = 0.7;a = 0.05;",
+  numTimestepsPerFrame: 100,
+  overlay: true,
+  overlayExpr: "1-S",
+  parent: "NavierStokes",
+  preset: "NavierStokesFlowCylinder",
+  reactionStr_1: "-(u*u_x + v*u_y) - p_x-u*S",
+  reactionStr_2: "-(u*v_x + v*v_y) - p_y-v*S",
+  reactionStr_4: "0",
+  spatialStep: "2",
+  squareCanvas: true,
+  views: [
+    {
+      arrowColour: 0,
+      colourmap: "diverging",
+      maxColourValue: "1",
+      minColourValue: "-1",
+      vectorField: true,
+      whatToPlot: "u",
+      name: "$u$",
+    },
+    {
+      arrowColour: 0,
+      colourmap: "diverging",
+      maxColourValue: "1",
+      minColourValue: "-1",
+      vectorField: true,
+      whatToPlot: "v",
+      name: "$v$",
+    },
+    {
+      arrowColour: 16777215,
+      colourmap: "diverging",
+      maxColourValue: "0.01",
+      minColourValue: "-0.01",
+      vectorField: false,
+      whatToPlot: "v_x - u_y",
+      name: "Vorticity",
+    },
+    {
+      arrowColour: 16777215,
+      colourmap: "viridis",
+      maxColourValue: "1.5",
+      minColourValue: "0",
+      vectorField: true,
+      whatToPlot: "sqrt(u^2 + v^2)",
+      name: "Speed",
+    },
+    {
+      arrowColour: 16777215,
+      colourmap: "turbo",
+      maxColourValue: "1",
+      minColourValue: "0",
+      vectorField: true,
+      whatToPlot: "S",
+      name: "$S$",
+    },
+  ],
+  whatToDraw: "S",
+};
+
 presets["StokesFlowCylinder"] = {
   brushEnabled: true,
   boundaryConditions_4: "dirichlet",
