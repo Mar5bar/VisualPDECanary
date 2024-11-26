@@ -5,7 +5,7 @@ lesson_number: 40
 thumbnail: /assets/images/InhomWaveEquation.webp
 extract: Waves through a complex medium
 equation: $\pdd{u}{t}= \vnabla\cdot(f(x,y)\vnabla u) $
-categories: [linear, hyperbolic]
+categories: [linear, waves, hyperbolic]
 ---
 We now consider an inhomogeneous [wave equation](https://en.wikipedia.org/wiki/Heat_equation),
 
