@@ -53,8 +53,8 @@ presets["NavierStokesFlowCylinder"] = {
     {
       arrowColour: 16777215,
       colourmap: "diverging",
-      maxColourValue: "0.01",
-      minColourValue: "-0.01",
+      maxColourValue: "0.2",
+      minColourValue: "-0.2",
       vectorField: false,
       whatToPlot: "v_x - u_y",
       name: "Vorticity",

@@ -25,8 +25,12 @@ where $u$ and $v$ are the horizontal and vertical fluid velocities respectively,
 
 * Clicking will add to $u$, so effectively cause the fluid to locally move to the right. Right-clicking will subtract from $u$, so lead to a left-moving fluid. 
 
+# Vortex shedding
 
-# Numerical Details
+We can modify the simulation above to use the variable $S$ as instead an obstruction, allowing you to click to place a cylindrical region that the flow has to move around. This is implemented in [this iinteractive simulation of vortex shedding](NavierStokesFlowCylinder). Clicking will place a dark cylindrical region into the flow. If you wait, eventually the flow behind the cylinder will become unstable, leading to spontaneous vortex shedding. Clicking again allows you to place another cylinder, leading to more exotic flow fields. Note that some configurations will become unstable; if so, increasing the value of $\nu$ will often lead to a more stable simulation, but a more diffusive flow.
+
+
+# Numerical details
 
 The divergence-free condition on the velocity is essentially an elliptic constraint, and VisualPDE by default cannot solve such equations as they are in some sense non-local. So instead we solve a variation knows as a `generalised pressure equation' given by,
 
