@@ -51,11 +51,11 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
               tag_link.innerHTML = tag.split(" ").map(function(word) {
                 return word.charAt(0).toUpperCase() + word.slice(1);
               }).join(" ");
+              tag_list.appendChild(tag_link);
               // If there is another category, add a space and a |.
               if (i < window.specifiedCategories.length - 1) {
-                tag_link.innerHTML += " | ";
+                tag_list.innerHTML += " | ";
               }
-              tag_list.appendChild(tag_link);
             }
           }
 
