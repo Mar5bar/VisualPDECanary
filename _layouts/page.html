@@ -30,23 +30,36 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
         <header class="post-header">
           <h1 class="post-title">{{ page.title }}</h1>
           <div class="tag_list">
-            {% if page.categories %}
-                {% assign formatted_categories = "" | split: "," %}
-                {% assign categories = page.categories | sort %}
-                {% for category in categories %}
-                    {% assign formatted_category = "" %}
-                    {% assign words = category | split: " " %}
-                    {% for word in words %}
-                        {% assign formatted_word = word | downcase | capitalize %}
-                        {% assign formatted_category = formatted_category | append: " " | append: formatted_word %}
-                    {% endfor %}
-                    {% assign formatted_category = formatted_category | strip | split: "," %}
-                    {% assign formatted_categories = formatted_categories | concat: formatted_category %}
-                {% endfor %}
-                {{ formatted_categories | join: " | " }}
-            {% endif %}
         </div>
         </header>
+        <!-- If categories have been given, assign them to a JS variable and assign links to them in the tag_list -->
+        <script>
+          window.specifiedCategories = [];
+          {% if page.categories %}
+          window.specifiedCategories = {{ page.categories | jsonify }};
+          {% endif %}
+          if (window.specifiedCategories.length > 0) {
+            // Sort the categories alphabetically
+            window.specifiedCategories.sort();
+            var tag_list = document.getElementsByClassName("tag_list")[0];
+            for (var i = 0; i < window.specifiedCategories.length; i++) {
+              var tag = window.specifiedCategories[i];
+              var tag_link = document.createElement("a");
+              // URI encode the tag and add it to the URL as an anchor on the explore page.
+              tag_link.href = "/explore/#" + encodeURIComponent(tag);
+              // Format the tag so that each word has the first letter captialised.
+              tag_link.innerHTML = tag.split(" ").map(function(word) {
+                return word.charAt(0).toUpperCase() + word.slice(1);
+              }).join(" ");
+              // If there is another category, add a space and a |.
+              if (i < window.specifiedCategories.length - 1) {
+                tag_link.innerHTML += " | ";
+              }
+              tag_list.appendChild(tag_link);
+            }
+          }
+
+        </script>
 
         {{ content }}
         
@@ -94,6 +107,8 @@ light_mode_button: <span class='ui_button_documentation' id="light-mode-button">
       window.specifiedRelatedPosts = {{ page.related_posts | jsonify }};
       {% endif %}
     </script>
+
+    <!-- If tags have been specified, initialise a JS variable so that links can be added -->
 
     {%- include footer.html -%}
     {%- include mathjax.html -%}
