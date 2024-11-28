@@ -187,9 +187,9 @@ presets["NoisyFHN"] = {
   boundaryConditions_1: "combo",
   boundaryConditions_2: "neumann",
   brushAction: "smoothadd",
-  brushRadius: "w",
+  brushRadius: "10",
   brushType: "vline",
-  brushValue: "p",
+  brushValue: "0.01",
   comboStr_1:
     "Bottom: Dirichlet = 1+sin(t/100); Left: Dirichlet = 0.5*(1+sin(t/40)); Right: Neumann = 0; Top: Dirichlet = 1+sin(t/100);",
   diffusionStr_1_1: "1",
