@@ -33,7 +33,7 @@ Here, $\nu$ is a viscosity parameter, $\omega$ is the magnitude of the vorticity
 
 # Numerical Details
 
-The Poisson equation for $\psi$ is elliptic and VisualPDE cannot directly solve such equations (as they are in some sense non-local). So instead we solve the parabolic relaxation of this equation given by
+The Poisson equation for $\psi$ is elliptic and VisualPDE cannot directly solve such equations (as they are in some sense non-local). Instead, we solve the parabolic relaxation of this equation given by
 
 $$\begin{aligned}
 \begin{aligned}
