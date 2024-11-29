@@ -74,6 +74,10 @@ export function drawShaderShapeHLine() {
   return `distance = L_y * length(diff.y);\n`;
 }
 
+export function drawShaderShapeSquare() {
+  return `distance = max(abs(L_x * diff.x),abs(L_y * diff.y));\n`;
+}
+
 export function drawShaderFactorSharp() {
   return `factor = float(distance <= brushRadius);\n`;
 }

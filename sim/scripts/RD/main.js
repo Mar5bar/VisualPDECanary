@@ -11,6 +11,7 @@ import {
   drawShaderShapeDisc,
   drawShaderShapeVLine,
   drawShaderShapeHLine,
+  drawShaderShapeSquare,
   drawShaderCustom,
   drawShaderFactorSharp,
   drawShaderFactorSmooth,
@@ -1837,6 +1838,7 @@ import { createWelcomeTour } from "./tours.js";
     controllers["brushType"] = root
       .add(options, "brushType", {
         Disk: "circle",
+        Square: "square",
         "Horizontal line": "hline",
         "Vertical line": "vline",
         Custom: "custom",
@@ -3791,6 +3793,9 @@ import { createWelcomeTour } from "./tours.js";
     switch (options.brushType) {
       case "circle":
         shaderStr += drawShaderShapeDisc();
+        break;
+      case "square":
+        shaderStr += drawShaderShapeSquare();
         break;
       case "hline":
         shaderStr += drawShaderShapeHLine();
@@ -10105,6 +10110,7 @@ import { createWelcomeTour } from "./tours.js";
    * - If the brush type is "circle", the cursor is set to a circle image.
    * - If the brush type is "hline", the cursor is set to a horizontal line image.
    * - If the brush type is "vline", the cursor is set to a vertical line image.
+   * - If the brush type is "square", the cursor is set to a square image.
    *
    * The `$("#simCanvas").css("cursor", "url('images/cursor-circle.svg') 12 12, auto")` line sets the cursor to an image. The "12 12" part specifies the position of the hotspot, or the cursor's active point. The "auto" part is a fallback cursor style in case the image cannot be displayed.
    */
@@ -10125,6 +10131,12 @@ import { createWelcomeTour } from "./tours.js";
         $("#simCanvas").css(
           "cursor",
           "url('images/cursor-circle.svg') 12 12, auto",
+        );
+        break;
+      case "square":
+        $("#simCanvas").css(
+          "cursor",
+          "url('images/cursor-square.svg') 29 35, auto",
         );
         break;
       case "hline":
