@@ -141,7 +141,7 @@ presets["StokesFlowCylinder"] = {
     {
       arrowColour: 0,
       arrowDensity: 0.4,
-      arrowLengthMax: "1",
+      arrowLengthMax: "0.1",
       colourmap: "diverging",
       maxColourValue: "0.02",
       minColourValue: "-0.02",
@@ -151,7 +151,7 @@ presets["StokesFlowCylinder"] = {
     {
       arrowColour: 65535,
       arrowDensity: 0.5,
-      arrowLengthMax: "1",
+      arrowLengthMax: "0.1",
       colourmap: "diverging",
       maxColourValue: "0.01",
       minColourValue: "-0.01",
@@ -161,9 +161,9 @@ presets["StokesFlowCylinder"] = {
     {
       arrowColour: 16777215,
       arrowDensity: 0.4,
-      arrowLengthMax: "1",
+      arrowLengthMax: "0.1",
       colourmap: "viridis",
-      maxColourValue: "0.5",
+      maxColourValue: "0.15",
       minColourValue: "0",
       whatToPlot: "sqrt(u^2 + v^2)",
       name: "Speed",
@@ -171,7 +171,7 @@ presets["StokesFlowCylinder"] = {
     {
       arrowColour: 16777215,
       arrowDensity: 0.403,
-      arrowLengthMax: "1",
+      arrowLengthMax: "0.1",
       colourmap: "turbo",
       maxColourValue: "1",
       minColourValue: "0",
