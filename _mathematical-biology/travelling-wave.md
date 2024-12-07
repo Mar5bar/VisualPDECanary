@@ -56,3 +56,12 @@ where we have rescaled the infection and recovery rates and added a diffusion te
 As long as $R_0 = \beta/\delta > 1$, this model will have the same travelling-wave behaviour as the Fisher–KPP equation above, where $p=0$ is an unstable steady state, and $p=(\beta - \delta)/\beta$ is a stable endemic equilibrium. 
 
 * Visualise an epidemiological [travelling wave across the USA](/sim/?preset=SpanishFluWave) to see how this plays out in time and space.
+
+# Tails matter
+
+The classical analysis for these kinds of travelling waves involves linearizing the system to get the wavespeed $c \propto \sqrt{rD}$ as a minimal speed, and further theoretical work has shown that this travelling wave solution is the long-time solution in an infinite domain if initial data an infinite region with $u=0$. For other initial data, the precise structure of the tail (that is, how the solution decays away from the wavefront) can lead to different, variable wavespeeds as in this [1D model](/sim/?preset=travellingWave1DTails). The red solution is with exponential $u(x,0) = \exp^{-ax}$ initial data and the blue one with algebraic $u(x,0) = 1-x^{-a}. While the initial profile is nearly identical visibly, the wavespeeds evolve to different values as the simulation progresses. They will also depend in nontrivial ways on the parameter $a$.
+
+
+
+
+
