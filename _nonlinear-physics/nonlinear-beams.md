@@ -10,7 +10,7 @@ categories: [elasticity, parabolic]
 
 In the overdamped regime (i.e. in the absence of inertia), the dimensionless equation of motion for a beam with a small deflection $y(x,t)$ is
 
-$$\begin{aligned}\pdd{y}{t}=-\pdd{}{x}\left(E\pdd{y}{x}\right),\end{aligned}$$
+$$\begin{aligned}\pd{y}{t}=-\pdd{}{x}\left(E\pdd{y}{x}\right),\end{aligned}$$
 
 where $E$ represents the stiffness of beam, or how difficult it is to bend. Traditionally, this stiffness is taken to be a constant or perhaps to depend on the position $x$.
 
