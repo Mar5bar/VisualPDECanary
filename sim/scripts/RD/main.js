@@ -464,6 +464,27 @@ import { createWelcomeTour } from "./tours.js";
   // Load things from the search string, if anything is there
   // Unless this value is set to false later, we will load a default preset.
   let shouldLoadDefault = true;
+  if (params.has("mini")) {
+    // If the search string specifies a minified link, query the endpoint for the full link.
+    const endpoint =
+      "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?shortKey=";
+    await fetch(endpoint + params.get("mini"), {
+      signal: AbortSignal.timeout(5000),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data)
+          if (typeof data === "string") {
+            window.location.href =
+              location.href.replace(location.search, "") + "?options=" + data;
+          } else {
+            throwPresetError(
+              "Sorry, this minified link is invalid! We've taken you to the default simulation instead.",
+            );
+          }
+      })
+      .catch(() => {});
+  }
   if (params.has("preset")) {
     // If a preset is specified, load it.
     loadPreset(params.get("preset"));
@@ -9591,11 +9612,13 @@ import { createWelcomeTour } from "./tours.js";
     delete objDiff.parent;
     // Minify the field names in order to generate shorter URLs.
     objDiff = minifyPreset(objDiff);
-    let str = [
-      location.href.replace(location.search, ""),
-      "?options=",
-      LZString.compressToEncodedURIComponent(JSON.stringify(objDiff)),
-    ].join("");
+    const base = location.href.replace(location.search, "");
+    const shortOpts = LZString.compressToEncodedURIComponent(
+      JSON.stringify(objDiff),
+    );
+    let str = [base, "?options=", shortOpts].join("");
+    // Asynchronously shorten the URL and show the user if successful.
+    shortenURLAndShow(base, shortOpts);
     return str;
   }
 
@@ -11160,3 +11183,38 @@ import { createWelcomeTour } from "./tours.js";
     $(".ui").addClass("hidden");
   }
 })();
+
+// Generate a QR code from the link to the current simulation.
+function generateSimQR(url) {
+  // Remove any existing QR code.
+  $("#link_qr").empty();
+  const qrCode = new QRCode(document.getElementById("link_qr"), {
+    text: url,
+    width: 128,
+    height: 128,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H,
+  });
+}
+
+function shortenURLAndShow(base, opts) {
+  const endpoint =
+    "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?originalURL=";
+  fetch(endpoint + opts)
+    .then((response) => response.json())
+    .then((sortKey) => {
+      if (sortKey) {
+        const url = base + "?mini=" + sortKey;
+        // Populate an element with this shortened URL.
+        const el = document.getElementById("copy_short_link");
+        el.onclick = () => {
+          navigator.clipboard.writeText(url);
+          $("#link_shortened").fadeOut(1000);
+        };
+        $("#link_shortened").fadeIn(1000);
+        setTimeout(() => $("#link_shortened").fadeOut(1000), 4000);
+      }
+    })
+    .catch(() => {});
+}

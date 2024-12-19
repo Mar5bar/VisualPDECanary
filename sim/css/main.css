@@ -736,6 +736,12 @@ button.focus-params.active {
   top: -2px;
 }
 
+#link_shortened {
+  top: 5px;
+  z-index: 2;
+  pointer-events: all;
+}
+
 #equations {
   top: 0px;
   left: var(--ui-button-h-gap);

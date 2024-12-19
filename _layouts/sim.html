@@ -42,6 +42,7 @@
     <link type="text/css" rel="stylesheet" href="/assets/css/custom.css" />
     <link type="text/css" rel="stylesheet" href="/sim/css/main.css" />
     <script src="/assets/js/jQuery.js"></script>
+    <script defer src="/assets/js/qrcode.min.js"></script>
     <script src="/assets/js/dark_mode.js"></script>
     <script
       defer
@@ -265,6 +266,9 @@
     <div class="message small" id="use_Chrome">
       <p>Chrome/Firefox on desktop are recommended for video recording</p>
     </div>
+    <div class="message small mid" id="link_shortened">
+      <p>We've shortened your link - click <a id="copy_short_link">here</a> to copy it</p>
+    </div>
 
     <a
       id="logo"
@@ -374,7 +378,7 @@
       <div class="container">
         <div id="title">Share your simulation</div>
         <div id="link" class="button">
-          <i class="share-icon fa-solid fa-link"></i>Copy link
+          <i id="long-link" class="share-icon fa-solid fa-link"></i>Copy link
         </div>
         <div id="screenshot" class="button">
           <i class="share-icon fa-solid fa-camera"></i>Save image
