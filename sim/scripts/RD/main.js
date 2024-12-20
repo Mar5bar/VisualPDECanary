@@ -11234,9 +11234,12 @@ import { createWelcomeTour } from "./tours.js";
     // Check the to-be-shortened URL against the last requested to see if it's the same.
     if (opts == lastShortenedOpts) {
       simURL = base + "?mini=" + lastShortKey;
-      console.log("Cached link");
+      document.getElementById("shortenedLabel").classList.add("visible");
       return;
     }
+
+    // Remove the visual indicator of a minified link.
+    document.getElementById("shortenedLabel").classList.remove("visible");
 
     shortenAborter = new AbortController();
     const signal = shortenAborter.signal;
@@ -11249,6 +11252,7 @@ import { createWelcomeTour } from "./tours.js";
           lastShortenedOpts = opts;
           lastShortKey = shortKey;
           simURL = base + "?mini=" + shortKey;
+          document.getElementById("shortenedLabel").classList.add("visible");
         }
       })
       .catch(() => {});

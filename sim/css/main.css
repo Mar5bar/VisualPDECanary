@@ -233,6 +233,18 @@ span.highlight {
   background-color: rgba(255, 55, 136, 0.6);
 }
 
+#shortenedLabel {
+  display: inline-block;
+  opacity: 0;
+  transition: none;
+  vertical-align: super;
+  font-size: xx-small;
+}
+#shortenedLabel.visible {
+  opacity: 100;
+  transition: opacity 1s ease;
+}
+
 .squareCanvas {
   max-width: calc(100vh - var(--header-height));
   max-width: calc(100dvh - var(--header-height));
