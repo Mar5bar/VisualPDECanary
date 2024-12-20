@@ -46,7 +46,7 @@ Yes! We would love to see you making and sharing content using VisualPDE. We ask
 ### I want to share my cool simulation – how do I do this? <a class="anchor" id="linkSharing">
 VisualPDE is designed for sharing. Whether you've fallen in love with one of our examples or you've crafted your own using the VisualPDE interface, you can share the current simulation using a link. Simply open the share sheet by clicking {{ layout.share }} and click 'Copy link' to put a URL on your clipboard that you can share anywhere by pasting! It's that easy!
 
-These links can be quite long, so we recommend using a (free) shortening service like [tinyURL.com](https://tinyurl.com/app) if you want a concise link for sharing.
+These links used to be quite long, but now we try to give you a shortened link that works a bit like [tinyURL.com](https://tinyurl.com/app). If you see the 'mini' tag appear next to 'Copy link', you're going to get one of our mini links! Perfect for sharing!
 
 ### How do I take a pretty screenshot or video without all the user interface showing up?
 Screenshots and videos are simple in VisualPDE. Simply open the share sheet by clicking {{ layout.share }} and click 'Save image' to download a screenshot to your device, or 'Record clip' to begin a recording that will download to your device when done (we recommend Chrome or Firefox for this). Recordings can be up to 60s long and will stop before then if you pause the simulation or click {{ layout.stop_recording }}
