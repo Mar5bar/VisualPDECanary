@@ -11224,6 +11224,14 @@ import { createWelcomeTour } from "./tours.js";
       return;
     }
 
+    // Check to see if opts is in localStorage. Really, this supercedes the above check.
+    let cachedKey = localStorage.getItem("long:" + opts);
+    if (cachedKey) {
+      simURL = base + "?mini=" + cachedKey;
+      document.getElementById("shortenedLabel").classList.add("visible");
+      return;
+    }
+
     // Remove the visual indicator of a minified link.
     document.getElementById("shortenedLabel").classList.remove("visible");
 
@@ -11237,6 +11245,7 @@ import { createWelcomeTour } from "./tours.js";
         if (shortKey) {
           lastShortenedOpts = opts;
           lastShortKey = shortKey;
+          localStorage.setItem("long:" + opts, shortKey);
           simURL = base + "?mini=" + shortKey;
           document.getElementById("shortenedLabel").classList.add("visible");
         }
