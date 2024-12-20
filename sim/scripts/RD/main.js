@@ -198,6 +198,7 @@ import { createWelcomeTour } from "./tours.js";
     optimisationDelay = 4000,
     viewUIOffsetInit,
     simURL,
+    longSimURL,
     lastShortenedOpts,
     lastShortKey,
     shortenAborter;
@@ -299,7 +300,7 @@ import { createWelcomeTour } from "./tours.js";
     },
     copyConfigAsURL: function () {
       if (!simURL) {
-        simURL = getSimURL();
+        getSimURL();
       }
       copyToClipboard(simURL);
     },
@@ -596,7 +597,7 @@ import { createWelcomeTour } from "./tours.js";
     toggleSharePanel();
     if ($("#share_panel").is(":visible")) {
       // Generate and minify the simulation link.
-      simURL = getSimURL();
+      getSimURL();
       // Close the equations and views menus.
       if ($("#left_ui").is(":visible")) {
         toggleLeftUI();
@@ -798,7 +799,8 @@ import { createWelcomeTour } from "./tours.js";
   if (inIframe()) {
     $("#logo").click(function (e) {
       e.preventDefault();
-      window.open(getSimURL());
+      getSimURL();
+      window.open(longSimURL);
     });
   }
 
@@ -9594,7 +9596,8 @@ import { createWelcomeTour } from "./tours.js";
    */
   function copyIframe() {
     // Get the URL of the current sim.
-    let url = getSimURL();
+    getSimURL();
+    let url = longSimURL;
     // Use the UI options specified in embed_ui_type to append ui options.
     switch (document.getElementById("embed_ui_type").value) {
       case "full":
@@ -9631,11 +9634,11 @@ import { createWelcomeTour } from "./tours.js";
       JSON.stringify(objDiff),
     );
     let str = [base, "?options=", shortOpts].join("");
+    // Keep the long URL as a fallback.
+    longSimURL = str;
+    simURL = longSimURL;
     // Asynchronously shorten the URL, replcing the long URL with the shortened one when complete.
     shortenURL(base, shortOpts);
-    // Keep the long URL as a fallback.
-    simURL = str;
-    return str;
   }
 
   /**
@@ -11219,16 +11222,14 @@ import { createWelcomeTour } from "./tours.js";
 
     // Check the to-be-shortened URL against the last requested to see if it's the same.
     if (opts == lastShortenedOpts) {
-      simURL = base + "?mini=" + lastShortKey;
-      document.getElementById("shortenedLabel").classList.add("visible");
+      saveShortURL(opts, lastShortKey);
       return;
     }
 
     // Check to see if opts is in localStorage. Really, this supercedes the above check.
     let cachedKey = localStorage.getItem("long:" + opts);
     if (cachedKey) {
-      simURL = base + "?mini=" + cachedKey;
-      document.getElementById("shortenedLabel").classList.add("visible");
+      saveShortURL(opts, cachedKey);
       return;
     }
 
@@ -11243,11 +11244,7 @@ import { createWelcomeTour } from "./tours.js";
       .then((response) => response.json())
       .then((shortKey) => {
         if (shortKey) {
-          lastShortenedOpts = opts;
-          lastShortKey = shortKey;
-          localStorage.setItem("long:" + opts, shortKey);
-          simURL = base + "?mini=" + shortKey;
-          document.getElementById("shortenedLabel").classList.add("visible");
+          saveShortURL(opts, shortKey);
         }
       })
       .catch(() => {});
@@ -11257,5 +11254,14 @@ import { createWelcomeTour } from "./tours.js";
     if (shortenAborter) {
       shortenAborter.abort();
     }
+  }
+
+  function saveShortURL(opts, shortKey) {
+    const base = location.href.replace(location.search, "");
+    lastShortenedOpts = opts;
+    lastShortKey = shortKey;
+    localStorage.setItem("long:" + opts, shortKey);
+    simURL = base + "?mini=" + shortKey;
+    document.getElementById("shortenedLabel").classList.add("visible");
   }
 })();
