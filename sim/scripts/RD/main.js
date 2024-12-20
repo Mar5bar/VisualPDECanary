@@ -406,7 +406,7 @@ import { createWelcomeTour } from "./tours.js";
   };
 
   // Check URL for any specified options.
-  const params = new URLSearchParams(
+  let params = new URLSearchParams(
     window.location.search.replaceAll("&amp;", "&"),
   );
 
@@ -461,17 +461,8 @@ import { createWelcomeTour } from "./tours.js";
     $("#header").removeClass("hidden");
   }
 
-  // Load default options.
-  loadOptions("default");
-
-  // Initialise simulation and GUI.
-  init();
-
-  // Load things from the search string, if anything is there
-  // Unless this value is set to false later, we will load a default preset.
-  let shouldLoadDefault = true;
+  // If the search string specifies a minified link, query the endpoint for the full link.
   if (params.has("mini")) {
-    // If the search string specifies a minified link, query the endpoint for the full link.
     const endpoint =
       "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?shortKey=";
     await fetch(endpoint + params.get("mini"), {
@@ -481,16 +472,27 @@ import { createWelcomeTour } from "./tours.js";
       .then((data) => {
         if (data)
           if (typeof data === "string") {
+            // Reload the page with the corresponding (unminified) options.
             window.location.href =
               location.href.replace(location.search, "") + "?options=" + data;
           } else {
             throwPresetError(
-              "Sorry, this minified link is invalid! We've taken you to the default simulation instead.",
+              "Sorry, we've not managed to resolve this minified link. We've taken you to the default simulation instead.",
             );
           }
       })
       .catch(() => {});
   }
+
+  // Load default options.
+  loadOptions("default");
+
+  // Initialise simulation and GUI.
+  init();
+
+  // Load things from the search string, if anything is there.
+  // Unless this value is set to false later, we will load a default preset.
+  let shouldLoadDefault = true;
   if (params.has("preset")) {
     // If a preset is specified, load it.
     loadPreset(params.get("preset"));
