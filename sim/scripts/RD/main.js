@@ -304,6 +304,12 @@ import { createWelcomeTour } from "./tours.js";
       }
       copyToClipboard(simURL);
     },
+    copyConfigAsLongURL: function () {
+      if (!longSimURL) {
+        getSimURL();
+      }
+      copyToClipboard(longSimURL);
+    },
     saveSimState: function () {
       saveSimState();
     },
@@ -2843,6 +2849,16 @@ import { createWelcomeTour } from "./tours.js";
       },
       null,
       "Show strings associated with mixed BCs",
+    );
+
+    addButton(
+      devButtons,
+      '<i class="fa-regular fa-link"></i> Long URL',
+      function () {
+        funsObj.copyConfigAsLongURL();
+      },
+      null,
+      "Copy a long, shareable URL to your clipboard",
     );
 
     // Populate list of presets for parent selection.
