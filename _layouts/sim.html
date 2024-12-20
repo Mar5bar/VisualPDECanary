@@ -56,7 +56,7 @@
           let currentUrl = new URL(window.location.href);
           currentUrl.searchParams.delete("mini");
           currentUrl.searchParams.set("options", fullLink);
-          window.location.href = currentUrl.toString();
+          window.location.replace(currentUrl.toString());
         }
         // Fetch the full link from the endpoint.
         const endpoint =
