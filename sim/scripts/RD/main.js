@@ -196,7 +196,11 @@ import { createWelcomeTour } from "./tours.js";
     seed = performance.now(),
     updatingAlgebraicSpecies = false,
     optimisationDelay = 4000,
-    viewUIOffsetInit;
+    viewUIOffsetInit,
+    simURL,
+    lastShortenedOpts,
+    lastShortKey,
+    shortenAborter;
   let spatialStepValue,
     nXDisc,
     nYDisc,
@@ -294,8 +298,10 @@ import { createWelcomeTour } from "./tours.js";
       isRunning ? pauseSim() : playSim();
     },
     copyConfigAsURL: function () {
-      let str = getSimURL();
-      copyToClipboard(str);
+      if (!simURL) {
+        simURL = getSimURL();
+      }
+      copyToClipboard(simURL);
     },
     saveSimState: function () {
       saveSimState();
@@ -589,6 +595,10 @@ import { createWelcomeTour } from "./tours.js";
     if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
       toggleViewsUI();
     }
+    if ($("#share_panel").is(":visible")) {
+      toggleSharePanel();
+      abortShorten();
+    }
   });
   $("#pause").click(function () {
     pauseSim();
@@ -605,6 +615,20 @@ import { createWelcomeTour } from "./tours.js";
   $("#share").click(function () {
     window.gtag?.("event", "share_menu_open");
     toggleSharePanel();
+    if ($("#share_panel").is(":visible")) {
+      // Generate and minify the simulation link.
+      simURL = getSimURL();
+      // Close the equations and views menus.
+      if ($("#left_ui").is(":visible")) {
+        toggleLeftUI();
+      }
+      if ($("#views_ui").is(":visible")) {
+        toggleViewsUI();
+      }
+    } else {
+      // Abort any running minification process.
+      abortShorten();
+    }
     if ($("#help_panel").is(":visible")) {
       toggleHelpPanel();
     }
@@ -667,6 +691,10 @@ import { createWelcomeTour } from "./tours.js";
     }
     if ($("#views_ui").is(":visible") && $("#left_ui").is(":visible")) {
       toggleLeftUI();
+    }
+    if ($("#share_panel").is(":visible")) {
+      toggleSharePanel();
+      abortShorten();
     }
   });
   $("#error_close_button").click(function () {
@@ -9617,8 +9645,10 @@ import { createWelcomeTour } from "./tours.js";
       JSON.stringify(objDiff),
     );
     let str = [base, "?options=", shortOpts].join("");
-    // Asynchronously shorten the URL and show the user if successful.
-    shortenURLAndShow(base, shortOpts);
+    // Asynchronously shorten the URL, replcing the long URL with the shortened one when complete.
+    shortenURL(base, shortOpts);
+    // Keep the long URL as a fallback.
+    simURL = str;
     return str;
   }
 
@@ -11182,39 +11212,51 @@ import { createWelcomeTour } from "./tours.js";
     uiHidden = true;
     $(".ui").addClass("hidden");
   }
+
+  // Generate a QR code from the link to the current simulation.
+  function generateSimQR(url) {
+    // Remove any existing QR code.
+    $("#link_qr").empty();
+    const qrCode = new QRCode(document.getElementById("link_qr"), {
+      text: url,
+      width: 128,
+      height: 128,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H,
+    });
+  }
+
+  function shortenURL(base, opts) {
+    // Abort any existing fetch request.
+    abortShorten();
+
+    // Check the to-be-shortened URL against the last requested to see if it's the same.
+    if (opts == lastShortenedOpts) {
+      simURL = base + "?mini=" + lastShortKey;
+      console.log("Cached link");
+      return;
+    }
+
+    shortenAborter = new AbortController();
+    const signal = shortenAborter.signal;
+    const endpoint =
+      "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?originalURL=";
+    fetch(endpoint + opts, { signal: signal })
+      .then((response) => response.json())
+      .then((shortKey) => {
+        if (shortKey) {
+          lastShortenedOpts = opts;
+          lastShortKey = shortKey;
+          simURL = base + "?mini=" + shortKey;
+        }
+      })
+      .catch(() => {});
+  }
+
+  function abortShorten() {
+    if (shortenAborter) {
+      shortenAborter.abort();
+    }
+  }
 })();
-
-// Generate a QR code from the link to the current simulation.
-function generateSimQR(url) {
-  // Remove any existing QR code.
-  $("#link_qr").empty();
-  const qrCode = new QRCode(document.getElementById("link_qr"), {
-    text: url,
-    width: 128,
-    height: 128,
-    colorDark: "#000000",
-    colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.H,
-  });
-}
-
-function shortenURLAndShow(base, opts) {
-  const endpoint =
-    "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?originalURL=";
-  fetch(endpoint + opts)
-    .then((response) => response.json())
-    .then((sortKey) => {
-      if (sortKey) {
-        const url = base + "?mini=" + sortKey;
-        // Populate an element with this shortened URL.
-        const el = document.getElementById("copy_short_link");
-        el.onclick = () => {
-          navigator.clipboard.writeText(url);
-          $("#link_shortened").fadeOut(1000);
-        };
-        $("#link_shortened").fadeIn(1000);
-        setTimeout(() => $("#link_shortened").fadeOut(1000), 4000);
-      }
-    })
-    .catch(() => {});
-}
