@@ -406,7 +406,7 @@ import { createWelcomeTour } from "./tours.js";
   };
 
   // Check URL for any specified options.
-  let params = new URLSearchParams(
+  const params = new URLSearchParams(
     window.location.search.replaceAll("&amp;", "&"),
   );
 
@@ -459,29 +459,6 @@ import { createWelcomeTour } from "./tours.js";
     $("#header").addClass("hidden");
   } else {
     $("#header").removeClass("hidden");
-  }
-
-  // If the search string specifies a minified link, query the endpoint for the full link.
-  if (params.has("mini")) {
-    const endpoint =
-      "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?shortKey=";
-    await fetch(endpoint + params.get("mini"), {
-      signal: AbortSignal.timeout(5000),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data)
-          if (typeof data === "string") {
-            // Reload the page with the corresponding (unminified) options.
-            window.location.href =
-              location.href.replace(location.search, "") + "?options=" + data;
-          } else {
-            throwPresetError(
-              "Sorry, we've not managed to resolve this minified link. We've taken you to the default simulation instead.",
-            );
-          }
-      })
-      .catch(() => {});
   }
 
   // Load default options.
@@ -899,6 +876,13 @@ import { createWelcomeTour } from "./tours.js";
   darkOS.addEventListener("change", (evt) => {
     setEquationDisplayType();
   });
+
+  // If a badLink was detected during the page load (from failed lookup of minification), let the user know.
+  if (badLink) {
+    throwPresetError(
+      "Sorry, we've not managed to resolve this minified link. Check the link and your internet connection. If the problem persists, please get in touch at hello@visualpde.com.",
+    );
+  }
 
   //---------------
 

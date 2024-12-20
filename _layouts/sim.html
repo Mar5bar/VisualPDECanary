@@ -41,6 +41,34 @@
     <link type="text/css" rel="stylesheet" href="/assets/css/shepherd.css" />
     <link type="text/css" rel="stylesheet" href="/assets/css/custom.css" />
     <link type="text/css" rel="stylesheet" href="/sim/css/main.css" />
+    <script type="text/javascript">
+      var badLink = false;
+    </script>
+    <script async type="text/javascript">
+      // If the search string specifies a minified link, query the endpoint for the full link.
+      let searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.has("mini")) {
+        const endpoint =
+          "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?shortKey=";
+        fetch(endpoint + searchParams.get("mini"), {
+          signal: AbortSignal.timeout(5000),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data)
+              if (typeof data === "string") {
+                // Reload the page with the corresponding (unminified) options.
+                window.location.href =
+                  location.href.replace(location.search, "") + "?options=" + data;
+              } else {
+                badLink = true;
+              }
+          })
+          .catch(() => {
+            badLink = true;
+          });
+  }
+    </script>
     <script src="/assets/js/jQuery.js"></script>
     <script defer src="/assets/js/qrcode.min.js"></script>
     <script src="/assets/js/dark_mode.js"></script>
@@ -100,7 +128,7 @@
     include google-analytics.html -%} {%- endif -%}
     <!-- Prevent loading of accessory scripts if the query string contains lite -->
     <script type="text/javascript">
-      const params = new URLSearchParams(window.location.search);
+      let params = new URLSearchParams(window.location.search);
       if (!params.has("lite")) {
         if (!params.has("nomathjax")) {
           document.write(
