@@ -186,7 +186,7 @@ presets["thermalConvectionInitialData"] = {
       name: "b",
     },
   ],
-  simTitle: "Vorticity Equation",
+  simTitle: "Thermal Convection",
 };
 
 presets["thermalConvection"] = {
@@ -293,6 +293,7 @@ presets["thermalConvection"] = {
     },
   ],
   whatToDraw: "b",
+  simTitle: "Thermal Convection",
 };
 
 presets["interstellarTravel"] = {
