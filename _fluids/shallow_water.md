@@ -41,7 +41,7 @@ The simulations above came out of discussions with [Matthew Crowe](https://mncro
 
 # Shear instability
 
-Another thing we can demonstrate with this model is a shear (or [Kelvin-Helmholtz](Kelvin–Helmholtz instability)) instability. This [simulation of a shear instability](/sim/?preset=ShearInstability) plots the vorticity of a fluid with a variation in the $u$ velocity. Slightly perturbing the initial line (caused by the shearing fluid) induces several vortices which then `roll-up' due to mutual attraction.
+Another thing we can demonstrate with this model is a shear (or [Kelvin-Helmholtz](https://en.wikipedia.org/wiki/Kelvin%E2%80%93Helmholtz_instability)) instability. This [simulation of a shear instability](/sim/?preset=ShearInstability) plots the vorticity of a fluid with a variation in the $u$ velocity. Slightly perturbing the initial line (caused by the shearing fluid) induces several vortices which then `roll-up' due to mutual attraction.
 
 This helpfully provided by [Mathew Barlow](https://www.uml.edu/profile/mathew_barlow).
 
