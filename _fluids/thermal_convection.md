@@ -5,7 +5,7 @@ title: "Thermal convection"
 lesson_number: 4
 thumbnail: /assets/images/ThermalConvection.webp
 extract: Instability and mixing
-equation: $\pd{\omega}{t} = \nu \nabla^2 \omega - \pd{\psi}{y}  \pd{\omega}{x} +  \pd{\psi}{x}  \pd{\omega}{y}+\pd{b}{x}$, $0 = \nabla^2 \psi + \omega$, $\pd{b}{t} &= \kappa \nabla^2 b -\left( \pd{\psi}{y}  \pd{b}{x} -  \pd{\psi}{x}  \pd{b}{y}\right)$
+equation: $\pd{\omega}{t} = \nu \nabla^2 \omega - \pd{\psi}{y}  \pd{\omega}{x} +  \pd{\psi}{x}  \pd{\omega}{y}+\pd{b}{x}$, $0 = \nabla^2 \psi + \omega$, $\pd{b}{t} = \kappa \nabla^2 b -\left( \pd{\psi}{y}  \pd{b}{x} -  \pd{\psi}{x}  \pd{b}{y}\right)$
 categories: [fluids, waves, parabolic]
 ---
 
