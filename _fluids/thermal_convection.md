@@ -10,7 +10,7 @@ categories: [fluids, waves, parabolic]
 ---
 
 
-Here we explore thermal convection in a 2D stratified Boussinesq model. We augment the [vorticity formulation](fluids/vorticity_equation) of fluid dynamics by adding a temperature field $T$ to arrive at,
+Here we explore thermal convection in a 2D stratified Boussinesq model. We augment the [vorticity formulation](vorticity_equation) of fluid dynamics by adding a temperature field to arrive at
 
 $$
 \begin{aligned}
@@ -22,7 +22,7 @@ $$
     
 where $b$ is the difference of the temperature from the top boundary, $\kappa$ is a thermal conductivity constant, and heating is provided at the bottom boundary via the parameter $T_b$.
 
-* Load the interactive [boundary=driven convection model](/sim/?preset=thermalConvection). By default, the temperature perturbation $b$ is plotted.
+* Load the interactive [boundary-driven convection model](/sim/?preset=thermalConvection). By default, the temperature perturbation $b$ is plotted.
 
 * The heating at the lower boundary will become unstable to high-frequency perturbations which will grow and coalesce into larger [Rayleigh–Bénard cells](https://en.wikipedia.org/wiki/Rayleigh%E2%80%93B%C3%A9nard_convection). You can also click to add a small region of warm air, which will then convect upwards.
 
