@@ -37,4 +37,11 @@ The simulation above sets $f=0$, representing no influence of the fluid from the
 
 We can also study one-dimensional versions of this model to observe soliton-like traveling waves. This [nonlinear solitary wave model](/sim/?preset=1DShallowWaterEqns) can be compared to a [linearised solitary wave model](/sim/?preset=1DLinearizedShallowWaterEqns), showing qualitatively comparable behaviour but quantitative differences, particularly as the solutions evolve over time.
 
-The simulations on this page came out of discussions with [Matthew Crowe](https://mncrowe.github.io/), who generously provided feedback on constructing this page.
+The simulations above came out of discussions with [Matthew Crowe](https://mncrowe.github.io/), who generously provided feedback on constructing this page.
+
+# Shear instability
+
+Another thing we can demonstrate with this model is a shear (or [Kelvin-Helmholtz](Kelvin–Helmholtz instability)) instability. This [simulation of a shear instability](/sim/?preset=ShearInstability) plots the vorticity of a fluid with a variation in the $u$ velocity. Slightly perturbing the initial line (caused by the shearing fluid) induces several vortices which then `roll-up' due to mutual attraction.
+
+This helpfully provided by [Mathew Barlow](https://www.uml.edu/profile/mathew_barlow).
+
