@@ -1,48 +1,32 @@
 ---
 layout: page
-title: "Fluids via the vorticity equation"
+title: "Thermal convection"
 # permalink: /vorticity-equation/
 lesson_number: 4
 thumbnail: /assets/images/ThermalConvection.webp
-extract: Spinning fluids
-equation: $\pd{\omega}{t} = \nu \nabla^2 \omega - \pd{\psi}{y}  \pd{\omega}{x} +  \pd{\psi}{x}  \pd{\omega}{y}$, $0 = \nabla^2 \psi + \omega$
+extract: Instability and mixing
+equation: $\pd{\omega}{t} = \nu \nabla^2 \omega - \pd{\psi}{y}  \pd{\omega}{x} +  \pd{\psi}{x}  \pd{\omega}{y}+\pd{b}{x}$, $0 = \nabla^2 \psi + \omega$, $\pd{b}{t} &= \kappa \lap b -\left( \pd{\psi}{y}  \pd{b}{x} -  \pd{\psi}{x}  \pd{b}{y}\right)$
 categories: [fluids, waves, parabolic]
 ---
 
 
-IN PROGRESS!
+Here we explore thermal convection in a 2D stratified Boussinesq model. We augment the [vorticity formulation](fluids/vorticity_equation) of fluid dynamics by adding a temperature field $T$ to arrive at,
 
-
-
-We consider a 2D form of the [vorticity equation](https://en.wikipedia.org/wiki/Vorticity_equation) of fluid dynamics given by
-
-$$\begin{aligned}
+$$
 \begin{aligned}
-    \pd{\omega}{t} &= \nu \nabla^2 \omega - \pd{\psi}{y}  \pd{\omega}{x} +  \pd{\psi}{x}  \pd{\omega}{y},\\
-    0 &= \nabla^2 \psi + \omega,\\
-    \pd{S}{t} &= D \nabla^2 S -\left( \pd{\psi}{y}  \pd{S}{x} -  \pd{\psi}{x}  \pd{S}{y}\right).
+      \pd{\omega}{t} &= \nu \lap \omega - \pd{\psi}{y}  \pd{\omega}{x} +  \pd{\psi}{x}  \pd{\omega}{y}+ \pd{b}{x},\\
+     \varepsilon \pd{\psi}{t} &= \lap \psi + \omega\\
+      \pd{b}{t} &= \kappa \lap b -\left( \pd{\psi}{y}  \pd{b}{x} -  \pd{\psi}{x}  \pd{b}{y}\right),
     \end{aligned}
-    \end{aligned}$$
+$$
     
-Here, $\nu$ is a viscosity parameter, $\omega$ is the magnitude of the vorticity (pointing out of the screen when positive), and $\psi$ is a [stream function](https://en.wikipedia.org/wiki/Stream_function). We also include a passive scalar field, $S$, which diffuses at a rate $D$ and is advected by the fluid flow (i.e. this is exactly a [convection-diffusion equation](/basic-pdes/advection-equation) but now for a flow that we are solving for).
+where $b$ is the difference of the temeprature from the top boundary, $\kappa$ is a thermal conductivity constant, and heating is provided at the bottom boundary via the parameter $T_b$.
 
-* Load the interactive [vorticity equation model](/sim/?preset=NavierStokesVorticity). By default, we plot the vorticity $\omega$, but you can press {{ layout.views }} to instead plot the horizontal fluid velocity $u$, the vertical fluid velocity $v$, the speed $\sqrt{u^2+v^2}$, or the passive scalar $S$.
+* Load the interactive [boundary=driven convection model](/sim/?preset=thermalConvection). By default, the temperature perturbation $b$ is plotted.
 
-* Click to initiate a positive vortex, which will induce a counter-clockwise fluid flow. Clicking again will allow you to paint additional vortices which will then interact. 
+* The heating at the lower boundary will become unstable to high-frequency perturbations which will grow and coalesce into larger (Rayleigh-Ben\'{a}rd cells)[https://en.wikipedia.org/wiki/Rayleigh%E2%80%93B%C3%A9nard_convection]. You can also click to add a small region of warm air, which will then convect upwards.
 
-* Right-clicking[^1] will paint clockwise (negative) vortices. Placing exactly the same strength positive and negative vortex next to one another will give an approximately unidirectional flow.
+* Different parameter values and initial conditions can lead to qualitatively-similar behaviour, but with different scales involved. Here is a [simulation with larger initial data](/sim/?preset=thermalConvectionInitialData) that undergoes the instability away from the boundary.
 
-* The initial conditions are uniformly zero, and the boundary conditions are periodic, except for the field $S$ which instead is a gradient. In this [alternative simulation](/sim/?preset=NavierStokesVorticityBounded), the initial conditions are instead given by oscillations in the vorticity with frequency $k$ over the domain. 
+This page was written with the help of [Mathew Barlow](https://www.uml.edu/profile/mathew_barlow).
 
-# Numerical Details
-
-The Poisson equation for $\psi$ is elliptic and VisualPDE cannot directly solve such equations (as they are in some sense non-local). Instead, we solve the parabolic relaxation of this equation given by
-
-$$\begin{aligned}
-\begin{aligned}
-    \epsilon \pd{\psi}{t} = \nabla^2 \psi + \omega,    \end{aligned}
-    \end{aligned}$$
-
-where $\epsilon$ is a small parameter.
-
-[^1]: Unfortunately, this is not currently supported on touch devices.
