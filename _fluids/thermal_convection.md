@@ -24,7 +24,7 @@ where $b$ is the difference of the temperature from the top boundary, $\kappa$ i
 
 * Load the interactive [boundary-driven convection model](/sim/?preset=thermalConvection). By default, the temperature perturbation $b$ is plotted.
 
-* The heating at the lower boundary will become unstable to high-frequency perturbations which will grow and coalesce into larger [Rayleigh–Bénard cells](https://en.wikipedia.org/wiki/Rayleigh%E2%80%93B%C3%A9nard_convection). You can also click to add a small region of warm air, which will then convect upwards.
+* The heating at the lower boundary will become unstable to high-frequency perturbations, which will grow and coalesce into larger [Rayleigh–Bénard cells](https://en.wikipedia.org/wiki/Rayleigh%E2%80%93B%C3%A9nard_convection). You can also click to add a small region of warm air, which will then convect upwards.
 
 * Different parameter values and initial conditions can lead to qualitatively-similar behaviour, but with different scales involved. Here is a [simulation with larger initial data](/sim/?preset=thermalConvectionInitialData) that undergoes the instability away from the boundary.
 

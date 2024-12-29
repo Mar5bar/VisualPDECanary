@@ -194,9 +194,8 @@ presets["thermalConvection"] = {
   boundaryConditions_1: "combo",
   boundaryConditions_2: "combo",
   boundaryConditions_4: "combo",
-  brushAction: "smoothreplace",
   brushRadius: "20",
-  brushValue: "0.15",
+  brushValue: "0.02",
   comboStr_1:
     "Bottom: Dirichlet = 0; Left: Periodic; Right: Periodic; Top: Dirichlet = 0;",
   comboStr_2:
