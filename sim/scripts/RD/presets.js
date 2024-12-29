@@ -336,7 +336,7 @@ presets["interstellarTravel"] = {
   ],
   whatToDraw: "rho",
   whatToPlot: "rho",
-  simTitle: "Ducks",
+  simTitle: "Interstellar Travel",
 };
 
 presets["travellingWave1DTails"] = {
