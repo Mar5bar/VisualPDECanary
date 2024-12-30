@@ -3,21 +3,20 @@
 let presets = {};
 
 presets["cyclicCompetitionWave"] = {
-	"diffusionStr_1_1": "0.3",
-	"diffusionStr_2_2": "0.3",
-	"diffusionStr_3_3": "0.3",
-	"dt": 0.01,
-	"initCond_1": "H(0.1-x/L_x)*(1+0.001*RANDN)",
-	"initCond_2": "H(0.1-x/L_x)",
-	"initCond_3": "H(0.1-x/L_x)",
-	"numSpecies": 3,
-	"parent": "cyclicCompetition",
-	"probeFun": "u",
-	"probeLength": 150,
-	"setSeed": true,
-	"preset": "cyclicCompetitionWave",
+  diffusionStr_1_1: "0.3",
+  diffusionStr_2_2: "0.3",
+  diffusionStr_3_3: "0.3",
+  dt: 0.01,
+  initCond_1: "H(0.1-x/L_x)*(1+0.001*RANDN)",
+  initCond_2: "H(0.1-x/L_x)",
+  initCond_3: "H(0.1-x/L_x)",
+  numSpecies: 3,
+  parent: "cyclicCompetition",
+  probeFun: "u",
+  probeLength: 150,
+  setSeed: true,
+  preset: "cyclicCompetitionWave",
 };
-
 
 presets["ShearInstability"] = {
   activeViewInd: 2,
