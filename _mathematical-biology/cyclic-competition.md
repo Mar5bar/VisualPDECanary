@@ -22,4 +22,4 @@ To make things more interesting, we will allow the species to diffuse at differe
 
 * This system exhibits a wide range of behaviours. One of the most interesting is that if you allow spiral waves to form, and then set all diffusion coefficients to be equal (e.g. by changing $D_u$ to $0.5$), the system will still admit spiral waves despite not having a Turing-like instability.
 
-* Wave-induced spatiotemporal chaos can even occur without a Turing-like instability; see this [wave simulation](\sim\?preset=cyclicCompetitionWave) for an example.
+* Wave-induced spatiotemporal chaos can even occur without a Turing-like instability; see this [wave simulation](/sim/?preset=cyclicCompetitionWave) for an example.
