@@ -3,36 +3,37 @@
 let presets = {};
 
 presets["GrayScottPorousMedia"] = {
-	"boundaryConditions_1": "neumann",
-	"boundaryConditions_2": "neumann",
-	"boundaryConditions_3": "neumann",
-	"crossDiffusion": true,
-	"diffusionStr_1_1": "0",
-	"diffusionStr_1_3": "1",
-	"domainScale": "2000",
-	"initCond_1": "Bump(0,L_y,L/10)",
-	"kineticParams": "s = 2;D = 2;m = 1.0 in [1,3];",
-	"numAlgebraicSpecies": 1,
-	"numSpecies": 3,
-	"numTimestepsPerFrame": 200,
-	"parent": "GrayScottPearsonClassificationRescaled",
-	"preset": "GrayScottPorousMedia",
-	"reactionStr_3": "u^m",
-	"spatialStep": "3",
-	"speciesNames": "u v w",
-	"squareCanvas": true,
-	"views": [{
-	"maxColourValue": "1",
-	"whatToPlot": "v",
-	"name": "$$v$$",
-},
-	{
-	"maxColourValue": "0.65",
-	"whatToPlot": "u",
-	"name": "$$u$$",
-}],
+  boundaryConditions_1: "neumann",
+  boundaryConditions_2: "neumann",
+  boundaryConditions_3: "neumann",
+  crossDiffusion: true,
+  diffusionStr_1_1: "0",
+  diffusionStr_1_3: "1",
+  domainScale: "2000",
+  initCond_1: "Bump(0,L_y,L/10)",
+  kineticParams: "s = 2;D = 2;m = 1.0 in [1,3];",
+  numAlgebraicSpecies: 1,
+  numSpecies: 3,
+  numTimestepsPerFrame: 200,
+  parent: "GrayScottPearsonClassificationRescaled",
+  preset: "GrayScottPorousMedia",
+  reactionStr_3: "u^m",
+  spatialStep: "3",
+  speciesNames: "u v w",
+  squareCanvas: true,
+  views: [
+    {
+      maxColourValue: "1",
+      whatToPlot: "v",
+      name: "$$v$$",
+    },
+    {
+      maxColourValue: "0.65",
+      whatToPlot: "u",
+      name: "$$u$$",
+    },
+  ],
 };
-
 
 presets["KlausmeierRainfallGradient"] = {
   boundaryConditions_1: "combo",
