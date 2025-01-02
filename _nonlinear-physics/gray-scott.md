@@ -21,7 +21,7 @@ A [famous 1993 paper](https://arxiv.org/abs/patt-sol/9304003) on this model expl
 
 Building from the previous simulation, we can rescale the heterogeneity to still be monotonic, but to use up more of the domain to see different dynamical regimes. 
 
-* Explore this in this [rescaled simulation](/sim/?preset=GrayScottPearsonClassificationRescaled), where we also plot the variable $v$ instead by default (you can click on {{ layout.views }} to change this to plot $u$ instead). 
+* Explore this in this [rescaled simulation](/sim/?preset=GrayScottPearsonClassificationRescaled), where we also plot the variable $v$ instead by default (you can click on {{ layout.views }} to change this to plot $u$ instead). Here is [another version of this rescaled model](/sim/?preset=GrayScottPorousMedia) which also includes a porous-medium diffusion term (that is, $\nabla^2 u^m$), which radically alters the parameter space as $m$ is increased from 1.
 
 Interestingly, the value of $D=2$ used gives a very rich parameter space, whereas making $D$ smaller reduces the regions of patterned behaviour, and taking $D$ larger increases it at the cost of making things more stationary and more spot-like for most of the parameter domain. 
 
