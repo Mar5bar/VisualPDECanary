@@ -24,4 +24,4 @@ You can find initial conditions that simulate such patterns in this [localised s
 
 # Rainfall gradients
 
-Another thing one can explore is adding spatial heterogeneity to the model. That is, replacing the parameter $a$ with, e.g., a linear function in $y$. Explore this in [this interactive simulation](/sim/?preset=LocalisedVegetation). Try reducing the parameter $V$ to see how this impacts the structure of the resulting stripes.
+Another thing one can explore is adding spatial heterogeneity to the model. That is, replacing the parameter $a$ with, e.g., a linear function in $y$. Explore this in [this interactive simulation](/sim/?preset=KlausmeierRainfallGradient). Try reducing the parameter $V$ to see how this impacts the structure of the resulting stripes.
