@@ -2,6 +2,35 @@
 
 let presets = {};
 
+presets["KlausmeierRainfallGradient"] = {
+	"boundaryConditions_1": "combo",
+	"boundaryConditions_2": "combo",
+	"comboStr_1": "Bottom: Neumann = 0; Left: Periodic; Right: Periodic; Top: Neumann = 0;",
+	"comboStr_2": "Bottom: Neumann = 0; Left: Periodic; Right: Periodic; Top: Neumann = 0;",
+	"domainScale": "300",
+	"dt": 0.002,
+	"kineticParams": "a = 1.130 in [0.01, 0.01, 10];m = 0.540 in [0.2, 0.01, 1];V = 40;",
+	"parent": "KlausmeierModel",
+	"reactionStr_2": "(0.3 + 2*y/L_y)-w-w*n^2+V*w_x",
+	"views": [{
+	"colourmap": "foliage",
+	"emboss": false,
+	"maxColourValue": "7.5",
+	"whatToPlot": "n",
+	"name": "Foliage",
+},
+
+	{
+	"colourmap": "water",
+	"emboss": true,
+	"maxColourValue": "0.33",
+	"whatToPlot": "w",
+	"name": "Water",
+}],
+	"preset": "KlausmeierRainfallGradient",
+};
+
+
 presets["ForwardKolmogorovDoubleWell"] = {
   brushEnabled: false,
   brushRadius: "20",
