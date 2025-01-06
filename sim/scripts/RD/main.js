@@ -11260,7 +11260,10 @@ import { createWelcomeTour } from "./tours.js";
       .then((response) => response.json())
       .then((shortKey) => {
         if (shortKey) {
-          saveShortURL(opts, shortKey);
+          // Check if shortKey is just a string - if not, it's an error.
+          if (typeof shortKey === "string") {
+            saveShortURL(opts, shortKey);
+          }
         }
       })
       .catch(() => {});
