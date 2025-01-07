@@ -21,3 +21,7 @@ $$\begin{aligned}\pd{w}{t} &= a-w -wn^2+v\pd{w}{x} + \nabla^2w,\\ \pd{n}{t} &= w
 Similarly to the [localised patterns in Swift–Hohenberg](/nonlinear-physics/swift-hohenberg), Dan Hill has provided examples of dihedrally symmetric localised patterns in this model.
 
 You can find initial conditions that simulate such patterns in this [localised simulation](/sim/?preset=LocalisedVegetation), and more information about the rigorous theory underlying them in [his 2024 paper](https://doi.org/10.1007/s00332-024-10046-2).
+
+# Rainfall gradients
+
+Another thing one can explore is adding spatial heterogeneity to the model. That is, replacing the parameter $a$ with, e.g., a linear function in $y$. Explore this in [this interactive simulation](/sim/?preset=KlausmeierRainfallGradient). Try reducing the parameter $V$ to see how this impacts the structure of the resulting stripes.
