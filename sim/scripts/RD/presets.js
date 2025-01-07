@@ -18,6 +18,7 @@ presets["DurhamConvection"] = {
   domainScale: "500",
   dt: 0.002,
   initCond_1: "0",
+  initCond_3: "0",
   initCond_4: "0.01*RANDN",
   kineticParams:
     "nu = 0.2 in [0.01, 1];epsilon = 0.05;D = 0.05;kappa = 1;T_b = 0.08;a = 0.02;b0 = 0.003;c = 0.003;",
