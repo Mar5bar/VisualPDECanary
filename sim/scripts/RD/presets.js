@@ -29,7 +29,6 @@ presets["DurhamConvection"] = {
   reactionStr_2: "omega-c*psi",
   reactionStr_3: "-S+b0*WhiteNoise",
   reactionStr_4: "-(psi_y*b_x - psi_x*b_y)+S-c*b",
-  showStats: true,
   spatialStep: "1.5",
   squareCanvas: true,
   timescales: true,
