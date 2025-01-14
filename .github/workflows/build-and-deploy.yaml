@@ -61,8 +61,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-      - name: Run main.py
-        run: python main.py
+      - name: Run build_url_lookup.py
+        run: python build_url_lookup.py
         working-directory: assets
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
