@@ -893,17 +893,15 @@ import { createWelcomeTour } from "./tours.js";
   }
 
   // If options have been generated from a minified link, load them.
-  if (expandedOptionsToLoad["val"]) {
+  if (expandedOptions) {
     loadOptionsFromMiniLink();
   } else if (expandingOptionsInProgress) {
-    // If we're in the process of expanding options, set a watcher to observe expandedOptionsToLoad.
-    let watcher = new Proxy(expandedOptionsToLoad, {
-      set: function (target, key, value) {
-        target[key] = value;
+    let checkIfOptionsLoaded = setInterval(() => {
+      if (expandedOptions) {
+        clearInterval(checkIfOptionsLoaded);
         loadOptionsFromMiniLink();
-        return true;
-      },
-    });
+      }
+    }, 50);
   }
 
   //---------------
@@ -11301,10 +11299,10 @@ import { createWelcomeTour } from "./tours.js";
 
   function loadOptionsFromMiniLink() {
     // Load options present in the global variable optionsToLoad, if it exists.
-    if (expandedOptionsToLoad) {
+    if (expandedOptions) {
       try {
         var newParams = JSON.parse(
-          LZString.decompressFromEncodedURIComponent(expandedOptionsToLoad),
+          LZString.decompressFromEncodedURIComponent(expandedOptions),
         );
       } catch (e) {
         throwError(

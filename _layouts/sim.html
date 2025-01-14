@@ -45,7 +45,7 @@
       var badLink = false;
     </script>
     <script async type="text/javascript">
-      let expandedOptionsToLoad = {val: ""};
+      let expandedOptions;
       let expandingOptionsInProgress = false;
       let linkParsed = false;
       // If the search string specifies a minified link, query the endpoint for the full link.
@@ -61,9 +61,10 @@
           currentUrl.searchParams.set("options", fullLink);
           window.history.pushState(null, '', currentUrl.toString());
           linkParsed = true;
+        } else {
+          expandingOptionsInProgress = true;
         }
         if (!linkParsed) {
-          expandingOptionsInProgress = true;
           // Try the local static endpoint.
           fetch(window.location.origin + "/m/" + searchParams.get("mini") + ".txt")
             .then((response) => {
@@ -83,7 +84,7 @@
                   currentUrl.searchParams.set("options", data);
                   window.history.pushState(null, '', currentUrl.toString());
                   // Set a variable to record which options to load after the page has loaded.
-                  expandedOptionsToLoad["val"] = data;
+                  expandedOptions = data;
                   linkParsed = true;
                 }
             })
@@ -113,7 +114,7 @@
                   currentUrl.searchParams.delete("mini");
                   currentUrl.searchParams.set("options", data);
                   window.history.pushState(null, '', currentUrl.toString());
-                  expandedOptionsToLoad["val"] = data;
+                  expandedOptions = data;
                   linkParsed = true;
                 } else {
                   badLink = true;
