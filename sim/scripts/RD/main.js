@@ -892,6 +892,20 @@ import { createWelcomeTour } from "./tours.js";
     );
   }
 
+  // If options have been generated from a minified link, load them.
+  if (expandedOptionsToLoad["val"]) {
+    loadOptionsFromMiniLink();
+  } else if (expandingOptionsInProgress) {
+    // If we're in the process of expanding options, set a watcher to observe expandedOptionsToLoad.
+    let watcher = new Proxy(expandedOptionsToLoad, {
+      set: function (target, key, value) {
+        target[key] = value;
+        loadOptionsFromMiniLink();
+        return true;
+      },
+    });
+  }
+
   //---------------
 
   // Initialise all aspects of the site, including both the simulation and the GUI.
@@ -11283,5 +11297,26 @@ import { createWelcomeTour } from "./tours.js";
     localStorage.setItem("short:" + shortKey, opts);
     simURL = base + "?mini=" + shortKey;
     document.getElementById("shortenedLabel").classList.add("visible");
+  }
+
+  function loadOptionsFromMiniLink() {
+    // Load options present in the global variable optionsToLoad, if it exists.
+    if (expandedOptionsToLoad) {
+      try {
+        var newParams = JSON.parse(
+          LZString.decompressFromEncodedURIComponent(expandedOptionsToLoad),
+        );
+      } catch (e) {
+        throwError(
+          "It looks like this link is missing something - please check that it has been entered correctly and try again.",
+        );
+        newParams = {};
+      }
+      if (newParams.hasOwnProperty("p")) {
+        // This has been minified, so maxify before loading.
+        newParams = maxifyPreset(newParams);
+      }
+      loadPreset(newParams);
+    }
   }
 })();

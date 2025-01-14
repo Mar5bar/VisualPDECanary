@@ -45,6 +45,8 @@
       var badLink = false;
     </script>
     <script async type="text/javascript">
+      let expandedOptionsToLoad = {val: ""};
+      let expandingOptionsInProgress = false;
       // If the search string specifies a minified link, query the endpoint for the full link.
       let searchParams = new URLSearchParams(window.location.search);
       if (searchParams.has("mini")) {
@@ -59,6 +61,7 @@
           window.history.pushState(null, '', currentUrl.toString());
         }
         else {
+          expandingOptionsInProgress = true;
           // Try the local static endpoint.
           fetch(window.location.origin + "/m/" + searchParams.get("mini") + ".txt")
             .then((response) => {
@@ -72,12 +75,13 @@
                 if (typeof data === "string") {
                   // Add to browser storage for quick lookup next time.
                   localStorage.setItem("short:" + searchParams.get("mini"), data);
-                  // Reload the page with the corresponding (unminified) options.
                   // Get the current URL, remove the 'mini' from the query string, and append the full options.
                   let currentUrl = new URL(window.location.href);
                   currentUrl.searchParams.delete("mini");
                   currentUrl.searchParams.set("options", data);
-                  window.location.href = currentUrl.toString();
+                  window.history.pushState(null, '', currentUrl.toString());
+                  // Set a variable to record which options to load after the page has loaded.
+                  expandedOptionsToLoad["val"] = data;
                 } else {
                   badLink = true;
                 }
@@ -107,7 +111,8 @@
                   let currentUrl = new URL(window.location.href);
                   currentUrl.searchParams.delete("mini");
                   currentUrl.searchParams.set("options", data);
-                  window.location.href = currentUrl.toString();
+                  window.history.pushState(null, '', currentUrl.toString());
+                  expandedOptionsToLoad["val"] = data;
                 } else {
                   badLink = true;
                 }
