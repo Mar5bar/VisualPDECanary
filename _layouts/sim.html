@@ -58,13 +58,20 @@
           currentUrl.searchParams.set("options", fullLink);
           window.location.replace(currentUrl.toString());
         }
+        // Fallback to the static endpoint.
+        window.location.replace("https://mar5bar.github.io/vpde-link-shortener/c/" + searchParams.get("mini"));
         // Fetch the full link from the endpoint.
         const endpoint =
           "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?shortKey=";
         fetch(endpoint + searchParams.get("mini"), {
           signal: AbortSignal.timeout(5000),
         })
-          .then((response) => response.json())
+          .then((response) => {
+            if (response.ok) {
+              return response.json()
+            }
+            throw new Error('No response to fetch');
+          })
           .then((data) => {
             if (data)
               if (typeof data === "string") {
