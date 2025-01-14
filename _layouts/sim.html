@@ -85,13 +85,9 @@
                   // Set a variable to record which options to load after the page has loaded.
                   expandedOptionsToLoad["val"] = data;
                   linkParsed = true;
-                } else {
-                  badLink = true;
                 }
             })
-            .catch(() => {
-              badLink = true;
-            });
+            .catch(() => {});
           }
         if (!linkParsed) {
           // Fetch the full link from the endpoint.
