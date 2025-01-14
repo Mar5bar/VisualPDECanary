@@ -2,7 +2,7 @@ import json
 import os
 
 # Path to the JSON file
-json_file_path = 'urls.json'
+json_file_path = './urls.json'
 
 # Load the JSON data
 with open(json_file_path, 'r') as file:
