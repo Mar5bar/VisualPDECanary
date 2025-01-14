@@ -237,8 +237,6 @@ span.highlight {
   display: inline-block;
   opacity: 0;
   transition: none;
-  vertical-align: super;
-  font-size: xx-small;
 }
 #shortenedLabel.visible {
   opacity: 100;

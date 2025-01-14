@@ -651,6 +651,18 @@ import { createWelcomeTour } from "./tours.js";
   });
   $("#link").click(function () {
     window.gtag?.("event", "link_copied");
+    funsObj.copyConfigAsLongURL();
+    toggleSharePanel();
+  });
+  $("#longLink").click(function () {
+    window.gtag?.("event", "link_copied");
+    funsObj.copyConfigAsLongURL();
+    toggleSharePanel();
+  });
+  $("#shortLink").click(function () {
+    // Prevent the click bubbling up to the parent element.
+    event.stopPropagation();
+    window.gtag?.("event", "link_copied");
     funsObj.copyConfigAsURL();
     toggleSharePanel();
   });
@@ -11280,6 +11292,7 @@ import { createWelcomeTour } from "./tours.js";
     lastShortenedOpts = opts;
     lastShortKey = shortKey;
     localStorage.setItem("long:" + opts, shortKey);
+    localStorage.setItem("short:" + shortKey, opts);
     simURL = base + "?mini=" + shortKey;
     document.getElementById("shortenedLabel").classList.add("visible");
   }
