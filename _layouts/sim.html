@@ -58,8 +58,32 @@
           currentUrl.searchParams.set("options", fullLink);
           window.location.replace(currentUrl.toString());
         }
-        // Fallback to the static endpoint.
-        window.location.replace("https://mar5bar.github.io/vpde-link-shortener/c/" + searchParams.get("mini"));
+        // Try the local static endpoint.
+        fetch(window.location.origin + "/m/" + searchParams.get("mini") + ".txt")
+          .then((response) => {
+            if (response.ok) {
+              return response.text()
+            }
+            throw new Error('No response to fetch');
+          })
+          .then((data) => {
+            if (data)
+              if (typeof data === "string") {
+                // Add to browser storage for quick lookup next time.
+                localStorage.setItem("short:" + searchParams.get("mini"), data);
+                // Reload the page with the corresponding (unminified) options.
+                // Get the current URL, remove the 'mini' from the query string, and append the full options.
+                let currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.delete("mini");
+                currentUrl.searchParams.set("options", data);
+                window.location.href = currentUrl.toString();
+              } else {
+                badLink = true;
+              }
+          })
+          .catch(() => {
+            badLink = true;
+          });
         // Fetch the full link from the endpoint.
         const endpoint =
           "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?shortKey=";
