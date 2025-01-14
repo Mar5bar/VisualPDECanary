@@ -11280,6 +11280,7 @@ import { createWelcomeTour } from "./tours.js";
     lastShortenedOpts = opts;
     lastShortKey = shortKey;
     localStorage.setItem("long:" + opts, shortKey);
+    localStorage.setItem("short:" + shortKey, opts);
     simURL = base + "?mini=" + shortKey;
     document.getElementById("shortenedLabel").classList.add("visible");
   }
