@@ -305,9 +305,7 @@ import { createWelcomeTour } from "./tours.js";
       copyToClipboard(simURL);
     },
     copyConfigAsLongURL: function () {
-      if (!longSimURL) {
-        getSimURL();
-      }
+      getSimURL(false);
       copyToClipboard(longSimURL);
     },
     saveSimState: function () {
@@ -805,7 +803,7 @@ import { createWelcomeTour } from "./tours.js";
   if (inIframe()) {
     $("#logo").click(function (e) {
       e.preventDefault();
-      getSimURL();
+      getSimURL(false);
       window.open(longSimURL);
     });
   }
@@ -9624,7 +9622,7 @@ import { createWelcomeTour } from "./tours.js";
    */
   function copyIframe() {
     // Get the URL of the current sim.
-    getSimURL();
+    getSimURL(false);
     let url = longSimURL;
     // Use the UI options specified in embed_ui_type to append ui options.
     switch (document.getElementById("embed_ui_type").value) {
@@ -9649,7 +9647,7 @@ import { createWelcomeTour } from "./tours.js";
    * Returns a URL encoded string representing the current simulation configuration.
    * @returns {string} The URL encoded string representing the current simulation configuration.
    */
-  function getSimURL() {
+  function getSimURL(shorten = true) {
     // First, get the options that differ from the default.
     let objDiff = diffObjects(options, getPreset("default"));
     objDiff.preset = "Custom";
@@ -9666,7 +9664,8 @@ import { createWelcomeTour } from "./tours.js";
     longSimURL = str;
     simURL = longSimURL;
     // Asynchronously shorten the URL, replcing the long URL with the shortened one when complete.
-    shortenURL(base, shortOpts);
+		if (shorten)
+    	shortenURL(base, shortOpts);
   }
 
   /**
