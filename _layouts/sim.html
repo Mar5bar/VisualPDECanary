@@ -101,6 +101,10 @@
               if (response.ok) {
                 return response.json()
               }
+              if (response.status === 404) {
+                console.log("here")
+                badLink = true;
+              }
               throw new Error('No response to fetch');
             })
             .then((data) => {

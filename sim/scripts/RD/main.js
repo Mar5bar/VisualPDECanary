@@ -898,6 +898,10 @@ import { createWelcomeTour } from "./tours.js";
       if (expandedOptions) {
         clearInterval(checkIfOptionsLoaded);
         loadOptionsFromMiniLink();
+      } else if (badLink) {
+        throwPresetError(
+          "Sorry, we've not managed to resolve this minified link. Check the link and your internet connection. If the problem persists, please get in touch at hello@visualpde.com.",
+        );
       }
     }, 50);
   }
@@ -9664,8 +9668,7 @@ import { createWelcomeTour } from "./tours.js";
     longSimURL = str;
     simURL = longSimURL;
     // Asynchronously shorten the URL, replcing the long URL with the shortened one when complete.
-		if (shorten)
-    	shortenURL(base, shortOpts);
+    if (shorten) shortenURL(base, shortOpts);
   }
 
   /**
