@@ -9664,8 +9664,7 @@ import { createWelcomeTour } from "./tours.js";
     longSimURL = str;
     simURL = longSimURL;
     // Asynchronously shorten the URL, replcing the long URL with the shortened one when complete.
-		if (shorten)
-    	shortenURL(base, shortOpts);
+    if (shorten) shortenURL(base, shortOpts);
   }
 
   /**
