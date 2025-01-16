@@ -46,9 +46,6 @@
       var expandedOptions;
       var expandingOptionsInProgress = false;
       var linkParsed = false;
-    </script>
-    <script async type="text/javascript">
-      // If the search string specifies a minified link, query the endpoint for the full link.
       let searchParams = new URLSearchParams(window.location.search);
       if (searchParams.has("mini")) {
         // Check localStorage for the full link.
@@ -64,6 +61,11 @@
         } else {
           expandingOptionsInProgress = true;
         }
+      }
+    </script>
+    <script async type="text/javascript">
+      // If the search string specifies a minified link, query the endpoint for the full link.
+      if (searchParams.has("mini")) {
         if (!linkParsed) {
           // Try the local static endpoint.
           fetch(window.location.origin + "/m/" + searchParams.get("mini") + ".txt")
