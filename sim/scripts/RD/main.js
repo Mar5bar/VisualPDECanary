@@ -899,6 +899,7 @@ import { createWelcomeTour } from "./tours.js";
         clearInterval(checkIfOptionsLoaded);
         loadOptionsFromMiniLink();
       } else if (badLink) {
+        clearInterval(checkIfOptionsLoaded);
         throwPresetError(
           "Sorry, we've not managed to resolve this minified link. Check the link and your internet connection. If the problem persists, please get in touch at hello@visualpde.com.",
         );

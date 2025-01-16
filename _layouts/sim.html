@@ -46,6 +46,8 @@
       var expandedOptions;
       var expandingOptionsInProgress = false;
       var linkParsed = false;
+    </script>
+    <script async type="text/javascript">
       // If the search string specifies a minified link, query the endpoint for the full link.
       let searchParams = new URLSearchParams(window.location.search);
       if (searchParams.has("mini")) {
@@ -62,10 +64,6 @@
         } else {
           expandingOptionsInProgress = true;
         }
-      }
-    </script>
-    <script async type="text/javascript">
-      if (searchParams.has("mini")) {
         if (!linkParsed) {
           // Try the local static endpoint.
           fetch(window.location.origin + "/m/" + searchParams.get("mini") + ".txt")
@@ -80,6 +78,7 @@
                 if (typeof data === "string") {
                   // Add to browser storage for quick lookup next time.
                   localStorage.setItem("short:" + searchParams.get("mini"), data);
+                  localStorage.setItem("long:" + data, searchParams.get("mini"));
                   // Get the current URL, remove the 'mini' from the query string, and append the full options.
                   let currentUrl = new URL(window.location.href);
                   currentUrl.searchParams.delete("mini");
@@ -104,16 +103,15 @@
                 return response.json()
               }
               if (response.status === 404) {
-                console.log("here")
                 badLink = true;
               }
-              throw new Error('No response to fetch');
             })
             .then((data) => {
               if (data)
                 if (typeof data === "string") {
                   // Add to browser storage for quick lookup next time.
                   localStorage.setItem("short:" + searchParams.get("mini"), data);
+                  localStorage.setItem("long:" + data, searchParams.get("mini"));
                   // Reload the page with the corresponding (unminified) options.
                   // Get the current URL, remove the 'mini' from the query string, and append the full options.
                   let currentUrl = new URL(window.location.href);
