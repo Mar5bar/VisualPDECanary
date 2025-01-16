@@ -43,11 +43,9 @@
     <link type="text/css" rel="stylesheet" href="/sim/css/main.css" />
     <script type="text/javascript">
       var badLink = false;
-    </script>
-    <script async type="text/javascript">
-      let expandedOptions;
-      let expandingOptionsInProgress = false;
-      let linkParsed = false;
+      var expandedOptions;
+      var expandingOptionsInProgress = false;
+      var linkParsed = false;
       // If the search string specifies a minified link, query the endpoint for the full link.
       let searchParams = new URLSearchParams(window.location.search);
       if (searchParams.has("mini")) {
@@ -64,6 +62,10 @@
         } else {
           expandingOptionsInProgress = true;
         }
+      }
+    </script>
+    <script async type="text/javascript">
+      if (searchParams.has("mini")) {
         if (!linkParsed) {
           // Try the local static endpoint.
           fetch(window.location.origin + "/m/" + searchParams.get("mini") + ".txt")
