@@ -5633,12 +5633,14 @@ import { createWelcomeTour } from "./tours.js";
       controllers["robinQ"].hide();
     }
 
+    let overrideShowComboStr = true;
     if (options.plotType != "surface") {
       ["uBCs", "vBCs", "wBCs", "qBCs"].forEach((str) => {
         controllers[str].domElement
           .getElementsByClassName("combo-bcs")[0]
           .classList.remove("hidden");
       });
+      overrideShowComboStr = false;
     }
 
     // Always hide the combo BCs string.
@@ -5647,7 +5649,7 @@ import { createWelcomeTour } from "./tours.js";
     controllers["comboW"].hide();
     controllers["comboQ"].hide();
 
-    if (options.showComboStr) {
+    if (options.showComboStr || overrideShowComboStr) {
       if (options.boundaryConditions_1 == "combo") controllers["comboU"].show();
       if (options.boundaryConditions_2 == "combo") controllers["comboV"].show();
       if (options.boundaryConditions_3 == "combo") controllers["comboW"].show();
