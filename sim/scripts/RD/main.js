@@ -11319,7 +11319,9 @@ import { createWelcomeTour } from "./tours.js";
         // This has been minified, so maxify before loading.
         newParams = maxifyPreset(newParams);
       }
+      isLoading = true;
       loadPreset(newParams);
+      isLoading = false;
     }
   }
 })();
