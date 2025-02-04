@@ -92,7 +92,18 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 import { Stats } from "../stats.min.js";
 import { createWelcomeTour } from "./tours.js";
 
-(async function () {
+if (expandingOptionsInProgress) {
+  let checkIfOptionsLoaded = setInterval(() => {
+    if (linkParsed) {
+      clearInterval(checkIfOptionsLoaded);
+      VisualPDE(simURL);
+    }
+  }, 50);
+} else {
+  VisualPDE();
+}
+
+async function VisualPDE(url) {
   let canvas, gl, manualInterpolationNeeded;
   let camera, simCamera, scene, simScene, renderer, aspectRatio, controls;
   let simTextures = [],
@@ -411,8 +422,10 @@ import { createWelcomeTour } from "./tours.js";
   };
 
   // Check URL for any specified options.
+  // Take the URL stored as a string in url (if it exists) and get the search parameters
+  // from it. If it doesn't exist, use the current URL.
   const params = new URLSearchParams(
-    window.location.search.replaceAll("&amp;", "&"),
+    (url ? url.split("?")[1] : window.location.search).replaceAll("&amp;", "&"),
   );
 
   if (params.has("no_ui")) {
@@ -888,23 +901,6 @@ import { createWelcomeTour } from "./tours.js";
     throwPresetError(
       "Sorry, we've not managed to resolve this minified link. Check the link and your internet connection. If the problem persists, please get in touch at hello@visualpde.com.",
     );
-  }
-
-  // If options have been generated from a minified link, load them.
-  if (expandedOptions) {
-    loadOptionsFromMiniLink();
-  } else if (expandingOptionsInProgress) {
-    let checkIfOptionsLoaded = setInterval(() => {
-      if (expandedOptions) {
-        clearInterval(checkIfOptionsLoaded);
-        loadOptionsFromMiniLink();
-      } else if (badLink) {
-        clearInterval(checkIfOptionsLoaded);
-        throwPresetError(
-          "Sorry, we've not managed to resolve this minified link. Check the link and your internet connection. If the problem persists, please get in touch at hello@visualpde.com.",
-        );
-      }
-    }, 50);
   }
 
   //---------------
@@ -11301,27 +11297,4 @@ import { createWelcomeTour } from "./tours.js";
     simURL = base + "?mini=" + shortKey;
     document.getElementById("shortenedLabel").classList.add("visible");
   }
-
-  function loadOptionsFromMiniLink() {
-    // Load options present in the global variable optionsToLoad, if it exists.
-    if (expandedOptions) {
-      try {
-        var newParams = JSON.parse(
-          LZString.decompressFromEncodedURIComponent(expandedOptions),
-        );
-      } catch (e) {
-        throwError(
-          "It looks like this link is missing something - please check that it has been entered correctly and try again.",
-        );
-        newParams = {};
-      }
-      if (newParams.hasOwnProperty("p")) {
-        // This has been minified, so maxify before loading.
-        newParams = maxifyPreset(newParams);
-      }
-      isLoading = true;
-      loadPreset(newParams);
-      isLoading = false;
-    }
-  }
-})();
+}

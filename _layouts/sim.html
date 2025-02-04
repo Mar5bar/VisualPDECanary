@@ -43,22 +43,37 @@
     <link type="text/css" rel="stylesheet" href="/sim/css/main.css" />
     <script type="text/javascript">
       var badLink = false;
-      var expandedOptions;
+      var simURL = window.location.href;
       var expandingOptionsInProgress = false;
       var linkParsed = false;
       let searchParams = new URLSearchParams(window.location.search);
       if (searchParams.has("mini")) {
-        // Check localStorage for the full link.
-        let fullLink = localStorage.getItem("short:" + searchParams.get("mini"));
-        if (fullLink) {
-          // Reload the page with the corresponding (unminified) options.
+        // Define a handler for the full link.
+        function handleMiniOpts(long, store) {
+          if (store) {
+            // Add to browser storage for quick lookup next time.
+            let short = searchParams.get("mini");
+            localStorage.setItem("short:" + short, long);
+            localStorage.setItem("long:" + long, short);
+          }
           // Get the current URL, remove the 'mini' from the query string, and append the full options.
-          let currentUrl = new URL(window.location.href);
-          currentUrl.searchParams.delete("mini");
-          currentUrl.searchParams.set("options", fullLink);
-          window.history.pushState(null, '', currentUrl.toString());
+          let currentURL = new URL(window.location.href);
+          currentURL.searchParams.delete("mini");
+          currentURL.searchParams.set("options", long);
+          // Set a variable to record the new URL, which may not be reflected in window.location.href until the page is reloaded.
+          simURL = currentURL.toString();
+          window.history.pushState(null, "", simURL);
+          // Record that the link has been parsed.
           linkParsed = true;
+        }
+        // Check localStorage for the full link.
+        let fullOpts = localStorage.getItem(
+          "short:" + searchParams.get("mini"),
+        );
+        if (fullOpts) {
+          handleMiniOpts(fullOpts, false);
         } else {
+          // If we didn't find it, start the lookup via the endpoints (local and AWS).
           expandingOptionsInProgress = true;
         }
       }
@@ -68,31 +83,23 @@
       if (searchParams.has("mini")) {
         if (!linkParsed) {
           // Try the local static endpoint.
-          fetch(window.location.origin + "/m/" + searchParams.get("mini") + ".txt")
+          fetch(
+            window.location.origin + "/m/" + searchParams.get("mini") + ".txt",
+          )
             .then((response) => {
               if (response.ok) {
-                return response.text()
+                return response.text();
               }
-              throw new Error('No response to fetch');
+              throw new Error("No response to fetch");
             })
             .then((data) => {
               if (data)
                 if (typeof data === "string") {
-                  // Add to browser storage for quick lookup next time.
-                  localStorage.setItem("short:" + searchParams.get("mini"), data);
-                  localStorage.setItem("long:" + data, searchParams.get("mini"));
-                  // Get the current URL, remove the 'mini' from the query string, and append the full options.
-                  let currentUrl = new URL(window.location.href);
-                  currentUrl.searchParams.delete("mini");
-                  currentUrl.searchParams.set("options", data);
-                  window.history.pushState(null, '', currentUrl.toString());
-                  // Set a variable to record which options to load after the page has loaded.
-                  expandedOptions = data;
-                  linkParsed = true;
+                  handleMiniOpts(data, true);
                 }
             })
             .catch(() => {});
-          }
+        }
         if (!linkParsed) {
           // Fetch the full link from the endpoint.
           const endpoint =
@@ -102,35 +109,30 @@
           })
             .then((response) => {
               if (response.ok) {
-                return response.json()
+                return response.json();
               }
               if (response.status === 404) {
+                // The link is bad.
                 badLink = true;
+                linkParsed = true;
               }
             })
             .then((data) => {
               if (data)
                 if (typeof data === "string") {
-                  // Add to browser storage for quick lookup next time.
-                  localStorage.setItem("short:" + searchParams.get("mini"), data);
-                  localStorage.setItem("long:" + data, searchParams.get("mini"));
-                  // Reload the page with the corresponding (unminified) options.
-                  // Get the current URL, remove the 'mini' from the query string, and append the full options.
-                  let currentUrl = new URL(window.location.href);
-                  currentUrl.searchParams.delete("mini");
-                  currentUrl.searchParams.set("options", data);
-                  window.history.pushState(null, '', currentUrl.toString());
-                  expandedOptions = data;
-                  linkParsed = true;
+                  handleMiniOpts(data, true);
                 } else {
+                  // We've tried everything. The link is bad.
                   badLink = true;
+                  linkParsed = true;
                 }
             })
             .catch(() => {
               badLink = true;
+              linkParsed = true;
             });
-    }
-  }
+        }
+      }
     </script>
     <script src="/assets/js/jQuery.js"></script>
     <script defer src="/assets/js/qrcode.min.js"></script>
@@ -263,10 +265,7 @@
 
     <div class="message big-popup" id="welcome">
       <p>
-        <img
-          src="/assets/images/2heart-light.webp"
-          height="48"
-        />
+        <img src="/assets/images/2heart-light.webp" height="48" />
       </p>
       <p>Welcome to VisualPDE!</p>
       <div id="tour_question">
@@ -303,7 +302,11 @@
       <div class="dg ac" id="leftGUIContainer" style="position: relative"></div>
       <div id="left_ui_arrow" class="ui"></div>
     </div>
-    <div tabindex="-1" class="ui hidden ui_button" id="play_pause_placeholder"></div>
+    <div
+      tabindex="-1"
+      class="ui hidden ui_button"
+      id="play_pause_placeholder"
+    ></div>
     <div class="ui hidden ui_button" id="play" title="Play (space)">
       <i class="fa-solid fa-play"></i>
     </div>
@@ -466,7 +469,8 @@
       <div class="container">
         <div id="title">Share your simulation</div>
         <div id="link" class="button">
-          <i id="long-link" class="share-icon fa-solid fa-link"></i>Copy link<span id="shortenedLabel">mini</span>
+          <i id="long-link" class="share-icon fa-solid fa-link"></i>Copy
+          link<span id="shortenedLabel">mini</span>
         </div>
         <div id="screenshot" class="button">
           <i class="share-icon fa-solid fa-camera"></i>Save image
@@ -492,7 +496,9 @@
           </select>
         </div>
         <div class="cite_paper">
-          <a href="https://doi.org/10.1007/s11538-023-01218-4" target="_blank">Cite the paper</a>
+          <a href="https://doi.org/10.1007/s11538-023-01218-4" target="_blank"
+            >Cite the paper</a
+          >
         </div>
       </div>
       <div class="arrow"></div>
