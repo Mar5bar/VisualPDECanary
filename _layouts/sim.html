@@ -98,38 +98,37 @@
                   handleMiniOpts(data, true);
                 }
             })
-            .catch(() => {});
-        }
-        if (!linkParsed) {
-          // Fetch the full link from the endpoint.
-          const endpoint =
-            "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?shortKey=";
-          fetch(endpoint + searchParams.get("mini"), {
-            signal: AbortSignal.timeout(5000),
-          })
-            .then((response) => {
-              if (response.ok) {
-                return response.json();
-              }
-              if (response.status === 404) {
-                // The link is bad.
-                badLink = true;
-                linkParsed = true;
-              }
-            })
-            .then((data) => {
-              if (data)
-                if (typeof data === "string") {
-                  handleMiniOpts(data, true);
-                } else {
-                  // We've tried everything. The link is bad.
+            .catch(() => {
+              // Fetch the full link from the endpoint.
+              const endpoint =
+                "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?shortKey=";
+              fetch(endpoint + searchParams.get("mini"), {
+                signal: AbortSignal.timeout(5000),
+              })
+                .then((response) => {
+                  if (response.ok) {
+                    return response.json();
+                  }
+                  if (response.status === 404) {
+                    // The link is bad.
+                    badLink = true;
+                    linkParsed = true;
+                  }
+                })
+                .then((data) => {
+                  if (data)
+                    if (typeof data === "string") {
+                      handleMiniOpts(data, true);
+                    } else {
+                      // We've tried everything. The link is bad.
+                      badLink = true;
+                      linkParsed = true;
+                    }
+                })
+                .catch(() => {
                   badLink = true;
                   linkParsed = true;
-                }
-            })
-            .catch(() => {
-              badLink = true;
-              linkParsed = true;
+                });
             });
         }
       }
