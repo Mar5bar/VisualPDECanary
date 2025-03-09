@@ -2,6 +2,42 @@
 
 let presets = {};
 
+presets["ImmunotherapySquareDirichlet"] = {
+	"boundaryConditions_3": "dirichlet",
+	"dirichletStr_3": "B_w*t",
+	"domainViaIndicatorFun": false,
+	"initCond_2": "0.405*(1+eta*RANDN)",
+	"initCond_3": "0.0135*(1+eta*RANDN)",
+	"kineticParams": "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 1000;sigma_u=0.007;sigma_w = 0;alpha = 0.1;K_u = 0*sigma_u;eta = 0;K_w = 0;B_w = 0.005;",
+	"parent": "ImmunotherapyCircleNeumann",
+	"preset": "ImmunotherapySquareDirichlet",
+	"views": [{
+	"maxColourValue": "1",
+	"probing": false,
+	"probeFun": "u",
+	"probeType": "sample",
+	"whatToPlot": "u",
+	"name": "Effector cells",
+},
+	{
+	"maxColourValue": "0.6",
+	"probing": true,
+	"probeFun": "v/L_x^2",
+	"probeType": "integral",
+	"whatToPlot": "v",
+	"name": "Cancer cells",
+},
+	{
+	"maxColourValue": "1.1449013147675608e-27",
+	"probing": false,
+	"probeFun": "w",
+	"probeType": "sample",
+	"whatToPlot": "w",
+	"name": "IL2 compound",
+}],
+};
+
+
 presets["ImmunotherapyCircleNeumann"] = {
   activeViewInd: 1,
   boundaryConditions_1: "neumann",
@@ -22,8 +58,8 @@ presets["ImmunotherapyCircleNeumann"] = {
   kineticParams:
     "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 1000;sigma_u = 0.0002 in [0.012, 0.1];sigma_w = 0;alpha = 0.1;K_u = 0.4*sigma_u;eta = 0.1;K_w = 0;",
   numSpecies: 3,
-  numTimestepsPerFrame: 219,
-  preset: "PRESETNAME",
+  numTimestepsPerFrame: 250,
+  preset: "ImmunotherapyCircleNeumann",
   reactionStr_1: "alpha*v-mu_u*u+rho_u*u*w/(1+w)+sigma_u+K_u*t",
   reactionStr_2: "v*(1-v)-u*v/(gamma_v+v)",
   reactionStr_3: "rho_w*u*v/(gamma_w+v)-mu_w*w+sigma_w+K_w*t",
