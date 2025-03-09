@@ -2,6 +2,62 @@
 
 let presets = {};
 
+presets["ImmunotherapyCircleNeumann"] = {
+	"activeViewInd": 1,
+	"boundaryConditions_1": "neumann",
+	"boundaryConditions_2": "neumann",
+	"boundaryConditions_3": "neumann",
+	"brushEnabled": false,
+	"brushRadius": "1",
+	"diffusionStr_1_1": "delta_u",
+	"diffusionStr_2_2": "1",
+	"diffusionStr_3_3": "delta_w",
+	"dirichletStr_1": "0.5",
+	"domainScale": "300",
+	"domainViaIndicatorFun": true,
+	"dt": 0.0008,
+	"initCond_1": "0.3*(1+eta*RANDN)",
+	"initCond_2": "0.475*(1+eta*RANDN)",
+	"initCond_3": "0.0138*(1+eta*RANDN)",
+	"kineticParams": "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 1000;sigma_u = 0.0002 in [0.012, 0.1];sigma_w = 0;alpha = 0.1;K_u = 0.4*sigma_u;eta = 0.1;K_w = 0;",
+	"numSpecies": 3,
+	"numTimestepsPerFrame": 219,
+	"preset": "PRESETNAME",
+	"reactionStr_1": "alpha*v-mu_u*u+rho_u*u*w/(1+w)+sigma_u+K_u*t",
+	"reactionStr_2": "v*(1-v)-u*v/(gamma_v+v)",
+	"reactionStr_3": "rho_w*u*v/(gamma_w+v)-mu_w*w+sigma_w+K_w*t",
+	"setSeed": true,
+	"spatialStep": "2",
+	"speciesNames": "u v w",
+	"squareCanvas": true,
+	"timeDisplay": true,
+	"timesteppingScheme": "Mid",
+	"views": [{
+	"maxColourValue": "1",
+	"probing": false,
+	"probeFun": "u/(pi*L_x^2/4)",
+	"whatToPlot": "u",
+	"name": "Effector cells",
+},
+	{
+	"maxColourValue": "0.7",
+	"probing": true,
+	"probeFun": "v/(pi*L_x^2/4)",
+	"whatToPlot": "v",
+	"name": "Cancer cells",
+},
+	{
+	"maxColourValue": "1.1449013147675608e-27",
+	"probing": false,
+	"probeFun": "w/(pi*L_x^2/4)",
+	"whatToPlot": "w",
+	"name": "IL2 compound",
+}],
+	"whatToDraw": "u",
+	"simTitle": "Gray–Scott",
+};
+
+
 presets["thermalConvectionBoundaries"] = {
   boundaryConditions_3: "combo",
   brushAction: "smoothadd",
