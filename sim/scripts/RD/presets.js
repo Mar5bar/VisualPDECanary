@@ -3,40 +3,42 @@
 let presets = {};
 
 presets["ImmunotherapySquareDirichlet"] = {
-	"boundaryConditions_3": "dirichlet",
-	"dirichletStr_3": "B_w*t",
-	"domainViaIndicatorFun": false,
-	"initCond_2": "0.405*(1+eta*RANDN)",
-	"initCond_3": "0.0135*(1+eta*RANDN)",
-	"kineticParams": "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 1000;sigma_u=0.007;sigma_w = 0;alpha = 0.1;K_u = 0*sigma_u;eta = 0;K_w = 0;B_w = 0.005;",
-	"parent": "ImmunotherapyCircleNeumann",
-	"preset": "ImmunotherapySquareDirichlet",
-	"views": [{
-	"maxColourValue": "1",
-	"probing": false,
-	"probeFun": "u",
-	"probeType": "sample",
-	"whatToPlot": "u",
-	"name": "Effector cells",
-},
-	{
-	"maxColourValue": "0.6",
-	"probing": true,
-	"probeFun": "v/L_x^2",
-	"probeType": "integral",
-	"whatToPlot": "v",
-	"name": "Cancer cells",
-},
-	{
-	"maxColourValue": "1.1449013147675608e-27",
-	"probing": false,
-	"probeFun": "w",
-	"probeType": "sample",
-	"whatToPlot": "w",
-	"name": "IL2 compound",
-}],
+  boundaryConditions_3: "dirichlet",
+  dirichletStr_3: "B_w*t",
+  domainViaIndicatorFun: false,
+  initCond_2: "0.405*(1+eta*RANDN)",
+  initCond_3: "0.0135*(1+eta*RANDN)",
+  kineticParams:
+    "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 1000;sigma_u=0.007;sigma_w = 0;alpha = 0.1;K_u = 0*sigma_u;eta = 0;K_w = 0;B_w = 0.005;",
+  parent: "ImmunotherapyCircleNeumann",
+  preset: "ImmunotherapySquareDirichlet",
+  views: [
+    {
+      maxColourValue: "1",
+      probing: false,
+      probeFun: "u",
+      probeType: "sample",
+      whatToPlot: "u",
+      name: "Effector cells",
+    },
+    {
+      maxColourValue: "0.6",
+      probing: true,
+      probeFun: "v/L_x^2",
+      probeType: "integral",
+      whatToPlot: "v",
+      name: "Cancer cells",
+    },
+    {
+      maxColourValue: "1.1449013147675608e-27",
+      probing: false,
+      probeFun: "w",
+      probeType: "sample",
+      whatToPlot: "w",
+      name: "IL2 compound",
+    },
+  ],
 };
-
 
 presets["ImmunotherapyCircleNeumann"] = {
   activeViewInd: 1,
