@@ -93,4 +93,4 @@ $$
 
 with $\dt$ and $\dx$ the space and time steps, respectively, and $N$ the number of dimensions. The variable $\xi$ represents (for each spatial point and every time step) an independently distributed normal random variable with mean $0$ and variance $1$. The scaling in time is to preserve the Brownian increment scaling of $W_t \propto \sqrt{\dt}$ after the multiplication by $\dt$ from the forward Euler stepping. 
 
-In the Klausmeier model we take $\eta$ to scale the same way in space, but it will not scale with time. We also mollify $\eta$ by running a diffusion smoothing on it for a short time.
+In the wave equation model we take $\eta$ to scale the same way in space, but it will not scale with time. We also mollify $\eta$ by running a diffusion smoothing on it for a short time.
