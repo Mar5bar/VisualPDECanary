@@ -11351,7 +11351,16 @@ async function VisualPDE(url) {
         camCanvas.width = 640;
         camCanvas.height = 480;
         function handler() {
-          ctx.drawImage(video, 0, 0, camCanvas.width, camCanvas.height);
+          ctx.save();
+          ctx.scale(-1, 1);
+          ctx.drawImage(
+            video,
+            -camCanvas.width,
+            0,
+            camCanvas.width,
+            camCanvas.height,
+          );
+          ctx.restore();
           const dataURL = camCanvas.toDataURL("image/png");
           const image = new Image();
           image.src = dataURL;
