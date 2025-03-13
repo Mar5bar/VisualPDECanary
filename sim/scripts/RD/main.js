@@ -104,7 +104,7 @@ if (expandingOptionsInProgress) {
 }
 
 async function VisualPDE(url) {
-  let canvas, gl, manualInterpolationNeeded;
+  let canvas, gl, manualInterpolationNeeded, camCanvas;
   let camera, simCamera, scene, simScene, renderer, aspectRatio, controls;
   let simTextures = [],
     postTexture,
@@ -880,7 +880,7 @@ async function VisualPDE(url) {
   resetSim();
   animate();
   if (options.captureWebcam) {
-    startWebcam();
+    configureWebcam();
   }
 
   // Monitor the rate at which time is being increased in the simulation.
@@ -1318,6 +1318,7 @@ async function VisualPDE(url) {
         $("#rightClickArea").addClass("selected");
         configureComboBCsGUI();
       });
+    camCanvas = document.createElement("canvas");
   }
 
   function resize() {
@@ -2887,6 +2888,14 @@ async function VisualPDE(url) {
       "Toggle the use of a webcam as the first image input",
     );
 
+    controllers["captureWebcamDelay"] = root
+      .add(options, "captureWebcamDelay")
+      .name("Cam delay")
+      .onChange(function () {
+        configureWebcam();
+      });
+    createOptionSlider(controllers["captureWebcamDelay"], 10, 5000, 1);
+
     // Populate list of presets for parent selection.
     let listOfPresets = {};
     getListOfPresetNames().forEach(function (key) {
@@ -4413,8 +4422,8 @@ async function VisualPDE(url) {
     }
     if (options.captureWebcam) {
       options.captureWebcam = false;
-      stopWebcam();
       updateToggle(document.getElementById("captureWebcamToggle"));
+      configureWebcam();
     }
 
     isRunning = false;
@@ -11320,15 +11329,14 @@ async function VisualPDE(url) {
   }
 
   function configureWebcam() {
+    stopWebcam();
     if (options.captureWebcam) {
-      startWebcam(1000);
-    } else {
-      stopWebcam();
+      startWebcam();
     }
   }
 
   // Capture an image from the webcam every n seconds and save it to imageSourceOne as a texture.
-  function startWebcam(delay = 1000) {
+  function startWebcam() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.log("getUserMedia is not supported in this browser");
       return;
@@ -11339,13 +11347,12 @@ async function VisualPDE(url) {
         const video = document.createElement("video");
         video.srcObject = stream;
         video.play();
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = 640;
-        canvas.height = 480;
+        let ctx = camCanvas.getContext("2d");
+        camCanvas.width = 640;
+        camCanvas.height = 480;
         function handler() {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const dataURL = canvas.toDataURL("image/png");
+          ctx.drawImage(video, 0, 0, camCanvas.width, camCanvas.height);
+          const dataURL = camCanvas.toDataURL("image/png");
           const image = new Image();
           image.src = dataURL;
           image.onload = function () {
@@ -11359,8 +11366,8 @@ async function VisualPDE(url) {
         }
         webcamTimer = setTimeout(function tick() {
           handler();
-          webcamTimer = setTimeout(tick, delay);
-        }, delay);
+          webcamTimer = setTimeout(tick, options.captureWebcamDelay);
+        }, options.captureWebcamDelay);
       })
       .catch((err) => {
         console.log("Error accessing webcam:", err);
