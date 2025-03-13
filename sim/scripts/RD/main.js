@@ -194,6 +194,7 @@ async function VisualPDE(url) {
     recordingTimer,
     stabilisingFPSTimer,
     titleBlurTimer,
+    webcamTimer,
     recordingTextInterval,
     uiHidden = false,
     showColourbarOverride = false,
@@ -878,6 +879,9 @@ async function VisualPDE(url) {
   isLoading = false;
   resetSim();
   animate();
+  if (options.captureWebcam) {
+    startWebcam();
+  }
 
   // Monitor the rate at which time is being increased in the simulation.
   setInterval(function () {
@@ -2872,6 +2876,17 @@ async function VisualPDE(url) {
       "Copy a long, shareable URL to your clipboard",
     );
 
+    addToggle(
+      devButtons,
+      "captureWebcam",
+      '<i class="fa-regular fa-camera"></i> Webcam',
+      function () {
+        configureWebcam();
+      },
+      "captureWebcamToggle",
+      "Toggle the use of a webcam as the first image input",
+    );
+
     // Populate list of presets for parent selection.
     let listOfPresets = {};
     getListOfPresetNames().forEach(function (key) {
@@ -4396,6 +4411,12 @@ async function VisualPDE(url) {
       $("#play").show();
       $("#play").visible();
     }
+    if (options.captureWebcam) {
+      options.captureWebcam = false;
+      stopWebcam();
+      updateToggle(document.getElementById("captureWebcamToggle"));
+    }
+
     isRunning = false;
     renderIfNotRunning();
   }
@@ -11296,5 +11317,63 @@ async function VisualPDE(url) {
     localStorage.setItem("short:" + shortKey, opts);
     simURL = base + "?mini=" + shortKey;
     document.getElementById("shortenedLabel").classList.add("visible");
+  }
+
+  function configureWebcam() {
+    if (options.captureWebcam) {
+      startWebcam(1000);
+    } else {
+      stopWebcam();
+    }
+  }
+
+  // Capture an image from the webcam every n seconds and save it to imageSourceOne as a texture.
+  function startWebcam(delay = 1000) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      console.log("getUserMedia is not supported in this browser");
+      return;
+    }
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        const video = document.createElement("video");
+        video.srcObject = stream;
+        video.play();
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 640;
+        canvas.height = 480;
+        function handler() {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const dataURL = canvas.toDataURL("image/png");
+          const image = new Image();
+          image.src = dataURL;
+          image.onload = function () {
+            let texture = new THREE.Texture();
+            texture.magFilter = THREE.NearestFilter;
+            texture.minFilter = THREE.NearestFilter;
+            texture.image = image;
+            texture.needsUpdate = true;
+            uniforms.imageSourceOne.value = texture;
+          };
+        }
+        webcamTimer = setTimeout(function tick() {
+          handler();
+          webcamTimer = setTimeout(tick, delay);
+        }, delay);
+      })
+      .catch((err) => {
+        console.log("Error accessing webcam:", err);
+      });
+  }
+
+  function stopWebcam() {
+    clearTimeout(webcamTimer);
+    // Stop the webcam stream.
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+        stream.getTracks().forEach((track) => track.stop());
+      });
+    }
   }
 }

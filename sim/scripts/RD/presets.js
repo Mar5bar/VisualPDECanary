@@ -6689,6 +6689,7 @@ presets["default"] = {
   cameraPhi: 30,
   cameraTheta: 30,
   cameraZoom: 0.8,
+  captureWebcam: false,
   colourbar: false,
   colourmap: "turbo",
   comboStr_1: "",
