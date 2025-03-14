@@ -4420,12 +4420,6 @@ async function VisualPDE(url) {
       $("#play").show();
       $("#play").visible();
     }
-    if (options.captureWebcam) {
-      options.captureWebcam = false;
-      updateToggle(document.getElementById("captureWebcamToggle"));
-      configureWebcam();
-    }
-
     isRunning = false;
     renderIfNotRunning();
   }
