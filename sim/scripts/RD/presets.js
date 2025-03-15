@@ -33,6 +33,37 @@ presets["ImmunotherapyCircleHysteresis"] = {
 	"preset": "ImmunotherapyCircleHysteresis",
 };
 
+presets["ImmunotherapyCircleHysteresis"] = {
+	"initCond_1": "0.301*(1+eta*RANDN)",
+	"initCond_2": "0.477*(1+eta*RANDN)",
+	"initCond_3": "0.0136*(1+eta*RANDN)",
+	"kineticParams": "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 100;sigma_u = 0.014;sigma_w = 0;alpha = 0.07;K_u = 0.000;eta = 0.2;K_w=20;",
+	"parent": "ImmunotherapyCircleNeumann",
+	"reactionStr_3": "rho_w*u*v/(gamma_w+v)-mu_w*w+K_w*((t/400)*H(0.5-t/400)+(1-t/400)*H(t/400-0.5))*H(1-t/400)",
+	"views": [{
+	"maxColourValue": "1",
+	"probeFun": "u/(pi*L_x^2/4)",
+	"probeLength": 60.00000000000001,
+	"whatToPlot": "u",
+	"name": "Effector cells",
+},
+	{
+	"maxColourValue": "0.7",
+	"probeFun": "v/(pi*L_x^2/4)",
+	"probeLength": 300,
+	"whatToPlot": "v",
+	"name": "Cancer cells",
+},
+	{
+	"maxColourValue": "1.1449013147675608e-27",
+	"probeFun": "w/(pi*L_x^2/4)",
+	"probeLength": 60.00000000000001,
+	"whatToPlot": "w",
+	"name": "IL2 compound",
+}],
+	"preset": "ImmunotherapyCircleHysteresis",
+};
+
 
 presets["ImmunotherapySquareDirichlet"] = {
   autoPause: true,
