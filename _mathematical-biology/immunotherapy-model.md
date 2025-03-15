@@ -2,8 +2,8 @@
 layout: page
 title: "Spatial resilience in cancer immunotherapy"
 lesson_number: 140
-thumbnail: /assets/images/TuringNotEnough.webp
-extract: Turing patterns affect cancer treatment
+thumbnail: /assets/images/Immunotherapy.webp
+extract: Turing patterning affects cancer treatment
 equation: $\pd{u}{t} = \delta_{u} \nabla^2 u + \alpha v-\mu_{u} u+\frac{\rho_{u} u w}{1+w}+\sigma_{u}+K_{u} t$, $\pd{v}{t} = \nabla^2 v + v \left(1-v\right)-u v/\left(\gamma_{v}+v\right)$, $\pd{w}{t} = \delta_{w} \nabla^2 w + \frac{\rho_{w} u v}{\gamma_{w}+v}-\mu_{w} w+\sigma_{w}+K_{w} t$
 categories: [biology, patterns, parabolic]
 ---
@@ -14,8 +14,8 @@ $$
 \begin{aligned}
     \pd{u}{t} &= \delta_{u} \nabla^2 u + \alpha v-\mu_{u} u+\frac{\rho_{u} u w}{1+w}+\sigma_{u}+K_{u} t,\\
     \pd{v}{t} &= \nabla^2 v + v \left(1-v\right)-u v/\left(\gamma_{v}+v\right),\\
-    \pd{w}{t} &= \delta_{w} \nabla^2 w + \frac{\rho_{w} u v}{\gamma_{w}+v}-\mu_{w} w+\sigma_{w}+K_{w} t
-    \end{aligned},
+    \pd{w}{t} &= \delta_{w} \nabla^2 w + \frac{\rho_{w} u v}{\gamma_{w}+v}-\mu_{w} w+\sigma_{w}+K_{w} t,
+    \end{aligned}
 $$
 
 where $u$ measures the density of effector (immunotherapeutic) cells, $v$ the density of cancer cells, and $w$ the concentration of IL2 compounds, which stimulate the effector cells' response to cancer. All other (positive) parameters correspond to interactions between these three components of the model, with the two $\sigma$ and $K$ variables in particular playing the role of applied immunotherapeutic treatment. By default we consider Neumann boundary conditions for all species.
@@ -29,6 +29,8 @@ where $u$ measures the density of effector (immunotherapeutic) cells, $v$ the de
 # Varying treatment & hysteresis
 
 The terms $\sigma_w$ and $K_w$ allow for a constant and a linear (in time) treatment respectively. A more realistic model of IL2 treatment would be to ramp up treatment to a maximum sustained dose, and then ramp it down to no treatment. In [this time-varying treatment simulation](/sim/?preset=ImmunotherapyCircleHysteresis), we implement this by linearly increasing a source of $w$ until $t=200$, and then linearly decreasing the source back to $0$ by $t=400$. This leads to an almost-elimination of the tumour, but small remnants can regrow due to patterned regions of the tumour. Interestingly, there is a kind of hysteresis where the final state is an inhomogeneous pattern, rather than the initial stable homogeneous state that was started with, despite the parameters for $t>400$ being equivalent to the initial untreated system.
+
+You can also compare this treatment to parameters that do not form patterns by setting $\delta_u=10$ or lower and restarting the simulation with {{ layout.restart }}. In this case, the tumour is eliminated well before the maximal dose is reached, approximately at $t=75$.
 
 # Boundary-driven treatment
 
