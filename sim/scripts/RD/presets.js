@@ -58,7 +58,7 @@ presets["ImmunotherapyCircleNeumann"] = {
   initCond_2: "0.505*(1+eta*RANDN)",
   initCond_3: "0.022*(1+eta*RANDN)",
   kineticParams:
-    "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 100;sigma_u = 0;sigma_w = 0.5;alpha = 0.07;K_u = 0.0001;eta = 0.2;K_w = 0;",
+    "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 100;sigma_u = 0.01;sigma_w = 0.5;alpha = 0.07;K_u = 0.0001;eta = 0.2;K_w = 0;",
   numSpecies: 3,
   numTimestepsPerFrame: 250,
   preset: "ImmunotherapyCircleNeumann",
