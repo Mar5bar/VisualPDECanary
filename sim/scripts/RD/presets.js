@@ -9,7 +9,7 @@ presets["ImmunotherapySquareDirichlet"] = {
   initCond_2: "0.405*(1+eta*RANDN)",
   initCond_3: "0.0135*(1+eta*RANDN)",
   kineticParams:
-    "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 1000;sigma_u=0.007;sigma_w = 0;alpha = 0.1;K_u = 0*sigma_u;eta = 0;K_w = 0;B_w = 0.005;",
+    "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 100;sigma_u=0.007;sigma_w = 0;alpha = 0.1;K_u = 0*sigma_u;eta = 0;K_w = 0;B_w = 0.005;",
   parent: "ImmunotherapyCircleNeumann",
   preset: "ImmunotherapySquareDirichlet",
   views: [
@@ -54,11 +54,11 @@ presets["ImmunotherapyCircleNeumann"] = {
   domainScale: "300",
   domainViaIndicatorFun: true,
   dt: 0.0008,
-  initCond_1: "0.3*(1+eta*RANDN)",
-  initCond_2: "0.475*(1+eta*RANDN)",
-  initCond_3: "0.0138*(1+eta*RANDN)",
+  initCond_1: "0.299*(1+eta*RANDN)",
+  initCond_2: "0.505*(1+eta*RANDN)",
+  initCond_3: "0.022*(1+eta*RANDN)",
   kineticParams:
-    "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 1000;sigma_u = 0.0002 in [0.012, 0.1];sigma_w = 0;alpha = 0.1;K_u = 0.4*sigma_u;eta = 0.1;K_w = 0;",
+    "rho_u = 0.692;rho_w = 2.5;gamma_v = 0.1;gamma_w = 0.001;mu_u = 0.167;mu_w = 55.56;delta_u = 100;delta_w = 100;sigma_u = 0;sigma_w = 0.5;alpha = 0.07;K_u = 0.0001;eta = 0.2;K_w = 0;",
   numSpecies: 3,
   numTimestepsPerFrame: 250,
   preset: "ImmunotherapyCircleNeumann",
