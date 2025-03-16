@@ -159,6 +159,7 @@ presets["ImmunotherapyCircleNeumann"] = {
       name: "Effector cells",
     },
     {
+      colourmap: "viridis",
       maxColourValue: "0.7",
       probing: true,
       probeFun: "v/(pi*L_x^2/4)",
