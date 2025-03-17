@@ -880,7 +880,13 @@ async function VisualPDE(url) {
   resetSim();
   animate();
   if (options.captureWebcam) {
-    configureWebcam();
+    // Show the webcam access pane.
+    $("#webcam_access").show();
+    // Attach a listener to the button in the webcam access pane that will configure the webcam.
+    document.getElementById("webcam_ok").addEventListener("click", () => {
+      configureWebcam();
+      $("#webcam_access").hide();
+    });
   }
 
   // Monitor the rate at which time is being increased in the simulation.
@@ -11323,7 +11329,9 @@ async function VisualPDE(url) {
   }
 
   function configureWebcam() {
-    stopWebcam();
+    if (!options.captureWebcam) {
+      stopWebcam();
+    }
     if (options.captureWebcam) {
       startWebcam();
     }
