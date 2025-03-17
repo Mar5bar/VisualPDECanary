@@ -2886,7 +2886,7 @@ async function VisualPDE(url) {
     addToggle(
       devButtons,
       "captureWebcam",
-      '<i class="fa-regular fa-camera"></i> Webcam',
+      '<i class="fa-regular fa-camera"></i> Camera',
       function () {
         configureWebcam();
       },

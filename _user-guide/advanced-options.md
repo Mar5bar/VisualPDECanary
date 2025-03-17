@@ -488,6 +488,12 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 
       ***Mixed strings*** will toggle the visibility of verbose strings associated with mixed boundary conditions. These are off by default, but can be useful for advanced cases such as simultaneously imposing Dirichlet and Neumann conditions.
 
+      ***Long url*** will copy a long URL that is guaranteed to not be minified.
+
+      ***Camera*** will enable the user's camera and replace $I_S$ with the live video stream.
+
+      ***Cam delay*** sets the delay (in milliseconds) between frames grabbed from the user's camera.
+
 ---
 
 ## Writing valid expressions <a class="anchor" id='writing-valid-expressions'>
