@@ -2,6 +2,34 @@
 
 let presets = {};
 
+presets["GrayScottWebcam"] = {
+	"captureWebcam": true,
+	"colourmap": "viridis",
+	"diffusionStr_1_1": "1",
+	"diffusionStr_2_2": "2",
+	"diffusionStr_3_3": "0",
+	"domainScale": "1000",
+	"guiUpdatePeriod": 3,
+	"initCond_1": "Bump(L_x/2,L_y/5,5)",
+	"initCond_2": "1",
+	"kineticParams": "a = 0.0257 in [0, 0.1];b = 0.06 in [0.04, 0.1];",
+	"maxColourValue": "0.37",
+	"minColourValue": "0",
+	"numTimestepsPerFrame": 78,
+	"preset": "GrayScottWebcam",
+	"probeFun": "u",
+	"probeLength": 3000,
+	"resetOnImageLoad": true,
+	"reactionStr_1": "u^2*v - (a+b)*u+a*I_S*u",
+	"reactionStr_2": "-u^2*v + a*(1 - v)",
+	"reactionStr_3": "0",
+	"spatialStep": "3",
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	"simTitle": "Gray–Scott",
+};
+
+
 presets["ImmunotherapyCircleHysteresis"] = {
   initCond_1: "0.301*(1+eta*RANDN)",
   initCond_2: "0.477*(1+eta*RANDN)",

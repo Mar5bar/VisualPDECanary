@@ -22,3 +22,7 @@ You can upload a replacement for either of these images under <span class='click
 * [a Halloween design](/sim/?preset=Jack)
 * [a VisualPDE QR code](/sim/?preset=QR)
 * [a spiralling shell](/sim/?preset=shell)
+
+# Put yourself into a live model!
+
+You can also use the camera of your device to stream yourself (or other data) as a forcing into the system in [this interactive webcam simulation](/sim/?preset=GrayScottWebcam). 
