@@ -768,37 +768,9 @@ export function RDShaderEnforceDirichletTop() {
         float y = textureCoords.y * L_y + MINY;
         float interior = float(textureCoords.x > 0.75*step_x && textureCoords.x < 1.0 - 0.75*step_x && textureCoords.y > 0.5*step_y && textureCoords.y < 1.0 - 0.75*step_y);
         float exterior = 1.0 - interior;
-        vec2 dSquared = 1.0/vec2(dx*dx, dy*dy);
-        vec2 textureCoordsL = textureCoords + vec2(-step_x, 0.0);
-        vec2 textureCoordsLL = textureCoordsL + vec2(-step_x, 0.0);
-        vec2 textureCoordsR = textureCoords + vec2(+step_x, 0.0);
-        vec2 textureCoordsRR = textureCoordsR + vec2(+step_x, 0.0);
-        vec2 textureCoordsT = textureCoords + vec2(0.0, +step_y);
-        vec2 textureCoordsTT = textureCoordsT + vec2(0.0, +step_y);
-        vec2 textureCoordsB = textureCoords + vec2(0.0, -step_y);
-        vec2 textureCoordsBB = textureCoordsB + vec2(0.0, -step_y);
 
         vec4 uvwq = texture2D(textureSource, textureCoords);
         gl_FragColor = uvwq;
-
-        vec4 uvwqL = texture2D(textureSource, textureCoordsL);
-        vec4 uvwqR = texture2D(textureSource, textureCoordsR);
-        vec4 uvwqT = texture2D(textureSource, textureCoordsT);
-        vec4 uvwqB = texture2D(textureSource, textureCoordsB);
-        vec4 uvwqLL = texture2D(textureSource, textureCoordsLL);
-        vec4 uvwqRR = texture2D(textureSource, textureCoordsRR);
-        vec4 uvwqTT = texture2D(textureSource, textureCoordsTT);
-        vec4 uvwqBB = texture2D(textureSource, textureCoordsBB);
-        vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
-        vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
-        vec4 uvwqXF = (uvwqR - uvwq) / dx;
-        vec4 uvwqYF = (uvwqT - uvwq) / dy;
-        vec4 uvwqXB = (uvwq - uvwqL) / dx;
-        vec4 uvwqYB = (uvwq - uvwqB) / dy;
-        vec4 uvwqXFXF = (4.0*uvwqR - 3.0*uvwq - uvwqRR) / (2.0*dx);
-        vec4 uvwqYFYF = (4.0*uvwqT - 3.0*uvwq - uvwqTT) / (2.0*dy);
-        vec4 uvwqXBXB = (3.0*uvwq - 4.0*uvwqL + uvwqLL) / (2.0*dx);
-        vec4 uvwqYBYB = (3.0*uvwq - 4.0*uvwqB + uvwqBB) / (2.0*dy);
     `;
 }
 

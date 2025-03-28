@@ -5071,25 +5071,8 @@ async function VisualPDE(url) {
       middle = randNShader() + middle;
     }
     shaderContainsRAND = containsRAND || containsRANDN;
-    let bot = [
-      RDShaderAdvectionPreBC(),
-      dirichletShader,
-      algebraicShader,
-      RDShaderBot(),
-    ].join(" ");
+    let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
-    console.log(
-      simMaterials["FE"],
-      replaceMINXMINY(
-        [
-          kineticStr,
-          RDShaderTop("FE"),
-          middle,
-          insertRates(RDShaderMain("FE")),
-          bot,
-        ].join(" "),
-      ),
-    );
     let type = "FE";
     assignFragmentShader(
       simMaterials[type],
