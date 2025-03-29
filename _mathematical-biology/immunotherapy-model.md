@@ -18,7 +18,7 @@ $$
     \end{aligned}
 $$
 
-where $u$ measures the density of effector (immunotherapeutic) cells, $v$ the density of cancer cells, and $w$ the concentration of IL-2 compounds, which stimulate the effector cells' response to cancer. All other (positive) parameters correspond to interactions between these three components of the model, with the two $\sigma$ and $K$ variables in particular playing the role of applied immunotherapeutic treatment. By default we consider Neumann boundary conditions for all species.
+where $u$ measures the density of effector (immunotherapeutic) cells, $v$ the density of cancer cells, and $w$ the concentration of IL-2 compounds, which stimulate the effector cells' response to cancer. All other (positive) parameters correspond to interactions between these three components of the model, with the two $\sigma$ and $K$ variables in particular playing the role of applied immunotherapeutic treatment. By default we consider Neumann boundary conditions for all species except where this is changed below. These simulations complement [this paper](https://arxiv.org/abs/2503.20909), which overall demonstrates the impact of spatial pattern formation on tumour resistance to treatment.
 
 * Load the [interactive simulation](/sim/?preset=ImmunotherapyCircleNeumann) which shows the influence of increasing effector cells over time ($K_u>0$, $K_w=0$) on the persistence of the cancer density $v$ which is plotted in a circular domain, with the mean cancer cell density given in the time series at the bottom-left of the screen.
 
