@@ -12,7 +12,7 @@ In the overdamped regime (i.e. in the absence of inertia), the dimensionless equ
 
 $$\begin{aligned}\pd{y}{t}=-\pdd{}{x}\left(E\pdd{y}{x}\right),\end{aligned}$$
 
-where $E$ represents the stiffness of beam, or how difficult it is to bend. Traditionally, this stiffness is taken to be a constant or perhaps to depend on the position $x$.
+where $E$ represents the stiffness of the beam, or how difficult it is to bend. Traditionally, this stiffness is taken to be a constant or perhaps to depend on the position $x$.
 
 In the simulation below, we consider a beam with a stiffness that depends on the local curvature, so that
 
