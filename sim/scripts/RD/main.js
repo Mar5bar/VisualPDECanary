@@ -5063,7 +5063,9 @@ async function VisualPDE(url) {
       diffusionShader,
     ].join(" ");
     let containsRAND = /\bRAND\b/.test(middle);
-    let containsRANDN = /\b(RANDN|RANDNTWO|RANDNTHREE|RANDNFOUR)\b/.test(middle);
+    let containsRANDN = /\b(RANDN|RANDNTWO|RANDNTHREE|RANDNFOUR)\b/.test(
+      middle,
+    );
     if (containsRAND) {
       middle = randShader() + middle;
     }
@@ -10736,7 +10738,9 @@ async function VisualPDE(url) {
     if (options.dimension == 1) {
       str = str.replaceAll(/\bWhiteNoise(_1)?\b/g, "RANDN*sqrt(1/(dt*dx))");
       str = str.replaceAll(/\bWhiteNoise_([2-4])\b/g, function (match, p1) {
-        return "RANDN" + numsAsWords[Number(p1)].toUpperCase() + "*sqrt(1/(dt*dx))";
+        return (
+          "RANDN" + numsAsWords[Number(p1)].toUpperCase() + "*sqrt(1/(dt*dx))"
+        );
       });
     } else {
       str = str.replaceAll(
@@ -10744,7 +10748,11 @@ async function VisualPDE(url) {
         "RANDN*sqrt(1/(dt*pow(dx,2)))",
       );
       str = str.replaceAll(/\bWhiteNoise_([2-4])\b/g, function (match, p1) {
-        return "RANDN" + numsAsWords[Number(p1)].toUpperCase() + "*sqrt(1/(dt*pow(dx,2)))";
+        return (
+          "RANDN" +
+          numsAsWords[Number(p1)].toUpperCase() +
+          "*sqrt(1/(dt*pow(dx,2)))"
+        );
       });
     }
     return str;
