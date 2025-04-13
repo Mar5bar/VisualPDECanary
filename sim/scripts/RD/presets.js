@@ -3,19 +3,19 @@
 let presets = {};
 
 presets["GrayScottiframeAdvection"] = {
-	"diffusionStr_2_2": "D",
-	"domainScale": "500",
-	"initCond_1": "2*exp(-10000*RAND)",
-	"kineticParams": "a = 0.04 in [0, 0.1];b = 0.065 in [0.04, 0.1];D = 2.0 in [1,4];V = 0.00 in [0,0.5];",
-	"maxColourValue": "0.5",
-	"parent": "GrayScott",
-	"probeFun": "u",
-	"probeLength": 3000,
-	"reactionStr_1": "u^2*v - (a+b)*u-V*u_x",
-	"squareCanvas": true,
-	"preset": "GrayScottiframeAdvection",
+  diffusionStr_2_2: "D",
+  domainScale: "500",
+  initCond_1: "2*exp(-10000*RAND)",
+  kineticParams:
+    "a = 0.04 in [0, 0.1];b = 0.065 in [0.04, 0.1];D = 2.0 in [1,4];V = 0.00 in [0,0.5];",
+  maxColourValue: "0.5",
+  parent: "GrayScott",
+  probeFun: "u",
+  probeLength: 3000,
+  reactionStr_1: "u^2*v - (a+b)*u-V*u_x",
+  squareCanvas: true,
+  preset: "GrayScottiframeAdvection",
 };
-
 
 presets["PatterningViaLimitCycles"] = {
   boundaryConditions_1: "neumann",
