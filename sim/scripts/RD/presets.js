@@ -2,6 +2,39 @@
 
 let presets = {};
 
+presets["PatterningViaLimitCycles"] = {
+	"boundaryConditions_1": "neumann",
+	"boundaryConditions_2": "neumann",
+	"colourbar": true,
+	"colourmap": "viridis",
+	"diffusionStr_1_1": "epsilon",
+	"diffusionStr_2_2": "1",
+	"diffusionStr_3_3": "0",
+	"domainScale": "20",
+	"dt": 0.001,
+	"initCond_1": "delta*(1+0.1*RANDN)",
+	"initCond_2": "-delta^2*r+delta*kappa*r+delta*r-kappa*r",
+	"kineticParams": "r = 1 in [0.1, 1];kappa = 5;delta = 2;epsilon = 0.025;K = 1 ;",
+	"maxColourValue": "4",
+	"minColourValue": "0",
+	"overlayColour": 16711680,
+	"overlayExpr": "0",
+	"preset": "PatterningViaLimitCycles",
+	"probeFun": "u",
+	"probeLength": 3000,
+	"probeType": "sample",
+	"probeX": "L_x*0.8",
+	"reactionStr_1": "r*u*(u-1)*(kappa-u)-u*v",
+	"reactionStr_2": "v*(u-delta)",
+	"reactionStr_3": "0",
+	"spatialStep": "0.075",
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	"simTitle": "Pattern Formation via Limit Cycle Instability",
+};
+
+
 presets["GiererMeinhardtStripeiframe"] = {
   brushRadius: "2",
   diffusionStr_2_2: "D",
