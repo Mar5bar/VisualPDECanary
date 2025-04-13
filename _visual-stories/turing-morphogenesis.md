@@ -43,7 +43,6 @@ INTRODUCTORY TEXT
 <iframe id="simGM" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=GiererMeinhardtStripeiframe&story&nomathjax" frameborder="0" loading="lazy"></iframe>
 
 
-
 # Pattern Formation without an Activator or Inhibitor
 Lorem ipsum
 Lorem ipsum
@@ -112,7 +111,7 @@ Lorem ipsum
     min-label="Normal"
     max-label="Improved"
     min="0"
-    max="0.5"
+    max="0.3"
     value="0"
     step="0.05"
 ></vpde-slider></p>
