@@ -29,8 +29,6 @@ Below is an example simulation of a modified [Gierer-Meinhardt model](/mathemati
     step="5"
 ></vpde-slider></p>
 
-<iframe id="simGM" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=GiererMeinhardtStripeiframe&story&nomathjax" frameborder="0" loading="lazy"></iframe>
-
 <p style="text-align:center;margin-bottom:0;"><vpde-slider
     iframe="simGM"
     name="K"
@@ -43,11 +41,15 @@ Below is an example simulation of a modified [Gierer-Meinhardt model](/mathemati
     value="0"
 ></vpde-slider></p>
 
+<iframe id="simGM" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=GiererMeinhardtStripeiframe&story&nomathjax" frameborder="0" loading="lazy"></iframe>
+
+
+
 <p></p>
 
 ## Patterning via chemotaxis
 
-The basic notion of short-range activation and long-range inhibition also applies to many other pattern-forming models, such as the [Keller-Segel model](/mathematical-biology/keller-segel) of chemotaxis. Below is an example simulation of this model, with a tunable parameter controlling background cell growth kinetics. For essentially negligible cell growth, this model undergoes a Turing-like instability to form a spatial pattern of spots of high cell density. As the cell growth is increased, the pattern becomes more unstable, undergoing transitions between oscillatory spot and stripe-like behaviours, and eventually hole-like patterns, before the instability ceases to exist for sufficiently large growth.
+The basic notion of short-range activation and long-range inhibition also applies to many other pattern-forming models, such as the [Keller-Segel model](/mathematical-biology/keller-segel) of chemotaxis. Below is an example simulation of this model, with a tunable parameter controlling background cell growth kinetics. For essentially negligible cell growth, this model undergoes a Turing-like instability to form a spatial pattern of spots of high cell density. As the cell growth is increased, the pattern becomes more unstable, undergoing transitions between oscillatory spot and stripe-like behaviours, and eventually hole-like patterns, before the instability ceases to exist for sufficiently large growth. Importantly, there is also an aspect of hysteresis here, as one can only get patterned states for intermediate cell growth regimes if the cell growth is increased sufficiently slowly. If it is increased quickly, or decreased slowly after the system has gone to a spatially uniform state, very small deviations from uniformity will not grow.
 
 <p style="text-align:center;margin-bottom:0;"><vpde-slider
     iframe="simKS"
@@ -87,10 +89,10 @@ Here is a system without a self-inhibitor that cannot undergo Turing instabiliti
 
 ## Pattern Formation with Equal Transport Coefficients
 
-The notions of Turing instabilities and short-range activation long-range inhibition have been extended to reaction-diffusion systems with more than two-components. However, these systems can also undergo a variety of other complex behaviours, and they still require some kind of differential transport to induce patterning instabilities. Here we give an example of a system that has equal diffusion coefficients, but exhibits spatiotemporal pattern formation in the form of spiral waves. These arise due to a complex but symmetric rock-paper-scissors dynamic between the three species, sometimes described in the literature as [cyclic competition](/mathematical-biology/cyclic-competition) in a generalised Lotka-Volterra system.
+The notions of Turing instabilities and short-range activation long-range inhibition have been extended to reaction-diffusion systems with more than two-components. However, these systems can also undergo a variety of other complex behaviours, and they still require some kind of differential transport to induce patterning instabilities. Here we give an example of a system that has equal diffusion coefficients, but exhibits spatiotemporal pattern formation in the form of spiral waves. These arise due to a complex but symmetric rock-paper-scissors dynamic between the three species, sometimes described in the literature as [cyclic competition](/mathematical-biology/cyclic-competition) in a generalised Lotka-Volterra system. Note: You can click to perturb this system into forming these patterns, or view a [wave-initiation of patterns here](/sim/?preset=cyclicCompetitionWave).
 
 
-<iframe id="simED" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=cyclicCompetitionWave&story&nomathjax" frameborder="0" loading="lazy"></iframe>
+<iframe id="simED" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=CyclicCompetitionWaveiframe&story&nomathjax" frameborder="0" loading="lazy"></iframe>
 
 <p></p>
 
@@ -109,7 +111,7 @@ As another example of 'nonstandard' pattern formation, we also show the impact o
     min="1"
     max="4"
     value="2"
-    step="0.4"
+    step="0.1"
 ></vpde-slider></p>
 
 <p style="text-align:center;margin-bottom:0;"><vpde-slider

@@ -2,6 +2,42 @@
 
 let presets = {};
 
+presets["CyclicCompetitionWaveiframe"] = {
+	"boundaryConditions_1": "neumann",
+	"boundaryConditions_2": "neumann",
+	"boundaryConditions_3": "neumann",
+	"brushAction": "smoothadd",
+	"brushRadius": "10",
+	"brushValue": "0.05",
+	"colourmap": "ice",
+	"domainScale": "300",
+	"emboss": true,
+	"initCond_1": "0.27",
+	"initCond_2": "0.27",
+	"initCond_3": "0.27",
+	"kineticParams": "a = 0.8;b = 1.9",
+	"maxColourValue": "1",
+	"minColourValue": "0",
+	"parent": "cyclicCompetitionWave",
+	"reactionStr_1": "u*(1-u-a*v-b*w)",
+	"reactionStr_2": "v*(1-b*u-v-a*w)",
+	"reactionStr_3": "w*(1-a*u-b*v-w)",
+	"spatialStep": "1",
+	"squareCanvas": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	"simTitle": "Cyclic competition",
+	"diffusionUStr": "0.000001",
+	"diffusionVStr": "0.00004",
+	"diffusionWStr": "0.000008",
+	"diffusionU": 0.000001,
+	"diffusionV": 0.00004,
+	"diffusionW": 0.000008,
+	"preset": "CyclicCompetitionWaveiframe",
+  	runningOnLoad: false,
+};
+
+
 presets["KellerSegeliframe"] = {
   brushAction: "smoothadd",
   brushRadius: "5",
@@ -42,7 +78,6 @@ presets["GrayScottiframeAdvection"] = {
 presets["PatterningViaLimitCycles"] = {
   boundaryConditions_1: "neumann",
   boundaryConditions_2: "neumann",
-  colourbar: true,
   colourmap: "viridis",
   diffusionStr_1_1: "epsilon",
   diffusionStr_2_2: "1",
@@ -648,7 +683,6 @@ presets["cyclicCompetitionWave"] = {
   parent: "cyclicCompetition",
   probeFun: "u",
   probeLength: 150,
-  runningOnLoad: false,
   setSeed: true,
   preset: "cyclicCompetitionWave",
 };
