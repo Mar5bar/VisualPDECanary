@@ -34,7 +34,6 @@ presets["CyclicCompetitionWaveiframe"] = {
   diffusionV: 0.00004,
   diffusionW: 0.000008,
   preset: "CyclicCompetitionWaveiframe",
-  runningOnLoad: false,
 };
 
 presets["KellerSegeliframe"] = {
