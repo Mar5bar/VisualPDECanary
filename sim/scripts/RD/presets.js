@@ -47,7 +47,7 @@ presets["PatterningViaLimitCycles"] = {
   diffusionStr_3_3: "0",
   domainScale: "20",
   dt: 0.001,
-  initCond_1: "uss*(1+0.005*RANDN+1+0.05*cos(20*pi*x/L_x))",
+  initCond_1: "delta*(1+0.005*RANDN)",
   initCond_2: "-delta^2*r+delta*kappa*r+delta*r-kappa*r",
   kineticParams:
     "r = 1 in [0.1, 1];kappa = 5;delta = 2;epsilon = 0.025;K = 1 ;",
