@@ -3,24 +3,24 @@
 let presets = {};
 
 presets["KellerSegeliframe"] = {
-	"brushAction": "smoothadd",
-	"brushRadius": "5",
-	"brushValue": "0.1",
-	"domainScale": "80",
-	"emboss": false,
-	"initCond_1": "1+0.1*RANDN",
-	"initCond_2": "1/a",
-	"kineticParams": "c = 1 in [3, 0.1, 4];D = 1 in [0, 1];a = 0.1 in [0, 0.2];r = 0.0010000000000000 in [0.001, 0.3];",
-	"maxColourValue": "4",
-	"minColourValue": "0",
-	"parent": "KellerSegel",
-	"probeFun": "u",
-	"probeLength": 150,
-	"reactionStr_1": "r*u*(1-u)",
-	"squareCanvas": true,
-	"preset": "KellerSegeliframe",
+  brushAction: "smoothadd",
+  brushRadius: "5",
+  brushValue: "0.1",
+  domainScale: "80",
+  emboss: false,
+  initCond_1: "1+0.1*RANDN",
+  initCond_2: "1/a",
+  kineticParams:
+    "c = 1 in [3, 0.1, 4];D = 1 in [0, 1];a = 0.1 in [0, 0.2];r = 0.0010000000000000 in [0.001, 0.3];",
+  maxColourValue: "4",
+  minColourValue: "0",
+  parent: "KellerSegel",
+  probeFun: "u",
+  probeLength: 150,
+  reactionStr_1: "r*u*(1-u)",
+  squareCanvas: true,
+  preset: "KellerSegeliframe",
 };
-
 
 presets["GrayScottiframeAdvection"] = {
   diffusionStr_2_2: "D",
