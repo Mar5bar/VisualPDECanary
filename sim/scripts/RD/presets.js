@@ -18,7 +18,7 @@ presets["KellerSegeliframe"] = {
   probeFun: "u",
   probeLength: 150,
   reactionStr_1: "r*u*(1-u)",
-  runningOnLoad: false
+  runningOnLoad: false,
   squareCanvas: true,
   preset: "KellerSegeliframe",
 };
@@ -34,7 +34,7 @@ presets["GrayScottiframeAdvection"] = {
   probeFun: "u",
   probeLength: 3000,
   reactionStr_1: "u^2*v - (a+b)*u-V*u_x",
-  runningOnLoad: false
+  runningOnLoad: false,
   squareCanvas: true,
   preset: "GrayScottiframeAdvection",
 };
@@ -65,7 +65,7 @@ presets["PatterningViaLimitCycles"] = {
   reactionStr_1: "r*u*(u-1)*(kappa-u)-u*v",
   reactionStr_2: "v*(u-delta)",
   reactionStr_3: "0",
-  runningOnLoad: false
+  runningOnLoad: false,
   spatialStep: "0.075",
   squareCanvas: true,
   whatToDraw: "u",
@@ -78,7 +78,7 @@ presets["GiererMeinhardtStripeiframe"] = {
   diffusionStr_2_2: "D",
   domainScale: "100",
   dt: 0.0006,
-  initCond_1: "uss*(1+0.01*RANDN+1+0.1*cos(20*pi*x/L_x))",
+  initCond_1: "uss*(1+0.01*RANDN+0.1*cos(20*pi*x/L_x))",
   initCond_2: "vss",
   kineticParams:
     "K = 0.0000 in [0, 0.001, 0.005];a = 0.5;b = 1;c = 6.1;uss = (a+c)/b;vss = uss^2/c;D = 100.0 in [45,100];",
@@ -87,7 +87,7 @@ presets["GiererMeinhardtStripeiframe"] = {
   parent: "GiererMeinhardtStripes",
   probeFun: "u",
   probeLength: 18,
-  runningOnLoad: false
+  runningOnLoad: false,
   squareCanvas: true,
   timesteppingScheme: "Mid",
   preset: "GiererMeinhardtStripeiframe",
