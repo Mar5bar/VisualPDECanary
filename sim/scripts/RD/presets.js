@@ -2,6 +2,26 @@
 
 let presets = {};
 
+presets["KellerSegeliframe"] = {
+	"brushAction": "smoothadd",
+	"brushRadius": "5",
+	"brushValue": "0.1",
+	"domainScale": "80",
+	"emboss": false,
+	"initCond_1": "1+0.1*RANDN",
+	"initCond_2": "1/a",
+	"kineticParams": "c = 1 in [3, 0.1, 4];D = 1 in [0, 1];a = 0.1 in [0, 0.2];r = 0.0010000000000000 in [0.001, 0.3];",
+	"maxColourValue": "4",
+	"minColourValue": "0",
+	"parent": "KellerSegel",
+	"probeFun": "u",
+	"probeLength": 150,
+	"reactionStr_1": "r*u*(1-u)",
+	"squareCanvas": true,
+	"preset": "KellerSegeliframe",
+};
+
+
 presets["GrayScottiframeAdvection"] = {
   diffusionStr_2_2: "D",
   domainScale: "500",
@@ -27,7 +47,7 @@ presets["PatterningViaLimitCycles"] = {
   diffusionStr_3_3: "0",
   domainScale: "20",
   dt: 0.001,
-  initCond_1: "uss*(1+0.01*RANDN+0.5*cos(10.5*pi*x/L_x))",
+  initCond_1: "uss*(1+0.005*RANDN+1+0.05*cos(20*pi*x/L_x))",
   initCond_2: "-delta^2*r+delta*kappa*r+delta*r-kappa*r",
   kineticParams:
     "r = 1 in [0.1, 1];kappa = 5;delta = 2;epsilon = 0.025;K = 1 ;",
@@ -55,7 +75,7 @@ presets["GiererMeinhardtStripeiframe"] = {
   diffusionStr_2_2: "D",
   domainScale: "100",
   dt: 0.0006,
-  initCond_1: "uss*(1+0.1*RANDN)",
+  initCond_1: "uss*(1+0.01*RANDN+1+0.1*cos(20*pi*x/L_x))",
   initCond_2: "vss",
   kineticParams:
     "K = 0.0000 in [0, 0.001, 0.005];a = 0.5;b = 1;c = 6.1;uss = (a+c)/b;vss = uss^2/c;D = 100.0 in [45,100];",
