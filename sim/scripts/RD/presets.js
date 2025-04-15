@@ -18,6 +18,7 @@ presets["KellerSegeliframe"] = {
   probeFun: "u",
   probeLength: 150,
   reactionStr_1: "r*u*(1-u)",
+  runningOnLoad: false
   squareCanvas: true,
   preset: "KellerSegeliframe",
 };
@@ -33,6 +34,7 @@ presets["GrayScottiframeAdvection"] = {
   probeFun: "u",
   probeLength: 3000,
   reactionStr_1: "u^2*v - (a+b)*u-V*u_x",
+  runningOnLoad: false
   squareCanvas: true,
   preset: "GrayScottiframeAdvection",
 };
@@ -63,6 +65,7 @@ presets["PatterningViaLimitCycles"] = {
   reactionStr_1: "r*u*(u-1)*(kappa-u)-u*v",
   reactionStr_2: "v*(u-delta)",
   reactionStr_3: "0",
+  runningOnLoad: false
   spatialStep: "0.075",
   squareCanvas: true,
   whatToDraw: "u",
@@ -84,6 +87,7 @@ presets["GiererMeinhardtStripeiframe"] = {
   parent: "GiererMeinhardtStripes",
   probeFun: "u",
   probeLength: 18,
+  runningOnLoad: false
   squareCanvas: true,
   timesteppingScheme: "Mid",
   preset: "GiererMeinhardtStripeiframe",
@@ -644,6 +648,7 @@ presets["cyclicCompetitionWave"] = {
   parent: "cyclicCompetition",
   probeFun: "u",
   probeLength: 150,
+  runningOnLoad: false
   setSeed: true,
   preset: "cyclicCompetitionWave",
 };
