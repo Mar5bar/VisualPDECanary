@@ -648,7 +648,7 @@ presets["cyclicCompetitionWave"] = {
   parent: "cyclicCompetition",
   probeFun: "u",
   probeLength: 150,
-  runningOnLoad: false
+  runningOnLoad: false,
   setSeed: true,
   preset: "cyclicCompetitionWave",
 };
