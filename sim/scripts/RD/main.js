@@ -4152,7 +4152,19 @@ async function VisualPDE(url) {
             (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
           ),
         );
-        points = curve.getSpacedPoints(numPointsInLine);
+        try {
+          points = curve.getSpacedPoints(numPointsInLine);
+        } catch (e) {
+          // If this fails, we've almost certainly hit NaN for the overlay species. Try to recover.
+          hitNaN();
+          yDisplayDomainCoords = yDisplayDomainCoords.map(() => 0);
+          curve = new THREE.SplineCurve(
+            xDisplayDomainCoords.map(
+              (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
+            ),
+          );
+          points = curve.getSpacedPoints(numPointsInLine);
+        }
         setLineXY(overlayLine, points);
       }
     }
