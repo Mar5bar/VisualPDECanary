@@ -77,7 +77,7 @@ Importantly, there is also an aspect of hysteresis here, as one can only get pat
 
 <p></p>
 
-## Pattern Formation with Differential Flow
+## Pattern formation with differential flow
 
 As another example of 'Turing-like' pattern formation, we also show the impact of [advection on pattern-forming systems](nonlinear-physics/advecting-patterns). Below is a variant of the [Gray-Scott](/nonlinear-physics/gray-scott) model with an advection term in the activator equation. 
 
@@ -117,7 +117,7 @@ Importantly, just the flow of the activator itself can allow for periodic (thoug
 
 
 
-## Pattern Formation without an Inhibitor (No Turing instabilities)
+## Pattern formation without an inhibitor (No Turing instabilities)
 
 
 Here is a system without a self-inhibitor that cannot undergo Turing instabilities (a spatial version of the [Bazykin-Berezovskaya population model](https://www.worldscientific.com/worldscibooks/10.1142/2284#t=aboutBook)). This model cannot have a Turing-like instability, yet can form patterned solutions.
