@@ -49,7 +49,7 @@ If the ratio between inhibitor and activator diffusion rates is decreased, the a
     value="0"
 ></vpde-slider></p>
 
-<iframe id="simGM" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=GiererMeinhardtStripeiframe&story&nomathjax" frameborder="0" loading="lazy"></iframe>
+<iframe id="simGM" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=GiererMeinhardtStripeiframe&story&nomathjax&sf=1" frameborder="0" loading="lazy"></iframe>
 
 <p></p>
 
