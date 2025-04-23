@@ -2,7 +2,7 @@
 layout: page
 title: Turing's theory of pattern formation
 lesson_number: 10
-thumbnail: /assets/images/chemicalBasis.webp
+thumbnail: /assets/images/Turing-Morphogenesis.webp
 extract: Exploring the chemical basis of morphogenesis
 equation:
 categories: [visual stories]
@@ -51,6 +51,8 @@ If the ratio between inhibitor and activator diffusion rates is decreased, the a
 
 <iframe id="simGM" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=GiererMeinhardtStripeiframe&story&nomathjax&sf=1" frameborder="0" loading="lazy"></iframe>
 
+[Gierer-Meinhardt fullscreen simulation](/sim/?preset=GiererMeinhardtStripeiframe)
+
 <p></p>
 
 ## Patterning via chemotaxis
@@ -73,13 +75,15 @@ For essentially negligible cell growth, this model undergoes a Turing-like insta
 
 <iframe id="simKS" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=KellerSegeliframe&story&nomathjax" frameborder="0" loading="lazy"></iframe>
 
+[Chemotaxis fullscreen simulation](/sim/?preset=KellerSegeliframe)
+
 Importantly, there is also an aspect of hysteresis here, as one can only get patterned states for intermediate cell growth regimes if the cell growth is increased sufficiently slowly. If it is increased quickly, or decreased slowly after the system has gone to a spatially uniform state, very small deviations from uniformity will not grow.
 
 <p></p>
 
 ## Pattern formation with differential flow
 
-As another example of 'Turing-like' pattern formation, we also show the impact of [advection on pattern-forming systems](nonlinear-physics/advecting-patterns). Below is a variant of the [Gray-Scott](/nonlinear-physics/gray-scott) model with an advection term in the activator equation. 
+As another example of 'Turing-like' pattern formation, we also show the impact of [advection on pattern-forming systems](/nonlinear-physics/advecting-patterns). Below is a variant of the [Gray-Scott](/nonlinear-physics/gray-scott) model with an advection term in the activator equation. 
 
 This model has a Turing instability if the ratio between inhibitor and activator diffusion is sufficiently large. But you can also increase the flow velocity of the activator, which allows for the movement of patterns. 
 
@@ -111,6 +115,8 @@ This model has a Turing instability if the ratio between inhibitor and activator
 
 <iframe id="simGSA" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=GrayScottiframeAdvection&story&nomathjax" frameborder="0" loading="lazy"></iframe>
 
+[Reaction-advection-diffusion fullscreen simulation](/sim/?preset=GrayScottiframeAdvection)
+
 Importantly, just the flow of the activator itself can allow for periodic (though moving) patterns, even if the ratio between activator and inhibitor is $1$ (i.e. one does not have the normal short-range activation and long-range inhibition). Such instabilities are sometimes referred to as flow-induced, rather than diffusion-driven; see [this paper](https://doi.org/10.1017/jfm.2019.620) for a wide view on the linear analysis of how such instabilities interact.
 
 <p></p>
@@ -140,6 +146,8 @@ If this is changed sufficiently slowly, one can see various transitions in the p
 
 <iframe id="simLC" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=PatterningViaLimitCycles&story&nomathjax" frameborder="0" loading="lazy"></iframe>
 
+[Bazykin-Berezovskaya fullscreen simulation](/sim/?preset=PatterningViaLimitCycles)
+
 <p></p>
 
 ## Pattern formation with equal transport coefficients
@@ -151,9 +159,11 @@ These arise due to a complex but symmetric rock-paper-scissors dynamic between t
 
 <iframe id="simED" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=CyclicCompetitionWaveiframe&story&nomathjax" frameborder="0" loading="lazy"></iframe>
 
+[Cyclic competition fullscreen simulation](/sim/?preset=CyclicCompetitionWaveiframe)
 
 <p></p>
 
+If you perturb the system differently, i.e. by clicking and dragging, you can get the waves generated here to degenerate into spiral-waves and other interesting spatiotemporal structures. 
 
 ## Turing instabilities are not enough to ensure pattern formation
 
