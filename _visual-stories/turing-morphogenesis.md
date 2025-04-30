@@ -123,10 +123,10 @@ Importantly, just the flow of the activator itself can allow for periodic (thoug
 
 
 
-## Pattern formation without an inhibitor (No Turing instabilities)
+## Pattern formation without an activator (No Turing instabilities)
 
 
-Here is a system without a self-inhibitor that cannot undergo Turing instabilities (a spatial version of the [Bazykin-Berezovskaya population model](https://www.worldscientific.com/worldscibooks/10.1142/2284#t=aboutBook)). This model cannot have a Turing-like instability, yet can form patterned solutions.
+Here is a system without a self-activator that cannot undergo Turing instabilities (a spatial version of the [Bazykin-Berezovskaya population model](https://www.worldscientific.com/worldscibooks/10.1142/2284#t=aboutBook)). This model cannot have a Turing-like instability, yet can form patterned solutions.
 
 The mechanism of pattern-formation here is not as well-studied, as it is more challenging theoretically, but involves a diffusion-driven instability of a spatially-uniform oscillating state. Here, the parameter labelled 'self-activation' determines the relative strength of the activator compared with its interaction to the other variable. 
 
