@@ -17,7 +17,7 @@ which is a very simple model of solitons, as described at the bottom of the page
 
 The [interactive simulation](/sim/?preset=KdV) starts with two solitons of different amplitudes and speeds, with the larger one moving more quickly and hence overtaking the smaller one at first. 
 
-While they occupy the same space, these solitons cannot be clearly distinguished as their ampltiudes locally add together, but as the faster soliton moves more quickly it eventually separates from the slower soliton, and neither speed nor amplitude of either soliton is changed.
+While they occupy the same space, these solitons cannot be clearly distinguished as their amplitudes locally add together, but as the faster soliton moves more quickly it eventually separates from the slower soliton, and neither speed nor amplitude of either soliton is changed.
 
 This example was helpfully constructed by [Paul Sutcliffe](https://www.durham.ac.uk/staff/p-m-sutcliffe/).
 

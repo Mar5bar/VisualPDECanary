@@ -24,7 +24,7 @@ We'll explore these flows in the half space $x>0$, applying a no-flux boundary c
 
 # Sources and symmetry
 
-Suppose we wanted to compute the flow due to a point source in the fluid in this domain, which amounts to solving the singulary forced Poisson equation
+Suppose we wanted to compute the flow due to a point source in the fluid in this domain, which amounts to solving the singularly forced Poisson equation
 
 $$\nabla^2 \phi = -\delta(x-x_S,y-y_S)$$
 

@@ -37,7 +37,7 @@ for some integer $m$ and domain length $L=280$.
 
 # Action potentials and travelling waves
 
-This model is often considered in the context of action potentials, which are nerve impulses that travel along neurons. We look at this model with an alternative parameterisation
+This model is often considered in the context of action potentials, which are nerve impulses that travel along neurons. We look at this model with an alternative parametrisation
 
 $$\begin{aligned}\pd{v}{t}&=D\nabla^2 v +v(v-a)(1-v) - w,\\ \pd{w}{t}&=\varepsilon(\gamma v - w),\end{aligned}$$
 

@@ -36,9 +36,9 @@ Spikes form across the domain at different amplitudes. The rightmost one undergo
 
 This eventually leads to enough room at the right for a new spike to emerge, which again undergoes a brief oscillatory period before settling down. This behaviour repeats indefinitely.
 
-The oscillations at the right, and the boundary spike on the left which does not move, are not terribly relevant for the movement or creation/annihilation of spikes. These are just artifacts of our particular choice of heterogeneity and kinetics.
+The oscillations at the right, and the boundary spike on the left which does not move, are not terribly relevant for the movement or creation/annihilation of spikes. These are just artefacts of our particular choice of heterogeneity and kinetics.
 
-We can get rid of these artifacts in the following way. We use Dirichlet conditions to introduce a flux of the inhibitor $v$ at the boundaries to dampen these spike oscillations and remove the leftmost boundary spike.
+We can get rid of these artefacts in the following way. We use Dirichlet conditions to introduce a flux of the inhibitor $v$ at the boundaries to dampen these spike oscillations and remove the leftmost boundary spike.
 
 * We set $v=2$ at the boundaries (retaining the $u=0$ condition from the previous simulation) in this [modified simulation](/sim/?preset=GMHeterogeneousOscillationsDirichletBCs).
 

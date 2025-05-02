@@ -77,7 +77,7 @@ where we have added a multiplicative white noise term wit intensity $\sigma$.
 
 * By default, the leftmost boundary oscillates to generate periodic travelling pulses. Clicking and holding introduces some of the inhibitor variable $u_2$ and, hence, one can destroy pulses by clicking on them.
 
-* Increasing the value of $\sigma$ from the initial zero value will induce some noise in the traveling pulses. Above some threshold around $\sigma \approx 0.3$, pulses will no longer remain stable and will decay into the background.
+* Increasing the value of $\sigma$ from the initial zero value will induce some noise in the travelling pulses. Above some threshold around $\sigma \approx 0.3$, pulses will no longer remain stable and will decay into the background.
 
 # Numerical health warning
 

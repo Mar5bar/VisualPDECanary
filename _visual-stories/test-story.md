@@ -3,7 +3,7 @@ layout: page
 title: A test story
 lesson_number: 20
 thumbnail: /assets/images/VirusTransmission.webp
-extract: Testing tesing
+extract: Testing testing
 published: false
 equation:
 categories: [visual stories]

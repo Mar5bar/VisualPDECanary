@@ -460,7 +460,7 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 
 - #### Interpolate
 
-  Use this option to force the use of manual, unoptimised filtering in place of device-default interplation of displayed colours. This toggle is not available on devices that do not support interpolation by default; in this case, manual interpolation is always enabled.
+  Use this option to force the use of manual, unoptimised filtering in place of device-default interpolation of displayed colours. This toggle is not available on devices that do not support interpolation by default; in this case, manual interpolation is always enabled.
 
 - #### Set seed
 

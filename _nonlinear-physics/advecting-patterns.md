@@ -7,7 +7,7 @@ extract: Going with the flow?
 equation: 
 categories: [patterns, parabolic]
 ---
-Each of the examples on this page will be a variation of a previous example incorporating one or more linear advection terms. This will introduce a velocity parameter $V$ and, in the unidrectional case, a direction $\theta$.
+Each of the examples on this page will be a variation of a previous example incorporating one or more linear advection terms. This will introduce a velocity parameter $V$ and, in the unidirectional case, a direction $\theta$.
 
 ## Gliders swimming upstream
 

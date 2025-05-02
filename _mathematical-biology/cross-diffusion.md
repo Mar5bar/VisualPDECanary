@@ -20,6 +20,6 @@ which is a cross-diffusion version of the [Schnakenberg model](/mathematical-bio
 
 * Setting the value of $b=1$ gives pattern formation closer to the Schnakenberg system observed before, though note that the self-diffusion terms are equal.
 
-* Finally taking $b=0.1$ allows for spatiotemporal behaviors, as the homogeneous equilibrium is then well into a Hopf regime.
+* Finally taking $b=0.1$ allows for spatiotemporal behaviours, as the homogeneous equilibrium is then well into a Hopf regime.
 
 

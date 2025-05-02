@@ -7,7 +7,7 @@ extract: A toy model of decay and advection in rivers
 categories: [biology, parabolic]
 ---
 
-Modelling the concentration of bacteria in a river is a complex, multifacted problem. This example lets us explore a toy model that manages to capture some of the key ideas by ignoring much of the real-world complexity.
+Modelling the concentration of bacteria in a river is a complex, multifaceted problem. This example lets us explore a toy model that manages to capture some of the key ideas by ignoring much of the real-world complexity.
 
 We limit ourselves to a single reach (i.e. a stretch of river without anything remarkable along it), and specify an inlet concentration of bacteria at the upstream (left) edge of the domain. 
 
