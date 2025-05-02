@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ page.lang | default: site.lang | default: " en" }}">
-
+<title>{{ page.title | default: site.title }}</title>
 {%- include head.html -%}
 <link rel="stylesheet" href="{{ '/assets/css/home.css' | relative_url }}">
 <script type="module" src="/assets/js/post_of_the_week.js" async></script>
