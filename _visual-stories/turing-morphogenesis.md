@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Turing's theory of pattern formation
+title: Turing’s theory of pattern formation
 lesson_number: 10
 thumbnail: /assets/images/Turing-Morphogenesis.webp
 extract: Exploring the chemical basis of morphogenesis
@@ -12,11 +12,11 @@ Alan Turing's theory of biological pattern formation, proposed in [The Chemical 
 
 We start with a 'classical' reaction–diffusion Turing model, show a few examples of how the more general principle of local activation and long-range inhibition (LALI) can also drive pattern formation beyond reaction–diffusion models, and then finally give a few examples where pattern formation occurs without LALI/Turing instabilities, or where Turing instabilities induce transient patterns that fade away on short timescales to another homogeneous state.
 
-In summary, while LALI is a powerful framework for understanding biological patterning, it is neither necessary nor sufficient for patterning.
+**In summary, while LALI is a powerful framework for understanding biological patterning, it is neither necessary nor sufficient for patterning.**
 
 In all of these examples, we provide some tunable parameters, and all of the simulations can be clicked to interact with the pattern by adding a small amount of the plotted variable (or, on a computer, right-clicked to take some of that variable away). At any time, you can reset the simulations by pressing {{ layout.erase }}, or click {{ layout.views }} to change what variable is being viewed (or modify colour scales or other visualisation details).
 
-## Stripes and spots in reaction-diffusion models
+## Stripes and spots in reaction–diffusion models
 
 Turing's theory proposes that a self-activating chemical species and a self-inhibiting species both react and diffuse in space, with the inhibitor diffusing much more rapidly. Depending on the nature of their interactions, including the details of the stoichiometry, these systems can undergo a symmetry-breaking instability whereby a spatially uniform state is destabilised into a patterned solution.
 
@@ -42,7 +42,7 @@ If the ratio between inhibitor and activator diffusion rates is decreased, the a
 <p style="text-align:center;margin-bottom:0;"><vpde-slider
     iframe="simGM"
     name="K"
-    label="Activator Saturation"
+    label="Activator saturation"
     label-position="below"
     min-label="None"
     max-label="Moderate"
@@ -53,7 +53,7 @@ If the ratio between inhibitor and activator diffusion rates is decreased, the a
 
 <iframe id="simGM" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=GiererMeinhardtStripeiframe&story&nomathjax&sf=1" frameborder="0" loading="lazy"></iframe>
 
-[Gierer-Meinhardt fullscreen simulation](/sim/?preset=GiererMeinhardtStripeiframe)
+[Gierer–Meinhardt fullscreen simulation](/sim/?preset=GiererMeinhardtStripeiframe)
 
 <p></p>
 
@@ -105,7 +105,7 @@ This model has a Turing instability if the ratio between inhibitor and activator
 <p style="text-align:center;margin-bottom:0;"><vpde-slider
     iframe="simGSA"
     name="V"
-    label="Activator Flow Velocity"
+    label="Activator flow velocity"
     label-position="below"
     min-label="Normal"
     max-label="Improved"
@@ -117,7 +117,7 @@ This model has a Turing instability if the ratio between inhibitor and activator
 
 <iframe id="simGSA" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=GrayScottiframeAdvection&story&nomathjax" frameborder="0" loading="lazy"></iframe>
 
-[Reaction-advection-diffusion fullscreen simulation](/sim/?preset=GrayScottiframeAdvection)
+[Reaction–advection–diffusion fullscreen simulation](/sim/?preset=GrayScottiframeAdvection)
 
 Importantly, just the flow of the activator itself can allow for periodic (though moving) patterns, even if the ratio between activator and inhibitor is 1 (i.e. one does not have the normal short-range activation and long-range inhibition). Such instabilities are sometimes referred to as flow-induced, rather than diffusion-driven; see [this paper](https://doi.org/10.1017/jfm.2019.620) for a wide view on the linear analysis of how such instabilities interact.
 
@@ -137,7 +137,7 @@ If this is changed sufficiently slowly, one can see various transitions in the p
 <p style="text-align:center;margin-bottom:0;"><vpde-slider
     iframe="simLC"
     name="r"
-    label="Self-activation"
+    label="Self activation"
     label-position="above"
     min-label="Small"
     max-label="Moderate"
@@ -148,7 +148,7 @@ If this is changed sufficiently slowly, one can see various transitions in the p
 
 <iframe id="simLC" class="sim" style="margin-left:auto;margin-right:auto" src="/sim/?preset=PatterningViaLimitCycles&story&nomathjax" frameborder="0" loading="lazy"></iframe>
 
-[Bazykin-Berezovskaya fullscreen simulation](/sim/?preset=PatterningViaLimitCycles)
+[Bazykin–Berezovskaya fullscreen simulation](/sim/?preset=PatterningViaLimitCycles)
 
 <p></p>
 
