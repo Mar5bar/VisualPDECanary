@@ -19,7 +19,7 @@
         {{ content }}
 
         <div class="top_container">
-            <iframe loading="lazy" id="sim" title="A simulation of a reaction-diffusion model" src="/sim/?preset=OnceUponATime&lite&clean&sf=1" style="visibility:hidden"></iframe>
+            <iframe loading="lazy" id="sim" title="A simulation of a reaction–diffusion model" src="/sim/?preset=OnceUponATime&lite&clean&sf=1" style="visibility:hidden"></iframe>
             <div>
                 <p>You don't need to be a mathematician to explore with VisualPDE.</p>
                 <p>Try out our interactive Visual Stories and experience cutting-edge science and mathematics.</p>
@@ -27,15 +27,15 @@
         </div>
 
         <br/>
-        
+
         <h2>Explore the Visual Story library</h2>
         <div id="topic_tiles" class='topic_tiles'>
 
           {% if page.collection_to_list %}
 
-            {% assign lessons = site[page.collection_to_list] 
+            {% assign lessons = site[page.collection_to_list]
             | sort: 'lesson_number' %}
-          
+
             {% for item in lessons %}
               <a class='topic_tile' href='{{ item.url }}'>
                 <div class='topic_banner' style="background-image:url('{{ item.thumbnail }}')">
