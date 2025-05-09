@@ -8001,9 +8001,9 @@ async function VisualPDE(url) {
         options.plotType = "line";
         options.vectorField = false;
         updateView("plotType");
-        // Loop through all the views and, if they specify a plotType, set it to plane. Similarly, disable vector fields.
+        // Loop through all the views and, if they specify a plotType, set it to line. Similarly, disable vector fields.
         options.views.forEach(function (view) {
-          if (view.plotType != undefined) view.plotType = "plane";
+          if (view.plotType != undefined) view.plotType = "line";
           if (view.vectorField != undefined) view.vectorField = false;
         });
         configurePlotType();
@@ -10498,11 +10498,15 @@ async function VisualPDE(url) {
    * @returns {string} The modified domain indicator function.
    */
   function getModifiedDomainIndicatorFun() {
-    return (
+    let str =
       "float(" +
       options.domainIndicatorFun +
-      ")*float(textureCoords.x - step_x >= 0.0)*float(textureCoords.x + step_x <= 1.0)*float(textureCoords.y - step_y >= 0.0)*float(textureCoords.y + step_y <= 1.0)"
-    );
+      ")*float(textureCoords.x - step_x >= 0.0)*float(textureCoords.x + step_x <= 1.0)";
+    if (options.dimensions == 2) {
+      str +=
+        "*float(textureCoords.y - step_y >= 0.0)*float(textureCoords.y + step_y <= 1.0)";
+    }
+    return str;
   }
 
   /**
