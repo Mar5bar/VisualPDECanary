@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Viscous Burgers' equation
+title: Burgers' equation
 lesson_number: 60
 thumbnail: /assets/images/BurgersEquation.webp
 extract: Nonlinear waves

@@ -27,9 +27,17 @@ as this corresponds to a given energy state of the system.
 
 * By default, the solution plotted is the density $$\lvert \psi\rvert^2 = \Re(\psi)^2+\Im(\psi)^2 = u^2+v^2$$, which will be (approximately) stationary for long periods of time. You can plot only the real or imaginary part under the Views pane by clicking {{ layout.views }}, and see how these solutions now oscillate in both space and time. Increasing the values of $n$ and $m$ will increase the speed at which this oscillation occurs, as such an initial condition will correspond to higher energy states.
 
+## Particle in a 1D potential well
+
+We can consider an analogue of a particle in a potential well by putting a [Gaussian wave packet](https://en.wikipedia.org/wiki/Wave_packet#Gaussian_wave_packets_in_quantum_mechanics) inside a quadratic potential. 
+
+For short times, such a wave packet acts like a particle bouncing between the two walls of the potential with some fixed energy, as you can see in this [1D simulation](/sim/?preset=stabilizedSchrodinger1D). The potential is drawn in as a black overlay.
+
+The total probability, shown in the bottom corner, is approximately conserved here as we have set $C=1$ and taken a sufficiently small simulation step, consistent with [more sophisticated simulation techniques](http://www.astro.utoronto.ca/~mahajan/notebooks/quantum_tunnelling.html). 
+
 ## Heterogeneous potentials
 
-We can also choose a potential $V(x,y)$ which has the effect of localising some features of the solution. As an example, we consider 
+We can also choose a potential $V(x,y)$ in 2D which has the effect of localising some features of the solution. As an example, we consider 
 
 $$\begin{aligned}V(x,y) &= \sin(n \pi x)\sin(m\pi y),\\ \psi(x,y,0) &= (\sin(\pi x)\sin(\pi y))^{10},
 \end{aligned}$$
@@ -54,14 +62,4 @@ $$
 \int_0^L \int_0^L |\psi|^2 \d x \, \d y = \int_0^L \int_0^L (u^2+v^2) \, \d x \, \d y = 1,
 $$
 
-as can be seen in the 1D example below. 
-
-## Particle in a 1D potential well
-
-We can consider an analogue of a particle in a potential well by putting a [Gaussian wave packet](https://en.wikipedia.org/wiki/Wave_packet#Gaussian_wave_packets_in_quantum_mechanics) inside a quadratic potential. 
-
-For short times, such a wave packet acts like a particle bouncing between the two walls of the potential with some fixed energy, as you can see in this [1D simulation](/sim/?preset=stabilizedSchrodinger1D). The potential is drawn in as a black overlay.
-
-The total probability, shown in the bottom corner, is approximately conserved here as we have set $C=1$ and taken a sufficiently small simulation step, consistent with [more sophisticated simulation techniques](http://www.astro.utoronto.ca/~mahajan/notebooks/quantum_tunnelling.html). 
-
-See the discussion at the bottom of [Validating VisualPDE](/numerical-methods/validating-VisualPDE) for more details about the sensitivity to timestepping accuracy.
+as can be seen in the 1D example above. See the discussion at the bottom of [Validating VisualPDE](/numerical-methods/validating-VisualPDE) for more details about the sensitivity to timestepping accuracy.
