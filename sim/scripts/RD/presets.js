@@ -2,6 +2,28 @@
 
 let presets = {};
 
+presets["InviscidBurgers"] = {
+	"boundaryConditions_2": "neumann",
+	"brushAction": "smoothadd",
+	"brushValue": "0.005",
+	"crossDiffusion": true,
+	"dt": 0.03,
+	"initCond_1": "0.001+0.1*exp(-0.00005*(x-L_x/5)^2)",
+	"kineticParams": "epsilon = 0.0000;p = 4;",
+	"numAlgebraicSpecies": 1,
+	"numSpecies": 2,
+	"parent": "BurgersEquation",
+	"preset": "InviscidBurgers",
+	"probeFun": "u",
+	"probeLength": 4800,
+	"reactionStr_1": "- (1/(p*u^(p-2)))*v_xb",
+	"reactionStr_2": "u^p",
+	"spatialStep": "1",
+	"speciesNames": "u v",
+	"timesteppingScheme": "RK4",
+};
+
+
 presets["CyclicCompetitionWaveiframe"] = {
   boundaryConditions_1: "neumann",
   boundaryConditions_2: "neumann",
