@@ -60,7 +60,7 @@ as can be seen in the 1D example below.
 
 We can consider an analogue of a particle in a potential well by putting a [Gaussian wave packet](https://en.wikipedia.org/wiki/Wave_packet#Gaussian_wave_packets_in_quantum_mechanics) inside a quadratic potential. 
 
-For short times, such a wave packet acts like a particle bouncing between the two walls of the potential with some fixed energy, as you can see in this [1D simulation](/sim/?preset=stabilizedSchrodinger1D). 
+For short times, such a wave packet acts like a particle bouncing between the two walls of the potential with some fixed energy, as you can see in this [1D simulation](/sim/?preset=stabilizedSchrodinger1D). The potential is drawn in as a black overlay.
 
 The total probability, shown in the bottom corner, is approximately conserved here as we have set $C=1$ and taken a sufficiently small simulation step, consistent with [more sophisticated simulation techniques](http://www.astro.utoronto.ca/~mahajan/notebooks/quantum_tunnelling.html). 
 
