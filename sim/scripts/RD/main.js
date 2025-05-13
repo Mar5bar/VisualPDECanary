@@ -9780,19 +9780,31 @@ async function VisualPDE(url) {
     // Upon receiving a message from another window, use the message to update
     // the value in the specified parameter.
 
-    // Update the value of the slider associated with this parameter, if it exists.
-    const controller = kineticNameToCont[data.name];
+    // If data.name is not an array, make it an array.
+    if (!Array.isArray(data.name)) {
+      data.name = [data.name];
+      data.value = [data.value];
+    }
+    // Loop through the names and values in the message.
+    for (let i = 0; i < data.name.length; i++) {
+      // For each name, find the corresponding controller and update its value.
+      const controller = kineticNameToCont[data.name[i]];
+      updateControllerWithValue(controller, data.value[i]);
+    }
+  }
+
+  function updateControllerWithValue(controller, value) {
     if (controller != undefined) {
       // If there's a slider, update its value and trigger the update via the slider's input event.
       if (controller.slider != undefined) {
-        controller.slider.value = data.value;
+        controller.slider.value = value;
         controller.slider.dispatchEvent(new Event("input"));
       } else {
         // Otherwise, just update the value.
         const val =
           controller.object[controller.property].split("=")[0] +
           "= " +
-          data.value.toString();
+          value.toString();
         controller.setValue(val);
         controller.__onFinishChange(controller, val);
       }
