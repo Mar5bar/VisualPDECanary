@@ -6810,6 +6810,14 @@ async function VisualPDE(url) {
       regex = /\+\s*(\\\\|\n)/g;
       str = str.replaceAll(regex, "$1");
 
+      // Look through the string for any && and replace them with \land.
+      regex = /&&/g;
+      str = str.replaceAll(regex, "\\,\\land\\, ");
+
+      // Look through the string for any || and replace them with \lor.
+      regex = /\|\|/g;
+      str = str.replaceAll(regex, "\\,\\lor\\, ");
+
       // Look for = followed by a newline, and insert 0.
       regex = /=\s*(\\\\|\n)/g;
       str = str.replaceAll(regex, "=0$1");
