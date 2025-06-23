@@ -2,6 +2,19 @@
 
 let presets = {};
 
+presets["SuperlatticeHoleStripe"] = {
+	"diffusionStr_1_1": "3.5",
+	"diffusionStr_2_2": "10",
+	"diffusionStr_3_3": "18.7",
+	"diffusionStr_4_4": "550",
+	"kineticParams": "a = 3;b = 9;c = 15;d = 9;alpha = 0.1;",
+	"maxColourValue": "4.7",
+	"minColourValue": "0.5",
+	"parent": "SuperlatticeHoleSpots",
+	"preset": "SuperlatticeHoleStripe",
+};
+
+
 presets["SuperlatticeDynamic"] = {
   diffusionStr_1_1: "4.3",
   diffusionStr_2_2: "50",
@@ -10,7 +23,7 @@ presets["SuperlatticeDynamic"] = {
   maxColourValue: "9.37",
   minColourValue: "0.35",
   parent: "SuperlatticeHoleSpots",
-  preset: "PRESETNAME",
+  preset: "SuperlatticeDynamic",
 };
 
 presets["KymographGrowing"] = {
@@ -35,7 +48,7 @@ presets["KymographGrowing"] = {
   minX: "-L_x/2",
   numSpecies: 3,
   numTimestepsPerFrame: 75,
-  preset: "PRESETNAME",
+  preset: "KymographGrowing",
   reactionStr_1: "(2)*u_xx+u^2*v - (a+b)*u",
   reactionStr_2: "10*v_xx-u^2*v + a*(1 - v)",
   reactionStr_3: "ind(abs(y-L_y*t/T)<dy)*(u-m)",
@@ -85,7 +98,7 @@ presets["SuperlatticeHoleSpots"] = {
   minColourValue: "0.4",
   numSpecies: 4,
   numTimestepsPerFrame: 500,
-  preset: "PRESETNAME",
+  preset: "SuperlatticeHoleSpots",
   probeFun: "u_1",
   probeLength: 3000,
   reactionStr_1: "a-(b+1)*u_1+u_1^2*v_1+alpha*u_1*u_2*(u_2-u_1)",
