@@ -3,16 +3,15 @@
 let presets = {};
 
 presets["SuperlatticeDynamic"] = {
-	"diffusionStr_1_1": "4.3",
-	"diffusionStr_2_2": "50",
-	"diffusionStr_3_3": "22",
-	"diffusionStr_4_4": "660",
-	"maxColourValue": "9.37",
-	"minColourValue": "0.35",
-	"parent": "SuperlatticeHoleSpots",
-	"preset": "PRESETNAME",
+  diffusionStr_1_1: "4.3",
+  diffusionStr_2_2: "50",
+  diffusionStr_3_3: "22",
+  diffusionStr_4_4: "660",
+  maxColourValue: "9.37",
+  minColourValue: "0.35",
+  parent: "SuperlatticeHoleSpots",
+  preset: "PRESETNAME",
 };
-
 
 presets["KymographGrowing"] = {
   activeViewInd: 1,
