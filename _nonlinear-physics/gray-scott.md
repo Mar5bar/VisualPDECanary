@@ -33,6 +33,7 @@ One of our favourites is the [moving spots simulation](/sim/?preset=GrayScottGli
 
 * Initiate this motion and then increase $b$ slowly to about $b=0.56$. The spots become sparse and start exhibiting strange diversions in their motions.
 
+
 | $a$  | $b$  |  Description |
 |---|---|---|
 | 0.037 | 0.06  |  Labyrinthine |
@@ -46,11 +47,3 @@ One of our favourites is the [moving spots simulation](/sim/?preset=GrayScottGli
 | 0.018 | 0.051 | Small waves |
 | 0.014 | 0.045 | Big waves |
 | 0.062 | 0.061 | U-skate world |
-
-<vpde-select
-      iframe="iframe"
-      display-names="Default; Ripples"
-      parameters="a = 0.037, b = 0.06; a = 0.0248, b = 0.05"
-></vpde-select>
-
-<iframe id="iframe" title="VisualPDE simulation" class="sim" style="margin-left:auto;margin-right:auto;" src="/sim/?story" frameborder="0"></iframe>
