@@ -17,7 +17,7 @@ where we take $a,b,c>0$ and $D>1$.
 
 * Changing any of the parameters can lead to different solutions, though this system generically favours spot-like patterns.
 
-Note that the colour scale here is fixed, but that changing parameters will lead to solutions with different maxima and minima, so using the auto-snap feature under <span class='click_sequence'>{{ layout.settings }} → **Colour** → **Auto snap**</span> may be advised.
+Note that the colour scale here is fixed, but that changing parameters will lead to solutions with different maxima and minima, so using the auto-snap feature under <span class='click_sequence'>{{ layout.views }} → **Edit view** → **Colour** → **Auto snap**</span> may be advised.
 
 # Stripes stability
 
