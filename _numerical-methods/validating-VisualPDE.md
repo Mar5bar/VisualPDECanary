@@ -24,7 +24,7 @@ Hence, if the initial data is Gaussian, the solution evolves as a Gaussian. We c
 This [heat equation simulation](/sim/?preset=heatEquation1DValidity) is set up to do just that. To check if the numerical solution is accurate, we've plotted the analytical solution (thin curve) on top of the numerical one (thick curve). As you might have hoped, VisualPDE does an excellent job of capturing the spatiotemporal evolution of the exact solution. This is especially remarkable as this particular simulation uses a fairly coarse spatial discretisation and a forward Euler timestepping scheme. 
 
 If you turn on **Auto snap**:
-<span class='click_sequence'>{{ layout.views }} → **Auto snap**</span>
+<span class='click_sequence'>{{ layout.views }} → **Edit view** → **Colour** → **Auto snap**</span>
  and wait until $t=2\times 10^{3}$, you'll actually start to see the plotting of the analytical solution break down due to the implementation of the exponential function on your GPU, and the two solutions begin to separate.
 
 ### The wave equation
