@@ -2785,6 +2785,15 @@ async function VisualPDE(url) {
 
     addToggle(
       miscButtons,
+      "runningOnLoad",
+      '<i class="fa-solid fa-play"></i> Run on load',
+      function () {},
+      "runningOnLoad",
+      "Toggle whether the simulation should run automatically on page load",
+    );
+
+    addToggle(
+      miscButtons,
       "blendImage",
       '<i class="fa-solid fa-image"></i> Blend image',
       function () {

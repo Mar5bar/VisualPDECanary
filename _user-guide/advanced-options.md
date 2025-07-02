@@ -474,25 +474,37 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 
   Toggle the availability of `ghost' boundary conditions in the GUI.
 
+- #### Run on load
+
+  Toggle whether or not the simulation will be running when loaded.
+
+- #### Blend image
+
+  Toggle whether or not an image will be blended over the simulation.
+
+- #### Blend amount
+
+  The degree to which the blend image should be blended into the simulation view. 0 corresponds to no blending.
+
 - #### Dev
 
   Tools intended for the development and benchmarking of VisualPDE.
 
-      ***Copy code*** will copy a verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples. It will base the example on the selected 'parent' preset, which can be useful if you're making multiple slightly different versions of a simulation.
+    ***Copy code*** will copy a verbose description of your simulation in JSON form, which is especially useful if you're extending VisualPDE with your own examples. It will base the example on the selected 'parent' preset, which can be useful if you're making multiple slightly different versions of a simulation.
 
-      ***Copy debug*** will copy a selection of configuration information to your clipboard (handy when reporting bugs).
+    ***Copy debug*** will copy a selection of configuration information to your clipboard (handy when reporting bugs).
 
-      ***Show stats*** will toggle the display of performance statistics in the lower left corner of the display. We use this to benchmark performance impacts of new features and optimisations.
+    ***Show stats*** will toggle the display of performance statistics in the lower left corner of the display. We use this to benchmark performance impacts of new features and optimisations.
 
-      ***Antialias*** will toggle the use of antialiasing when displaying the simulation. Antialiasing in VisualPDE smooths out the jagged edges of displayed vector fields, though always causes a slight device-dependent performance loss. This is off by default for mobile devices, but can be overridden. Toggle requires a page reload.
+    ***Antialias*** will toggle the use of antialiasing when displaying the simulation. Antialiasing in VisualPDE smooths out the jagged edges of displayed vector fields, though always causes a slight device-dependent performance loss. This is off by default for mobile devices, but can be overridden. Toggle requires a page reload.
 
-      ***Mixed strings*** will toggle the visibility of verbose strings associated with mixed boundary conditions. These are off by default, but can be useful for advanced cases such as simultaneously imposing Dirichlet and Neumann conditions.
+    ***Mixed strings*** will toggle the visibility of verbose strings associated with mixed boundary conditions. These are off by default, but can be useful for advanced cases such as simultaneously imposing Dirichlet and Neumann conditions.
 
-      ***Long url*** will copy a long URL that is guaranteed to not be minified.
+    ***Long url*** will copy a long URL that is guaranteed to not be minified.
 
-      ***Camera*** will enable the user's camera and replace $I_S$ with the live video stream.
+    ***Camera*** will enable the user's camera and replace $I_S$ with the live video stream.
 
-      ***Cam delay*** sets the delay (in milliseconds) between frames grabbed from the user's camera.
+    ***Cam delay*** sets the delay (in milliseconds) between frames grabbed from the user's camera.
 
 ---
 
