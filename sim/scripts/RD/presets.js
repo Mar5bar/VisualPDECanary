@@ -2,6 +2,113 @@
 
 let presets = {};
 
+presets["penguinsInOut"] = {
+  boundaryConditions_1: "neumann",
+  boundaryConditions_2: "dirichlet",
+  boundaryConditions_3: "dirichlet",
+  diffusionStr_1_1: "1",
+  diffusionStr_3_3: "0",
+  dirichletStr_1: "x",
+  dirichletStr_3: "S",
+  domainIndicatorFun:
+    "(x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2 > (0.05*L)^2 || (x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2 < (0.045*L)^2",
+  domainScale: "320",
+  domainViaIndicatorFun: true,
+  initCond_1: "x",
+  kineticParams: "Pe = 1.00 in [0.1, 1];a = 0.00 in [0, 1.5];alpha = 0.0005;",
+  numTimestepsPerFrame: 200,
+  parent: "penguinsBlobStatic",
+  reactionStr_1:
+    "10*(x - phi)*ind(y+2*dy > L_y || y-2*dy < 0 || x - 2*dx < 0 || x + 2*dx > L_x)",
+  reactionStr_2:
+    "-0.1*Pe*(phi_x*T_x + phi_y*T_y)*ind((x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2 > (0.045*L)^2) + alpha*ind((x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2 < (0.045*L)^2)",
+  reactionStr_3: "0",
+  speciesNames: "phi T S",
+  typesetCustomEqs: false,
+  views: [
+    {
+      maxColourValue: "1.5",
+      minColourValue: "0",
+      vectorField: false,
+      whatToPlot: "T",
+      name: "$T$",
+    },
+  ],
+  whatToDraw: "T",
+  simTitle: "Penguins",
+  preset: "penguinsInOut",
+};
+
+presets["penguinsDraw"] = {
+  brushRadius: "1",
+  brushType: "square",
+  brushValue: "1",
+  kineticParams: "Pe = 0.010 in [0.01, 2];",
+  parent: "penguinsBlob",
+  preset: "penguinsDraw",
+  simTitle: "Penguins",
+};
+
+presets["penguinsBlobStatic"] = {
+  brushRadius: "10",
+  brushType: "circle",
+  brushValue: "1",
+  diffusionStr_2_2: "0.1",
+  dirichletStr_2:
+    "1 - ind(y+2*dy > L_y || y-2*dy < 0 || x - 2*dx < 0 || x + 2*dx > L_x)",
+  domainIndicatorFun:
+    "(x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2 > (0.05*L)^2",
+  kineticParams: "Pe = 1.00 in [0.1, 1];a = 0 in [0, 1.5];",
+  numSpecies: 3,
+  parent: "penguinsBlob",
+  preset: "penguinsBlobStatic",
+  reactionStr_2: "-0.1*Pe*(phi_x*T_x + phi_y*T_y)",
+  spatialStep: "1",
+  whatToDraw: "T",
+};
+
+presets["penguinsBlob"] = {
+  activeViewInd: 1,
+  boundaryConditions_1: "neumann",
+  boundaryConditions_2: "dirichlet",
+  boundaryConditions_3: "dirichlet",
+  brushRadius: "1",
+  brushType: "custom",
+  brushValue: "ind((x-xB)^2/((1+a)*(1 + a*ind(x>xB)))^2+(y-yB)^2 < (0.05*L)^2)",
+  colourbar: true,
+  diffusionStr_1_1: "1",
+  diffusionStr_2_2: "1",
+  diffusionStr_3_3: "0",
+  dirichletStr_1: "x",
+  dirichletStr_2: "S",
+  dirichletStr_3: "S",
+  domainIndicatorFun: "S<1",
+  domainScale: "320",
+  domainViaIndicatorFun: true,
+  initCond_1: "x",
+  kineticParams: "Pe = 0.010 in [0.01, 0.1];a = 0 in [0, 2];",
+  numSpecies: "3",
+  numTimestepsPerFrame: 200,
+  preset: "penguinsBlob",
+  reactionStr_1:
+    "10*(x - phi)*ind(y+2*dy > L_y || y-2*dy < 0 || x - 2*dx < 0 || x + 2*dx > L_x)",
+  reactionStr_2: "-Pe*(phi_x*T_x + phi_y*T_y)",
+  reactionStr_3: "0",
+  spatialStep: "1.5",
+  speciesNames: "phi T S",
+  views: [
+    {
+      maxColourValue: "1",
+      minColourValue: "0",
+      vectorField: false,
+      whatToPlot: "T",
+      name: "$T$",
+    },
+  ],
+  whatToDraw: "S",
+  simTitle: "Penguins",
+};
+
 presets["SuperlatticeHoleStripe"] = {
   diffusionStr_1_1: "3.5",
   diffusionStr_2_2: "10",
