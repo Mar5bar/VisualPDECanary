@@ -2738,6 +2738,47 @@ presets["ducks"] = {
   simTitle: "Ducks",
 };
 
+presets["forestFiresSplitscreen"] = {
+  activeViewInd: 2,
+  boundaryConditions_1: "dirichlet",
+  diffusionStr_3_3: "0",
+  domainScale: "1000",
+  initCond_1: "0",
+  initCond_2: "max(min(I_S(2*x,y) + 0.2*RANDN,1),0)",
+  parent: "forestFires",
+  preset: "forestFiresSplitscreen",
+  views: [
+    {
+      colourmap: "lavaflow",
+      maxColourValue: "7.772217273712158",
+      overlay: false,
+      overlayEpsilon: 0.005,
+      overlayExpr: "1",
+      whatToPlot: "T",
+      name: "Temperature",
+    },
+    {
+      colourmap: "foliage",
+      maxColourValue: "1",
+      overlay: false,
+      overlayEpsilon: 0.005,
+      overlayExpr: "1",
+      whatToPlot: "S",
+      name: "Fuel",
+    },
+    {
+      colourmap: "splitscreenFires",
+      maxColourValue: "1",
+      overlay: true,
+      overlayEpsilon: 1,
+      overlayExpr: "x-L_x/2",
+      whatToPlot:
+        "min(T,7)/14 + ind(x>L_x/2)*(0.50001+0.5*S[x-L_x/2,y]-min(T,7)/14)",
+      name: "Splitscreen",
+    },
+  ],
+};
+
 presets["forestFires"] = {
   brushAction: "smoothadd",
   crossDiffusion: true,
