@@ -2741,12 +2741,16 @@ presets["ducks"] = {
 presets["forestFiresSplitscreen"] = {
   activeViewInd: 2,
   boundaryConditions_1: "dirichlet",
+  brushAction: "add",
+  brushRadius: "Bump(mod(xB,L_x/2),yB,L/100)",
+  brushType: "custom",
   diffusionStr_3_3: "0",
   domainScale: "1000",
   initCond_1: "0",
   initCond_2: "max(min(I_S(2*x,y) + 0.2*RANDN,1),0)",
   parent: "forestFires",
   preset: "forestFiresSplitscreen",
+  resetOnImageLoad: true,
   views: [
     {
       colourmap: "lavaflow",
@@ -2778,6 +2782,7 @@ presets["forestFiresSplitscreen"] = {
     },
   ],
 };
+
 
 presets["forestFires"] = {
   brushAction: "smoothadd",

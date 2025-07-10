@@ -10811,31 +10811,39 @@ async function VisualPDE(url) {
    * @returns {string} The modified string.
    */
   function replaceGauss(str) {
-    // Replace Gauss(meanx, meany, sx, sy, rho) with Gauss(x, y, meanx, meany, sx, sy, rho).
-    str = str.replaceAll(
-      /\bGauss\(([^,]*),([^,]*),([^,]*),([^,]*),([^,]*)\)/g,
-      "Gauss(x,y,$1,$2,$3,$4,$5)",
-    );
+    // Find all calls to Gauss in the string.
+    const calls = findAllFunCalls(str, "Gauss");
 
-    // Replace Gauss(meanx, meany, sx, sy) with Gauss(x, y, meanx, meany, sx, sy, 0).
-    str = str.replaceAll(
-      /\bGauss\(([^,]*),([^,]*),([^,]*),([^,]*)\)/g,
-      "Gauss(x,y,$1,$2,$3,$4,0)",
-    );
+    // If there are no calls to Gauss, return the string unchanged.
+    if (calls.length == 0) return str;
 
-    // Replace Gauss(meanx, meany, sd) with Gauss(x, y, meanx, meany, sd).
-    str = str.replaceAll(
-      /\bGauss\(([^,]*),([^,]*),([^,]*)\)/g,
-      "Gauss(x,y,$1,$2,$3,$3,0)",
-    );
+    // Sort matches in reverse order (innermost to outermost).
+    calls.sort((a, b) => b.start - a.start);
 
-    // Replace Gauss(mean, sd) with Gauss(x, y, mean, sd).
-    str = str.replaceAll(
-      /\bGauss\(([^,]*),([^,]*)\)/g,
-      "Gauss(x,y,$1,$1,$2,$2,0)",
-    );
+    let output = str;
 
-    return str;
+    for (const { start, end, args } of calls) {
+      let replacement = "";
+      // Replace Gauss(meanx, meany, sx, sy, rho) with Gauss(x, y, meanx, meany, sx, sy, rho).
+      if (args.length == 5) {
+        replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]},${args[3]},${args[4]})`;
+      }
+      else if (args.length == 4) {
+        // Replace Gauss(meanx, meany, sx, sy) with Gauss(x, y, meanx, meany, sx, sy, 0).
+        replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]},${args[3]},0)`;
+      }
+      else if (args.length == 3) {
+        // Replace Gauss(meanx, meany, sd) with Gauss(x, y, meanx, meany, sd).
+        replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]})`;
+      }
+      else if (args.length == 2) {
+        // Replace Gauss(mean, sd) with Gauss(x, y, mean, sd).
+        replacement = `Gauss(x,y,${args[0]},${args[1]})`;
+      }
+      output = output.slice(0, start) + replacement + output.slice(end);
+    }
+
+    return output;
   }
 
   /**
@@ -10845,16 +10853,31 @@ async function VisualPDE(url) {
    * @returns {string} The modified string.
    */
   function replaceBump(str) {
-    // Replace Bump(meanx, meany, radius) with Bump(x, y, meanx, meany, radius).
-    str = str.replaceAll(
-      /\bBump\(([^,]*),([^,]*),([^,]*)\)/g,
-      "Bump(x,y,$1,$2,$3)",
-    );
+    // Find all calls to Bump in the string.
+    const calls = findAllFunCalls(str, "Bump");
 
-    // Replace Bump(mean, radius) with Bump(x, y, mean, mean, radius).
-    str = str.replaceAll(/\bBump\(([^,]*),([^,]*)\)/g, "Bump(x,y,$1,0,$2)");
+    // If there are no calls to Bump, return the string unchanged.
+    if (calls.length == 0) return str;
 
-    return str;
+    // Sort matches in reverse order (innermost to outermost).
+    calls.sort((a, b) => b.start - a.start);
+
+    let output = str;
+
+    for (const { start, end, args } of calls) {
+      let replacement = "";
+      // If there are 2 arguments, replace with Bump(x, y, arg1, 0, arg2).
+      if (args.length == 2) {
+        replacement = `Bump(x,y,${args[0]},0,${args[1]})`;
+      }
+      // If there are 3 arguments, replace with Bump(x, y, arg1, arg2, arg3).
+      else if (args.length == 3) {
+        replacement = `Bump(x,y,${args[0]},${args[1]},${args[2]})`;
+      }
+      output = output.slice(0, start) + replacement + output.slice(end);
+    }
+
+    return output;
   }
 
   function assignFragmentShader(material, shader) {
@@ -11459,5 +11482,62 @@ async function VisualPDE(url) {
         stream.getTracks().forEach((track) => track.stop());
       });
     }
+  }
+
+  function findAllFunCalls(input, fun) {
+    const calls = [];
+    const regex = new RegExp(`\\b${fun}\\s*\\(`, "g");
+    let match;
+
+    while ((match = regex.exec(input)) !== null) {
+      let start = match.index + match[0].length - 1;
+      let depth = 1;
+      let end = start;
+
+      while (end < input.length && depth > 0) {
+        end++;
+        const char = input[end];
+        if (char === "(") depth++;
+        else if (char === ")") depth--;
+      }
+
+      if (depth === 0) {
+        const fullCall = input.slice(match.index, end + 1);
+        const argsStr = input.slice(start + 1, end);
+        const args = splitArgs(argsStr);
+        calls.push({
+          start: match.index,
+          end: end + 1,
+          fullCall,
+          args,
+        });
+      }
+    }
+
+    return calls;
+  }
+
+  // Argument splitter with nesting support
+  function splitArgs(str) {
+    const args = [];
+    let current = "";
+    let depth = 0;
+
+    for (let i = 0; i < str.length; i++) {
+      const char = str[i];
+
+      if (char === "," && depth === 0) {
+        args.push(current.trim());
+        current = "";
+      } else {
+        if (char === "(") depth++;
+        else if (char === ")") depth--;
+        current += char;
+      }
+    }
+
+    if (current.trim()) args.push(current.trim());
+
+    return args;
   }
 }
