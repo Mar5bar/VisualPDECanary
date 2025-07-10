@@ -10827,16 +10827,13 @@ async function VisualPDE(url) {
       // Replace Gauss(meanx, meany, sx, sy, rho) with Gauss(x, y, meanx, meany, sx, sy, rho).
       if (args.length == 5) {
         replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]},${args[3]},${args[4]})`;
-      }
-      else if (args.length == 4) {
+      } else if (args.length == 4) {
         // Replace Gauss(meanx, meany, sx, sy) with Gauss(x, y, meanx, meany, sx, sy, 0).
         replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]},${args[3]},0)`;
-      }
-      else if (args.length == 3) {
+      } else if (args.length == 3) {
         // Replace Gauss(meanx, meany, sd) with Gauss(x, y, meanx, meany, sd).
         replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]})`;
-      }
-      else if (args.length == 2) {
+      } else if (args.length == 2) {
         // Replace Gauss(mean, sd) with Gauss(x, y, mean, sd).
         replacement = `Gauss(x,y,${args[0]},${args[1]})`;
       }

@@ -2783,7 +2783,6 @@ presets["forestFiresSplitscreen"] = {
   ],
 };
 
-
 presets["forestFires"] = {
   brushAction: "smoothadd",
   crossDiffusion: true,
