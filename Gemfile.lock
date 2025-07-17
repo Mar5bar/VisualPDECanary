@@ -87,7 +87,6 @@ PLATFORMS
 
 DEPENDENCIES
   jekyll (~> 4.3.3)
-  jekyll-sass-converter
   minima
 
 BUNDLED WITH
