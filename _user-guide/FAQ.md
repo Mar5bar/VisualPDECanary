@@ -93,7 +93,7 @@ NOTE: VisualPDE sometimes won't warn you about multiple errors that involve the 
 
 ### The buttons don't work, but I want to keep playing!
 Very rarely, the simulation and the user interface may become unresponsive. If this happens: 
-1. Click {{ layout.help }} to bring up the user guide to try to solve your problem.
+1. Click {{ layout.help }} to bring up the documentation to try to solve your problem.
 1. Reload the page. Sadly, this won't preserve the configuration beyond that specified in the URL.
 If the issue is persistent and you're confident that you've followed all the steps outlined in this guide, please report your issue as described [below](#error). 
 
