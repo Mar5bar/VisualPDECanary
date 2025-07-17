@@ -2775,7 +2775,8 @@ presets["forestFiresSplitscreen"] = {
       maxColourValue: "1",
       overlay: true,
       overlayEpsilon: 1,
-      overlayExpr: "x-L_x/2",
+      overlayExpr:
+        "max(0,1-ind(abs(x-L_x/2)<dx) - ind(abs(y-L_y)<dy) - ind(abs(y)<dy) - ind(abs(x-L_x)<dx) - ind(abs(x)<dx))",
       whatToPlot:
         "min(T,7)/14 + ind(x>L_x/2)*(0.50001+0.5*S[x-L_x/2,y]-min(T,7)/14)",
       name: "Splitscreen",

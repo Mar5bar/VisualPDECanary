@@ -1474,7 +1474,7 @@ async function VisualPDE(url) {
       throwError(
         "Your device does not support a discretisation this fine (maximum " +
           maxTexSize +
-          "). Please increase the space step to at least " +
+          "MB). Please increase the space step to at least " +
           (Math.ceil((1e4 * domainScaleValue) / maxTexSize) / 1e4).toPrecision(
             4,
           ) +
@@ -10782,22 +10782,25 @@ async function VisualPDE(url) {
   function replaceWhiteNoise(str) {
     // Replace WhiteNoise with RANDN*sqrt(1/(dt*dx^dim)), where dim is dimension.
     if (options.dimension == 1) {
-      str = str.replaceAll(/\bWhiteNoise(_1)?\b/g, "RANDN*sqrt(1/(dt*dx))");
+      str = str.replaceAll(
+        /\bWhiteNoise(_1)?[^\()]\b/g,
+        "sqrt(1/(dt*dx))*RANDN",
+      );
       str = str.replaceAll(/\bWhiteNoise_([2-4])\b/g, function (match, p1) {
         return (
-          "RANDN" + numsAsWords[Number(p1)].toUpperCase() + "*sqrt(1/(dt*dx))"
+          "sqrt(1/(dt*dx))" + "RANDN" + numsAsWords[Number(p1)].toUpperCase()
         );
       });
     } else {
       str = str.replaceAll(
         /\bWhiteNoise(_1)?\b/g,
-        "RANDN*sqrt(1/(dt*pow(dx,2)))",
+        "sqrt(1/(dt*pow(dx,2)))*RANDN",
       );
       str = str.replaceAll(/\bWhiteNoise_([2-4])\b/g, function (match, p1) {
         return (
+          "sqrt(1/(dt*pow(dx,2)))" +
           "RANDN" +
-          numsAsWords[Number(p1)].toUpperCase() +
-          "*sqrt(1/(dt*pow(dx,2)))"
+          numsAsWords[Number(p1)].toUpperCase()
         );
       });
     }
