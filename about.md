@@ -40,15 +40,13 @@ Some external applications of VisualPDE include:
 
 ## Getting started
 
-Everyone is free to use VisualPDE. For industrial use, see our [licence](https://github.com/Pecnut/visual-pde/blob/main/LICENSE.md). 
-
-You can [explore the examples](/explore), [create simulations](/create) and share them with a URL, or even copy the code on [GitHub](https://github.com/Pecnut/visual-pde) to design your own version of VisualPDE.
-
-Our collections of [Visual Stories](/visual-stories) are a good place to start exploring. Then, delve into our other [collections and examples](/explore). You can also check out our detailed [User guide](/user-guide) to dive under the hood.
+You can [explore the examples](/explore), [create simulations](/create) and share them with a URL, or even copy the code on [GitHub](https://github.com/Pecnut/visual-pde) to design your own version of VisualPDE. Check out our detailed [User guide](/user-guide) to dive under the hood.
 
 If you use VisualPDE in your research, we'd be grateful if you could cite our article about the context, design, and applications of VisualPDE in the [Bulletin of Mathematical Biology](https://doi.org/10.1007/s11538-023-01218-4).
+
+## Is it free?
+Everyone is free to use VisualPDE. For specifics of industrial use, see our [licence](https://github.com/Pecnut/visual-pde/blob/main/LICENSE.md).
 
 ## The team
 
 VisualPDE is a team effort, written and maintained by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/) and [Andrew Krause](https://www.andrewkrause.org/).
-
