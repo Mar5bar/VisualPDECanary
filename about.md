@@ -40,7 +40,7 @@ Some external applications of VisualPDE include:
 
 ## Getting started
 
-You can [explore the examples](/explore), [create simulations](/create) and share them with a URL, or even copy the code on [GitHub](https://github.com/Pecnut/visual-pde) to design your own version of VisualPDE. Check out our detailed [User guide](/user-guide) to dive under the hood.
+You can [explore the examples](/explore), [create simulations](/create) and share them with a URL, or even copy the code on [GitHub](https://github.com/Pecnut/visual-pde) to design your own version of VisualPDE. Check out our detailed [documentation](/user-guide) to dive under the hood.
 
 If you use VisualPDE in your research, we'd be grateful if you could cite our article about the context, design, and applications of VisualPDE in the [Bulletin of Mathematical Biology](https://doi.org/10.1007/s11538-023-01218-4).
 

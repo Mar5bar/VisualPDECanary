@@ -3,7 +3,8 @@
 # To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 
 layout: docs
-title: User guide
+title: Documentation
+short_title: Docs
 collection_to_list: user-guide
 thumbnail: /assets/images/squirrel-question.webp
 extract: Everything there is to know about VisualPDE

@@ -620,7 +620,7 @@ span.click_sequence {
   max-width: min(80dvh, calc(100dvh - 80px));
   max-height: min(80dvh, calc(100dvh - 80px));
 }
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 620px) {
   .sim {
     width: 99%;
     margin: 0 auto;
@@ -996,7 +996,7 @@ vpde-chart {
   color: var(--text-color);
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 620px) {
   .site-nav {
     top: 6px;
   }
@@ -1078,7 +1078,7 @@ vpde-chart {
   border: none;
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 620px) {
   #siteSearchForm {
     right: 56px;
     width: calc(100% - 72px);
@@ -1249,7 +1249,7 @@ vpde-chart {
   padding: 0 1.25rem;
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 620px) {
   #related_posts-container {
     flex-direction: column;
     align-items: center;
