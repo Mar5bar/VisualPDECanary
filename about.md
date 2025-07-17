@@ -6,15 +6,15 @@ thumbnail: /assets/images/question-marks.webp
 extract: What is VisualPDE, where did it come from and who is behind it?
 ---
 
-## The idea
+<!-- ## The idea
 
 Communicating mathematics can be challenging. This is especially true for [partial differential equations](https://en.wikipedia.org/wiki/Partial_differential_equation) (PDEs), which are a staple of undergraduate mathematics courses and almost ubiquitous in mathematical modelling of the real world.
 
 Many of these equations exhibit intuitive behaviours, but it can be hard to see that just by looking at the symbols. We set out to create a tool for solving this problem, aiming to allow anyone to type in their PDE and instantly visualise and interact with solutions of these equations. Crucially, we wanted people to be able to do this without needing to take a course on numerical methods, or even one on PDEs.
 
-Read more about VisualPDE and its context in our article in the [Bulletin of Mathematical Biology](https://doi.org/10.1007/s11538-023-01218-4).
+Read more about VisualPDE and its context in our article in the [Bulletin of Mathematical Biology](https://doi.org/10.1007/s11538-023-01218-4). -->
 
-## Beginnings
+<!-- ## Beginnings
 
 Through a [Durham Centre for Academic Development](https://www.durham.ac.uk/departments/centres/academic-development/) collaborative innovation grant, Alex Chudasama (a final-year undergraduate at Durham University) designed an early version based on this [reaction–diffusion simulator](https://pmneila.github.io/jsexp/grayscott/).
 
@@ -35,14 +35,16 @@ Some external applications of VisualPDE include:
 
 - A [paper](https://link.springer.com/article/10.1007/s11538-023-01250-4) demonstrating the insufficiency of linear stability theory in understanding Turing patterns
 
-- Exploring the principles behind the design of simple but effective robotic filaments for microscale swimming in a [multidisciplinary paper](https://doi.org/10.48550/arXiv.2402.13844)
+- Exploring the principles behind the design of simple but effective robotic filaments for microscale swimming in a [multidisciplinary paper](https://doi.org/10.48550/arXiv.2402.13844) -->
 
 
-## Using VisualPDE
+## Getting started
 
-Everyone is free to use VisualPDE (see our [licence](https://github.com/Pecnut/visual-pde/blob/main/LICENSE.md) if you're looking for industrial use). Anyone can [explore the examples](/explore), [design their own](/create) simulations and share them with a URL, or even copy the markdown-based website from [GitHub](https://github.com/Pecnut/visual-pde) to design their own version of our website.
+Everyone is free to use VisualPDE. For industrial use, see our [licence](https://github.com/Pecnut/visual-pde/blob/main/LICENSE.md). 
 
-Our collections of [Visual Stories](/visual-stories) are a good place to start exploring, after which you can delve into our other [collections and examples](/explore). You can also check out our detailed [User guide](/user-guide) to dive under the hood.
+You can [explore the examples](/explore), [create simulations](/create) and share them with a URL, or even copy the code on [GitHub](https://github.com/Pecnut/visual-pde) to design your own version of VisualPDE.
+
+Our collections of [Visual Stories](/visual-stories) are a good place to start exploring. Then, delve into our other [collections and examples](/explore). You can also check out our detailed [User guide](/user-guide) to dive under the hood.
 
 If you use VisualPDE in your research, we'd be grateful if you could cite our article about the context, design, and applications of VisualPDE in the [Bulletin of Mathematical Biology](https://doi.org/10.1007/s11538-023-01218-4).
 
