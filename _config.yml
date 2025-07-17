@@ -29,6 +29,7 @@ url: "https://canary.visualpde.com" # the base hostname & protocol for your site
 google_analytics: G-ZDK91GRY6Y
 
 # Build settings
+theme: minima
 plugins:
   - jekyll-feed
 sass:
