@@ -6881,13 +6881,6 @@ async function VisualPDE(url) {
         return base;
       });
 
-      // Replace RAND with \mathcal{U}.
-      regex = /\bRAND\b/g;
-      str = str.replaceAll(regex, "\\mathcal{U}");
-
-      // Replace RANDN with \mathcal{Z}.
-      regex = /\bRANDN\b/g;
-      str = str.replaceAll(regex, "\\mathcal{Z}");
     } else {
       // Even if we're not customising the typesetting, add in \selected{} to any selected entry.
       const selectCommand = inDarkMode() ? "selectedDark" : "selectedLight";
@@ -6967,6 +6960,7 @@ async function VisualPDE(url) {
     str = replaceFunctionInTeX(str, "min", true);
     str = replaceFunctionInTeX(str, "ind", true);
     str = replaceFunctionInTeX(str, "abs", false);
+    str = replaceFunctionInTeX(str, "mod", true, "\\text{mod}");
 
     // Remove *, unless between two numbers or followed by + or -, in which case insert \times.
     while (
@@ -6991,6 +6985,12 @@ async function VisualPDE(url) {
     str = str.replaceAll(/[\(\[]/g, "\\left$&");
     str = str.replaceAll(/[\)\]]/g, "\\right$&");
 
+    // Replace RAND with \mathcal{U}.
+    str = str.replaceAll(/\bRAND\b/g, "\\mathcal{U}");
+
+    // Replace RANDN with \mathcal{Z}.
+    str = str.replaceAll(/\bRANDN\b/g, "\\mathcal{Z}");
+
     // Replace WhiteNoise with dW_t/dt.
     str = str.replaceAll(
       /\bWhiteNoise(_([1234]))?\b/g,
@@ -7013,11 +7013,10 @@ async function VisualPDE(url) {
     return str;
   }
 
-  function replaceFunctionInTeX(str, func, withBrackets) {
+  function replaceFunctionInTeX(str, func, withBrackets, customReplacement) {
     // Replace a function, like sqrt(expression), with \sqrt{expression} in str.
     // withBrackets specifies whether or not we should include brackets in between {}.
     var newStr = str;
-    var addedChars = 0;
     const matches = str.matchAll(new RegExp("\\b" + func + "\\b", "g"));
     let funcInd,
       startInd,
@@ -7047,9 +7046,15 @@ async function VisualPDE(url) {
       // If we found correctly paired brackets, replace them. Otherwise, do nothing.
       if (foundBracket && depth == 0) {
         endInd = ind - 1 + startInd;
-        // Insert a backslash and record that we've added a character, which will shift all indices in newStr.
-        newStr = insertStrAtIndex(newStr, "\\", funcInd + offset);
-        offset += 1;
+        // If we have a custom replacement, use that instead of the default.
+        let replacement = customReplacement || "\\" + func;
+        newStr = replaceStrAtIndex(
+          newStr,
+          replacement,
+          funcInd + offset,
+          funcInd + offset + func.length,
+        );
+        offset += replacement.length - func.length;
         if (withBrackets) {
           // Insert braces before and after brackets.
           newStr = insertStrAtIndex(newStr, "{", startInd + offset);
