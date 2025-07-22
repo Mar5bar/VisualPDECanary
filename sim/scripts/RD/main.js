@@ -6880,7 +6880,6 @@ async function VisualPDE(url) {
         }
         return base;
       });
-
     } else {
       // Even if we're not customising the typesetting, add in \selected{} to any selected entry.
       const selectCommand = inDarkMode() ? "selectedDark" : "selectedLight";
