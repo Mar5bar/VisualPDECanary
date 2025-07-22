@@ -119,6 +119,8 @@ self.addEventListener("install", async (event) => {
 
 // Fetching resources
 self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  if (url.pathname.endsWith(".mp4")) return false; // Skip caching for video files
   if (event.request.method !== "GET") return false;
   event.respondWith(
     (async () => {
