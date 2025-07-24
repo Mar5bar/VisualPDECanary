@@ -415,7 +415,7 @@ VisualPDE allows you to interact directly with simulations via a brush by simply
 
 - #### Auto pause
 
-  Set the simulation to be automatically paused when the time ($t$) passes a custom threshold, which can be configured when this option is enabled. You can resume an auto-paused simulation by pressing {{ layout.play }}
+  Set the simulation to be automatically paused when the time ($t$) passes a custom threshold (which can depend on user-defined parameters), which can be configured when this option is enabled. You can resume an auto-paused simulation by pressing {{ layout.play }}
 
 - #### Performance mode
   Reduces the quality of the display in order to boost simulation performance. Different simulations and devices will benefit differently from this setting. On average, we see an increase of around 6fps on a Mac Mini M1 on the 'BenchmarkingFast' preset in 4K resolution.

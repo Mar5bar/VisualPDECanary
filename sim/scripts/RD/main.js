@@ -136,8 +136,7 @@ async function VisualPDE(url) {
   let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
   let colourmap,
     colourmapEndpoints,
-    cLims = [0, 1],
-    cLimsDependOnParams = false;
+    cLims = [0, 1];
   let options,
     uniforms,
     minMaxUniforms,
@@ -179,6 +178,7 @@ async function VisualPDE(url) {
     simObserver,
     hasErrored = false,
     canAutoPause = true,
+    autoPauseStopValue = 0,
     isDrawing,
     hasDrawn,
     shouldCheckNaN = true,
@@ -2078,7 +2078,8 @@ async function VisualPDE(url) {
       "autoPause",
       '<i class="fa-regular fa-hourglass-end"></i> Auto pause',
       function () {
-        canAutoPause = uniforms.t.value < options.autoPauseAt;
+        setAutoPauseStopValue();
+        canAutoPause = uniforms.t.value < autoPauseStopValue;
         configureGUI();
       },
       null,
@@ -2098,7 +2099,8 @@ async function VisualPDE(url) {
       .add(options, "autoPauseAt")
       .name("Pause at $t=$")
       .onFinishChange(function () {
-        canAutoPause = uniforms.t.value < options.autoPauseAt;
+        setAutoPauseStopValue();
+        canAutoPause = uniforms.t.value < autoPauseStopValue;
         controllers["autoPauseAt"].domElement.blur();
       });
 
@@ -3791,7 +3793,7 @@ async function VisualPDE(url) {
         if (
           options.autoPause &&
           canAutoPause &&
-          uniforms.t.value >= options.autoPauseAt
+          uniforms.t.value >= autoPauseStopValue
         ) {
           // Pause automatically if this option is selected and we're past the set time, but only once.
           canAutoPause = false;
@@ -6609,7 +6611,7 @@ async function VisualPDE(url) {
     configurePlotType();
     configureOptions();
     configureGUI();
-    setComputedUniforms();
+    setComputedValues();
     updateShaders();
     configureDimension(); // Triggers a render via a resize, so must be called after updateShaders.
     setEquationDisplayType();
@@ -6880,6 +6882,14 @@ async function VisualPDE(url) {
         }
         return base;
       });
+
+      // Replace RAND with \mathcal{U}.
+      regex = /\bRAND\b/g;
+      str = str.replaceAll(regex, "\\mathcal{U}");
+
+      // Replace RANDN with \mathcal{Z}.
+      regex = /\bRANDN\b/g;
+      str = str.replaceAll(regex, "\\mathcal{Z}");
     } else {
       // Even if we're not customising the typesetting, add in \selected{} to any selected entry.
       const selectCommand = inDarkMode() ? "selectedDark" : "selectedLight";
@@ -6959,7 +6969,6 @@ async function VisualPDE(url) {
     str = replaceFunctionInTeX(str, "min", true);
     str = replaceFunctionInTeX(str, "ind", true);
     str = replaceFunctionInTeX(str, "abs", false);
-    str = replaceFunctionInTeX(str, "mod", true, "\\text{mod}");
 
     // Remove *, unless between two numbers or followed by + or -, in which case insert \times.
     while (
@@ -6984,12 +6993,6 @@ async function VisualPDE(url) {
     str = str.replaceAll(/[\(\[]/g, "\\left$&");
     str = str.replaceAll(/[\)\]]/g, "\\right$&");
 
-    // Replace RAND with \mathcal{U}.
-    str = str.replaceAll(/\bRAND\b/g, "\\mathcal{U}");
-
-    // Replace RANDN with \mathcal{Z}.
-    str = str.replaceAll(/\bRANDN\b/g, "\\mathcal{Z}");
-
     // Replace WhiteNoise with dW_t/dt.
     str = str.replaceAll(
       /\bWhiteNoise(_([1234]))?\b/g,
@@ -7012,10 +7015,11 @@ async function VisualPDE(url) {
     return str;
   }
 
-  function replaceFunctionInTeX(str, func, withBrackets, customReplacement) {
+  function replaceFunctionInTeX(str, func, withBrackets) {
     // Replace a function, like sqrt(expression), with \sqrt{expression} in str.
     // withBrackets specifies whether or not we should include brackets in between {}.
     var newStr = str;
+    var addedChars = 0;
     const matches = str.matchAll(new RegExp("\\b" + func + "\\b", "g"));
     let funcInd,
       startInd,
@@ -7045,15 +7049,9 @@ async function VisualPDE(url) {
       // If we found correctly paired brackets, replace them. Otherwise, do nothing.
       if (foundBracket && depth == 0) {
         endInd = ind - 1 + startInd;
-        // If we have a custom replacement, use that instead of the default.
-        let replacement = customReplacement || "\\" + func;
-        newStr = replaceStrAtIndex(
-          newStr,
-          replacement,
-          funcInd + offset,
-          funcInd + offset + func.length,
-        );
-        offset += replacement.length - func.length;
+        // Insert a backslash and record that we've added a character, which will shift all indices in newStr.
+        newStr = insertStrAtIndex(newStr, "\\", funcInd + offset);
+        offset += 1;
         if (withBrackets) {
           // Insert braces before and after brackets.
           newStr = insertStrAtIndex(newStr, "{", startInd + offset);
@@ -7309,7 +7307,7 @@ async function VisualPDE(url) {
           setKineticStringFromParams();
           render();
           // Update the uniforms with this new value.
-          if (setComputedUniforms() || compileErrorOccurred) {
+          if (setComputedValues() || compileErrorOccurred) {
             // Reset the error flag.
             compileErrorOccurred = false;
             // If we added a new uniform, we need to remake all the shaders.
@@ -7373,7 +7371,7 @@ async function VisualPDE(url) {
           createParameterController(newLabel, true);
           // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
           setKineticStringFromParams();
-          if (setComputedUniforms() || compileErrorOccurred) {
+          if (setComputedValues() || compileErrorOccurred) {
             // Reset the error flag.
             compileErrorOccurred = false;
             updateShaders();
@@ -7441,7 +7439,7 @@ async function VisualPDE(url) {
         }
         // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
-        if (setComputedUniforms()) {
+        if (setComputedValues()) {
           updateShaders();
         }
       });
@@ -8114,14 +8112,11 @@ async function VisualPDE(url) {
     return nameVals;
   }
 
-  function setComputedUniforms() {
-    // Set uniforms based on the parameters defined in kineticParams.
+  function setComputedValues() {
+    // Set uniforms and JS values based on the parameters defined in kineticParams.
     // Return true if we're adding a new uniform, which signifies that all shaders must be
     // updated to reference this new uniform.
-    const paramStrs = getKineticParamDefs()
-      .split(";")
-      .filter((x) => x.length > 0);
-    kineticParamsVals = evaluateParamVals(paramStrs);
+    kineticParamsVals = evaluateParamVals();
     // Check for any duplicated parameter names.
     const dups = getDuplicates(getKineticParamNames());
     if (dups.length > 0) {
@@ -8139,7 +8134,8 @@ async function VisualPDE(url) {
       addingNewUniform |= uniformFlag;
       encounteredError |= errorFlag;
     }
-    if (cLimsDependOnParams) setColourRangeFromDef();
+    setColourRangeFromDef();
+    setAutoPauseStopValue();
     return addingNewUniform && !encounteredError;
   }
 
@@ -8192,10 +8188,14 @@ async function VisualPDE(url) {
   function evaluateParamVals(strs) {
     // Return a list of (name,value) pairs for parameters defined in
     // a list of strings. These can depend on each other, but not cyclically.
+    // The kinetic parameters are always included.
+    // strs is an array of arrays of strings [[name, value]]
     let strDict = {};
     let valDict = {};
     let badNames = [];
-    const nameVals = getKineticParamNameVals();
+    let nameVals = getKineticParamNameVals();
+    if (strs) nameVals.push(strs);
+    // let nameVals = getKineticParamNameVals().push(strs || []);
     const names = nameVals.map((x) => x[0]);
     nameVals.forEach((x) => (strDict[x[0]] = x[1]));
     for (const nameVal of nameVals) {
@@ -8288,8 +8288,6 @@ async function VisualPDE(url) {
    */
   function setColourRangeFromDef() {
     cLims = evaluateMinMaxVals();
-    // Check if the colour limits need to be evaluated (ie do they contain non-numeric values).
-    cLimsDependOnParams = doColourLimsNeedEvaluating();
     uniforms.minColourValue.value = cLims[0];
     uniforms.maxColourValue.value = cLims[1];
     updateColourbarLims();
@@ -11543,5 +11541,21 @@ async function VisualPDE(url) {
     if (current.trim()) args.push(current.trim());
 
     return args;
+  }
+
+  function setAutoPauseStopValue() {
+    let val = options.autoPauseAt.toString();
+    let regex;
+    for (const nameVal of kineticParamsVals) {
+      regex = new RegExp("\\b" + nameVal[0] + "\\b", "g");
+      val = val.replaceAll(regex, nameVal[1]);
+    }
+    try {
+      autoPauseStopValue = parser.evaluate(val);
+    } catch (error) {
+      throwError(
+        "Unable to evaluate the auto pause time. Please check the definition.",
+      );
+    }
   }
 }
