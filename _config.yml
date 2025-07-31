@@ -39,7 +39,7 @@ sass:
 header_pages:
   - explore.md
   - create.md
-  - user-guide.md
+  - contact.md
   - about.md
 
 collections:
