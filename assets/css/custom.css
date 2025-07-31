@@ -48,8 +48,16 @@ a[href*='//']:not([href*='visualpde.com' i])
 }
 
 p > a,
-p > a:visited {
+p > a:visited,
+div.wrapper > ul > li > a,
+div.wrapper > ul > li > a:visited
+{
   text-decoration: underline;
+}
+
+div.wrapper > ul > li > a:hover
+{
+  text-decoration: none;
 }
 
 a.button {

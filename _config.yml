@@ -76,6 +76,9 @@ collections:
   create:
     output: true
     title: Create
+  about:
+    output: true
+    title: About
 
 defaults:
   - scope:
