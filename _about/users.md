@@ -8,7 +8,7 @@ extract: Who's using VisualPDE, and for what?
 
 ## VisualPDE in the classroom <a class="anchor" id='classroom'>
 
-* [Oxford University, Mathematical Biology](https://www.youtube.com/watch?v=Xn8rphOnjwc&t=2700)
+* [University of Oxford, Mathematical Biology](https://www.youtube.com/watch?v=Xn8rphOnjwc&t=2700)
 
 ## VisualPDE in scientific publishing
 
