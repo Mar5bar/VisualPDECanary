@@ -22,6 +22,7 @@
   --table-header-background-color: #f0f0f0;
   --table-even-row-background-color: #f0f0f0;
   --post-of-the-week-height: 0px;
+  --inverse-text-color: white;
 }
 
 html {
@@ -1356,6 +1357,7 @@ vpde-chart {
   --input-border-color: var(--ui-button-border-color);
   --table-header-background-color: #2b2c2e;
   --table-even-row-background-color: #303134;
+  --inverse-text-color: var(--tile-text-color);
 }
 
 .dark-mode #dark-on {
