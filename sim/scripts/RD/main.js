@@ -136,7 +136,8 @@ async function VisualPDE(url) {
   let xDisplayDomainCoords, yDisplayDomainCoords, numPointsInLine, arrowGroup;
   let colourmap,
     colourmapEndpoints,
-    cLims = [0, 1];
+    cLims = [0, 1],
+    cLimsDependOnParams = false;
   let options,
     uniforms,
     minMaxUniforms,
@@ -2099,8 +2100,7 @@ async function VisualPDE(url) {
       .add(options, "autoPauseAt")
       .name("Pause at $t=$")
       .onFinishChange(function () {
-        setAutoPauseStopValue();
-        canAutoPause = uniforms.t.value < autoPauseStopValue;
+        canAutoPause = uniforms.t.value < options.autoPauseAt;
         controllers["autoPauseAt"].domElement.blur();
       });
 
@@ -3793,7 +3793,7 @@ async function VisualPDE(url) {
         if (
           options.autoPause &&
           canAutoPause &&
-          uniforms.t.value >= autoPauseStopValue
+          uniforms.t.value >= options.autoPauseAt
         ) {
           // Pause automatically if this option is selected and we're past the set time, but only once.
           canAutoPause = false;
@@ -6611,7 +6611,7 @@ async function VisualPDE(url) {
     configurePlotType();
     configureOptions();
     configureGUI();
-    setComputedValues();
+    setComputedUniforms();
     updateShaders();
     configureDimension(); // Triggers a render via a resize, so must be called after updateShaders.
     setEquationDisplayType();
@@ -7307,7 +7307,7 @@ async function VisualPDE(url) {
           setKineticStringFromParams();
           render();
           // Update the uniforms with this new value.
-          if (setComputedValues() || compileErrorOccurred) {
+          if (setComputedUniforms() || compileErrorOccurred) {
             // Reset the error flag.
             compileErrorOccurred = false;
             // If we added a new uniform, we need to remake all the shaders.
@@ -7371,7 +7371,7 @@ async function VisualPDE(url) {
           createParameterController(newLabel, true);
           // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
           setKineticStringFromParams();
-          if (setComputedValues() || compileErrorOccurred) {
+          if (setComputedUniforms() || compileErrorOccurred) {
             // Reset the error flag.
             compileErrorOccurred = false;
             updateShaders();
@@ -7439,7 +7439,7 @@ async function VisualPDE(url) {
         }
         // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
         setKineticStringFromParams();
-        if (setComputedValues()) {
+        if (setComputedUniforms()) {
           updateShaders();
         }
       });
@@ -8112,8 +8112,8 @@ async function VisualPDE(url) {
     return nameVals;
   }
 
-  function setComputedValues() {
-    // Set uniforms and JS values based on the parameters defined in kineticParams.
+  function setComputedUniforms() {
+    // Set uniforms based on the parameters defined in kineticParams.
     // Return true if we're adding a new uniform, which signifies that all shaders must be
     // updated to reference this new uniform.
     kineticParamsVals = evaluateParamVals();
@@ -8134,8 +8134,7 @@ async function VisualPDE(url) {
       addingNewUniform |= uniformFlag;
       encounteredError |= errorFlag;
     }
-    setColourRangeFromDef();
-    setAutoPauseStopValue();
+    if (cLimsDependOnParams) setColourRangeFromDef();
     return addingNewUniform && !encounteredError;
   }
 
@@ -8194,8 +8193,9 @@ async function VisualPDE(url) {
     let valDict = {};
     let badNames = [];
     let nameVals = getKineticParamNameVals();
-    if (strs) nameVals.push(strs);
-    // let nameVals = getKineticParamNameVals().push(strs || []);
+    if (strs) {
+      nameVals.push(...strs);
+    }
     const names = nameVals.map((x) => x[0]);
     nameVals.forEach((x) => (strDict[x[0]] = x[1]));
     for (const nameVal of nameVals) {
@@ -8288,6 +8288,8 @@ async function VisualPDE(url) {
    */
   function setColourRangeFromDef() {
     cLims = evaluateMinMaxVals();
+    // Check if the colour limits need to be evaluated (ie do they contain non-numeric values).
+    cLimsDependOnParams = doColourLimsNeedEvaluating();
     uniforms.minColourValue.value = cLims[0];
     uniforms.maxColourValue.value = cLims[1];
     updateColourbarLims();
@@ -11544,18 +11546,8 @@ async function VisualPDE(url) {
   }
 
   function setAutoPauseStopValue() {
-    let val = options.autoPauseAt.toString();
-    let regex;
-    for (const nameVal of kineticParamsVals) {
-      regex = new RegExp("\\b" + nameVal[0] + "\\b", "g");
-      val = val.replaceAll(regex, nameVal[1]);
-    }
-    try {
-      autoPauseStopValue = parser.evaluate(val);
-    } catch (error) {
-      throwError(
-        "Unable to evaluate the auto pause time. Please check the definition.",
-      );
-    }
+    autoPauseStopValue = evaluateParamVals([
+      ["autoPauseStopVal", String(options.autoPauseAt)],
+    ]);
   }
 }
