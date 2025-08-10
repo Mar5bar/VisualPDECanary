@@ -8,7 +8,7 @@ equation:
 categories: [visual stories]
 ---
 
-Alan Turing's theory of biological pattern formation, proposed in [The Chemical Basis of Morphogenesis](https://en.wikipedia.org/wiki/The_Chemical_Basis_of_Morphogenesis), is widely cited as a mechanism underlying a variety of periodic patterns throughout biology and chemistry. Here we will illustrate some aspects of this theory using interactive simulations carried out in the web browser on your device, as well as note some important extensions and caveats of these ideas.
+Alan Turing's theory of biological pattern formation, proposed in [The Chemical Basis of Morphogenesis](https://en.wikipedia.org/wiki/The_Chemical_Basis_of_Morphogenesis), is widely cited as a mechanism underlying a variety of periodic patterns throughout biology and chemistry. Here we will illustrate some aspects of this theory using interactive simulations carried out in the web browser on your device, as well as note some important extensions and caveats of these ideas. You can also read [this historical overview](/assets/pdfs/TuringHistory.pdf).
 
 We start with a 'classical' reaction–diffusion Turing model, show a few examples of how the more general principle of local activation and long-range inhibition (LALI) can also drive pattern formation beyond reaction–diffusion models, and then finally give a few examples where pattern formation occurs without LALI/Turing instabilities, or where Turing instabilities induce transient patterns that fade away on short timescales to another homogeneous state.
 
