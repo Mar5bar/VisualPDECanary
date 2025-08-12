@@ -79,7 +79,8 @@
         // Exclude user guide and topic pages.
         let pages = documents
         .filter((doc) => doc.layout === "page")
-        .filter((doc) => doc.url.indexOf("/user-guide/") === -1);
+        .filter((doc) => doc.url.indexOf("/user-guide/") === -1)
+        .filter((doc) => doc.url.indexOf("/about/") === -1);
 
         // Sort the pages by page_number.
         pages.sort((a, b) => a.page_number - b.page_number);
@@ -106,10 +107,10 @@
           topicTile.appendChild(topicBanner);
           let container = document.createElement("div");
           container.classList.add("container");
-          page.tags = new Set(page.tags.map((tag) =>  wordsStartUpper(tag)));
-          topicTile.tags = page.tags;
-          page.tags.forEach((x) => tags.add(x));
           if (page.tags) {
+            page.tags = new Set(page.tags.map((tag) =>  wordsStartUpper(tag)));
+            topicTile.tags = page.tags;
+            page.tags.forEach((x) => tags.add(x));
             let tagList = document.createElement("div");
             tagList.classList.add("tag_list");
             tagList.textContent = Array.from(page.tags).join(" | ");
