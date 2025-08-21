@@ -4,7 +4,7 @@ title: "Spatial resilience in cancer immunotherapy"
 lesson_number: 140
 thumbnail: /assets/images/Immunotherapy.webp
 extract: Turing patterning affects cancer treatment
-equation: $\pd{u}{t} = \delta_{u} \nabla^2 u + \alpha v-\mu_{u} u+\frac{\rho_{u} u w}{1+w}+\sigma_{u}+K_{u} t$, $\pd{v}{t} = \nabla^2 v + v \left(1-v\right)-u v/\left(\gamma_{v}+v\right)$, $\pd{w}{t} = \delta_{w} \nabla^2 w + \frac{\rho_{w} u v}{\gamma_{w}+v}-\mu_{w} w+\sigma_{w}+K_{w} t$
+equation: $\pd{u}{t} = \delta_{u} \nabla^2 u + \alpha v-\mu_{u} u+\frac{\rho_{u} u w}{1+w}+\sigma_{u}+K_{u} t$ $\pd{v}{t} = \nabla^2 v + v \left(1-v\right)-\frac{u v}{\gamma_{v}+v}$ $\pd{w}{t} = \delta_{w} \nabla^2 w + \frac{\rho_{w} u v}{\gamma_{w}+v}-\mu_{w} w+\sigma_{w}+K_{w} t$
 categories: [biology, patterns, parabolic]
 ---
 
@@ -13,7 +13,7 @@ On this page we explore the following model of cancer immunotherapy:
 $$
 \begin{aligned}
     \pd{u}{t} &= \delta_{u} \nabla^2 u + \alpha v-\mu_{u} u+\frac{\rho_{u} u w}{1+w}+\sigma_{u}+K_{u} t,\\
-    \pd{v}{t} &= \nabla^2 v + v \left(1-v\right)-u v/\left(\gamma_{v}+v\right),\\
+    \pd{v}{t} &= \nabla^2 v + v \left(1-v\right)-\frac{u v}{\gamma_{v}+v},\\
     \pd{w}{t} &= \delta_{w} \nabla^2 w + \frac{\rho_{w} u v}{\gamma_{w}+v}-\mu_{w} w+\sigma_{w}+K_{w} t,
     \end{aligned}
 $$
