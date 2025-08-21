@@ -1,0 +1,8 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+
+// Override minima theme variables before importing
+$on-palm: 800px; /* Changed for feedback button */
+
+@import "minima";

@@ -205,6 +205,42 @@ main a[href*="visualpde.com/sim/" i] {
   text-decoration: none;
 }
 
+.nav-button-survey,
+.nav-button-survey:visited {
+  font-weight: 400;
+  background-color: #de1d5c;
+  border: 1px solid;
+  border-radius: 6px;
+  border-color: rgba(27, 31, 36, 0.15);
+  padding: 6px 16px;
+  color: #ffffff;
+  box-shadow: rgba(27, 31, 36, 0.1) 0px 1px 0px 0px,
+    rgba(255, 255, 255, 0.03) 0px 1px 0px 0px inset;
+  transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
+  white-space: nowrap;
+  margin-right: 1.5ex;
+  color: white !important;
+}
+
+main a.nav-button-survey {
+  border-bottom: 3px #de1d5c solid;
+  border-radius: 3px;
+  font-weight: 700;
+  padding: 1px 0px;
+  color: #de1d5c;
+  transition: 0.5s cubic-bezier(0.33, 1, 0.68, 1);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+@media screen and (max-width: 800px) { /* Changed for feedback button */
+  a.nav-button-survey, a.nav-button {
+    margin-right: 1ex !important;
+    margin-left: 1ex !important;
+    margin-bottom: 0.5ex !important;
+  }
+}
+
 .nav-button,
 .nav-button:visited {
   font-weight: 400;
@@ -976,6 +1012,7 @@ vpde-chart {
   transition: all 0.5s ease;
   right: 44px;
   pointer-events: all;
+  padding: 6px 16px;
 }
 
 #siteSearchForm:focus-within #siteSearchInput {
@@ -1005,7 +1042,8 @@ vpde-chart {
   color: var(--text-color);
 }
 
-@media screen and (max-width: 600px) {
+/* @media screen and (max-width: 600px) { */ /* Changed for feedback button */
+@media screen and (max-width: 800px) {
   .site-nav {
     top: 6px;
   }
@@ -1087,10 +1125,11 @@ vpde-chart {
   border: none;
 }
 
-@media screen and (max-width: 600px) {
+/* @media screen and (max-width: 600px) { */ /* Changed for feedback button */
+@media screen and (max-width: 800px) {
   #siteSearchForm {
-    right: 56px;
-    width: calc(100% - 72px);
+    right: 65px;
+    width: calc(100% - 100px);
   }
 }
 
