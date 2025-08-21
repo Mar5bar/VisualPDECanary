@@ -5,7 +5,7 @@ title: "2D Navier–Stokes"
 lesson_number: 4
 thumbnail: /assets/images/NavierStokes.webp
 extract: Fluid motion
-equation: $\pd{\v{u}}{t} + \v{u}\cdot \vnabla \v{u} = \nu \nabla^2 \v{u} - \vnabla p,$ $\vnabla \cdot \v{u} = 0$
+equation: $\pd{\v{u}}{t} + (\v{u}\cdot \vnabla) \v{u} = - \vnabla p + \nu \nabla^2 \v{u},$ $\vnabla \cdot \v{u} = 0$
 categories: [fluids, waves, parabolic]
 ---
 
@@ -13,13 +13,16 @@ categories: [fluids, waves, parabolic]
 We consider the 2D incompressible [Navier–Stokes equations](https://en.wikipedia.org/wiki/Navier%E2%80%93Stokes_equations) given by
 
 $$\begin{aligned}
-      \pd{u}{t} &= \nu \nabla^2 u -\left(u  \pd{u}{x} + v  \pd{u}{y}\right) -  \pd{p}{x},\\
-      \pd{v}{t} &= \nu \nabla^2 v -\left(u  \pd{v}{x} + v  \pd{v}{y}\right) -  \pd{p}{y},\\
+      \pd{u}{t} &= -\left(u  \pd{u}{x} + v  \pd{u}{y}\right) -  \pd{p}{x} + \nu \nabla^2 u  ,\\
+      \pd{v}{t} &= -\left(u  \pd{v}{x} + v  \pd{v}{y}\right) -  \pd{p}{y} + \nu \nabla^2 v ,\\
      0 &= \pd{u}{x} + \pd{v}{u},\\
-      \pd{S}{t} &= D \nabla^2 S -\left(u  \pd{S}{x} + v  \pd{S}{y}\right),
     \end{aligned}$$
 
-where $u$ and $v$ are the horizontal and vertical fluid velocities, respectively, $p$ is the pressure, and $\nu$ is a viscosity parameter. We have added a passive scalar field $S$ with diffusion constant $D$ that is transported by the flow.
+where $u$ and $v$ are the horizontal and vertical fluid velocities, respectively, $p$ is the pressure, and $\nu$ is a viscosity parameter.
+
+In order to track the fluid motion, we have added a passive scalar field $S$ with diffusion constant $D$ that is transported by the flow,
+
+$$\pd{S}{t} =  -\left(u  \pd{S}{x} + v  \pd{S}{y}\right) + D \nabla^2 S.$$
 
 * Load the interactive [Navier–Stokes model](/sim/?preset=NavierStokes). By default, the speed $\sqrt{u^2+v^2}$ is plotted, with arrows indicating the flow of the fluid. You can press {{ layout.views }} to instead plot the horizontal fluid velocity $u$, the vertical fluid velocity $v$, the vorticity $\omega = \pd{v}{x} - \pd{u}{y}$, or the passive scalar $S$.
 
