@@ -1012,12 +1012,13 @@ vpde-chart {
   transition: all 0.5s ease;
   right: 44px;
   pointer-events: all;
-  padding: 6px 16px;
+  padding: 6px 0px;
 }
 
 #siteSearchForm:focus-within #siteSearchInput {
   width: calc(100% - 50px);
   background-color: var(--input-background-color);
+  padding: 6px 16px;
 }
 
 #pageSearchInput {
