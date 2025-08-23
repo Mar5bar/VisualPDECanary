@@ -33,53 +33,6 @@
 
 </footer>
 
-<style>
-#feedback-banner {
-  position: fixed;
-  right: -368px;
-  bottom: 40px;
-  width: 80px;
-  background-color: var(--button-color);
-  border-radius: 8px 0 0 8px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-  padding: 6px 4px 6px 10px;
-  z-index: 9999;
-  transition: right 1s cubic-bezier(.68,0,.27,1);
-  text-align: center;
-}
-#feedback-banner, #feedback-banner a {
-  color: var(--inverse-text-color);
-}
-#feedback-banner.show {
-  right: 0;
-}
-#feedback-banner .close-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.2em;
-  cursor: pointer;
-  margin-left: auto;
-  padding: 0 4px;
-}
-</style>
-<div id="feedback-banner" role="dialog" aria-live="polite" aria-label="Feedback banner" tabindex="-1">
-  <span>Take the survey?<br><a href="https://forms.office.com/Pages/ResponsePage.aspx?id=i9hQcmhLKUW-RNWaLYpvlJ_-2EYFaPNGns6KgINzIKlUM0MzSUI1RjVOSkdTTVRIVEFJS08ySVVJRS4u" target="_blank" onclick="closeFeedbackBanner()">Yes</a> | <a onclick="closeFeedbackBanner()">No</a></span>
-</div>
-<script>
-function closeFeedbackBanner() {
-  document.getElementById('feedback-banner').classList.remove('show');
-  localStorage.setItem('feedbackBannerUsed', 'true');
-}
-
-setTimeout(function() {
-  var banner = document.getElementById('feedback-banner');
-  if (localStorage.getItem('feedbackBannerUsed') !== 'true') {
-    banner.classList.add('show');
-  }
-}, 5000);
-</script>
-
 <div id="reading-progress-gutter" style="display:none"></div>
 <div id="reading-progress" style="display:none"></div>
 <script src="{{ '/assets/js/reading_progress.js' | relative_url }}"></script>
