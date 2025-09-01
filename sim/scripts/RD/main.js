@@ -175,6 +175,7 @@ async function VisualPDE(url) {
     isLoading = true,
     isRecording = false,
     isOptimising = false,
+    runningBeforeError = false,
     canTimeStep = true,
     simObserver,
     hasErrored = false,
@@ -233,7 +234,8 @@ async function VisualPDE(url) {
     kineticParamsLabels = [],
     kineticNameToCont = {},
     kineticParamsVals = [],
-    kineticParamsCounter = 0;
+    kineticParamsCounter = 0,
+    nextParamController;
   const defaultPreset = "GrayScott";
   const defaultSpecies = ["u", "v", "w", "q"];
   const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
@@ -410,16 +412,27 @@ async function VisualPDE(url) {
     let errorStr = error.toString();
     console.log(errorStr);
     let regex = /ERROR.*/;
-    regex.test(errorStr) ? (errorStr = errorStr.match(regex)) : {};
+    regex.test(errorStr)
+      ? (errorStr = errorStr.match(regex).toString().trim())
+      : {};
     if (/error C7532/.test(errorStr)) {
       throwError(
         "Oops! It looks like you're using Firefox on a Linux machine with an NVIDIA graphics card. Please use an alternative browser (e.g. Edge or Chrome) to use VisualPDE.",
       );
-    } else {
+    } else if (/undeclared identifier/.test(errorStr)) {
+      // If an identifier is undeclared, extract it and offer to add it as a parameter.
+      let undeclaredVar = errorStr.match(/'([^']+)'/)[1];
       throwError(
-        errorStr.toString().trim() +
-          ". Click <a href='/user-guide/FAQ#undeclared' target='blank'>here</a> for more information.",
+        "Unknown symbol: '" +
+          undeclaredVar +
+          "'. Click <a href='/user-guide/FAQ#undeclared' target='blank'>here</a> for more information.",
+        "Add " + undeclaredVar + " as parameter",
+        () => {
+          addKineticParameterAfterError(undeclaredVar);
+        },
       );
+    } else {
+      throwError(errorStr + ".");
     }
   };
 
@@ -5399,6 +5412,7 @@ async function VisualPDE(url) {
     kineticParamsCounter = 0;
     kineticParamsLabels = [];
     kineticParamsStrs = {};
+    kineticNameToCont = {};
 
     // Coerce the new options into the correct types.
     coerceOptions(newOptions);
@@ -7340,6 +7354,7 @@ async function VisualPDE(url) {
       kineticParamsLabels.push(label);
       kineticParamsStrs[label] = "";
       controller = parametersFolder.add(kineticParamsStrs, label).name("");
+      nextParamController = controller;
       disableAutocorrect(controller.domElement.firstChild);
       controller.domElement.classList.add("params");
       controller.onFinishChange(function () {
@@ -7465,6 +7480,18 @@ async function VisualPDE(url) {
     let label,
       str,
       newLabels = [];
+    // Reset the kinetic parameters.
+    kineticParamsCounter = 0;
+    kineticParamsLabels = [];
+    kineticParamsStrs = {};
+    kineticNameToCont = {};
+    // Remove all existing controllers from the parameters folder.
+    let existingControllers = parametersFolder.__controllers.slice();
+    existingControllers.forEach(function (controller) {
+      controller.remove();
+    });
+    nextParamController = null;
+
     let strs = options.kineticParams.split(";");
     for (var index = 0; index < strs.length; index++) {
       str = removeWhitespace(strs[index]);
@@ -7483,7 +7510,7 @@ async function VisualPDE(url) {
         newLabels.push(label);
       }
     }
-    // Having defined all the parameters, create the controllers. This separate loops allows dependencies
+    // Having defined all the parameters, create the controllers. This separate loop allows dependencies
     // between parameters, as all parameters have been initialised by this point.
     for (const label of newLabels) {
       createParameterController(label, false);
@@ -7502,6 +7529,32 @@ async function VisualPDE(url) {
         return str.replaceAll(/"\s+"/g, " ");
       })
       .join(";");
+  }
+
+  function addKineticParameterAfterError(paramName) {
+    // Append a kinetic parameter to the end of the string that defines kinetic parameters.
+    // First, check if the parameter is already present.
+    let existingNames = getKineticParamNames();
+    if (existingNames.includes(paramName)) return;
+    if (nextParamController) {
+      // If there is a next parameter controller, update its value as if the user had typed in a new parameter.
+      const val = paramName + " = 0";
+      nextParamController.setValue(val);
+      nextParamController.__onFinishChange(nextParamController, val);
+      // Fadeout the error and restart the simulation if it was running.
+      fadeout("#error");
+      if (runningBeforeError) {
+        playSim();
+      }
+      return;
+    } else {
+      // Otherwise, we can't add the parameter automatically, so we throw an error to let the user know.
+      throwError(
+        "Could not add parameter '" +
+          paramName +
+          "' automatically. Please add it manually.",
+      );
+    }
   }
 
   function fromExternalLink() {
@@ -8978,13 +9031,22 @@ async function VisualPDE(url) {
    * Pauses the simulation and displays an error message.
    * @param {string} message - The error message to display.
    */
-  function throwError(message) {
+  function throwError(message, fixButtonMessage, fixButtonFunc) {
     if (!shouldShowErrors()) return;
+    runningBeforeError = isRunning;
     pauseSim();
     // If we're loading in, don't overwrite previous errors.
     if (isLoading && hasErrored) return;
     hasErrored = true;
     // If an error is already being displayed, just update the message.
+    // If a fix button message and function are provided, update those too. Otherwise hide the button.
+    if (fixButtonMessage != undefined && fixButtonFunc != undefined) {
+      $("#error_fix_button_text").html(fixButtonMessage);
+      $("#error_fix_button").off("click").on("click", fixButtonFunc);
+      $("#error_fix_button").show();
+    } else {
+      $("#error_fix_button").hide();
+    }
     if ($("#error").is(":visible")) {
       $("#error_description").html(message);
     } else {

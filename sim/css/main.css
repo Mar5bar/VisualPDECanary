@@ -973,6 +973,7 @@ button.focus-params.active {
 #welcome_ok,
 #welcome_no,
 #lets_go,
+#error_fix_button,
 .message_dismiss {
   font-size: min(1rem, 5vw);
   margin-bottom: 0.5rem;
@@ -987,6 +988,12 @@ button.focus-params.active {
     rgba(255, 255, 255, 0.03) 0px 1px 0px 0px inset;
   transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
   transition-duration: 80ms;
+}
+
+#error_fix_button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (hover: hover) {
