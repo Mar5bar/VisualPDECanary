@@ -7583,6 +7583,10 @@ async function VisualPDE(url) {
     }, 1000);
   }
 
+  function isFadingOut(id) {
+    return $(id).hasClass("fading_out");
+  }
+
   function configureColourbar() {
     if (options.colourbar || showColourbarOverride) {
       if (showColourbarOverride) $("#colourbar").removeClass("hidden");
@@ -9047,7 +9051,7 @@ async function VisualPDE(url) {
     } else {
       $("#error_fix_button").hide();
     }
-    if ($("#error").is(":visible")) {
+    if ($("#error").is(":visible") && !isFadingOut("#error")) {
       $("#error_description").html(message);
     } else {
       // If an input element has focus, don't display a new error as it could block input.
