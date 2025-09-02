@@ -10852,14 +10852,9 @@ async function VisualPDE(url) {
   function replaceWhiteNoise(str) {
     // Replace WhiteNoise with RANDN*sqrt(1/(dt*dx^dim)), where dim is dimension.
     if (options.dimension == 1) {
-      str = str.replaceAll(
-        /\bWhiteNoise(_1)?[^\()]\b/g,
-        "sqrt(1/(dt*dx))*RANDN",
-      );
+      str = str.replaceAll(/\bWhiteNoise(_1)?\b/g, "sqrt(1/(dt*dx))*RANDN");
       str = str.replaceAll(/\bWhiteNoise_([2-4])\b/g, function (match, p1) {
-        return (
-          "sqrt(1/(dt*dx))" + "RANDN" + numsAsWords[Number(p1)].toUpperCase()
-        );
+        return "sqrt(1/(dt*dx))*RANDN" + numsAsWords[Number(p1)].toUpperCase();
       });
     } else {
       str = str.replaceAll(
@@ -10868,9 +10863,7 @@ async function VisualPDE(url) {
       );
       str = str.replaceAll(/\bWhiteNoise_([2-4])\b/g, function (match, p1) {
         return (
-          "sqrt(1/(dt*pow(dx,2)))" +
-          "RANDN" +
-          numsAsWords[Number(p1)].toUpperCase()
+          "sqrt(1/(dt*pow(dx,2)))*RANDN" + numsAsWords[Number(p1)].toUpperCase()
         );
       });
     }
