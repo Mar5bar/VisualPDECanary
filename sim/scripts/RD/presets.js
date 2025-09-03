@@ -5,6 +5,7 @@ let presets = {};
 presets["RWBIAD"] = {
   autoPause: true,
   autoPauseAt: 180,
+  backgroundColour: 0,
   blendImage: true,
   blendImageAmount: 1,
   blendImagePath: "./images/RWBIAD.webp",
@@ -34,6 +35,7 @@ presets["RWBIAD"] = {
   reactionStr_1: "max(r,0)*max(1-r-h,0)",
   reactionStr_2: "max(h,0)*max(1-r-h,0)+(1/cosh(t-T_h)^2)*Bump(x_h,y_h,L_x*R)",
   reactionStr_3: "0",
+  resetOnImageLoad: true,
   speciesNames: "r h",
   squareCanvas: true,
   timeDisplay: true,
