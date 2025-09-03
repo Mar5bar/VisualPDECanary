@@ -2,6 +2,52 @@
 
 let presets = {};
 
+presets["RWBIAD"] = {
+"autoPause": true,
+"autoPauseAt": 180,
+"backgroundColour": 0,
+"blendImage": true,
+"blendImageAmount": 1,
+"blendImagePath": "./images/RWBIAD.webp",
+"boundaryConditions_1": "neumann",
+"boundaryConditions_2": "neumann",
+"brushAction": "smoothadd",
+"brushRadius": "2",
+"brushValue": "0.1",
+"diffusionStr_1_1": "(speed_r*(1+H(t-T)*speed_rh)*(1+r))*max(1-r-h,0)",
+"diffusionStr_2_2": "(speed_h*(1+h))*max(1-r-h,0)",
+"diffusionStr_3_3": "0",
+"domainScale": "200",
+"dt": 0.01,
+"guiUpdatePeriod": 3,
+"imagePathOne": "./images/RWBIAD.webp",
+"initCond_1": "Bump(x_r,y_r,L_x*R)",
+"kineticParams": "speed_r = 0.01;speed_h = 0.4;R = 1/40;T = 100;speed_rh = 50*speed_h;T_h = 40;speed_r2 = 0.5;x_h = 100*(1-0.69) in [0,200];y_h = 200*0.52 in [0,200];x_r = 0.39*200 in [0,200];y_r = 200*0.85 in [0, 200];",
+"minX": "0",
+"minY": "0",
+"numTimestepsPerFrame": 84,
+"preset": "RWBIAD",
+"renderSize": 1024,
+"reactionStr_1": "max(r,0)*max(1-r-h,0)",
+"reactionStr_2": "max(h,0)*max(1-r-h,0)+(1/cosh(t-T_h)^2)*Bump(x_h,y_h,L_x*R)",
+"reactionStr_3": "0",
+"speciesNames": "r h",
+"squareCanvas": true,
+"timeDisplay": true,
+"tryClickingText": "Try tapping!",
+"views": [{
+"whatToPlot": "h-r",
+"name": "⭐",
+},
+{
+"whatToPlot": "h",
+"name": 2,
+}],
+"whatToDraw": "r",
+"simTitle": "Interstellar Travel",
+};
+
+
 presets["penguinsInOut"] = {
   boundaryConditions_1: "neumann",
   boundaryConditions_2: "dirichlet",
