@@ -15,6 +15,8 @@ presets["RWBIAD"] = {
   brushRadius: "2",
   brushValue: "0.1",
   colourmap: "pastels",
+  contours: true,
+  contourNum: 1,
   diffusionStr_1_1: "(speed_r*(1+H(t-T)*speed_rh)*(1+r))*max(1-r-h,0)",
   diffusionStr_2_2: "(speed_h*(1+h))*max(1-r-h,0)",
   diffusionStr_3_3: "0",
