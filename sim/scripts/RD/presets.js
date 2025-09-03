@@ -24,8 +24,8 @@ presets["RWBIAD"] = {
   initCond_1: "Bump(x_r,y_r,L_x*R)",
   kineticParams:
     "speed_r = 0.01;speed_h = 0.4;R = 1/40;T = 100;speed_rh = 50*speed_h;T_h = 40;speed_r2 = 0.5;x_h = 100*(1-0.69) in [0,200];y_h = 200*0.52 in [0,200];x_r = 0.39*200 in [0,200];y_r = 200*0.85 in [0, 200];",
-	maxColourValue: "1",
-	minColourValue: "-1",
+  maxColourValue: "1",
+  minColourValue: "-1",
   minX: "0",
   minY: "0",
   numTimestepsPerFrame: 84,
