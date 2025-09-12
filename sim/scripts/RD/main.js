@@ -3901,7 +3901,7 @@ async function VisualPDE(url) {
     if (/\bRAND\b/.test(options.brushValue)) {
       shaderStr += randShader();
     }
-    if (/\bRANDN(_[12])?\b/.test(options.brushValue)) {
+    if (/\bRANDN(_[1234])?\b/.test(options.brushValue)) {
       shaderStr += randNShader();
     }
     shaderStr +=
@@ -5099,7 +5099,7 @@ async function VisualPDE(url) {
       parseReactionStrings(),
       diffusionShader,
     ].join(" ");
-    let containsRAND = /\bRAND\b/.test(middle);
+    let containsRAND = /\bRAND\b/.test(middle) || /\bRANDVAL\b/.test(middle);
     let containsRANDN = /\b(RANDN|RANDNTWO|RANDNTHREE|RANDNFOUR)\b/.test(
       middle,
     );
@@ -5771,10 +5771,13 @@ async function VisualPDE(url) {
       options.initCond_3,
       options.initCond_4,
     ].join(" ");
-    if (/\bRAND\b/.test(allClearShaders)) {
+    if (
+      /\bRAND\b/.test(allClearShaders) ||
+      /\bRANDVAL\b/.test(allClearShaders)
+    ) {
       shaderStr += randShader();
     }
-    if (/\bRANDN(_[12])?\b/.test(allClearShaders)) {
+    if (/\bRANDN(_[1234])?\b/.test(allClearShaders)) {
       shaderStr += randNShader();
     }
     shaderStr += "float u = " + parseShaderString(options.initCond_1) + ";\n";
