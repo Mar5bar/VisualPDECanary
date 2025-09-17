@@ -19,7 +19,11 @@
     });
   }
   gtag("js", new Date());
-  gtag("config", "G-ZDK91GRY6Y", { client_storage: "none" });
+  function gtag_config() {
+    if (typeof gtag !== "function") return;
+    gtag("config", "G-ZDK91GRY6Y", { client_storage: "none", 'anonymize_ip': true });
+  }
+  gtag_config();
   // If we're on localhost, disable GA.
   if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
     window["ga-disable-G-ZDK91GRY6Y"] = true;
