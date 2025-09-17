@@ -7,6 +7,17 @@
   function gtag() {
     dataLayer.push(arguments);
   }
+  gtag("consent", "default", {
+    ad_storage: "denied",
+    ad_user_data: "denied",
+    ad_personalization: "denied",
+    analytics_storage: "denied",
+  });
+  if (localStorage.getItem("visited") || localStorage.getItem("ga-consent")) {
+    gtag("consent", "update", {
+      analytics_storage: "granted",
+    });
+  }
   gtag("js", new Date());
   gtag("config", "G-ZDK91GRY6Y", { client_storage: "none" });
   // If we're on localhost, disable GA.
