@@ -50,13 +50,11 @@ a[href*='//']:not([href*='visualpde.com' i])
 p > a,
 p > a:visited,
 div.wrapper > ul > li > a,
-div.wrapper > ul > li > a:visited
-{
+div.wrapper > ul > li > a:visited {
   text-decoration: underline;
 }
 
-div.wrapper > ul > li > a:hover
-{
+div.wrapper > ul > li > a:hover {
   text-decoration: none;
 }
 
@@ -232,16 +230,34 @@ main a.nav-button-survey {
   text-decoration: none;
 }
 
-@media screen and (max-width: 800px) { /* Changed for feedback button */
-  a.nav-button-survey, a.nav-button {
+@media screen and (max-width: 800px) {
+  /* Changed for feedback button */
+  a.nav-button-survey,
+  a.nav-button {
     margin-right: 1ex !important;
     margin-left: 1ex !important;
     margin-bottom: 0.5ex !important;
   }
 }
 
+#cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #222;
+  color: #fff;
+  padding: 0.4em;
+  text-align: center;
+  z-index: 1000;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
 .nav-button,
-.nav-button:visited {
+.nav-button:visited,
+.cookie-button {
   font-weight: 400;
   background-color: var(--play-button-color);
   border: 1px solid;
@@ -253,6 +269,22 @@ main a.nav-button-survey {
     rgba(255, 255, 255, 0.03) 0px 1px 0px 0px inset;
   transition: 80ms cubic-bezier(0.33, 1, 0.68, 1);
   white-space: nowrap;
+}
+
+.cookie-button {
+  margin-left: 1em;
+  padding: 0.5em 1em;
+  background: #444;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.cookie-button:hover {
+  background-color: var(--hover-color);
+  border-color: rgba(27, 31, 36, 0.15);
+  transition-duration: 0.1s;
+  text-decoration: none;
 }
 
 @media (hover: hover) {

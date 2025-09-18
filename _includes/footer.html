@@ -50,9 +50,9 @@
     }
   }
 </script>
-<div id="cookie-banner" style="position:fixed;bottom:0;left:0;width:100%;background:#222;color:#fff;padding:1em;text-align:center;z-index:1000;display:none;justify-content:center;align-items:center;">
+<div id="cookie-banner">
   <span>We use analytics cookies to evidence VisualPDE's impact to funders. By using this site, you consent to the use of cookies.</span>
-  <button style="margin-left:1em;padding:0.5em 1em;background:#444;color:#fff;border:none;cursor:pointer;" onclick="enableGA()">Close</button>
+  <button class="cookie-button" onclick="enableGA()">Close</button>
 </div>
 <script>
   if (!localStorage.getItem("ga-consent")) {
