@@ -2797,8 +2797,6 @@ presets["forestFires3D"] = {
   initCond_2: "1-I_T^2",
   parent: "forestFires",
   preset: "forestFires3D",
-  reactionStr_3: "V + h*(I_T(x+dx,y) - I_T(x-dx,y))/(2*dx) ",
-  reactionStr_4: "h*(I_T(x,y+dy) - I_T(x,y-dy))/(2*dy)",
   views: [
     {
       cameraTheta: 39.60000000000032,
@@ -2878,7 +2876,8 @@ presets["forestFires"] = {
   preset: "forestFires",
   reactionStr_1: "-(u*T_x + v*T_y) + A*(S*exp(-B/abs(T)) - C*T)",
   reactionStr_2: "-C_S*S*exp(-B/abs(T))*ind(T>0)",
-  reactionStr_3: "V",
+  reactionStr_3: "V + h*(I_T(x+dx,y) - I_T(x-dx,y))/(2*dx) ",
+  reactionStr_4: "h*(I_T(x,y+dy) - I_T(x,y-dy))/(2*dy)",
   spatialStep: "2",
   speciesNames: "T S u v",
   views: [
