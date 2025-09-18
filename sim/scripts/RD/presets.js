@@ -2792,6 +2792,33 @@ presets["ducks"] = {
   simTitle: "Ducks",
 };
 
+presets["forestFires3D"] = {
+  imagePathTwo: "./images/topography.webp",
+  initCond_2: "1-I_T^2",
+  parent: "forestFires",
+  preset: "forestFires3D",
+  reactionStr_3: "V + h*(I_T(x+dx,y) - I_T(x-dx,y))/(2*dx) ",
+  reactionStr_4: "h*(I_T(x,y+dy) - I_T(x,y-dy))/(2*dy)",
+  views: [
+    {
+      cameraTheta: 39.60000000000032,
+      cameraPhi: 13.679999999999934,
+      colourmap: "fireOnTerrain",
+      colourbar: false,
+      customSurface: true,
+      emboss: true,
+      flippedColourmap: false,
+      maxColourValue: "1",
+      minColourValue: "0",
+      plotType: "surface",
+      surfaceFun: "100*I_T",
+      whatToPlot:
+        "ind(S>0.01)*0.7*S^2 + ind(T>0.5)*(0.7+T/7*0.3) + ind(S<=0.01)*ind(T<=0.5)*(1-I_T^2-0.6)*0.7",
+      name: "Fire on Topography",
+    },
+  ],
+};
+
 presets["forestFiresSplitscreen"] = {
   activeViewInd: 2,
   boundaryConditions_1: "dirichlet",
@@ -2844,7 +2871,7 @@ presets["forestFires"] = {
   diffusionStr_1_1: "k",
   diffusionStr_2_2: "0",
   kineticParams:
-    "k = 0.001;A = 0.1;B = 0.1;C = 0.01;C_S = 0.01;V = 0.0000 in [0, 0.003];",
+    "k = 0.001;A = 0.1;B = 0.1;C = 0.01;C_S = 0.01;h = 0.1;V = 0.0000 in [0, 0.003];",
   numAlgebraicSpecies: 2,
   numSpecies: 4,
   parent: "grayScott",
