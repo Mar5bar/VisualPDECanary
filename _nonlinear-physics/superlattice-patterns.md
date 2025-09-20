@@ -2,23 +2,33 @@
 layout: page
 title: Superlattice patterns
 lesson_number: 140
-thumbnail: /assets/images/VanderPolOscillator.webp
+thumbnail: /assets/images/Superlattice.webp
 extract: Nonlinearity and oscillation in space
-equation: $\pdd{X}{t} = D \nabla^2 X+ \mu(1-X^2)\pd{X}{t}-X$
-categories: [chaos, integrable, parabolic]
+equation: $\pdd{\boldmath{u}}{t} = \boldmath{D_u} \nabla^2 \boldmath{u} + \boldmath{f_u}(\boldmath{u}) + \alpha \boldmath{g}(\boldmath{u},\boldmath{v})\\\pdd{\boldmath{v}}{t} = \boldmath{D_v} \nabla^2 \boldmath{v} + \boldmath{f_v}(\boldmath{v}) + \alpha \boldmath{g}(\boldmath{v},\boldmath{u})$
+categories: [patterns, parabolic]
 ---
 
 
+Coupling two systems which generate spatial patterns can lead to what are referred to as ``superlattice patterns." Here we give an example from [this paper about superlattice patterns with nonidentical kinetics](https://journals.aps.org/pre/abstract/10.1103/PhysRevE.111.024210).  Their model combines a Brusselator and a Lengyll-Epstein reaction-diffusion model with a nonlinear coupling between the two subsystems. The full system is given by:
 
-TODO: WRITE THIS PAGE
+$$
+\begin{aligned}
+      \pd{u_{1}}{t} &= D_{u_{1}} \lap u_{1} + a-\left(b+1\right) u_{1}+{u_{1}}^{2} v_{1}+\alpha u_{1} u_{2} \left(u_{2}-u_{1}\right),\\
+      \pd{v_{1}}{t} &= D_{u_{2}} \lap v_{1} + b u_{1}-{u_{1}}^{2} v_{1},\\
+      \pd{u_{2}}{t} &= D_{u_{3}} \lap u_{2} + c - u_{2} -4 u_{2} v_{2}/\left(1+{u_{2}}^{2}\right)+\alpha u_{1} u_{2} \left(u_{1}-u_{2}\right),\\
+      \pd{v_{2}}{t} &= D_{u_{4}} \lap v_{2} + d \left[u_{2} - u_{2} v_{2}/\left(1+{u_{2}}^{2}\right)\right],
+\end{aligned}
+$$
 
-
+with $\alpha$ denoting the coupling parameter. In the simulations below, we vary only $\alpha$, and the four diffusion coefficients, to observe a range of different behaviours.
 
 <vpde-select
       iframe="iframe"
-      display-names="Holes and spots;Holes and stripes; Dynamic; "
-      parameters="a = 3, b = 9, c = 15, d = 9, alpha = 0.15, D_uone = 3.1, D_utwo = 13.95, D_uthree = 18.9, D_ufour = 670; a = 3, b = 9, c = 15, d = 9, alpha = 0.1, D_uone = 3.5, D_utwo = 10, D_uthree = 18.7, D_ufour = 550; a = 3, b = 9, c = 15, d = 9, alpha = 0.15, D_uone = 4.3, D_utwo = 50, D_uthree = 22, D_ufour = 660;"
+      display-names="Holes and spots;Holes and stripes; Dynamic; Irregular holes and spots"
+      parameters="a = 3, b = 9, c = 15, d = 9, alpha = 0.15, D_uone = 3.1, D_utwo = 13.95, D_uthree = 18.9, D_ufour = 670; a = 3, b = 9, c = 15, d = 9, alpha = 0.1, D_uone = 3.5, D_utwo = 10, D_uthree = 18.7, D_ufour = 550; a = 3, b = 9, c = 15, d = 9, alpha = 0.15, D_uone = 4.3, D_utwo = 50, D_uthree = 22, D_ufour = 660; a = 3, b = 9, c = 15, d = 9, alpha = 0.7, D_uone = 3.1, D_utwo = 13.95, D_uthree = 18.9, D_ufour = 670"
 ></vpde-select>
   
 
 <iframe id="iframe" title="VisualPDE simulation" class="sim" style="margin-left:auto;margin-right:auto;" src="/sim/?preset=Superlattice" frameborder="0"></iframe>
+
+A full-page version of the simulation can be found at [this link to the interactive simulation](/sim/?preset=Superlattice).
