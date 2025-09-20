@@ -163,6 +163,9 @@ presets["penguinsBlob"] = {
   simTitle: "Penguins",
 };
 
+
+
+
 presets["SuperlatticeHoleStripe"] = {
   diffusionStr_1_1: "3.5",
   diffusionStr_2_2: "10",
@@ -185,6 +188,42 @@ presets["SuperlatticeDynamic"] = {
   parent: "SuperlatticeHoleSpots",
   preset: "SuperlatticeDynamic",
 };
+
+presets["Superlattice"] = {
+	"boundaryConditions_1": "periodic",
+	"boundaryConditions_2": "periodic",
+	"brushAction": "replace",
+	"brushRadius": "5",
+	"crossDiffusion": false,
+	"diffusionStr_1_1": "D_u1",
+	"diffusionStr_2_1": "0",
+	"diffusionStr_2_2": "D_u2",
+	"diffusionStr_3_3": "D_u3",
+	"diffusionStr_4_4": "D_u4",
+	"domainScale": "200",
+	"dt": 0.0003,
+	"initCond_1": "3+0.1*RANDN",
+	"initCond_2": "3",
+	"initCond_3": "3",
+	"initCond_4": "10",
+	"kineticParams": "a = 3;b = 9;c = 15;d = 9;alpha = 0.15;D_uone = 4.3;D_utwo = 50;D_uthree = 22;D_ufour = 660;",
+	"maxColourValue": "9.37",
+	"minColourValue": "0.35",
+	"numSpecies": 4,
+	"numTimestepsPerFrame": 500,
+	"preset": "Superlattice",
+	"reactionStr_1": "a-(b+1)*u_1+u_1^2*v_1+alpha*u_1*u_2*(u_2-u_1)",
+	"reactionStr_2": "b*u_1-u_1^2*v_1",
+	"reactionStr_3": "c - u_2 -4*u_2*v_2/(1+u_2^2)+alpha*u_1*u_2*(u_1-u_2)",
+	"reactionStr_4": "d*(u_2 - u_2*v_2/(1+u_2^2))",
+	"spatialStep": "1",
+	"speciesNames": "u_1 v_1 u_2 v_2",
+	"squareCanvas": true,
+	"whatToDraw": "u_1",
+	"whatToPlot": "u_1",
+	"simTitle": "Superlattice patterns",
+};
+
 
 presets["KymographGrowing"] = {
   activeViewInd: 1,
