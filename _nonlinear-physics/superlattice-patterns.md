@@ -3,13 +3,13 @@ layout: page
 title: Superlattice patterns
 lesson_number: 140
 thumbnail: /assets/images/Superlattice.webp
-extract: Nonlinearity and oscillation in space
-equation: $\pdd{\mathbf{u}}{t} = \mathbf{D_u} \nabla^2 \mathbf{u} + \mathbf{f_u}(\mathbf{u}) + \alpha \mathbf{g}(\mathbf{u},\mathbf{v})\\\pdd{\mathbf{v}}{t} = \mathbf{D_v} \nabla^2 \mathbf{v} + \mathbf{f_v}(\mathbf{v}) + \alpha \mathbf{g}(\mathbf{v},\mathbf{u})$
+extract: Layering patterns of different kinds
+equation: $\pdd{\mathbf{u}}{t} = \mathbf{D_u} \nabla^2 \mathbf{u} + \mathbf{f_u}(\mathbf{u}) + \alpha \mathbf{g}(\mathbf{u},\mathbf{v})\\ \pdd{\mathbf{v}}{t} = \mathbf{D_v} \nabla^2 \mathbf{v} + \mathbf{f_v}(\mathbf{v}) + \alpha \mathbf{g}(\mathbf{v},\mathbf{u})$
 categories: [patterns, parabolic]
 ---
 
 
-Coupling two systems which generate spatial patterns can lead to what are referred to as ``superlattice patterns." Here we give an example from [this paper about superlattice patterns with nonidentical kinetics](https://journals.aps.org/pre/abstract/10.1103/PhysRevE.111.024210).  Their model combines a Brusselator and a Lengyll-Epstein reaction-diffusion model with a nonlinear coupling between the two subsystems. The full system is given by:
+Coupling two systems which generate spatial patterns can lead to what are referred to as "superlattice patterns." Here we give an example from [this paper about superlattice patterns with nonidentical kinetics](https://journals.aps.org/pre/abstract/10.1103/PhysRevE.111.024210).  Their model combines a Brusselator and a Lengyll-Epstein reaction-diffusion model with a nonlinear coupling between the two subsystems. The full system is given by:
 
 $$
 \begin{aligned}
