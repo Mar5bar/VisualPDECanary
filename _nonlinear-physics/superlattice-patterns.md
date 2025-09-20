@@ -4,7 +4,7 @@ title: Superlattice patterns
 lesson_number: 140
 thumbnail: /assets/images/Superlattice.webp
 extract: Nonlinearity and oscillation in space
-equation: $\pdd{\boldmath{u}}{t} = \boldmath{D_u} \nabla^2 \boldmath{u} + \boldmath{f_u}(\boldmath{u}) + \alpha \boldmath{g}(\boldmath{u},\boldmath{v})\\\pdd{\boldmath{v}}{t} = \boldmath{D_v} \nabla^2 \boldmath{v} + \boldmath{f_v}(\boldmath{v}) + \alpha \boldmath{g}(\boldmath{v},\boldmath{u})$
+equation: $\pdd{\mathbf{u}}{t} = \mathbf{D_u} \nabla^2 \mathbf{u} + \mathbf{f_u}(\mathbf{u}) + \alpha \mathbf{g}(\mathbf{u},\mathbf{v})\\\pdd{\mathbf{v}}{t} = \mathbf{D_v} \nabla^2 \mathbf{v} + \mathbf{f_v}(\mathbf{v}) + \alpha \mathbf{g}(\mathbf{v},\mathbf{u})$
 categories: [patterns, parabolic]
 ---
 
@@ -13,10 +13,10 @@ Coupling two systems which generate spatial patterns can lead to what are referr
 
 $$
 \begin{aligned}
-      \pd{u_{1}}{t} &= D_{u_{1}} \lap u_{1} + a-\left(b+1\right) u_{1}+{u_{1}}^{2} v_{1}+\alpha u_{1} u_{2} \left(u_{2}-u_{1}\right),\\
-      \pd{v_{1}}{t} &= D_{u_{2}} \lap v_{1} + b u_{1}-{u_{1}}^{2} v_{1},\\
-      \pd{u_{2}}{t} &= D_{u_{3}} \lap u_{2} + c - u_{2} -4 u_{2} v_{2}/\left(1+{u_{2}}^{2}\right)+\alpha u_{1} u_{2} \left(u_{1}-u_{2}\right),\\
-      \pd{v_{2}}{t} &= D_{u_{4}} \lap v_{2} + d \left[u_{2} - u_{2} v_{2}/\left(1+{u_{2}}^{2}\right)\right],
+      \pd{u_{1}}{t} &= D_{u_{1}} \nabla^2 u_{1} + a-\left(b+1\right) u_{1}+{u_{1}}^{2} v_{1}+\alpha u_{1} u_{2} \left(u_{2}-u_{1}\right),\\
+      \pd{v_{1}}{t} &= D_{u_{2}} \nabla^2 v_{1} + b u_{1}-{u_{1}}^{2} v_{1},\\
+      \pd{u_{2}}{t} &= D_{u_{3}} \nabla^2 u_{2} + c - u_{2} -4 u_{2} v_{2}/\left(1+{u_{2}}^{2}\right)+\alpha u_{1} u_{2} \left(u_{1}-u_{2}\right),\\
+      \pd{v_{2}}{t} &= D_{u_{4}} \nabla^2 v_{2} + d \left[u_{2} - u_{2} v_{2}/\left(1+{u_{2}}^{2}\right)\right],
 \end{aligned}
 $$
 

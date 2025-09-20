@@ -187,6 +187,7 @@ presets["SuperlatticeDynamic"] = {
 };
 
 presets["Superlattice"] = {
+  autoSetColourRange: true,
   boundaryConditions_1: "periodic",
   boundaryConditions_2: "periodic",
   brushAction: "replace",
