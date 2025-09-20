@@ -21,4 +21,4 @@ TODO: WRITE THIS PAGE
 ></vpde-select>
   
 
-<iframe id="iframe" title="VisualPDE simulation" class="sim" style="margin-left:auto;margin-right:auto;" src="/sim/?preset=superlatticedynamic" frameborder="0"></iframe>
+<iframe id="iframe" title="VisualPDE simulation" class="sim" style="margin-left:auto;margin-right:auto;" src="/sim/?preset=Superlattice" frameborder="0"></iframe>
