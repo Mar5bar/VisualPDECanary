@@ -32,7 +32,7 @@ Below we've listed some parameter combinations that give rise to different and i
 <div style="text-align:center">
 <vpde-select
       iframe="iframe"
-      display-names="Labyrinthine; Spots; Pulsating spots; Worms; Holes; Spatiotemporal chaos; Intermittent chaos/holes; Moving spots (glider-like); Small waves; Big waves; U-skate world;"
+      display-names="Labyrinthine; Spots; Pulsating spots; Worms; Holes; Spatiotemporal chaos; Intermittent chaos/holes; Moving spots (glider-like); Small waves; Big waves; U-skate world"
       parameters="a=0.037, b=0.06; a=0.03, b=0.062; a=0.025, b=0.06; a=0.078, b=0.061; a=0.039, b=0.058; a=0.026, b=0.051; a=0.034, b=0.056; a=0.014, b=0.054; a=0.018, b=0.051; a=0.014, b=0.045; a=0.062, b=0.061"
 ></vpde-select>
 </div>
