@@ -27,23 +27,14 @@ Interestingly, the value of $D=2$ used gives a very rich parameter space, wherea
 
 Furthermore, when $D=1$ the system no longer supports stationary patterns, but does exhibit waves similar to the spiral waves in the equal-diffusion case of the [cyclic competition models](/mathematical-biology/cyclic-competition).
 
-Below we've listed some parameter combinations that give rise to different and interesting behaviours. 
+Below we've listed some parameter combinations that give rise to different and interesting behaviours. One of our favourites is the [moving spots simulation](/sim/?preset=GrayScottGliders), which exhibits spots bobbing around. Initiate this motion by clicking and then increase $b$ slowly to about $b=0.56$. The spots become sparse and start exhibiting strange diversions in their motions.
 
-One of our favourites is the [moving spots simulation](/sim/?preset=GrayScottGliders), which exhibits spots bobbing around. 
+<div style="text-align:center">
+<vpde-select
+      iframe="iframe"
+      display-names="Labyrinthine; Spots; Pulsating spots; Worms; Holes; Spatiotemporal chaos; Intermittent chaos/holes; Moving spots (glider-like); Small waves; Big waves; U-skate world;"
+      parameters="a=0.037, b=0.06; a=0.03, b=0.062; a=0.025, b=0.06; a=0.078, b=0.061; a=0.039, b=0.058; a=0.026, b=0.051; a=0.034, b=0.056; a=0.014, b=0.054; a=0.018, b=0.051; a=0.014, b=0.045; a=0.062, b=0.061"
+></vpde-select>
+</div>
 
-* Initiate this motion and then increase $b$ slowly to about $b=0.56$. The spots become sparse and start exhibiting strange diversions in their motions.
-
-
-| $a$  | $b$  |  Description |
-|---|---|---|
-| 0.037 | 0.06  |  Labyrinthine |
-| 0.03  | 0.062 |  Spots |
-| 0.025 | 0.06  |  Pulsating spots |
-| 0.078 | 0.061 | Worms |
-| 0.039 | 0.058 | Holes |
-| 0.026 | 0.051 | Spatiotemporal chaos |
-| 0.034 | 0.056 | Intermittent chaos/holes |
-| 0.014 | 0.054 | Moving spots (glider-like) |
-| 0.018 | 0.051 | Small waves |
-| 0.014 | 0.045 | Big waves |
-| 0.062 | 0.061 | U-skate world |
+<iframe id="iframe" title="VisualPDE simulation" class="sim" style="margin-left:auto;margin-right:auto;margin-bottom:1em;margin-top:1em" src="/sim/?preset=GrayScott" frameborder="0"></iframe>
