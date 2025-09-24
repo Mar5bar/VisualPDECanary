@@ -13,3 +13,5 @@ We consider the [Gray-Scott](/_nonlinear-physics/gray-scott) system on apically 
 * Check out the [interactive simulation on a linearly growing domain](/sim/?preset=KymographLinearGrowth). By default, the simulation shows a kymograph or space-time plot of the solution $u$ in time and space. You can press {{ layout.views }} to change instead to a 1D plot of the density of $u$ as a function of $x$.
 
 * There is also an [interactive simulation on an exponentially growing domain](/sim/?preset=KymographExponentialGrowth). These simulations are made by using a field $m$ to store the 1D solution in snapshots of $y$, so that the $y$ axis in the kymograph represents the time coordinate. Playing with the domain indicator function, as well as the Overlay submenu under {{ layout.views }} allows you to design your own kymographs for growing or static domains.
+
+  Check out this [2D growing simulation](/sim/?preset=SchnakenbergGrowingDisk) for a crude implementation of the  [Schnakenberg](/mathematical-biology/schnakenberg) system on a growing domain with Dirichlet boundary conditions.
