@@ -27,7 +27,7 @@ Interestingly, the value of $D=2$ used gives a very rich parameter space, wherea
 
 Furthermore, when $D=1$ the system no longer supports stationary patterns, but does exhibit waves similar to the spiral waves in the equal-diffusion case of the [cyclic competition models](/mathematical-biology/cyclic-competition).
 
-Below we've listed some parameter combinations that give rise to different and interesting behaviours. One of our favourites is the [moving spots simulation](/sim/?preset=GrayScottGliders), which exhibits spots bobbing around. Initiate this motion by clicking and then increase $b$ slowly to about $b=0.56$. The spots become sparse and start exhibiting strange diversions in their motions.
+Below we've put together some parameter combinations that give rise to different and interesting behaviours. You can select different parameter combinations using the dropdown menu below and interact with the simulation directly.
 
 <div style="text-align:center">
 <vpde-select
@@ -38,3 +38,5 @@ Below we've listed some parameter combinations that give rise to different and i
 </div>
 
 <iframe id="iframe" title="VisualPDE simulation" class="sim" style="margin-left:auto;margin-right:auto;margin-bottom:1em;margin-top:1em" src="/sim/?preset=GrayScott" frameborder="0"></iframe>
+
+One of our favourites is the [moving spots simulation](/sim/?preset=GrayScottGliders), which exhibits spots bobbing around. Initiate this motion by clicking and then increase $b$ slowly to about $b=0.56$. The spots become sparse and start exhibiting strange diversions in their motions.
