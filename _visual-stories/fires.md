@@ -8,7 +8,7 @@ equation:
 categories: [visual stories]
 ---
 
-Over the past couple of years, you’ve probably heard about &mdash and maybe even experienced &mdash the growing danger of wildfires. They’re a natural hazard to many ecosystems with enough biomass to burn, and vulnerability is likely to rise, especially in areas not adapted to such disturbances, thanks to climate change.
+Over the past couple of years, you’ve probably heard about (and maybe even experienced) the growing danger of wildfires. They’re a natural hazard to many ecosystems with enough biomass to burn, and vulnerability is likely to rise, especially in areas not adapted to such disturbances, thanks to climate change.
 
 No single factor causes a wildfire; it’s the combination of multiple drivers in an ecosystem where, once a certain threshold is crossed, conditions escalate dramatically. Understanding the complexities of wildfire dynamics is key for sustainable ecosystem management in a changing world.
 
