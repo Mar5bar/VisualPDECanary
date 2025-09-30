@@ -2872,8 +2872,11 @@ presets["ducks"] = {
 presets["forestFires3D"] = {
   imagePathTwo: "./images/topography.webp",
   initCond_2: "1-I_T^2",
+  kineticParams:
+    "k = 0.001;A = 0.1;B = 0.1;C = 0.01;C_S = 0.01;h = 0.1;V = 0.0000 in [0, 0.003];theta =0 in [0, 6.2832];",
   parent: "forestFires",
   preset: "forestFires3D",
+  squareCanvas: true,
   views: [
     {
       cameraTheta: 39.60000000000032,
@@ -2882,6 +2885,8 @@ presets["forestFires3D"] = {
       colourbar: false,
       customSurface: true,
       emboss: true,
+      embossSmoothness: 0.01,
+      embossSpecular: 0,
       flippedColourmap: false,
       maxColourValue: "1",
       minColourValue: "0",
@@ -2896,7 +2901,6 @@ presets["forestFires3D"] = {
 
 presets["forestFiresSplitscreen"] = {
   activeViewInd: 2,
-  boundaryConditions_1: "dirichlet",
   brushAction: "add",
   brushRadius: "Bump(mod(xB,L_x/2),yB,L/100)",
   brushType: "custom",
@@ -2942,19 +2946,21 @@ presets["forestFiresSplitscreen"] = {
 
 presets["forestFires"] = {
   brushAction: "smoothadd",
+  boundaryConditions_1: "dirichlet",
+  boundaryConditions_2: "neumann",
   crossDiffusion: true,
   diffusionStr_1_1: "k",
   diffusionStr_2_2: "0",
   kineticParams:
-    "k = 0.001;A = 0.1;B = 0.1;C = 0.01;C_S = 0.01;h = 0.1;V = 0.0000 in [0, 0.003];",
+    "k = 0.001;A = 0.1;B = 0.1;C = 0.01;C_S = 0.01;h = 0.0;V = 0.0000 in [0, 0.003];theta =0 in [0, 6.2832];",
   numAlgebraicSpecies: 2,
   numSpecies: 4,
   parent: "grayScott",
   preset: "forestFires",
   reactionStr_1: "-(u*T_x + v*T_y) + A*(S*exp(-B/abs(T)) - C*T)",
   reactionStr_2: "-C_S*S*exp(-B/abs(T))*ind(T>0)",
-  reactionStr_3: "V + h*(I_T(x+dx,y) - I_T(x-dx,y))/(2*dx) ",
-  reactionStr_4: "h*(I_T(x,y+dy) - I_T(x,y-dy))/(2*dy)",
+  reactionStr_3: "V*cos(theta) + h*(I_T(x+dx,y) - I_T(x-dx,y))/(2*dx) ",
+  reactionStr_4: "V*sin(theta) + h*(I_T(x,y+dy) - I_T(x,y-dy))/(2*dy)",
   spatialStep: "2",
   speciesNames: "T S u v",
   views: [
