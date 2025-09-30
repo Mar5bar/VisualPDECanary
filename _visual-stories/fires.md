@@ -56,7 +56,7 @@ In the simulation below, you can adjust wind direction and speed to see how it a
     value="0.0015"
     step="0.00001"
 ></vpde-slider></p>
-<div class="knob-container" style="position: relative;">
+<div class="knob-container no-select" style="position: relative;">
   <div class="knob" attached-slider="windC"></div>
   <div style="position:absolute; left:calc(50% - 2px); top:-10px; transform:translateX(-50%); font-size:14px;">N</div>
   <div style="position:absolute; left:calc(50% - 2px); bottom:-4px; transform:translateX(-50%); font-size:14px;">S</div>
@@ -92,7 +92,7 @@ In the simulation below, we use the real elevation profile of the area, but remo
     value="0.0015"
     step="0.00001"
 ></vpde-slider></p>
-<div class="knob-container">
+<div class="knob-container no-select">
   <div class="knob" attached-slider="windD"></div>
   <div style="position:absolute; left:calc(50% - 2px); top:-10px; transform:translateX(-50%); font-size:14px;">N</div>
   <div style="position:absolute; left:calc(50% - 2px); bottom:-4px; transform:translateX(-50%); font-size:14px;">S</div>
