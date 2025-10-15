@@ -2607,9 +2607,8 @@ async function VisualPDE(url) {
       .name("# Species")
       .onChange(function () {
         document.activeElement.blur();
-        options.speciesNames = listOfSpecies
-          .slice(0, options.numSpecies)
-          .join(" ");
+        options.speciesNames = speciesNamesToString();
+        setCustomNames();
         updateProblem();
         resetSim();
       });
@@ -5428,6 +5427,8 @@ async function VisualPDE(url) {
 
     // Set custom species names and reaction names.
     setCustomNames();
+    // Trim speciesNames such that there are only numSpecies names.
+    options.speciesNames = speciesNamesToString();
     // Ensure that the correct play/pause button is showing.
     isRunning ? playSim() : pauseSim();
 
@@ -8537,6 +8538,10 @@ async function VisualPDE(url) {
       .trim()
       .split(" ")
       .slice(0, defaultSpecies.length);
+  }
+
+  function speciesNamesToString() {
+    return listOfSpecies.slice(0, options.numSpecies).join(" ");
   }
 
   /**
