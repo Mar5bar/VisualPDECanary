@@ -16,6 +16,7 @@ presets["quantumTunneling"] = {
   numSpecies: 3,
   numTimestepsPerFrame: 200,
   parent: "stabilizedSchrodingerEquationPotential",
+  plotType: "line",
   preset: "quantumTunneling",
   renderSize: 1024,
   reactionStr_1: "V*v",
@@ -29,7 +30,7 @@ presets["quantumTunneling"] = {
     {
       autoSetColourRange: false,
       colourbar: false,
-      maxColourValue: "1",
+      maxColourValue: "0.5",
       minColourValue: "0",
       overlay: true,
       overlayExpr: "V/20",
@@ -39,7 +40,7 @@ presets["quantumTunneling"] = {
     {
       autoSetColourRange: false,
       colourbar: false,
-      maxColourValue: "1",
+      maxColourValue: "0.5",
       minColourValue: "-0.5",
       overlay: true,
       overlayExpr: "V/p",
@@ -49,7 +50,7 @@ presets["quantumTunneling"] = {
     {
       autoSetColourRange: false,
       colourbar: false,
-      maxColourValue: "1",
+      maxColourValue: "0.5",
       minColourValue: "-0.5",
       overlay: true,
       overlayExpr: "V/p",
