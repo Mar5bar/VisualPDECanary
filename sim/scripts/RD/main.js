@@ -6680,6 +6680,9 @@ async function VisualPDE(url) {
     let paramPlaceholders = Array.from(Array(paramNames.length).keys()).map(
       (s) => "PARAMETER_" + s.toString(),
     );
+    let defaultSpeciesPlaceholders = Array.from(
+      Array(listOfSpecies.length).keys(),
+    ).map((s) => "DEFAULTSPECIES_" + s.toString());
 
     if (options.typesetCustomEqs) {
       // We'll work using the default notation, then convert at the end.
@@ -6733,6 +6736,15 @@ async function VisualPDE(url) {
           associatedStrs[key],
           paramNames,
           paramPlaceholders,
+        );
+      });
+
+      // Check for any default variable names in the associated strings that don't correspond to current species names. Replace them with placeholders to prevent accidental typesetting as another symbol.
+      Object.keys(associatedStrs).forEach(function (key) {
+        associatedStrs[key] = replaceSymbolsInStr(
+          associatedStrs[key],
+          defaultSpecies.filter((s) => !listOfSpecies.includes(s)),
+          defaultSpeciesPlaceholders,
         );
       });
 
@@ -6957,6 +6969,9 @@ async function VisualPDE(url) {
 
     // Remove parameter placeholders with parameter names.
     str = replaceSymbolsInStr(str, paramPlaceholders, paramNames);
+
+    // Remove default species placeholders with original default species names.
+    str = replaceSymbolsInStr(str, defaultSpeciesPlaceholders, defaultSpecies);
 
     str = parseStringToTEX(str);
 

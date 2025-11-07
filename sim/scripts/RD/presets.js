@@ -71,6 +71,54 @@ presets["quantumTunneling"] = {
   simTitle: "Schrödinger in 1D",
 };
 
+presets["treeInvasion"] = {
+  activeViewInd: 1,
+  boundaryConditions_1: "neumann",
+  boundaryConditions_2: "dirichlet",
+  boundaryConditions_3: "dirichlet",
+  brushValue: "0.5",
+  crossDiffusion: true,
+  diffusionStr_1_1: "0.25*r",
+  diffusionStr_2_2: "0",
+  diffusionStr_3_3: "0",
+  domainIndicatorFun: "ind(I_S<0.9)",
+  domainViaIndicatorFun: true,
+  dt: 0.0005,
+  initCond_1: "0.1*Bump(L_x/2,L_x/2,L/10)",
+  kineticParams: "K = 1 in [0.5, 1.5];r_1 = 0.5;r_2 = 6;t_c = 5;",
+  numAlgebraicSpecies: 1,
+  numSpecies: "3",
+  preset: "treeInvasion",
+  reactionStr_1: "r*u*(1-u/K)",
+  reactionStr_2: "ind(u > 0.5 && u < 0.51)*t*r",
+  reactionStr_3: "r_1 + ind(t > t_c)*(r_2 - r_1)",
+  speciesNames: "u v r",
+  squareCanvas: true,
+  timeDisplay: true,
+  views: [
+    {
+      colourmap: "diverging",
+      minColourValue: "-1",
+      whatToPlot: "u*(1 - ind(I_T>0.5))",
+      name: "Density",
+    },
+    {
+      colourmap: "fireOnTerrain",
+      minColourValue: "-1",
+      whatToPlot: "u/0.35*0.5 *(1 - ind(I_T>0.5))",
+      name: "Binary field",
+    },
+    {
+      colourmap: "turbo",
+      minColourValue: "0",
+      whatToPlot: "v*(1 - ind(I_T>0.5))",
+      name: "Arrival time",
+    },
+  ],
+  whatToDraw: "u",
+  simTitle: "Reaction-diffusion model of invasive tree pests",
+};
+
 presets["RWBIAD"] = {
   autoPause: true,
   autoPauseAt: 180,
