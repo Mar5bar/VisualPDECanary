@@ -11475,18 +11475,27 @@ async function VisualPDE(url) {
     // Remove the visual indicator of a minified link.
     document.getElementById("shortenedLabel").classList.remove("visible");
 
-    shortenAborter = new AbortController();
+    const shortenAborter = new AbortController();
     const signal = shortenAborter.signal;
-    const endpoint =
-      "https://tei7tdcm2qguyv62634whl2qty0qaegv.lambda-url.us-east-1.on.aws?originalURL=";
-    fetch(endpoint + opts, { signal: signal })
-      .then((response) => response.json())
-      .then((shortKey) => {
-        if (shortKey) {
-          // Check if shortKey is just a string - if not, it's an error.
-          if (typeof shortKey === "string") {
-            saveShortURL(opts, shortKey);
-          }
+    const endpoint = "https://link-shortener.8dsf27772t.workers.dev";
+    // opts contains the original URL
+    fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ originalURL: opts }),
+      signal: signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          console.log("Error creating short URL:", response.status);
+          return;
+        }
+
+        const data = await response.json();
+        const shortKey = data.shortKey;
+
+        if (shortKey && typeof shortKey === "string") {
+          saveShortURL(opts, shortKey);
         }
       })
       .catch(() => {});
