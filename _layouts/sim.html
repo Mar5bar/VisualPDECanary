@@ -104,7 +104,6 @@
             })
             .catch(() => {
               // Fetch the full link from the endpoint.
-              console.log("Fetching full link from endpoint...");
               const endpoint =
                 "https://link-shortener.8dsf27772t.workers.dev?shortKey=";
               fetch(endpoint + searchParams.get("mini"), {
