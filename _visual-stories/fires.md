@@ -18,7 +18,7 @@ In this Visual Story, we’ll explore some of the underlying dynamics of fire sp
 
 Fire spreads through a combination of temperature diffusion, natural and wind-driven convection, and chemical reactions in the burning environment. To start, imagine it’s a
 completely still day in a flat field with no wind at all. Vegetation is bountiful in the top and scarce on the bottom, which we’ll represent as a 'mass fraction'. In the simulation below, you can set an ignition point anywhere on the screen and watch how the fire spreads over time, and how it depends on the amount of vegetation. On the left,
-colours show temperature; on the right, they show vegetation mass fraction (greener = more vegetation).
+colours show temperature; on the right, they show vegetation mass fraction (greener = more vegetation). To reset the simulation, click <span><vpde-reset iframe="simA"></vpde-reset></span>
 
 <iframe class="sim" id="simA" src="/sim/?preset=forestFiresSplitscreen&story&sf=1&reset_only&nomathjax&initCond_2=0.2%2b0.8*ind(y<0.5*L_y)" style="width:100%;max-width:100%;aspect-ratio:2/1" frameborder="0" loading="lazy"></iframe>
 
@@ -32,7 +32,7 @@ Heat naturally rises, which results in fires on sloped terrain travelling uphill
 
 Wind can dramatically influence the direction, speed, and shape of wildfire spread. Around the world, dangerous, fast-moving wildfires often result from a combination of built-up dry vegetation (e.g. from last year’s growth) and fast wind speeds in just the right direction to push the flames uphill. Strong winds feed fresh oxygen into the fire (the same effect as when you’re having a campfire and you need to blow into the flames to get it going). They carry embers far ahead of the main front, sparking new ignitions (spot fires) and, when the fire gets large enough, it starts to produce its own wind convection. These factors make control efforts incredibly difficult, sometimes impossible.
 
-In the simulation below, you can adjust wind direction and speed to see how it affects the burn pattern. Try varying the wind direction whilst the fire is spreading (click to ignite a fire).
+In the simulation below, you can adjust wind direction and speed to see how it affects the burn pattern. Try varying the wind direction whilst the fire is spreading (click to ignite a fire). To reset the simulation, click <span><vpde-reset iframe="simC"></vpde-reset></span>
 
 <iframe class="sim" id="simC" src="/sim/?preset=forestFiresSplitscreen&story&sf=1&reset_only&nomathjax&initCond_2=1" style="width:100%;max-width:100%;aspect-ratio:2/1" frameborder="0" loading="lazy"></iframe>
 <p style="text-align:center;margin-top:0;display:none;"><vpde-slider
