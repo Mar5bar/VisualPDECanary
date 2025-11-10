@@ -11475,7 +11475,7 @@ async function VisualPDE(url) {
     // Remove the visual indicator of a minified link.
     document.getElementById("shortenedLabel").classList.remove("visible");
 
-    const shortenAborter = new AbortController();
+    shortenAborter = new AbortController();
     const signal = shortenAborter.signal;
     const endpoint = "https://link-shortener.8dsf27772t.workers.dev";
     // opts contains the original URL
