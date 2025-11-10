@@ -547,6 +547,11 @@ async function VisualPDE(url) {
     if (Object.keys(newParams).length) loadPreset(newParams, true);
   }
 
+  // Trim the variable names to the correct number of species.
+  if (options.numSpecies < listOfSpecies.length) {
+    controllers["numSpecies"].setValue(options.numSpecies);
+  }
+
   if (params.has("view")) {
     options.activeViewInd = Number(params.get("view")).clamp(
       0,
@@ -2602,7 +2607,7 @@ async function VisualPDE(url) {
     addInfoButton(root, "/user-guide/advanced-options#advanced-options-");
 
     // Number of species.
-    root
+    controllers["numSpecies"] = root
       .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
       .name("# Species")
       .onChange(function () {
