@@ -547,11 +547,6 @@ async function VisualPDE(url) {
     if (Object.keys(newParams).length) loadPreset(newParams, true);
   }
 
-  // Trim the variable names to the correct number of species.
-  if (options.numSpecies < listOfSpecies.length) {
-    controllers["numSpecies"].setValue(options.numSpecies);
-  }
-
   if (params.has("view")) {
     options.activeViewInd = Number(params.get("view")).clamp(
       0,
@@ -2607,12 +2602,11 @@ async function VisualPDE(url) {
     addInfoButton(root, "/user-guide/advanced-options#advanced-options-");
 
     // Number of species.
-    controllers["numSpecies"] = root
+    root
       .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
       .name("# Species")
       .onChange(function () {
         document.activeElement.blur();
-        // Get species names as a string, trimmed so that there are only as many species as selected.
         options.speciesNames = speciesNamesToString();
         setCustomNames();
         updateProblem();
@@ -5433,6 +5427,8 @@ async function VisualPDE(url) {
 
     // Set custom species names and reaction names.
     setCustomNames();
+    // Trim speciesNames such that there are only numSpecies names.
+    options.speciesNames = speciesNamesToString();
     // Ensure that the correct play/pause button is showing.
     isRunning ? playSim() : pauseSim();
 
@@ -11479,7 +11475,7 @@ async function VisualPDE(url) {
     // Remove the visual indicator of a minified link.
     document.getElementById("shortenedLabel").classList.remove("visible");
 
-    shortenAborter = new AbortController();
+    const shortenAborter = new AbortController();
     const signal = shortenAborter.signal;
     const endpoint = "https://link-shortener.8dsf27772t.workers.dev";
     // opts contains the original URL

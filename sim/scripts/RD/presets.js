@@ -2,56 +2,6 @@
 
 let presets = {};
 
-presets["polarDiffusion"] = {
-  boundaryConditions_1: "combo",
-  brushRadius:
-    "ind(abs(y - mod(atan((yB-L_y/2),(xB-L_x/2-MINX)),2*pi)*L_y/(2*pi)) < 0.1)*ind(abs(x - sqrt((xB-L_x/2-MINX)^2+(yB-L_y/2)^2)) < L_x/100)",
-  brushType: "custom",
-  comboStr_1:
-    "Bottom: Periodic; Left: Neumann = 0; Right: Neumann = 0; Top: Periodic;",
-  diffusionStr_1_1: "0",
-  diffusionStr_2_2: "0",
-  diffusionStr_3_3: "0",
-  domainScale: "20",
-  dt: 0.00001,
-  initCond_1: "0",
-  kineticParams: "D = 1;",
-  minX: "1",
-  minY: "0",
-  numSpecies: "1",
-  numTimestepsPerFrame: 200,
-  preset: "polarDiffusion",
-  reactionStr_1: "D*(u_xx + u_x + u_yy)",
-  reactionStr_2: "0",
-  reactionStr_3: "0",
-  spatialStep: "0.02",
-  speciesNames: "u",
-  squareCanvas: true,
-  views: [
-    {
-      maxColourValue: "1",
-      minColourValue: "0",
-      whatToPlot:
-        "u[sqrt((x-L_x/2-MINX)^2+(y-L_y/2)^2), atan((y-L_y/2),(x-L_x/2-MINX))*L_y/(2*pi)]",
-      name: "Polar",
-    },
-    {
-      maxColourValue: "0.37",
-      minColourValue: "0",
-      whatToPlot: "u",
-      name: "$r$-$\\theta$ plane",
-    },
-    {
-      maxColourValue: "6.282184600830078",
-      minColourValue: "0.0010009281104430556",
-      whatToPlot: "mod(atan((y-L_y/2),(x-L_x/2-MINX)),2*pi)",
-      name: 4,
-    },
-  ],
-  whatToDraw: "u",
-  simTitle: "Polar simulation",
-};
-
 presets["quantumTunneling"] = {
   brushType: "vline",
   diffusionStr_1_1: "0",
