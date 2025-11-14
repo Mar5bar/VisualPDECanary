@@ -3036,6 +3036,32 @@ presets["ducks"] = {
   simTitle: "Ducks",
 };
 
+presets["forestFires3DMoor"] = {
+  imagePathTwo: "./images/topographyMoor.png",
+  parent: "forestFires3D",
+  preset: "forestFires3DMoor",
+  views: [
+    {
+      cameraTheta: 39.60000000000032,
+      cameraPhi: 13.679999999999934,
+      colourmap: "fireOnTerrain",
+      colourbar: false,
+      customSurface: true,
+      emboss: true,
+      embossSmoothness: 0.01,
+      embossSpecular: 0,
+      flippedColourmap: false,
+      maxColourValue: "1",
+      minColourValue: "0",
+      plotType: "surface",
+      surfaceFun: "200*I_T",
+      whatToPlot:
+        "ind(S>0.01)*0.7*S^2 + ind(T>0.5)*(0.7+T/7*0.3) + ind(S<=0.01)*ind(T<=0.5)*(1-I_T^2-0.6)*0.7",
+      name: "Fire on Topography",
+    },
+  ],
+};
+
 presets["forestFires3D"] = {
   imagePathTwo: "./images/topography.webp",
   initCond_2: "1-I_T^2",
