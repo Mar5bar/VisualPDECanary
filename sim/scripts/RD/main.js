@@ -7035,6 +7035,12 @@ async function VisualPDE(url) {
       "\\textstyle\\diff{W_{t$2}}{t}",
     );
 
+    // Replace Bump with \text{Bump}.
+    str = str.replaceAll(/\bBump\b/g, "\\text{Bump}");
+
+    // Replace Gauss with \mathcal{N}.
+    str = str.replaceAll(/\bGauss\b/g, "\\mathcal{N}");
+
     // If there's an underscore, put {} around the word that follows it.
     str = str.replaceAll(/_(\w+\b)/g, "_{$1}");
 
@@ -10917,7 +10923,8 @@ async function VisualPDE(url) {
     let output = str;
 
     for (const { start, end, args } of calls) {
-      let replacement = "";
+      // Default to no change.
+      let replacement = output.slice(start, end);
       // Replace Gauss(meanx, meany, sx, sy, rho) with Gauss(x, y, meanx, meany, sx, sy, rho).
       if (args.length == 5) {
         replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]},${args[3]},${args[4]})`;
@@ -10925,11 +10932,11 @@ async function VisualPDE(url) {
         // Replace Gauss(meanx, meany, sx, sy) with Gauss(x, y, meanx, meany, sx, sy, 0).
         replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]},${args[3]},0)`;
       } else if (args.length == 3) {
-        // Replace Gauss(meanx, meany, sd) with Gauss(x, y, meanx, meany, sd).
-        replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]})`;
+        // Replace Gauss(meanx, meany, sd) with Gauss(x, y, meanx, meany, sd, sd, 0).
+        replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]},${args[2]},0)`;
       } else if (args.length == 2) {
-        // Replace Gauss(mean, sd) with Gauss(x, y, mean, sd).
-        replacement = `Gauss(x,y,${args[0]},${args[1]})`;
+        // Replace Gauss(mean, sd) with Gauss(x, y, mean, 0.5*L_y, sd, sd, 0).
+        replacement = `Gauss(x,y,${args[0]},0.5*L_y,${args[1]},${args[1]},0)`;
       }
       output = output.slice(0, start) + replacement + output.slice(end);
     }
@@ -10956,10 +10963,11 @@ async function VisualPDE(url) {
     let output = str;
 
     for (const { start, end, args } of calls) {
-      let replacement = "";
-      // If there are 2 arguments, replace with Bump(x, y, arg1, 0, arg2).
+      // Default to no change.
+      let replacement = output.slice(start, end);
+      // If there are 2 arguments, replace with Bump(x, y, arg1, 0.5*L_y, arg2).
       if (args.length == 2) {
-        replacement = `Bump(x,y,${args[0]},0,${args[1]})`;
+        replacement = `Bump(x,y,${args[0]},0.5*L_y,${args[1]})`;
       }
       // If there are 3 arguments, replace with Bump(x, y, arg1, arg2, arg3).
       else if (args.length == 3) {
