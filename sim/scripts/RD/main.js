@@ -3058,6 +3058,7 @@ async function VisualPDE(url) {
         Midnight: "midnight",
         Pastels: "pastels",
         Pride: "pride",
+        "Red-green": "redGreen",
         Retro: "retro",
         "Simply blue": "blue",
         "Snow Ghost": "snowghost",
