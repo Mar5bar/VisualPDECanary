@@ -495,7 +495,9 @@ async function VisualPDE(url) {
   }
 
   // Load default options.
+  let isInitialLoad = true;
   loadOptions("default");
+  isInitialLoad = false;
 
   // Initialise simulation and GUI.
   init();
@@ -5429,10 +5431,14 @@ async function VisualPDE(url) {
     // Check if the simulation should be running on load.
     isRunning = options.runningOnLoad;
 
+    if (!isInitialLoad) {
+      // When doing the initial loading, just keep the species names as-is without doing any pruning.
+      // This prevents "u v w q" becoming "u v" on loading the default.
+      // Otherwise, trim speciesNames to match numSpecies.
+      options.speciesNames = speciesNamesToString();
+    }
     // Set custom species names and reaction names.
     setCustomNames(overrideIsLoading);
-    // Trim speciesNames such that there are only numSpecies names.
-    options.speciesNames = speciesNamesToString();
     // Ensure that the correct play/pause button is showing.
     isRunning ? playSim() : pauseSim();
 
@@ -8567,6 +8573,7 @@ async function VisualPDE(url) {
   }
 
   function speciesNamesToString() {
+    // Prune and return the species names as a string.
     return listOfSpecies.slice(0, options.numSpecies).join(" ");
   }
 
@@ -8580,6 +8587,7 @@ async function VisualPDE(url) {
       oldListOfSpecies = listOfSpecies;
     }
     const newSpecies = parseSpeciesNamesFromOptions();
+    console.log("Species (set custom): ", newSpecies);
 
     // If not enough species have been provided, add placeholders for those remaining.
     const tempListOfSpecies = newSpecies.concat(
