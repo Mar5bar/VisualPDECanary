@@ -495,9 +495,7 @@ async function VisualPDE(url) {
   }
 
   // Load default options.
-  let isInitialLoad = true;
-  loadOptions("default");
-  isInitialLoad = false;
+  loadOptions({preset: "default", isInitialLoad: true});
 
   // Initialise simulation and GUI.
   init();
@@ -5290,7 +5288,7 @@ async function VisualPDE(url) {
 
   function loadPreset(preset, updateView = false, overrideIsLoading = false) {
     // Updates the values stored in options.
-    loadOptions(preset, overrideIsLoading);
+    loadOptions({preset: preset, overrideIsLoading: overrideIsLoading});
 
     // Maintain compatibility with links/presets that set the deprecated threeD or oneDimensional options.
     if (options.threeD != undefined) {
@@ -5375,7 +5373,7 @@ async function VisualPDE(url) {
     configureManualInterpolation();
   }
 
-  function loadOptions(preset, overrideIsLoading = false) {
+  function loadOptions({preset, overrideIsLoading = false, isInitialLoad = false} = {}) {
     let newOptions;
     const listOfPresetNames = getListOfPresetNames();
     const listOfPresetNamesLower = listOfPresetNames.map((x) =>
@@ -5413,7 +5411,7 @@ async function VisualPDE(url) {
 
     // If newOptions specifies a parent, first load the options of the parent.
     if (newOptions.hasOwnProperty("parent") && newOptions.parent != null) {
-      loadOptions(newOptions.parent);
+      loadOptions({preset: newOptions.parent});
     }
 
     // Reset the kinetic parameters.
@@ -8587,7 +8585,6 @@ async function VisualPDE(url) {
       oldListOfSpecies = listOfSpecies;
     }
     const newSpecies = parseSpeciesNamesFromOptions();
-    console.log("Species (set custom): ", newSpecies);
 
     // If not enough species have been provided, add placeholders for those remaining.
     const tempListOfSpecies = newSpecies.concat(
