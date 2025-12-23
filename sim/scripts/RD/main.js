@@ -495,7 +495,7 @@ async function VisualPDE(url) {
   }
 
   // Load default options.
-  loadOptions({preset: "default", isInitialLoad: true});
+  loadOptions({ preset: "default", isInitialLoad: true });
 
   // Initialise simulation and GUI.
   init();
@@ -5288,7 +5288,7 @@ async function VisualPDE(url) {
 
   function loadPreset(preset, updateView = false, overrideIsLoading = false) {
     // Updates the values stored in options.
-    loadOptions({preset: preset, overrideIsLoading: overrideIsLoading});
+    loadOptions({ preset: preset, overrideIsLoading: overrideIsLoading });
 
     // Maintain compatibility with links/presets that set the deprecated threeD or oneDimensional options.
     if (options.threeD != undefined) {
@@ -5373,7 +5373,11 @@ async function VisualPDE(url) {
     configureManualInterpolation();
   }
 
-  function loadOptions({preset, overrideIsLoading = false, isInitialLoad = false} = {}) {
+  function loadOptions({
+    preset,
+    overrideIsLoading = false,
+    isInitialLoad = false,
+  } = {}) {
     let newOptions;
     const listOfPresetNames = getListOfPresetNames();
     const listOfPresetNamesLower = listOfPresetNames.map((x) =>
@@ -5411,7 +5415,7 @@ async function VisualPDE(url) {
 
     // If newOptions specifies a parent, first load the options of the parent.
     if (newOptions.hasOwnProperty("parent") && newOptions.parent != null) {
-      loadOptions({preset: newOptions.parent});
+      loadOptions({ preset: newOptions.parent });
     }
 
     // Reset the kinetic parameters.
@@ -5429,14 +5433,15 @@ async function VisualPDE(url) {
     // Check if the simulation should be running on load.
     isRunning = options.runningOnLoad;
 
+    // Set custom species names and reaction names.
+    setCustomNames(overrideIsLoading);
     if (!isInitialLoad) {
       // When doing the initial loading, just keep the species names as-is without doing any pruning.
       // This prevents "u v w q" becoming "u v" on loading the default.
       // Otherwise, trim speciesNames to match numSpecies.
       options.speciesNames = speciesNamesToString();
+      setCustomNames(overrideIsLoading);
     }
-    // Set custom species names and reaction names.
-    setCustomNames(overrideIsLoading);
     // Ensure that the correct play/pause button is showing.
     isRunning ? playSim() : pauseSim();
 
