@@ -3307,7 +3307,6 @@ presets["bacteriaInAReach2DIllustrated"] = {
   blendImagePath: "./images/river_illustrated.webp",
   colourbarMaxStr: "Great",
   colourbarMinStr: "Poor",
-  domainIndicatorFun: "I_SA==0",
   flippedColourmap: false,
   imagePathOne: "./images/river_illustrated.webp",
   kineticParams:
@@ -3327,15 +3326,15 @@ presets["bacteriaInAReach2DIllustrated"] = {
 
 presets["bacteriaInAReach2D"] = {
   blendImage: true,
-  blendImagePath: "./images/river.png",
+  blendImagePath: "./images/river_illustrated.webp",
   boundaryConditions_1: "neumann",
   brushType: "circle",
   diffusionStr_1_1: "2",
   diffusionStr_3_3: "0",
   dimension: "2",
-  domainIndicatorFun: "I_S==0",
+  domainIndicatorFun: "I_SA==0",
   domainViaIndicatorFun: true,
-  imagePathOne: "./images/river.png",
+  imagePathOne: "./images/river_illustrated.webp",
   kineticParams:
     "c0 = 0.5 in [0, 1];c1 = 0 in [0, 1];k = 0.006 in [0, 0.05];u = 1 in [0.1, 4];",
   maxColourValue: "5",
