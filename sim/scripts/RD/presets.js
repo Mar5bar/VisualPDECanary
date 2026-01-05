@@ -3361,7 +3361,7 @@ presets["bacteriaInAReach"] = {
   brushAction: "smoothadd",
   brushRadius: "20",
   brushType: "vline",
-  brushValue: "min(1, max(0,5-C))",
+  brushValue: "min(1, max(0,1-C))",
   colourbar: true,
   colourmap: "redGreen",
   comboStr_1: "Left: Dirichlet = c0; Right: Ghost = 0;",
