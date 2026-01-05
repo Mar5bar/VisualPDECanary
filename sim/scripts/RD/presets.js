@@ -3314,7 +3314,7 @@ presets["bacteriaInAReach2DIllustrated"] = {
   parent: "bacteriaInAReach2D",
   preset: "bacteriaInAReach2DIllustrated",
   reactionStr_1:
-    "-u*C_xb/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) + u*C_y*0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) - k*C + (1-c0)*0.1*Bump(0.1*L_x,0.365*L_y,L/20)/u + c1*0.1*Bump(L_x/2,0.7*L_y,L/20)/u",
+    "-u*C_xb/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) + u*C_y*0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) - k*C + (1-c0)*0.1*Bump(0.1*L_x,0.365*L_y,L/20)/u + c1*0.1*Bump(0.64*L_x,0.68*L_y,0.1*L)/u",
   maxColourValue: "1",
   views: [
     {
