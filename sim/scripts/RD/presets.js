@@ -3305,9 +3305,10 @@ presets["dynamicalSystemsVisualisationTopography"] = {
 
 presets["bacteriaInAReach2DIllustrated"] = {
   blendImagePath: "./images/river_illustrated.webp",
-  colourbarMaxStr: "High",
-  colourbarMinStr: "Low",
+  colourbarMaxStr: "Great",
+  colourbarMinStr: "Poor",
   domainIndicatorFun: "I_SA==0",
+  flippedColourmap: false,
   imagePathOne: "./images/river_illustrated.webp",
   kineticParams:
     "c0 = 0.5 in [0, 1];c1 = 0 in [0, 1];k = 0.006 in [0, 0.05];u = 1 in [0.1, 4];",
@@ -3321,6 +3322,7 @@ presets["bacteriaInAReach2DIllustrated"] = {
       name: "Water quality",
     },
   ],
+  whatToPlot: "1-C",
 };
 
 presets["bacteriaInAReach2D"] = {
