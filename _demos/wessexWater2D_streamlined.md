@@ -87,5 +87,3 @@ function customHandler() {
 </script>
 
 Toggle the "Storm surge" button above to simulate continuous heavy rainfall. This increases the flow rate in the river, flushing bacteria downstream more quickly. The higher flow can temporarily improve water quality at certain points, but may also spread contamination further downstream. Importantly, very heavy rains can overwhelm storm overflow tanks, leading to untreated discharges into the river.
-
-### Footnotes
