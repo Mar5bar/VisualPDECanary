@@ -3303,6 +3303,26 @@ presets["dynamicalSystemsVisualisationTopography"] = {
   whatToPlot: "c",
 };
 
+presets["bacteriaInAReach2DIllustrated"] = {
+  blendImagePath: "./images/river_illustrated.webp",
+  colourbarMaxStr: "High",
+  colourbarMinStr: "Low",
+  domainIndicatorFun: "I_SA==0",
+  imagePathOne: "./images/river_illustrated.webp",
+  kineticParams:
+    "c0 = 0.5 in [0, 1];c1 = 0 in [0, 1];k = 0.006 in [0, 0.05];u = 1 in [0.1, 4];",
+  parent: "bacteriaInAReach2D",
+  preset: "bacteriaInAReach2DIllustrated",
+  reactionStr_1:
+    "-u*C_xb/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) + u*C_y*0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) - k*C + (1-c0)*0.1*Bump(0.1*L_x,0.365*L_y,L/20)/u + c1*0.1*Bump(L_x/2,0.7*L_y,L/20)/u",
+  maxColourValue: "1",
+  views: [
+    {
+      name: "Water quality",
+    },
+  ],
+};
+
 presets["bacteriaInAReach2D"] = {
   blendImage: true,
   blendImagePath: "./images/river.png",
@@ -7588,6 +7608,8 @@ presets["default"] = {
   captureWebcam: false,
   captureWebcamDelay: 100,
   colourbar: false,
+  colourbarMaxStr: "",
+  colourbarMinStr: "",
   colourmap: "turbo",
   comboStr_1: "",
   comboStr_2: "",

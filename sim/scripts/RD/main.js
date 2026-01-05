@@ -2952,6 +2952,20 @@ async function VisualPDE(url) {
 
     root.add(options, "guiUpdatePeriod").name("GUI update period)");
 
+    root
+      .add(options, "colourbarMaxStr")
+      .name("Cbar max label")
+      .onFinishChange(function () {
+        updateColourbarLims();
+      });
+
+    root
+      .add(options, "colourbarMinStr")
+      .name("Cbar min label")
+      .onFinishChange(function () {
+        updateColourbarLims();
+      });
+
     // Add a title to the rightGUI.
     const settingsTitle = document.createElement("div");
     settingsTitle.innerHTML = "Settings";
@@ -7685,6 +7699,12 @@ async function VisualPDE(url) {
       const regex = /[1-9]/;
       if (!regex.test(minStr)) minStr = "0";
       if (!regex.test(maxStr)) maxStr = "0";
+      if (options.colourbarMinStr.trim() != "") {
+        minStr = options.colourbarMinStr;
+      }
+      if (options.colourbarMaxStr.trim() != "") {
+        maxStr = options.colourbarMaxStr;
+      }
       $("#minLabel").html(minStr);
       $("#maxLabel").html(maxStr);
     }
