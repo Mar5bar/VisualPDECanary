@@ -443,6 +443,11 @@ async function VisualPDE(url) {
     (url ? url.split("?")[1] : window.location.search).replaceAll("&amp;", "&"),
   );
 
+  if (params.has("iframeID")) {
+    // If an iframe ID is specified, save it for later.
+    localOpts.id = params.get("iframeID");
+  }
+
   if (params.has("no_ui")) {
     // Hide all the ui, including buttons.
     $(".ui").addClass("hidden");
