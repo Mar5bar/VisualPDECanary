@@ -12,11 +12,11 @@ equation:
 
 <style>
 .active {
-    background-color: #4CAF50; /* Green */
+    background-color: #4CAF50;
     color: white;
 }
 button {
-    background-color: #e7e7e7; /* Gray */
+    background-color: #e7e7e7;
     color: black;
     border: none;
     border-radius: 5px;
@@ -32,9 +32,9 @@ Adjust the slider to control how much investment is made in water treatment upst
     name="c0"
     label="Investment in treatment"
     label-position="above"
-    min="0.01"
-    max="1"
-    value="0.5"
+    min="0"
+    max="0.8"
+    value="0.4"
     step="0.01"
     min-label="Low"
     max-label="High"
