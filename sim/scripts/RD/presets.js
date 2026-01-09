@@ -7122,6 +7122,8 @@ presets["waveEquation"] = {
   boundaryConditions_2: "neumann",
   dt: 0.002,
   kineticParams: "D=1 in [1,100]; C=0.01",
+  maxColourValue: "0.5",
+  minColourValue: "-0.5",
   preset: "waveEquation",
   reactionStr_1: "v",
   reactionStr_2: "0",
