@@ -7590,7 +7590,7 @@ presets["default"] = {
   arrowX: "L_x/2 - x",
   arrowY: "L_y/2 - y",
   autoPause: false,
-  autoPauseAt: 10,
+  autoPauseAt: "10",
   autoSetColourRange: false,
   backgroundColour: 0xffffff,
   blendImage: false,
