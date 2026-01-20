@@ -26,7 +26,8 @@ if (localStorage.hasOwnProperty("dark-mode-save-time")) {
 if (localStorage.hasOwnProperty("dark-mode")) {
   toggleDarkMode(localStorage.getItem("dark-mode") == "true");
 } else {
-  toggleDarkMode(useDark.matches);
+  toggleDarkMode(useDark.matches)
+  localStorage.setItem("dark-mode", useDark.matches);
 }
 // Listen for the changes in the OS settings, and remove preference on change.
 useDark.addEventListener("change", (evt) => {
