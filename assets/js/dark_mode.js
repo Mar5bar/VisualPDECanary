@@ -1,8 +1,10 @@
 const useDark = window.matchMedia("(prefers-color-scheme: dark)");
 function toggleDarkMode(state, save) {
   document.documentElement.classList.toggle("dark-mode", state);
-  localStorage.setItem("dark-mode", state);
-  if (save) localStorage.setItem("dark-mode-save-time", new Date());
+  if (save) {
+    localStorage.setItem("dark-mode", state);
+    localStorage.setItem("dark-mode-save-time", new Date());
+  }
   const themeColor = state ? "#171b29" : "#dfdfdf";
   document
     .querySelector('meta[name="theme-color"]')
