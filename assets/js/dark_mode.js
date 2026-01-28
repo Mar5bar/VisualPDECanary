@@ -1,8 +1,10 @@
 const useDark = window.matchMedia("(prefers-color-scheme: dark)");
 function toggleDarkMode(state, save) {
   document.documentElement.classList.toggle("dark-mode", state);
-  localStorage.setItem("dark-mode", state);
-  if (save) localStorage.setItem("dark-mode-save-time", new Date());
+  if (save) {
+    localStorage.setItem("dark-mode", state);
+    localStorage.setItem("dark-mode-save-time", new Date());
+  }
   const themeColor = state ? "#171b29" : "#dfdfdf";
   document
     .querySelector('meta[name="theme-color"]')
@@ -24,7 +26,8 @@ if (localStorage.hasOwnProperty("dark-mode-save-time")) {
 if (localStorage.hasOwnProperty("dark-mode")) {
   toggleDarkMode(localStorage.getItem("dark-mode") == "true");
 } else {
-  toggleDarkMode(useDark.matches);
+  toggleDarkMode(useDark.matches)
+  localStorage.setItem("dark-mode", useDark.matches);
 }
 // Listen for the changes in the OS settings, and remove preference on change.
 useDark.addEventListener("change", (evt) => {
