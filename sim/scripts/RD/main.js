@@ -879,7 +879,10 @@ async function VisualPDE(url) {
   // Listen for dark-mode changes in local storage.
   window.addEventListener("storage", function (e) {
     if (e.key == "dark-mode") {
-      toggleDarkMode(e.newValue == "true", true);
+      // If the event fires because dark-mode was removed, do nothing.
+      if (e.newValue == null) return;
+      // Otherwise, update the mode (without saving again to prevent loops).
+      toggleDarkMode(e.newValue == "true", false);
     }
   });
 
