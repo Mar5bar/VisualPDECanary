@@ -50,6 +50,7 @@
       window.addEventListener("DOMContentLoaded", function() {
         // For each .sim element without an sf parameter in the query string, modify the URL to include a domain scale factor.
         [...document.getElementsByClassName('sim')].forEach(el => {
+          if (!el.src) return;
           const url = new URL(el.src);
           if (/[?&]/.test(url.search)) {
             const params = new URLSearchParams(url.search);
