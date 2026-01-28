@@ -1,0 +1,220 @@
+:root {
+    --slider-fill-color: #2fa1d6;
+    --ui-button-background-color: #ffffff;
+    --ui-button-color: #606060;
+    --ui-button-border-color: rgba(0, 0, 0, 0.8);
+    --ui-button-hover-color: #454545;
+}
+
+/* Slider */
+.vpde-slider {
+  height: 2.2em;
+  vertical-align: middle;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+input.vpde-slider {
+  padding: 0;
+}
+
+vpde-slider > span {
+  display: inline-flex;
+  align-items: center;
+}
+
+.vpde-slider-label {
+  position: absolute;
+  text-align: center;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(100% - 8px);
+}
+
+.vpde-slider-label.above {
+  top: unset;
+  bottom: calc(100% - 8px);
+}
+
+.vpde-slider-valLabel {
+  font-size: 0.7rem;
+  vertical-align: middle;
+  padding: 0 0.2rem;
+}
+
+/*progress support*/
+.vpde-slider.slider-progress {
+  --range: calc(var(--max) - var(--min));
+  --distance: calc(
+    (var(--value) - var(--min)) * (1 - var(--reversed)) +
+      (var(--max) - var(--value)) * var(--reversed)
+  );
+  --ratio: calc(var(--distance) / var(--range));
+  --sx: calc(0.5 * 2em + var(--ratio) * (100% - 2em));
+  padding: 0 0.4em;
+}
+
+input.reversed {
+  direction: rtl;
+}
+
+.vpde-slider:focus {
+  outline: none;
+}
+
+/*webkit*/
+.vpde-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 1em;
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 0 2px #000000;
+  margin-top: calc(max((0.25em - 1px - 1px) * 0.5, 0px) - 1.2em * 0.5);
+}
+
+.vpde-slider::-webkit-slider-runnable-track {
+  height: 0.5em;
+  border: 1px solid #b2b2b2;
+  border-radius: 0.5em;
+  background: #efefef;
+  box-shadow: none;
+}
+
+.vpde-slider:hover::-webkit-slider-runnable-track {
+  border-color: #9a9a9a;
+}
+
+.vpde-slider::-webkit-slider-thumb:active {
+  background: var(--slider-fill-color);
+}
+
+.vpde-slider.slider-progress::-webkit-slider-runnable-track {
+  background: linear-gradient(
+        var(--slider-fill-color),
+        var(--slider-fill-color)
+      )
+      0 / var(--sx) 100% no-repeat,
+    #efefef;
+}
+
+/*mozilla*/
+.vpde-slider::-moz-range-thumb {
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 1em;
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 0 2px #000000;
+}
+
+.vpde-slider::-moz-range-track {
+  height: max(calc(0.5em - 1px - 1px), 0px);
+  border: 1px solid #b2b2b2;
+  border-radius: 0.5em;
+  background: #efefef;
+  box-shadow: none;
+}
+
+.vpde-slider:hover::-moz-range-track {
+  border-color: #9a9a9a;
+}
+
+.vpde-slider::-moz-range-thumb:active {
+  background: var(--slider-fill-color);
+}
+
+.vpde-slider.slider-progress::-moz-range-track {
+  background: linear-gradient(
+        var(--slider-fill-color),
+        var(--slider-fill-color)
+      )
+      0 / var(--sx) 100% no-repeat,
+    #efefef;
+}
+
+/*ms*/
+.vpde-slider::-ms-fill-upper {
+  background: transparent;
+  border-color: transparent;
+}
+
+.vpde-slider::-ms-fill-lower {
+  background: transparent;
+  border-color: transparent;
+}
+
+.vpde-slider::-ms-thumb {
+  width: 2em;
+  height: 2em;
+  border-radius: 1em;
+  background: #ffffff;
+  border: none;
+  box-shadow: 0 0 2px #000000;
+  margin-top: 0;
+  box-sizing: border-box;
+}
+
+.vpde-slider::-ms-track {
+  height: 0.5em;
+  border-radius: 0.5em;
+  background: #efefef;
+  border: 1px solid #b2b2b2;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+.vpde-slider:hover::-ms-track {
+  border-color: #9a9a9a;
+}
+
+.vpde-slider::-ms-thumb:active {
+  background: var(--slider-fill-color);
+}
+
+.vpde-slider.slider-progress::-ms-fill-lower {
+  height: max(calc(1em - 1px - 1px), 0px);
+  border-radius: 0.5em 0 0 0.5em;
+  margin: -1px 0 -1px -1px;
+  background: var(--slider-fill-color);
+  border: 1px solid #b2b2b2;
+  border-right-width: 0;
+}
+
+/* vpde-buttons */
+.vpde-button {
+  display: inline-flex;
+  margin-left: 3px;
+  margin-right: 3px;
+  background-color: var(--ui-button-background-color);
+  color: var(--ui-button-color);
+  font-size: 1.1rem;
+  height: 35px;
+  width: 35px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ui-button-border-color);
+  border-radius: 5px;
+  text-shadow: 0 1px #fff;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: all;
+}
+
+@media (hover: hover) {
+  .vpde-button:hover {
+    color: var(--ui-button-hover-color);
+    cursor: pointer;
+  }
+}
+
+vpde-chart {
+  display: block;
+  margin: auto;
+  max-width: 100%;
+}

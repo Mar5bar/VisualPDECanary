@@ -3310,11 +3310,11 @@ presets["bacteriaInAReach2DIllustrated"] = {
   flippedColourmap: false,
   imagePathOne: "./images/river_illustrated.webp",
   kineticParams:
-    "c0 = 0.5 in [0, 1];c1 = 0 in [0, 1];k = 0.006 in [0, 0.05];u = 1 in [0.1, 4];",
+    "c0 = 0.75 in [0, 1];c1 = 0 in [0, 1];k = 0.006 in [0, 0.05];u = 1 in [0.1, 4];b = 0;s=0;o=0;w=0;",
   parent: "bacteriaInAReach2D",
   preset: "bacteriaInAReach2DIllustrated",
   reactionStr_1:
-    "-u*C_xb/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) + u*C_y*0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) - k*C + (1-c0)*0.1*Bump(0.1*L_x,0.365*L_y,L/20)/u + c1*0.1*Bump(0.64*L_x,0.68*L_y,0.1*L)/u",
+    "-u*C_xb/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) + u*C_y*0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) - k*C + (1-c0)*0.1*Bump(0.1*L_x,0.365*L_y,L/20)/u + c1*0.1*Bump(0.64*L_x,0.68*L_y,0.1*L)/u + 0.001*(w+(1-s)-o)*u^2",
   maxColourValue: "1",
   views: [
     {
