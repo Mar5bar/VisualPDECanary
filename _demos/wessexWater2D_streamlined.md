@@ -11,6 +11,10 @@ equation:
 <script src="/assets/js/vpde-charts.js"></script>
 
 <style>
+hr {
+    width: 75%;
+    margin: 20px auto;
+}
 .active {
     background-color: #007BFF;
     color: white;
@@ -67,6 +71,8 @@ There are lots of ways that the community can help to reduce the impacts of heav
     max-label="Common"
 ></vpde-slider></p>
 Trying adjusting the number of water butts in the community using the slider above to see how this affects water quality in the river during heavy rain events. Don't forget to press the "Heavy rain" button again to see the effects!
+
+<hr>
 
 <h2> A complex system </h2>
 In reality, the interactions between rainfall, sewer systems, and river water quality are complex. There are many other community-scale interventions that can help to reduce the impacts of heavy rainfall, including picking up animal waste, maintaining septic tanks, and ... . These interventions can help to reduce the amount of water entering the sewer system during heavy rainfall, improving water quality in rivers and streams.
