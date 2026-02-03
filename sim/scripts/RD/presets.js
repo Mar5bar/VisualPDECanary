@@ -2,6 +2,26 @@
 
 let presets = {};
 
+presets["bistableSurvivalDumbbell"] = {
+	"brushRadius": "1",
+	"colourbar": true,
+	"colourmap": "turbo",
+	"domainIndicatorFun": "(x > L_x/5 || x < -L_x/5) && (y < L_y/4 && y > -L_y/4) || (-L_x/3 < x && x < L_x/3 && y < h && y > -h)",
+	"domainViaIndicatorFun": true,
+	"initCond_1": "2*x/L_x",
+	"kineticParams": "a = 0.35 in [0, 1];D = 1 in [0, 2];h = 1.00 in [1, 50];",
+	"minX": "-L_x/2",
+	"minY": "-L_y/2",
+	"parent": "bistableSurvival",
+	"probeFun": "u",
+	"probeLength": 150,
+	"speciesNames": "u",
+	"squareCanvas": true,
+	"simTitle": "Bistable survival in a dumbbell domain",
+	"preset": "bistableSurvivalDumbbell",
+};
+
+
 presets["harsh1D"] = {
   boundaryConditions_1: "dirichlet",
   brushRadius: "2",
