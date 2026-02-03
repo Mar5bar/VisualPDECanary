@@ -33,7 +33,7 @@ presets["harsh1D"] = {
   initCond_1: "0.1+0.01*RANDN",
   kineticParams: "K = 1;r = 1;D = 0.6 in [0.1, 15];",
   minColourValue: "-0.5",
-  numTimestepsPerFrame: 784,
+  numTimestepsPerFrame: 200,
   overlay: true,
   overlayExpr: "-D*u_x",
   parent: "harshEnvironment",
