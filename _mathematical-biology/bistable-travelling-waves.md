@@ -42,7 +42,7 @@ In the above simulations, we considered $a$ near the boundary, and initial waves
 
 * Alternatively, for smaller values of $R$, try pausing the simulation {{ layout.pause }}, painting a larger initial region of $u=1$, and then pressing {{ layout.play }} to set it in motion. You will notice that, for sufficiently large initial regions, the steady state $u=1$ can invade the steady state $u=0$. 
 
-The precise quantities and geometry of these initial conditions can influence persistence. It is difficult to analytically determine conditions for when an invasion is successful or not, as it can depend on both the size and shape of the initial perturbation, as well as the parameters $a$ and $D$. 
+The precise quantities and geometry of these initial conditions can influence persistence. It is difficult to analytically determine conditions for when an invasion is successful or not, as it can depend on both the size and shape of the initial perturbation, as well as the parameters $a$ and $D$. A particular example of this is the [Matano dumbbell given in this simulation](/sim/?preset=bistableSurvivalDumbbell), where the parameter $h$ is the width of the channel between two regions. 
 
 You can explore different values of these parameters and how they influence the success or failure of a population to persist in a new environment. 
 
