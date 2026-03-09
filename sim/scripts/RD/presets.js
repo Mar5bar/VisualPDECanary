@@ -6196,8 +6196,7 @@ presets["CahnHilliard"] = {
   diffusionStr_3_3: "0",
   dt: 0.001,
   initCond_1: "tanh(30*(RAND-0.5))",
-  kineticParams:
-    "r = 0.250 in [0, 0.1, 5];epsilon = 0.8 in [0.2, 0.01, 0.8];",
+  kineticParams: "r = 0.250 in [0, 0.1, 5];epsilon = 0.8 in [0.2, 0.01, 0.8];",
   minColourValue: "-1",
   numAlgebraicSpecies: 1,
   preset: "CahnHilliard",
