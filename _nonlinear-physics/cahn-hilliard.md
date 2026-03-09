@@ -20,5 +20,7 @@ with periodic boundary conditions.
 
 - Vary the lengthscale of the interfaces between regions by changing the value of $\epsilon$, and vary the parameter $r$ to control the influence of a double-well potential on the states attained by $u$.
 
-There are lots of things that you can do with this equation (with or without the reaction term). For instance, you can extend it to a 'non-reciprocal' Cahn–Hilliard system as in [Brauns and Marchetti](https://doi.org/10.1103/PhysRevX.14.021014), which exhibits pretty patterns that you can play with in this [interactive simulation](/sim/?preset=CahnHilliardNonreciprocal). Thanks to Lloyd Fung for pointing out this example!
+- For small $\epsilon$ and large $r$, you can see artefacts of the square grid used in the simulation. Increasing $\epsilon$ will make the interfaces wider than the grid resolution and reduce these artefacts.
+
+There are lots of things that you can do with this equation. For instance, you can extend it to a 'non-reciprocal' Cahn–Hilliard system as in [Brauns and Marchetti](https://doi.org/10.1103/PhysRevX.14.021014), which exhibits pretty patterns that you can play with in this [interactive simulation](/sim/?preset=CahnHilliardNonreciprocal). Thanks to Lloyd Fung for pointing out this example!
 
