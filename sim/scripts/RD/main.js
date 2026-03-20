@@ -9116,7 +9116,11 @@ async function VisualPDE(url) {
   function throwError(message, fixButtonMessage, fixButtonFunc) {
     if (!shouldShowErrors()) return;
     runningBeforeError = isRunning;
-    pauseSim();
+    try {
+      pauseSim();
+    } catch (error) {
+      // Do nothing - this is just to stop the simulation loop and will throw an error because the loop is paused. The error message will still be displayed correctly.
+    }
     // If we're loading in, don't overwrite previous errors.
     if (isLoading && hasErrored) return;
     hasErrored = true;
