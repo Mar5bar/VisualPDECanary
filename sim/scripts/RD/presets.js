@@ -494,7 +494,6 @@ presets["KymographLinearGrowth"] = {
   simTitle: "Gray–Scott on a linearly growing domain",
 };
 
-
 presets["KymographExponentialGrowth"] = {
   activeViewInd: 1,
   autoPause: true,
@@ -7383,7 +7382,6 @@ presets["SchakenbergGrowingDisk"] = {
   timesteppingScheme: "Mid",
   simTitle: "Schnakenberg on a growing disk",
 };
-
 
 presets["plateEquation"] = {
   suppressTryClickingPopup: true,
