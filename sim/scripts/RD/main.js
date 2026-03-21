@@ -4757,9 +4757,6 @@ async function VisualPDE(url) {
       },
     );
 
-    // If there are any numbers preceded by letters (eg r0), replace the number with the corresponding string.
-    str = sanitise(str);
-
     // Replace images with function-evaluation notation, e.g. I_T -> I_T(x,y).
     str = str.replaceAll(/\b(I_[ST][RBGA]?\b)\s*(?!\()/g, "$1(x,y) ");
 
@@ -4768,7 +4765,7 @@ async function VisualPDE(url) {
 
     // Replace integers with floats.
     while (
-      str != (str = str.replace(/([^.0-9a-zA-Z])(\d+)([^.0-9])/g, "$1$2.$3"))
+      str != (str = str.replace(/([^.0-9a-zA-Z_])(\d+)([^.0-9])/g, "$1$2.$3"))
     );
 
     // Look for scientific notation and remove the "." from the exponent.
@@ -7190,8 +7187,6 @@ async function VisualPDE(url) {
       if (foundBracket && depth == 0) {
         endInd = ind - 1 + startInd;
         argStr = newStr.slice(startInd + offset + 1, endInd + offset);
-        // Replace digits with words in the arguments.
-        argStr = replaceDigitsWithWords(argStr);
         // Detect at most two arguments separated by a comma.
         args = argStr.split(",");
         // If the second argument is empty, put a zero in its place.
@@ -7503,7 +7498,7 @@ async function VisualPDE(url) {
           // Otherwise, check if we need to create/modify a slider.
           createSlider();
           // Check if we need to update the parameter name and remove a redundant uniform.
-          const match = replaceDigitsWithWords(str).match(/\s*(\w+)\s*=/);
+          const match = str.match(/\s*(\w+)\s*=/);
           if (match) {
             let name = match[1];
             validateParamName(name);
@@ -8206,10 +8201,6 @@ async function VisualPDE(url) {
     return out;
   }
 
-  function sanitise(str) {
-    return replaceDigitsWithWords(str);
-  }
-
   function getKineticParamNames() {
     // Return a list of parsed kinetic parameter names.
     const regex = /^\s*([a-zA-Z]\w*)\b/;
@@ -8280,9 +8271,7 @@ async function VisualPDE(url) {
     // updated to reference this new uniform.
     let addingNewUniform = false;
     let errorFlag = false;
-    // Sanitise the name for the shader.
-    const cleanName = sanitise(name);
-    if (isReservedName(cleanName)) {
+    if (isReservedName(name)) {
       throwError(
         "The name '" +
           name +
@@ -8293,9 +8282,9 @@ async function VisualPDE(url) {
       errorFlag = true;
     } else {
       // If no such uniform exists, make a note of this.
-      addingNewUniform = !uniforms.hasOwnProperty(cleanName);
+      addingNewUniform = !uniforms.hasOwnProperty(name);
       // Define the required uniform.
-      uniforms[cleanName] = {
+      uniforms[name] = {
         type: "float",
         value: value,
       };
@@ -8306,11 +8295,9 @@ async function VisualPDE(url) {
   function kineticUniformsForShader() {
     // Given the kinetic parameters in options.kineticParams, return GLSL defining uniforms with
     // these names.
-    return sanitise(
-      getKineticParamNames()
-        .map((x) => "uniform float " + x + ";")
-        .join("\n"),
-    );
+    return getKineticParamNames()
+      .map((x) => "uniform float " + x + ";")
+      .join("\n");
   }
 
   /**
@@ -8479,28 +8466,6 @@ async function VisualPDE(url) {
     updateWhatToPlot();
     setDrawAndDisplayShaders();
     setPostFunFragShader();
-  }
-
-  /**
-   * Replaces any digits [0-9] in the input string with their word equivalents, so long as they follow at least one letter in a word.
-   * Do not replace texture2 or vec2 to allow for special GLSL functions.
-   * @param {string} strIn - The input string to replace digits in.
-   * @returns {string} The output string with digits replaced by their word equivalents.
-   */
-  function replaceDigitsWithWords(strIn) {
-    let regex;
-    let strOut = strIn;
-    for (let num = 0; num < 10; num++) {
-      regex = new RegExp("([a-zA-Z_]+[0-9]*)(" + num.toString() + ")", "g");
-      while (
-        strOut !=
-        (strOut = strOut.replace(regex, function (m, d1) {
-          if (m == "texture2" || m == "vec2") return m;
-          return d1 + numsAsWords[num];
-        }))
-      );
-    }
-    return strOut;
   }
 
   /**
