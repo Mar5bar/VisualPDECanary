@@ -5777,8 +5777,8 @@ async function VisualPDE(url) {
       BCsControllers.forEach((cont) => {
         updateGUIDropdown(
           cont,
-          ["Dirichlet", "Neumann", "Robin"],
-          ["dirichlet", "neumann", "robin"],
+          ["Dirichlet", "Neumann"],
+          ["dirichlet", "neumann"],
         );
         cont.domElement
           .getElementsByClassName("combo-bcs")[0]
