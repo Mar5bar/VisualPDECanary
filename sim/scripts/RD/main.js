@@ -552,6 +552,15 @@ async function VisualPDE(url) {
     if (Object.keys(newParams).length) loadPreset(newParams, true, true);
   }
 
+  // If there is an options object in sessionStorage, load it, so long as we're not changing simulation via the URL. This allows a simulation to persist across page reloads.
+  const sessionOptions = sessionStorage.getItem("options");
+  const oldQueryString = sessionStorage.getItem("oldQueryString");
+  if (sessionOptions && oldQueryString == window.location.search) {
+    loadPreset(JSON.parse(sessionOptions));
+  }
+  sessionStorage.removeItem("options");
+  sessionStorage.removeItem("oldQueryString");
+
   if (params.has("view")) {
     options.activeViewInd = Number(params.get("view")).clamp(
       0,
@@ -892,11 +901,12 @@ async function VisualPDE(url) {
     if (isRecording) {
       stopRecording();
     }
-    // // Check if the simulation has changed (options.preset will have changed).
-    // if (Object.keys(diffObjects(getPreset(options.preset), options)).length) {
-    //   // If so, add the URL.
-    //   history.pushState({}, "", getSimURL());
-    // }
+    // Check if the simulation has changed (options.preset will have changed).
+    if (Object.keys(diffObjects(getPreset(options.preset), options)).length) {
+      // If so, add to session storage so that it can be loaded on return, and add the URL to history.
+      sessionStorage.setItem("options", JSON.stringify(options));
+      sessionStorage.setItem("oldQueryString", window.location.search);
+    }
   });
 
   // Begin the simulation.
@@ -9840,16 +9850,18 @@ async function VisualPDE(url) {
     delete objDiff.parent;
     // Minify the field names in order to generate shorter URLs.
     objDiff = minifyPreset(objDiff);
-    const base = location.href.replace(location.search, "");
+    const base = location.origin + location.pathname.replace(/\/$/, "");
     const shortOpts = LZString.compressToEncodedURIComponent(
       JSON.stringify(objDiff),
     );
-    let str = [base, "?options=", shortOpts].join("");
+    const queryString = "?options=" + shortOpts;
+    let str = [base, queryString].join("");
     // Keep the long URL as a fallback.
     longSimURL = str;
     simURL = longSimURL;
     // Asynchronously shorten the URL, replcing the long URL with the shortened one when complete.
     if (shorten) shortenURL(base, shortOpts);
+    return queryString;
   }
 
   /**
@@ -11527,7 +11539,7 @@ async function VisualPDE(url) {
   }
 
   function saveShortURL(opts, shortKey) {
-    const base = location.href.replace(location.search, "");
+    const base = location.origin + location.pathname.replace(/\/$/, "");
     lastShortenedOpts = opts;
     lastShortKey = shortKey;
     localStorage.setItem("long:" + opts, shortKey);
