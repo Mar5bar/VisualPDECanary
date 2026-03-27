@@ -557,6 +557,7 @@ async function VisualPDE(url) {
   const oldQueryString = sessionStorage.getItem("oldQueryString");
   if (sessionOptions && oldQueryString == window.location.search) {
     loadPreset(JSON.parse(sessionOptions));
+    history.pushState({}, "", getSimURL(false));
   }
   sessionStorage.removeItem("options");
   sessionStorage.removeItem("oldQueryString");
