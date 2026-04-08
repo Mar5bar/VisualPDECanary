@@ -538,13 +538,15 @@ async function VisualPDE(url) {
   if (shouldLoadDefault) {
     // Load a specific preset as the default.
     loadPreset(defaultPreset);
-  } else {
+  }
+  if (params) {
     // Loop through entries of params and check if any are fields in options.
     // If so, apply them.
     newParams = {};
     for (let [key, value] of params) {
       if (key in options && key != "preset") {
         newParams[key] = value;
+        console.log("Applying " + key + " from URL with value " + value);
       }
     }
     showColourbarOverride =
