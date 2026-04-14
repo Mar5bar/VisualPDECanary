@@ -11372,6 +11372,8 @@ async function VisualPDE(url) {
   function configureProbe() {
     if (!probeChart) return;
     clearProbe();
+    // Ensure that the probe shader is up to date.
+    setProbeShader();
     if (options.probing) {
       $("#probeChartContainer").show();
       $("#logo").hide();
