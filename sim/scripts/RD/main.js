@@ -677,10 +677,7 @@ async function VisualPDE(url) {
     // Open a URL in a new tab:
     const llmURL =
       "https://gemini.google.com/gem/1IBCKDGXaPgNhdRy4tRYzOgsSpTpHcizr";
-    window.open(
-      llmURL,
-      "_blank",
-    );
+    window.open(llmURL, "_blank");
     // Display a pop-up warning that the bot is experimental. You may need to sign in to Google and then click this link to access the bot for the first time.
     if (!localStorage.getItem("dismissedLLMMessage")) {
       document.getElementById("llm-link").href = llmURL;
