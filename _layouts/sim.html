@@ -353,6 +353,9 @@
     <div class="ui hidden ui_button" id="share" title="Share">
       <i class="fa-solid fa-share-from-square"></i>
     </div>
+    <div class="ui hidden ui_button" id="llm-bot" title="LLM support">
+      <i class="fa-solid fa-robot"></i>
+    </div>
 
     <div class="message small" id="link_copied"><p>Copied to clipboard</p></div>
     <div class="message small" id="get_help"><p>Get help here anytime</p></div>
@@ -462,6 +465,24 @@
         away from this page.
       </p>
       <button class="btn-primary message_dismiss" id="webcam_ok">OK</button>
+    </div>
+    <div class="message big-popup" id="llm-message">
+      <div class="centre_symbol"><i class="fa-solid fa-robot"></i></div>
+      <p>
+        You've clicked the LLM support button! This is an experimental feature
+        that will connect you to a large language model for help with your
+        simulation.
+      </p>
+      <p>
+        The bot is still in early testing, and may not always be helpful, but
+        feel free to give it a try!
+      </p>
+      <p>
+        If you don't see a VisualPDE-tailored chat, please sign in to Google, then click
+        <a id="llm-link" target="_blank">here</a>.
+      </p>
+      <button class="btn-primary highlight message_dismiss" id="llm_clicked_ok">OK</button>
+      <button class="btn-primary message_dismiss" id="llm_clicked_dismiss">Don't show this again</button>
     </div>
 
     <div id="comboBCs_ui" class="ui hidden">

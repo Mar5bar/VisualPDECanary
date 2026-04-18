@@ -672,6 +672,21 @@ async function VisualPDE(url) {
       toggleSharePanel();
     }
   });
+  $("#llm-bot").click(function () {
+    window.gtag?.("event", "llm_bot_open");
+    // Open a URL in a new tab:
+    const llmURL =
+      "https://gemini.google.com/gem/1IBCKDGXaPgNhdRy4tRYzOgsSpTpHcizr";
+    window.open(
+      llmURL,
+      "_blank",
+    );
+    // Display a pop-up warning that the bot is experimental. You may need to sign in to Google and then click this link to access the bot for the first time.
+    if (!localStorage.getItem("dismissedLLMMessage")) {
+      document.getElementById("llm-link").href = llmURL;
+      $("#llm-message").show();
+    }
+  });
   $("#screenshot").click(function () {
     window.gtag?.("event", "screenshot");
     takeAScreenshot = true;
@@ -735,6 +750,13 @@ async function VisualPDE(url) {
   $("#oops_hit_nan_close").click(function () {
     fadeout("#oops_hit_nan");
     shouldCheckNaN = true;
+  });
+  $("#llm_clicked_ok").click(function () {
+    $("#llm-message").hide();
+  });
+  $("#llm_clicked_dismiss").click(function () {
+    $("#llm-message").hide();
+    localStorage.setItem("dismissedLLMMessage", "true");
   });
   $("#start_tour").click(function () {
     $("#welcome").css("display", "none");

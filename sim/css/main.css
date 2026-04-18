@@ -731,6 +731,11 @@ button.focus-params.active {
   right: var(--ui-button-h-gap);
 }
 
+#llm-bot {
+  top: 140px;
+  right: var(--ui-button-h-gap);
+}
+
 #stop_recording {
   color: var(--stop-recording-color);
   display: inline-flex;
