@@ -7388,10 +7388,13 @@ async function VisualPDE(url) {
           step = match[4];
           match[4] += ", ";
         }
-        controller.slider.precision = Math.min(Math.max(
-          controller.slider.precision,
-          parseFloat(step).countDecimals(),
-        ), 10);
+        controller.slider.precision = Math.min(
+          Math.max(
+            controller.slider.precision,
+            parseFloat(step).countDecimals(),
+          ),
+          10,
+        );
         controller.slider.step = step.toString();
 
         // Assign the initial value, which should happen after step has been defined.
