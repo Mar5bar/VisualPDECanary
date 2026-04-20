@@ -676,7 +676,7 @@ async function VisualPDE(url) {
     window.gtag?.("event", "llm_bot_open");
     // Open a URL in a new tab:
     const llmURL =
-      "https://gemini.google.com/gem/1IBCKDGXaPgNhdRy4tRYzOgsSpTpHcizr";
+      "https://gemini.google.com/gem/1aAE21EAnzZqqVQq9ye4UYjfjbNBiljRw";
     window.open(
       llmURL,
       "_blank",
