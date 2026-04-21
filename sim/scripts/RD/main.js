@@ -237,7 +237,7 @@ async function VisualPDE(url) {
     kineticParamsCounter = 0,
     nextParamController;
   const llmURL =
-      "https://gemini.google.com/gem/1aAE21EAnzZqqVQq9ye4UYjfjbNBiljRw";
+    "https://gemini.google.com/gem/1aAE21EAnzZqqVQq9ye4UYjfjbNBiljRw";
   const defaultPreset = "GrayScott";
   const defaultSpecies = ["u", "v", "w", "q"];
   const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
@@ -743,10 +743,7 @@ async function VisualPDE(url) {
     shouldCheckNaN = true;
   });
   $("#llm_click_open").click(function () {
-    window.open(
-      llmURL,
-      "_blank",
-    );
+    window.open(llmURL, "_blank");
   });
   $("#llm_click_close").click(function () {
     $("#llm-message").hide();
