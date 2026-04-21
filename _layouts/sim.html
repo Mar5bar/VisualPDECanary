@@ -276,11 +276,11 @@
       <div id="tour_question">
         <p>There is so much to explore. Would you like a tour?</p>
         <br />
-        <button id="welcome_ok" class="btn-primary highlight">
+        <button id="welcome_ok" class="btn-primary message_ok highlight">
           Yes, show me round!
         </button>
         <br />
-        <button id="welcome_no" class="btn-primary">No, let me jump in!</button>
+        <button id="welcome_no" class="btn-primary message_ok">No, let me jump in!</button>
       </div>
       <p>
         Some simulations on VisualPDE.com may contain flashing images and
@@ -291,7 +291,7 @@
         using this site, you consent to the use of cookies.
       </p>
       <div id="lets_go_cont" style="display: none">
-        <button id="lets_go" class="btn-primary highlight">
+        <button id="lets_go" class="btn-primary message_ok highlight">
           OK, let's go!
         </button>
       </div>
@@ -415,7 +415,7 @@
           >syntax errors</a
         >, and reload the page if the interface is unresponsive.
       </p>
-      <button class="btn-primary highlight" id="error_fix_button">
+      <button class="btn-primary message_ok highlight" id="error_fix_button">
         <i class="fa-solid fa-plus icon_on_text_button"></i
         ><span id="error_fix_button_text"></span>
       </button>
@@ -473,16 +473,16 @@
         that will connect you to a large language model for help with your
         simulation.
       </p>
-      <p>
-        The bot is still in early testing, and may not always be helpful, but
-        feel free to give it a try!
+      <button class="btn-primary message_ok highlight" id="llm_click_open">Open LLM
+        <svg style="color:" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+          <path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"></path>
+          <path fill="currentColor" d="M5 5h6v2H7v10h10v-4h2v6H5z"></path>
+        </svg>
+      </button>
+      <button class="btn-primary message_dismiss" id="llm_click_close">Close</button>
+      <p style="font-size: 0.8em">
+        If you don't see a VisualPDE-tailored chat, please sign in to Google, then open the LLM again.
       </p>
-      <p>
-        If you don't see a VisualPDE-tailored chat, please sign in to Google, then click
-        <a id="llm-link" target="_blank">here</a>.
-      </p>
-      <button class="btn-primary highlight message_dismiss" id="llm_clicked_ok">OK</button>
-      <button class="btn-primary message_dismiss" id="llm_clicked_dismiss">Don't show this again</button>
     </div>
 
     <div id="comboBCs_ui" class="ui hidden">

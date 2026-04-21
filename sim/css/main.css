@@ -975,10 +975,7 @@ button.focus-params.active {
   font-weight: bold;
 }
 
-#welcome_ok,
-#welcome_no,
-#lets_go,
-#error_fix_button,
+.message_ok,
 .message_dismiss {
   font-size: min(1rem, 5vw);
   margin-bottom: 0.5rem;
