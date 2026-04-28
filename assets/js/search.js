@@ -176,15 +176,12 @@ function site_search(term) {
           "^1000 tags:" +
           str +
           " extract:" +
-          str +
-          "^10 body:" +
-          str +
-          "^10 ";
+          str;
       });
     var results = siteIndex.search(searchterm);
 
     if (results.length > 0) {
-      for (var i = 0; i < Math.min(results.length, 10); i++) {
+      for (var i = 0; i < Math.min(results.length, 20); i++) {
         // more statements
         var ref = results[i]["ref"];
         var url = frontmatter[ref]["url"];
