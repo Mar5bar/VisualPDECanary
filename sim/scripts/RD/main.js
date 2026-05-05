@@ -91,6 +91,7 @@ import {
 import { closestMatch } from "../../../assets/js/closest-match.js";
 import { Stats } from "../stats.min.js";
 import { createWelcomeTour } from "./tours.js";
+import { GoogleGenAI } from "@google/genai";
 
 if (expandingOptionsInProgress) {
   let checkIfOptionsLoaded = setInterval(() => {
@@ -961,6 +962,72 @@ async function VisualPDE(url) {
       "Sorry, we've not managed to resolve this minified link. Check the link and your internet connection. If the problem persists, please get in touch at hello@visualpde.com.",
     );
   }
+
+  const aiBtn = document.getElementById("ai-generate-btn");
+  const aiInput = document.getElementById("ai-prompt-input");
+  const aiStatus = document.getElementById("ai-status");
+  const ai = new GoogleGenAI({ apiKey: "" });
+  const manifest = {
+      "what-can-visualpde-solve.md": { title: "What can VisualPDE solve?", url: "https://visualpde.com/user-guide/what-can-visualpde-solve.html" },
+      "FAQ.md": { title: "FAQs", url: "https://visualpde.com/user-guide/FAQ.html" },
+      "quick-start.md": { title: "Quick Start", url: "https://visualpde.com/user-guide/quick-start.html" },
+      "advanced-options.md": { title: "Complete Documentation", url: "https://visualpde.com/user-guide/advanced-options.html" },
+      "solver.md": { title: "The VisualPDE solver", url: "https://visualpde.com/user-guide/solver.html" },
+      "misc.md": { title: "Misc information", url: "N/A" }
+  };
+
+  async function loadDocs() {
+      let combinedDocs = "OFFICIAL DOCUMENTATION CONTENT:\n";
+      
+      for (const [filename, info] of Object.entries(manifest)) {
+          try {
+              const response = await fetch(`/sim/llm-context/${filename}`);
+              const text = await response.text();
+              
+              combinedDocs += `\n\n--- SECTION: ${info.title} ---\n`;
+              combinedDocs += `SOURCE URL: ${info.url}\n`;
+              combinedDocs += text;
+          } catch (err) {
+              console.error(`Could not load ${filename}:`, err);
+          }
+      }
+      return combinedDocs;
+  }
+
+  const SYSTEM_INSTRUCTION = `You are a helpful assistant proficient in reaction-diffusion equations and the official support bot for VisualPDE (visualpde.com).
+  Your job is, according to user query, to ONLY provide simulations raw links by using query strings. 
+  Use the provided documentation as your main reference point. If the query falls outside VisualPDE's capabilities, return 'visualpde.com/sim'.`
+
+  async function generateSim() {
+      const userQuery = document.getElementById("ai-prompt-input").value;
+      const status = document.getElementById("ai-status");
+      
+      status.innerText = "Thinking..";
+
+      const docsContext = await loadDocs();
+
+      const contents = [
+          { text: `DOCUMENTATION CONTEXT:\n${docsContext}` },
+          { text: `USER QUESTION: ${userQuery}` }
+      ];
+
+      try {
+          const result = await ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: contents,
+            config: {
+              systemInstruction: SYSTEM_INSTRUCTION,
+            },
+          });
+          const link = result.text;
+          status.innerHTML = `Success! <a href="${link}" style="color: cyan;">Link Generated</a>`;
+      } catch (error) {
+          status.innerText = "Error connecting to Gemini.";
+          console.error(error);
+      }
+  }
+
+  aiBtn.addEventListener("click", generateSim);
 
   //---------------
 

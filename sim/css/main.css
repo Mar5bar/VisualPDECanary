@@ -2007,3 +2007,50 @@ button {
 .colourbarMain {
   filter: brightness(90%);
 }
+
+
+#ai-link-generator {
+  margin-top: 15px;
+  border-top: 1px solid var(--ui-button-border-color);
+  padding-top: 15px;
+  text-align: left;
+}
+
+#ai-prompt-input {
+  width: 100%;
+  height: 80px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid var(--ui-button-border-color);
+  background-color: var(--input-background-color);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  resize: none;
+}
+
+#ai-prompt-input:focus {
+  outline: 2px solid var(--link-color);
+  border-color: transparent;
+}
+
+#ai-generate-btn {
+  width: 100%;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+#ai-status {
+  font-size: 0.8rem;
+  min-height: 1.2rem;
+  color: var(--soft-text-color);
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+#ai-status a {
+  font-weight: bold;
+  text-decoration: underline;
+}
