@@ -9271,6 +9271,28 @@ async function VisualPDE(url) {
       return false;
     }
 
+    // Contains ++ or --, which is ambiguous?
+    regex = /\-\-/;
+    matches = str.match(regex);
+    if (matches != null) {
+      throwError(
+        "Ambiguous use of '--' in: " +
+          highlightStringinString(str, matches[0]).trim() +
+          "<br> Did you mean to use this as a minus sign followed by a negative number? If so, please add spaces between minus signs.",
+      );
+      return false;
+    }
+    regex = /\+\+/;
+    matches = str.match(regex);
+    if (matches != null) {
+      throwError(
+        "There is a '++' in: " +
+          highlightStringinString(str, matches[0]).trim() +
+          "<br> Did you mean to use a single '+'?",
+      );
+      return false;
+    }
+
     // If we've not yet returned false, everything looks ok, so return true.
     return true;
   }
@@ -10880,6 +10902,13 @@ async function VisualPDE(url) {
     // If the string contains xy or yx, replace with x*y.
     str = str.replaceAll(/\bxy\b/g, "x*y");
     str = str.replaceAll(/\byx\b/g, "y*x");
+
+    // If the string contains + + or ++, replace with +.
+    while (str != (str = str.replace(/\+\s*\+/g, "+")));
+
+    // Replace +- and -+ with simply -
+    str = str.replaceAll(/\+\s*-/g, "-");
+    str = str.replaceAll(/-\s*\+/g, "-");
 
     // If the string contains a ) followed by a letter or number, add a *.
     str = str.replaceAll(/\)([a-zA-Z0-9])/g, ")*$1");
