@@ -237,7 +237,7 @@ async function VisualPDE(url) {
     kineticParamsCounter = 0,
     nextParamController;
   const llmURL =
-    "https://gemini.google.com/gem/1aAE21EAnzZqqVQq9ye4UYjfjbNBiljRw";
+    "https://gemini.google.com/gem/1mJ4572e1TJwEHcaYDst0_9keZkx78-zn";
   const defaultPreset = "GrayScott";
   const defaultSpecies = ["u", "v", "w", "q"];
   const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
