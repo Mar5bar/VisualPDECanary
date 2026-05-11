@@ -9,3 +9,4 @@ source "https://rubygems.org"
 # Happy Jekylling!
 gem "jekyll", "~> 4.3.3"
 gem "minima"
+gem "jekyll-sitemap"
