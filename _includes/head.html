@@ -3,7 +3,6 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  {%- seo -%}
   <link rel="stylesheet" href="{{ "/assets/main.css" | relative_url }}">
   {%- feed_meta -%}
   {%- if jekyll.environment == 'production' and site.google_analytics -%}
@@ -26,6 +25,7 @@
   {% if page.title != "VisualPDE" %}
     {% assign title = page.title | append: ' | VisualPDE' %}
   {% endif %}
+  <title>{{ title | default: 'VisualPDE' }}</title>
   <meta name="description" content="{{ page.extract | default: 'VisualPDE brings interactive science and mathematics to the web. Explore examples like waves and reaction—diffusion patterns, or create your own simulation.' }}" />
   <meta name="twitter:site" content="@visualpde" /> 
   <meta name="twitter:title" content="{{ title | default: 'VisualPDE' }}" /> 
@@ -33,6 +33,7 @@
   <meta name="twitter:image" content="{{ site.url }}{{ page.thumbnail | default: '/assets/favicons/twitter-icon.webp' }}" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="{{ title | default: 'VisualPDE' }}" />
+  <meta property="og:locale" content="en_GB" />
   <meta property="og:description" content="{{ page.extract | default: 'VisualPDE brings interactive science and mathematics to the web. Explore examples like waves and reaction—diffusion patterns, or create your own simulation.' }}" />
   <meta property="og:image" content="{{ site.url }}{{ page.thumbnail | default: '/assets/favicons/android-chrome-1200x630.png' }}" />
   <meta property="og:url" content="{{ page.url | absolute_url }}" />
@@ -41,6 +42,15 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="google-site-verification" content="ugeW31yIRGSztE-CPYG3CnFCObe7pqk91umfk06TSAI"/>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "description": "{{ page.extract | default: 'VisualPDE brings interactive science and mathematics to the web. Explore examples like waves and reaction—diffusion patterns, or create your own simulation.' }}",
+      "headline": {{ title | default: 'VisualPDE' }},
+      "url": "{{ page.url | absolute_url }}",
+    }
+  </script>
 
   <script src="/assets/js/dark_mode.js"></script>
 	
