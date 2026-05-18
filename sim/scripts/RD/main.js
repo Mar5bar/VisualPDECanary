@@ -1178,7 +1178,11 @@ async function VisualPDE(url) {
       color: options.arrowColour,
       side: THREE.DoubleSide,
     });
-    checkpointMaterial = new THREE.MeshBasicMaterial();
+    checkpointMaterial = new THREE.MeshBasicMaterial({
+      transparent: true,
+      blending: THREE.NoBlending,
+      toneMapped: false,
+    });
     minMaxMaterial = new THREE.ShaderMaterial({
       uniforms: minMaxUniforms,
       vertexShader: genericVertexShader(),
@@ -9077,7 +9081,7 @@ async function VisualPDE(url) {
       : (checkpointTexture.magFilter = THREE.LinearFilter);
     if (checkpointMaterial != null) {
       checkpointMaterial.map = checkpointTexture;
-      checkpointMaterial.needsUpdate;
+      checkpointMaterial.needsUpdate = true;
     }
   }
 
