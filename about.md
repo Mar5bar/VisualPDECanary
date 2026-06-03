@@ -58,7 +58,7 @@ VisualPDE is used around the world to teach, engage and interact with mathematic
 
 ## The team
 
-VisualPDE is a team effort, written and maintained by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/) and [Andrew Krause](https://www.andrewkrause.org/).
+VisualPDE is a team effort, written and maintained by [Benjamin Walker](https://benjaminwalker.info/), [Adam Townsend](https://adamtownsend.com/) and [Andrew Krause](https://www.andrewkrause.org/). We are grateful for the contributions of [Alex Chudasama](https://alexchudasama.com) and [Xietao Wang Lin](https://warwick.ac.uk/fac/sci/mathsys/people/students/mathsysii/wanglin/).
 
 <script type="text/javascript">
     async function fetchCitingArticlesCount() {
