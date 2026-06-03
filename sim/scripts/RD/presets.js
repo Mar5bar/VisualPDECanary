@@ -7356,7 +7356,7 @@ presets["SchnakenbergHopf"] = {
   whatToPlot: "u",
 };
 
-presets["SchakenbergGrowingDisk"] = {
+presets["SchnakenbergGrowingDisk"] = {
   boundaryConditions_1: "dirichlet",
   boundaryConditions_2: "dirichlet",
   brushRadius: "10",
@@ -7370,7 +7370,7 @@ presets["SchakenbergGrowingDisk"] = {
   maxColourValue: "9",
   numTimestepsPerFrame: 100,
   parent: "Schnakenberg",
-  preset: "SchakenbergGrowingDisk",
+  preset: "SchnakenbergGrowingDisk",
   probeFun: "u",
   probeLength: 30,
   reactionStr_1:
