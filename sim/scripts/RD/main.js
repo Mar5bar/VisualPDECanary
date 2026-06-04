@@ -584,6 +584,7 @@ async function VisualPDE(url) {
     $("#probeChartContainer").addClass("hidden");
     editViewFolder.domElement.classList.add("hidden");
     $("#add_view").addClass("hidden");
+    $("#llm-bot").addClass("hidden");
     configureColourbar();
 
     $("#play").css("top", "-=50");
@@ -837,6 +838,11 @@ async function VisualPDE(url) {
   if ($("#help").is(":visible")) {
     $("#get_help").fadeIn(1000);
     setTimeout(() => $("#get_help").fadeOut(1000), 4000);
+  }
+
+  if ($("#llm-bot").is(":visible")) {
+    $("#llm-bot-message").fadeIn(1000);
+    setTimeout(() => $("#llm-bot-message").fadeOut(1000), 4000);
   }
 
   // If the "Try clicking!" popup is allowed, show it iff we're from an external link

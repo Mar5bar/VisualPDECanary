@@ -818,6 +818,10 @@ button.focus-params.active {
   top: 74px;
 }
 
+#llm-bot-message {
+  top: 164px;
+}
+
 #brush_disabled {
   top: 5px;
 }
