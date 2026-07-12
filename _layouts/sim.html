@@ -82,6 +82,13 @@
         }
       }
     </script>
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/genai": "https://esm.run/@google/genai"
+        }
+      }
+      </script>
     <script async type="text/javascript">
       // If the search string specifies a minified link, query the endpoint for the full link.
       if (searchParams.has("mini")) {
@@ -469,21 +476,20 @@
     </div>
     <div class="message big-popup" id="llm-message">
       <div class="centre_symbol"><i class="fa-solid fa-robot"></i></div>
-      <p>
-        You've clicked the LLM support button! This is an experimental feature
-        that will connect you to a large language model for help with your
-        simulation.
-      </p>
-      <button class="btn-primary message_ok highlight" id="llm_click_open">Open LLM
-        <svg style="color:" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-          <path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"></path>
-          <path fill="currentColor" d="M5 5h6v2H7v10h10v-4h2v6H5z"></path>
-        </svg>
-      </button>
+      <p>Equation Generator</p>
+      
+      <div id="ai-link-generator">
+        <textarea id="ai-prompt-input" 
+                  placeholder="Describe a simulation (e.g. 'Slow moving blue waves with high diffusion')"></textarea>
+        
+        <button class="btn-primary highlight" id="ai-generate-btn">
+          Generate
+        </button>
+
+        <div id="ai-status"></div>
+      </div>
+
       <button class="btn-primary message_dismiss" id="llm_click_close">Close</button>
-      <p style="font-size: 0.8em">
-        If you don't see a VisualPDE-tailored chat, please sign in to Google, then open the LLM again.
-      </p>
     </div>
 
     <div id="comboBCs_ui" class="ui hidden">
