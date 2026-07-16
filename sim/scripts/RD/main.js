@@ -7159,7 +7159,10 @@ async function VisualPDE(url) {
     str = str.replaceAll(/\bGauss\b/g, "\\mathcal{N}");
 
     // Replace GlobalInt with \int_{\Omega}(options.globalIntegralFun).
-    str = str.replaceAll(/\bGlobalInt\b/g, "\\int_{\\Omega}(" + globalIntegralFunTexStr + ")");
+    str = str.replaceAll(
+      /\bGlobalInt\b/g,
+      "\\int_{\\Omega}(" + globalIntegralFunTexStr + ")",
+    );
 
     // If there's an underscore, put {} around the word that follows it.
     str = str.replaceAll(/_(\w+\b)/g, "_{$1}");
