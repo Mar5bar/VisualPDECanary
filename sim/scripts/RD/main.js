@@ -291,6 +291,7 @@ async function VisualPDE(url) {
     ...getDefaultTeXLabelsBCsICs(),
     ...getDefaultTeXLabelsTimescales(),
   };
+  let globalIntegralFunTexStr = "";
   let listOfSpecies, listOfReactions, anySpeciesRegexStrs;
   const fieldsInView = getFieldsInView();
 
@@ -2896,6 +2897,13 @@ async function VisualPDE(url) {
         updateRandomSeed();
       });
 
+    controllers["globalIntegralFun"] = root
+      .add(options, "globalIntegralFun")
+      .name("To integrate")
+      .onFinishChange(function () {
+        updateGlobalIntegralFun();
+      });
+
     devFolder = root.addFolder("Dev");
     root = devFolder;
     addInfoButton(root, "/user-guide/advanced-options#dev");
@@ -4824,8 +4832,8 @@ async function VisualPDE(url) {
     // Insert MINX and MINY.
     str = replaceMINXMINY(str);
 
-    // Replace 'IntQuantity' with globalIntegralValue, which is a uniform that stores the integral of the quantity.
-    str = str.replaceAll(/\bIntQuantity\b/g, "globalIntegralValue");
+    // Replace 'GlobalInt' with globalIntegralValue, which is a uniform that stores the integral of the quantity.
+    str = str.replaceAll(/\bGlobalInt\b/g, "globalIntegralValue");
 
     return str;
   }
@@ -5433,6 +5441,9 @@ async function VisualPDE(url) {
     // Set the camera.
     configureCameraAndClicks();
 
+    // Update the globalIntegralFunTexStr.
+    globalIntegralFunTexStr = parseShaderString(options.globalIntegralFun);
+
     // To get around an annoying bug in dat.GUI.image, in which the
     // controller doesn't update the value of the underlying property,
     // we'll destroy and create a new image controller everytime we load
@@ -5626,6 +5637,7 @@ async function VisualPDE(url) {
       options.dirichletStr_2,
       options.dirichletStr_3,
       options.dirichletStr_4,
+      options.globalIntegralFun,
       options.robinStr_1,
       options.robinStr_2,
       options.robinStr_3,
@@ -5909,6 +5921,12 @@ async function VisualPDE(url) {
     shaderStr = shaderStr.replace(/GLOBAL_INTEGRAL_FUN/g, parseShaderString(options.globalIntegralFun));
     assignFragmentShader(globalIntegralMaterial, shaderStr);
     globalIntegralMaterial.needsUpdate = true;
+  }
+
+  function updateGlobalIntegralFun() {
+    globalIntegralFunTexStr = parseShaderString(options.globalIntegralFun);
+    setGlobalIntegralShader();
+    setEquationDisplayType();
   }
 
   function loadImageSourceOne() {
@@ -7136,6 +7154,9 @@ async function VisualPDE(url) {
 
     // Replace Gauss with \mathcal{N}.
     str = str.replaceAll(/\bGauss\b/g, "\\mathcal{N}");
+
+    // Replace GlobalInt with \int_{\Omega}(options.globalIntegralFun).
+    str = str.replaceAll(/\bGlobalInt\b/g, "\\int_{\\Omega}(" + globalIntegralFunTexStr + ")");
 
     // If there's an underscore, put {} around the word that follows it.
     str = str.replaceAll(/_(\w+\b)/g, "_{$1}");
