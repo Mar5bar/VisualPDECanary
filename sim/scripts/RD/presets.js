@@ -4403,7 +4403,7 @@ presets["RedGreyInvasionUK"] = {
   imagePathTwo: "./images/gb.webp",
   initCond_1: "1",
   initCond_2: "1/cosh(0.5*sqrt((x-L_x/10)^2+(y+0.8*L_y/2)^2))^2",
-  kineticParams: "c_RR = 1;c_GG = 1;c_RG = 1;c_GR = 0.9;",
+  kineticParams: "c_RR = 1;c_GG = 1;c_RG = 1.2;c_GR = 0.9;",
   maxColourValue: "0.5",
   minColourValue: "0",
   minX: "-L_x/2",
