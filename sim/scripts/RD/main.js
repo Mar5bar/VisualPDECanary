@@ -10896,6 +10896,9 @@ async function VisualPDE(url) {
       return "0";
     }
 
+    // Replace all sorts of unicode minus signs, dashes, and hyphens with a regular minus sign.
+    str = str.replaceAll(/[\u2212\u2012\u2013\u2014]/g, "-");
+
     // Replace texture2D and vec2 with placeholders to prevent accidental multiplication.
     str = str.replaceAll(/\btexture2D\b/g, "__TEXTURETWOD__");
     str = str.replaceAll(/\bvec2\(/g, "__VECTWOPAREN__");
