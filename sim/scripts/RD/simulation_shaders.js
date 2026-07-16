@@ -804,7 +804,7 @@ export function clampSpeciesToEdgeShader(direction) {
 }
 
 export function globalIntegralShader() {
- return `varying vec2 textureCoords;
+  return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
     uniform float dx;
     uniform float dy;
@@ -888,5 +888,5 @@ export function globalIntegralShader() {
         value = 1.0/0.0;
       }
       gl_FragColor = vec4(value, 0.0, 0.0, 0.0);
-    }`; 
+    }`;
 }
