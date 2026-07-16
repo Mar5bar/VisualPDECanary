@@ -5918,7 +5918,10 @@ async function VisualPDE(url) {
     // Insert any user-defined kinetic parameters, as uniforms.
     let shaderStr = kineticUniformsForShader() + globalIntegralShader();
     shaderStr = replaceMINXMINY(shaderStr);
-    shaderStr = shaderStr.replace(/GLOBAL_INTEGRAL_FUN/g, parseShaderString(options.globalIntegralFun));
+    shaderStr = shaderStr.replace(
+      /GLOBAL_INTEGRAL_FUN/g,
+      parseShaderString(options.globalIntegralFun),
+    );
     assignFragmentShader(globalIntegralMaterial, shaderStr);
     globalIntegralMaterial.needsUpdate = true;
   }
