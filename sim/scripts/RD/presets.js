@@ -7783,6 +7783,7 @@ presets["default"] = {
   forceManualInterpolation: false,
   forceTryClickingPopup: false,
   globalIntegralFun: "0",
+  globalIntegralUpdatePeriod: 10,
   guiUpdatePeriod: 2,
   imagePathOne: "./images/Sofya.webp",
   imagePathTwo: "./images/Alan.webp",

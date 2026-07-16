@@ -887,6 +887,7 @@ export function globalIntegralShader() {
       if (isnan(value)) {
         value = 1.0/0.0;
       }
-      gl_FragColor = vec4(value, 0.0, 0.0, 0.0);
+      float in_domain = float(float(indicatorFun) > 0.0);
+      gl_FragColor = vec4(value * in_domain, 0.0, 0.0, 0.0);
     }`;
 }
