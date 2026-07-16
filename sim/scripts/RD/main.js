@@ -3915,7 +3915,8 @@ async function VisualPDE(url) {
         }
         if (shaderContainsRAND && !options.setSeed) updateRandomSeed();
         if (shaderContainsGlobalIntegral) {
-          timestepCount = (timestepCount + 1) % options.globalIntegralUpdatePeriod;
+          timestepCount =
+            (timestepCount + 1) % options.globalIntegralUpdatePeriod;
           if (!(timestepCount % options.globalIntegralUpdatePeriod)) {
             updateGlobalIntegral();
           }
