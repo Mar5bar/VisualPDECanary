@@ -50,6 +50,7 @@ import {
   RDShaderGhostY,
   RDShaderMain,
   clampSpeciesToEdgeShader,
+  globalIntegralShader,
 } from "./simulation_shaders.js";
 import { randShader, randNShader } from "../rand_shader.js";
 import {
@@ -124,6 +125,7 @@ async function VisualPDE(url) {
     copyMaterial,
     postMaterial,
     probeMaterial,
+    globalIntegralMaterial,
     lineMaterial,
     overlayLineMaterial,
     arrowMaterial,
@@ -187,6 +189,7 @@ async function VisualPDE(url) {
     isStory = false,
     wasLinePlot = false,
     shaderContainsRAND = false,
+    shaderContainsGlobalIntegral = false,
     anyDirichletBCs,
     dataNudgedUp = false,
     probeNudgedUp = false,
@@ -1133,6 +1136,11 @@ async function VisualPDE(url) {
       uniforms: uniforms,
       vertexShader: genericVertexShader(),
     });
+    // This material allows for the computation of a global integral quantity.
+    globalIntegralMaterial = new THREE.ShaderMaterial({
+      uniforms: uniforms,
+      vertexShader: genericVertexShader(),
+    });
     clearColour = new THREE.Color().setRGB(-1, -1, -1);
 
     // We'll use a host of materials for timestepping, each with different fragment shaders.
@@ -1772,6 +1780,9 @@ async function VisualPDE(url) {
       },
       embossLightDir: {
         type: "vec3",
+      },
+      globalIntegralValue: {
+        type: "f",
       },
       L: {
         type: "f",
@@ -3880,6 +3891,7 @@ async function VisualPDE(url) {
           break;
         }
         if (shaderContainsRAND && !options.setSeed) updateRandomSeed();
+        if (shaderContainsGlobalIntegral) updateGlobalIntegral();
         timestep();
         // Leave the loop after one timestep if we're in automata mode.
         if (options.automataMode) {
@@ -4812,6 +4824,9 @@ async function VisualPDE(url) {
     // Insert MINX and MINY.
     str = replaceMINXMINY(str);
 
+    // Replace 'IntQuantity' with globalIntegralValue, which is a uniform that stores the integral of the quantity.
+    str = str.replaceAll(/\bIntQuantity\b/g, "globalIntegralValue");
+
     return str;
   }
 
@@ -5173,6 +5188,7 @@ async function VisualPDE(url) {
       middle = randNShader() + middle;
     }
     shaderContainsRAND = containsRAND || containsRANDN;
+    shaderContainsGlobalIntegral = /\bglobalIntegralValue\b/.test(middle);
     let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
     let type = "FE";
@@ -5884,6 +5900,15 @@ async function VisualPDE(url) {
     shaderStr = shaderStr.replace(/indicatorFun/g, replacement);
     assignFragmentShader(probeMaterial, shaderStr);
     probeMaterial.needsUpdate = true;
+  }
+
+  function setGlobalIntegralShader() {
+    // Insert any user-defined kinetic parameters, as uniforms.
+    let shaderStr = kineticUniformsForShader() + globalIntegralShader();
+    shaderStr = replaceMINXMINY(shaderStr);
+    shaderStr = shaderStr.replace(/GLOBAL_INTEGRAL_FUN/g, parseShaderString(options.globalIntegralFun));
+    assignFragmentShader(globalIntegralMaterial, shaderStr);
+    globalIntegralMaterial.needsUpdate = true;
   }
 
   function loadImageSourceOne() {
@@ -8500,6 +8525,7 @@ async function VisualPDE(url) {
     setRDEquations();
     setClearShader();
     setProbeShader();
+    setGlobalIntegralShader();
     setBrushType();
     updateWhatToPlot();
     setDrawAndDisplayShaders();
@@ -11764,5 +11790,26 @@ async function VisualPDE(url) {
       str = `${val.trim()} | ${str}`;
     }
     document.title = str;
+  }
+
+  function updateGlobalIntegral() {
+    bufferFilled = false;
+    simDomain.material = globalIntegralMaterial;
+    uniforms.textureSource.value = simTextures[1].texture;
+    renderer.setRenderTarget(postTexture);
+    renderer.render(simScene, simCamera);
+    fillBuffer();
+    let dA;
+    if (options.dimension == 1) {
+      dA = uniforms.dx.value;
+    } else if (options.dimension == 2) {
+      dA = uniforms.dx.value * uniforms.dy.value;
+    }
+    let total = 0;
+    for (let i = 0; i < buffer.length; i += 4) {
+      total += buffer[i] * (1 - buffer[i + 1]);
+    }
+    total *= dA;
+    uniforms.globalIntegralValue.value = total;
   }
 }
