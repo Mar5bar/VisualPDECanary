@@ -3915,7 +3915,8 @@ async function VisualPDE(url) {
         }
         if (shaderContainsRAND && !options.setSeed) updateRandomSeed();
         if (shaderContainsGlobalIntegral) {
-          timestepCount = (timestepCount + 1) % options.globalIntegralUpdatePeriod;
+          timestepCount =
+            (timestepCount + 1) % options.globalIntegralUpdatePeriod;
           if (!(timestepCount % options.globalIntegralUpdatePeriod)) {
             updateGlobalIntegral();
           }
@@ -4592,10 +4593,15 @@ async function VisualPDE(url) {
     }
     updateRandomSeed();
     uniforms.t.value = 0.0;
+    timestepCount = 0;
+    frameCount = 0;
     canAutoPause = true;
     updateTimeDisplay();
     clearTextures();
     clearProbe();
+    if (shaderContainsGlobalIntegral) {
+      updateGlobalIntegral();
+    }
     render(true);
     // Reset time-tracking stats.
     lastT = uniforms.t.value;
