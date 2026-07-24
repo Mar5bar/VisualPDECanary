@@ -67,7 +67,7 @@ t_u\frac{du}{dt} &= \nabla \cdot(D_{uu}\nabla u+D_{uv}\nabla v+D_{uw}\nabla w+D_
 
 where $D_{uu}, \dots,  D_{qq}$, $f_u, \dots, f_q$ and $t_u, \dots, t_q$ are functions of $u$, $v$, $w$, $q$, $x$, $y$ and $t$ that you can specify.
 
-* You can change the number of unknowns (from 1 to 8) by choosing <span class='click_sequence'>Equations ($f(x)$) → **Advanced options** → **\# species**</span>. Systems of more than 4 species currently only support the Forward Euler timestepping scheme.
+* You can change the number of unknowns (from 1 to 8) by choosing <span class='click_sequence'>Equations ($f(x)$) → **Advanced options** → **\# species**</span>
 * In systems of multiple unknowns, you can include terms representing cross-diffusion (e.g. $D_{uv}$, $D_{vu}$) by toggling <span class='click_sequence'>Equations ($f(x)$) → **Advanced options** → **Cross diffusion**</span>
 * In systems of multiple unknowns, you can choose between a differential or algebraic equation for some of the species (e.g. '$\partial w/\partial t=$' or '$w=$') by setting <span class='click_sequence'>Equations ($f(x)$) → **Advanced options** → **\# algebraic**</span>. Species are converted to algebraic form in reverse order, e.g. setting this to 1 converts only the last species to algebraic form.
 

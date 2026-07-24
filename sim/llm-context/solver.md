@@ -86,9 +86,7 @@ Every time your browser requests a frame from VisualPDE (which might be up to 60
 
 ### Many species at once
 
-The state of a system with up to 4 species fits naturally into a single image: each species is stored in one of the four colour channels (red, green, blue, alpha) of a texture, so a single GPU pass can update all of them together. VisualPDE supports systems of up to 8 species by using a second such texture (each again holding up to 4 species) and updating both at once via [multiple render targets](https://en.wikipedia.org/wiki/Multiple_Render_Targets), a standard GPU technique for writing to more than one image in a single pass. Cross-diffusion and reaction terms can still freely couple any species to any other, regardless of which texture each lives in.
-
-Because this extension is newer than the rest of the solver, systems of more than 4 species currently only support the Forward Euler [timestepping scheme](#timestepping); support for the other schemes is planned.
+The state of a system with up to 4 species fits naturally into a single image: each species is stored in one of the four colour channels (red, green, blue, alpha) of a texture, so a single GPU pass can update all of them together. VisualPDE supports systems of up to 8 species by using a second such texture (each again holding up to 4 species) and updating both at once via [multiple render targets](https://en.wikipedia.org/wiki/Multiple_Render_Targets), a standard GPU technique for writing to more than one image in a single pass. Cross-diffusion and reaction terms can still freely couple any species to any other, regardless of which texture each lives in, and all four [timestepping schemes](#timestepping) are supported regardless of the number of species.
 
 ### Accuracy and precision
 

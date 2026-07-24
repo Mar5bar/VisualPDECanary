@@ -40,5 +40,5 @@ where
 * $D$ is a possibly non-constant matrix that may contain zeros; you might know this as a 'diffusion tensor',
 * $f$ is a vector of components (one per unknown) that contains our interaction or kinetic terms.
 
-VisualPDE allows you to easily change the [number of components](quick-start#equations-panel) and the [boundary conditions](quick-start#boundary-conditions). You can set initial conditions just by clicking the screen. Systems of more than 4 unknowns currently only support the Forward Euler timestepping scheme.
+VisualPDE allows you to easily change the [number of components](quick-start#equations-panel) and the [boundary conditions](quick-start#boundary-conditions). You can set initial conditions just by clicking the screen.
 

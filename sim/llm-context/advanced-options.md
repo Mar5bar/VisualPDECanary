@@ -103,7 +103,7 @@ Configure additional equation-related settings, including the number of species 
 
 - #### \# species
 
-  Specify the number of unknowns (1 to 8) in the simulation. Systems of more than 4 species are only supported using the Forward Euler timestepping scheme (see **Scheme**, below); selecting more than 4 species will force this scheme and temporarily restrict the **Scheme** dropdown accordingly.
+  Specify the number of unknowns (1 to 8) in the simulation.
   JSON key: `numSpecies`, one of `1`, `2`, `3`, `4`, `5`, `6`, `7` or `8`. Default: `2`.
 
 - #### \# algebraic
@@ -452,7 +452,7 @@ VisualPDE allows you to interact directly with simulations via a brush by simply
 
 - #### Scheme
 
-  Select one of various timestepping schemes. [Forward Euler](https://en.wikipedia.org/wiki/Euler_method) is the fastest but least accurate; the [Midpoint Method](https://en.wikipedia.org/wiki/Midpoint_method) and [Runge-Kutta 4](https://en.wikipedia.org/wiki/Runge–Kutta_methods) improve upon the accuracy and stability of Forward Euler, though are associated with increased computational cost. [Adams-Bashforth 2](https://en.wikipedia.org/wiki/Linear_multistep_method#Two-step_Adams–Bashforth) is more accurate but less stable than Forward Euler. Use of higher accuracy schemes may require a reduction of Steps/frame to reduce stuttering due to increased computational load. When solving stochastic partial differential equations, only Forward Euler is supported. Systems of more than 4 species (see **# species**) also currently only support Forward Euler; the dropdown restricts to this scheme automatically in that case.
+  Select one of various timestepping schemes. [Forward Euler](https://en.wikipedia.org/wiki/Euler_method) is the fastest but least accurate; the [Midpoint Method](https://en.wikipedia.org/wiki/Midpoint_method) and [Runge-Kutta 4](https://en.wikipedia.org/wiki/Runge–Kutta_methods) improve upon the accuracy and stability of Forward Euler, though are associated with increased computational cost. [Adams-Bashforth 2](https://en.wikipedia.org/wiki/Linear_multistep_method#Two-step_Adams–Bashforth) is more accurate but less stable than Forward Euler. Use of higher accuracy schemes may require a reduction of Steps/frame to reduce stuttering due to increased computational load. When solving stochastic partial differential equations, only Forward Euler is supported. All schemes are available regardless of the number of species (see **# species**).
   JSON key: `timesteppingScheme`, one of (`Euler`, `Mid`, `RK4`, `AB2`). Default: `Euler`.
 
 - #### Elapsed time
@@ -680,4 +680,4 @@ Explaination,
 
 All other options remain to default values as they are unmodified.
 
-VisualPDE supports up to 8 species (`numSpecies=1` through `numSpecies=8`). Species 5 through 8 have no natural single-letter name, so their default names are `u5`, `u6`, `u7` and `u8`, and the same `diffusionStr_i_j`/`reactionStr_i`/`boundaryConditions_i`/etc. naming convention extends directly, e.g. `diffusionStr_1_5` sets the cross-diffusion coefficient between species 1 and species 5, and `reactionStr_6` sets the reaction term for species 6. Systems of more than 4 species currently only support the Forward Euler timestepping scheme (`timesteppingScheme=Euler`, the default).
+VisualPDE supports up to 8 species (`numSpecies=1` through `numSpecies=8`). Species 5 through 8 have no natural single-letter name, so their default names are `u5`, `u6`, `u7` and `u8`, and the same `diffusionStr_i_j`/`reactionStr_i`/`boundaryConditions_i`/etc. naming convention extends directly, e.g. `diffusionStr_1_5` sets the cross-diffusion coefficient between species 1 and species 5, and `reactionStr_6` sets the reaction term for species 6.

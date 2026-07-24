@@ -269,12 +269,13 @@ export function RDShaderMain(type) {
 
 // ---------------------------------------------------------------------------------------
 // MRT (multiple render target) shader variants, used only once numGroups(numSpecies)>1
-// (i.e. numSpecies>4), currently for Forward Euler only. Group 0 (species 1-4) is computed
-// exactly as RDShaderTop/RDShaderMain/RDShaderUpdateNormal/RDShaderUpdateCross/RDShaderBot
-// already do; these MRT variants ADD group 1 (species 5-8) alongside it in the same
-// computeRHS call and fragment shader invocation, writing group 0 to output 0 and group 1
-// to output 1 via GLSL ES 300's layout(location=N) out qualifiers. None of the non-MRT
-// functions above are modified, so the numSpecies<=4 shader text/behaviour is unaffected.
+// (i.e. numSpecies>4), supporting all 8 timestepping schemes (Forward Euler, AB2, Midpoint,
+// RK4). Group 0 (species 1-4) is computed exactly as RDShaderTop/RDShaderMain/
+// RDShaderUpdateNormal/RDShaderUpdateCross/RDShaderBot already do; these MRT variants ADD
+// group 1 (species 5-8) alongside it in the same computeRHS call and fragment shader
+// invocation, writing group 0 to output 0 and group 1 to output 1 via GLSL ES 300's
+// layout(location=N) out qualifiers. None of the non-MRT functions above are modified, so
+// the numSpecies<=4 shader text/behaviour is unaffected.
 //
 // Naming conventions used below (must stay in sync with main.js's Stage 5 diffusion/
 // reaction string builders, which *define* the tokens these functions *reference*):
@@ -287,20 +288,114 @@ export function RDShaderMain(type) {
 //     pairs ("D5_5","D1_5",...) if either index is >=4.
 // ---------------------------------------------------------------------------------------
 
+// Ordered list of the 9 stencil-point suffixes used throughout these MRT builders (matches
+// the suffixes on uvwq/uvwq2's L/R/T/B/LL/RR/TT/BB locals and the textureCoords* locals
+// declared in RDShaderTopMRT/RDShaderMainMRT).
+const STENCIL_SUFFIXES = ["", "L", "R", "T", "B", "LL", "RR", "TT", "BB"];
+
 /**
- * MRT counterpart of RDShaderTop("FE"). Adds a textureSourceGroup1 sampler (group 1's
- * current-state texture) and doubles computeRHS's stencil parameters/locals so a single
- * call can compute both groups' RHS in one pass. The two layout(location=N) out variables
- * are declared here (GLSL ES 300 requires out variables to be declared at global scope,
- * before use in main()) rather than in RDShaderBotMRT, which only assigns them.
- * @returns {string} The generated shader code (FE only).
+ * Builds the 18 texture2D-sampling lines (9 for group 0's uvwq* locals, 9 for group 1's
+ * uvwq2* locals) shared by every RDShaderMainMRT() scheme body. Optionally combines each
+ * sample with a second texture at a given coefficient (used by the Midpoint/RK4 schemes'
+ * intermediate stencils, e.g. "uvwqL = texture2D(tex0,coordsL) + 0.5*dt*texture2D(tex1,coordsL)").
+ * @param {string} tex0 - Group 0's sampler uniform name.
+ * @param {string} tex1 - Group 1's sampler uniform name.
+ * @param {string} [combineTex0] - Group 0's second sampler to combine in, if any.
+ * @param {string} [combineTex1] - Group 1's second sampler to combine in, if any.
+ * @param {string} [coefficient] - GLSL expression multiplying the combined sample (e.g. "dt").
+ * @returns {string} The generated shader code.
  */
-export function RDShaderTopMRT() {
-  return `
+function stencilBlockMRT(tex0, tex1, combineTex0, combineTex1, coefficient) {
+  function line(varPrefix, tex, combineTex) {
+    return STENCIL_SUFFIXES.map(function (suffix) {
+      const coords = "textureCoords" + suffix;
+      const base = "texture2D(" + tex + ", " + coords + ")";
+      const combined =
+        combineTex != null
+          ? base + " + " + coefficient + "*texture2D(" + combineTex + ", " + coords + ")"
+          : base;
+      return varPrefix + suffix + " = " + combined + ";";
+    }).join("\n    ");
+  }
+  return line("uvwq", tex0, combineTex0) + "\n    " + line("uvwq2", tex1, combineTex1);
+}
+
+/**
+ * Builds a single computeRHS(...) call using the already-sampled uvwq (group 0) and uvwq2
+ * (group 1) stencil locals, writing its two outputs into the given variable names.
+ * @param {string} tex - Sampler passed as computeRHS's first argument (used only for its
+ *   textureSize(), regardless of which texture(s) the stencil values actually came from -
+ *   matches the non-MRT RDShaderMain's same convention, e.g. Mid2/RK42-44's combined-stencil
+ *   calls still pass the scheme's primary "textureSource").
+ * @param {string} rhsOut - Group 0's result variable name.
+ * @param {string} rhsOutGroup1 - Group 1's result variable name.
+ * @returns {string} The generated shader code.
+ */
+function computeRHSCallMRT(tex, rhsOut, rhsOutGroup1) {
+  return (
+    "computeRHS(" +
+    tex +
+    ", uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, " +
+    "uvwq2, uvwq2L, uvwq2R, uvwq2T, uvwq2B, uvwq2LL, uvwq2RR, uvwq2TT, uvwq2BB, " +
+    rhsOut +
+    ", " +
+    rhsOutGroup1 +
+    ");"
+  );
+}
+
+/**
+ * MRT counterpart of RDShaderTop(type). Adds a "Group1" sampler for each of the scheme's
+ * inputs (group 1's counterpart of textureSource/1/2/3) and doubles computeRHS's stencil
+ * parameters/locals so a single call can compute both groups' RHS in one pass. The two
+ * layout(location=N) out variables are declared here (GLSL ES 300 requires out variables to
+ * be declared at global scope, before use in main()) rather than in RDShaderBotMRT, which
+ * only assigns them.
+ * @param {string} type - The timestepping scheme to generate the shader for.
+ * @returns {string} The generated shader code.
+ */
+export function RDShaderTopMRT(type) {
+  let numInputs = 0;
+  switch (type) {
+    case "FE":
+      numInputs = 2;
+      break;
+    case "AB2":
+      numInputs = 2;
+      break;
+    case "Mid1":
+      numInputs = 1;
+      break;
+    case "Mid2":
+      numInputs = 2;
+      break;
+    case "RK41":
+      numInputs = 1;
+      break;
+    case "RK42":
+      numInputs = 2;
+      break;
+    case "RK43":
+      numInputs = 3;
+      break;
+    case "RK44":
+      numInputs = 4;
+      break;
+  }
+  let parts = [];
+  parts[0] = "uniform sampler2D textureSource;\n    uniform sampler2D textureSourceGroup1;";
+  parts[1] =
+    "uniform sampler2D textureSource1;\n    uniform sampler2D textureSource1Group1;";
+  parts[2] =
+    "uniform sampler2D textureSource2;\n    uniform sampler2D textureSource2Group1;";
+  parts[3] =
+    "uniform sampler2D textureSource3;\n    uniform sampler2D textureSource3Group1;";
+  return (
+    `
     precision highp float; precision highp sampler2D; varying vec2 textureCoords;
-    uniform sampler2D textureSource;
-    uniform sampler2D textureSource1;
-    uniform sampler2D textureSourceGroup1;
+    ` +
+    parts.slice(0, numInputs).join("\n    ") +
+    `
     layout(location = 0) out highp vec4 fragColor0;
     layout(location = 1) out highp vec4 fragColor1;
     uniform float dt;
@@ -372,18 +467,85 @@ export function RDShaderTopMRT() {
         vec4 uvwq2TT = uvwq2TTIn;
         vec4 uvwq2B = uvwq2BIn;
         vec4 uvwq2BB = uvwq2BBIn;
-    `;
+    `
+  );
 }
 
 /**
- * MRT counterpart of RDShaderMain("FE"). Samples both groups' 9-point stencils, calls the
- * doubled computeRHS from RDShaderTopMRT, and computes both groups' Forward Euler update
- * (updated/updated2). Not closed with "}" - as with RDShaderMain, the Dirichlet/algebraic
- * shaders and RDShaderBotMRT supply the rest of main()'s body and its closing brace.
- * @returns {string} The generated shader code (FE only).
+ * MRT counterpart of RDShaderMain(type). Samples both groups' 9-point stencils (via the
+ * scheme's required textures), calls the doubled computeRHS from RDShaderTopMRT, and
+ * computes both groups' update (updated/updated2). Each scheme's group-0 logic is identical
+ * to RDShaderMain(type)'s corresponding `update[type]` body (only the variable names for
+ * intermediate RHS values differ, to avoid colliding with the group-1 "RHS2" name already
+ * established by the Forward Euler case) - group 1's logic mirrors it exactly, using
+ * uvwq2-prefixed locals and "Group1"-suffixed textures/timescales. Not closed with "}" - as
+ * with RDShaderMain, the Dirichlet/algebraic shaders and RDShaderBotMRT supply the rest of
+ * main()'s body and its closing brace.
+ * @param {string} type - The timestepping scheme to generate the shader for.
+ * @returns {string} The generated shader code.
  */
-export function RDShaderMainMRT() {
-  return `
+export function RDShaderMainMRT(type) {
+  let update = {};
+  update.FE = `
+    ${stencilBlockMRT("textureSource", "textureSourceGroup1")}
+    ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
+    vec4 timescales = TIMESCALES;
+    vec4 timescalesGroup1 = TIMESCALESGROUP1;
+    updated = dt * RHS / timescales + uvwq;
+    updated2 = dt * RHS2 / timescalesGroup1 + uvwq2;`;
+  update.AB2 = `
+    ${stencilBlockMRT("textureSource", "textureSourceGroup1")}
+    ${computeRHSCallMRT("textureSource", "RHSCur", "RHSCurGroup1")}
+    ${stencilBlockMRT("textureSource1", "textureSource1Group1")}
+    ${computeRHSCallMRT("textureSource1", "RHSPrev", "RHSPrevGroup1")}
+    RHS = 1.5 * RHSCur - 0.5 * RHSPrev;
+    RHS2 = 1.5 * RHSCurGroup1 - 0.5 * RHSPrevGroup1;
+    vec4 timescales = TIMESCALES;
+    vec4 timescalesGroup1 = TIMESCALESGROUP1;
+    updated = dt * RHS / timescales + texture2D(textureSource, textureCoords);
+    updated2 = dt * RHS2 / timescalesGroup1 + texture2D(textureSourceGroup1, textureCoords);`;
+  update.Mid1 = `
+    ${stencilBlockMRT("textureSource", "textureSourceGroup1")}
+    ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
+    updated = RHS;
+    updated2 = RHS2;`;
+  update.Mid2 = `
+    uvwqLast = texture2D(textureSource, textureCoords);
+    uvwq2Last = texture2D(textureSourceGroup1, textureCoords);
+    ${stencilBlockMRT("textureSource", "textureSourceGroup1", "textureSource1", "textureSource1Group1", "0.5*dt")}
+    ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
+    vec4 timescales = TIMESCALES;
+    vec4 timescalesGroup1 = TIMESCALESGROUP1;
+    updated = dt * RHS / timescales + uvwqLast;
+    updated2 = dt * RHS2 / timescalesGroup1 + uvwq2Last;`;
+  update.RK41 = `
+    ${stencilBlockMRT("textureSource", "textureSourceGroup1")}
+    ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
+    updated = RHS;
+    updated2 = RHS2;`;
+  update.RK42 = `
+    ${stencilBlockMRT("textureSource", "textureSourceGroup1", "textureSource1", "textureSource1Group1", "0.5*dt")}
+    ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
+    updated = RHS;
+    updated2 = RHS2;`;
+  update.RK43 = `
+    ${stencilBlockMRT("textureSource", "textureSourceGroup1", "textureSource2", "textureSource2Group1", "0.5*dt")}
+    ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
+    updated = RHS;
+    updated2 = RHS2;`;
+  update.RK44 = `
+    uvwqLast = texture2D(textureSource, textureCoords);
+    uvwq2Last = texture2D(textureSourceGroup1, textureCoords);
+    ${stencilBlockMRT("textureSource", "textureSourceGroup1", "textureSource3", "textureSource3Group1", "dt")}
+    ${computeRHSCallMRT("textureSource", "RHS1", "RHS1Group1")}
+    RHS = (texture2D(textureSource1, textureCoords) + 2.0*(texture2D(textureSource2, textureCoords) + texture2D(textureSource3, textureCoords)) + RHS1) / 6.0;
+    RHS2 = (texture2D(textureSource1Group1, textureCoords) + 2.0*(texture2D(textureSource2Group1, textureCoords) + texture2D(textureSource3Group1, textureCoords)) + RHS1Group1) / 6.0;
+    vec4 timescales = TIMESCALES;
+    vec4 timescalesGroup1 = TIMESCALESGROUP1;
+    updated = dt * RHS / timescales + uvwqLast;
+    updated2 = dt * RHS2 / timescalesGroup1 + uvwq2Last;`;
+  return (
+    `
   void main()
   {
       ivec2 texSize = textureSize(textureSource,0);
@@ -405,6 +567,12 @@ export function RDShaderMainMRT() {
 
       vec4 RHS;
       vec4 RHS2;
+      vec4 RHS1;
+      vec4 RHS1Group1;
+      vec4 RHSCur;
+      vec4 RHSCurGroup1;
+      vec4 RHSPrev;
+      vec4 RHSPrevGroup1;
       vec4 updated;
       vec4 updated2;
       vec4 uvwq;
@@ -416,6 +584,7 @@ export function RDShaderMainMRT() {
       vec4 uvwqTT;
       vec4 uvwqB;
       vec4 uvwqBB;
+      vec4 uvwqLast;
       vec4 uvwq2;
       vec4 uvwq2L;
       vec4 uvwq2LL;
@@ -425,31 +594,9 @@ export function RDShaderMainMRT() {
       vec4 uvwq2TT;
       vec4 uvwq2B;
       vec4 uvwq2BB;
-
-      uvwq = texture2D(textureSource, textureCoords);
-      uvwqL = texture2D(textureSource, textureCoordsL);
-      uvwqR = texture2D(textureSource, textureCoordsR);
-      uvwqT = texture2D(textureSource, textureCoordsT);
-      uvwqB = texture2D(textureSource, textureCoordsB);
-      uvwqLL = texture2D(textureSource, textureCoordsLL);
-      uvwqRR = texture2D(textureSource, textureCoordsRR);
-      uvwqTT = texture2D(textureSource, textureCoordsTT);
-      uvwqBB = texture2D(textureSource, textureCoordsBB);
-      uvwq2 = texture2D(textureSourceGroup1, textureCoords);
-      uvwq2L = texture2D(textureSourceGroup1, textureCoordsL);
-      uvwq2R = texture2D(textureSourceGroup1, textureCoordsR);
-      uvwq2T = texture2D(textureSourceGroup1, textureCoordsT);
-      uvwq2B = texture2D(textureSourceGroup1, textureCoordsB);
-      uvwq2LL = texture2D(textureSourceGroup1, textureCoordsLL);
-      uvwq2RR = texture2D(textureSourceGroup1, textureCoordsRR);
-      uvwq2TT = texture2D(textureSourceGroup1, textureCoordsTT);
-      uvwq2BB = texture2D(textureSourceGroup1, textureCoordsBB);
-      computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, uvwq2, uvwq2L, uvwq2R, uvwq2T, uvwq2B, uvwq2LL, uvwq2RR, uvwq2TT, uvwq2BB, RHS, RHS2);
-      vec4 timescales = TIMESCALES;
-      vec4 timescalesGroup1 = TIMESCALESGROUP1;
-      updated = dt * RHS / timescales + uvwq;
-      updated2 = dt * RHS2 / timescalesGroup1 + uvwq2;
-  `;
+      vec4 uvwq2Last;
+  ` + update[type]
+  );
 }
 
 /**

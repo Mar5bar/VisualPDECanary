@@ -1230,37 +1230,6 @@ async function VisualPDE(url) {
     });
     clearColour = new THREE.Color().setRGB(-1, -1, -1);
 
-    // AB2/Mid1/Mid2/RK41-44 followup sketch (Stage 13 of the 8-species upgrade, design note
-    // only - not implemented). Stage 9's FE-only guard (configureOptions()/configureGUI())
-    // already prevents these from ever being selected/rendered once numSpecies>4, and
-    // Stage 11 capped RDShaderUpdateNormal/Cross's species count so their generated shader
-    // strings stay well-formed regardless - so there's no correctness bug to fix here, just
-    // an unimplemented capability. To extend Forward Euler's MRT pattern (RDShaderTopMRT/
-    // RDShaderMainMRT/RDShaderUpdateNormalMRT/CrossMRT/RDShaderBotMRT in
-    // simulation_shaders.js, wired up in setRDEquations()/timestep()'s "Euler" case) to the
-    // other 3 schemes:
-    // - AB2 (update.AB2 in RDShaderMain, timestep()'s "AB2" case): reads 2 history textures
-    //   (textureSource, textureSource1) each through the full 9-point stencil - needs a
-    //   textureSourceGroup1/textureSource1Group1 pair (4 samplers total) and a doubled
-    //   computeRHS call per texture (RHS1/RHS2 already exist as names; MRT would need
-    //   RHS1_1/RHS2_1-style group-1 counterparts, or restructure computeRHS itself to
-    //   return both groups per call, matching RDShaderUpdateCrossMRT's shape).
-    // - Midpoint (update.Mid1/Mid2, timestep()'s "Mid" case, 2 render passes into simTextures
-    //   slot [2] then [0]): each pass needs its own MRT top/bot pair (mirroring
-    //   RDShaderTopMRT/BotMRT); Mid2's combine step (`uvwq = uvwqLast + 0.5*dt*texture2D(
-    //   textureSource1,...)`) needs a matching uvwq2/uvwq2Last combine using a
-    //   textureSource1Group1-style secondary sampler.
-    // - RK4 (update.RK41-44, timestep()'s "RK4" case, 4 passes using simTextures slots
-    //   [2],[3],[4] as k1/k2/k3 scratch): same multiplicative pattern - every existing
-    //   textureSource/1/2/3 sampler needs a Group1 counterpart, and RK44's final combine
-    //   (reading all of textureSource1/2/3 plus RHS1) needs the same doubled treatment.
-    // No new render-target infrastructure is needed for any of this - Stage 3's
-    // mrtSimTextures allocation (5 ping-pong slots, same as simTextures) already has enough
-    // scratch slots for whichever scheme needs them; this is "apply the Stage 4-8 pattern 3
-    // more times to a fixed, well-understood set of shader strings," not a new design.
-    // Once implemented, relax (don't remove) Stage 9's guard: allow all 4 schemes again once
-    // numGroups>1, the same way it currently only offers "Euler".
-
     // We'll use a host of materials for timestepping, each with different fragment shaders.
     simMaterials.FE = new THREE.ShaderMaterial({
       uniforms: uniforms,
@@ -2064,6 +2033,18 @@ async function VisualPDE(url) {
       // numGroups(options.numSpecies)>1 - see species_config.js and the Stage 4-8 upgrade
       // notes.
       textureSourceGroup1: {
+        type: "t",
+      },
+      // Group 1 counterparts of textureSource1/2/3, needed once AB2/Midpoint/RK4 support
+      // numSpecies>4 (Stage 13 of the 8-species upgrade) - only bound to an actual value
+      // once numGroups(options.numSpecies)>1, same as textureSourceGroup1 above.
+      textureSource1Group1: {
+        type: "t",
+      },
+      textureSource2Group1: {
+        type: "t",
+      },
+      textureSource3Group1: {
         type: "t",
       },
       t: {
@@ -4519,60 +4500,126 @@ async function VisualPDE(url) {
         break;
       case "AB2":
         simDomain.material = simMaterials["AB2"];
-        uniforms.textureSource.value = simTextures[1].texture;
-        uniforms.textureSource1.value = simTextures[2].texture;
-        uniforms.dt.value = options.dt;
-        renderer.setRenderTarget(simTextures[0]);
-        renderer.render(simScene, simCamera);
-        simTextures.rotate(-1);
+        if (numGroups(Number(options.numSpecies)) > 1) {
+          uniforms.textureSource.value = mrtSimTextures[1].texture[0];
+          uniforms.textureSourceGroup1.value = mrtSimTextures[1].texture[1];
+          uniforms.textureSource1.value = mrtSimTextures[2].texture[0];
+          uniforms.textureSource1Group1.value = mrtSimTextures[2].texture[1];
+          uniforms.dt.value = options.dt;
+          renderer.setRenderTarget(mrtSimTextures[0]);
+          renderer.render(simScene, simCamera);
+          mrtSimTextures.rotate(-1);
+        } else {
+          uniforms.textureSource.value = simTextures[1].texture;
+          uniforms.textureSource1.value = simTextures[2].texture;
+          uniforms.dt.value = options.dt;
+          renderer.setRenderTarget(simTextures[0]);
+          renderer.render(simScene, simCamera);
+          simTextures.rotate(-1);
+        }
         uniforms.t.value += options.dt;
         break;
       case "Mid":
-        // We'll use simTextures as [result, previous, k1].
-        // Compute k1 in [2]. Mid1
-        simDomain.material = simMaterials["Mid1"];
-        uniforms.textureSource.value = simTextures[1].texture;
-        renderer.setRenderTarget(simTextures[2]);
-        renderer.render(simScene, simCamera);
+        if (numGroups(Number(options.numSpecies)) > 1) {
+          // We'll use mrtSimTextures as [result, previous, k1].
+          // Compute k1 in [2]. Mid1
+          simDomain.material = simMaterials["Mid1"];
+          uniforms.textureSource.value = mrtSimTextures[1].texture[0];
+          uniforms.textureSourceGroup1.value = mrtSimTextures[1].texture[1];
+          renderer.setRenderTarget(mrtSimTextures[2]);
+          renderer.render(simScene, simCamera);
 
-        // Compute the new value in [0] by computing k2 using k1. Mid2
-        simDomain.material = simMaterials["Mid2"];
-        uniforms.textureSource1.value = simTextures[2].texture;
-        uniforms.t.value += 0.5 * options.dt;
-        renderer.setRenderTarget(simTextures[0]);
-        renderer.render(simScene, simCamera);
-        simTextures.rotate(-1);
-        uniforms.t.value += 0.5 * options.dt;
+          // Compute the new value in [0] by computing k2 using k1. Mid2
+          simDomain.material = simMaterials["Mid2"];
+          uniforms.textureSource1.value = mrtSimTextures[2].texture[0];
+          uniforms.textureSource1Group1.value = mrtSimTextures[2].texture[1];
+          uniforms.t.value += 0.5 * options.dt;
+          renderer.setRenderTarget(mrtSimTextures[0]);
+          renderer.render(simScene, simCamera);
+          mrtSimTextures.rotate(-1);
+          uniforms.t.value += 0.5 * options.dt;
+        } else {
+          // We'll use simTextures as [result, previous, k1].
+          // Compute k1 in [2]. Mid1
+          simDomain.material = simMaterials["Mid1"];
+          uniforms.textureSource.value = simTextures[1].texture;
+          renderer.setRenderTarget(simTextures[2]);
+          renderer.render(simScene, simCamera);
+
+          // Compute the new value in [0] by computing k2 using k1. Mid2
+          simDomain.material = simMaterials["Mid2"];
+          uniforms.textureSource1.value = simTextures[2].texture;
+          uniforms.t.value += 0.5 * options.dt;
+          renderer.setRenderTarget(simTextures[0]);
+          renderer.render(simScene, simCamera);
+          simTextures.rotate(-1);
+          uniforms.t.value += 0.5 * options.dt;
+        }
         break;
       case "RK4":
-        // We'll use simTextures as [result, previous, k1, k2, k3].
+        if (numGroups(Number(options.numSpecies)) > 1) {
+          // We'll use mrtSimTextures as [result, previous, k1, k2, k3].
 
-        // Compute k1 in [2]. RK41
-        simDomain.material = simMaterials["RK41"];
-        uniforms.textureSource.value = simTextures[1].texture;
-        renderer.setRenderTarget(simTextures[2]);
-        renderer.render(simScene, simCamera);
+          // Compute k1 in [2]. RK41
+          simDomain.material = simMaterials["RK41"];
+          uniforms.textureSource.value = mrtSimTextures[1].texture[0];
+          uniforms.textureSourceGroup1.value = mrtSimTextures[1].texture[1];
+          renderer.setRenderTarget(mrtSimTextures[2]);
+          renderer.render(simScene, simCamera);
 
-        // Compute k2 in [3] using previous [1] and k1 [2]. RK42
-        simDomain.material = simMaterials["RK42"];
-        uniforms.textureSource1.value = simTextures[2].texture;
-        uniforms.t.value += 0.5 * options.dt;
-        renderer.setRenderTarget(simTextures[3]);
-        renderer.render(simScene, simCamera);
+          // Compute k2 in [3] using previous [1] and k1 [2]. RK42
+          simDomain.material = simMaterials["RK42"];
+          uniforms.textureSource1.value = mrtSimTextures[2].texture[0];
+          uniforms.textureSource1Group1.value = mrtSimTextures[2].texture[1];
+          uniforms.t.value += 0.5 * options.dt;
+          renderer.setRenderTarget(mrtSimTextures[3]);
+          renderer.render(simScene, simCamera);
 
-        // Compute k3 in [4] using previous [1] and k2 [3]. RK43
-        simDomain.material = simMaterials["RK43"];
-        uniforms.textureSource2.value = simTextures[3].texture;
-        renderer.setRenderTarget(simTextures[4]);
-        renderer.render(simScene, simCamera);
+          // Compute k3 in [4] using previous [1] and k2 [3]. RK43
+          simDomain.material = simMaterials["RK43"];
+          uniforms.textureSource2.value = mrtSimTextures[3].texture[0];
+          uniforms.textureSource2Group1.value = mrtSimTextures[3].texture[1];
+          renderer.setRenderTarget(mrtSimTextures[4]);
+          renderer.render(simScene, simCamera);
 
-        // Compute the new value in [0] by computing k4 using k1, k2, k3. RK44
-        simDomain.material = simMaterials["RK44"];
-        uniforms.textureSource3.value = simTextures[4].texture;
-        uniforms.t.value += 0.5 * options.dt;
-        renderer.setRenderTarget(simTextures[0]);
-        renderer.render(simScene, simCamera);
-        simTextures.rotate(-1);
+          // Compute the new value in [0] by computing k4 using k1, k2, k3. RK44
+          simDomain.material = simMaterials["RK44"];
+          uniforms.textureSource3.value = mrtSimTextures[4].texture[0];
+          uniforms.textureSource3Group1.value = mrtSimTextures[4].texture[1];
+          uniforms.t.value += 0.5 * options.dt;
+          renderer.setRenderTarget(mrtSimTextures[0]);
+          renderer.render(simScene, simCamera);
+          mrtSimTextures.rotate(-1);
+        } else {
+          // We'll use simTextures as [result, previous, k1, k2, k3].
+
+          // Compute k1 in [2]. RK41
+          simDomain.material = simMaterials["RK41"];
+          uniforms.textureSource.value = simTextures[1].texture;
+          renderer.setRenderTarget(simTextures[2]);
+          renderer.render(simScene, simCamera);
+
+          // Compute k2 in [3] using previous [1] and k1 [2]. RK42
+          simDomain.material = simMaterials["RK42"];
+          uniforms.textureSource1.value = simTextures[2].texture;
+          uniforms.t.value += 0.5 * options.dt;
+          renderer.setRenderTarget(simTextures[3]);
+          renderer.render(simScene, simCamera);
+
+          // Compute k3 in [4] using previous [1] and k2 [3]. RK43
+          simDomain.material = simMaterials["RK43"];
+          uniforms.textureSource2.value = simTextures[3].texture;
+          renderer.setRenderTarget(simTextures[4]);
+          renderer.render(simScene, simCamera);
+
+          // Compute the new value in [0] by computing k4 using k1, k2, k3. RK44
+          simDomain.material = simMaterials["RK44"];
+          uniforms.textureSource3.value = simTextures[4].texture;
+          uniforms.t.value += 0.5 * options.dt;
+          renderer.setRenderTarget(simTextures[0]);
+          renderer.render(simScene, simCamera);
+          simTextures.rotate(-1);
+        }
         break;
     }
   }
@@ -5779,11 +5826,11 @@ async function VisualPDE(url) {
     // 1-4 for the same reason. Cap at 4 (found during the Stage 11 audit of the 8-species
     // upgrade): passing the raw, uncapped numSpecies here left their trailing
     // switch(numSpecies){case 1..4} unmatched for numSpecies 5-8, so `result` (an `out`
-    // parameter of computeRHS) was never assigned - a real bug, latent today only because
-    // Stage 9's FE-only guard prevents the AB2/Mid1/Mid2/RK41-44 materials (the only ones
-    // still built from this non-MRT diffusionShader once numGroups>1 - simMaterials.FE
-    // itself switches to the correct MRT path below) from ever actually being rendered
-    // with while numSpecies>4.
+    // parameter of computeRHS) was never assigned. This diffusionShader/middle/bot is only
+    // ever assigned to a material when numGroups===1 (see the isMRT branch below, which uses
+    // middleMRT/botMRT instead for every scheme once numGroups>1) - the cap keeps this
+    // branch's generated text well-formed regardless of numSpecies even though it's unused
+    // in that case.
     const numSpeciesGroup0 = Math.min(Number(options.numSpecies), 4);
     diffusionShader = parseNormalDiffusionStrings() + "\n";
     if (options.crossDiffusion) {
@@ -5951,12 +5998,15 @@ async function VisualPDE(url) {
     shaderContainsGlobalIntegral = /\bglobalIntegralValue\b/.test(middle);
     let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
-    // MRT (>4-species) Forward-Euler-only path. Built as an entirely separate
-    // diffusionShader/middle/bot from the ones above: RDShaderUpdateNormalMRT/
-    // RDShaderUpdateCrossMRT close a computeRHS with a doubled signature (18 stencil args,
-    // result0/result1) that's incompatible with the legacy single-group signature `middle`/
-    // `bot` above are built around - and `middle`/`bot` above must stay exactly as they are,
-    // since AB2/Mid/RK4 (and FE itself, whenever numGroups===1) still use them unchanged.
+    // MRT (>4-species) path, used by every timestepping scheme once numGroups>1 (Stage 13 of
+    // the 8-species upgrade extended this from Forward-Euler-only to all 8 scheme
+    // materials). Built as an entirely separate diffusionShader/middle/bot from the ones
+    // above: RDShaderUpdateNormalMRT/RDShaderUpdateCrossMRT close a computeRHS with a
+    // doubled signature (18 stencil args, result0/result1) that's incompatible with the
+    // legacy single-group signature `middle`/`bot` above are built around - and `middle`/
+    // `bot` above must stay exactly as they are, since every scheme still uses them
+    // unchanged whenever numGroups===1. middleMRT/botMRT below are scheme-agnostic (the
+    // scheme only affects RDShaderTopMRT(type)/RDShaderMainMRT(type), assembled below) -
     // parseReactionStrings()/parseNormalDiffusionStrings()/parseCrossDiffusionStrings()
     // already include species 5-8 and cross-group terms unconditionally (generalized
     // earlier in this stage), so they're reused here as-is - only the final
@@ -6052,82 +6102,46 @@ async function VisualPDE(url) {
       ].join(" ");
     }
 
-    let type = "FE";
-    if (numGroups(Number(options.numSpecies)) > 1) {
-      assignFragmentShader(
-        simMaterials[type],
-        replaceMINXMINY(
-          [
-            kineticStr,
-            RDShaderTopMRT(),
-            middleMRT,
-            insertRates(RDShaderMainMRT()),
-            botMRT,
-          ].join(" "),
-        ),
-      );
-      simMaterials[type].glslVersion = THREE.GLSL3;
-    } else {
-      assignFragmentShader(
-        simMaterials[type],
-        replaceMINXMINY(
-          [
-            kineticStr,
-            RDShaderTop(type),
-            middle,
-            insertRates(RDShaderMain(type)),
-            bot,
-          ].join(" "),
-        ),
-      );
-      simMaterials[type].glslVersion = null;
-    }
-
-    type = "AB2";
-    assignFragmentShader(
-      simMaterials[type],
-      replaceMINXMINY(
-        [
-          kineticStr,
-          RDShaderTop(type),
-          middle,
-          insertRates(RDShaderMain(type)),
-          bot,
-        ].join(" "),
-      ),
+    // Build every timestepping scheme's material (AB2/Mid/RK4's MRT support added when the
+    // 8-species upgrade's Stage 13 sketch was implemented - previously only "FE" had an MRT
+    // branch here, with the rest always built from the non-MRT middle/bot regardless of
+    // numGroups, and Stage 9's dropdown guard prevented them from ever being selected above
+    // 4 species). middleMRT/botMRT (built above) are already scheme-agnostic - only
+    // RDShaderTopMRT(type)/RDShaderMainMRT(type) vary per scheme.
+    const isMRT = numGroups(Number(options.numSpecies)) > 1;
+    ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"].forEach(
+      (type) => {
+        if (isMRT) {
+          assignFragmentShader(
+            simMaterials[type],
+            replaceMINXMINY(
+              [
+                kineticStr,
+                RDShaderTopMRT(type),
+                middleMRT,
+                insertRates(RDShaderMainMRT(type)),
+                botMRT,
+              ].join(" "),
+            ),
+          );
+          simMaterials[type].glslVersion = THREE.GLSL3;
+        } else {
+          assignFragmentShader(
+            simMaterials[type],
+            replaceMINXMINY(
+              [
+                kineticStr,
+                RDShaderTop(type),
+                middle,
+                insertRates(RDShaderMain(type)),
+                bot,
+              ].join(" "),
+            ),
+          );
+          simMaterials[type].glslVersion = null;
+        }
+      },
     );
-
-    type = "Mid";
-    for (let ind = 1; ind < 3; ind++) {
-      assignFragmentShader(
-        simMaterials[type + ind.toString()],
-        replaceMINXMINY(
-          [
-            kineticStr,
-            RDShaderTop(type + ind.toString()),
-            middle,
-            insertRates(RDShaderMain(type + ind.toString())),
-            bot,
-          ].join(" "),
-        ),
-      );
-    }
-
-    type = "RK4";
-    for (let ind = 1; ind < 5; ind++) {
-      assignFragmentShader(
-        simMaterials[type + ind.toString()],
-        replaceMINXMINY(
-          [
-            kineticStr,
-            RDShaderTop(type + ind.toString()),
-            middle,
-            insertRates(RDShaderMain(type + ind.toString())),
-            bot,
-          ].join(" "),
-        ),
-      );
-    }
 
     Object.keys(simMaterials).forEach(
       (key) => (simMaterials[key].needsUpdate = true),
@@ -7626,29 +7640,6 @@ async function VisualPDE(url) {
       controllers["timesteppingScheme"].show();
     }
 
-    // Only Forward Euler supports numSpecies>4 so far (Stage 13 of the 8-species upgrade
-    // sketches out AB2/Mid/RK4 support); configureOptions() already forces
-    // options.timesteppingScheme to "Euler" in this case, so just restrict the dropdown's
-    // offered values to match (restored to the full set otherwise).
-    if (numGroups(parseInt(options.numSpecies)) > 1) {
-      updateGUIDropdown(
-        controllers["timesteppingScheme"],
-        ["Forward Euler"],
-        ["Euler"],
-      );
-    } else {
-      updateGUIDropdown(
-        controllers["timesteppingScheme"],
-        [
-          "Forward Euler",
-          "Adams-Bashforth 2",
-          "Midpoint Method",
-          "Runge-Kutta 4",
-        ],
-        ["Euler", "AB2", "Mid", "RK4"],
-      );
-    }
-
     // Show/hide the indicator function controller.
     if (options.domainViaIndicatorFun) {
       controllers["domainIndicatorFun"].show();
@@ -7863,12 +7854,6 @@ async function VisualPDE(url) {
 
     // If we're in automata mode, specify forward Euler.
     if (options.automataMode) {
-      options.timesteppingScheme = "Euler";
-    }
-    // Only Forward Euler supports numSpecies>4 so far (Stage 13 of the 8-species upgrade
-    // sketches out AB2/Mid/RK4); force it here, and restrict the dropdown's offered values in
-    // configureGUI().
-    if (numGroups(numSpeciesInt) > 1) {
       options.timesteppingScheme = "Euler";
     }
 
