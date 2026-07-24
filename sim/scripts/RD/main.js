@@ -1966,6 +1966,12 @@ async function VisualPDE(url) {
       textureSource3: {
         type: "t",
       },
+      // Group 1's (species 5-8) current-state texture, only bound to an actual value once
+      // numGroups(options.numSpecies)>1 - see species_config.js and the Stage 4-8 upgrade
+      // notes.
+      textureSourceGroup1: {
+        type: "t",
+      },
       t: {
         type: "f",
         value: 0.0,
@@ -4226,12 +4232,26 @@ async function VisualPDE(url) {
 
     simDomain.material = drawMaterial;
     // We'll draw onto all history terms. We'll do 1->0 then 2->1 etc, then cycle.
-    for (let ind = 1; ind < simTextures.length; ind++) {
-      uniforms.textureSource.value = simTextures[ind].texture;
-      renderer.setRenderTarget(simTextures[ind - 1]);
-      renderer.render(simScene, simCamera);
+    if (numGroups(Number(options.numSpecies)) > 1) {
+      // drawMaterial's MRT shader (drawShaderTopMRT, Stage 7) always passes both groups'
+      // current state through, overriding only the one drawn-on channel - so both
+      // textureSource (group 0) and textureSourceGroup1 (group 1) need to be bound from the
+      // same slot regardless of which group is actually being drawn on.
+      for (let ind = 1; ind < mrtSimTextures.length; ind++) {
+        uniforms.textureSource.value = mrtSimTextures[ind].texture[0];
+        uniforms.textureSourceGroup1.value = mrtSimTextures[ind].texture[1];
+        renderer.setRenderTarget(mrtSimTextures[ind - 1]);
+        renderer.render(simScene, simCamera);
+      }
+      mrtSimTextures.rotate(-1);
+    } else {
+      for (let ind = 1; ind < simTextures.length; ind++) {
+        uniforms.textureSource.value = simTextures[ind].texture;
+        renderer.setRenderTarget(simTextures[ind - 1]);
+        renderer.render(simScene, simCamera);
+      }
+      simTextures.rotate(-1);
     }
-    simTextures.rotate(-1);
   }
 
   function timestep() {
@@ -4244,12 +4264,25 @@ async function VisualPDE(url) {
     switch (options.timesteppingScheme) {
       case "Euler":
         simDomain.material = simMaterials["FE"];
-        uniforms.textureSource.value = simTextures[1].texture;
-        uniforms.textureSource1.value = simTextures[2].texture;
-        uniforms.dt.value = options.dt;
-        renderer.setRenderTarget(simTextures[0]);
-        renderer.render(simScene, simCamera);
-        simTextures.rotate(-1);
+        if (numGroups(Number(options.numSpecies)) > 1) {
+          // The real 8-species state lives in mrtSimTextures (each slot's two
+          // attachments are group 0/group 1 respectively) - simTextures is untouched and
+          // unused once numGroups>1, matching every other Stage 3-7 MRT code path.
+          uniforms.textureSource.value = mrtSimTextures[1].texture[0];
+          uniforms.textureSourceGroup1.value = mrtSimTextures[1].texture[1];
+          uniforms.textureSource1.value = mrtSimTextures[2].texture[0];
+          uniforms.dt.value = options.dt;
+          renderer.setRenderTarget(mrtSimTextures[0]);
+          renderer.render(simScene, simCamera);
+          mrtSimTextures.rotate(-1);
+        } else {
+          uniforms.textureSource.value = simTextures[1].texture;
+          uniforms.textureSource1.value = simTextures[2].texture;
+          uniforms.dt.value = options.dt;
+          renderer.setRenderTarget(simTextures[0]);
+          renderer.render(simScene, simCamera);
+          simTextures.rotate(-1);
+        }
         uniforms.t.value += options.dt;
         break;
       case "AB2":
@@ -4500,7 +4533,12 @@ async function VisualPDE(url) {
     ) {
       bufferFilled = false;
       simDomain.material = probeMaterial;
-      uniforms.textureSource.value = simTextures[1].texture;
+      if (numGroups(Number(options.numSpecies)) > 1) {
+        uniforms.textureSource.value = mrtSimTextures[1].texture[0];
+        uniforms.textureSourceGroup1.value = mrtSimTextures[1].texture[1];
+      } else {
+        uniforms.textureSource.value = simTextures[1].texture;
+      }
       renderer.setRenderTarget(postTexture);
       renderer.render(simScene, simCamera);
       fillBuffer();
@@ -4524,7 +4562,17 @@ async function VisualPDE(url) {
 
   function postprocess(updateProbeXY = false) {
     simDomain.material = postMaterial;
-    uniforms.textureSource.value = simTextures[1].texture;
+    // The real 8-species state lives in mrtSimTextures once numGroups>1. textureSourceGroup1
+    // is bound here (used by both postMaterial's computeDisplayFunShaderMidMRT and, via the
+    // render below, probeMaterial's probeShaderMRT - both need to read group 1's state) and
+    // reused again below for displayMaterial's overlayShaderMRT.
+    const isMRT = numGroups(Number(options.numSpecies)) > 1;
+    if (isMRT) {
+      uniforms.textureSource.value = mrtSimTextures[1].texture[0];
+      uniforms.textureSourceGroup1.value = mrtSimTextures[1].texture[1];
+    } else {
+      uniforms.textureSource.value = simTextures[1].texture;
+    }
     renderer.setRenderTarget(postTexture);
     renderer.render(simScene, simCamera);
     // If we're probing, probe the simulation texture.
@@ -4555,7 +4603,13 @@ async function VisualPDE(url) {
     }
     uniforms.textureSource.value = postTexture.texture;
     bufferFilled = false;
-    uniforms.textureSource1.value = simTextures[1].texture;
+    if (isMRT) {
+      uniforms.textureSource1.value = mrtSimTextures[1].texture[0];
+      // textureSourceGroup1 stays bound to mrtSimTextures[1].texture[1] from above, reused
+      // as-is for the overlay pass.
+    } else {
+      uniforms.textureSource1.value = simTextures[1].texture;
+    }
   }
 
   function onDocumentPointerDown(event) {
@@ -4731,14 +4785,23 @@ async function VisualPDE(url) {
   function clearTextures() {
     setRenderSizeToDisc();
     if (checkpointExists && options.resetFromCheckpoints) {
+      // NB: checkpointMaterial is a plain THREE.MeshBasicMaterial (image-restore feature),
+      // not MRT-aware - restoring a checkpoint when numGroups>1 would only write group 0's
+      // attachment, leaving group 1's undefined. A known, narrow gap (checkpoints are an
+      // optional/advanced feature); not addressed here.
       simDomain.material = checkpointMaterial;
     } else {
       simDomain.material = clearMaterial;
     }
-    simTextures.forEach((tex) => {
-      renderer.setRenderTarget(tex);
-      renderer.render(simScene, simCamera);
-    });
+    // The real 8-species state lives in mrtSimTextures once numGroups>1 (see timestep()'s
+    // "Euler" case) - clearMaterial's MRT shader (Stage 7) writes both attachments in one
+    // render call per slot.
+    (numGroups(Number(options.numSpecies)) > 1 ? mrtSimTextures : simTextures).forEach(
+      (tex) => {
+        renderer.setRenderTarget(tex);
+        renderer.render(simScene, simCamera);
+      },
+    );
     setDefaultRenderSize();
     render();
   }
@@ -12531,7 +12594,12 @@ async function VisualPDE(url) {
 
   function updateGlobalIntegral() {
     simDomain.material = globalIntegralMaterial;
-    uniforms.textureSource.value = simTextures[1].texture;
+    if (numGroups(Number(options.numSpecies)) > 1) {
+      uniforms.textureSource.value = mrtSimTextures[1].texture[0];
+      uniforms.textureSourceGroup1.value = mrtSimTextures[1].texture[1];
+    } else {
+      uniforms.textureSource.value = simTextures[1].texture;
+    }
     renderer.setRenderTarget(postTexture);
     renderer.render(simScene, simCamera);
     let dA;
