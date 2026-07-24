@@ -325,6 +325,10 @@ async function VisualPDE(url) {
   const brushActions = ["Replace", "Add", "Replace (smooth)", "Add (smooth)"],
     brushActionVals = ["replace", "add", "smoothreplace", "smoothadd"];
   let equationType, algebraicV, algebraicW, algebraicQ;
+  // Algebraic-species flags for species 5-8 (0-based indices 4-7), computed in
+  // setAlgebraicVarsFromOptions(). Species 1-4 continue to use algebraicV/W/Q above,
+  // unchanged - this only covers indices not already handled by those.
+  let algebraicSpeciesFlags = {};
   let takeAScreenshot = false,
     mediaRecorder,
     videoChunks;
@@ -5071,6 +5075,165 @@ async function VisualPDE(url) {
     return str;
   }
 
+  /**
+   * Builds the Neumann/Ghost/Dirichlet/Robin shader blocks and edge-clamp flags for a given
+   * list of (0-based) species indices, mirroring setRDEquations()'s own group-0 blocks
+   * (which remain untouched, literal code) exactly - same conditions, same order, same
+   * helper functions (robinUpdateShader/ghostUpdateShader/dirichletUpdateShader/
+   * parseRobinRHS/parseDirichletRHS, all already index-generic). Used for species 5-8
+   * (group 1) so group 0's already-correct, byte-for-byte-preserved blocks don't need to be
+   * touched or risk being altered by a shared/generalized loop.
+   * @param {number[]} indices - 0-based species indices to build BCs for (e.g. [4,5,6,7]).
+   * @returns {{neumannShader: string, ghostShader: string, dirichletShader: string, robinShader: string, edgeClampSpeciesH: Object<number,boolean>, edgeClampSpeciesV: Object<number,boolean>}}
+   */
+  function buildBCShadersForIndices(indices) {
+    const BCStrs = indices.map((i) => options["boundaryConditions_" + (i + 1)]);
+    const NStrs = indices.map((i) => options["neumannStr_" + (i + 1)]);
+    const MStrs = indices
+      .map((i) => options["comboStr_" + (i + 1)])
+      .map((s) => s + ";");
+    const DStrs = indices.map((i) => options["dirichletStr_" + (i + 1)]);
+    const RStrs = indices.map((i) => options["robinStr_" + (i + 1)]);
+
+    let neumannShader = "";
+    let ghostShader = "";
+    let dirichletShader = "";
+    let robinShader = "";
+    const edgeClampSpeciesH = {};
+    const edgeClampSpeciesV = {};
+    indices.forEach((i) => {
+      edgeClampSpeciesH[i] = false;
+      edgeClampSpeciesV[i] = false;
+    });
+
+    // Neumann (a special case of Robin).
+    BCStrs.forEach(function (str, localInd) {
+      const ind = indices[localInd];
+      if (str == "neumann") {
+        edgeClampSpeciesH[ind] = true;
+        edgeClampSpeciesV[ind] = true;
+        neumannShader += parseRobinRHS(NStrs[localInd], listOfSpecies[ind]);
+        if (!options.domainViaIndicatorFun) {
+          neumannShader += robinUpdateShader(ind);
+        } else {
+          neumannShader += robinUpdateShaderCustomDomain(ind);
+        }
+      } else if (str == "combo") {
+        [
+          ...MStrs[localInd].matchAll(
+            /(Left|Right|Top|Bottom)\s*:\s*Neumann\s*=([^;]*);/gi,
+          ),
+        ].forEach(function (m) {
+          const side = m[1][0].toUpperCase();
+          neumannShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
+          neumannShader += robinUpdateShader(ind, side);
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
+        });
+      }
+    });
+
+    // Ghost.
+    BCStrs.forEach(function (str, localInd) {
+      const ind = indices[localInd];
+      if (str == "combo") {
+        [
+          ...MStrs[localInd].matchAll(
+            /(Left|Right|Top|Bottom)\s*:\s*Ghost\s*=([^;]*);/gi,
+          ),
+        ].forEach(function (m) {
+          const side = m[1][0].toUpperCase();
+          ghostShader += ghostUpdateShader(ind, side, parseShaderString(m[2]));
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
+        });
+      }
+    });
+
+    // Dirichlet.
+    BCStrs.forEach(function (str, localInd) {
+      const ind = indices[localInd];
+      if (str == "dirichlet") {
+        edgeClampSpeciesH[ind] = true;
+        edgeClampSpeciesV[ind] = true;
+        if (!options.domainViaIndicatorFun) {
+          dirichletShader += parseDirichletRHS(
+            DStrs[localInd],
+            listOfSpecies[ind],
+          );
+          dirichletShader += dirichletUpdateShader(ind);
+        } else {
+          let baseStr = RDShaderDirichletIndicatorFun().replace(
+            /indicatorFun/g,
+            parseShaderString(getModifiedDomainIndicatorFun()),
+          );
+          dirichletShader +=
+            selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
+            parseShaderString(DStrs[localInd]) +
+            ";\n}\n";
+        }
+      } else if (str == "combo") {
+        [
+          ...MStrs[localInd].matchAll(
+            /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/gi,
+          ),
+        ].forEach(function (m) {
+          const side = m[1][0].toUpperCase();
+          dirichletShader += parseDirichletRHS(m[2], listOfSpecies[ind], side);
+          dirichletShader += dirichletUpdateShader(ind, side);
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
+        });
+      } else if (options.domainViaIndicatorFun) {
+        // Zero-out anything outside of the domain if we're using an indicator function.
+        let baseStr = RDShaderDirichletIndicatorFun().replace(
+          /indicatorFun/g,
+          parseShaderString(getModifiedDomainIndicatorFun()),
+        );
+        dirichletShader +=
+          selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
+          "0.0" +
+          ";\n}\n";
+      }
+    });
+
+    // Robin.
+    BCStrs.forEach(function (str, localInd) {
+      const ind = indices[localInd];
+      if (str == "robin") {
+        edgeClampSpeciesH[ind] = true;
+        edgeClampSpeciesV[ind] = true;
+        robinShader += parseRobinRHS(RStrs[localInd], listOfSpecies[ind]);
+        if (!options.domainViaIndicatorFun) {
+          robinShader += robinUpdateShader(ind);
+        } else {
+          robinShader += robinUpdateShaderCustomDomain(ind);
+        }
+      } else if (str == "combo") {
+        [
+          ...MStrs[localInd].matchAll(
+            /(Left|Right|Top|Bottom)\s*:\s*Robin\s*=([^;]*);/gi,
+          ),
+        ].forEach(function (m) {
+          const side = m[1][0].toUpperCase();
+          robinShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
+          robinShader += robinUpdateShader(ind, side);
+          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
+          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
+        });
+      }
+    });
+
+    return {
+      neumannShader,
+      ghostShader,
+      dirichletShader,
+      robinShader,
+      edgeClampSpeciesH,
+      edgeClampSpeciesV,
+    };
+  }
+
   function setRDEquations() {
     let neumannShader = "";
     let ghostShader = "";
@@ -5425,13 +5588,67 @@ async function VisualPDE(url) {
       } else {
         diffusionShaderMRT += RDShaderUpdateNormalMRT(Number(options.numSpecies));
       }
+
+      // Group 1 (species 5-8) BCs: mirrors the group-0 blocks above exactly, via
+      // buildBCShadersForIndices (factored out so group 0's blocks don't need touching).
+      // All 4 slots are always processed regardless of exact numSpecies (5-8), matching the
+      // group-0 pattern of always processing all 4 slots regardless of numSpecies<=4.
+      const bcGroup1 = buildBCShadersForIndices([4, 5, 6, 7]);
+
+      // Group 1 edge-clamping: always via the shader (clampSpeciesToEdgeShader,
+      // groupified to route to uvwq2), never via mutating mrtSimTextures' wrapping mode -
+      // unlike group 0's optimization of clamping the whole texture when every species
+      // needs it. This is a deliberate, documented simplification (correct, just not
+      // maximally optimized) rather than entangling this stage with Stage 3/8's
+      // render-target lifecycle further.
+      let clampShaderGroup1 = "";
+      let channelsHGroup1 = "";
+      [4, 5, 6, 7].forEach((ind) => {
+        if (bcGroup1.edgeClampSpeciesH[ind])
+          channelsHGroup1 += speciesToChannelChar(listOfSpecies[ind]);
+      });
+      if (channelsHGroup1) {
+        clampShaderGroup1 += groupifyShaderStr(
+          clampSpeciesToEdgeShader("H"),
+          1,
+        ).replaceAll(/\bSPECIES\b/g, channelsHGroup1);
+      }
+      let channelsVGroup1 = "";
+      [4, 5, 6, 7].forEach((ind) => {
+        if (bcGroup1.edgeClampSpeciesV[ind])
+          channelsVGroup1 += speciesToChannelChar(listOfSpecies[ind]);
+      });
+      if (channelsVGroup1) {
+        clampShaderGroup1 += groupifyShaderStr(
+          clampSpeciesToEdgeShader("V"),
+          1,
+        ).replaceAll(/\bSPECIES\b/g, channelsVGroup1);
+      }
+
+      // Group 1 algebraic species: mirrors the 3 hardcoded algebraicV/W/Q blocks above,
+      // generalized into a loop over algebraicSpeciesFlags (species 1-4 keep using the
+      // existing blocks/booleans, untouched).
+      let algebraicShaderGroup1 = "";
+      for (let s = 4; s < 8; s++) {
+        if (algebraicSpeciesFlags[s] && options.crossDiffusion) {
+          algebraicShaderGroup1 += selectSpeciesInShaderStr(
+            RDShaderAlgebraicSpecies(),
+            listOfSpecies[s],
+          );
+        }
+      }
+
       middleMRT = [
         clampShader,
+        clampShaderGroup1,
         RDShaderAdvectionPreBC(),
         RDShaderDiffusionPreBC(),
         neumannShader,
+        bcGroup1.neumannShader,
         ghostShader,
+        bcGroup1.ghostShader,
         robinShader,
+        bcGroup1.robinShader,
         RDShaderAdvectionPostBC(),
         RDShaderDiffusionPostBC(),
         parseReactionStrings(),
@@ -5442,7 +5659,13 @@ async function VisualPDE(url) {
       // come from) is identical whether it ends up embedded in `middle` or `middleMRT`.
       if (containsRAND) middleMRT = randShader() + middleMRT;
       if (containsRANDN) middleMRT = randNShader() + middleMRT;
-      botMRT = [dirichletShader, algebraicShader, RDShaderBotMRT()].join(" ");
+      botMRT = [
+        dirichletShader,
+        bcGroup1.dirichletShader,
+        algebraicShader,
+        algebraicShaderGroup1,
+        RDShaderBotMRT(),
+      ].join(" ");
     }
 
     let type = "FE";
@@ -5584,16 +5807,20 @@ async function VisualPDE(url) {
   }
 
   function checkForAnyDirichletBCs() {
+    // Loops over all 8 species slots (not just numSpecies) to match the existing pattern
+    // elsewhere in this file of always checking all slots in a group regardless of how many
+    // are officially "active" - harmless since species 5-8 default to periodic/"" and
+    // nothing reachable via the UI can set them otherwise yet (numSpecies is still capped
+    // at 4), but a real correctness fix once that changes: previously this only checked
+    // species 1-4, so a Dirichlet BC on species 5-8 would silently never trigger the
+    // enforceDirichlet() pass.
     anyDirichletBCs =
       options.domainViaIndicatorFun ||
-      options.boundaryConditions_1 == "dirichlet" ||
-      options.boundaryConditions_2 == "dirichlet" ||
-      options.boundaryConditions_3 == "dirichlet" ||
-      options.boundaryConditions_4 == "dirichlet" ||
-      /Dirichlet/.test(options.comboStr_1) ||
-      /Dirichlet/.test(options.comboStr_2) ||
-      /Dirichlet/.test(options.comboStr_3) ||
-      /Dirichlet/.test(options.comboStr_4);
+      [1, 2, 3, 4, 5, 6, 7, 8].some(
+        (i) =>
+          options["boundaryConditions_" + i] == "dirichlet" ||
+          /Dirichlet/.test(options["comboStr_" + i]),
+      );
   }
 
   function parseRobinRHS(string, species, side) {
@@ -5976,6 +6203,28 @@ async function VisualPDE(url) {
     }
   }
 
+  // Rewrites group-0's hardcoded stencil/output variable names (uvwq, uvwqL/R/T/B/LL/RR/
+  // TT/BB, updated, RHS, timescales) to their group-1 counterparts (uvwq2, uvwq2L/R/T/B/
+  // LL/RR/TT/BB, updated2, RHS2, timescalesGroup1 - see RDShaderTopMRT/RDShaderMainMRT in
+  // simulation_shaders.js, which declare exactly these group-1 locals). A no-op for group
+  // 0. Used by selectSpeciesInShaderStr (for BC/algebraic-species templates) and directly
+  // for clampSpeciesToEdgeShader's output (which doesn't go through selectSpeciesInShaderStr
+  // - it does its own SPECIES substitution).
+  function groupifyShaderStr(shaderStr, group) {
+    if (group === 0) return shaderStr;
+    return shaderStr.replaceAll(
+      /\buvwqLL\b|\buvwqRR\b|\buvwqTT\b|\buvwqBB\b|\buvwqL\b|\buvwqR\b|\buvwqT\b|\buvwqB\b|\buvwq\b|\bupdated\b|\bRHS\b|\btimescales\b/g,
+      function (m) {
+        if (m === "uvwq") return "uvwq2";
+        if (m === "updated") return "updated2";
+        if (m === "RHS") return "RHS2";
+        if (m === "timescales") return "timescalesGroup1";
+        // uvwqL/R/T/B/LL/RR/TT/BB: insert "2" right after "uvwq".
+        return "uvwq2" + m.slice(4);
+      },
+    );
+  }
+
   function selectSpeciesInShaderStr(shaderStr, species) {
     // If there are no species, then return an empty string.
     if (species.length == 0) {
@@ -5988,7 +6237,7 @@ async function VisualPDE(url) {
     shaderStr = shaderStr.replace(regex, "robinRHS" + species);
     regex = /\bdirichletRHSSPECIES/g;
     shaderStr = shaderStr.replace(regex, "dirichletRHS" + species);
-    return shaderStr;
+    return groupifyShaderStr(shaderStr, speciesToGroupInd(species));
   }
 
   function speciesToChannelChar(speciesStr) {
@@ -6464,6 +6713,14 @@ async function VisualPDE(url) {
     algebraicQ =
       options.numAlgebraicSpecies >= options.numSpecies - 3 &&
       options.numSpecies >= 4;
+    // Species 5-8 (0-based indices 4-7): same "reverse order" rule (the last
+    // numAlgebraicSpecies species, by index, are algebraic), generalized to any index.
+    // Only relevant once numGroups(numSpecies)>1 (numSpecies>4).
+    for (let s = 4; s < 8; s++) {
+      algebraicSpeciesFlags[s] =
+        options.numSpecies > s &&
+        options.numAlgebraicSpecies >= options.numSpecies - s;
+    }
   }
 
   function problemTypeFromOptions() {
