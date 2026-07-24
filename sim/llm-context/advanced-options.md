@@ -113,7 +113,7 @@ Configure additional equation-related settings, including the number of species 
 
 - #### Species names
 
-  Specify custom names for the species in VisualPDE. When changing "# species" to a higher number previously set, new species will be named by default to `SPECIES2`, `SPECIES3`, ..., `SPECIES8`, for 2 through 8 species, respectively. Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, `T_01` is a valid name (rendered as $T_{01}$) whilst `T 01` is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as `H` for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old species everywhere in the simulation and interface.
+  Specify custom names for the species in VisualPDE. When changing "# species" to a higher number than the species names previously provided cover, any additional species will be named by default to `VARIABLE2`, `VARIABLE3`, ..., `VARIABLE8` (whichever position they fall in). Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, `T_01` is a valid name (rendered as $T_{01}$) whilst `T 01` is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as `H` for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old species everywhere in the simulation and interface.
   JSON key: `speciesNames`, space separated string. Default: `"u v"`
 
 - #### Cross diffusion

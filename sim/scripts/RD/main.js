@@ -324,14 +324,14 @@ async function VisualPDE(url) {
     "TU8",
   ];
   const placeholderSp = [
-    "SPECIES1",
-    "SPECIES2",
-    "SPECIES3",
-    "SPECIES4",
-    "SPECIES5",
-    "SPECIES6",
-    "SPECIES7",
-    "SPECIES8",
+    "VARIABLE1",
+    "VARIABLE2",
+    "VARIABLE3",
+    "VARIABLE4",
+    "VARIABLE5",
+    "VARIABLE6",
+    "VARIABLE7",
+    "VARIABLE8",
   ];
   const listOfTypes = [
     "1Species", // 0
