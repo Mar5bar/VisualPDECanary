@@ -1168,3 +1168,61 @@ export function globalIntegralShader() {
       gl_FragColor = vec4(value * in_domain, 0.0, 0.0, 0.0);
     }`;
 }
+
+// MRT counterpart of globalIntegralShader(), used only once numGroups(numSpecies)>1. The
+// plan's Stage 7 text assumed no change was needed here (assuming Stage 5's substitution
+// resolving species 5-8 was sufficient) - but like computeDisplayFunShaderMid/probeShader,
+// this template only declares group-0's stencil, so a GLOBAL_INTEGRAL_FUN referencing a
+// group-1 species would compile to reference an undeclared uvwq2. Adds a second sampler +
+// group-1 5-point stencil, mirroring computeDisplayFunShaderMidMRT. Still single-output.
+export function globalIntegralShaderMRT() {
+  return globalIntegralShader()
+    .replace(
+      "uniform sampler2D textureSource;",
+      "uniform sampler2D textureSource;\n    uniform sampler2D textureSourceGroup1;",
+    )
+    .replace(
+      "float value = GLOBAL_INTEGRAL_FUN;",
+      `vec4 uvwq2 = texture2D(textureSourceGroup1, textureCoords);
+      vec4 uvwq2L = texture2D(textureSourceGroup1, textureCoords + vec2(-step_x, 0.0));
+      vec4 uvwq2R = texture2D(textureSourceGroup1, textureCoords + vec2(+step_x, 0.0));
+      vec4 uvwq2T = texture2D(textureSourceGroup1, textureCoords + vec2(0.0, +step_y));
+      vec4 uvwq2B = texture2D(textureSourceGroup1, textureCoords + vec2(0.0, -step_y));
+
+      vec4 uvwq2X = (uvwq2R - uvwq2L) / (2.0*dx);
+      vec4 uvwq2Y = (uvwq2T - uvwq2B) / (2.0*dy);
+      vec4 uvwq2XF = (uvwq2R - uvwq2) / dx;
+      vec4 uvwq2YF = (uvwq2T - uvwq2) / dy;
+      vec4 uvwq2XB = (uvwq2 - uvwq2L) / dx;
+      vec4 uvwq2YB = (uvwq2 - uvwq2B) / dy;
+      vec4 uvwq2XX = (uvwq2R - 2.0*uvwq2 + uvwq2L) / (dx * dx);
+      vec4 uvwq2YY = (uvwq2T - 2.0*uvwq2 + uvwq2B) / (dy * dy);
+
+      // At boundaries, compute gradients using one-sided differences (group 1).
+      if (textureCoords.x - step_x < 0.0) {
+        uvwq2X = (uvwq2R - uvwq2) / dx;
+        uvwq2XF = uvwq2X;
+        uvwq2XB = uvwq2X;
+      }
+
+      if (textureCoords.x + step_x > 1.0) {
+        uvwq2X = (uvwq2 - uvwq2L) / dx;
+        uvwq2XF = uvwq2X;
+        uvwq2XB = uvwq2X;
+      }
+
+      if (textureCoords.y - step_y < 0.0) {
+        uvwq2Y = (uvwq2T - uvwq2) / dy;
+        uvwq2YF = uvwq2Y;
+        uvwq2YB = uvwq2Y;
+      }
+
+      if (textureCoords.y + step_y > 1.0) {
+        uvwq2Y = (uvwq2 - uvwq2B) / dy;
+        uvwq2YF = uvwq2Y;
+        uvwq2YB = uvwq2Y;
+      }
+
+      float value = GLOBAL_INTEGRAL_FUN;`,
+    );
+}

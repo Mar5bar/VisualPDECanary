@@ -16,6 +16,9 @@ import {
   drawShaderFactorSharp,
   drawShaderFactorSmooth,
   uvFragShader,
+  drawShaderTopMRT,
+  drawShaderBotReplaceMRT,
+  drawShaderBotAddMRT,
 } from "./drawing_shaders.js";
 import {
   computeDisplayFunShaderTop,
@@ -27,6 +30,9 @@ import {
   minMaxShader,
   sumShader,
   probeShader,
+  computeDisplayFunShaderTopMRT,
+  computeDisplayFunShaderMidMRT,
+  probeShaderMRT,
 } from "./post_shaders.js";
 import { copyShader } from "../copy_shader.js";
 import {
@@ -52,6 +58,7 @@ import {
   RDShaderMain,
   clampSpeciesToEdgeShader,
   globalIntegralShader,
+  globalIntegralShaderMRT,
   RDShaderTopMRT,
   RDShaderMainMRT,
   RDShaderUpdateNormalMRT,
@@ -67,6 +74,8 @@ import {
   surfaceVertexShaderColour,
   surfaceVertexShaderCustom,
   overlayShader,
+  fiveColourDisplayTopMRT,
+  overlayShaderMRT,
 } from "./display_shaders.js";
 import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
@@ -78,7 +87,12 @@ import {
   getListOfPresetNames,
   coerceOptions,
 } from "./presets.js";
-import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
+import {
+  clearShaderBot,
+  clearShaderTop,
+  clearShaderTopMRT,
+  clearShaderBotMRT,
+} from "./clear_shader.js";
 import {
   numGroups,
   groupOfSpecies,
@@ -4049,15 +4063,20 @@ async function VisualPDE(url) {
     // Construct a drawing shader based on the selected type and the value string.
     // Insert any user-defined kinetic parameters, given as a string that needs parsing.
     // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
-    let shaderStr = kineticUniformsForShader() + drawShaderTop();
+    const isMRT = numGroups(Number(options.numSpecies)) > 1;
+    let shaderStr =
+      kineticUniformsForShader() + (isMRT ? drawShaderTopMRT() : drawShaderTop());
     let radiusStr =
       "float brushRadius = " +
       parseShaderString(options.brushRadius.toString()) +
       ";\n";
 
-    // If the radius string contains any references to u,v,w,q, replace them with references to the species at the
-    // brush centre, not the current pixel.
-    radiusStr = radiusStr.replace(/\buvwq\./g, "uvwqBrush.");
+    // If the radius string contains any references to u,v,w,q (or, for group-1 species,
+    // u5..u8), replace them with references to the species at the brush centre, not the
+    // current pixel.
+    radiusStr = radiusStr
+      .replace(/\buvwq\./g, "uvwqBrush.")
+      .replace(/\buvwq2\./g, "uvwq2Brush.");
     // If the radius string contains any references to I_S or I_T, replace them with references to the value at the
     // brush centre, not the current pixel.
     radiusStr = radiusStr.replace(/\b(I_[ST])([RGBA]?)\b/g, "$1Brush$2");
@@ -4089,38 +4108,50 @@ async function VisualPDE(url) {
         break;
     }
 
-    // Configure the action of the brush.
+    // Configure the action of the brush. Brush drawing always targets exactly one species
+    // (one channel of one group) at a time, so the MRT Bot variants only need
+    // FRAGCOLOR/UVWQGROUP substituted for whichever group that species belongs to (see
+    // below) - not a full dual-output "combine both groups' equations" treatment like the
+    // main simulation shader.
+    const botReplace = isMRT ? drawShaderBotReplaceMRT() : drawShaderBotReplace();
+    const botAdd = isMRT ? drawShaderBotAddMRT() : drawShaderBotAdd();
     if (options.brushType == "custom") {
       shaderStr += drawShaderCustom();
-      shaderStr += options.brushAction.includes("replace")
-        ? drawShaderBotReplace()
-        : drawShaderBotAdd();
+      shaderStr += options.brushAction.includes("replace") ? botReplace : botAdd;
     } else {
       switch (options.brushAction) {
         case "replace":
           shaderStr += drawShaderFactorSharp();
-          shaderStr += drawShaderBotReplace();
+          shaderStr += botReplace;
           break;
         case "add":
           shaderStr += drawShaderFactorSharp();
-          shaderStr += drawShaderBotAdd();
+          shaderStr += botAdd;
           break;
         case "smoothreplace":
           shaderStr += drawShaderFactorSmooth();
-          shaderStr += drawShaderBotReplace();
+          shaderStr += botReplace;
           break;
         case "smoothadd":
           shaderStr += drawShaderFactorSmooth();
-          shaderStr += drawShaderBotAdd();
+          shaderStr += botAdd;
           break;
       }
     }
     // Configure the displayed cursor.
     configureCursorDisplay();
-    // Substitute in the correct colour code.
+    // Substitute in the correct colour code (and, for the MRT case, which group's output/
+    // current-state variable the brush override targets).
     shaderStr = selectColourspecInShaderStr(shaderStr);
+    if (isMRT) {
+      const group = speciesToGroupInd(options.whatToDraw);
+      shaderStr = shaderStr
+        .replaceAll(/\bFRAGCOLOR\b/g, group === 0 ? "fragColor0" : "fragColor1")
+        .replaceAll(/\bUVWQGROUP\b/g, group === 0 ? "uvwq" : "uvwq2");
+    }
     shaderStr = replaceMINXMINY(shaderStr);
     assignFragmentShader(drawMaterial, shaderStr);
+    drawMaterial.glslVersion = isMRT ? THREE.GLSL3 : null;
     drawMaterial.needsUpdate = true;
   }
 
@@ -4138,7 +4169,13 @@ async function VisualPDE(url) {
     uniforms.colour3.value = new THREE.Vector4(...colourmap[2]);
     uniforms.colour4.value = new THREE.Vector4(...colourmap[3]);
     uniforms.colour5.value = new THREE.Vector4(...colourmap[4]);
-    let shader = kineticUniformsForShader() + fiveColourDisplayTop();
+    // fiveColourDisplayTopMRT/overlayShaderMRT (>4 species) just add extra input sampler(s)
+    // + group-1 locals so the overlay expression can reference species 5-8 - still
+    // single-output, so no glslVersion toggle is needed here.
+    const isMRT = numGroups(Number(options.numSpecies)) > 1;
+    let shader =
+      kineticUniformsForShader() +
+      (isMRT ? fiveColourDisplayTopMRT() : fiveColourDisplayTop());
     if (options.emboss) {
       shader += embossShader();
       setEmbossUniforms();
@@ -4148,7 +4185,7 @@ async function VisualPDE(url) {
       setContourUniforms();
     }
     if (options.overlay) {
-      shader += overlayShader().replaceAll(
+      shader += (isMRT ? overlayShaderMRT() : overlayShader()).replaceAll(
         "OVERLAYEXPR",
         parseShaderString(options.overlayExpr),
       );
@@ -6395,35 +6432,80 @@ async function VisualPDE(url) {
 
   function setClearShader() {
     // Insert any user-defined kinetic parameters, as uniforms.
-    let shaderStr = kineticUniformsForShader() + clearShaderTop();
-    let allClearShaders = [
-      options.initCond_1,
-      options.initCond_2,
-      options.initCond_3,
-      options.initCond_4,
-    ].join(" ");
-    if (
-      /\bRAND\b/.test(allClearShaders) ||
-      /\bRANDVAL\b/.test(allClearShaders)
-    ) {
-      shaderStr += randShader();
+    let kineticStr = kineticUniformsForShader();
+    if (numGroups(Number(options.numSpecies)) > 1) {
+      // MRT (>4-species) path: separate top/bot (dual output, GLSL3) and species-5-8
+      // locals. Kept entirely separate from the numGroups===1 branch below (rather than
+      // sharing partial state) so that branch is provably byte-for-byte unchanged.
+      let shaderStr = kineticStr + clearShaderTopMRT();
+      let allClearShaders = [
+        options.initCond_1,
+        options.initCond_2,
+        options.initCond_3,
+        options.initCond_4,
+        options.initCond_5,
+        options.initCond_6,
+        options.initCond_7,
+        options.initCond_8,
+      ].join(" ");
+      if (
+        /\bRAND\b/.test(allClearShaders) ||
+        /\bRANDVAL\b/.test(allClearShaders)
+      ) {
+        shaderStr += randShader();
+      }
+      if (/\bRANDN(_[1234])?\b/.test(allClearShaders)) {
+        shaderStr += randNShader();
+      }
+      shaderStr += "float u = " + parseShaderString(options.initCond_1) + ";\n";
+      shaderStr += "float v = " + parseShaderString(options.initCond_2) + ";\n";
+      shaderStr += "float w = " + parseShaderString(options.initCond_3) + ";\n";
+      shaderStr += "float q = " + parseShaderString(options.initCond_4) + ";\n";
+      shaderStr += "float u5 = " + parseShaderString(options.initCond_5) + ";\n";
+      shaderStr += "float u6 = " + parseShaderString(options.initCond_6) + ";\n";
+      shaderStr += "float u7 = " + parseShaderString(options.initCond_7) + ";\n";
+      shaderStr += "float u8 = " + parseShaderString(options.initCond_8) + ";\n";
+      shaderStr += clearShaderBotMRT();
+      shaderStr = replaceMINXMINY(shaderStr);
+      assignFragmentShader(clearMaterial, shaderStr);
+      clearMaterial.glslVersion = THREE.GLSL3;
+    } else {
+      let shaderStr = kineticStr + clearShaderTop();
+      let allClearShaders = [
+        options.initCond_1,
+        options.initCond_2,
+        options.initCond_3,
+        options.initCond_4,
+      ].join(" ");
+      if (
+        /\bRAND\b/.test(allClearShaders) ||
+        /\bRANDVAL\b/.test(allClearShaders)
+      ) {
+        shaderStr += randShader();
+      }
+      if (/\bRANDN(_[1234])?\b/.test(allClearShaders)) {
+        shaderStr += randNShader();
+      }
+      shaderStr += "float u = " + parseShaderString(options.initCond_1) + ";\n";
+      shaderStr += "float v = " + parseShaderString(options.initCond_2) + ";\n";
+      shaderStr += "float w = " + parseShaderString(options.initCond_3) + ";\n";
+      shaderStr += "float q = " + parseShaderString(options.initCond_4) + ";\n";
+      shaderStr += clearShaderBot();
+      shaderStr = replaceMINXMINY(shaderStr);
+      assignFragmentShader(clearMaterial, shaderStr);
+      clearMaterial.glslVersion = null;
     }
-    if (/\bRANDN(_[1234])?\b/.test(allClearShaders)) {
-      shaderStr += randNShader();
-    }
-    shaderStr += "float u = " + parseShaderString(options.initCond_1) + ";\n";
-    shaderStr += "float v = " + parseShaderString(options.initCond_2) + ";\n";
-    shaderStr += "float w = " + parseShaderString(options.initCond_3) + ";\n";
-    shaderStr += "float q = " + parseShaderString(options.initCond_4) + ";\n";
-    shaderStr += clearShaderBot();
-    shaderStr = replaceMINXMINY(shaderStr);
-    assignFragmentShader(clearMaterial, shaderStr);
     clearMaterial.needsUpdate = true;
   }
 
   function setProbeShader() {
-    // Insert any user-defined kinetic parameters, as uniforms.
-    let shaderStr = kineticUniformsForShader() + probeShader();
+    // Insert any user-defined kinetic parameters, as uniforms. probeShaderMRT (>4 species)
+    // just adds a second input sampler + group-1 locals so PROBE_FUN can reference species
+    // 5-8 - still single-output, so no glslVersion toggle is needed here (unlike the main
+    // simulation/clear shaders).
+    let shaderStr =
+      kineticUniformsForShader() +
+      (numGroups(Number(options.numSpecies)) > 1 ? probeShaderMRT() : probeShader());
     shaderStr = replaceMINXMINY(shaderStr);
     // Insert the user-defined location of the probe.
     shaderStr = shaderStr.replace("PROBE_X", parseShaderString(options.probeX));
@@ -6443,8 +6525,15 @@ async function VisualPDE(url) {
   }
 
   function setGlobalIntegralShader() {
-    // Insert any user-defined kinetic parameters, as uniforms.
-    let shaderStr = kineticUniformsForShader() + globalIntegralShader();
+    // Insert any user-defined kinetic parameters, as uniforms. globalIntegralShaderMRT
+    // (>4 species) just adds a second input sampler + group-1 locals so
+    // GLOBAL_INTEGRAL_FUN can reference species 5-8 - still single-output, so no
+    // glslVersion toggle is needed here.
+    let shaderStr =
+      kineticUniformsForShader() +
+      (numGroups(Number(options.numSpecies)) > 1
+        ? globalIntegralShaderMRT()
+        : globalIntegralShader());
     shaderStr = replaceMINXMINY(shaderStr);
     shaderStr = shaderStr.replace(
       /GLOBAL_INTEGRAL_FUN/g,
@@ -6669,8 +6758,17 @@ async function VisualPDE(url) {
   }
 
   function setPostFunFragShader() {
-    let shaderStr = kineticUniformsForShader() + computeDisplayFunShaderTop();
-    shaderStr += computeDisplayFunShaderMid()
+    // computeDisplayFunShaderTopMRT/MidMRT (>4 species) just add a second input sampler +
+    // group-1 locals so FUN/HEIGHT/XVECFUN/YVECFUN can reference species 5-8 - still
+    // single-output, so no glslVersion toggle is needed here.
+    const isMRT = numGroups(Number(options.numSpecies)) > 1;
+    let shaderStr =
+      kineticUniformsForShader() +
+      (isMRT ? computeDisplayFunShaderTopMRT() : computeDisplayFunShaderTop());
+    shaderStr += (isMRT
+      ? computeDisplayFunShaderMidMRT()
+      : computeDisplayFunShaderMid()
+    )
       .replace(/\bXVECFUN\b/, parseShaderString(options.arrowX))
       .replace(/\bYVECFUN\b/, parseShaderString(options.arrowY));
     shaderStr = setDisplayFunInShader(shaderStr);
