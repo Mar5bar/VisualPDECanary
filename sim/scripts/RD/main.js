@@ -7542,6 +7542,17 @@ async function VisualPDE(url) {
       });
 
       // Substitute in any user-defined expressions before continuing.
+      // NB: this references an unfinished feature (expressionsParamsStrs is declared at
+      // the top of this file but nothing else in the codebase populates it yet - no GUI
+      // wiring, no options.expressions parsing). userExpressionsNames/userExpressionsStrs
+      // were referenced here but never declared, causing a ReferenceError on every page
+      // load. Derived from expressionsParamsStrs (currently always {}) rather than
+      // guessing at the rest of the unfinished feature's design, so this is a no-op today
+      // and picks up real values automatically once that feature is built out.
+      const userExpressionsNames = Object.keys(expressionsParamsStrs);
+      const userExpressionsStrs = userExpressionsNames.map(
+        (key) => expressionsParamsStrs[key],
+      );
       Object.keys(associatedStrs).forEach(function (key) {
         associatedStrs[key] = replaceSymbolsInStr(
           associatedStrs[key],
