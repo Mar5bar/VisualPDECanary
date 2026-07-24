@@ -1,3 +1,8 @@
+import {
+  MAX_SPECIES_SUPPORTED,
+  reactionTokenOfSpecies,
+} from "./species_config.js";
+
 export function equationTEXFun() {
   let out = [];
   out[0] = `$\\begin{aligned}
@@ -68,6 +73,48 @@ export function equationTEXFun() {
   return out;
 }
 
+// Generative counterpart to equationTEXFun() above, used only for numSpecies>4 (the
+// 13-entry hand-written array only enumerates every numSpecies/crossDiffusion/algebraic
+// combination up to 4 species - doing the same by hand up to 8 species is combinatorially
+// infeasible: see the 8-species upgrade plan, Stage 10). One line per species, in the same
+// default-notation-placeholder style as equationTEXFun()'s output (default species/reaction
+// names as tokens - the caller substitutes real names in later), so the same downstream
+// TeX post-processing pipeline (setEquationDisplayType in main.js) applies uniformly
+// regardless of which function produced the string.
+//
+// Deliberate simplification vs. the <=4-species templates: those use a single-letter
+// "D_{u}" form for self-diffusion when cross-diffusion is off, vs. the doubled "D_{u u}"
+// form when it's on. This always uses the doubled form - both display the same
+// coefficient, just with different subscript styling, and using one form uniformly avoids
+// a second, parallel TeX-key convention for species with no natural single letter (species
+// 5-8). See getDefaultTeXLabelsDiffusion() below, which follows the same convention.
+//
+// @param {string[]} species - Default species names (e.g. defaultSpecies.slice(0, n)).
+// @param {string[]} reactions - Default reaction tokens (e.g. defaultReactions.slice(0, n)),
+//   same length/order as species.
+// @param {boolean} crossDiffusion - Whether cross-diffusion terms should be included.
+// @param {boolean[]} algebraicFlags - Per-species algebraic flag, same length/order as
+//   species (index 0 is never algebraic, matching the rest of the codebase's invariant).
+export function buildEquationTEX(species, reactions, crossDiffusion, algebraicFlags) {
+  const n = species.length;
+  const lines = species.map((s, i) => {
+    const isAlgebraic = crossDiffusion && algebraicFlags[i];
+    const others = (
+      crossDiffusion ? Array.from({ length: n }, (_, j) => j) : [i]
+    ).filter((j) => !isAlgebraic || j !== i);
+    const divTerms = others
+      .map((j) => "D_{" + s + " " + species[j] + "} \\vnabla " + species[j])
+      .join("+");
+    const lhs = isAlgebraic
+      ? "\\textstyle tau_{" + s + "} " + s
+      : "\\textstyle tau_{" + s + "} \\pd{" + s + "}{t}";
+    return lhs + " &= \\vnabla \\cdot(" + divTerms + ") + " + reactions[i];
+  });
+  return (
+    "$\\begin{aligned}\n    " + lines.join("\\\\\n    ") + "\n    \\end{aligned}$"
+  );
+}
+
 export function getDefaultTeXLabelsDiffusion() {
   let TeXStrings = {};
   // Strings for diffusion coefficients.
@@ -93,6 +140,29 @@ export function getDefaultTeXLabelsDiffusion() {
   TeXStrings["Dqw"] = "$D_{q w}$";
   TeXStrings["Dqq"] = "$D_{q q}$";
 
+  // Species 5-8 (8-species upgrade, Stage 10): no natural single letter, so every pair
+  // touching one of them uses the "U5U1"-style key convention already established for
+  // their dat.gui controller names (Stage 9, main.js's diffCtrlKey/configureGUI) - matching
+  // it means Stage 9's `TeXStrings[texKey] || <plain fallback>` lookups start resolving to
+  // real TeX automatically, no main.js change needed. Unlike Duu../Du.. above, there's no
+  // separate single-letter ("D5") form - see buildEquationTEX()'s docstring for why.
+  for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+    for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
+      const si = "u" + i;
+      const sj = j <= 4 ? ["u", "v", "w", "q"][j - 1] : "u" + j;
+      const key = si.toUpperCase() + sj.toUpperCase();
+      TeXStrings[key] = "$D_{" + si + " " + sj + "}$";
+    }
+  }
+  for (let i = 1; i <= 4; i++) {
+    for (let j = 5; j <= MAX_SPECIES_SUPPORTED; j++) {
+      const si = ["u", "v", "w", "q"][i - 1];
+      const sj = "u" + j;
+      const key = si.toUpperCase() + sj.toUpperCase();
+      TeXStrings[key] = "$D_{" + si + " " + sj + "}$";
+    }
+  }
+
   return TeXStrings;
 }
 
@@ -103,6 +173,10 @@ export function getDefaultTeXLabelsTimescales() {
   TeXStrings["TV"] = "$tau_{v}$";
   TeXStrings["TW"] = "$tau_{w}$";
   TeXStrings["TQ"] = "$tau_{q}$";
+  // Species 5-8 (Stage 10): keys must match timescaleTags ("TU5".."TU8", main.js).
+  for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+    TeXStrings["TU" + i] = "$tau_{u" + i + "}$";
+  }
 
   return TeXStrings;
 }
@@ -114,6 +188,11 @@ export function getDefaultTeXLabelsReaction() {
   TeXStrings["VFUN"] = "$VFUN$";
   TeXStrings["WFUN"] = "$WFUN$";
   TeXStrings["QFUN"] = "$QFUN$";
+  // Species 5-8 (Stage 10): keys must match reactionTokenOfSpecies() (species_config.js).
+  for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+    const tag = reactionTokenOfSpecies(i - 1);
+    TeXStrings[tag] = "$" + tag + "$";
+  }
 
   return TeXStrings;
 }
@@ -141,6 +220,16 @@ export function getDefaultTeXLabelsBCsICs() {
   TeXStrings["vG"] = "$\\text{Ghost node}$";
   TeXStrings["wG"] = "$\\text{Ghost node}$";
   TeXStrings["qG"] = "$\\text{Ghost node}$";
+  // Species 5-8 (Stage 10): keys match Stage 9's controller-naming convention
+  // (defaultSpecies[i]+"BCs"/"dirichlet"+S/"neumann"+S/"robin"+S, S=defaultSpecies[i].toUpperCase()).
+  for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+    const s = "u" + i;
+    TeXStrings[s] = "$" + s + "$";
+    TeXStrings[s + "Init"] = "$\\left. " + s + " \\right\\rvert_{t=0}$";
+    TeXStrings[s + "D"] = "$\\left. " + s + " \\right\\rvert_{\\boundary}$";
+    TeXStrings[s + "N"] = "$\\left.\\pd{" + s + "}{n}\\right\\rvert_{\\boundary}$";
+    TeXStrings[s + "G"] = "$\\text{Ghost node}$";
+  }
 
   return TeXStrings;
 }

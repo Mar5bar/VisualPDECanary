@@ -111,6 +111,7 @@ import { minifyPreset, maxifyPreset } from "./minify_preset.js";
 import { LZString } from "../lz-string.min.js";
 import {
   equationTEXFun,
+  buildEquationTEX,
   getDefaultTeXLabelsDiffusion,
   getDefaultTeXLabelsReaction,
   getDefaultTeXLabelsBCsICs,
@@ -7724,7 +7725,31 @@ async function VisualPDE(url) {
   function setEquationDisplayType() {
     // Given an equation type (specified as an integer selector), set the type of
     // equation in the UI element that displays the equations.
-    let str = equationTEX[equationType];
+    const numSpeciesInt = parseInt(options.numSpecies);
+    let str;
+    if (numGroups(numSpeciesInt) > 1) {
+      // No hand-written equationTEX entry exists for numSpecies>4 (the 13-entry array only
+      // enumerates every numSpecies/crossDiffusion/algebraic combination up to 4 species) -
+      // build it generatively instead (8-species upgrade, Stage 10). Uses the same
+      // default-notation-placeholder convention as equationTEXFun()'s output, so everything
+      // below (custom-equation splicing, custom-name substitution, TeX post-processing)
+      // applies uniformly regardless of which path produced `str`.
+      const algebraicFlagsArr = Array.from({ length: numSpeciesInt }, (_, i) => {
+        if (i === 1) return algebraicV;
+        if (i === 2) return algebraicW;
+        if (i === 3) return algebraicQ;
+        if (i >= 4) return !!algebraicSpeciesFlags[i];
+        return false;
+      });
+      str = buildEquationTEX(
+        defaultSpecies.slice(0, numSpeciesInt),
+        defaultReactions.slice(0, numSpeciesInt),
+        options.crossDiffusion,
+        algebraicFlagsArr,
+      );
+    } else {
+      str = equationTEX[equationType];
+    }
 
     let regex;
     // Define a list of strings that will be used to make regexes.
@@ -7757,6 +7782,38 @@ async function VisualPDE(url) {
     regexes["TV"] = /\b(tau_{v})/g;
     regexes["TW"] = /\b(tau_{w})/g;
     regexes["TQ"] = /\b(tau_{q})/g;
+
+    // Species 5-8 diffusion/reaction/timescale regexes (8-species upgrade, Stage 10) -
+    // generalized since these species have no natural single letter for the hand-written
+    // entries above to be extended by hand. Keys match Stage 9's controller-naming
+    // convention exactly (diffCtrlKey's texKey, reactionTokenOfSpecies(), timescaleTags), so
+    // this list is also what buildEquationTEX()'s output (used when numSpecies>4, above) is
+    // built to be spliceable by. diffKeys5to8 is reused below by the diffusion-replacement
+    // loop.
+    const diffKeys5to8 = [];
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+      for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
+        if (i <= 4 && j <= 4) continue;
+        const X = defaultSpecies[i - 1];
+        const Y = defaultSpecies[j - 1];
+        const key = X.toUpperCase() + Y.toUpperCase();
+        diffKeys5to8.push(key);
+        regexes[key] = new RegExp(
+          "\\b(D_{" + X + " " + Y + "}) (\\\\vnabla " + Y + ")",
+          "g",
+        );
+      }
+    }
+    const reactionKeys5to8 = [];
+    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const tag = reactionTokenOfSpecies(i - 1);
+      reactionKeys5to8.push(tag);
+      regexes[tag] = new RegExp("\\b(" + tag + ")", "g");
+    }
+    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const tag = "TU" + i;
+      regexes[tag] = new RegExp("\\b(tau_{" + defaultSpecies[i - 1] + "})", "g");
+    }
 
     // Define placeholders for substituting parameter names in custom-typeset equations.
     let paramNames = getKineticParamNames();
@@ -7798,6 +7855,23 @@ async function VisualPDE(url) {
       associatedStrs["TV"] = options.timescale_2;
       associatedStrs["TW"] = options.timescale_3;
       associatedStrs["TQ"] = options.timescale_4;
+
+      // Species 5-8 (Stage 10 of the 8-species upgrade) - mirrors the hand-written entries
+      // above; keys match diffKeys5to8/reactionKeys5to8 (built alongside regexes, above).
+      for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+        for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
+          if (i <= 4 && j <= 4) continue;
+          const key =
+            defaultSpecies[i - 1].toUpperCase() +
+            defaultSpecies[j - 1].toUpperCase();
+          associatedStrs[key] = options["diffusionStr_" + i + "_" + j];
+        }
+      }
+      for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+        associatedStrs[reactionTokenOfSpecies(i - 1)] =
+          options["reactionStr_" + i];
+        associatedStrs["TU" + i] = options["timescale_" + i];
+      }
 
       // Map empty strings to 0.
       Object.keys(associatedStrs).forEach(function (key) {
@@ -7914,6 +7988,7 @@ async function VisualPDE(url) {
         "QU",
         "QV",
         "QW",
+        ...diffKeys5to8,
       ].forEach(function (key) {
         let delims = associatedStrs[key].includes("\\dmat") ? "  " : "[]";
         str = replaceUserDefDiff(
@@ -7925,13 +8000,16 @@ async function VisualPDE(url) {
       });
 
       // Replace the reaction strings.
-      ["UFUN", "VFUN", "WFUN", "QFUN"].forEach(function (tag) {
+      ["UFUN", "VFUN", "WFUN", "QFUN", ...reactionKeys5to8].forEach(function (
+        tag,
+      ) {
         str = replaceUserDefReac(str, regexes[tag], associatedStrs[tag]);
       });
 
       // Replace the timescale strings. Skip tags with no associatedStrs/regexes entry
-      // (TU5-TU8, until the TeX-generalization stage of the upgrade populates them) rather
-      // than passing `undefined` as input, which replaceUserDefTimescale can't handle.
+      // (shouldn't happen now that Stage 10 populates TU5-TU8 too, but kept as a defensive
+      // guard) rather than passing `undefined` as input, which replaceUserDefTimescale
+      // can't handle.
       timescaleTags.forEach(function (tag) {
         if (associatedStrs[tag] === undefined) return;
         str = replaceUserDefTimescale(str, regexes[tag], associatedStrs[tag]);
