@@ -7933,10 +7933,15 @@ async function VisualPDE(url) {
     regexes["QU"] = /\b(D_{q u}) (\\vnabla u)/g;
     regexes["QV"] = /\b(D_{q v}) (\\vnabla v)/g;
     regexes["QW"] = /\b(D_{q w}) (\\vnabla w)/g;
-    regexes["UFUN"] = /\b(UFUN)/g;
-    regexes["VFUN"] = /\b(VFUN)/g;
-    regexes["WFUN"] = /\b(WFUN)/g;
-    regexes["QFUN"] = /\b(QFUN)/g;
+    // Trailing \b anchors matter now that species 5-8 exist: without one, e.g. "UFUN"
+    // partially matches the "UFUN" prefix of "UFUN5".."UFUN8" (bug found via live testing -
+    // reaction terms for species 5-8 were getting corrupted/never substituted, since this
+    // array is processed before reactionKeys5to8 below and would consume the "UFUN" prefix
+    // out of "UFUN5" etc first, leaving a stray "5" and no "UFUN5" left to match against).
+    regexes["UFUN"] = /\b(UFUN)\b/g;
+    regexes["VFUN"] = /\b(VFUN)\b/g;
+    regexes["WFUN"] = /\b(WFUN)\b/g;
+    regexes["QFUN"] = /\b(QFUN)\b/g;
     regexes["TU"] = /\b(tau_{u})/g;
     regexes["TV"] = /\b(tau_{v})/g;
     regexes["TW"] = /\b(tau_{w})/g;
@@ -7967,10 +7972,16 @@ async function VisualPDE(url) {
     for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
       const tag = reactionTokenOfSpecies(i - 1);
       reactionKeys5to8.push(tag);
-      regexes[tag] = new RegExp("\\b(" + tag + ")", "g");
+      regexes[tag] = new RegExp("\\b(" + tag + ")\\b", "g");
     }
     for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
       const tag = "TU" + i;
+      // No trailing \b here (unlike the reaction-token fix above): the capture group ends
+      // in "}", a non-word character, so a trailing \b would require the *next* character
+      // to be a word character to match - which it never is in practice (whitespace/"\\"
+      // follows in the generated TeX), so it would break every match. Safe without one
+      // regardless: "tau_{u}" can never be a literal prefix of "tau_{u5}" (they diverge at
+      // "}" vs "5" before the shorter pattern's boundary would even matter).
       regexes[tag] = new RegExp("\\b(tau_{" + defaultSpecies[i - 1] + "})", "g");
     }
 
