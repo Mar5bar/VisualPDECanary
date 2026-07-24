@@ -1,5 +1,12 @@
 // simulation_shaders.js
 
+import {
+  groupOfSpecies,
+  channelCharOfSpecies,
+  diffusionLabel,
+  reactionTokenOfSpecies,
+} from "./species_config.js";
+
 /**
  * Generates the top part of a shader for reaction-diffusion simulation based on the given timestepping scheme.
  * @param {string} type - The timestepping scheme to generate the shader for.
@@ -258,6 +265,276 @@ export function RDShaderMain(type) {
       vec4 uvwqLast;
   ` + update[type]
   );
+}
+
+// ---------------------------------------------------------------------------------------
+// MRT (multiple render target) shader variants, used only once numGroups(numSpecies)>1
+// (i.e. numSpecies>4), currently for Forward Euler only. Group 0 (species 1-4) is computed
+// exactly as RDShaderTop/RDShaderMain/RDShaderUpdateNormal/RDShaderUpdateCross/RDShaderBot
+// already do; these MRT variants ADD group 1 (species 5-8) alongside it in the same
+// computeRHS call and fragment shader invocation, writing group 0 to output 0 and group 1
+// to output 1 via GLSL ES 300's layout(location=N) out qualifiers. None of the non-MRT
+// functions above are modified, so the numSpecies<=4 shader text/behaviour is unaffected.
+//
+// Naming conventions used below (must stay in sync with main.js's Stage 5 diffusion/
+// reaction string builders, which *define* the tokens these functions *reference*):
+//   - Stencil samples for species 1-4 use the existing "uvwq"-prefixed locals; species 5-8
+//     use "uvwq2"-prefixed locals (a second full set of the same 9 stencil points).
+//   - Reaction tokens: reactionTokenOfSpecies(i) (species_config.js) - "UFUN".."QFUN" for
+//     species 1-4 (unchanged), "UFUN5".."UFUN8" for species 5-8.
+//   - Diffusion coefficient tokens: "D" + diffusionLabel(i,j) (species_config.js) - legacy
+//     letter-pairs ("Duu","Duv",...) when both i,j<4 (byte-identical to today), numeric
+//     pairs ("D5_5","D1_5",...) if either index is >=4.
+// ---------------------------------------------------------------------------------------
+
+/**
+ * MRT counterpart of RDShaderTop("FE"). Adds a textureSourceGroup1 sampler (group 1's
+ * current-state texture) and doubles computeRHS's stencil parameters/locals so a single
+ * call can compute both groups' RHS in one pass. The two layout(location=N) out variables
+ * are declared here (GLSL ES 300 requires out variables to be declared at global scope,
+ * before use in main()) rather than in RDShaderBotMRT, which only assigns them.
+ * @returns {string} The generated shader code (FE only).
+ */
+export function RDShaderTopMRT() {
+  return `
+    precision highp float; precision highp sampler2D; varying vec2 textureCoords;
+    uniform sampler2D textureSource;
+    uniform sampler2D textureSource1;
+    uniform sampler2D textureSourceGroup1;
+    layout(location = 0) out highp vec4 fragColor0;
+    layout(location = 1) out highp vec4 fragColor1;
+    uniform float dt;
+    uniform float dx;
+    uniform float dy;
+    uniform float L;
+    uniform float L_x;
+    uniform float L_y;
+    uniform float L_min;
+    uniform float t;
+    uniform float seed;
+    uniform float globalIntegralValue;
+    uniform sampler2D imageSourceOne;
+    uniform sampler2D imageSourceTwo;
+
+    AUXILIARY_GLSL_FUNS
+
+    const float ALPHA = 0.147;
+    const float INV_ALPHA = 1.0 / ALPHA;
+    const float BETA = 2.0 / (pi * ALPHA);
+    float erfinv(float pERF) {
+      float yERF;
+      if (pERF == -1.0) {
+        yERF = log(1.0 - (-0.99)*(-0.99));
+      } else {
+        yERF = log(1.0 - pERF*pERF);
+      }
+      float zERF = BETA + 0.5 * yERF;
+      return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
+    }
+
+    void computeRHS(sampler2D textureSource,
+      vec4 uvwqIn, vec4 uvwqLIn, vec4 uvwqRIn, vec4 uvwqTIn, vec4 uvwqBIn, vec4 uvwqLLIn, vec4 uvwqRRIn, vec4 uvwqTTIn, vec4 uvwqBBIn,
+      vec4 uvwq2In, vec4 uvwq2LIn, vec4 uvwq2RIn, vec4 uvwq2TIn, vec4 uvwq2BIn, vec4 uvwq2LLIn, vec4 uvwq2RRIn, vec4 uvwq2TTIn, vec4 uvwq2BBIn,
+      out highp vec4 result0, out highp vec4 result1) {
+
+        ivec2 texSize = textureSize(textureSource,0);
+        float step_x = 1.0 / float(texSize.x);
+        float step_y = 1.0 / float(texSize.y);
+        float x = textureCoords.x * L_x + MINX;
+        float y = textureCoords.y * L_y + MINY;
+        float interior = float(textureCoords.x > 0.75*step_x && textureCoords.x < 1.0 - 0.75*step_x && textureCoords.y > 0.5*step_y && textureCoords.y < 1.0 - 0.75*step_y);
+        float exterior = 1.0 - interior;
+        vec2 dSquared = 1.0/vec2(dx*dx, dy*dy);
+        vec2 textureCoordsL = textureCoords + vec2(-step_x, 0.0);
+        vec2 textureCoordsLL = textureCoordsL + vec2(-step_x, 0.0);
+        vec2 textureCoordsR = textureCoords + vec2(+step_x, 0.0);
+        vec2 textureCoordsRR = textureCoordsR + vec2(+step_x, 0.0);
+        vec2 textureCoordsT = textureCoords + vec2(0.0, +step_y);
+        vec2 textureCoordsTT = textureCoordsT + vec2(0.0, +step_y);
+        vec2 textureCoordsB = textureCoords + vec2(0.0, -step_y);
+        vec2 textureCoordsBB = textureCoordsB + vec2(0.0, -step_y);
+
+        vec4 uvwq = uvwqIn;
+        vec4 uvwqL = uvwqLIn;
+        vec4 uvwqLL = uvwqLLIn;
+        vec4 uvwqR = uvwqRIn;
+        vec4 uvwqRR = uvwqRRIn;
+        vec4 uvwqT = uvwqTIn;
+        vec4 uvwqTT = uvwqTTIn;
+        vec4 uvwqB = uvwqBIn;
+        vec4 uvwqBB = uvwqBBIn;
+        vec4 uvwq2 = uvwq2In;
+        vec4 uvwq2L = uvwq2LIn;
+        vec4 uvwq2LL = uvwq2LLIn;
+        vec4 uvwq2R = uvwq2RIn;
+        vec4 uvwq2RR = uvwq2RRIn;
+        vec4 uvwq2T = uvwq2TIn;
+        vec4 uvwq2TT = uvwq2TTIn;
+        vec4 uvwq2B = uvwq2BIn;
+        vec4 uvwq2BB = uvwq2BBIn;
+    `;
+}
+
+/**
+ * MRT counterpart of RDShaderMain("FE"). Samples both groups' 9-point stencils, calls the
+ * doubled computeRHS from RDShaderTopMRT, and computes both groups' Forward Euler update
+ * (updated/updated2). Not closed with "}" - as with RDShaderMain, the Dirichlet/algebraic
+ * shaders and RDShaderBotMRT supply the rest of main()'s body and its closing brace.
+ * @returns {string} The generated shader code (FE only).
+ */
+export function RDShaderMainMRT() {
+  return `
+  void main()
+  {
+      ivec2 texSize = textureSize(textureSource,0);
+      float step_x = 1.0 / float(texSize.x);
+      float step_y = 1.0 / float(texSize.y);
+      float x = textureCoords.x * L_x + MINX;
+      float y = textureCoords.y * L_y + MINY;
+      float interior = float(textureCoords.x > 0.75*step_x && textureCoords.x < 1.0 - 0.75*step_x && textureCoords.y > 0.5*step_y && textureCoords.y < 1.0 - 0.75*step_y);
+      float exterior = 1.0 - interior;
+
+      vec2 textureCoordsL = textureCoords + vec2(-step_x, 0.0);
+      vec2 textureCoordsLL = textureCoordsL + vec2(-step_x, 0.0);
+      vec2 textureCoordsR = textureCoords + vec2(+step_x, 0.0);
+      vec2 textureCoordsRR = textureCoordsR + vec2(+step_x, 0.0);
+      vec2 textureCoordsT = textureCoords + vec2(0.0, +step_y);
+      vec2 textureCoordsTT = textureCoordsT + vec2(0.0, +step_y);
+      vec2 textureCoordsB = textureCoords + vec2(0.0, -step_y);
+      vec2 textureCoordsBB = textureCoordsB + vec2(0.0, -step_y);
+
+      vec4 RHS0;
+      vec4 RHS1;
+      vec4 updated;
+      vec4 updated2;
+      vec4 uvwq;
+      vec4 uvwqL;
+      vec4 uvwqLL;
+      vec4 uvwqR;
+      vec4 uvwqRR;
+      vec4 uvwqT;
+      vec4 uvwqTT;
+      vec4 uvwqB;
+      vec4 uvwqBB;
+      vec4 uvwq2;
+      vec4 uvwq2L;
+      vec4 uvwq2LL;
+      vec4 uvwq2R;
+      vec4 uvwq2RR;
+      vec4 uvwq2T;
+      vec4 uvwq2TT;
+      vec4 uvwq2B;
+      vec4 uvwq2BB;
+
+      uvwq = texture2D(textureSource, textureCoords);
+      uvwqL = texture2D(textureSource, textureCoordsL);
+      uvwqR = texture2D(textureSource, textureCoordsR);
+      uvwqT = texture2D(textureSource, textureCoordsT);
+      uvwqB = texture2D(textureSource, textureCoordsB);
+      uvwqLL = texture2D(textureSource, textureCoordsLL);
+      uvwqRR = texture2D(textureSource, textureCoordsRR);
+      uvwqTT = texture2D(textureSource, textureCoordsTT);
+      uvwqBB = texture2D(textureSource, textureCoordsBB);
+      uvwq2 = texture2D(textureSourceGroup1, textureCoords);
+      uvwq2L = texture2D(textureSourceGroup1, textureCoordsL);
+      uvwq2R = texture2D(textureSourceGroup1, textureCoordsR);
+      uvwq2T = texture2D(textureSourceGroup1, textureCoordsT);
+      uvwq2B = texture2D(textureSourceGroup1, textureCoordsB);
+      uvwq2LL = texture2D(textureSourceGroup1, textureCoordsLL);
+      uvwq2RR = texture2D(textureSourceGroup1, textureCoordsRR);
+      uvwq2TT = texture2D(textureSourceGroup1, textureCoordsTT);
+      uvwq2BB = texture2D(textureSourceGroup1, textureCoordsBB);
+      computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, uvwq2, uvwq2L, uvwq2R, uvwq2T, uvwq2B, uvwq2LL, uvwq2RR, uvwq2TT, uvwq2BB, RHS0, RHS1);
+      vec4 timescales = TIMESCALES;
+      vec4 timescalesGroup1 = TIMESCALESGROUP1;
+      updated = dt * RHS0 / timescales + uvwq;
+      updated2 = dt * RHS1 / timescalesGroup1 + uvwq2;
+  `;
+}
+
+/**
+ * @param {number} s - 0-based species index.
+ * @returns {string} "uvwq" for species 1-4 (group 0), "uvwq2" for species 5-8 (group 1).
+ */
+function stencilPrefixOfSpecies(s) {
+  return groupOfSpecies(s) === 0 ? "uvwq" : "uvwq2";
+}
+
+/**
+ * MRT counterpart of RDShaderUpdateNormal, generalized to however many species are active
+ * across both groups (numSpecies in 5..8, since this is only ever used once numGroups>1;
+ * group 0/species 1-4 are always fully present in that case). Closes computeRHS's body
+ * (opened by RDShaderTopMRT) with the result0/result1 assignments.
+ * @param {number} numSpecies - Number of active species (5-8).
+ * @returns {string} The generated shader code.
+ */
+export function RDShaderUpdateNormalMRT(numSpecies) {
+  let shader = "";
+  for (let s = 0; s < numSpecies; s++) {
+    const p = stencilPrefixOfSpecies(s);
+    const ch = channelCharOfSpecies(s);
+    const label = diffusionLabel(s, s);
+    const reac = reactionTokenOfSpecies(s);
+    shader += `
+    float LDself${s} = 0.5*((D${label}x*(${p}R.${ch} + ${p}L.${ch} - 2.0*${p}.${ch}) + D${label}xR*(${p}R.${ch} - ${p}.${ch}) + D${label}xL*(${p}L.${ch} - ${p}.${ch})) / dx) / dx + 0.5*((D${label}y*(${p}T.${ch} + ${p}B.${ch} - 2.0*${p}.${ch}) + D${label}yT*(${p}T.${ch} - ${p}.${ch}) + D${label}yB*(${p}B.${ch} - ${p}.${ch})) / dy) / dy;
+    float d${s} = LDself${s} + ${reac};
+    `;
+  }
+  const group1Terms = [];
+  for (let ch = 0; ch < 4; ch++) {
+    const s = 4 + ch;
+    group1Terms.push(s < numSpecies ? `d${s}` : "0.0");
+  }
+  shader += `result0 = vec4(d0,d1,d2,d3);\n`;
+  shader += `result1 = vec4(${group1Terms.join(",")});\n`;
+  return shader + `\n}`;
+}
+
+/**
+ * MRT counterpart of RDShaderUpdateCross: a full N x N cross-diffusion matrix (any species
+ * can cross-diffuse with any other, regardless of group), generalized the same way as
+ * RDShaderUpdateNormalMRT. Closes computeRHS's body with the result0/result1 assignments.
+ * @param {number} numSpecies - Number of active species (5-8).
+ * @returns {string} The generated shader code.
+ */
+export function RDShaderUpdateCrossMRT(numSpecies) {
+  let shader = "";
+  for (let s = 0; s < numSpecies; s++) {
+    const pS = stencilPrefixOfSpecies(s);
+    const terms = [];
+    for (let k = 0; k < numSpecies; k++) {
+      const pK = stencilPrefixOfSpecies(k);
+      const chK = channelCharOfSpecies(k);
+      const label = diffusionLabel(s, k);
+      shader += `
+      vec2 LD_${s}_${k} = vec2(D${label}x*(${pK}R.${chK} + ${pK}L.${chK} - 2.0*${pK}.${chK}) + D${label}xR*(${pK}R.${chK} - ${pK}.${chK}) + D${label}xL*(${pK}L.${chK} - ${pK}.${chK}), D${label}y*(${pK}T.${chK} + ${pK}B.${chK} - 2.0*${pK}.${chK}) + D${label}yT*(${pK}T.${chK} - ${pK}.${chK}) + D${label}yB*(${pK}B.${chK} - ${pK}.${chK}));`;
+      terms.push(`LD_${s}_${k}`);
+    }
+    shader += `
+    float d${s} = 0.5*dot(dSquared, ${terms.join(" + ")}) + ${reactionTokenOfSpecies(s)};
+    `;
+  }
+  const group1Terms = [];
+  for (let ch = 0; ch < 4; ch++) {
+    const s = 4 + ch;
+    group1Terms.push(s < numSpecies ? `d${s}` : "0.0");
+  }
+  shader += `result0 = vec4(d0,d1,d2,d3);\n`;
+  shader += `result1 = vec4(${group1Terms.join(",")});\n`;
+  return shader + `\n}`;
+}
+
+/**
+ * MRT counterpart of RDShaderBot. The layout(location=N) out variables themselves are
+ * declared in RDShaderTopMRT (GLSL ES 300 requires them at global scope, before use); this
+ * just assigns the final per-group results and closes main().
+ * @returns {string} The generated shader code.
+ */
+export function RDShaderBotMRT() {
+  return `
+    fragColor0 = updated;
+    fragColor1 = updated2;
+}`;
 }
 
 /**

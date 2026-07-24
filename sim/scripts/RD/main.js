@@ -10958,6 +10958,22 @@ async function VisualPDE(url) {
         ]
       : [1, 1, 1, 1];
     const toSub = "vec4(" + scales.map(parseShaderString).join(",") + ")";
+    // Used only by the MRT (>4-species) Forward Euler shader (RDShaderMainMRT). Replaced
+    // before TIMESCALES since "TIMESCALESGROUP1" contains "TIMESCALES" as a prefix and the
+    // TIMESCALES regex below has no word-boundary anchoring - doing this one first avoids it
+    // being partially consumed. A guaranteed no-op for every other shader/scheme, since only
+    // RDShaderMainMRT's text ever contains this token.
+    let scalesGroup1 = options.timescales
+      ? [
+          options.timescale_5,
+          options.timescale_6,
+          options.timescale_7,
+          options.timescale_8,
+        ]
+      : [1, 1, 1, 1];
+    const toSubGroup1 =
+      "vec4(" + scalesGroup1.map(parseShaderString).join(",") + ")";
+    str = str.replaceAll(/TIMESCALESGROUP1/g, toSubGroup1);
     return str.replaceAll(/TIMESCALES/g, toSub);
   }
 
