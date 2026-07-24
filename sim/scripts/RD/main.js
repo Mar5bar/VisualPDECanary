@@ -1230,6 +1230,37 @@ async function VisualPDE(url) {
     });
     clearColour = new THREE.Color().setRGB(-1, -1, -1);
 
+    // AB2/Mid1/Mid2/RK41-44 followup sketch (Stage 13 of the 8-species upgrade, design note
+    // only - not implemented). Stage 9's FE-only guard (configureOptions()/configureGUI())
+    // already prevents these from ever being selected/rendered once numSpecies>4, and
+    // Stage 11 capped RDShaderUpdateNormal/Cross's species count so their generated shader
+    // strings stay well-formed regardless - so there's no correctness bug to fix here, just
+    // an unimplemented capability. To extend Forward Euler's MRT pattern (RDShaderTopMRT/
+    // RDShaderMainMRT/RDShaderUpdateNormalMRT/CrossMRT/RDShaderBotMRT in
+    // simulation_shaders.js, wired up in setRDEquations()/timestep()'s "Euler" case) to the
+    // other 3 schemes:
+    // - AB2 (update.AB2 in RDShaderMain, timestep()'s "AB2" case): reads 2 history textures
+    //   (textureSource, textureSource1) each through the full 9-point stencil - needs a
+    //   textureSourceGroup1/textureSource1Group1 pair (4 samplers total) and a doubled
+    //   computeRHS call per texture (RHS1/RHS2 already exist as names; MRT would need
+    //   RHS1_1/RHS2_1-style group-1 counterparts, or restructure computeRHS itself to
+    //   return both groups per call, matching RDShaderUpdateCrossMRT's shape).
+    // - Midpoint (update.Mid1/Mid2, timestep()'s "Mid" case, 2 render passes into simTextures
+    //   slot [2] then [0]): each pass needs its own MRT top/bot pair (mirroring
+    //   RDShaderTopMRT/BotMRT); Mid2's combine step (`uvwq = uvwqLast + 0.5*dt*texture2D(
+    //   textureSource1,...)`) needs a matching uvwq2/uvwq2Last combine using a
+    //   textureSource1Group1-style secondary sampler.
+    // - RK4 (update.RK41-44, timestep()'s "RK4" case, 4 passes using simTextures slots
+    //   [2],[3],[4] as k1/k2/k3 scratch): same multiplicative pattern - every existing
+    //   textureSource/1/2/3 sampler needs a Group1 counterpart, and RK44's final combine
+    //   (reading all of textureSource1/2/3 plus RHS1) needs the same doubled treatment.
+    // No new render-target infrastructure is needed for any of this - Stage 3's
+    // mrtSimTextures allocation (5 ping-pong slots, same as simTextures) already has enough
+    // scratch slots for whichever scheme needs them; this is "apply the Stage 4-8 pattern 3
+    // more times to a fixed, well-understood set of shader strings," not a new design.
+    // Once implemented, relax (don't remove) Stage 9's guard: allow all 4 schemes again once
+    // numGroups>1, the same way it currently only offers "Euler".
+
     // We'll use a host of materials for timestepping, each with different fragment shaders.
     simMaterials.FE = new THREE.ShaderMaterial({
       uniforms: uniforms,
