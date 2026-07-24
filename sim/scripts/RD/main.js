@@ -49,6 +49,8 @@ import {
   RDShaderUpdateCross,
   RDShaderAlgebraicSpecies,
   RDShaderEnforceDirichletTop,
+  RDShaderEnforceDirichletTopMRT,
+  RDShaderEnforceDirichletBotMRT,
   RDShaderAdvectionPreBC,
   RDShaderAdvectionPostBC,
   RDShaderDiffusionPreBC,
@@ -150,7 +152,10 @@ async function VisualPDE(url) {
     clickTexture,
     simTextureOpts,
     reductionTextures = [],
-    checkpointTexture;
+    checkpointTexture,
+    // Group 1 (species 5-8) counterpart of checkpointTexture; null whenever the current
+    // checkpoint has no group-1 data (numGroups was 1 when it was captured/loaded).
+    checkpointTextureGroup1;
   let displayMaterial,
     drawMaterial,
     clickMaterial,
@@ -167,6 +172,11 @@ async function VisualPDE(url) {
     arrowMaterial,
     interpolationMaterial,
     checkpointMaterial,
+    // MRT (>4-species) counterpart of checkpointMaterial - a MeshBasicMaterial can't sample
+    // two textures/write two outputs, so restoring a checkpoint once numGroups>1 needs a
+    // real dual-input, dual-output ShaderMaterial instead (built once at init, like
+    // checkpointMaterial itself).
+    checkpointMaterialMRT,
     minMaxMaterial,
     sumMaterial,
     tailGeometry,
@@ -350,6 +360,9 @@ async function VisualPDE(url) {
     videoChunks;
   let buffer,
     stateBuffer,
+    // Group 1 (species 5-8) counterpart of stateBuffer, populated by getRawState() only
+    // once numGroups(numSpecies)>1 - see the 8-species upgrade's Stage 11.5 notes.
+    stateBufferGroup1,
     postBuffer,
     bufferFilled = false;
   const numsAsWords = [
@@ -1270,6 +1283,23 @@ async function VisualPDE(url) {
       transparent: true,
       blending: THREE.NoBlending,
       toneMapped: false,
+    });
+    // MRT counterpart of checkpointMaterial (Stage 11.5 of the 8-species upgrade) - a
+    // MeshBasicMaterial can only sample one texture/write one output, so restoring a
+    // checkpoint once numGroups>1 needs a real ShaderMaterial instead. Reuses copyShaderMRT
+    // (already samples textureSource/textureSourceGroup1 and writes fragColor0/fragColor1)
+    // with its own dedicated uniforms object - NOT the shared `uniforms` - since that
+    // object's textureSource/textureSourceGroup1 are reassigned constantly by every other
+    // MRT material and this one's inputs (the checkpoint textures) are set only when
+    // restoring, not every frame.
+    checkpointMaterialMRT = new THREE.ShaderMaterial({
+      uniforms: {
+        textureSource: { type: "t", value: null },
+        textureSourceGroup1: { type: "t", value: null },
+      },
+      vertexShader: genericVertexShader(),
+      fragmentShader: copyShaderMRT(),
+      glslVersion: THREE.GLSL3,
     });
     minMaxMaterial = new THREE.ShaderMaterial({
       uniforms: minMaxUniforms,
@@ -4519,13 +4549,30 @@ async function VisualPDE(url) {
   function enforceDirichlet() {
     // Enforce any Dirichlet boundary conditions.
     simDomain.material = dirichletMaterial;
-    // We'll do 1->0 then 2->1 etc, then cycle.
-    for (let ind = 1; ind < simTextures.length; ind++) {
-      uniforms.textureSource.value = simTextures[ind].texture;
-      renderer.setRenderTarget(simTextures[ind - 1]);
-      renderer.render(simScene, simCamera);
+    // The real 8-species state lives in mrtSimTextures once numGroups>1 (matching every
+    // other Stage 3+ MRT code path) - dirichletMaterial's shader/glslVersion are already
+    // toggled to the MRT-capable variant in setRDEquations() when that's the case (Stage
+    // 11.5 of the 8-species upgrade; previously this always cascaded over the unused
+    // simTextures regardless, so Dirichlet BCs silently had no effect on any species once
+    // numSpecies>4).
+    if (numGroups(Number(options.numSpecies)) > 1) {
+      // We'll do 1->0 then 2->1 etc, then cycle.
+      for (let ind = 1; ind < mrtSimTextures.length; ind++) {
+        uniforms.textureSource.value = mrtSimTextures[ind].texture[0];
+        uniforms.textureSourceGroup1.value = mrtSimTextures[ind].texture[1];
+        renderer.setRenderTarget(mrtSimTextures[ind - 1]);
+        renderer.render(simScene, simCamera);
+      }
+      mrtSimTextures.rotate(-1);
+    } else {
+      // We'll do 1->0 then 2->1 etc, then cycle.
+      for (let ind = 1; ind < simTextures.length; ind++) {
+        uniforms.textureSource.value = simTextures[ind].texture;
+        renderer.setRenderTarget(simTextures[ind - 1]);
+        renderer.render(simScene, simCamera);
+      }
+      simTextures.rotate(-1);
     }
-    simTextures.rotate(-1);
   }
 
   function render(isResetting) {
@@ -4955,24 +5002,48 @@ async function VisualPDE(url) {
 
   function clearTextures() {
     setRenderSizeToDisc();
+    const isMRT = numGroups(Number(options.numSpecies)) > 1;
+    // If restoring a checkpoint captured/loaded while numGroups was 1 (no group-1 data) but
+    // numSpecies is now >4, species 5-8 restore to zero rather than being left with whatever
+    // a single-output material would otherwise leave in that attachment (undefined/stale
+    // data) - created fresh each time (a reset-to-checkpoint is an explicit, infrequent user
+    // action, not a per-frame one) and disposed right after use, below.
+    let tempZeroGroup1Tex;
     if (checkpointExists && options.resetFromCheckpoints) {
-      // NB: checkpointMaterial is a plain THREE.MeshBasicMaterial (image-restore feature),
-      // not MRT-aware - restoring a checkpoint when numGroups>1 would only write group 0's
-      // attachment, leaving group 1's undefined. A known, narrow gap (checkpoints are an
-      // optional/advanced feature); not addressed here.
-      simDomain.material = checkpointMaterial;
+      if (isMRT) {
+        // checkpointMaterial (plain MeshBasicMaterial) can only sample one texture/write
+        // one output - use checkpointMaterialMRT (Stage 11.5 of the 8-species upgrade)
+        // instead, which samples both checkpoint textures and writes both attachments.
+        if (checkpointTextureGroup1 == null) {
+          tempZeroGroup1Tex = new THREE.DataTexture(
+            new Float32Array(
+              checkpointTexture.image.width * checkpointTexture.image.height * 4,
+            ),
+            checkpointTexture.image.width,
+            checkpointTexture.image.height,
+            THREE.RGBAFormat,
+            THREE.FloatType,
+          );
+          tempZeroGroup1Tex.needsUpdate = true;
+        }
+        checkpointMaterialMRT.uniforms.textureSource.value = checkpointTexture;
+        checkpointMaterialMRT.uniforms.textureSourceGroup1.value =
+          checkpointTextureGroup1 ?? tempZeroGroup1Tex;
+        simDomain.material = checkpointMaterialMRT;
+      } else {
+        simDomain.material = checkpointMaterial;
+      }
     } else {
       simDomain.material = clearMaterial;
     }
     // The real 8-species state lives in mrtSimTextures once numGroups>1 (see timestep()'s
     // "Euler" case) - clearMaterial's MRT shader (Stage 7) writes both attachments in one
     // render call per slot.
-    (numGroups(Number(options.numSpecies)) > 1 ? mrtSimTextures : simTextures).forEach(
-      (tex) => {
-        renderer.setRenderTarget(tex);
-        renderer.render(simScene, simCamera);
-      },
-    );
+    (isMRT ? mrtSimTextures : simTextures).forEach((tex) => {
+      renderer.setRenderTarget(tex);
+      renderer.render(simScene, simCamera);
+    });
+    tempZeroGroup1Tex?.dispose();
     setDefaultRenderSize();
     render();
   }
@@ -6035,55 +6106,117 @@ async function VisualPDE(url) {
     // BCs have been specified.
     checkForAnyDirichletBCs();
     if (anyDirichletBCs) {
-      dirichletShader = kineticStr + RDShaderEnforceDirichletTop();
-      if (options.domainViaIndicatorFun) {
-        let str = RDShaderDirichletIndicatorFun()
-          .replace(
+      if (numGroups(Number(options.numSpecies)) > 1) {
+        // MRT (>4-species) path (Stage 11.5 of the 8-species upgrade): built as an entirely
+        // separate dirichletShader from the one below (rather than sharing partial state) so
+        // that branch stays provably byte-for-byte unchanged. Loops over all 8 species
+        // directly via options["...Str_" + i] (BCStrs/DStrs/MStrs above are species-1-4-only
+        // by design, matching RDShaderUpdateNormal/Cross's group-0 scope) - previously,
+        // Dirichlet BCs had no effect at all once numSpecies>4: enforceDirichlet() only ever
+        // touched the unused (once numGroups>1) simTextures, and this shader's content never
+        // even attempted to include species 5-8's terms.
+        dirichletShader = kineticStr + RDShaderEnforceDirichletTopMRT();
+        if (options.domainViaIndicatorFun) {
+          let str = RDShaderDirichletIndicatorFun().replace(
             /indicatorFun/,
             parseShaderString(getModifiedDomainIndicatorFun()),
-          )
-          .replace(/updated/, "gl_FragColor");
-        DStrs.forEach(function (D, ind) {
-          if (BCStrs[ind] == "dirichlet") {
-            dirichletShader +=
-              selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
-              parseShaderString(D) +
-              ";\n}\n";
-          } else {
-            dirichletShader +=
-              selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
-              "0.0" +
-              ";\n}\n";
+          );
+          for (let ind = 0; ind < MAX_SPECIES_SUPPORTED; ind++) {
+            const D = options["dirichletStr_" + (ind + 1)];
+            if (options["boundaryConditions_" + (ind + 1)] == "dirichlet") {
+              dirichletShader +=
+                selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
+                parseShaderString(D) +
+                ";\n}\n";
+            } else {
+              dirichletShader +=
+                selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
+                "0.0" +
+                ";\n}\n";
+            }
           }
-        });
-      } else {
-        BCStrs.forEach(function (str, ind) {
-          if (str == "dirichlet") {
-            dirichletShader += parseDirichletRHS(
-              DStrs[ind],
-              listOfSpecies[ind],
-            );
-            dirichletShader += dirichletEnforceShader(ind);
-          } else if (str == "combo") {
-            [
-              ...MStrs[ind].matchAll(
-                /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/gi,
-              ),
-            ].forEach(function (m) {
-              const side = m[1][0].toUpperCase();
+        } else {
+          for (let ind = 0; ind < MAX_SPECIES_SUPPORTED; ind++) {
+            const bcStr = options["boundaryConditions_" + (ind + 1)];
+            if (bcStr == "dirichlet") {
               dirichletShader += parseDirichletRHS(
-                m[2],
+                options["dirichletStr_" + (ind + 1)],
                 listOfSpecies[ind],
-                side,
               );
-              dirichletShader += dirichletEnforceShader(ind, side);
-            });
+              dirichletShader += dirichletEnforceShaderMRT(ind);
+            } else if (bcStr == "combo") {
+              [
+                ...(options["comboStr_" + (ind + 1)] + ";").matchAll(
+                  /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/gi,
+                ),
+              ].forEach(function (m) {
+                const side = m[1][0].toUpperCase();
+                dirichletShader += parseDirichletRHS(
+                  m[2],
+                  listOfSpecies[ind],
+                  side,
+                );
+                dirichletShader += dirichletEnforceShaderMRT(ind, side);
+              });
+            }
           }
-        });
+        }
+        dirichletShader += RDShaderEnforceDirichletBotMRT();
+        dirichletShader = replaceMINXMINY(dirichletShader);
+        assignFragmentShader(dirichletMaterial, dirichletShader);
+        dirichletMaterial.glslVersion = THREE.GLSL3;
+      } else {
+        dirichletShader = kineticStr + RDShaderEnforceDirichletTop();
+        if (options.domainViaIndicatorFun) {
+          let str = RDShaderDirichletIndicatorFun()
+            .replace(
+              /indicatorFun/,
+              parseShaderString(getModifiedDomainIndicatorFun()),
+            )
+            .replace(/updated/, "gl_FragColor");
+          DStrs.forEach(function (D, ind) {
+            if (BCStrs[ind] == "dirichlet") {
+              dirichletShader +=
+                selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
+                parseShaderString(D) +
+                ";\n}\n";
+            } else {
+              dirichletShader +=
+                selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
+                "0.0" +
+                ";\n}\n";
+            }
+          });
+        } else {
+          BCStrs.forEach(function (str, ind) {
+            if (str == "dirichlet") {
+              dirichletShader += parseDirichletRHS(
+                DStrs[ind],
+                listOfSpecies[ind],
+              );
+              dirichletShader += dirichletEnforceShader(ind);
+            } else if (str == "combo") {
+              [
+                ...MStrs[ind].matchAll(
+                  /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/gi,
+                ),
+              ].forEach(function (m) {
+                const side = m[1][0].toUpperCase();
+                dirichletShader += parseDirichletRHS(
+                  m[2],
+                  listOfSpecies[ind],
+                  side,
+                );
+                dirichletShader += dirichletEnforceShader(ind, side);
+              });
+            }
+          });
+        }
+        dirichletShader += "}";
+        dirichletShader = replaceMINXMINY(dirichletShader);
+        assignFragmentShader(dirichletMaterial, dirichletShader);
+        dirichletMaterial.glslVersion = null;
       }
-      dirichletShader += "}";
-      dirichletShader = replaceMINXMINY(dirichletShader);
-      assignFragmentShader(dirichletMaterial, dirichletShader);
       dirichletMaterial.needsUpdate = true;
     }
   }
@@ -6091,11 +6224,10 @@ async function VisualPDE(url) {
   function checkForAnyDirichletBCs() {
     // Loops over all 8 species slots (not just numSpecies) to match the existing pattern
     // elsewhere in this file of always checking all slots in a group regardless of how many
-    // are officially "active" - harmless since species 5-8 default to periodic/"" and
-    // nothing reachable via the UI can set them otherwise yet (numSpecies is still capped
-    // at 4), but a real correctness fix once that changes: previously this only checked
-    // species 1-4, so a Dirichlet BC on species 5-8 would silently never trigger the
-    // enforceDirichlet() pass.
+    // are officially "active" - harmless since inactive species are always forced to
+    // "periodic" by configureOptions(). setRDEquations()/enforceDirichlet() are both now
+    // MRT-aware (Stage 11.5 of the 8-species upgrade), so a Dirichlet BC on species 5-8 is
+    // correctly enforced once numSpecies>4.
     anyDirichletBCs =
       options.domainViaIndicatorFun ||
       [1, 2, 3, 4, 5, 6, 7, 8].some(
@@ -10133,14 +10265,46 @@ async function VisualPDE(url) {
    */
   function getRawState() {
     stateBuffer = new Float32Array(nXDisc * nYDisc * 4);
-    renderer.readRenderTargetPixels(
-      simTextures[1],
-      0,
-      0,
-      nXDisc,
-      nYDisc,
-      stateBuffer,
-    );
+    if (numGroups(Number(options.numSpecies)) > 1) {
+      // The real state lives in mrtSimTextures once numGroups>1 (simTextures is unused -
+      // see every other Stage 3+ MRT code path). readRenderTargetPixels can't read a
+      // specific attachment from a WebGLMultipleRenderTargets directly (it assumes a
+      // single-texture render target via renderTarget.texture.format/.type, which are
+      // undefined for the array `.texture` an MRT target exposes) - so copy each
+      // attachment out to a plain scratch target with the existing copy shader first, then
+      // read that. Found/fixed as part of the 8-species upgrade's Stage 11.5 (checkpoint
+      // save/restore was previously only capturing group 0, silently dropping species 5-8).
+      stateBufferGroup1 = new Float32Array(nXDisc * nYDisc * 4);
+      const prevMaterial = simDomain.material;
+      const prevTarget = renderer.getRenderTarget();
+      const scratch = postTexture.clone();
+      assignFragmentShader(copyMaterial, copyShader());
+      copyMaterial.glslVersion = null;
+      copyMaterial.needsUpdate = true;
+      simDomain.material = copyMaterial;
+      [
+        [mrtSimTextures[1].texture[0], stateBuffer],
+        [mrtSimTextures[1].texture[1], stateBufferGroup1],
+      ].forEach(([tex, buf]) => {
+        uniforms.textureSource.value = tex;
+        renderer.setRenderTarget(scratch);
+        renderer.render(simScene, simCamera);
+        renderer.readRenderTargetPixels(scratch, 0, 0, nXDisc, nYDisc, buf);
+      });
+      scratch.dispose();
+      simDomain.material = prevMaterial;
+      renderer.setRenderTarget(prevTarget);
+    } else {
+      stateBufferGroup1 = undefined;
+      renderer.readRenderTargetPixels(
+        simTextures[1],
+        0,
+        0,
+        nXDisc,
+        nYDisc,
+        stateBuffer,
+      );
+    }
   }
 
   /**
@@ -10162,11 +10326,12 @@ async function VisualPDE(url) {
    * Saves the current simulation state in memory as a buffer and creates a texture from it.
    */
   function saveSimState() {
-    // Save the current state in memory as a buffer.
+    // Save the current state in memory as a buffer (getRawState also (re)populates
+    // stateBufferGroup1 - a Float32Array once numGroups>1, undefined otherwise).
     getRawState();
 
     // Create a texture from the state buffer.
-    createCheckpointTexture(stateBuffer);
+    createCheckpointTexture(stateBuffer, undefined, stateBufferGroup1);
 
     checkpointExists = true;
   }
@@ -10181,12 +10346,16 @@ async function VisualPDE(url) {
       saveSimState();
     }
 
-    // Download the buffer as a file, with the dimensions prepended.
+    // Download the buffer as a file, with the dimensions prepended. Group 1's (species 5-8)
+    // buffer, if present, is appended after group 0's - the file's total length beyond
+    // [header + group-0 buffer] signals its presence on load (see loadSimState), so this
+    // stays backward compatible with files exported before the 8-species upgrade without a
+    // format version bump.
+    const parts = [new Float32Array([nXDisc, nYDisc]), stateBuffer];
+    if (stateBufferGroup1 != undefined) parts.push(stateBufferGroup1);
     var link = document.createElement("a");
     link.download = "VisualPDEState";
-    link.href = URL.createObjectURL(
-      new Blob([new Float32Array([nXDisc, nYDisc]), stateBuffer]),
-    );
+    link.href = URL.createObjectURL(new Blob(parts));
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -10201,9 +10370,21 @@ async function VisualPDE(url) {
     const reader = new FileReader();
     reader.onload = function () {
       const buff = new Float32Array(reader.result);
-      // Create the stateBuffer from the data. The first two elements are width and height.
-      createCheckpointTexture(buff.slice(2), buff.slice(0, 2));
+      // The first two elements are width and height; the next width*height*4 are group 0's
+      // (species 1-4) state. A file exported with species 5-8 active (Stage 11.5 of the
+      // 8-species upgrade) has a second, equally-sized block appended after that for group 1
+      // - detected by length here (rather than a format version field) so files exported
+      // before this upgrade still load identically.
+      const dims = buff.slice(0, 2);
+      const group0Len = dims[0] * dims[1] * 4;
+      const group0Buff = buff.slice(2, 2 + group0Len);
+      const group1Buff =
+        buff.length >= 2 + 2 * group0Len
+          ? buff.slice(2 + group0Len, 2 + 2 * group0Len)
+          : undefined;
+      createCheckpointTexture(group0Buff, dims, group1Buff);
       setStretchOrCropTexture(checkpointTexture);
+      setStretchOrCropTexture(checkpointTextureGroup1);
       checkpointExists = true;
       resetSim();
     };
@@ -10239,10 +10420,16 @@ async function VisualPDE(url) {
    * If a checkpoint texture already exists, it will be disposed of before creating the new texture.
    * @param {Float32Array} buff - The buffer to use for the texture data.
    * @param {Array<number>} [dims=[nXDisc, nYDisc]] - The dimensions of the texture.
+   * @param {Float32Array} [buffGroup1] - Group 1's (species 5-8) buffer, if the checkpoint
+   *   being created has one (only once numGroups(numSpecies)>1 at capture/load time).
    */
-  function createCheckpointTexture(buff, dims) {
+  function createCheckpointTexture(buff, dims, buffGroup1) {
     if (checkpointTexture != null) {
       checkpointTexture.dispose();
+    }
+    if (checkpointTextureGroup1 != null) {
+      checkpointTextureGroup1.dispose();
+      checkpointTextureGroup1 = null;
     }
     if (dims == undefined) {
       dims = [nXDisc, nYDisc];
@@ -10261,6 +10448,19 @@ async function VisualPDE(url) {
     if (checkpointMaterial != null) {
       checkpointMaterial.map = checkpointTexture;
       checkpointMaterial.needsUpdate = true;
+    }
+    if (buffGroup1 != undefined) {
+      checkpointTextureGroup1 = new THREE.DataTexture(
+        buffGroup1,
+        dims[0],
+        dims[1],
+        THREE.RGBAFormat,
+        THREE.FloatType,
+      );
+      checkpointTextureGroup1.needsUpdate = true;
+      manualInterpolationNeeded
+        ? (checkpointTextureGroup1.magFilter = THREE.NearestFilter)
+        : (checkpointTextureGroup1.magFilter = THREE.LinearFilter);
     }
   }
 
@@ -10745,6 +10945,27 @@ async function VisualPDE(url) {
     if (options.dimension > 1) {
       str += selectSpeciesInShaderStr(
         RDShaderDirichletY(side).replaceAll(/updated/g, "gl_FragColor"),
+        listOfSpecies[speciesInd],
+      );
+    }
+    return str;
+  }
+
+  // MRT counterpart of dirichletEnforceShader(), used only once numGroups(numSpecies)>1
+  // (Stage 11.5 of the 8-species upgrade). Deliberately skips the .replaceAll(/updated/g,
+  // "gl_FragColor") step the non-MRT version does: RDShaderDirichletX/Y already target
+  // "updated", and selectSpeciesInShaderStr's groupifyShaderStr needs that name intact to
+  // correctly retarget it to "updated2" for group-1 species - the single, final
+  // fragColor0/fragColor1 assignment happens once, in RDShaderEnforceDirichletBotMRT().
+  function dirichletEnforceShaderMRT(speciesInd, side) {
+    let str = "";
+    str += selectSpeciesInShaderStr(
+      RDShaderDirichletX(side),
+      listOfSpecies[speciesInd],
+    );
+    if (options.dimension > 1) {
+      str += selectSpeciesInShaderStr(
+        RDShaderDirichletY(side),
         listOfSpecies[speciesInd],
       );
     }

@@ -1052,6 +1052,43 @@ export function RDShaderEnforceDirichletTop() {
     `;
 }
 
+// MRT counterpart of RDShaderEnforceDirichletTop(), used only once numGroups(numSpecies)>1
+// (Stage 11.5 of the 8-species upgrade - enforceDirichlet() was previously not MRT-aware at
+// all, so Dirichlet BCs silently had no effect on any species once numSpecies>4). Declares
+// updated/updated2 (rather than writing gl_FragColor directly, as the non-MRT version does)
+// so per-species override blocks built via selectSpeciesInShaderStr - which already knows
+// how to target updated vs updated2 based on a species' group - work unmodified; the final
+// fragColor0/fragColor1 assignment happens once, in RDShaderEnforceDirichletBotMRT() below.
+export function RDShaderEnforceDirichletTopMRT() {
+  return RDShaderEnforceDirichletTop()
+    .replace(
+      "uniform sampler2D textureSource;",
+      `uniform sampler2D textureSource;
+    uniform sampler2D textureSourceGroup1;
+    layout(location = 0) out highp vec4 fragColor0;
+    layout(location = 1) out highp vec4 fragColor1;`,
+    )
+    .replace(
+      "gl_FragColor = uvwq;",
+      `vec4 uvwq2 = texture2D(textureSourceGroup1, textureCoords);
+        vec4 updated = uvwq;
+        vec4 updated2 = uvwq2;`,
+    );
+}
+
+/**
+ * MRT counterpart of RDShaderBot(), closing RDShaderEnforceDirichletTopMRT()'s computeRHS-
+ * style body with the final dual-output assignment, once all per-species Dirichlet override
+ * blocks have been concatenated in between.
+ * @returns {string} The shader code.
+ */
+export function RDShaderEnforceDirichletBotMRT() {
+  return `
+    fragColor0 = updated;
+    fragColor1 = updated2;
+}`;
+}
+
 /**
  * Generates shader code for clamping species values to the edge of a texture in a given direction.
  * @param {string} direction - The direction in which to clamp the species values. Can include "H" for horizontal and/or "V" for vertical.
