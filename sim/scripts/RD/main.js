@@ -2755,11 +2755,9 @@ async function VisualPDE(url) {
         document.activeElement.blur();
         options.speciesNames = speciesNamesToString();
         setCustomNames();
+        // updateProblem() (De)allocates the MRT render targets itself now, before it
+        // triggers configureDimension()'s resize/render chain - see its definition.
         updateProblem();
-        // (De)allocate the MRT render targets before resetSim() renders into them. A no-op
-        // today since this dropdown is capped at 4, but kept here so the lifecycle is wired
-        // up correctly ahead of the dropdown's range being extended.
-        ensureMRTRenderTargets();
         resetSim();
       });
 
@@ -7448,6 +7446,13 @@ async function VisualPDE(url) {
 
   function updateProblem() {
     // Update the problem and any dependencies based on the current options.
+    // (De)allocate the MRT render targets before anything below - configureDimension() in
+    // particular, via resize()/resizeTextures()/postprocess() - tries to read/write them.
+    // This must run for every path that can change numSpecies, not just the GUI dropdown:
+    // loadPreset()/URL-param loading call updateProblem() too, without ever going through
+    // the dropdown's onChange handler (where this used to live, too late in the sequence
+    // and unreachable from these other paths).
+    ensureMRTRenderTargets();
     problemTypeFromOptions();
     configurePlotType();
     configureOptions();
