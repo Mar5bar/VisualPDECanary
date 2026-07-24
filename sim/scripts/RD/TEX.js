@@ -95,7 +95,12 @@ export function equationTEXFun() {
 // @param {boolean} crossDiffusion - Whether cross-diffusion terms should be included.
 // @param {boolean[]} algebraicFlags - Per-species algebraic flag, same length/order as
 //   species (index 0 is never algebraic, matching the rest of the codebase's invariant).
-export function buildEquationTEX(species, reactions, crossDiffusion, algebraicFlags) {
+export function buildEquationTEX(
+  species,
+  reactions,
+  crossDiffusion,
+  algebraicFlags,
+) {
   const n = species.length;
   const lines = species.map((s, i) => {
     const isAlgebraic = crossDiffusion && algebraicFlags[i];
@@ -111,7 +116,9 @@ export function buildEquationTEX(species, reactions, crossDiffusion, algebraicFl
     return lhs + " &= \\vnabla \\cdot(" + divTerms + ") + " + reactions[i];
   });
   return (
-    "$\\begin{aligned}\n    " + lines.join("\\\\\n    ") + "\n    \\end{aligned}$"
+    "$\\begin{aligned}\n    " +
+    lines.join("\\\\\n    ") +
+    "\n    \\end{aligned}$"
   );
 }
 
@@ -227,7 +234,8 @@ export function getDefaultTeXLabelsBCsICs() {
     TeXStrings[s] = "$" + s + "$";
     TeXStrings[s + "Init"] = "$\\left. " + s + " \\right\\rvert_{t=0}$";
     TeXStrings[s + "D"] = "$\\left. " + s + " \\right\\rvert_{\\boundary}$";
-    TeXStrings[s + "N"] = "$\\left.\\pd{" + s + "}{n}\\right\\rvert_{\\boundary}$";
+    TeXStrings[s + "N"] =
+      "$\\left.\\pd{" + s + "}{n}\\right\\rvert_{\\boundary}$";
     TeXStrings[s + "G"] = "$\\text{Ghost node}$";
   }
 
