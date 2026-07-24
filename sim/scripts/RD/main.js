@@ -2397,6 +2397,23 @@ async function VisualPDE(url) {
     setOnfocus(controllers["TQ"], selectTeX, ["TQ"]);
     setOnblur(controllers["TQ"], deselectTeX, ["TQ"]);
 
+    // Species 5-8 timescales (Stage 9 of the 8-species upgrade), grouped with species 1-4's
+    // timescales above rather than left after the reaction terms (as originally generated) -
+    // reordered per user request so all timescales/diffusion/reaction terms are each grouped
+    // together, in that order, rather than interleaved.
+    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const tTag = "TU" + i;
+      controllers[tTag] = root
+        .add(options, "timescale_" + i)
+        .onFinishChange(function () {
+          this.setValue(autoCorrectSyntax(this.getValue()));
+          setRDEquations();
+          setEquationDisplayType();
+        });
+      setOnfocus(controllers[tTag], selectTeX, [tTag]);
+      setOnblur(controllers[tTag], deselectTeX, [tTag]);
+    }
+
     controllers["Duu"] = root
       .add(options, "diffusionStr_1_1")
       .onFinishChange(function () {
@@ -2557,6 +2574,34 @@ async function VisualPDE(url) {
     setOnfocus(controllers["Dqq"], selectTeX, ["Q", "QQ"]);
     setOnblur(controllers["Dqq"], deselectTeX, ["Q", "QQ"]);
 
+    // Species 5-8 diffusion coefficients (Stage 9 of the 8-species upgrade), grouped with
+    // species 1-4's diffusion coefficients above (reordered per user request so all
+    // timescales/diffusion/reaction terms are each grouped together, rather than
+    // interleaved). Loop-generated (species 1-4 keep their hand-declared, letter-keyed
+    // controllers above, untouched) since species 5-8 have no natural single-letter name.
+    // Controller keys use diffCtrlKey(i,j) (1-based; only pairs touching species 5-8 - the
+    // <=4x4 block above owns Duu..Dqq). TeX select keys reuse defaultSpecies so Stage 10
+    // (TeX display) can hook into them; selectTeX/deselectTeX are no-ops for keys with no
+    // TeXStrings entry.
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+      for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
+        if (i <= 4 && j <= 4) continue; // Already declared above (Duu..Dqq).
+        const key = diffCtrlKey(i, j);
+        const texKey =
+          defaultSpecies[i - 1].toUpperCase() +
+          defaultSpecies[j - 1].toUpperCase();
+        controllers[key] = root
+          .add(options, "diffusionStr_" + i + "_" + j)
+          .onFinishChange(function () {
+            this.setValue(autoCorrectSyntax(this.getValue()));
+            setRDEquations();
+            setEquationDisplayType();
+          });
+        setOnfocus(controllers[key], selectTeX, [texKey]);
+        setOnblur(controllers[key], deselectTeX, [texKey]);
+      }
+    }
+
     // Custom f(u,v) and g(u,v).
     controllers["f"] = root
       .add(options, "reactionStr_1")
@@ -2598,46 +2643,9 @@ async function VisualPDE(url) {
     setOnfocus(controllers["j"], selectTeX, ["QFUN"]);
     setOnblur(controllers["j"], deselectTeX, ["QFUN"]);
 
-    // Species 5-8 timescale/diffusion/reaction controls (Stage 9 of the 8-species upgrade).
-    // Loop-generated (species 1-4 keep their hand-declared, letter-keyed controllers above,
-    // untouched) since species 5-8 have no natural single-letter name. Controller keys are
-    // "TU5".."TU8" (must match timescaleTags, declared near the top of this file),
-    // "D_i_j"/diffCtrlKey(i,j) (1-based; only pairs touching species 5-8 - the <=4x4 block
-    // above owns Duu..Dqq), and "reaction_5".."reaction_8". TeX select keys reuse
-    // reactionTokenOfSpecies()/defaultSpecies so Stage 10 (TeX display) can hook into them
-    // later; selectTeX/deselectTeX are no-ops for keys with no TeXStrings entry yet.
-    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
-      const tTag = "TU" + i;
-      controllers[tTag] = root
-        .add(options, "timescale_" + i)
-        .onFinishChange(function () {
-          this.setValue(autoCorrectSyntax(this.getValue()));
-          setRDEquations();
-          setEquationDisplayType();
-        });
-      setOnfocus(controllers[tTag], selectTeX, [tTag]);
-      setOnblur(controllers[tTag], deselectTeX, [tTag]);
-    }
-
-    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
-      for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
-        if (i <= 4 && j <= 4) continue; // Already declared above (Duu..Dqq).
-        const key = diffCtrlKey(i, j);
-        const texKey =
-          defaultSpecies[i - 1].toUpperCase() +
-          defaultSpecies[j - 1].toUpperCase();
-        controllers[key] = root
-          .add(options, "diffusionStr_" + i + "_" + j)
-          .onFinishChange(function () {
-            this.setValue(autoCorrectSyntax(this.getValue()));
-            setRDEquations();
-            setEquationDisplayType();
-          });
-        setOnfocus(controllers[key], selectTeX, [texKey]);
-        setOnblur(controllers[key], deselectTeX, [texKey]);
-      }
-    }
-
+    // Species 5-8 reaction terms, grouped with species 1-4's reaction terms above so all
+    // reaction terms are together at the end of the "Edit" folder (reordered per user
+    // request - previously these appeared before the species 5-8 diffusion coefficients).
     for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
       const key = "reaction_" + i;
       const texKey = reactionTokenOfSpecies(i - 1);
