@@ -74,6 +74,7 @@ import {
   coerceOptions,
 } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
+import { groupOfSpecies, channelCharOfSpecies } from "./species_config.js";
 import { auxiliary_GLSL_funs } from "../auxiliary_GLSL_funs.js";
 import * as THREE from "../three.module.min.js";
 import { OrbitControls } from "../OrbitControls.js";
@@ -242,13 +243,52 @@ async function VisualPDE(url) {
     kineticParamsVals = [],
     kineticParamsCounter = 0,
     nextParamController;
+  let expressionsFolder,
+    expressionsParamsStrs = {},
+    expressionsCounter = 0,
+    nextExpressionController;
   const llmURL =
     "https://gemini.google.com/gem/1mJ4572e1TJwEHcaYDst0_9keZkx78-zn";
   const defaultPreset = "GrayScott";
-  const defaultSpecies = ["u", "v", "w", "q"];
-  const defaultReactions = ["UFUN", "VFUN", "WFUN", "QFUN"];
-  const timescaleTags = ["TU", "TV", "TW", "TQ"];
-  const placeholderSp = ["SPECIES1", "SPECIES2", "SPECIES3", "SPECIES4"];
+  // Species 5-8 have no natural single-letter mnemonic like u/v/w/q, so they use numeric
+  // suffixes, consistent with the existing diffusionStr_i_j/reactionStr_i field-naming
+  // convention. These four arrays are extended by appending only (indices 0-3 are untouched)
+  // so that every existing index-based/sliced-by-numSpecies consumer keeps working
+  // identically for numSpecies<=4. See species_config.js and the Stage 1 upgrade plan.
+  const defaultSpecies = ["u", "v", "w", "q", "u5", "u6", "u7", "u8"];
+  const defaultReactions = [
+    "UFUN",
+    "VFUN",
+    "WFUN",
+    "QFUN",
+    "UFUN5",
+    "UFUN6",
+    "UFUN7",
+    "UFUN8",
+  ];
+  // NB: controllers/regexes for TU5-TU8 don't exist until the GUI/TeX stages of the upgrade
+  // land, so consumers that iterate this array and look up a controller/regex by tag must
+  // guard against a missing entry (see the timescaleTags.forEach call sites below).
+  const timescaleTags = [
+    "TU",
+    "TV",
+    "TW",
+    "TQ",
+    "TU5",
+    "TU6",
+    "TU7",
+    "TU8",
+  ];
+  const placeholderSp = [
+    "SPECIES1",
+    "SPECIES2",
+    "SPECIES3",
+    "SPECIES4",
+    "SPECIES5",
+    "SPECIES6",
+    "SPECIES7",
+    "SPECIES8",
+  ];
   const listOfTypes = [
     "1Species", // 0
     "2Species", // 1
@@ -5755,12 +5795,21 @@ async function VisualPDE(url) {
   }
 
   function speciesToChannelChar(speciesStr) {
-    let listOfChannels = "rgba";
-    return listOfChannels[speciesToChannelInd(speciesStr)];
+    // channelCharOfSpecies takes the species' raw (0-based) index and reduces it mod
+    // CHANNELS_PER_GROUP, since each texture group only has 4 channels (r,g,b,a) to reuse
+    // across groups. Behaviourally identical to the old direct "rgba"[ind] lookup for
+    // ind<4 (numSpecies<=4, a single group); safe for ind up to 7 once numGroups>1.
+    return channelCharOfSpecies(speciesToChannelInd(speciesStr));
   }
 
   function speciesToChannelInd(speciesStr) {
     return listOfSpecies.indexOf(speciesStr);
+  }
+
+  // Which texture group (0-based) a species' state lives in. Group 0 is always the
+  // existing single-texture ("uvwq") group; group 1+ only exist once numSpecies>4.
+  function speciesToGroupInd(speciesStr) {
+    return groupOfSpecies(speciesToChannelInd(speciesStr));
   }
 
   function setBCsGUI() {
@@ -6339,8 +6388,9 @@ async function VisualPDE(url) {
       $("#cross_diffusion_controller").hide();
     }
 
-    // Show all timescale panels to begin with.
-    timescaleTags.forEach((tag) => controllers[tag].show());
+    // Show all timescale panels to begin with. Guarded with ?. because controllers for
+    // TU5-TU8 don't exist until the GUI is extended to 8 species (Stage 9 of the upgrade).
+    timescaleTags.forEach((tag) => controllers[tag]?.show());
 
     // Hide/Show VWQGUI panels.
     hideVGUIPanels();
@@ -6354,9 +6404,9 @@ async function VisualPDE(url) {
       case 2:
         showVGUIPanels();
     }
-    // Hide timescale panels if we don't need them.
+    // Hide timescale panels if we don't need them. Guarded with ?. (see note above).
     if (!options.timescales) {
-      timescaleTags.forEach((tag) => controllers[tag].hide());
+      timescaleTags.forEach((tag) => controllers[tag]?.hide());
     }
 
     // Configure the controller names.
@@ -6869,6 +6919,15 @@ async function VisualPDE(url) {
         if (isEmptyString(associatedStrs[key])) associatedStrs[key] = "0";
       });
 
+      // Substitute in any user-defined expressions before continuing.
+      Object.keys(associatedStrs).forEach(function (key) {
+        associatedStrs[key] = replaceSymbolsInStr(
+          associatedStrs[key],
+          userExpressionsNames,
+          userExpressionsStrs,
+        );
+      });
+
       // Check associatedStrs for basic syntax validity, and return without updating the TeX if there are issues.
       var badSyntax = false;
       Object.keys(associatedStrs).forEach(function (key) {
@@ -6974,8 +7033,11 @@ async function VisualPDE(url) {
         str = replaceUserDefReac(str, regexes[tag], associatedStrs[tag]);
       });
 
-      // Replace the timescale strings.
+      // Replace the timescale strings. Skip tags with no associatedStrs/regexes entry
+      // (TU5-TU8, until the TeX-generalization stage of the upgrade populates them) rather
+      // than passing `undefined` as input, which replaceUserDefTimescale can't handle.
       timescaleTags.forEach(function (tag) {
+        if (associatedStrs[tag] === undefined) return;
         str = replaceUserDefTimescale(str, regexes[tag], associatedStrs[tag]);
       });
 
@@ -8718,6 +8780,10 @@ async function VisualPDE(url) {
    * Parses species names from options.
    * @returns {string[]} An array of parsed species names.
    */
+  // NB: slicing to defaultSpecies.length (now 8) means this will accept up to 8 custom
+  // names as soon as they're typed, even though the numSpecies dropdown (and everything
+  // downstream of it) is still capped at 4 until the GUI stage of the 8-species upgrade.
+  // Harmless only because nothing currently reachable from the UI can set numSpecies>4.
   function parseSpeciesNamesFromOptions() {
     return options.speciesNames
       .replaceAll(/\W+/g, " ")
