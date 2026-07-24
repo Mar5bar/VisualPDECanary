@@ -5672,14 +5672,25 @@ async function VisualPDE(url) {
     let kineticStr = kineticUniformsForShader();
 
     // Choose what sort of update we are doing: normal, or cross-diffusion enabled?
+    // RDShaderUpdateNormal/RDShaderUpdateCross build group 0's (species 1-4 only) RHS -
+    // BCStrs/NStrs/DStrs/MStrs/edgeClampSpeciesH/V above are already hardcoded to species
+    // 1-4 for the same reason. Cap at 4 (found during the Stage 11 audit of the 8-species
+    // upgrade): passing the raw, uncapped numSpecies here left their trailing
+    // switch(numSpecies){case 1..4} unmatched for numSpecies 5-8, so `result` (an `out`
+    // parameter of computeRHS) was never assigned - a real bug, latent today only because
+    // Stage 9's FE-only guard prevents the AB2/Mid1/Mid2/RK41-44 materials (the only ones
+    // still built from this non-MRT diffusionShader once numGroups>1 - simMaterials.FE
+    // itself switches to the correct MRT path below) from ever actually being rendered
+    // with while numSpecies>4.
+    const numSpeciesGroup0 = Math.min(Number(options.numSpecies), 4);
     diffusionShader = parseNormalDiffusionStrings() + "\n";
     if (options.crossDiffusion) {
       diffusionShader +=
         parseCrossDiffusionStrings() +
         "\n" +
-        RDShaderUpdateCross(Number(options.numSpecies));
+        RDShaderUpdateCross(numSpeciesGroup0);
     } else {
-      diffusionShader += RDShaderUpdateNormal(Number(options.numSpecies));
+      diffusionShader += RDShaderUpdateNormal(numSpeciesGroup0);
     }
 
     // If 2 or more variables are algebraic, check that we don't have any cyclic dependencies.
