@@ -99,6 +99,7 @@ import {
   channelCharOfSpecies,
   diffusionLabel,
   reactionTokenOfSpecies,
+  MAX_SPECIES_SUPPORTED,
 } from "./species_config.js";
 import { auxiliary_GLSL_funs } from "../auxiliary_GLSL_funs.js";
 import * as THREE from "../three.module.min.js";
@@ -2554,6 +2555,60 @@ async function VisualPDE(url) {
     setOnfocus(controllers["j"], selectTeX, ["QFUN"]);
     setOnblur(controllers["j"], deselectTeX, ["QFUN"]);
 
+    // Species 5-8 timescale/diffusion/reaction controls (Stage 9 of the 8-species upgrade).
+    // Loop-generated (species 1-4 keep their hand-declared, letter-keyed controllers above,
+    // untouched) since species 5-8 have no natural single-letter name. Controller keys are
+    // "TU5".."TU8" (must match timescaleTags, declared near the top of this file),
+    // "D_i_j"/diffCtrlKey(i,j) (1-based; only pairs touching species 5-8 - the <=4x4 block
+    // above owns Duu..Dqq), and "reaction_5".."reaction_8". TeX select keys reuse
+    // reactionTokenOfSpecies()/defaultSpecies so Stage 10 (TeX display) can hook into them
+    // later; selectTeX/deselectTeX are no-ops for keys with no TeXStrings entry yet.
+    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const tTag = "TU" + i;
+      controllers[tTag] = root
+        .add(options, "timescale_" + i)
+        .onFinishChange(function () {
+          this.setValue(autoCorrectSyntax(this.getValue()));
+          setRDEquations();
+          setEquationDisplayType();
+        });
+      setOnfocus(controllers[tTag], selectTeX, [tTag]);
+      setOnblur(controllers[tTag], deselectTeX, [tTag]);
+    }
+
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+      for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
+        if (i <= 4 && j <= 4) continue; // Already declared above (Duu..Dqq).
+        const key = diffCtrlKey(i, j);
+        const texKey =
+          defaultSpecies[i - 1].toUpperCase() +
+          defaultSpecies[j - 1].toUpperCase();
+        controllers[key] = root
+          .add(options, "diffusionStr_" + i + "_" + j)
+          .onFinishChange(function () {
+            this.setValue(autoCorrectSyntax(this.getValue()));
+            setRDEquations();
+            setEquationDisplayType();
+          });
+        setOnfocus(controllers[key], selectTeX, [texKey]);
+        setOnblur(controllers[key], deselectTeX, [texKey]);
+      }
+    }
+
+    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const key = "reaction_" + i;
+      const texKey = reactionTokenOfSpecies(i - 1);
+      controllers[key] = root
+        .add(options, "reactionStr_" + i)
+        .onFinishChange(function () {
+          this.setValue(autoCorrectSyntax(this.getValue()));
+          setRDEquations();
+          setEquationDisplayType();
+        });
+      setOnfocus(controllers[key], selectTeX, [texKey]);
+      setOnblur(controllers[key], deselectTeX, [texKey]);
+    }
+
     parametersFolder = leftGUI.addFolder("Parameters");
     addInfoButton(parametersFolder, "/user-guide/advanced-options#parameters");
     addFocusLeftGUIButton(parametersFolder);
@@ -2738,6 +2793,64 @@ async function VisualPDE(url) {
         if (options.boundaryConditions_4 == "combo") configureComboBCsGUI();
       });
 
+    // Species 5-8 boundary-condition controls (Stage 9 of the 8-species upgrade). Keyed by
+    // defaultSpecies[i]+"BCs"/"dirichlet"+S/"neumann"+S/"robin"+S/"combo"+S (S =
+    // defaultSpecies[i].toUpperCase(), e.g. "u5"->"U5") rather than a numeric "_i" scheme,
+    // because addComboBCsButton (reused unmodified below) already builds its "combo"+X /
+    // X+"BCs" controller keys from exactly this defaultSpecies-derived naming - matching it
+    // lets species 5-8 reuse that function with no changes.
+    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const s = defaultSpecies[i - 1]; // "u5".."u8"
+      const S = s.toUpperCase(); // "U5".."U8"
+      const bcsKey = s + "BCs";
+      const speciesInd = i - 1; // 0-based, for addComboBCsButton/comboBCsButton<N> DOM id.
+
+      controllers[bcsKey] = root
+        .add(options, "boundaryConditions_" + i, {})
+        .onChange(function () {
+          setRDEquations();
+          setBCsGUI();
+          // Show the combo BCs GUI if the user has selected combo.
+          if (this.getValue() == "combo") {
+            document.getElementById("comboBCsButton" + speciesInd).click();
+          }
+          document.activeElement.blur();
+        });
+      addComboBCsButton(controllers[bcsKey], speciesInd);
+
+      controllers["dirichlet" + S] = root
+        .add(options, "dirichletStr_" + i)
+        .onFinishChange(function () {
+          this.setValue(autoCorrectSyntax(this.getValue()));
+          setRDEquations();
+        });
+
+      controllers["neumann" + S] = root
+        .add(options, "neumannStr_" + i)
+        .onFinishChange(function () {
+          this.setValue(autoCorrectSyntax(this.getValue()));
+          setRDEquations();
+        });
+
+      controllers["robin" + S] = root
+        .add(options, "robinStr_" + i)
+        .onFinishChange(function () {
+          this.setValue(autoCorrectSyntax(this.getValue()));
+          setRDEquations();
+        });
+
+      controllers["combo" + S] = root
+        .add(options, "comboStr_" + i)
+        .name("Details")
+        .onFinishChange(function () {
+          this.setValue(this.getValue());
+          setRDEquations();
+          if (options["boundaryConditions_" + i] == "combo") {
+            configureComboBCsGUI();
+          }
+        });
+    }
+
     // Initial conditions folder.
     initialConditionsFolder = leftGUI.addFolder("Initial conditions");
     root = initialConditionsFolder;
@@ -2772,6 +2885,16 @@ async function VisualPDE(url) {
         setClearShader();
       });
 
+    // Species 5-8 initial conditions (Stage 9 of the 8-species upgrade).
+    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+      controllers["initCond_" + i] = root
+        .add(options, "initCond_" + i)
+        .onFinishChange(function () {
+          this.setValue(autoCorrectSyntax(this.getValue()));
+          setClearShader();
+        });
+    }
+
     // Equations folder.
     advancedOptionsFolder = leftGUI.addFolder("Advanced options");
     root = advancedOptionsFolder;
@@ -2780,7 +2903,16 @@ async function VisualPDE(url) {
 
     // Number of species.
     root
-      .add(options, "numSpecies", { 1: 1, 2: 2, 3: 3, 4: 4 })
+      .add(options, "numSpecies", {
+        1: 1,
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+        6: 6,
+        7: 7,
+        8: 8,
+      })
       .name("# Species")
       .onChange(function () {
         document.activeElement.blur();
@@ -2794,7 +2926,16 @@ async function VisualPDE(url) {
 
     // Number of algebraic species.
     controllers["algebraicSpecies"] = root
-      .add(options, "numAlgebraicSpecies", { 0: 0, 1: 1, 2: 2, 3: 3 })
+      .add(options, "numAlgebraicSpecies", {
+        0: 0,
+        1: 1,
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+        6: 6,
+        7: 7,
+      })
       .name("# Algebraic")
       .onChange(function () {
         updatingAlgebraicSpecies = true;
@@ -6387,6 +6528,17 @@ async function VisualPDE(url) {
     return groupOfSpecies(speciesToChannelInd(speciesStr));
   }
 
+  // dat.gui controllers["..."] key for the (i,j) diffusion coefficient (1-based species
+  // indices). Species 1-4 keep their legacy hand-declared letter-pair keys (Duu..Dqq); any
+  // pair touching species 5-8 (Stage 9 of the upgrade) uses a numeric key, matching
+  // diffusionLabel()'s GLSL-token naming convention in species_config.js.
+  function diffCtrlKey(i, j) {
+    if (i <= 4 && j <= 4) {
+      return "D" + defaultSpecies[i - 1] + defaultSpecies[j - 1];
+    }
+    return "D_" + i + "_" + j;
+  }
+
   // The GLSL stencil-vec4 variable prefix for a species: "uvwq" (group 0, unchanged) or
   // "uvwq2" (group 1, species 5-8) - see RDShaderTopMRT/RDShaderMainMRT in
   // simulation_shaders.js, which declare the uvwq2-prefixed locals this references.
@@ -6459,9 +6611,23 @@ async function VisualPDE(url) {
       controllers["robinQ"].hide();
     }
 
+    // Species 5-8's dirichlet/neumann/robin/combo sub-controls (Stage 9 of the 8-species
+    // upgrade) - mirrors the species 1-4 blocks above, generalized since these species have
+    // no natural letter-keyed controller names.
+    const bcsKeys5to8 = [];
+    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const s = defaultSpecies[i - 1];
+      const S = s.toUpperCase();
+      bcsKeys5to8.push(s + "BCs");
+      const bc = options["boundaryConditions_" + i];
+      controllers["dirichlet" + S][bc == "dirichlet" ? "show" : "hide"]();
+      controllers["neumann" + S][bc == "neumann" ? "show" : "hide"]();
+      controllers["robin" + S][bc == "robin" ? "show" : "hide"]();
+    }
+
     let overrideShowComboStr = true;
     if (options.plotType != "surface") {
-      ["uBCs", "vBCs", "wBCs", "qBCs"].forEach((str) => {
+      ["uBCs", "vBCs", "wBCs", "qBCs", ...bcsKeys5to8].forEach((str) => {
         controllers[str].domElement
           .getElementsByClassName("combo-bcs")[0]
           .classList.remove("hidden");
@@ -6474,12 +6640,20 @@ async function VisualPDE(url) {
     controllers["comboV"].hide();
     controllers["comboW"].hide();
     controllers["comboQ"].hide();
+    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+      controllers["combo" + defaultSpecies[i - 1].toUpperCase()].hide();
+    }
 
     if (options.showComboStr || overrideShowComboStr) {
       if (options.boundaryConditions_1 == "combo") controllers["comboU"].show();
       if (options.boundaryConditions_2 == "combo") controllers["comboV"].show();
       if (options.boundaryConditions_3 == "combo") controllers["comboW"].show();
       if (options.boundaryConditions_4 == "combo") controllers["comboQ"].show();
+      for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+        if (options["boundaryConditions_" + i] == "combo") {
+          controllers["combo" + defaultSpecies[i - 1].toUpperCase()].show();
+        }
+      }
     }
 
     // If the comboBCsGUI is visible, make all clickAreas visible.
@@ -6492,6 +6666,7 @@ async function VisualPDE(url) {
       controllers["vBCs"],
       controllers["wBCs"],
       controllers["qBCs"],
+      ...bcsKeys5to8.map((key) => controllers[key]),
     ];
     if (options.domainViaIndicatorFun) {
       BCsControllers.forEach((cont) => {
@@ -6818,6 +6993,43 @@ async function VisualPDE(url) {
     controllers["qBCs"].hide();
   }
 
+  // Generalized species show/hide for species 5-8 (Stage 9 of the 8-species upgrade).
+  // Mirrors showVGUIPanels/showWGUIPanels/showQGUIPanels/hideVGUIPanels/hideWGUIPanels/
+  // hideQGUIPanels above (species 1-4, left untouched) but loops over cross-diffusion pairs
+  // instead of hand-listing them, since species 5-8 have no natural per-species function
+  // name. Following the same convention as those hand-written functions, each only handles
+  // cross-diffusion pairs with STRICTLY LOWER-indexed species (j<i): the species-count
+  // switch in configureGUI() calls these in descending order (8,7,6,...,2), so a
+  // higher-indexed species' own call already handles its pairing with this one.
+  function showSpeciesGUIPanels(i) {
+    if (options.timescales) controllers["TU" + i].show();
+    for (let j = 1; j < i; j++) {
+      if (options.crossDiffusion) {
+        controllers[diffCtrlKey(i, j)].show();
+        controllers[diffCtrlKey(j, i)].show();
+      } else {
+        controllers[diffCtrlKey(i, j)].hide();
+        controllers[diffCtrlKey(j, i)].hide();
+      }
+    }
+    controllers[diffCtrlKey(i, i)].show();
+    controllers["reaction_" + i].show();
+    controllers["initCond_" + i].show();
+    controllers[defaultSpecies[i - 1] + "BCs"].show();
+  }
+
+  function hideSpeciesGUIPanels(i) {
+    controllers["TU" + i].hide();
+    for (let j = 1; j < i; j++) {
+      controllers[diffCtrlKey(i, j)].hide();
+      controllers[diffCtrlKey(j, i)].hide();
+    }
+    controllers[diffCtrlKey(i, i)].hide();
+    controllers["reaction_" + i].hide();
+    controllers["initCond_" + i].hide();
+    controllers[defaultSpecies[i - 1] + "BCs"].hide();
+  }
+
   function diffObjects(o1, o2) {
     const diff = Object.fromEntries(
       Object.entries(o1).filter(
@@ -7047,7 +7259,16 @@ async function VisualPDE(url) {
     hideVGUIPanels();
     hideWGUIPanels();
     hideQGUIPanels();
+    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) hideSpeciesGUIPanels(i);
     switch (parseInt(options.numSpecies)) {
+      case 8:
+        showSpeciesGUIPanels(8);
+      case 7:
+        showSpeciesGUIPanels(7);
+      case 6:
+        showSpeciesGUIPanels(6);
+      case 5:
+        showSpeciesGUIPanels(5);
       case 4:
         showQGUIPanels();
       case 3:
@@ -7140,6 +7361,80 @@ async function VisualPDE(url) {
     setGUIControllerName(controllers["initCond_3"], TeXStrings["wInit"]);
     setGUIControllerName(controllers["initCond_4"], TeXStrings["qInit"]);
 
+    // Species 5-8 controller names (Stage 9 of the 8-species upgrade). TeXStrings has no
+    // entries yet for these keys (Stage 10, the TeX/equation-display generalization, adds
+    // them) - fall back to a plain, functional label so the GUI isn't left showing raw
+    // option/field names in the meantime; once Stage 10 populates TeXStrings, these calls
+    // automatically pick up the nicer label with no further change here.
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+      for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
+        if (i <= 4 && j <= 4) continue;
+        const texKey =
+          defaultSpecies[i - 1].toUpperCase() +
+          defaultSpecies[j - 1].toUpperCase();
+        setGUIControllerName(
+          controllers[diffCtrlKey(i, j)],
+          TeXStrings[texKey] || "D_" + i + "_" + j,
+          tooltip,
+        );
+      }
+    }
+    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const s = defaultSpecies[i - 1];
+      const S = s.toUpperCase();
+      setGUIControllerName(
+        controllers["TU" + i],
+        TeXStrings["TU" + i] || "T_" + s,
+        tooltip,
+      );
+      setGUIControllerName(
+        controllers["reaction_" + i],
+        TeXStrings[reactionTokenOfSpecies(i - 1)] || s + "'",
+        tooltip,
+      );
+      setGUIControllerName(controllers[s + "BCs"], TeXStrings[s] || s);
+      setGUIControllerName(
+        controllers["dirichlet" + S],
+        TeXStrings[s + "D"] || s + " (Dirichlet)",
+      );
+      setGUIControllerName(
+        controllers["neumann" + S],
+        TeXStrings[s + "N"] || s + " (Neumann)",
+      );
+      setGUIControllerName(
+        controllers["robin" + S],
+        TeXStrings[s + "N"] || s + " (Robin)",
+      );
+      setGUIControllerName(
+        controllers["initCond_" + i],
+        TeXStrings[s + "Init"] || s + "(x,y,0)",
+      );
+    }
+    // Configure algebraic species 5-8's controller names/visibility, mirroring the
+    // algebraicV/W/Q block above (which retitles the algebraic species' own diffusion row
+    // against every other species, and hides its self-diffusion controller).
+    for (let s = 4; s < MAX_SPECIES_SUPPORTED; s++) {
+      if (!algebraicSpeciesFlags[s]) continue;
+      const i = s + 1; // 1-based species number.
+      for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
+        if (j === i) continue;
+        setGUIControllerName(
+          controllers[diffCtrlKey(i, j)],
+          TeXStrings[
+            defaultSpecies[i - 1].toUpperCase() +
+              defaultSpecies[j - 1].toUpperCase()
+          ] || "D_" + i + "_" + j,
+          tooltip,
+        );
+      }
+      setGUIControllerName(
+        controllers["reaction_" + i],
+        TeXStrings[reactionTokenOfSpecies(s)] || defaultSpecies[s] + "'",
+        tooltip,
+      );
+      controllers[diffCtrlKey(i, i)].hide();
+    }
+
     // Configure timestepping folder for automata mode.
     let controller = controllers["numTimestepsPerFrame"];
     if (options.automataMode) {
@@ -7154,6 +7449,29 @@ async function VisualPDE(url) {
       controller.slider.style.setProperty("--max", controller.slider.max);
       controllers["dt"].show();
       controllers["timesteppingScheme"].show();
+    }
+
+    // Only Forward Euler supports numSpecies>4 so far (Stage 13 of the 8-species upgrade
+    // sketches out AB2/Mid/RK4 support); configureOptions() already forces
+    // options.timesteppingScheme to "Euler" in this case, so just restrict the dropdown's
+    // offered values to match (restored to the full set otherwise).
+    if (numGroups(parseInt(options.numSpecies)) > 1) {
+      updateGUIDropdown(
+        controllers["timesteppingScheme"],
+        ["Forward Euler"],
+        ["Euler"],
+      );
+    } else {
+      updateGUIDropdown(
+        controllers["timesteppingScheme"],
+        [
+          "Forward Euler",
+          "Adams-Bashforth 2",
+          "Midpoint Method",
+          "Runge-Kutta 4",
+        ],
+        ["Euler", "AB2", "Mid", "RK4"],
+      );
     }
 
     // Show/hide the indicator function controller.
@@ -7282,191 +7600,100 @@ async function VisualPDE(url) {
     setAlgebraicVarsFromOptions();
 
     if (options.domainViaIndicatorFun) {
-      // Only allow Dirichlet or Neumann conditions.
-      if (!["dirichlet", "neumann"].includes(options.boundaryConditions_1))
-        options.boundaryConditions_1 = "dirichlet";
-      if (!["dirichlet", "neumann"].includes(options.boundaryConditions_2))
-        options.boundaryConditions_2 = "dirichlet";
-      if (!["dirichlet", "neumann"].includes(options.boundaryConditions_3))
-        options.boundaryConditions_3 = "dirichlet";
-      if (!["dirichlet", "neumann"].includes(options.boundaryConditions_4))
-        options.boundaryConditions_4 = "dirichlet";
+      // Only allow Dirichlet or Neumann conditions. Loops over all MAX_SPECIES_SUPPORTED
+      // slots (not just the active numSpecies), matching the pre-upgrade behaviour, which
+      // unconditionally coerced species 1-4 regardless of numSpecies - any inactive slot is
+      // overwritten to "periodic" by the loop below anyway.
+      for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+        if (
+          !["dirichlet", "neumann"].includes(options["boundaryConditions_" + i])
+        ) {
+          options["boundaryConditions_" + i] = "dirichlet";
+        }
+      }
     }
 
-    // Set options that only depend on the number of species.
-    switch (parseInt(options.numSpecies)) {
-      case 1:
-        options.crossDiffusion = false;
-
-        // Ensure that u is the brush target and that the no other species is in options.whatToPlot.
-        options.whatToDraw = listOfSpecies[0];
-        if (
-          new RegExp("\\b(" + anySpeciesRegexStrs[1] + ")\\b").test(
-            options.whatToPlot,
-          )
-        ) {
-          options.whatToPlot = listOfSpecies[0];
+    // Set options that only depend on the number of species: any species with (1-based)
+    // index > numSpecies is "inactive" - its diffusion (every direction, self and cross) is
+    // zeroed, it's forced to periodic BCs with a zero IC/reaction, and any active species'
+    // reaction term referencing it is cleared. This loop is a direct generalisation of the
+    // pre-upgrade hand-written switch(numSpecies){case 1: ... case 4: break;} (see git
+    // history) - verified during the 8-species upgrade (Stage 9) to reproduce it exactly for
+    // numSpecies 1-4 (the whatToDraw/whatToPlot resets become unconditional-vs-conditional
+    // but land on the same final value; the diffusion/BC/IC/reaction zeroing matches the old
+    // per-case lists entry-for-entry). See
+    // /Users/ben/.claude/plans/8-species-upgrade-progress.md for the derivation.
+    const numSpeciesInt = parseInt(options.numSpecies);
+    if (numSpeciesInt == 1) {
+      // Cross-diffusion is meaningless with only one species.
+      options.crossDiffusion = false;
+    }
+    // Ensure the brush target and whatToPlot only reference active species.
+    if (!listOfSpecies.slice(0, numSpeciesInt).includes(options.whatToDraw)) {
+      options.whatToDraw = listOfSpecies[0];
+    }
+    if (
+      numSpeciesInt < MAX_SPECIES_SUPPORTED &&
+      new RegExp("\\b(" + anySpeciesRegexStrs[numSpeciesInt] + ")\\b").test(
+        options.whatToPlot,
+      )
+    ) {
+      options.whatToPlot = listOfSpecies[0];
+    }
+    // Zero the diffusion of any pair involving an inactive species, to prevent it from
+    // causing numerical instability (and to keep stale values from a higher numSpecies
+    // session from lingering).
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+      for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
+        if (i <= numSpeciesInt && j <= numSpeciesInt) continue;
+        options["diffusionStr_" + i + "_" + j] = "0";
+      }
+    }
+    // Set inactive species to be periodic, with a zero IC/reaction, to reduce computational
+    // overhead.
+    for (let i = numSpeciesInt + 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+      options["boundaryConditions_" + i] = "periodic";
+      options["initCond_" + i] = "0";
+      options["reactionStr_" + i] = "0";
+    }
+    // If any active species' reaction string references an inactive species, clear it.
+    if (numSpeciesInt < MAX_SPECIES_SUPPORTED) {
+      regex = new RegExp("\\b(" + anySpeciesRegexStrs[numSpeciesInt] + ")\\b");
+      for (let i = 1; i <= numSpeciesInt; i++) {
+        if (regex.test(options["reactionStr_" + i])) {
+          options["reactionStr_" + i] = "0";
         }
-
-        // Set the diffusion of v and w to zero to prevent them from causing numerical instability.
-        options.diffusionStr_1_2 = "0";
-        options.diffusionStr_1_3 = "0";
-        options.diffusionStr_1_4 = "0";
-        options.diffusionStr_2_1 = "0";
-        options.diffusionStr_2_2 = "0";
-        options.diffusionStr_2_3 = "0";
-        options.diffusionStr_2_4 = "0";
-        options.diffusionStr_3_1 = "0";
-        options.diffusionStr_3_2 = "0";
-        options.diffusionStr_3_3 = "0";
-        options.diffusionStr_3_4 = "0";
-        options.diffusionStr_4_1 = "0";
-        options.diffusionStr_4_2 = "0";
-        options.diffusionStr_4_3 = "0";
-        options.diffusionStr_4_4 = "0";
-
-        // Set v,w, and q to be periodic to reduce computational overhead.
-        options.boundaryConditions_2 = "periodic";
-        options.initCond_2 = "0";
-        options.reactionStr_2 = "0";
-        options.boundaryConditions_3 = "periodic";
-        options.initCond_3 = "0";
-        options.reactionStr_3 = "0";
-        options.boundaryConditions_4 = "periodic";
-        options.initCond_4 = "0";
-        options.reactionStr_4 = "0";
-
-        // If the f string contains any v,w, or q references, clear it.
-        regex = new RegExp("\\b(" + anySpeciesRegexStrs[1] + ")\\b");
-        if (regex.test(options.reactionStr_1)) {
-          options.reactionStr_1 = "0";
-        }
-        break;
-      case 2:
-        // Ensure that species 1 or 2 is being displayed on the screen (and the brush target).
-        if (
-          (options.whatToDraw == listOfSpecies[2]) |
-          (options.whatToDraw == listOfSpecies[3])
-        ) {
-          options.whatToDraw = listOfSpecies[0];
-        }
-        if (
-          new RegExp("\\b(" + anySpeciesRegexStrs[2] + ")\\b").test(
-            options.whatToPlot,
-          )
-        ) {
-          options.whatToPlot = listOfSpecies[0];
-        }
-
-        // Set the diffusion of w and q to zero to prevent them from causing numerical instability.
-        options.diffusionStr_1_3 = "0";
-        options.diffusionStr_1_4 = "0";
-        options.diffusionStr_2_3 = "0";
-        options.diffusionStr_2_4 = "0";
-        options.diffusionStr_3_1 = "0";
-        options.diffusionStr_3_2 = "0";
-        options.diffusionStr_3_3 = "0";
-        options.diffusionStr_3_4 = "0";
-        options.diffusionStr_4_1 = "0";
-        options.diffusionStr_4_2 = "0";
-        options.diffusionStr_4_3 = "0";
-        options.diffusionStr_4_4 = "0";
-
-        // Set w and q to be periodic to reduce computational overhead.
-        options.boundaryConditions_3 = "periodic";
-        options.initCond_3 = "0";
-        options.reactionStr_3 = "0";
-
-        options.boundaryConditions_4 = "periodic";
-        options.initCond_4 = "0";
-        options.reactionStr_4 = "0";
-
-        // If the f or g strings contains any w or q references, clear them.
-        regex = new RegExp("\\b(" + anySpeciesRegexStrs[2] + ")\\b");
-        if (regex.test(options.reactionStr_1)) {
-          options.reactionStr_1 = "0";
-        }
-        if (regex.test(options.reactionStr_2)) {
-          options.reactionStr_2 = "0";
-        }
-        break;
-      case 3:
-        // Ensure that species 1-3 is being displayed on the screen (and the brush target).
-        if (options.whatToDraw == listOfSpecies[3]) {
-          options.whatToDraw = listOfSpecies[0];
-        }
-        if (
-          new RegExp("\\b(" + anySpeciesRegexStrs[3] + ")\\b").test(
-            options.whatToPlot,
-          )
-        ) {
-          options.whatToPlot = listOfSpecies[0];
-        }
-
-        // Set the diffusion of q to zero to prevent it from causing numerical instability.
-        options.diffusionStr_1_4 = "0";
-        options.diffusionStr_2_4 = "0";
-        options.diffusionStr_3_4 = "0";
-        options.diffusionStr_4_1 = "0";
-        options.diffusionStr_4_2 = "0";
-        options.diffusionStr_4_3 = "0";
-        options.diffusionStr_4_4 = "0";
-
-        // Set q to be periodic to reduce computational overhead.
-        options.boundaryConditions_4 = "periodic";
-        options.initCond_4 = "0";
-        options.reactionStr_4 = "0";
-
-        // If the f, g, or h strings contains any q references, clear them.
-        regex = new RegExp("\\b(" + anySpeciesRegexStrs[3] + ")\\b");
-        if (regex.test(options.reactionStr_1)) {
-          options.reactionStr_1 = "0";
-        }
-        if (regex.test(options.reactionStr_2)) {
-          options.reactionStr_2 = "0";
-        }
-        if (regex.test(options.reactionStr_3)) {
-          options.reactionStr_3 = "0";
-        }
-        break;
-      case 4:
-        break;
+      }
     }
 
-    // Configure any type-specific options.
-    switch (equationType) {
-      case 3:
-        // 2SpeciesCrossDiffusionAlgebraicV
-        options.diffusionStr_2_2 = "0";
-        break;
-      case 6:
-        // 3SpeciesCrossDiffusionAlgebraicW
-        options.diffusionStr_3_3 = "0";
-        break;
-      case 7:
-        // 3SpeciesCrossDiffusionAlgebraicVW
-        options.diffusionStr_2_2 = "0";
-        options.diffusionStr_3_3 = "0";
-        break;
-      case 10:
-        // 4SpeciesCrossDiffusionAlgebraicQ
-        options.diffusionStr_4_4 = "0";
-        break;
-      case 11:
-        // 4SpeciesCrossDiffusionAlgebraicWQ
-        options.diffusionStr_3_3 = "0";
-        options.diffusionStr_4_4 = "0";
-        break;
-      case 12:
-        // 4SpeciesCrossDiffusionAlgebraicVWQ
-        options.diffusionStr_2_2 = "0";
-        options.diffusionStr_3_3 = "0";
-        options.diffusionStr_4_4 = "0";
-        break;
+    // Algebraic species have no self-diffusion (they're not PDEs). The pre-upgrade
+    // switch(equationType) here hand-enumerated every <=4-species/crossDiffusion/algebraic
+    // combination (cases 3,6,7,10,11,12 of the 13-entry equationType enum, each reachable
+    // only when options.crossDiffusion is true - equationType is only ever assigned one of
+    // those values inside problemTypeFromOptions()'s crossDiffusion branches). That's exactly
+    // "whichever of algebraicV/W/Q are on, zero the matching self-diffusion" - generalised
+    // here using algebraicV/W/Q directly (species 1-4) plus algebraicSpeciesFlags[4..7]
+    // (species 5-8, Stage 6) instead of re-deriving it from equationType, since equationType
+    // has no representation for numSpecies>4.
+    if (options.crossDiffusion) {
+      if (algebraicV) options.diffusionStr_2_2 = "0";
+      if (algebraicW) options.diffusionStr_3_3 = "0";
+      if (algebraicQ) options.diffusionStr_4_4 = "0";
+      for (let s = 4; s < MAX_SPECIES_SUPPORTED; s++) {
+        if (algebraicSpeciesFlags[s]) {
+          options["diffusionStr_" + (s + 1) + "_" + (s + 1)] = "0";
+        }
+      }
     }
 
     // If we're in automata mode, specify forward Euler.
     if (options.automataMode) {
+      options.timesteppingScheme = "Euler";
+    }
+    // Only Forward Euler supports numSpecies>4 so far (Stage 13 of the 8-species upgrade
+    // sketches out AB2/Mid/RK4); force it here, and restrict the dropdown's offered values in
+    // configureGUI().
+    if (numGroups(numSpeciesInt) > 1) {
       options.timesteppingScheme = "Euler";
     }
 
