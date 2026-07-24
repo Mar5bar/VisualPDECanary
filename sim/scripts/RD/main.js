@@ -74,7 +74,11 @@ import {
   coerceOptions,
 } from "./presets.js";
 import { clearShaderBot, clearShaderTop } from "./clear_shader.js";
-import { groupOfSpecies, channelCharOfSpecies } from "./species_config.js";
+import {
+  numGroups,
+  groupOfSpecies,
+  channelCharOfSpecies,
+} from "./species_config.js";
 import { auxiliary_GLSL_funs } from "../auxiliary_GLSL_funs.js";
 import * as THREE from "../three.module.min.js";
 import { OrbitControls } from "../OrbitControls.js";
@@ -110,6 +114,13 @@ async function VisualPDE(url) {
   let canvas, gl, manualInterpolationNeeded, camCanvas;
   let camera, simCamera, scene, simScene, renderer, aspectRatio, controls;
   let simTextures = [],
+    // Only allocated once numGroups(options.numSpecies)>1 (i.e. numSpecies>4). Each entry is
+    // a THREE.WebGLMultipleRenderTargets holding one colour attachment per texture group, so
+    // that a single Forward-Euler MRT pass can write every group's species in one render call.
+    // simTextures (above) stays exactly as it is today and is what's used whenever
+    // numGroups===1, so the <=4-species code path/performance is completely unaffected by
+    // this array ever existing. See species_config.js and the Stage 3 upgrade notes.
+    mrtSimTextures = [],
     postTexture,
     interpolationTexture,
     probeTexture,
@@ -1070,19 +1081,11 @@ async function VisualPDE(url) {
     manualInterpolationNeeded
       ? (simTextureOpts.magFilter = THREE.NearestFilter)
       : (simTextureOpts.magFilter = THREE.LinearFilter);
-    simTextures.push(
-      new THREE.WebGLRenderTarget(
-        options.maxDisc,
-        options.maxDisc,
-        simTextureOpts,
-      ),
-    );
     // Store all the simulation textures in an array. They'll be in history order, so that the first element is the most
     // recent. We'll write to the first texture, with later elements being further back in time.
-    simTextures.push(simTextures[0].clone());
-    simTextures.push(simTextures[0].clone());
-    simTextures.push(simTextures[0].clone());
-    simTextures.push(simTextures[0].clone());
+    simTextures.push(
+      ...createGroupRenderTargets(options.maxDisc, options.maxDisc, simTextureOpts),
+    );
     postTexture = simTextures[0].clone();
     interpolationTexture = simTextures[0].clone();
 
@@ -2722,6 +2725,10 @@ async function VisualPDE(url) {
         options.speciesNames = speciesNamesToString();
         setCustomNames();
         updateProblem();
+        // (De)allocate the MRT render targets before resetSim() renders into them. A no-op
+        // today since this dropdown is capped at 4, but kept here so the lifecycle is wired
+        // up correctly ahead of the dropdown's range being extended.
+        ensureMRTRenderTargets();
         resetSim();
       });
 
@@ -4586,6 +4593,91 @@ async function VisualPDE(url) {
     }
     uniforms.brushCoords.value = new THREE.Vector2(x, y);
     return 0 <= x && x <= 1 && 0 <= y && y <= 1;
+  }
+
+  /**
+   * Creates the 5-slot ping-pong render target array used by a single texture group (one
+   * texture holding up to CHANNELS_PER_GROUP species in its r,g,b,a channels): a "current"
+   * target plus 4 history/stage-buffer clones, which between them cover every timestepping
+   * scheme's needs (Forward Euler needs 2, RK4 needs all 5). Factored out so the always-
+   * present group 0 (simTextures) and, once implemented, any future >8-species upgrade's
+   * additional groups can all share this logic.
+   * @param {number} width
+   * @param {number} height
+   * @param {Object} opts - THREE.WebGLRenderTarget options (format/type/filtering).
+   * @returns {THREE.WebGLRenderTarget[]} 5 render targets; entries 1-4 are clones of entry 0.
+   */
+  function createGroupRenderTargets(width, height, opts) {
+    const targets = [new THREE.WebGLRenderTarget(width, height, opts)];
+    targets.push(targets[0].clone());
+    targets.push(targets[0].clone());
+    targets.push(targets[0].clone());
+    targets.push(targets[0].clone());
+    return targets;
+  }
+
+  /**
+   * MRT counterpart of createGroupRenderTargets, used only once numGroups(options.numSpecies)>1.
+   * Each slot is a single THREE.WebGLMultipleRenderTargets with one colour attachment per
+   * texture group, so one render call can update every group's species at once. Group g's
+   * texture for ping-pong slot k is mrtSimTextures[k].texture[g].
+   * @param {number} width
+   * @param {number} height
+   * @param {Object} opts
+   * @param {number} groups - Number of texture groups (colour attachments), i.e. numGroups(numSpecies).
+   * @returns {THREE.WebGLMultipleRenderTargets[]} 5 MRT render targets.
+   */
+  function createMRTRenderTargets(width, height, opts, groups) {
+    const targets = [
+      new THREE.WebGLMultipleRenderTargets(width, height, groups, opts),
+    ];
+    targets.push(targets[0].clone());
+    targets.push(targets[0].clone());
+    targets.push(targets[0].clone());
+    targets.push(targets[0].clone());
+    return targets;
+  }
+
+  /**
+   * Allocates mrtSimTextures if numSpecies>4 and the right number of groups isn't already
+   * allocated; disposes them if numSpecies has dropped back to <=4. A no-op otherwise, so
+   * it's safe to call on every numSpecies change. Must run before resetSim()/clearTextures()
+   * so the (de)allocated targets are in place before anything renders into them.
+   */
+  function ensureMRTRenderTargets() {
+    const groups = numGroups(options.numSpecies);
+    if (groups <= 1) {
+      disposeMRTRenderTargets();
+      return;
+    }
+    if (mrtSimTextures.length > 0 && mrtSimTextures[0].texture.length === groups) {
+      return;
+    }
+    disposeMRTRenderTargets();
+    mrtSimTextures.push(
+      ...createMRTRenderTargets(
+        options.maxDisc,
+        options.maxDisc,
+        simTextureOpts,
+        groups,
+      ),
+    );
+    // Match simTextures' periodic wrapping (set on every attachment of every slot).
+    mrtSimTextures.forEach((mrtTex) => {
+      mrtTex.texture.forEach((tex) => {
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+      });
+    });
+  }
+
+  /**
+   * Frees the GPU resources backing mrtSimTextures (THREE render targets are not garbage
+   * collected automatically) and empties the array. Safe to call when nothing is allocated.
+   */
+  function disposeMRTRenderTargets() {
+    mrtSimTextures.forEach((tex) => tex.dispose());
+    mrtSimTextures.length = 0;
   }
 
   function clearTextures() {
