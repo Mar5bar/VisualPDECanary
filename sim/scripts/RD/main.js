@@ -52,6 +52,11 @@ import {
   RDShaderMain,
   clampSpeciesToEdgeShader,
   globalIntegralShader,
+  RDShaderTopMRT,
+  RDShaderMainMRT,
+  RDShaderUpdateNormalMRT,
+  RDShaderUpdateCrossMRT,
+  RDShaderBotMRT,
 } from "./simulation_shaders.js";
 import { randShader, randNShader } from "../rand_shader.js";
 import {
@@ -78,6 +83,8 @@ import {
   numGroups,
   groupOfSpecies,
   channelCharOfSpecies,
+  diffusionLabel,
+  reactionTokenOfSpecies,
 } from "./species_config.js";
 import { auxiliary_GLSL_funs } from "../auxiliary_GLSL_funs.js";
 import * as THREE from "../three.module.min.js";
@@ -4756,6 +4763,51 @@ async function VisualPDE(url) {
     // Prepare the QFUN string.
     out += "float QFUN = " + parseShaderString(options.reactionStr_4) + ";\n";
 
+    // Species 5-8, only relevant once numGroups(numSpecies)>1 (numSpecies>4). Kept
+    // separate from the 4 hardcoded lines above (rather than folding everything into one
+    // generalized loop) so the numSpecies<=4 output is provably unchanged - this loop's
+    // range is empty whenever numSpecies<=4.
+    const numSpecies = Number(options.numSpecies);
+    for (let i = 4; i < numSpecies; i++) {
+      out +=
+        "float " +
+        reactionTokenOfSpecies(i) +
+        " = " +
+        parseShaderString(options["reactionStr_" + (i + 1)]) +
+        ";\n";
+    }
+
+    return out;
+  }
+
+  // Shared per-coefficient body extracted from parseNormalDiffusionStrings/
+  // parseCrossDiffusionStrings' tuple loops (unchanged logic, just factored out so the new
+  // species-5-8/cross-group loops below can reuse it without duplicating it).
+  function diffusionTupleToShader(str, label) {
+    let out = "";
+    let stry;
+    // Check if we have a separate y diffusion coefficient.
+    if (str.includes(";")) {
+      let parts = str.split(";").filter((x) => x);
+      str = parts[0];
+      if (parts.length > 1 && options.dimension > 1) {
+        stry = parts[1];
+      }
+    }
+    // Add in the x diffusion coefficient.
+    out += nonConstantDiffusionEvaluateInSpaceStr(
+      parseShaderString(str) + ";\n",
+      label + "x",
+    );
+    // Add in the y diffusion coefficients.
+    if (!stry) {
+      out += setEqualYDiffusionCoefficientsShader(label);
+    } else {
+      out += nonConstantDiffusionEvaluateInSpaceStr(
+        parseShaderString(stry) + ";\n",
+        label + "y",
+      );
+    }
     return out;
   }
 
@@ -4771,29 +4823,19 @@ async function VisualPDE(url) {
 
     // Loop over the tuples.
     for (let [str, label] of tuples) {
-      let stry;
-      // Check if we have a separate y diffusion coefficient.
-      if (str.includes(";")) {
-        let parts = str.split(";").filter((x) => x);
-        str = parts[0];
-        if (parts.length > 1 && options.dimension > 1) {
-          stry = parts[1];
-        }
-      }
-      // Add in the x diffusion coefficient.
-      out += nonConstantDiffusionEvaluateInSpaceStr(
-        parseShaderString(str) + ";\n",
-        label + "x",
+      out += diffusionTupleToShader(str, label);
+    }
+
+    // Species 5-8 self-diffusion, only relevant once numGroups(numSpecies)>1 (numSpecies>4).
+    // Kept separate from the tuples array above (rather than folding into one generalized
+    // loop) so the numSpecies<=4 output is provably unchanged - this loop's range is empty
+    // whenever numSpecies<=4.
+    const numSpecies = Number(options.numSpecies);
+    for (let i = 4; i < numSpecies; i++) {
+      out += diffusionTupleToShader(
+        options["diffusionStr_" + (i + 1) + "_" + (i + 1)],
+        diffusionLabel(i, i),
       );
-      // Add in the y diffusion coefficients.
-      if (!stry) {
-        out += setEqualYDiffusionCoefficientsShader(label);
-      } else {
-        out += nonConstantDiffusionEvaluateInSpaceStr(
-          parseShaderString(stry) + ";\n",
-          label + "y",
-        );
-      }
     }
 
     return out;
@@ -4830,27 +4872,21 @@ async function VisualPDE(url) {
 
     // Loop over the tuples.
     for (let [str, label] of tuples) {
-      let stry;
-      // Check if we have a separate y diffusion coefficient.
-      if (str.includes(";")) {
-        let parts = str.split(";").filter((x) => x);
-        str = parts[0];
-        if (parts.length > 1 && options.dimension > 1) {
-          stry = parts[1];
-        }
-      }
-      // Add in the x diffusion coefficient.
-      out += nonConstantDiffusionEvaluateInSpaceStr(
-        parseShaderString(str) + ";\n",
-        label + "x",
-      );
-      // Add in the y diffusion coefficients.
-      if (!stry) {
-        out += setEqualYDiffusionCoefficientsShader(label);
-      } else {
-        out += nonConstantDiffusionEvaluateInSpaceStr(
-          parseShaderString(stry) + ";\n",
-          label + "y",
+      out += diffusionTupleToShader(str, label);
+    }
+
+    // Cross-diffusion terms involving species 5-8 (any pair where at least one index is
+    // >=4 - pairs with both indices <4 are already covered by the tuples array above), only
+    // relevant once numGroups(numSpecies)>1. Every species can cross-diffuse with every
+    // other regardless of group, so this covers the full N x N matrix minus the diagonal
+    // and minus the <=4-species block handled above. Empty whenever numSpecies<=4.
+    const numSpecies = Number(options.numSpecies);
+    for (let i = 0; i < numSpecies; i++) {
+      for (let j = 0; j < numSpecies; j++) {
+        if (i === j || (i < 4 && j < 4)) continue;
+        out += diffusionTupleToShader(
+          options["diffusionStr_" + (i + 1) + "_" + (j + 1)],
+          diffusionLabel(i, j),
         );
       }
     }
@@ -4925,8 +4961,12 @@ async function VisualPDE(url) {
         "g",
       ),
       function (m, d1, d2, d3) {
+        const textureUniform =
+          speciesToGroupInd(d1) === 0 ? "textureSource" : "textureSourceGroup1";
         return (
-          "texture(textureSource, vec2((" +
+          "texture(" +
+          textureUniform +
+          ", vec2((" +
           d2 +
           "-MINX)/L_x,(" +
           d3 +
@@ -4944,29 +4984,33 @@ async function VisualPDE(url) {
         return "((" + p1 + ")" + ("*(" + p1 + ")").repeat(exp - 1) + ")";
       } else return "safepow(" + p1 + "," + p2 + ")";
     });
-    // Replace species with uvwq.[rgba].
+    // Replace species with uvwq.[rgba] (group 0) or uvwq2.[rgba] (group 1, species 5-8).
     str = str.replaceAll(
       RegExp("\\b(" + anySpeciesRegexStrs[0] + ")\\b", "g"),
       function (m, d) {
-        return "uvwq." + speciesToChannelChar(d);
+        return stencilPrefixForSpecies(d) + "." + speciesToChannelChar(d);
       },
     );
 
-    // Replace species_x, species_y etc with uvwqX.r and uvwqY.r, etc.
+    // Replace species_x, species_y etc with uvwqX.r/uvwq2X.r and uvwqY.r/uvwq2Y.r, etc.
     // Allow for specifying forward or backward difference.
     str = str.replaceAll(
       RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_([xy][fb]?2?)\\b", "g"),
       function (m, d1, d2) {
         if (d2.includes("2")) d2 = d2.slice(0, -1).repeat(2);
-        return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
+        return (
+          stencilPrefixForSpecies(d1) + d2.toUpperCase() + "." + speciesToChannelChar(d1)
+        );
       },
     );
 
-    // Replace species_xx, species_yy etc with uvwqXX.r and uvwqYY.r, etc.
+    // Replace species_xx, species_yy etc with uvwqXX.r/uvwq2XX.r and uvwqYY.r/uvwq2YY.r, etc.
     str = str.replaceAll(
       RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_(xx|yy)\\b", "g"),
       function (m, d1, d2) {
-        return "uvwq" + d2.toUpperCase() + "." + speciesToChannelChar(d1);
+        return (
+          stencilPrefixForSpecies(d1) + d2.toUpperCase() + "." + speciesToChannelChar(d1)
+        );
       },
     );
 
@@ -5292,8 +5336,11 @@ async function VisualPDE(url) {
     }
 
     // Iff the user has entered u_x, u_y etc in a diffusion coefficient, it will be present in
-    // the update shader as uvwxy[XY].[rgba]. If they've done this, warn them and don't update the shader.
-    let match = diffusionShader.match(/\buvwq[XY]\.[rgba]\b/);
+    // the update shader as uvwxy[XY].[rgba] (group 0) or uvwq2[XY].[rgba] (group 1, species
+    // 5-8 - there's no uvwq2X/uvwq2XX declared anywhere, so this must be caught here rather
+    // than left to fail as an undeclared-variable shader compile error).
+    // If they've done this, warn them and don't update the shader.
+    let match = diffusionShader.match(/\buvwq2?[XY]\.[rgba]\b/);
     if (match) {
       throwError(
         "Including derivatives in the diffusion coefficients is not supported. Try casting your PDE in another form.",
@@ -5357,19 +5404,77 @@ async function VisualPDE(url) {
     shaderContainsGlobalIntegral = /\bglobalIntegralValue\b/.test(middle);
     let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
+    // MRT (>4-species) Forward-Euler-only path. Built as an entirely separate
+    // diffusionShader/middle/bot from the ones above: RDShaderUpdateNormalMRT/
+    // RDShaderUpdateCrossMRT close a computeRHS with a doubled signature (18 stencil args,
+    // result0/result1) that's incompatible with the legacy single-group signature `middle`/
+    // `bot` above are built around - and `middle`/`bot` above must stay exactly as they are,
+    // since AB2/Mid/RK4 (and FE itself, whenever numGroups===1) still use them unchanged.
+    // parseReactionStrings()/parseNormalDiffusionStrings()/parseCrossDiffusionStrings()
+    // already include species 5-8 and cross-group terms unconditionally (generalized
+    // earlier in this stage), so they're reused here as-is - only the final
+    // "close computeRHS"/shader-wrapper functions differ.
+    let middleMRT, botMRT;
+    if (numGroups(Number(options.numSpecies)) > 1) {
+      let diffusionShaderMRT = parseNormalDiffusionStrings() + "\n";
+      if (options.crossDiffusion) {
+        diffusionShaderMRT +=
+          parseCrossDiffusionStrings() +
+          "\n" +
+          RDShaderUpdateCrossMRT(Number(options.numSpecies));
+      } else {
+        diffusionShaderMRT += RDShaderUpdateNormalMRT(Number(options.numSpecies));
+      }
+      middleMRT = [
+        clampShader,
+        RDShaderAdvectionPreBC(),
+        RDShaderDiffusionPreBC(),
+        neumannShader,
+        ghostShader,
+        robinShader,
+        RDShaderAdvectionPostBC(),
+        RDShaderDiffusionPostBC(),
+        parseReactionStrings(),
+        diffusionShaderMRT,
+      ].join(" ");
+      // Reuse the RAND/RANDN detection already done for `middle` above, rather than
+      // redoing it: parseReactionStrings()'s output (the only place WhiteNoise/RAND could
+      // come from) is identical whether it ends up embedded in `middle` or `middleMRT`.
+      if (containsRAND) middleMRT = randShader() + middleMRT;
+      if (containsRANDN) middleMRT = randNShader() + middleMRT;
+      botMRT = [dirichletShader, algebraicShader, RDShaderBotMRT()].join(" ");
+    }
+
     let type = "FE";
-    assignFragmentShader(
-      simMaterials[type],
-      replaceMINXMINY(
-        [
-          kineticStr,
-          RDShaderTop(type),
-          middle,
-          insertRates(RDShaderMain(type)),
-          bot,
-        ].join(" "),
-      ),
-    );
+    if (numGroups(Number(options.numSpecies)) > 1) {
+      assignFragmentShader(
+        simMaterials[type],
+        replaceMINXMINY(
+          [
+            kineticStr,
+            RDShaderTopMRT(),
+            middleMRT,
+            insertRates(RDShaderMainMRT()),
+            botMRT,
+          ].join(" "),
+        ),
+      );
+      simMaterials[type].glslVersion = THREE.GLSL3;
+    } else {
+      assignFragmentShader(
+        simMaterials[type],
+        replaceMINXMINY(
+          [
+            kineticStr,
+            RDShaderTop(type),
+            middle,
+            insertRates(RDShaderMain(type)),
+            bot,
+          ].join(" "),
+        ),
+      );
+      simMaterials[type].glslVersion = null;
+    }
 
     type = "AB2";
     assignFragmentShader(
@@ -5902,6 +6007,13 @@ async function VisualPDE(url) {
   // existing single-texture ("uvwq") group; group 1+ only exist once numSpecies>4.
   function speciesToGroupInd(speciesStr) {
     return groupOfSpecies(speciesToChannelInd(speciesStr));
+  }
+
+  // The GLSL stencil-vec4 variable prefix for a species: "uvwq" (group 0, unchanged) or
+  // "uvwq2" (group 1, species 5-8) - see RDShaderTopMRT/RDShaderMainMRT in
+  // simulation_shaders.js, which declare the uvwq2-prefixed locals this references.
+  function stencilPrefixForSpecies(speciesStr) {
+    return speciesToGroupInd(speciesStr) === 0 ? "uvwq" : "uvwq2";
   }
 
   function setBCsGUI() {

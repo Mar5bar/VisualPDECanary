@@ -403,8 +403,8 @@ export function RDShaderMainMRT() {
       vec2 textureCoordsB = textureCoords + vec2(0.0, -step_y);
       vec2 textureCoordsBB = textureCoordsB + vec2(0.0, -step_y);
 
-      vec4 RHS0;
-      vec4 RHS1;
+      vec4 RHS;
+      vec4 RHS2;
       vec4 updated;
       vec4 updated2;
       vec4 uvwq;
@@ -444,11 +444,11 @@ export function RDShaderMainMRT() {
       uvwq2RR = texture2D(textureSourceGroup1, textureCoordsRR);
       uvwq2TT = texture2D(textureSourceGroup1, textureCoordsTT);
       uvwq2BB = texture2D(textureSourceGroup1, textureCoordsBB);
-      computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, uvwq2, uvwq2L, uvwq2R, uvwq2T, uvwq2B, uvwq2LL, uvwq2RR, uvwq2TT, uvwq2BB, RHS0, RHS1);
+      computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, uvwq2, uvwq2L, uvwq2R, uvwq2T, uvwq2B, uvwq2LL, uvwq2RR, uvwq2TT, uvwq2BB, RHS, RHS2);
       vec4 timescales = TIMESCALES;
       vec4 timescalesGroup1 = TIMESCALESGROUP1;
-      updated = dt * RHS0 / timescales + uvwq;
-      updated2 = dt * RHS1 / timescalesGroup1 + uvwq2;
+      updated = dt * RHS / timescales + uvwq;
+      updated2 = dt * RHS2 / timescalesGroup1 + uvwq2;
   `;
 }
 
