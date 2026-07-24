@@ -34,7 +34,7 @@ import {
   computeDisplayFunShaderMidMRT,
   probeShaderMRT,
 } from "./post_shaders.js";
-import { copyShader } from "../copy_shader.js";
+import { copyShader, copyShaderMRT } from "../copy_shader.js";
 import {
   RDShaderTop,
   RDShaderBot,
@@ -1740,18 +1740,49 @@ async function VisualPDE(url) {
 
   function resizeTextures(shift = 0) {
     // Resize the computational domain by interpolating the existing domain onto the new discretisation.
+    // mrtSimTextures (the real 8-species state once numGroups>1) is allocated once at
+    // options.maxDisc size (Stage 3) and, unlike simTextures, was never being resized down
+    // to the actual discretisation (nXDisc/nYDisc) here - found via live testing (an initial
+    // condition meant to occupy a small region instead filling the whole domain, since the
+    // render target was much larger than intended). copyMaterial's shader/glslVersion are
+    // toggled dynamically since, unlike drawMaterial/clearMaterial, it's built once at
+    // startup rather than rebuilt whenever relevant options change - this is its only use.
+    const isMRT = numGroups(Number(options.numSpecies)) > 1;
+    if (isMRT) {
+      assignFragmentShader(copyMaterial, copyShaderMRT());
+      copyMaterial.glslVersion = THREE.GLSL3;
+    } else {
+      assignFragmentShader(copyMaterial, copyShader());
+      copyMaterial.glslVersion = null;
+    }
+    copyMaterial.needsUpdate = true;
     simDomain.material = copyMaterial;
 
-    // Resize all history terms. We'll do 1->0 then 2->1 etc, then cycle.
-    for (let ind = 1; ind < simTextures.length; ind++) {
-      uniforms.textureSource.value = simTextures[ind].texture;
-      simTextures[ind - 1].setSize(nXDisc + shift, nYDisc + shift);
-      renderer.setRenderTarget(simTextures[ind - 1]);
-      renderer.render(simScene, simCamera);
+    if (isMRT) {
+      // simTextures is unused once numGroups>1 (the real state lives in mrtSimTextures,
+      // matching every other Stage 3-8 MRT code path), so it's deliberately left alone here.
+      for (let ind = 1; ind < mrtSimTextures.length; ind++) {
+        uniforms.textureSource.value = mrtSimTextures[ind].texture[0];
+        uniforms.textureSourceGroup1.value = mrtSimTextures[ind].texture[1];
+        mrtSimTextures[ind - 1].setSize(nXDisc + shift, nYDisc + shift);
+        renderer.setRenderTarget(mrtSimTextures[ind - 1]);
+        renderer.render(simScene, simCamera);
+      }
+      mrtSimTextures.rotate(-1);
+      mrtSimTextures[0].dispose();
+      mrtSimTextures[0] = mrtSimTextures[1].clone();
+    } else {
+      // Resize all history terms. We'll do 1->0 then 2->1 etc, then cycle.
+      for (let ind = 1; ind < simTextures.length; ind++) {
+        uniforms.textureSource.value = simTextures[ind].texture;
+        simTextures[ind - 1].setSize(nXDisc + shift, nYDisc + shift);
+        renderer.setRenderTarget(simTextures[ind - 1]);
+        renderer.render(simScene, simCamera);
+      }
+      simTextures.rotate(-1);
+      simTextures[0].dispose();
+      simTextures[0] = simTextures[1].clone();
     }
-    simTextures.rotate(-1);
-    simTextures[0].dispose();
-    simTextures[0] = simTextures[1].clone();
 
     postTexture.setSize(nXDisc + shift, nYDisc + shift);
     postprocess();
