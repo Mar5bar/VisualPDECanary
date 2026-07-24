@@ -312,12 +312,23 @@ function stencilBlockMRT(tex0, tex1, combineTex0, combineTex1, coefficient) {
       const base = "texture2D(" + tex + ", " + coords + ")";
       const combined =
         combineTex != null
-          ? base + " + " + coefficient + "*texture2D(" + combineTex + ", " + coords + ")"
+          ? base +
+            " + " +
+            coefficient +
+            "*texture2D(" +
+            combineTex +
+            ", " +
+            coords +
+            ")"
           : base;
       return varPrefix + suffix + " = " + combined + ";";
     }).join("\n    ");
   }
-  return line("uvwq", tex0, combineTex0) + "\n    " + line("uvwq2", tex1, combineTex1);
+  return (
+    line("uvwq", tex0, combineTex0) +
+    "\n    " +
+    line("uvwq2", tex1, combineTex1)
+  );
 }
 
 /**
@@ -383,7 +394,8 @@ export function RDShaderTopMRT(type) {
       break;
   }
   let parts = [];
-  parts[0] = "uniform sampler2D textureSource;\n    uniform sampler2D textureSourceGroup1;";
+  parts[0] =
+    "uniform sampler2D textureSource;\n    uniform sampler2D textureSourceGroup1;";
   parts[1] =
     "uniform sampler2D textureSource1;\n    uniform sampler2D textureSource1Group1;";
   parts[2] =

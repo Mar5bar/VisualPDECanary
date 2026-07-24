@@ -313,16 +313,7 @@ async function VisualPDE(url) {
   // NB: controllers/regexes for TU5-TU8 don't exist until the GUI/TeX stages of the upgrade
   // land, so consumers that iterate this array and look up a controller/regex by tag must
   // guard against a missing entry (see the timescaleTags.forEach call sites below).
-  const timescaleTags = [
-    "TU",
-    "TV",
-    "TW",
-    "TQ",
-    "TU5",
-    "TU6",
-    "TU7",
-    "TU8",
-  ];
+  const timescaleTags = ["TU", "TV", "TW", "TQ", "TU5", "TU6", "TU7", "TU8"];
   const placeholderSp = [
     "SPECIES1",
     "SPECIES2",
@@ -1124,7 +1115,11 @@ async function VisualPDE(url) {
     // Store all the simulation textures in an array. They'll be in history order, so that the first element is the most
     // recent. We'll write to the first texture, with later elements being further back in time.
     simTextures.push(
-      ...createGroupRenderTargets(options.maxDisc, options.maxDisc, simTextureOpts),
+      ...createGroupRenderTargets(
+        options.maxDisc,
+        options.maxDisc,
+        simTextureOpts,
+      ),
     );
     postTexture = simTextures[0].clone();
     interpolationTexture = simTextures[0].clone();
@@ -4292,7 +4287,8 @@ async function VisualPDE(url) {
     // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
     const isMRT = numGroups(Number(options.numSpecies)) > 1;
     let shaderStr =
-      kineticUniformsForShader() + (isMRT ? drawShaderTopMRT() : drawShaderTop());
+      kineticUniformsForShader() +
+      (isMRT ? drawShaderTopMRT() : drawShaderTop());
     let radiusStr =
       "float brushRadius = " +
       parseShaderString(options.brushRadius.toString()) +
@@ -4340,11 +4336,15 @@ async function VisualPDE(url) {
     // FRAGCOLOR/UVWQGROUP substituted for whichever group that species belongs to (see
     // below) - not a full dual-output "combine both groups' equations" treatment like the
     // main simulation shader.
-    const botReplace = isMRT ? drawShaderBotReplaceMRT() : drawShaderBotReplace();
+    const botReplace = isMRT
+      ? drawShaderBotReplaceMRT()
+      : drawShaderBotReplace();
     const botAdd = isMRT ? drawShaderBotAddMRT() : drawShaderBotAdd();
     if (options.brushType == "custom") {
       shaderStr += drawShaderCustom();
-      shaderStr += options.brushAction.includes("replace") ? botReplace : botAdd;
+      shaderStr += options.brushAction.includes("replace")
+        ? botReplace
+        : botAdd;
     } else {
       switch (options.brushAction) {
         case "replace":
@@ -5056,7 +5056,10 @@ async function VisualPDE(url) {
       disposeMRTRenderTargets();
       return;
     }
-    if (mrtSimTextures.length > 0 && mrtSimTextures[0].texture.length === groups) {
+    if (
+      mrtSimTextures.length > 0 &&
+      mrtSimTextures[0].texture.length === groups
+    ) {
       return;
     }
     disposeMRTRenderTargets();
@@ -5103,7 +5106,9 @@ async function VisualPDE(url) {
         if (checkpointTextureGroup1 == null) {
           tempZeroGroup1Tex = new THREE.DataTexture(
             new Float32Array(
-              checkpointTexture.image.width * checkpointTexture.image.height * 4,
+              checkpointTexture.image.width *
+                checkpointTexture.image.height *
+                4,
             ),
             checkpointTexture.image.width,
             checkpointTexture.image.height,
@@ -5431,7 +5436,10 @@ async function VisualPDE(url) {
       function (m, d1, d2) {
         if (d2.includes("2")) d2 = d2.slice(0, -1).repeat(2);
         return (
-          stencilPrefixForSpecies(d1) + d2.toUpperCase() + "." + speciesToChannelChar(d1)
+          stencilPrefixForSpecies(d1) +
+          d2.toUpperCase() +
+          "." +
+          speciesToChannelChar(d1)
         );
       },
     );
@@ -5441,7 +5449,10 @@ async function VisualPDE(url) {
       RegExp("\\b(" + anySpeciesRegexStrs[0] + ")_(xx|yy)\\b", "g"),
       function (m, d1, d2) {
         return (
-          stencilPrefixForSpecies(d1) + d2.toUpperCase() + "." + speciesToChannelChar(d1)
+          stencilPrefixForSpecies(d1) +
+          d2.toUpperCase() +
+          "." +
+          speciesToChannelChar(d1)
         );
       },
     );
@@ -6028,7 +6039,9 @@ async function VisualPDE(url) {
           "\n" +
           RDShaderUpdateCrossMRT(Number(options.numSpecies));
       } else {
-        diffusionShaderMRT += RDShaderUpdateNormalMRT(Number(options.numSpecies));
+        diffusionShaderMRT += RDShaderUpdateNormalMRT(
+          Number(options.numSpecies),
+        );
       }
 
       // Group 1 (species 5-8) BCs: mirrors the group-0 blocks above exactly, via
@@ -6925,10 +6938,14 @@ async function VisualPDE(url) {
       shaderStr += "float v = " + parseShaderString(options.initCond_2) + ";\n";
       shaderStr += "float w = " + parseShaderString(options.initCond_3) + ";\n";
       shaderStr += "float q = " + parseShaderString(options.initCond_4) + ";\n";
-      shaderStr += "float u5 = " + parseShaderString(options.initCond_5) + ";\n";
-      shaderStr += "float u6 = " + parseShaderString(options.initCond_6) + ";\n";
-      shaderStr += "float u7 = " + parseShaderString(options.initCond_7) + ";\n";
-      shaderStr += "float u8 = " + parseShaderString(options.initCond_8) + ";\n";
+      shaderStr +=
+        "float u5 = " + parseShaderString(options.initCond_5) + ";\n";
+      shaderStr +=
+        "float u6 = " + parseShaderString(options.initCond_6) + ";\n";
+      shaderStr +=
+        "float u7 = " + parseShaderString(options.initCond_7) + ";\n";
+      shaderStr +=
+        "float u8 = " + parseShaderString(options.initCond_8) + ";\n";
       shaderStr += clearShaderBotMRT();
       shaderStr = replaceMINXMINY(shaderStr);
       assignFragmentShader(clearMaterial, shaderStr);
@@ -6969,7 +6986,9 @@ async function VisualPDE(url) {
     // simulation/clear shaders).
     let shaderStr =
       kineticUniformsForShader() +
-      (numGroups(Number(options.numSpecies)) > 1 ? probeShaderMRT() : probeShader());
+      (numGroups(Number(options.numSpecies)) > 1
+        ? probeShaderMRT()
+        : probeShader());
     shaderStr = replaceMINXMINY(shaderStr);
     // Insert the user-defined location of the probe.
     shaderStr = shaderStr.replace("PROBE_X", parseShaderString(options.probeX));
@@ -7266,9 +7285,8 @@ async function VisualPDE(url) {
     let shaderStr =
       kineticUniformsForShader() +
       (isMRT ? computeDisplayFunShaderTopMRT() : computeDisplayFunShaderTop());
-    shaderStr += (isMRT
-      ? computeDisplayFunShaderMidMRT()
-      : computeDisplayFunShaderMid()
+    shaderStr += (
+      isMRT ? computeDisplayFunShaderMidMRT() : computeDisplayFunShaderMid()
     )
       .replace(/\bXVECFUN\b/, parseShaderString(options.arrowX))
       .replace(/\bYVECFUN\b/, parseShaderString(options.arrowY));
@@ -7901,13 +7919,16 @@ async function VisualPDE(url) {
       // default-notation-placeholder convention as equationTEXFun()'s output, so everything
       // below (custom-equation splicing, custom-name substitution, TeX post-processing)
       // applies uniformly regardless of which path produced `str`.
-      const algebraicFlagsArr = Array.from({ length: numSpeciesInt }, (_, i) => {
-        if (i === 1) return algebraicV;
-        if (i === 2) return algebraicW;
-        if (i === 3) return algebraicQ;
-        if (i >= 4) return !!algebraicSpeciesFlags[i];
-        return false;
-      });
+      const algebraicFlagsArr = Array.from(
+        { length: numSpeciesInt },
+        (_, i) => {
+          if (i === 1) return algebraicV;
+          if (i === 2) return algebraicW;
+          if (i === 3) return algebraicQ;
+          if (i >= 4) return !!algebraicSpeciesFlags[i];
+          return false;
+        },
+      );
       str = buildEquationTEX(
         defaultSpecies.slice(0, numSpeciesInt),
         defaultReactions.slice(0, numSpeciesInt),
@@ -7990,7 +8011,10 @@ async function VisualPDE(url) {
       // follows in the generated TeX), so it would break every match. Safe without one
       // regardless: "tau_{u}" can never be a literal prefix of "tau_{u5}" (they diverge at
       // "}" vs "5" before the shorter pattern's boundary would even matter).
-      regexes[tag] = new RegExp("\\b(tau_{" + defaultSpecies[i - 1] + "})", "g");
+      regexes[tag] = new RegExp(
+        "\\b(tau_{" + defaultSpecies[i - 1] + "})",
+        "g",
+      );
     }
 
     // Define placeholders for substituting parameter names in custom-typeset equations.
@@ -8178,11 +8202,11 @@ async function VisualPDE(url) {
       });
 
       // Replace the reaction strings.
-      ["UFUN", "VFUN", "WFUN", "QFUN", ...reactionKeys5to8].forEach(function (
-        tag,
-      ) {
-        str = replaceUserDefReac(str, regexes[tag], associatedStrs[tag]);
-      });
+      ["UFUN", "VFUN", "WFUN", "QFUN", ...reactionKeys5to8].forEach(
+        function (tag) {
+          str = replaceUserDefReac(str, regexes[tag], associatedStrs[tag]);
+        },
+      );
 
       // Replace the timescale strings. Skip tags with no associatedStrs/regexes entry
       // (shouldn't happen now that Stage 10 populates TU5-TU8 too, but kept as a defensive
