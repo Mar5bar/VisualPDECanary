@@ -1536,7 +1536,7 @@ a#add_view {
 }
 
 .dg li.folder {
-  border-left: 0;
+  border-left: 4px solid var(--active-button-background-color) !important;
 }
 
 .button_list {
