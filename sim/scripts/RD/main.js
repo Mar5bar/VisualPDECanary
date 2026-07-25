@@ -6382,6 +6382,12 @@ async function VisualPDE(url) {
       }
       dirichletMaterial.needsUpdate = true;
     }
+
+    // Every diffusion coefficient controller's onFinishChange calls setRDEquations(), so this
+    // is the one shared place that keeps the diffusion matrix popup in sync when a coefficient
+    // is instead edited via its usual controller in the left UI (a no-op if the popup's
+    // closed, or if a diffusion coefficient wasn't what changed).
+    syncDiffusionMatrixGUI();
   }
 
   function checkForAnyDirichletBCs() {
@@ -13128,6 +13134,9 @@ async function VisualPDE(url) {
           input.title = listOfSpecies[i] + " is algebraic - no self-diffusion.";
         } else {
           input.value = options[fieldName];
+          // Tags this input for syncDiffusionMatrixGUI() to find and refresh if the matching
+          // dat.gui controller in the left UI is edited directly while this popup is open.
+          input.dataset.field = fieldName;
           input.addEventListener("change", function () {
             const controller = controllers[key];
             controller.setValue(this.value);
@@ -13144,6 +13153,23 @@ async function VisualPDE(url) {
     }
 
     runMathJax();
+  }
+
+  /**
+   * If the diffusion matrix popup is currently open, refreshes its inputs' displayed values
+   * from options - keeps it in sync when a diffusion coefficient is instead edited via its
+   * usual dat.gui controller in the left UI. Cheap no-op when the popup is closed (the common
+   * case), so safe to call unconditionally from setRDEquations().
+   */
+  function syncDiffusionMatrixGUI() {
+    if (!$("#diffusionMatrix_ui").is(":visible")) return;
+    document
+      .querySelectorAll("#diffusionMatrixGrid input[data-field]")
+      .forEach((input) => {
+        if (document.activeElement !== input) {
+          input.value = options[input.dataset.field];
+        }
+      });
   }
 
   function openComboBCsGUI() {
