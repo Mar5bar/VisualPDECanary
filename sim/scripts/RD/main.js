@@ -209,8 +209,10 @@ async function VisualPDE(url) {
     imControllerTwo,
     imControllerBlend,
     editEquationsFolder,
+    timescalesFolder,
     diffusionCoeffsFolder,
     diffusionMatrixButton,
+    reactionTermsFolder,
     boundaryConditionsFolder,
     initialConditionsFolder,
     advancedOptionsFolder,
@@ -2354,8 +2356,8 @@ async function VisualPDE(url) {
       });
 
     // Let's put these in the left GUI.
-    // Definitions folder.
-    editEquationsFolder = leftGUI.addFolder("Edit");
+    // Equations folder.
+    editEquationsFolder = leftGUI.addFolder("Equations");
     root = editEquationsFolder;
     addInfoButton(root, "/user-guide/advanced-options#edit");
     addFocusLeftGUIButton(editEquationsFolder);
@@ -2369,6 +2371,12 @@ async function VisualPDE(url) {
       null,
       "Typeset the specified equations",
     );
+
+    // Timescale controllers get their own sub-folder, shown only when the "Scales" toggle is
+    // on (configureGUI() shows/hides the folder itself, mirroring how it already showed/hid
+    // each controller individually before this folder existed).
+    timescalesFolder = editEquationsFolder.addFolder("Timescales");
+    root = timescalesFolder;
 
     controllers["TU"] = root
       .add(options, "timescale_1")
@@ -2427,13 +2435,14 @@ async function VisualPDE(url) {
       setOnblur(controllers[tTag], deselectTeX, [tTag]);
     }
 
-    // Diffusion coefficients get their own nested sub-folder (rather than sitting directly
-    // in "Edit" alongside timescales/reaction terms) since cross-diffusion can show up to 64
-    // of them at once. Always created (regardless of crossDiffusion), matching the existing
-    // show/hide pattern (showVGUIPanels etc. already hide most of these when cross-diffusion
-    // is off) - only the "expand as matrix" button (added below, once all these controllers
-    // exist) is conditional. Reset `root` back to editEquationsFolder after this block so
-    // reaction terms stay directly under "Edit", unaffected.
+    // Diffusion coefficients go back directly under "Equations", not nested in the
+    // timescales sub-folder. They get their own nested sub-folder in turn (rather than
+    // sitting directly in "Equations" alongside timescales/reaction terms) since
+    // cross-diffusion can show up to 64 of them at once. Always created (regardless of
+    // crossDiffusion), matching the existing show/hide pattern (showVGUIPanels etc. already
+    // hide most of these when cross-diffusion is off) - only the "expand as matrix" button
+    // (added below, once all these controllers exist) is conditional.
+    root = editEquationsFolder;
     diffusionCoeffsFolder = editEquationsFolder.addFolder(
       "Diffusion coefficients",
     );
@@ -2637,8 +2646,11 @@ async function VisualPDE(url) {
     // not a small screen) is kept up to date in configureGUI(), not here.
     addDiffusionMatrixButton(diffusionCoeffsFolder);
 
-    // Reaction terms go back directly under "Edit", not nested in the diffusion sub-folder.
+    // Reaction terms get their own sub-folder too, back directly under "Equations" rather
+    // than nested in the diffusion sub-folder.
     root = editEquationsFolder;
+    reactionTermsFolder = editEquationsFolder.addFolder("Reaction terms");
+    root = reactionTermsFolder;
 
     // Custom f(u,v) and g(u,v).
     controllers["f"] = root
@@ -2682,7 +2694,7 @@ async function VisualPDE(url) {
     setOnblur(controllers["j"], deselectTeX, ["QFUN"]);
 
     // Species 5-8 reaction terms, grouped with species 1-4's reaction terms above so all
-    // reaction terms are together at the end of the "Edit" folder (reordered per user
+    // reaction terms are together in the "Reaction terms" sub-folder (reordered per user
     // request - previously these appeared before the species 5-8 diffusion coefficients).
     for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
       const key = "reaction_" + i;
@@ -3381,12 +3393,6 @@ async function VisualPDE(url) {
     settingsTitle.innerHTML = "Settings";
     settingsTitle.classList.add("ui_title");
     rightGUI.domElement.prepend(settingsTitle);
-
-    // Add a title to the leftGUI.
-    const equationsTitle = document.createElement("div");
-    equationsTitle.innerHTML = "Equations";
-    equationsTitle.classList.add("ui_title");
-    leftGUI.domElement.prepend(equationsTitle);
 
     // Add the light/dark buttons to the rightGUI.
     const darkButton = document.createElement("button");
@@ -7546,6 +7552,12 @@ async function VisualPDE(url) {
     if (!options.timescales) {
       timescaleTags.forEach((tag) => controllers[tag]?.hide());
     }
+    // The whole "Timescales" sub-folder (not just its individual controllers, above) only
+    // makes sense when timescales are turned on - otherwise it'd show as an empty folder.
+    // dat.gui folders have no show()/hide() of their own (only controllers do) - toggle the
+    // shared .hidden utility class on the folder's domElement directly, matching the existing
+    // pattern for hiding other folders (e.g. editViewFolder above).
+    timescalesFolder.domElement.classList.toggle("hidden", !options.timescales);
 
     // Configure the controller names.
     // We'll set the generic names then alter any algebraic ones.
