@@ -209,6 +209,8 @@ async function VisualPDE(url) {
     imControllerTwo,
     imControllerBlend,
     editEquationsFolder,
+    diffusionCoeffsFolder,
+    diffusionMatrixButton,
     boundaryConditionsFolder,
     initialConditionsFolder,
     advancedOptionsFolder,
@@ -846,6 +848,9 @@ async function VisualPDE(url) {
   $("#close-bcs-ui").click(function () {
     closeComboBCsGUI();
   });
+  $("#diffusionMatrix_ok").click(function () {
+    closeDiffusionMatrixGUI();
+  });
   // Open the Definitions tab when the user clicks on the equation display.
   $("#equation_display").click(function () {
     editEquationsFolder.open();
@@ -1455,6 +1460,15 @@ async function VisualPDE(url) {
       function () {
         resize();
         renderIfNotRunning();
+        // Lightweight update rather than a full configureGUI() call (which could be
+        // expensive/flicker-prone fired repeatedly during a drag-resize) - onSmallScreen()
+        // is otherwise only re-checked inside configureGUI(), so without this the button
+        // could stay (in)visible after crossing the breakpoint until some other option
+        // change happens to trigger a reconfigure.
+        diffusionMatrixButton.classList.toggle(
+          "hidden",
+          !options.crossDiffusion || onSmallScreen(),
+        );
       },
       false,
     );
@@ -2413,6 +2427,18 @@ async function VisualPDE(url) {
       setOnblur(controllers[tTag], deselectTeX, [tTag]);
     }
 
+    // Diffusion coefficients get their own nested sub-folder (rather than sitting directly
+    // in "Edit" alongside timescales/reaction terms) since cross-diffusion can show up to 64
+    // of them at once. Always created (regardless of crossDiffusion), matching the existing
+    // show/hide pattern (showVGUIPanels etc. already hide most of these when cross-diffusion
+    // is off) - only the "expand as matrix" button (added below, once all these controllers
+    // exist) is conditional. Reset `root` back to editEquationsFolder after this block so
+    // reaction terms stay directly under "Edit", unaffected.
+    diffusionCoeffsFolder = editEquationsFolder.addFolder(
+      "Diffusion coefficients",
+    );
+    root = diffusionCoeffsFolder;
+
     controllers["Duu"] = root
       .add(options, "diffusionStr_1_1")
       .onFinishChange(function () {
@@ -2600,6 +2626,14 @@ async function VisualPDE(url) {
         setOnblur(controllers[key], deselectTeX, [texKey]);
       }
     }
+
+    // Button to open the diffusion matrix popup, injected into the sub-folder's title bar
+    // (mirroring addInfoButton's DOM-injection pattern). Its visibility (crossDiffusion on,
+    // not a small screen) is kept up to date in configureGUI(), not here.
+    addDiffusionMatrixButton(diffusionCoeffsFolder);
+
+    // Reaction terms go back directly under "Edit", not nested in the diffusion sub-folder.
+    root = editEquationsFolder;
 
     // Custom f(u,v) and g(u,v).
     controllers["f"] = root
@@ -7470,6 +7504,14 @@ async function VisualPDE(url) {
       $("#cross_diffusion_controller").hide();
     }
 
+    // The "edit as a matrix" button only makes sense once there's a matrix to edit (cross
+    // diffusion on), and is hidden on small screens - the popup's grid needs real screen
+    // space to be usable.
+    diffusionMatrixButton.classList.toggle(
+      "hidden",
+      !options.crossDiffusion || onSmallScreen(),
+    );
+
     // Show all timescale panels to begin with. Guarded with ?. because controllers for
     // TU5-TU8 don't exist until the GUI is extended to 8 species (Stage 9 of the upgrade).
     timescaleTags.forEach((tag) => controllers[tag]?.show());
@@ -7924,6 +7966,19 @@ async function VisualPDE(url) {
     setEquationDisplayType();
   }
 
+  // Whether species index `ind` (0-based) is currently algebraic. Species 1-4 use the
+  // algebraicV/W/Q booleans; species 5-8 use algebraicSpeciesFlags (Stage 6 of the
+  // 8-species upgrade). Shared by setEquationDisplayType()'s algebraicFlagsArr construction
+  // and the diffusion matrix popup (configureDiffusionMatrixGUI), both of which need to know
+  // which species have no self-diffusion term.
+  function isSpeciesAlgebraic(ind) {
+    if (ind === 1) return algebraicV;
+    if (ind === 2) return algebraicW;
+    if (ind === 3) return algebraicQ;
+    if (ind >= 4) return !!algebraicSpeciesFlags[ind];
+    return false;
+  }
+
   function setEquationDisplayType() {
     // Given an equation type (specified as an integer selector), set the type of
     // equation in the UI element that displays the equations.
@@ -7936,15 +7991,8 @@ async function VisualPDE(url) {
       // default-notation-placeholder convention as equationTEXFun()'s output, so everything
       // below (custom-equation splicing, custom-name substitution, TeX post-processing)
       // applies uniformly regardless of which path produced `str`.
-      const algebraicFlagsArr = Array.from(
-        { length: numSpeciesInt },
-        (_, i) => {
-          if (i === 1) return algebraicV;
-          if (i === 2) return algebraicW;
-          if (i === 3) return algebraicQ;
-          if (i >= 4) return !!algebraicSpeciesFlags[i];
-          return false;
-        },
+      const algebraicFlagsArr = Array.from({ length: numSpeciesInt }, (_, i) =>
+        isSpeciesAlgebraic(i),
       );
       str = buildEquationTEX(
         defaultSpecies.slice(0, numSpeciesInt),
@@ -11390,7 +11438,7 @@ async function VisualPDE(url) {
    * @returns {boolean} Whether the screen is considered small or not.
    */
   function onSmallScreen() {
-    return window.width < 629;
+    return window.innerWidth < 629;
   }
 
   /**
@@ -12285,6 +12333,33 @@ async function VisualPDE(url) {
   }
 
   /**
+   * Adds a button to a dat.GUI folder's title bar that opens the diffusion matrix popup.
+   * Mirrors addInfoButton's DOM-injection pattern. Starts hidden - configureGUI() shows/
+   * hides it (via diffusionMatrixButton, set here) based on options.crossDiffusion and
+   * screen size.
+   *
+   * @param {dat.GUI} folder - The dat.GUI folder to add the button to.
+   */
+  function addDiffusionMatrixButton(folder) {
+    diffusionMatrixButton = document.createElement("button");
+    diffusionMatrixButton.classList.add("matrix-view", "hidden");
+    diffusionMatrixButton.innerHTML = `<i class="fa-solid fa-table-cells"></i>`;
+    diffusionMatrixButton.title = "Edit as a matrix";
+    diffusionMatrixButton.onclick = function (e) {
+      e.stopPropagation();
+      openDiffusionMatrixGUI();
+    };
+    // Reuses has-info-link purely for its `position: relative` effect on the folder title
+    // (no actual info-link on this folder) - the same anchor every absolutely-positioned
+    // title-bar button (info-link, focus-params, combo-bcs) already relies on.
+    folder.domElement.classList.add("has-info-link");
+    folder.domElement.insertBefore(
+      diffusionMatrixButton,
+      folder.domElement.firstChild,
+    );
+  }
+
+  /**
    * Adds an information button to a dat.GUI folder.
    *
    * @param {dat.GUI} folder - The dat.GUI folder to add the information button to.
@@ -12653,6 +12728,103 @@ async function VisualPDE(url) {
 
   function inIframe() {
     return window.self !== window.top;
+  }
+
+  /**
+   * Opens the diffusion matrix popup (the "edit as a matrix" button on the "Diffusion
+   * coefficients" folder), refreshing its contents first so it always reflects the current
+   * species/values.
+   */
+  function openDiffusionMatrixGUI() {
+    configureDiffusionMatrixGUI();
+    fadein("#diffusionMatrix_ui");
+  }
+
+  function closeDiffusionMatrixGUI() {
+    fadeout("#diffusionMatrix_ui");
+  }
+
+  /**
+   * Rebuilds the diffusion matrix popup's grid from scratch to match the current number of
+   * species and their diffusion coefficients. Each grid cell is a plain HTML input (dat.gui
+   * controllers don't support grid layouts) that proxies straight through to the matching
+   * dat.gui controller's own setValue()/__onFinishChange() on change, so autoCorrectSyntax/
+   * setRDEquations/setEquationDisplayType all run exactly as they do for every other
+   * controller in the app, with no duplicated logic - and the "Diffusion coefficients"
+   * folder's own controllers update in lockstep.
+   */
+  function configureDiffusionMatrixGUI() {
+    const n = parseInt(options.numSpecies);
+
+    // General equation form (fixed - not per-species), using the site's existing vector/
+    // matrix TeX macros (mathjax.html): \v{} for bold vectors, \m{} for the bold matrix.
+    document.getElementById("diffusionMatrixEquation").innerHTML =
+      "$\\diff{\\v{u}}{t} = \\vnabla \\cdot (\\m{D} \\vnabla \\v{u}) + \\v{f}$";
+
+    const grid = document.getElementById("diffusionMatrixGrid");
+    grid.innerHTML = "";
+    // Columns: row labels | "D =" | left bracket | n input columns | right bracket.
+    grid.style.gridTemplateColumns =
+      "auto auto auto " + "auto ".repeat(n) + "auto";
+    // Rows: column labels | n input rows.
+    grid.style.gridTemplateRows = "auto " + "auto ".repeat(n);
+
+    function addCell(className, innerHTML, col, rowStart, rowSpan) {
+      const cell = document.createElement(className ? "div" : "span");
+      if (className) cell.className = className;
+      if (innerHTML != undefined) cell.innerHTML = innerHTML;
+      cell.style.gridColumn = col;
+      cell.style.gridRow = rowSpan ? rowStart + " / span " + rowSpan : rowStart;
+      grid.appendChild(cell);
+      return cell;
+    }
+
+    // Column-label row: column labels sit above the input columns; every other cell in this
+    // row is left empty (the row-label/"D ="/bracket columns only need content further down).
+    for (let j = 0; j < n; j++) {
+      addCell("matrix-col-label", "$" + listOfSpecies[j] + "$", 4 + j, 1);
+    }
+
+    // "D =" and both brackets each span every input row, vertically centred.
+    addCell("matrix-equals", "$\\m{D} = $", 2, 2, n).style.alignSelf = "center";
+    addCell("matrix-bracket left", "", 3, 2, n);
+    addCell("matrix-bracket right", "", 4 + n, 2, n);
+
+    // Row labels and the actual coefficient inputs.
+    for (let i = 0; i < n; i++) {
+      addCell("matrix-row-label", "$" + listOfSpecies[i] + "$", 1, 2 + i);
+      for (let j = 0; j < n; j++) {
+        const key = diffCtrlKey(i + 1, j + 1);
+        const fieldName = "diffusionStr_" + (i + 1) + "_" + (j + 1);
+        const input = document.createElement("input");
+        input.type = "text";
+        input.style.gridColumn = 4 + j;
+        input.style.gridRow = 2 + i;
+        if (i === j && isSpeciesAlgebraic(i)) {
+          // Mirrors showVGUIPanels/etc. hiding the self-diffusion controller entirely for
+          // an algebraic species (configureOptions() forces it to "0" and any edit here
+          // would just be silently overwritten again on the next options change).
+          input.value = "0";
+          input.disabled = true;
+          input.title = listOfSpecies[i] + " is algebraic - no self-diffusion.";
+        } else {
+          input.value = options[fieldName];
+          input.addEventListener("change", function () {
+            const controller = controllers[key];
+            controller.setValue(this.value);
+            controller.__onFinishChange(controller, this.value);
+            // Reflect whatever autoCorrectSyntax normalized the value to.
+            this.value = options[fieldName];
+          });
+          input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") this.blur();
+          });
+        }
+        grid.appendChild(input);
+      }
+    }
+
+    runMathJax();
   }
 
   function openComboBCsGUI() {
