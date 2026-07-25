@@ -438,13 +438,15 @@ button.combo-bcs {
 }
 
 button.matrix-view {
-  /* .hidden (global utility class, toggled from JS) handles show/hide - see main.js. */
+  /* .hidden (global utility class, toggled from JS) handles show/hide - see main.js.
+     right: 30px (not the default info-link slot, 10px) since "Diffusion coefficients" now
+     also has an info-link button of its own, which would otherwise sit at the same spot. */
   background: none;
   border: none;
   color: var(--link-color);
   position: absolute;
   top: 0.5rem;
-  right: 10px;
+  right: 30px;
   opacity: 100%;
   pointer-events: all;
   cursor: pointer;

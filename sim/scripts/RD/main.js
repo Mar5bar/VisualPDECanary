@@ -2375,6 +2375,7 @@ async function VisualPDE(url) {
     // each controller individually before this folder existed).
     timescalesFolder = editEquationsFolder.addFolder("Timescales");
     root = timescalesFolder;
+    addInfoButton(root, "/user-guide/advanced-options#timescales");
 
     controllers["TU"] = root
       .add(options, "timescale_1")
@@ -2445,6 +2446,7 @@ async function VisualPDE(url) {
       "Diffusion coefficients",
     );
     root = diffusionCoeffsFolder;
+    addInfoButton(root, "/user-guide/advanced-options#diffusion-coefficients");
 
     controllers["Duu"] = root
       .add(options, "diffusionStr_1_1")
@@ -2649,6 +2651,7 @@ async function VisualPDE(url) {
     root = editEquationsFolder;
     reactionTermsFolder = editEquationsFolder.addFolder("Reaction terms");
     root = reactionTermsFolder;
+    addInfoButton(root, "/user-guide/advanced-options#reaction-terms");
 
     // Custom f(u,v) and g(u,v).
     controllers["f"] = root
@@ -2753,21 +2756,26 @@ async function VisualPDE(url) {
     variablesAndParamsFolder = leftGUI.addFolder("Parameters and variables");
     root = variablesAndParamsFolder;
     root.domElement.classList.add("advancedOptions");
-    addInfoButton(root, "/user-guide/advanced-options#advanced-options-");
+    // #parameters is the doc's entry point for this whole folder - it, Expressions, and
+    // Variables (the three sub-folders below) are documented together there.
+    addInfoButton(root, "/user-guide/advanced-options#parameters");
     addFocusLeftGUIButton(variablesAndParamsFolder);
 
     parametersFolder = variablesAndParamsFolder.addFolder("Parameters");
+    addInfoButton(parametersFolder, "/user-guide/advanced-options#parameters");
     setParamsFromKineticString();
 
     // Expressions folder: named text macros (not uniforms - see the Expressions design near
     // refreshExpressionExpansions()), substituted directly into shader source at shader-
     // construction time.
     expressionsFolder = variablesAndParamsFolder.addFolder("Expressions");
+    addInfoButton(expressionsFolder, "/user-guide/advanced-options#expressions");
     setExpressionsFromString();
 
     // Species-count/naming controllers get their own sub-folder too, alongside Parameters/
     // Expressions.
     variablesFolder = variablesAndParamsFolder.addFolder("Variables");
+    addInfoButton(variablesFolder, "/user-guide/advanced-options#variables");
     root = variablesFolder;
 
     // Number of species.

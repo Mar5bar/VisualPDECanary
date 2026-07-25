@@ -39,23 +39,29 @@ onSubmit="page_search(document.getElementById('pageSearchInput').value); return 
 
 ## Equations {{ layout.equations }} <a class="anchor" id='equations'>
 
-VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Settings**](#settings).
+VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Parameters and variables**](#variables).
 
-### Edit <a class="anchor" id='edit'>
+### Equations <a class="anchor" id='edit'>
 
-Customise all the terms in the PDEs that you would like to solve using natural syntax. See our discussion of [valid expressions](#writing-valid-expressions) for helpful examples that will guide you in posing your own PDE system. Typing in any of the fields will highlight the corresponding term in the typeset PDE above.
+Customise all the terms in the PDEs that you would like to solve using natural syntax. See our discussion of [valid expressions](#writing-valid-expressions) for helpful examples that will guide you in posing your own PDE system. Typing in any of the fields will highlight the corresponding term in the typeset PDE above. This menu is itself divided into a few sub-menus, described below in the order they appear.
 
-- #### Typeset
+- #### Timescales <a class="anchor" id='timescales'>
 
-  Have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters. Terms will not be substituted in if they are constants that are not 0 or 1. Toggle this off to see the format of the equations that VisualPDE can interpret.
+  Set per-equation timescales (multiplying any time derivatives) $\tau_u$, $\tau_v$, $\tau_w$, $\tau_q$ to enable simpler entry of some types of systems. For algebraic equations, these quantities are no longer timescales, but retain their notation and function as per-equation scale factors. They can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
-- #### $D_u$, $D_v$, $D_w$, ...
+  Importantly, **timescales must be non-zero**. Setting timescales to zero will result in singularities and are equivalent to large diffusion coefficients, large timesteps, or fast kinetic terms.
 
-  Set the diffusion coefficients of all the variables in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are written $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
+  This sub-menu is only shown when **Scales** (below) is enabled.
+
+- #### $D_u$, $D_v$, $D_w$, ... <a class="anchor" id='diffusion-coefficients'>
+
+  Set the diffusion coefficients of all the variables in the simulation. When **Cross diffusion** (below) is enabled, you can also set interaction terms, which are written $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
   Advanced users seeking diagonal anisotropic diffusion tensors (i.e. distinct diffusion coefficients in the coordinate directions) can define two coefficients at once by separating definitions with a semicolon. For example, `1;2` sets diffusion coefficients of `1` and `2` in the $x$ and $y$ directions, respectively.
 
-- #### $f_u$, $f_v$, $f_w$, ...
+  With **Cross diffusion** enabled, this sub-menu can contain up to 64 coefficients. On non-mobile devices, clicking <span><i class="fa-solid fa-table-cells"></i></span> beside the sub-menu's title opens a popup where all the coefficients can be viewed and edited together in matrix form.
+
+- #### $f_u$, $f_v$, $f_w$, ... <a class="anchor" id='reaction-terms'>
 
   Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
@@ -63,7 +69,21 @@ Customise all the terms in the PDEs that you would like to solve using natural s
 
   For convenience, we define `WhiteNoise` to be a normally distributed random variable with unit variance and zero mean, scaled by $1/\sqrt{\dt\dx^N}$ where $N=1,2$ is the spatial dimension. This scales appropriately with timestep and spatial step and is suitable for direct use in PDEs, such as in our [stochastic example](/nonlinear-physics/stochastic-pdes). You can use up to 4 independent WhiteNoise terms using the syntax `WhiteNoise_1`, `WhiteNoise_2`, `WhiteNoise_3` and `WhiteNoise_4`.
 
+- #### Typeset
+
+  Have VisualPDE typeset the specified equations, making use of all the defined diffusion coefficients, functions and parameters. Terms will not be substituted in if they are constants that are not 0 or 1. Toggle this off to see the format of the equations that VisualPDE can interpret. Any **Expressions** you've defined are shown as their own extra rows underneath the main system of equations, rather than being substituted into it, so that the equations stay readable.
+
+- #### Cross diffusion <a class="anchor" id='cross-diffusion'>
+
+  Enable cross diffusion in systems with 2 or more variables, enabling simulation of a wide range of systems in which a variables can depend on the gradient of another.
+
+- #### Scales <a class="anchor" id='scales'>
+
+  Toggle the use of custom, per-equation timescales, revealing the **Timescales** sub-menu above where they can be configured.
+
 ### Parameters <a class="anchor" id='parameters'>
+
+Parameters, Expressions and Variables (described below) are grouped together in the **Parameters and variables** menu.
 
 This menu contains a list of all the user-specified values that can be used throughout VisualPDE. New parameters can be defined using the empty input field at the bottom of the list of parameters. Parameters can depend on one another, but their definitions cannot be cyclic.
 
@@ -95,6 +115,38 @@ creates a slider that ranges between 0 and 1, with initial value 0.5 and an auto
 
 The configuration of a slider (value, start, step, stop) can be updated by modifying the relevant parts of the expression that defines it. Sliders can be removed by deleting `in ...` from the parameter definition, and will be removed automatically when the associated parameter is removed.
 
+### Expressions <a class="anchor" id='expressions'>
+
+This menu contains named expressions that can be reused throughout VisualPDE. Unlike **Parameters**, which hold a single number, expressions are pieces of mathematical syntax that get substituted wherever their name is used, and so can depend on space, time, or any of the unknowns, not just on constants and other parameters. New expressions can be defined using the empty input field at the bottom of the list, exactly as with Parameters, and expressions can depend on one another (but not cyclically).
+
+#### Basics
+
+The basic syntax for defining an expression is
+
+```
+name = expression
+```
+
+which makes `name` available as shorthand for `expression` everywhere in VisualPDE: wherever `name` appears in another field, it is substituted for (a parenthesised copy of) `expression` when the simulation is built. Because what an expression evaluates to can vary in space and time, changing one triggers a full rebuild of the simulation, rather than the instant update you get from changing a **Parameter**. Expressions cannot share a name with a Parameter, a variable, or a reaction term, and (unlike Parameters) never have sliders.
+
+Expressions are shown as their own rows in the typeset equation display (see **Typeset**), rather than being substituted into the main system of equations, so that the equations remain readable.
+
+### Variables <a class="anchor" id='variables'>
+
+Configure the number and names of the variables used throughout VisualPDE.
+
+- #### Num. variables
+
+  Specify the number of unknowns (1,...,8) in the simulation.
+
+- #### Num. algebraic
+
+  Choose how many equations you want to be in algebraic form in systems with cross diffusion enabled. The equations will be put in algebraic form in reverse order, e.g. a 4-variables system with 1 algebraic variables will convert the final equation to be algebraic.
+
+- #### Variable names
+
+  Specify custom names for the variables in VisualPDE. Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, `T_01` is a valid name (rendered as $T_{01}$) whilst `T 01` is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as `H` for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old variables everywhere in the simulation and interface.
+
 ### Boundary conditions <a class="anchor" id='boundary-conditions'>
 
 Boundary conditions can be specified for any variables in the simulation. The following boundary conditions are available:
@@ -121,32 +173,6 @@ An additional type of condition, 'Ghost', can also be specified with Mixed bound
 ### Initial conditions <a class="anchor" id='initial-conditions'>
 
 Initial conditions can be specified for any variables in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), the random quantity `RAND`, a uniformly random value in $[0,1]$, the random quantity `RANDN`, a normally-distributed random number with unit variance and zero mean, and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
-
-### Advanced options <a class="anchor" id='equations_sub'>
-
-Configure additional equation-related settings, including the number of variables and the type of terms that will be included.
-
-- #### Num. variables
-
-  Specify the number of unknowns (1,...,8) in the simulation.
-
-- #### Num. algebraic
-
-  Choose how many equations you want to be in algebraic form in systems with cross diffusion enabled. The equations will be put in algebraic form in reverse order, e.g. a 4-variables system with 1 algebraic variables will convert the final equation to be algebraic.
-
-- #### Variable names
-
-  Specify custom names for the variables in VisualPDE. Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, `T_01` is a valid name (rendered as $T_{01}$) whilst `T 01` is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as `H` for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old variables everywhere in the simulation and interface.
-
-- #### Cross diffusion
-
-  Enable cross diffusion in systems with 2 or more variables, enabling simulation of a wide range of systems in which a variables can depend on the gradient of another.
-
-- #### Scales
-
-  Set per-equation timescales (multiplying any time derivatives) $\tau_u$, $\tau_v$, $\tau_w$, $\tau_q$ to enable simpler entry of some types of systems. For algebraic equations, these quantities are no longer timescales, but retain their notation and function as per-equation scale factors. They can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
-
-  Importantly, **timescales must be non-zero**. Setting timescales to zero will result in singularities and are equivalent to large diffusion coefficients, large timesteps, or fast kinetic terms.
 
 ---
 
@@ -555,7 +581,7 @@ I_TG(x, y + sin(u))
 
 First derivatives in space, accessed with `u_x`, `u_y`, ..., are computed using a central finite difference discretisation by default. By appending `f` or `b` to the subscript, such as `u_xf`, you can tell VisualPDE to use a forward or a backward difference, respectively. Forward differences sample the solution at increased $x$ (or $y$), whilst backward differences sample at decreased $x$ (or $y$). These specialised schemes can be used in [upwind schemes](https://en.wikipedia.org/wiki/Upwind_scheme) and often reduce numerical artefacts, but at the expense of typically larger numerical error.
 
-Forward and backward differences can also be computed with second-order numerical schemes by appending `2` to the subscript, though in general this will only respect Periodic boundary conditions in the direction of the derivative. This syntax can only be used in the **Edit** section of **Equations**.
+Forward and backward differences can also be computed with second-order numerical schemes by appending `2` to the subscript, though in general this will only respect Periodic boundary conditions in the direction of the derivative. This syntax can only be used in the [**Equations**](#edit) menu.
 
 ### Special functions
 
