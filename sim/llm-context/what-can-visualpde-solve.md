@@ -8,7 +8,7 @@ $$\frac{du}{dt} = \nabla \cdot (D_u \nabla u) + f_u,$$
 
 where $D_u$ and $f_u$ are functions of $u$, $t$, and space that you can choose. For example, if $f_u=0$ and $D_u$ is a constant, you have [the heat equation](/basic-pdes/heat-equation). 
 
-VisualPDE supports systems of up to 8 coupled unknowns; the same pattern below, illustrated for four unknowns $u$, $v$, $w$ and $q$, extends directly to further species:
+VisualPDE supports systems of up to 8 coupled unknowns; the same pattern below, illustrated for four unknowns $u$, $v$, $w$ and $q$, extends directly to further variables:
 
 $$\begin{aligned}
 t_u\frac{du}{dt} &= \nabla \cdot(D_{uu}\nabla u+D_{uv}\nabla v+D_{uw}\nabla w+D_{uq}\nabla q) + f_u,\\

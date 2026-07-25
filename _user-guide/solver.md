@@ -39,7 +39,7 @@ onSubmit="page_search(document.getElementById('pageSearchInput').value); return 
 
 ### The equations <a class="anchor" id='equations'>
 
-VisualPDE can solve a variety of PDE systems posed in 1D or 2D space, many of which are straightforward extensions of the two-species reaction–diffusion system,
+VisualPDE can solve a variety of PDE systems posed in 1D or 2D space, many of which are straightforward extensions of the two-variable reaction–diffusion system,
 
 $$
 \begin{aligned}
@@ -102,7 +102,7 @@ in the [finite difference operator](#spatial-discretisation) described above.
 
 #### Robin
 
-Robin boundary conditions are a natural combination of Dirichlet and Neumann conditions, which we pose in the form of a generalised Neumann condition $\pd{u}{n}\onboundary = a(u,x,y,t)$, where the right-hand side can now depend on $u$ (and any other unknown in multi-species systems). These conditions are also implemented with ghost nodes. For example, enforcing $\pd{u}{n}\onboundary = u\onboundary$ at the leftmost $x$ boundary of a rectangular domain is achieved in practice by taking
+Robin boundary conditions are a natural combination of Dirichlet and Neumann conditions, which we pose in the form of a generalised Neumann condition $\pd{u}{n}\onboundary = a(u,x,y,t)$, where the right-hand side can now depend on $u$ (and any other unknown in multi-variable systems). These conditions are also implemented with ghost nodes. For example, enforcing $\pd{u}{n}\onboundary = u\onboundary$ at the leftmost $x$ boundary of a rectangular domain is achieved in practice by taking
 
 $$\textstyle u(x-\dx,y) = u(x+\dx,y) + 2 u(x,y)\,\dx$$
 
