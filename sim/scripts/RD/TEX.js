@@ -82,12 +82,15 @@ export function equationTEXFun() {
 // TeX post-processing pipeline (setEquationDisplayType in main.js) applies uniformly
 // regardless of which function produced the string.
 //
-// Deliberate simplification vs. the <=4-species templates: those use a single-letter
-// "D_{u}" form for self-diffusion when cross-diffusion is off, vs. the doubled "D_{u u}"
-// form when it's on. This always uses the doubled form - both display the same
-// coefficient, just with different subscript styling, and using one form uniformly avoids
-// a second, parallel TeX-key convention for species with no natural single letter (species
-// 5-8). See getDefaultTeXLabelsDiffusion() below, which follows the same convention.
+// Matches the <=4-species templates' own convention: self-diffusion uses the single-letter
+// "D_{u}" form when cross-diffusion is off (there's only ever one diffusion term, so the
+// doubled subscript is redundant - see out[0]/out[1]/out[4]/out[8] above, all
+// cross-diffusion-off cases) and the doubled "D_{u u}" form when cross-diffusion is on (see
+// out[2] etc., which use "D_{u u}" even for the self term once other species' terms are
+// also present). Since `others` only ever contains the self index `i` when
+// `!crossDiffusion` (no cross terms to include, and algebraic species require
+// cross-diffusion to mean anything - see isAlgebraic below), this reduces to "single form
+// iff crossDiffusion is off" with no further per-term branching needed.
 //
 // @param {string[]} species - Default species names (e.g. defaultSpecies.slice(0, n)).
 // @param {string[]} reactions - Default reaction tokens (e.g. defaultReactions.slice(0, n)),
@@ -108,7 +111,10 @@ export function buildEquationTEX(
       crossDiffusion ? Array.from({ length: n }, (_, j) => j) : [i]
     ).filter((j) => !isAlgebraic || j !== i);
     const divTerms = others
-      .map((j) => "D_{" + s + " " + species[j] + "} \\vnabla " + species[j])
+      .map((j) => {
+        const label = crossDiffusion ? s + " " + species[j] : s;
+        return "D_{" + label + "} \\vnabla " + species[j];
+      })
       .join("+");
     const lhs = isAlgebraic
       ? "\\textstyle tau_{" + s + "} " + s
@@ -151,8 +157,14 @@ export function getDefaultTeXLabelsDiffusion() {
   // touching one of them uses the "U5U1"-style key convention already established for
   // their dat.gui controller names (Stage 9, main.js's diffCtrlKey/configureGUI) - matching
   // it means Stage 9's `TeXStrings[texKey] || <plain fallback>` lookups start resolving to
-  // real TeX automatically, no main.js change needed. Unlike Duu../Du.. above, there's no
-  // separate single-letter ("D5") form - see buildEquationTEX()'s docstring for why.
+  // real TeX automatically, no main.js change needed.
+  // Also mirrors Du/Dv/Dw/Dq above: a single-letter-style "Du5".."Du8" form for
+  // self-diffusion, used (like Du/Dv/Dw/Dq) only when cross-diffusion is off - the doubled
+  // "U5U5"-style form above is used when it's on. See buildEquationTEX()'s docstring for the
+  // same on/off distinction in the equation-panel TeX.
+  for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+    TeXStrings["Du" + i] = "$D_{u" + i + "}$";
+  }
   for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
     for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
       const si = "u" + i;

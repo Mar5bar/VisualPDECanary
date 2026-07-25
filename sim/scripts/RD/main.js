@@ -7580,20 +7580,33 @@ async function VisualPDE(url) {
     setGUIControllerName(controllers["initCond_3"], TeXStrings["wInit"]);
     setGUIControllerName(controllers["initCond_4"], TeXStrings["qInit"]);
 
-    // Species 5-8 controller names (Stage 9 of the 8-species upgrade). TeXStrings has no
-    // entries yet for these keys (Stage 10, the TeX/equation-display generalization, adds
-    // them) - fall back to a plain, functional label so the GUI isn't left showing raw
-    // option/field names in the meantime; once Stage 10 populates TeXStrings, these calls
-    // automatically pick up the nicer label with no further change here.
+    // Species 5-8 controller names (Stage 9 of the 8-species upgrade). Mirrors the
+    // crossDiffusion on/off split used for Duu..Dqq above (found missing via live-testing
+    // feedback - species 5-8's self-diffusion always showed the doubled "D_{u5 u5}" form,
+    // even with cross-diffusion off): when cross-diffusion is off, only self-diffusion
+    // controllers are (re)named here, using the single-letter-style "Du5".."Du8" form -
+    // cross-term controllers stay hidden in that case (see hideSpeciesGUIPanels), so their
+    // name is never visible and is left untouched, exactly matching the Duv-etc precedent
+    // above. When cross-diffusion is on, every pair uses the doubled "U5U1"-style form.
+    // TeXStrings falls back to a plain, functional label for any key Stage 10 hasn't
+    // populated yet.
     for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
         if (i <= 4 && j <= 4) continue;
-        const texKey =
-          defaultSpecies[i - 1].toUpperCase() +
-          defaultSpecies[j - 1].toUpperCase();
+        if (!options.crossDiffusion && i !== j) continue;
+        let texKey, fallback;
+        if (i === j && !options.crossDiffusion) {
+          texKey = "Du" + i;
+          fallback = "D_" + i;
+        } else {
+          texKey =
+            defaultSpecies[i - 1].toUpperCase() +
+            defaultSpecies[j - 1].toUpperCase();
+          fallback = "D_" + i + "_" + j;
+        }
         setGUIControllerName(
           controllers[diffCtrlKey(i, j)],
-          TeXStrings[texKey] || "D_" + i + "_" + j,
+          TeXStrings[texKey] || fallback,
           tooltip,
         );
       }
@@ -7944,6 +7957,16 @@ async function VisualPDE(url) {
     }
 
     let regex;
+    // Regex-alternation fragment matching any default species name ("u5".."u8" first, since
+    // longer alternatives must be tried before their own prefixes - "u" would otherwise
+    // match first and leave a stray "5" unconsumed - matching the same
+    // sort-before-alternating precaution genAnySpeciesRegexStrs() already uses elsewhere).
+    // Used below in place of the literal [uvwq] character class, which can only ever match
+    // one of species 1-4's single-letter names and silently never matches species 5-8's
+    // multi-character ones.
+    const speciesAlt = [...defaultSpecies]
+      .sort((a, b) => b.length - a.length)
+      .join("|");
     // Define a list of strings that will be used to make regexes.
     const regexes = {};
     regexes["U"] = /\b(D_{u}) (\\vnabla u)/g;
@@ -8258,21 +8281,38 @@ async function VisualPDE(url) {
       str = str.replaceAll(regex, "=0$1");
 
       // If we have [-blah] inside a divergence operator, move the minus sign outside.
-      regex =
-        /(\\vnabla\s*\\cdot\s*\()\[-([\w\{\}\(\)]*)\]\s*(\\vnabla\s*([uvwq])\s*\))/g;
+      regex = new RegExp(
+        "(\\\\vnabla\\s*\\\\cdot\\s*\\()\\[-([\\w\\{\\}\\(\\)]*)\\]\\s*(\\\\vnabla\\s*(?:" +
+          speciesAlt +
+          ")\\s*\\))",
+        "g",
+      );
       str = str.replaceAll(regex, "-$1$2$3");
 
       // Look for div(grad(blah)) and replace it with lap.
-      regex = /\\vnabla\s*\\cdot\s*\(\s*\\vnabla\s*([uvwq])\s*\)/g;
+      regex = new RegExp(
+        "\\\\vnabla\\s*\\\\cdot\\s*\\(\\s*\\\\vnabla\\s*(" +
+          speciesAlt +
+          ")\\s*\\)",
+        "g",
+      );
       str = str.replaceAll(regex, "\\lap $1");
 
       // Look for div(const * grad(blah)), and move the constant outside the bracket.
-      // Constant in space <=> it doesn't contain [xy], [uvwq](?:_[x|y|xx|yy])?, (?:I_[ST][RGBA]?).
-      // We'll also treat matrices as non-constants for typesetting.
-      regex =
-        /\\vnabla\s*\\cdot\s*\(\s*((?!\\vnabla).*)\s*\\vnabla\s*([uvwq])\s*\)/g;
+      // Constant in space <=> it doesn't contain [xy], any species name (optionally
+      // suffixed with _x/_y/_xx/_yy), or (?:I_[ST][RGBA]?). We'll also treat matrices as
+      // non-constants for typesetting.
+      regex = new RegExp(
+        "\\\\vnabla\\s*\\\\cdot\\s*\\(\\s*((?!\\\\vnabla).*)\\s*\\\\vnabla\\s*(" +
+          speciesAlt +
+          ")\\s*\\)",
+        "g",
+      );
       str = str.replaceAll(regex, function (match, g1, g2) {
-        const innerRegex = /\b(?:[xy]|[uvwq](?:_[xy])?|(?:I_[ST][RGBA]?))\b/g;
+        const innerRegex = new RegExp(
+          "\\b(?:[xy]|(?:" + speciesAlt + ")(?:_[xy])?|(?:I_[ST][RGBA]?))\\b",
+          "g",
+        );
         if (!innerRegex.test(g1) && !g1.includes("\\dmat")) {
           return g1.trim() + " \\lap " + g2;
         } else {
@@ -8281,7 +8321,10 @@ async function VisualPDE(url) {
       });
 
       // Replace u_x, u_y etc with \pd{u}{x} etc. Add parentheses if followed by ^.
-      regex = /(\(?)\b([uvwq])_([xy])[fb]?2?\s*(\)?)\s*(\^?)\b/g;
+      regex = new RegExp(
+        "(\\(?)\\b(" + speciesAlt + ")_([xy])[fb]?2?\\s*(\\)?)\\s*(\\^?)\\b",
+        "g",
+      );
       str = str.replaceAll(regex, function (match, g1, g2, g3, g4, g5) {
         let base =
           g1 + "\\textstyle \\pd{" + g2 + "}{" + g3 + "\\vphantom{y}}" + g4;
@@ -8294,7 +8337,10 @@ async function VisualPDE(url) {
       });
 
       // Replace u_xx, u_yy etc with \pdd{u}{x} etc.
-      regex = /(\(?)\b([uvwq])_(xx|yy)\s*(\)?)\s*(\^?)\b/g;
+      regex = new RegExp(
+        "(\\(?)\\b(" + speciesAlt + ")_(xx|yy)\\s*(\\)?)\\s*(\\^?)\\b",
+        "g",
+      );
       str = str.replaceAll(regex, function (match, g1, g2, g3, g4, g5) {
         let base =
           g1 + "\\textstyle \\pdd{" + g2 + "}{" + g3[0] + "\\vphantom{y}}" + g4;
@@ -8342,9 +8388,9 @@ async function VisualPDE(url) {
     // If we're in 1D, convert \nabla to \pd{}{x} and \lap word to \pdd{word}{x}.
     if (options.dimension == 1) {
       str = str.replaceAll(/\\vnabla\s*\\cdot/g, "\\textstyle \\pd{}{x}");
-      regex = /\\vnabla\s*([uvwq])/g;
+      regex = new RegExp("\\\\vnabla\\s*(" + speciesAlt + ")", "g");
       str = str.replaceAll(regex, "\\textstyle \\pd{$1}{x}");
-      regex = /\\lap\s*([uvwq])/g;
+      regex = new RegExp("\\\\lap\\s*(" + speciesAlt + ")", "g");
       str = str.replaceAll(regex, "\\textstyle \\pdd{$1}{x}");
     }
 
