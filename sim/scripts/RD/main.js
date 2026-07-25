@@ -8219,21 +8219,9 @@ async function VisualPDE(url) {
         if (isEmptyString(associatedStrs[key])) associatedStrs[key] = "0";
       });
 
-      // Substitute in any user-defined expressions before continuing, using the same fully
-      // dependency-resolved definitions the shaders themselves are built from
-      // (expandedExpressionDefs, kept up to date by refreshExpressionExpansions()), so nested
-      // expressions are shown fully expanded here too, not just one level deep.
-      const userExpressionsNames = Object.keys(expandedExpressionDefs);
-      const userExpressionsStrs = userExpressionsNames.map(
-        (name) => expandedExpressionDefs[name],
-      );
-      Object.keys(associatedStrs).forEach(function (key) {
-        associatedStrs[key] = replaceSymbolsInStr(
-          associatedStrs[key],
-          userExpressionsNames,
-          userExpressionsStrs,
-        );
-      });
+      // Expressions are deliberately NOT substituted into the displayed equations here (they
+      // stay as plain symbol names, e.g. "f" rather than its definition) - each gets its own
+      // row appended to the equation block instead, see appendExpressionRowsToTEX() below.
 
       // Check associatedStrs for basic syntax validity, and return without updating the TeX if there are issues.
       var badSyntax = false;
@@ -8517,10 +8505,34 @@ async function VisualPDE(url) {
     // Remove default species placeholders with original default species names.
     str = replaceSymbolsInStr(str, defaultSpeciesPlaceholders, defaultSpecies);
 
+    // Append one row per defined expression (its own name and raw definition - not
+    // substituted into the equations above) before the final TeX pass below, which will
+    // typeset these rows the same way as everything else in one uniform pass.
+    str = appendExpressionRowsToTEX(str);
+
     str = parseStringToTEX(str);
 
     $("#typeset_equation").html(str);
     runMathJax()?.then(resizeEquationDisplay);
+  }
+
+  /**
+   * Appends one row per defined expression ("name &= rhs", using the expression's own raw
+   * definition, not substituted/expanded - expressions are deliberately shown as themselves
+   * here, never inlined into other equations, see setEquationDisplayType()) to the end of the
+   * aligned equation block in `str`, right before its closing "\end{aligned}$". A no-op if no
+   * expressions are defined.
+   */
+  function appendExpressionRowsToTEX(str) {
+    const nameVals = getExpressionNameVals();
+    if (nameVals.length === 0) return str;
+    const rows = nameVals
+      .map(([name, rhs]) => "\\textstyle " + name + " &= " + rhs)
+      .join("\\\\\n    ");
+    return str.replace(
+      /\s*\\end\{aligned\}\$\s*$/,
+      "\\\\\n    " + rows + "\n    \\end{aligned}$",
+    );
   }
 
   function parseStringToTEX(str) {
