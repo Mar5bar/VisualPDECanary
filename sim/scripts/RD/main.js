@@ -9570,7 +9570,7 @@ async function VisualPDE(url) {
     await waitListener(
       document.getElementById("updates_message_ok"),
       "click",
-      true
+      true,
     );
     $("#updates-message").css("display", "none");
     localStorage.setItem("seenUpdate:" + id, true);
