@@ -2622,8 +2622,13 @@ async function VisualPDE(url) {
             setRDEquations();
             setEquationDisplayType();
           });
-        setOnfocus(controllers[key], selectTeX, [texKey]);
-        setOnblur(controllers[key], deselectTeX, [texKey]);
+        // Self-diffusion (i===j) needs both the single-subscript key ("U5", matched when
+        // cross-diffusion is off) and the doubled key ("U5U5", matched when it's on) - mirrors
+        // Dqq etc. above passing ["Q", "QQ"], not just "QQ".
+        const texKeys =
+          i === j ? [defaultSpecies[i - 1].toUpperCase(), texKey] : [texKey];
+        setOnfocus(controllers[key], selectTeX, texKeys);
+        setOnblur(controllers[key], deselectTeX, texKeys);
       }
     }
 
@@ -8058,6 +8063,12 @@ async function VisualPDE(url) {
     // this list is also what buildEquationTEX()'s output (used when numSpecies>4, above) is
     // built to be spliceable by. diffKeys5to8 is reused below by the diffusion-replacement
     // loop.
+    //
+    // Self-diffusion (i===j) additionally gets a single-subscript key/regex (e.g. "U5",
+    // matching "D_{u5}"), mirroring the hand-written "U"/"UU" pair above: buildEquationTEX()
+    // emits the single form when cross-diffusion is off and the doubled form ("D_{u5 u5}")
+    // when it's on, so both regexes must exist for the substitution loop below to match
+    // whichever form actually appears in the generated string.
     const diffKeys5to8 = [];
     for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
@@ -8070,6 +8081,14 @@ async function VisualPDE(url) {
           "\\b(D_{" + X + " " + Y + "}) (\\\\vnabla " + Y + ")",
           "g",
         );
+        if (i === j) {
+          const singleKey = X.toUpperCase();
+          diffKeys5to8.push(singleKey);
+          regexes[singleKey] = new RegExp(
+            "\\b(D_{" + X + "}) (\\\\vnabla " + X + ")",
+            "g",
+          );
+        }
       }
     }
     const reactionKeys5to8 = [];
@@ -8142,6 +8161,13 @@ async function VisualPDE(url) {
             defaultSpecies[i - 1].toUpperCase() +
             defaultSpecies[j - 1].toUpperCase();
           associatedStrs[key] = options["diffusionStr_" + i + "_" + j];
+          // Single-subscript self-diffusion key ("U5"), matching the extra single-form
+          // regex added above - same value as the doubled key, just a different pattern to
+          // match against depending on whether cross-diffusion is on or off.
+          if (i === j) {
+            associatedStrs[defaultSpecies[i - 1].toUpperCase()] =
+              options["diffusionStr_" + i + "_" + j];
+          }
         }
       }
       for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
@@ -12759,7 +12785,10 @@ async function VisualPDE(url) {
     // General equation form (fixed - not per-species), using the site's existing vector/
     // matrix TeX macros (mathjax.html): \v{} for bold vectors, \m{} for the bold matrix.
     document.getElementById("diffusionMatrixEquation").innerHTML =
-      "$\\diff{\\v{u}}{t} = \\vnabla \\cdot (\\m{D} \\vnabla \\v{u}) + \\v{f}$";
+      "$\\pd{\\v{u}}{t} = \\vnabla \\cdot (\\m{D} \\vnabla \\v{u}) + \\v{f}$, \\ \\v{u} = [SPECIES]".replace(
+        "SPECIES",
+        listOfSpecies.join(", ")
+      );
 
     const grid = document.getElementById("diffusionMatrixGrid");
     grid.innerHTML = "";
