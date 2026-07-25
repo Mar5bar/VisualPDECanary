@@ -292,9 +292,16 @@ async function VisualPDE(url) {
     kineticParamsCounter = 0,
     nextParamController;
   let expressionsFolder,
-    expressionsParamsStrs = {},
+    expressionsStrs = {},
+    expressionsLabels = [],
+    expressionNameToCont = {},
     expressionsCounter = 0,
-    nextExpressionController;
+    nextExpressionController,
+    // Fully dependency-resolved expression definitions ({name: expandedGLSLDefinitionString}),
+    // rebuilt by refreshExpressionExpansions() (called at the top of updateShaders()) and
+    // consumed by parseShaderString(). See the "Expressions" feature (main.js, search for
+    // refreshExpressionExpansions) for the substitution design.
+    expandedExpressionDefs = {};
   const llmURL =
     "https://gemini.google.com/gem/1mJ4572e1TJwEHcaYDst0_9keZkx78-zn";
   const defaultPreset = "GrayScott";
@@ -2714,6 +2721,14 @@ async function VisualPDE(url) {
     addInfoButton(parametersFolder, "/user-guide/advanced-options#parameters");
     addFocusLeftGUIButton(parametersFolder);
     setParamsFromKineticString();
+
+    // Expressions folder: named text macros (not uniforms - see the Expressions design near
+    // refreshExpressionExpansions()), substituted directly into shader source at shader-
+    // construction time.
+    expressionsFolder = leftGUI.addFolder("Expressions");
+    addInfoButton(expressionsFolder, "/user-guide/advanced-options#expressions");
+    addFocusLeftGUIButton(expressionsFolder);
+    setExpressionsFromString();
 
     // Boundary conditions folder.
     boundaryConditionsFolder = leftGUI.addFolder("Boundary conditions");
@@ -5425,6 +5440,17 @@ async function VisualPDE(url) {
     // Parse a string into valid GLSL by replacing u,v,^, and integers.
     // Pad the string.
     str = " " + str + " ";
+
+    // Substitute user-defined expressions (raw text macros, not GLSL quantities) before any
+    // other parsing, so everything below only ever sees expression-free text.
+    // expandedExpressionDefs is kept up to date by refreshExpressionExpansions(), called once
+    // per shader rebuild in updateShaders().
+    Object.keys(expandedExpressionDefs).forEach((name) => {
+      str = str.replaceAll(
+        new RegExp("\\b" + name + "\\b", "g"),
+        "(" + expandedExpressionDefs[name] + ")",
+      );
+    });
 
     // Perform a syntax check.
     if (!isValidSyntax(str) || isEmptyString(str)) {
@@ -8193,17 +8219,13 @@ async function VisualPDE(url) {
         if (isEmptyString(associatedStrs[key])) associatedStrs[key] = "0";
       });
 
-      // Substitute in any user-defined expressions before continuing.
-      // NB: this references an unfinished feature (expressionsParamsStrs is declared at
-      // the top of this file but nothing else in the codebase populates it yet - no GUI
-      // wiring, no options.expressions parsing). userExpressionsNames/userExpressionsStrs
-      // were referenced here but never declared, causing a ReferenceError on every page
-      // load. Derived from expressionsParamsStrs (currently always {}) rather than
-      // guessing at the rest of the unfinished feature's design, so this is a no-op today
-      // and picks up real values automatically once that feature is built out.
-      const userExpressionsNames = Object.keys(expressionsParamsStrs);
+      // Substitute in any user-defined expressions before continuing, using the same fully
+      // dependency-resolved definitions the shaders themselves are built from
+      // (expandedExpressionDefs, kept up to date by refreshExpressionExpansions()), so nested
+      // expressions are shown fully expanded here too, not just one level deep.
+      const userExpressionsNames = Object.keys(expandedExpressionDefs);
       const userExpressionsStrs = userExpressionsNames.map(
-        (key) => expressionsParamsStrs[key],
+        (name) => expandedExpressionDefs[name],
       );
       Object.keys(associatedStrs).forEach(function (key) {
         associatedStrs[key] = replaceSymbolsInStr(
@@ -8780,316 +8802,579 @@ async function VisualPDE(url) {
     return str;
   }
 
-  function createParameterController(label, isNextParam) {
-    let controller;
+  /**
+   * Parses a whitespace-agnostic "name = definition" string (shared by Parameters and
+   * Expressions). Returns {name, rhs} or null if unparseable.
+   *
+   * @param {string} str - The definition string to parse.
+   * @returns {{name: string, rhs: string}|null}
+   */
+  function parseNamedDefinition(str) {
+    const match = str.match(/^\s*([a-zA-Z]\w*)\s*=\s*(.*)$/s);
+    if (!match) return null;
+    return { name: match[1], rhs: match[2].trim() };
+  }
 
-    // Define a function that we can use to concisely add in a slider depending on the string.
-    function createSlider() {
-      const hasChanged = controller.lastString != kineticParamsStrs[label];
-      if (!hasChanged) return;
-      controller.lastString = kineticParamsStrs[label];
-      // Remove any existing sliders is anything has changed.
-      if (controller.hasOwnProperty("slider")) {
-        // Remove any existing sliders.
-        controller.slider.remove();
-        delete controller.slider;
-        // Remove the parameterSlider class from the controller.
-        controller.domElement.closest("li").classList.remove("parameterSlider");
+  /**
+   * Builds a dependency graph {name: [otherNamesReferenced]} from a name->definition-string
+   * dict, via word-boundary scan. Shared by Parameters' numeric evaluation and Expressions'
+   * substitution ordering.
+   */
+  function buildDependencyGraph(strDict, names) {
+    const dependencies = {};
+    names.forEach((name) => {
+      dependencies[name] = names.filter(
+        (other) =>
+          other != name &&
+          new RegExp("\\b" + other + "\\b").test(strDict[name] ?? ""),
+      );
+    });
+    return dependencies;
+  }
+
+  /**
+   * Shared by evaluateDependentNumerics (Parameters) and expandDependentExpressions
+   * (Expressions): builds a dependency graph over strDict/names, checks for cyclic
+   * dependencies (reusing the generic checkForCyclicDependencies()), degrades any name
+   * involved in a cycle to `degradeValue`, then resolves every name in dependency order
+   * (each name's dependencies are always resolved before it, since
+   * checkForCyclicDependencies's DFS only marks a name "done" once all its dependencies are)
+   * via the caller-supplied `resolve` callback.
+   *
+   * @param {Object} strDict - name -> raw definition string.
+   * @param {string[]} names - The full list of names to resolve.
+   * @param {string} degradeValue - What a cyclic name's definition is replaced with.
+   * @param {function(string, string, string[], Object): void} resolve - Called once per name,
+   *   in dependency order, as (name, degradedDefStr, dependencyNames, resultDict); should set
+   *   resultDict[name].
+   * @returns {[Object, Array]} [resultDict, badNames] - badNames is a list of cyclic paths.
+   */
+  function resolveDependentDefinitions(strDict, names, degradeValue, resolve) {
+    const dependencies = buildDependencyGraph(strDict, names);
+    let doneDict = {};
+    let badNames = [];
+    for (const name of names) {
+      if (!(name in doneDict)) {
+        [doneDict, , badNames] = checkForCyclicDependencies(
+          name,
+          doneDict,
+          [name],
+          dependencies,
+          badNames,
+        );
       }
-      // If the string is of the form "name = val in [a,b]", create a slider underneath this controller with
-      // limits a,b.
-      let regex =
-        /\s*(\w+)\s*=\s*(\S*)\s*in\s*[\[\(]([0-9\.\-]+)\s*,\s*(?:([0-9\.]*)\s*,)?\s*([0-9\.\-]+)[\]\)]/;
-      let match = kineticParamsStrs[label].match(regex);
-      if (match) {
-        // Add a CSS class highlighting that this controller now contains a slider too.
-        controller.domElement.parentElement.parentElement.classList.add(
-          "parameterSlider",
-        );
-        // Create a range input object and tie it to the controller.
-        controller.slider = document.createElement("input");
-        controller.slider.classList.add("styled-slider");
-        controller.slider.classList.add("slider-progress");
-        controller.slider.type = "range";
-        controller.slider.min = match[3];
-        controller.slider.max = match[5];
-        if (
-          parseFloat(controller.slider.min) > parseFloat(controller.slider.max)
-        ) {
-          let temp = controller.slider.min;
-          controller.slider.min = controller.slider.max;
-          controller.slider.max = temp;
-        }
+    }
+    const degradedStrDict = { ...strDict };
+    badNames.forEach((path) =>
+      path.forEach((name) => (degradedStrDict[name] = degradeValue)),
+    );
+    const resultDict = {};
+    Object.keys(doneDict).forEach((name) => {
+      resolve(name, degradedStrDict[name], dependencies[name], resultDict);
+    });
+    return [resultDict, badNames];
+  }
 
-        let step;
-        // Define the step of the slider, which may or may not have been given.
-        if (match[4] == undefined) {
-          match[4] = "";
-          // Choose a step that either matches the max precision of the inputs, or
-          // splits the interval into 20, whichever is more precise.
-          controller.slider.precision =
-            Math.max(
-              parseFloat(match[2]).countDecimals(),
-              parseFloat(controller.slider.min).countDecimals(),
-              parseFloat(controller.slider.max).countDecimals(),
-            ) + 1;
-          step = Math.min(
-            (parseFloat(controller.slider.max) -
-              parseFloat(controller.slider.min)) /
-              20,
-            10 ** -controller.slider.precision,
+  /**
+   * Evaluates numeric values for a set of (possibly interdependent, but not cyclically so)
+   * definitions - used for kinetic parameters.
+   *
+   * @returns {[Object, Array]} [valDict, badNames].
+   */
+  function evaluateDependentNumerics(strDict, names) {
+    return resolveDependentDefinitions(
+      strDict,
+      names,
+      "0",
+      (name, str, deps, valDict) => {
+        deps.forEach((dep) => {
+          str = str.replaceAll(
+            new RegExp("\\b" + dep + "\\b", "g"),
+            (valDict[dep] ?? 0).toString(),
           );
-        } else {
-          controller.slider.precision =
-            Math.max(
-              parseFloat(match[2]).countDecimals(),
-              parseFloat(controller.slider.min).countDecimals(),
-              parseFloat(match[4]).countDecimals(),
-              parseFloat(controller.slider.max).countDecimals(),
-            ) + 1;
-          step = match[4];
-          match[4] += ", ";
-        }
-        controller.slider.precision = Math.min(
-          Math.max(
-            controller.slider.precision,
-            parseFloat(step).countDecimals(),
-          ),
-          10,
-        );
-        controller.slider.step = step.toString();
-
-        // Assign the initial value, which should happen after step has been defined.
-        controller.slider.value = match[2];
-
-        // Use the input event of the slider to update the controller and the simulation.
-        controller.slider.addEventListener("input", function () {
-          controller.slider.style.setProperty(
-            "--value",
-            controller.slider.value,
-          );
-          let valueRegex = /\s*(\w+)\s*=\s*(\S*)\s*/g;
-          kineticParamsStrs[label] = kineticParamsStrs[label].replace(
-            valueRegex,
-            match[1] +
-              " = " +
-              parseFloat(controller.slider.value)
-                .toFixed(controller.slider.precision)
-                .toString() +
-              " ",
-          );
-          refreshGUI(parametersFolder);
-          setKineticStringFromParams();
-          render();
-          // Update the uniforms with this new value.
-          if (setComputedUniforms() || compileErrorOccurred) {
-            // Reset the error flag.
-            compileErrorOccurred = false;
-            // If we added a new uniform, we need to remake all the shaders.
-            updateShaders();
-          }
         });
-
-        // Augment the onChange function of the controller to also update the slider.
-        controller.__oldOnFinishChange = controller.onFinishChange;
-        controller.onFinishChange = function () {
-          controller.__oldOnFinishChange();
-          controller.slider.value = match[2];
-        };
-
-        // Configure the slider's style so that it can be nicely formatted.
-        controller.slider.style.setProperty("--value", controller.slider.value);
-        controller.slider.style.setProperty("--min", controller.slider.min);
-        controller.slider.style.setProperty("--max", controller.slider.max);
-
-        // Add the slider to the DOM with an aria-label.
-        controller.slider.setAttribute("aria-label", "Custom parameter slider");
-        controller.domElement.appendChild(controller.slider);
-        // Focus the slider.
-        controller.slider.focus();
-        // Record the string for checking for changes later.
-        controller.lastString = kineticParamsStrs[label];
-      }
-    }
-    if (isNextParam) {
-      kineticParamsLabels.push(label);
-      kineticParamsStrs[label] = "";
-      controller = parametersFolder.add(kineticParamsStrs, label).name("");
-      nextParamController = controller;
-      disableAutocorrect(controller.domElement.firstChild);
-      controller.domElement.classList.add("params");
-      controller.onFinishChange(function () {
-        const index = kineticParamsLabels.indexOf(label);
-        // Remove excess whitespace.
-        let str = removeWhitespace(
-          kineticParamsStrs[kineticParamsLabels.at(index)],
-        );
-        if (str == "") {
-          // If the string is empty, do nothing.
-        } else {
-          // A parameter has been added! So, we create a new controller and assign it to this parameter,
-          // delete this controller, and make a new blank controller.
-          let newController = createParameterController(
-            kineticParamsLabels.at(index),
-            false,
+        try {
+          valDict[name] = parser.evaluate(str);
+        } catch (error) {
+          throwError(
+            "Unable to evaluate the definition of " +
+              name +
+              ". Please check for syntax errors or undefined parameters.",
           );
-          // We record the name of the parameter in the controller.
-          const match = str.match(/\s*(\w+)\s*=/);
-          if (match) {
-            let name = match[1];
-            validateParamName(name);
-            newController.lastName = name;
-            kineticNameToCont[name] = newController;
-          }
-          kineticParamsCounter += 1;
-          let newLabel = "params" + kineticParamsCounter;
-          this.remove();
-          createParameterController(newLabel, true);
-          // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
-          setKineticStringFromParams();
-          if (setComputedUniforms() || compileErrorOccurred) {
-            // Reset the error flag.
-            compileErrorOccurred = false;
-            updateShaders();
-          }
+          valDict[name] = 0;
         }
-      });
+      },
+    );
+  }
+
+  /**
+   * Fully expands a set of (possibly interdependent, but not cyclically so) text-macro
+   * definitions - used for expressions. Each name's definition has every expression name it
+   * references replaced by that name's own (already fully expanded) definition, parenthesized
+   * for precedence safety.
+   *
+   * @returns {[Object, Array]} [expandedDict, badNames].
+   */
+  function expandDependentExpressions(strDict, names) {
+    return resolveDependentDefinitions(
+      strDict,
+      names,
+      "0.0",
+      (name, str, deps, expandedDict) => {
+        deps.forEach((dep) => {
+          str = str.replaceAll(
+            new RegExp("\\b" + dep + "\\b", "g"),
+            "(" + (expandedDict[dep] ?? "0.0") + ")",
+          );
+        });
+        expandedDict[name] = str;
+      },
+    );
+  }
+
+  /**
+   * Creates and wires a single controller within a "definitions list" folder (Parameters or
+   * Expressions): a dat.gui text controller bound to `ctx.strs[label]`, handling whitespace
+   * trimming, deleting itself (and its name registration) when emptied, parsing/validating/
+   * registering its name when non-empty, and - if this is the trailing "next" (always-empty)
+   * controller and the user just filled it in - promoting itself into a real controller and
+   * creating a fresh trailing empty one. (dat.gui controllers can't be converted between
+   * "next" and "normal" behaviour in place, so promotion adds a new controller for the same
+   * label and removes the old one.)
+   *
+   * @param {Object} ctx - Bundles one feature's mutable state: {folder, strs, labels,
+   *   nameToCont, labelPrefix, getCounter, setCounter, setNext}. strs/labels/nameToCont are
+   *   held by reference and only ever mutated in place here (never reassigned), so a ctx
+   *   stays valid for as long as its resulting controllers do - safe even across an external
+   *   full reset of the owning feature's outer variables (which always happens as a prelude
+   *   to a full rebuild that removes those controllers anyway).
+   * @param {string} label - The (internal, not user-visible) key into ctx.strs.
+   * @param {boolean} isNext - Whether this is the trailing always-empty "add new" controller.
+   * @param {Object} hooks - Feature-specific behaviour: {ariaLabel, validateName(name),
+   *   afterChange(isPromotion), onDeleted(name), extraControllerSetup(controller, str)}.
+   * @returns {dat.GUI controller}
+   */
+  function createDefinitionController(ctx, label, isNext, hooks) {
+    let controller;
+    if (isNext) {
+      ctx.labels.push(label);
+      ctx.strs[label] = "";
+      controller = ctx.folder.add(ctx.strs, label).name("");
+      ctx.setNext(controller);
     } else {
-      controller = parametersFolder.add(kineticParamsStrs, label).name("");
-      disableAutocorrect(controller.domElement.firstChild);
-      controller.domElement.classList.add("params");
-      const match = kineticParamsStrs[label].match(/\s*(\w+)\s*=/);
-      if (match) {
-        let name = match[1];
-        validateParamName(name);
-        controller.lastName = name;
-        kineticNameToCont[name] = controller;
-      }
-      controller.onFinishChange(function () {
-        // Remove excess whitespace.
-        let str = removeWhitespace(kineticParamsStrs[label]);
-        if (str == "") {
-          // If the string is empty, delete this controller and any associated slider.
-          if (
-            controller.domElement
-              .closest("li")
-              .hasOwnProperty("parameterSlider")
-          ) {
-            // Remove any existing sliders.
-            controller.slider.remove();
-            // Remove the parameterSlider class from the controller.
-            controller.domElement
-              .closest("li")
-              .classList.remove("parameterSlider");
-          }
-          this.remove();
-          // Remove the associated label and the (empty) kinetic parameters string.
-          const index = kineticParamsLabels.indexOf(label);
-          kineticParamsLabels.splice(index, 1);
-          delete kineticParamsStrs[label];
-          // Remove any uniform created with this parameter name.
-          if (
-            controller.hasOwnProperty("lastName") &&
-            !isReservedName(controller.lastName)
-          ) {
-            delete uniforms[controller.lastName];
-          }
-        } else {
-          // Otherwise, check if we need to create/modify a slider.
-          createSlider();
-          // Check if we need to update the parameter name and remove a redundant uniform.
-          const match = str.match(/\s*(\w+)\s*=/);
-          if (match) {
-            let name = match[1];
-            validateParamName(name);
-            if (
-              controller.hasOwnProperty("lastName") &&
-              controller.lastName != name &&
-              !isReservedName(controller.lastName)
-            ) {
-              delete uniforms[controller.lastName];
-              controller.lastName = name;
-              kineticNameToCont[name] = controller;
-            }
-          }
-        }
-        // Update the uniforms, the kinetic string for saving and, if we've added something that we've not seen before, update the shaders.
-        setKineticStringFromParams();
-        if (setComputedUniforms()) {
-          updateShaders();
-        }
-      });
+      controller = ctx.folder.add(ctx.strs, label).name("");
+      registerParsedName(ctx, controller, ctx.strs[label], hooks);
     }
-    // Now that we've made the required controller, check the current string to see if
-    // the user has requested that we make other types of controller (e.g. a slider).
-    createSlider();
-    // Disable autocorrect on the controller.
     disableAutocorrect(controller.domElement.firstChild);
-    // Add an aria-label.
+    controller.domElement.classList.add("params");
     controller.domElement.firstChild.setAttribute(
       "aria-label",
-      "Custom parameter definition",
+      hooks.ariaLabel,
     );
-    // Return the controller in case it is needed.
+
+    controller.onFinishChange(function () {
+      const str = removeWhitespace(ctx.strs[label]);
+      if (isNext) {
+        // If the string is empty, do nothing.
+        if (str == "") return;
+        // A definition has been added! Create a new controller and assign it to this
+        // (now-filled-in) label, remove this one, and make a fresh blank one.
+        createDefinitionController(ctx, label, false, hooks);
+        controller.remove();
+        ctx.setCounter(ctx.getCounter() + 1);
+        createDefinitionController(
+          ctx,
+          ctx.labelPrefix + ctx.getCounter(),
+          true,
+          hooks,
+        );
+        hooks.afterChange(true);
+      } else if (str == "") {
+        // The string is empty: delete this controller (its slider, if any, is a DOM
+        // descendant of the controller and is removed along with it).
+        controller.remove();
+        ctx.labels.splice(ctx.labels.indexOf(label), 1);
+        delete ctx.strs[label];
+        if (controller.lastName) {
+          hooks.onDeleted(controller.lastName);
+          delete ctx.nameToCont[controller.lastName];
+        }
+        hooks.afterChange(false);
+      } else {
+        hooks.extraControllerSetup?.(controller, str);
+        registerParsedName(ctx, controller, str, hooks);
+        hooks.afterChange(false);
+      }
+    });
+
+    hooks.extraControllerSetup?.(controller, ctx.strs[label]);
     return controller;
   }
 
-  function setParamsFromKineticString() {
-    // Take the kineticParams string in the options and
-    // use it to populate a GUI containing these parameters
-    // as individual options.
-    let label,
-      str,
-      newLabels = [];
-    // Reset the kinetic parameters.
-    kineticParamsCounter = 0;
-    kineticParamsLabels = [];
-    kineticParamsStrs = {};
-    kineticNameToCont = {};
-    // Remove all existing controllers from the parameters folder.
-    let existingControllers = parametersFolder.__controllers.slice();
-    existingControllers.forEach(function (controller) {
-      controller.remove();
-    });
-    nextParamController = null;
+  /**
+   * Parses `str` as "name = ...", validates the name (hooks.validateName), and registers/
+   * updates ctx.nameToCont + controller.lastName accordingly. A no-op if unparseable/invalid.
+   */
+  function registerParsedName(ctx, controller, str, hooks) {
+    const parsed = parseNamedDefinition(str);
+    if (!parsed || !hooks.validateName(parsed.name)) return;
+    if (controller.lastName && controller.lastName != parsed.name) {
+      delete ctx.nameToCont[controller.lastName];
+    }
+    controller.lastName = parsed.name;
+    ctx.nameToCont[parsed.name] = controller;
+  }
 
-    let strs = options.kineticParams.split(";");
-    for (var index = 0; index < strs.length; index++) {
-      str = removeWhitespace(strs[index]);
-      if (str == "") {
-        // If the string is empty, do nothing.
-      } else {
-        // Add whitespace to the string around "=".
-        str = str.replace(/(\S)=/, "$1 =");
-        str = str.replace(/=(\S)/, "= $1");
-        // Add whitespace after commas.
-        str = str.replaceAll(/,(\S)/g, ", $1");
-        label = "param" + kineticParamsCounter;
-        kineticParamsCounter += 1;
-        kineticParamsLabels.push(label);
-        kineticParamsStrs[label] = str;
-        newLabels.push(label);
+  /**
+   * Rebuilds a "definitions list" folder from scratch to match `optionsStr` (a semicolon-
+   * joined "name = definition;..." string): removes all existing controllers, clears ctx's
+   * state in place, creates one real controller per non-empty definition (in a separate loop
+   * after they're all initialised, so dependencies between them resolve correctly), then adds
+   * one trailing empty controller for adding a new definition.
+   */
+  function rebuildDefinitionsFromString(ctx, hooks, optionsStr) {
+    ctx.folder.__controllers.slice().forEach((c) => c.remove());
+    ctx.labels.length = 0;
+    Object.keys(ctx.strs).forEach((k) => delete ctx.strs[k]);
+    Object.keys(ctx.nameToCont).forEach((k) => delete ctx.nameToCont[k]);
+    ctx.setCounter(0);
+    ctx.setNext(null);
+
+    const newLabels = [];
+    optionsStr.split(";").forEach((raw) => {
+      let str = removeWhitespace(raw);
+      if (str == "") return;
+      // Add whitespace around "=" and after commas, for consistent display.
+      str = str.replace(/(\S)=/, "$1 =").replace(/=(\S)/, "= $1");
+      str = str.replaceAll(/,(\S)/g, ", $1");
+      const label = ctx.labelPrefix + ctx.getCounter();
+      ctx.setCounter(ctx.getCounter() + 1);
+      ctx.labels.push(label);
+      ctx.strs[label] = str;
+      newLabels.push(label);
+    });
+    newLabels.forEach((label) =>
+      createDefinitionController(ctx, label, false, hooks),
+    );
+    // createDefinitionController's own isNext branch pushes the label and sets strs[label]
+    // to "" itself - don't duplicate that here.
+    createDefinitionController(
+      ctx,
+      ctx.labelPrefix + ctx.getCounter(),
+      true,
+      hooks,
+    );
+  }
+
+  /**
+   * Serializes a "definitions list"'s strs dict back into a single semicolon-joined string,
+   * for storage in the corresponding options field.
+   */
+  function serializeDefinitions(strs) {
+    return Object.values(strs)
+      .map((str) => str.replaceAll(/"\s+"/g, " "))
+      .join(";");
+  }
+
+  function getParamsContext() {
+    return {
+      folder: parametersFolder,
+      strs: kineticParamsStrs,
+      labels: kineticParamsLabels,
+      nameToCont: kineticNameToCont,
+      labelPrefix: "param",
+      getCounter: () => kineticParamsCounter,
+      setCounter: (v) => (kineticParamsCounter = v),
+      setNext: (v) => (nextParamController = v),
+    };
+  }
+
+  // A function (not a `const` object) because it's referenced from setParamsFromKineticString,
+  // which initGUI() calls before this point in the file's top-to-bottom execution order would
+  // otherwise be reached - `const`/`let` bindings aren't hoisted the way `function`
+  // declarations are, so a `const` here would throw a temporal-dead-zone ReferenceError.
+  function getParamHooks() {
+    return {
+      ariaLabel: "Custom parameter definition",
+      validateName: validateParamName,
+      onDeleted: (name) => {
+        if (!isReservedName(name)) delete uniforms[name];
+      },
+      extraControllerSetup: (controller) => syncParamSlider(controller),
+      afterChange: (isPromotion) => {
+        setKineticStringFromParams();
+        if (setComputedUniforms() || (isPromotion && compileErrorOccurred)) {
+          compileErrorOccurred = false;
+          updateShaders();
+        }
+      },
+    };
+  }
+
+  /**
+   * Creates/updates/removes a parameter controller's slider, based on whether its current
+   * definition string is of the form "name = val in [min,(step,)max]". Reads/writes the
+   * controller's bound value via controller.object[controller.property] (dat.gui's own
+   * controller API) rather than a closed-over label, so it can be reused across every
+   * parameter controller uniformly.
+   */
+  function syncParamSlider(controller) {
+    const defStr = controller.object[controller.property];
+    if (controller.lastString == defStr) return;
+    controller.lastString = defStr;
+    // Remove any existing slider if anything has changed.
+    if (controller.slider) {
+      controller.slider.remove();
+      delete controller.slider;
+      controller.domElement.closest("li").classList.remove("parameterSlider");
+    }
+    // If the string is of the form "name = val in [a,b]", create a slider underneath this
+    // controller with limits a,b.
+    const regex =
+      /\s*(\w+)\s*=\s*(\S*)\s*in\s*[\[\(]([0-9\.\-]+)\s*,\s*(?:([0-9\.]*)\s*,)?\s*([0-9\.\-]+)[\]\)]/;
+    const match = defStr.match(regex);
+    if (!match) return;
+    // Add a CSS class highlighting that this controller now contains a slider too.
+    controller.domElement.parentElement.parentElement.classList.add(
+      "parameterSlider",
+    );
+    // Create a range input object and tie it to the controller.
+    controller.slider = document.createElement("input");
+    controller.slider.classList.add("styled-slider");
+    controller.slider.classList.add("slider-progress");
+    controller.slider.type = "range";
+    controller.slider.min = match[3];
+    controller.slider.max = match[5];
+    if (parseFloat(controller.slider.min) > parseFloat(controller.slider.max)) {
+      let temp = controller.slider.min;
+      controller.slider.min = controller.slider.max;
+      controller.slider.max = temp;
+    }
+
+    let step;
+    // Define the step of the slider, which may or may not have been given.
+    if (match[4] == undefined) {
+      match[4] = "";
+      // Choose a step that either matches the max precision of the inputs, or splits the
+      // interval into 20, whichever is more precise.
+      controller.slider.precision =
+        Math.max(
+          parseFloat(match[2]).countDecimals(),
+          parseFloat(controller.slider.min).countDecimals(),
+          parseFloat(controller.slider.max).countDecimals(),
+        ) + 1;
+      step = Math.min(
+        (parseFloat(controller.slider.max) -
+          parseFloat(controller.slider.min)) /
+          20,
+        10 ** -controller.slider.precision,
+      );
+    } else {
+      controller.slider.precision =
+        Math.max(
+          parseFloat(match[2]).countDecimals(),
+          parseFloat(controller.slider.min).countDecimals(),
+          parseFloat(match[4]).countDecimals(),
+          parseFloat(controller.slider.max).countDecimals(),
+        ) + 1;
+      step = match[4];
+      match[4] += ", ";
+    }
+    controller.slider.precision = Math.min(
+      Math.max(controller.slider.precision, parseFloat(step).countDecimals()),
+      10,
+    );
+    controller.slider.step = step.toString();
+
+    // Assign the initial value, which should happen after step has been defined.
+    controller.slider.value = match[2];
+
+    // Use the input event of the slider to update the controller and the simulation.
+    controller.slider.addEventListener("input", function () {
+      controller.slider.style.setProperty("--value", controller.slider.value);
+      const valueRegex = /\s*(\w+)\s*=\s*(\S*)\s*/g;
+      controller.object[controller.property] = controller.object[
+        controller.property
+      ].replace(
+        valueRegex,
+        match[1] +
+          " = " +
+          parseFloat(controller.slider.value)
+            .toFixed(controller.slider.precision)
+            .toString() +
+          " ",
+      );
+      refreshGUI(parametersFolder);
+      setKineticStringFromParams();
+      render();
+      // Update the uniforms with this new value.
+      if (setComputedUniforms() || compileErrorOccurred) {
+        // Reset the error flag.
+        compileErrorOccurred = false;
+        // If we added a new uniform, we need to remake all the shaders.
+        updateShaders();
       }
-    }
-    // Having defined all the parameters, create the controllers. This separate loop allows dependencies
-    // between parameters, as all parameters have been initialised by this point.
-    for (const label of newLabels) {
-      createParameterController(label, false);
-    }
-    // Finally, create an empty controller for adding parameters.
-    label = "param" + kineticParamsCounter;
-    kineticParamsLabels.push(label);
-    kineticParamsStrs[label] = str;
-    createParameterController(label, true);
+    });
+
+    // Augment the onChange function of the controller to also update the slider.
+    controller.__oldOnFinishChange = controller.onFinishChange;
+    controller.onFinishChange = function () {
+      controller.__oldOnFinishChange();
+      controller.slider.value = match[2];
+    };
+
+    // Configure the slider's style so that it can be nicely formatted.
+    controller.slider.style.setProperty("--value", controller.slider.value);
+    controller.slider.style.setProperty("--min", controller.slider.min);
+    controller.slider.style.setProperty("--max", controller.slider.max);
+
+    // Add the slider to the DOM with an aria-label.
+    controller.slider.setAttribute("aria-label", "Custom parameter slider");
+    controller.domElement.appendChild(controller.slider);
+    // Focus the slider.
+    controller.slider.focus();
+    // Record the string for checking for changes later.
+    controller.lastString = defStr;
+  }
+
+  function setParamsFromKineticString() {
+    // Take the kineticParams string in the options and use it to populate a GUI containing
+    // these parameters as individual options.
+    rebuildDefinitionsFromString(
+      getParamsContext(),
+      getParamHooks(),
+      options.kineticParams,
+    );
   }
 
   function setKineticStringFromParams() {
     // Combine the custom parameters into a single string for storage, so long as no reserved names are used.
-    options.kineticParams = Object.values(kineticParamsStrs)
-      .map(function (str) {
-        return str.replaceAll(/"\s+"/g, " ");
-      })
-      .join(";");
+    options.kineticParams = serializeDefinitions(kineticParamsStrs);
+  }
+
+  function getExpressionsContext() {
+    return {
+      folder: expressionsFolder,
+      strs: expressionsStrs,
+      labels: expressionsLabels,
+      nameToCont: expressionNameToCont,
+      labelPrefix: "expr",
+      getCounter: () => expressionsCounter,
+      setCounter: (v) => (expressionsCounter = v),
+      setNext: (v) => (nextExpressionController = v),
+    };
+  }
+
+  // A function (not a `const` object) for the same reason as getParamHooks() above.
+  function getExpressionHooks() {
+    return {
+      ariaLabel: "Custom expression definition",
+      validateName: validateExpressionName,
+      onDeleted: () => {},
+      // Expressions can never be sliders.
+      extraControllerSetup: undefined,
+      afterChange: () => {
+        setExpressionsStringFromExpressions();
+        // Unlike parameters (which only need a shader rebuild when a brand new uniform is
+        // added), every expression change needs a full shader reconstruction - expressions
+        // are substituted directly into shader source at construction time, not read as
+        // uniforms.
+        updateShaders();
+        setEquationDisplayType();
+      },
+    };
+  }
+
+  function setExpressionsFromString() {
+    // Take the expressions string in the options and use it to populate a GUI containing
+    // these expressions as individual options.
+    rebuildDefinitionsFromString(
+      getExpressionsContext(),
+      getExpressionHooks(),
+      options.expressions,
+    );
+  }
+
+  function setExpressionsStringFromExpressions() {
+    // Combine the custom expressions into a single string for storage, so long as no
+    // reserved names are used.
+    options.expressions = serializeDefinitions(expressionsStrs);
+  }
+
+  /**
+   * options.expressions could in principle contain surrounding whitespace per definition,
+   * but (unlike kineticParams) has no extra directives to strip - kept as a thin wrapper for
+   * symmetry with getKineticParamDefs/getExpressionNames/getExpressionNameVals below.
+   */
+  function getExpressionDefs() {
+    return options.expressions;
+  }
+
+  function getExpressionNames() {
+    const regex = /^\s*([a-zA-Z]\w*)\b/;
+    let names = [];
+    getExpressionDefs()
+      .split(";")
+      .filter((x) => x.length > 0)
+      .forEach(function (x) {
+        if (x.match(regex)) {
+          names.push(x.match(regex)[1].trim());
+        }
+      });
+    return names;
+  }
+
+  function getExpressionNameVals() {
+    const regex = /^\s*([a-zA-Z]\w*)\b\s*=\s*(.*)/;
+    let nameVals = [];
+    getExpressionDefs()
+      .split(";")
+      .filter((x) => x.length > 0)
+      .forEach(function (x) {
+        const m = x.match(regex);
+        if (m) {
+          nameVals.push([m[1].trim(), m[2].trim()]);
+        } else {
+          throwError(
+            "Unable to evaluate the expression definition '" +
+              x +
+              "'. Please check for syntax errors.",
+          );
+        }
+      });
+    return nameVals;
+  }
+
+  /**
+   * Rebuilds expandedExpressionDefs (name -> fully dependency-resolved definition string),
+   * checking for duplicate/cyclic expression names first. Called once at the start of every
+   * updateShaders() - not from parseShaderString() itself, which is called many times per
+   * shader rebuild - so a cyclic/duplicate error is reported once per rebuild, not once per
+   * shader-string field. Cyclic names degrade to "0.0" (see expandDependentExpressions), so
+   * shader construction still produces valid (if temporarily wrong) GLSL.
+   */
+  function refreshExpressionExpansions() {
+    const nameVals = getExpressionNameVals();
+    const dups = getDuplicates(nameVals.map((x) => x[0]));
+    if (dups.length > 0) {
+      throwError(
+        "It looks like there are multiple definitions of '" +
+          dups.join("', '") +
+          "'. Please check your expressions to ensure everything has a unique definition.",
+      );
+    }
+    const names = nameVals.map((x) => x[0]);
+    const strDict = {};
+    nameVals.forEach((x) => (strDict[x[0]] = x[1]));
+    const [expanded, badNames] = expandDependentExpressions(strDict, names);
+    if (badNames.length > 0) {
+      throwError(
+        "Cyclic expressions detected. Please check the definition(s) of " +
+          badNames.join(", ") +
+          ". Click <a href='/user-guide/FAQ#cyclic' target='blank'>here</a> for more information.",
+      );
+    }
+    expandedExpressionDefs = expanded;
   }
 
   function addKineticParameterAfterError(paramName) {
@@ -9866,38 +10151,17 @@ async function VisualPDE(url) {
    * Returns a list of (name,value) pairs for parameters defined in a list of strings.
    * These can depend on each other, but not cyclically.
    *
-   * @param {string[]} strs - The list of strings to evaluate.
+   * @param {string[]} strs - Extra (name, value) pairs to evaluate alongside the kinetic
+   *   parameters, which are always included.
    * @returns {[string, any][]} A list of (name, value) pairs for the evaluated parameters.
    */
   function evaluateParamVals(strs) {
-    // Return a list of (name,value) pairs for parameters defined in
-    // a list of strings. These can depend on each other, but not cyclically.
-    // The kinetic parameters are always included.
-    // strs is an array of arrays of strings [[name, value]]
-    let strDict = {};
-    let valDict = {};
-    let badNames = [];
     let nameVals = getKineticParamNameVals();
-    if (strs) {
-      nameVals.push(...strs);
-    }
+    if (strs) nameVals.push(...strs);
     const names = nameVals.map((x) => x[0]);
+    const strDict = {};
     nameVals.forEach((x) => (strDict[x[0]] = x[1]));
-    for (const nameVal of nameVals) {
-      // Evaluate each parameter.
-      let [name, val] = nameVal;
-      if (!(name in valDict)) {
-        // We've not computed the value of this yet.
-        [valDict, , badNames] = evaluateParam(
-          name,
-          strDict,
-          valDict,
-          [name],
-          names,
-          [],
-        );
-      }
-    }
+    const [valDict, badNames] = evaluateDependentNumerics(strDict, names);
     // If the parameters were cyclic, throw an error.
     if (badNames.length > 0) {
       throwError(
@@ -9907,63 +10171,6 @@ async function VisualPDE(url) {
       );
     }
     return Object.keys(valDict).map((x) => [x, valDict[x]]);
-  }
-
-  /**
-   * Evaluates a parameter value based on its dependencies and returns the updated value dictionary, stack, and bad names.
-   * @param {string} name - The name of the parameter to evaluate.
-   * @param {Object} strDict - The dictionary of parameter names and their string representations.
-   * @param {Object} valDict - The dictionary of parameter names and their numeric values.
-   * @param {Array} stack - The stack of parameter names being evaluated.
-   * @param {Array} names - The list of parameter names.
-   * @param {Array} badNames - The list of parameter names that have cyclic dependencies.
-   * @returns {Array} - An array containing the updated value dictionary, stack, and bad names.
-   */
-  function evaluateParam(name, strDict, valDict, stack, names, badNames) {
-    // If we know the value already, don't do anything.
-    if (name in valDict) return [valDict, stack.slice(0, -1), badNames];
-    // Find any names in val and evaluate them.
-    let regex;
-    for (const otherName of names) {
-      // Skip the name if it's not in vals.
-      regex = new RegExp("\\b" + otherName + "\\b", "g");
-      if (!regex.test(strDict[name])) continue;
-      // Otherwise, check if it's a bad name.
-      if (stack.includes(otherName)) {
-        // We've hit a parameter that we're already trying to evaluate - cyclic!
-        // Set the value to 0 and record the name as bad so that we can throw an error.
-        valDict[otherName] = 0.0;
-        strDict[otherName] = "0";
-        strDict[name] = "0";
-        badNames.push(stack.slice(stack.indexOf(otherName)));
-      } else {
-        // Otherwise, try and evaluate the parameter and substitute the value into the expression.
-        [valDict, , badNames] = evaluateParam(
-          otherName,
-          strDict,
-          valDict,
-          [...stack, otherName],
-          names,
-          badNames,
-        );
-        strDict[name] = strDict[name].replaceAll(
-          regex,
-          valDict[otherName].toString(),
-        );
-      }
-    }
-    // Now that we've assigned all the values that we could need, parse the expression.
-    try {
-      valDict[name] = parser.evaluate(strDict[name]);
-    } catch (error) {
-      throwError(
-        "Unable to evaluate the definition of " +
-          name +
-          ". Please check for syntax errors or undefined parameters.",
-      );
-      valDict[name] = 0;
-    }
-    return [valDict, stack.slice(0, -1), badNames];
   }
 
   /**
@@ -10021,6 +10228,9 @@ async function VisualPDE(url) {
    * @returns {void}
    */
   function updateShaders() {
+    // Must run before anything below - parseShaderString() (called throughout the following
+    // builders) substitutes expression names using the map this rebuilds.
+    refreshExpressionExpansions();
     setRDEquations();
     setClearShader();
     setProbeShader();
@@ -11939,17 +12149,42 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Validates if a parameter name is already in use.
+   * Validates if a parameter name is already in use (as a species/reaction/reserved name, or
+   * as an existing expression name - parameters and expressions share one namespace, since a
+   * parameter is a live uniform reference while an expression is inline-substituted text, and
+   * allowing the same name in both would make substitution order silently decide which wins).
    * @param {string} name - The name of the parameter to validate.
    * @returns {boolean} - Returns true if the parameter name is not already in use, otherwise returns false.
    */
   function validateParamName(name) {
-    const val = isReservedName(name, getSpecAndReacNames());
+    const val =
+      isReservedName(name, getSpecAndReacNames()) || name in expressionNameToCont;
     if (val) {
       throwError(
         "The name '" +
           name +
           "' is already in use, so can't be used as a parameter name. Please use a different name for " +
+          name +
+          ".",
+      );
+    }
+    return !val;
+  }
+
+  /**
+   * Validates if an expression name is already in use (as a species/reaction/reserved name,
+   * or as an existing parameter name - see validateParamName for why the namespace is shared).
+   * @param {string} name - The name of the expression to validate.
+   * @returns {boolean} - Returns true if the expression name is not already in use, otherwise returns false.
+   */
+  function validateExpressionName(name) {
+    const val =
+      isReservedName(name, getSpecAndReacNames()) || name in kineticNameToCont;
+    if (val) {
+      throwError(
+        "The name '" +
+          name +
+          "' is already in use, so can't be used as an expression name. Please use a different name for " +
           name +
           ".",
       );
@@ -12006,15 +12241,6 @@ async function VisualPDE(url) {
    *
    * @returns {Array} - Returns an array containing the updated `doneDict`, `stack`, and `badNames`.
    */
-  function checkForCyclicDependencies(
-    name,
-    doneDict,
-    stack,
-    dependencies,
-    badNames,
-  ) {
-    // ...
-  }
   function checkForCyclicDependencies(
     name,
     doneDict,
@@ -12430,6 +12656,7 @@ async function VisualPDE(url) {
       editEquationsFolder.domElement.classList.toggle("hidden-aug");
       initialConditionsFolder.domElement.classList.toggle("hidden-aug");
       parametersFolder.domElement.classList.toggle("hidden-aug");
+      expressionsFolder.domElement.classList.toggle("hidden-aug");
       // Repeat this toggle for the target folder.
       folder.domElement.classList.toggle("hidden-aug");
       document
