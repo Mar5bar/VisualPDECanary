@@ -87,10 +87,17 @@ export function equationTEXFun() {
 // doubled subscript is redundant - see out[0]/out[1]/out[4]/out[8] above, all
 // cross-diffusion-off cases) and the doubled "D_{u u}" form when cross-diffusion is on (see
 // out[2] etc., which use "D_{u u}" even for the self term once other species' terms are
-// also present). Since `others` only ever contains the self index `i` when
-// `!crossDiffusion` (no cross terms to include, and algebraic species require
-// cross-diffusion to mean anything - see isAlgebraic below), this reduces to "single form
-// iff crossDiffusion is off" with no further per-term branching needed.
+// also present).
+//
+// Algebraic species no longer require cross-diffusion (relaxed - previously the only reason
+// was to limit the <=4-species hand-written equationTEX array's combinatorics, not for any
+// numerical reason). An algebraic species with cross-diffusion off has no diffusion term at
+// all: `others` (species i's own diffusion-term list) reduces to just `[i]` when
+// `!crossDiffusion`, and the trailing `.filter` removes even that when `isAlgebraic` is true
+// (since configureOptions() always zeros an algebraic species' own self-diffusion), leaving
+// `divTerms` empty. setEquationDisplayType()'s shared post-processing pipeline already
+// cleans up the resulting empty "\vnabla \cdot()" (and the stray "= +" left behind), so no
+// special-casing is needed here.
 //
 // @param {string[]} species - Default species names (e.g. defaultSpecies.slice(0, n)).
 // @param {string[]} reactions - Default reaction tokens (e.g. defaultReactions.slice(0, n)),
@@ -106,7 +113,7 @@ export function buildEquationTEX(
 ) {
   const n = species.length;
   const lines = species.map((s, i) => {
-    const isAlgebraic = crossDiffusion && algebraicFlags[i];
+    const isAlgebraic = algebraicFlags[i];
     const others = (
       crossDiffusion ? Array.from({ length: n }, (_, j) => j) : [i]
     ).filter((j) => !isAlgebraic || j !== i);

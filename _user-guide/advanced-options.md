@@ -141,7 +141,7 @@ Configure the number and names of the variables used throughout VisualPDE.
 
 - #### Num. algebraic
 
-  Choose how many equations you want to be in algebraic form in systems with cross diffusion enabled. The equations will be put in algebraic form in reverse order, e.g. a 4-variables system with 1 algebraic variables will convert the final equation to be algebraic.
+  Choose how many equations you want to be in algebraic form. The equations will be put in algebraic form in reverse order, e.g. a 4-variables system with 1 algebraic variables will convert the final equation to be algebraic. Algebraic variables have no diffusion of their own; with **Cross diffusion** enabled they can still depend on the other variables' gradients via their (retained) cross-diffusion terms, and with it disabled, only via their reaction term.
 
 - #### Variable names
 

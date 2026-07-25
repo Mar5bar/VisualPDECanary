@@ -6015,8 +6015,13 @@ async function VisualPDE(url) {
       }
     }
 
-    // If v should be algebraic, append this to the normal update shader.
-    if (algebraicV && options.crossDiffusion) {
+    // If v should be algebraic, append this to the normal update shader. Algebraic species no
+    // longer require cross diffusion (relaxed - previously this was gated on
+    // options.crossDiffusion purely to limit the equationTEX display's combinatorics, not for
+    // any numerical reason: RHS.SPECIES already includes whatever diffusion/reaction terms
+    // are actually defined regardless of cross diffusion, and configureOptions() always zeros
+    // an algebraic species' own self-diffusion anyway).
+    if (algebraicV) {
       algebraicShader += selectSpeciesInShaderStr(
         RDShaderAlgebraicSpecies(),
         listOfSpecies[1],
@@ -6024,7 +6029,7 @@ async function VisualPDE(url) {
     }
 
     // If w should be algebraic, append this to the normal update shader.
-    if (algebraicW && options.crossDiffusion) {
+    if (algebraicW) {
       algebraicShader += selectSpeciesInShaderStr(
         RDShaderAlgebraicSpecies(),
         listOfSpecies[2],
@@ -6032,7 +6037,7 @@ async function VisualPDE(url) {
     }
 
     // If q should be algebraic, append this to the normal update shader.
-    if (algebraicQ && options.crossDiffusion) {
+    if (algebraicQ) {
       algebraicShader += selectSpeciesInShaderStr(
         RDShaderAlgebraicSpecies(),
         listOfSpecies[3],
@@ -6173,10 +6178,11 @@ async function VisualPDE(url) {
 
       // Group 1 algebraic species: mirrors the 3 hardcoded algebraicV/W/Q blocks above,
       // generalized into a loop over algebraicSpeciesFlags (species 1-4 keep using the
-      // existing blocks/booleans, untouched).
+      // existing blocks/booleans, untouched). No longer gated on crossDiffusion - see the
+      // algebraicV block above for why.
       let algebraicShaderGroup1 = "";
       for (let s = 4; s < 8; s++) {
-        if (algebraicSpeciesFlags[s] && options.crossDiffusion) {
+        if (algebraicSpeciesFlags[s]) {
           algebraicShaderGroup1 += selectSpeciesInShaderStr(
             RDShaderAlgebraicSpecies(),
             listOfSpecies[s],
@@ -7518,7 +7524,10 @@ async function VisualPDE(url) {
     } else {
       controllers["minY"].show();
     }
-    if (options.crossDiffusion && parseInt(options.numSpecies) > 1) {
+    // Algebraic species no longer require cross diffusion (relaxed - see the algebraicV
+    // block in setRDEquations() for why); only >1 species is needed for "algebraic" to mean
+    // anything.
+    if (parseInt(options.numSpecies) > 1) {
       if (!updatingAlgebraicSpecies) {
         updateGUIDropdown(
           controllers["algebraicSpecies"],
@@ -7976,23 +7985,18 @@ async function VisualPDE(url) {
       }
     }
 
-    // Algebraic species have no self-diffusion (they're not PDEs). The pre-upgrade
-    // switch(equationType) here hand-enumerated every <=4-species/crossDiffusion/algebraic
-    // combination (cases 3,6,7,10,11,12 of the 13-entry equationType enum, each reachable
-    // only when options.crossDiffusion is true - equationType is only ever assigned one of
-    // those values inside problemTypeFromOptions()'s crossDiffusion branches). That's exactly
-    // "whichever of algebraicV/W/Q are on, zero the matching self-diffusion" - generalised
-    // here using algebraicV/W/Q directly (species 1-4) plus algebraicSpeciesFlags[4..7]
-    // (species 5-8, Stage 6) instead of re-deriving it from equationType, since equationType
-    // has no representation for numSpecies>4.
-    if (options.crossDiffusion) {
-      if (algebraicV) options.diffusionStr_2_2 = "0";
-      if (algebraicW) options.diffusionStr_3_3 = "0";
-      if (algebraicQ) options.diffusionStr_4_4 = "0";
-      for (let s = 4; s < MAX_SPECIES_SUPPORTED; s++) {
-        if (algebraicSpeciesFlags[s]) {
-          options["diffusionStr_" + (s + 1) + "_" + (s + 1)] = "0";
-        }
+    // Algebraic species have no self-diffusion (they're not PDEs) - true regardless of
+    // whether cross diffusion is on (algebraic species no longer require it - relaxed; see
+    // the algebraicV block in setRDEquations() for why). Generalised using algebraicV/W/Q
+    // directly (species 1-4) plus algebraicSpeciesFlags[4..7] (species 5-8, Stage 6) instead
+    // of re-deriving it from equationType, since equationType has no representation for
+    // numSpecies>4.
+    if (algebraicV) options.diffusionStr_2_2 = "0";
+    if (algebraicW) options.diffusionStr_3_3 = "0";
+    if (algebraicQ) options.diffusionStr_4_4 = "0";
+    for (let s = 4; s < MAX_SPECIES_SUPPORTED; s++) {
+      if (algebraicSpeciesFlags[s]) {
+        options["diffusionStr_" + (s + 1) + "_" + (s + 1)] = "0";
       }
     }
 
@@ -8043,13 +8047,21 @@ async function VisualPDE(url) {
     // equation in the UI element that displays the equations.
     const numSpeciesInt = parseInt(options.numSpecies);
     let str;
-    if (numGroups(numSpeciesInt) > 1) {
-      // No hand-written equationTEX entry exists for numSpecies>4 (the 13-entry array only
-      // enumerates every numSpecies/crossDiffusion/algebraic combination up to 4 species) -
-      // build it generatively instead (8-species upgrade, Stage 10). Uses the same
-      // default-notation-placeholder convention as equationTEXFun()'s output, so everything
-      // below (custom-equation splicing, custom-name substitution, TeX post-processing)
-      // applies uniformly regardless of which path produced `str`.
+    // The 13-entry hand-written equationTEX array only enumerates every
+    // numSpecies/crossDiffusion/algebraic combination up to 4 species that was reachable
+    // when algebraic species required cross-diffusion to be on (problemTypeFromOptions()
+    // never assigns an "algebraic" equationType when crossDiffusion is off). Now that
+    // algebraic species no longer require cross-diffusion (relaxed - see the algebraicV
+    // block in setRDEquations() for why), that combination has no hand-written entry either -
+    // build it generatively instead, exactly as already done for numSpecies>4 (8-species
+    // upgrade, Stage 10). Uses the same default-notation-placeholder convention as
+    // equationTEXFun()'s output, so everything below (custom-equation splicing, custom-name
+    // substitution, TeX post-processing) applies uniformly regardless of which path produced
+    // `str`.
+    const needsGenerativeTEX =
+      numGroups(numSpeciesInt) > 1 ||
+      (!options.crossDiffusion && options.numAlgebraicSpecies > 0);
+    if (needsGenerativeTEX) {
       const algebraicFlagsArr = Array.from({ length: numSpeciesInt }, (_, i) =>
         isSpeciesAlgebraic(i),
       );
