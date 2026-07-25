@@ -216,6 +216,7 @@ async function VisualPDE(url) {
     boundaryConditionsFolder,
     initialConditionsFolder,
     variablesAndParamsFolder,
+    variablesFolder,
     editViewFolder,
     linesAnd3DFolder,
     linesFolderButton,
@@ -2749,7 +2750,7 @@ async function VisualPDE(url) {
     // Variables and params folder: houses Parameters and Expressions as sub-folders, plus the
     // species-count/naming controllers previously in their own "Advanced options" folder (now
     // removed, since this was its entire content).
-    variablesAndParamsFolder = leftGUI.addFolder("Variables and parameters");
+    variablesAndParamsFolder = leftGUI.addFolder("Parameters and variables");
     root = variablesAndParamsFolder;
     root.domElement.classList.add("advancedOptions");
     addInfoButton(root, "/user-guide/advanced-options#advanced-options-");
@@ -2763,6 +2764,11 @@ async function VisualPDE(url) {
     // construction time.
     expressionsFolder = variablesAndParamsFolder.addFolder("Expressions");
     setExpressionsFromString();
+
+    // Species-count/naming controllers get their own sub-folder too, alongside Parameters/
+    // Expressions.
+    variablesFolder = variablesAndParamsFolder.addFolder("Variables");
+    root = variablesFolder;
 
     // Number of species.
     root
