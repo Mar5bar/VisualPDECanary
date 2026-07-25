@@ -12785,14 +12785,14 @@ async function VisualPDE(url) {
     // General equation form (fixed - not per-species), using the site's existing vector/
     // matrix TeX macros (mathjax.html): \v{} for bold vectors, \m{} for the bold matrix.
     document.getElementById("diffusionMatrixEquation").innerHTML =
-      "$\\pd{\\v{u}}{t} = \\vnabla \\cdot (\\m{D} \\vnabla \\v{u}) + \\v{f}$, \\ \\v{u} = [SPECIES]".replace(
+      "$\\pd{\\v{u}}{t} = \\vnabla \\cdot (\\m{D} \\vnabla \\v{u}) + \\v{f}, \\ \\v{u} = [SPECIES]^T$".replace(
         "SPECIES",
-        listOfSpecies.join(", ")
+        listOfSpecies.map((s) => parseStringToTEX(s)).join(","),
       );
 
     const grid = document.getElementById("diffusionMatrixGrid");
     grid.innerHTML = "";
-    // Columns: row labels | "D =" | left bracket | n input columns | right bracket.
+    // Columns: "D =" | left bracket | row labels | n input columns | right bracket.
     grid.style.gridTemplateColumns =
       "auto auto auto " + "auto ".repeat(n) + "auto";
     // Rows: column labels | n input rows.
@@ -12811,17 +12811,27 @@ async function VisualPDE(url) {
     // Column-label row: column labels sit above the input columns; every other cell in this
     // row is left empty (the row-label/"D ="/bracket columns only need content further down).
     for (let j = 0; j < n; j++) {
-      addCell("matrix-col-label", "$" + listOfSpecies[j] + "$", 4 + j, 1);
+      addCell(
+        "matrix-col-label",
+        "$" + parseStringToTEX(listOfSpecies[j]) + "$",
+        4 + j,
+        1,
+      );
     }
 
     // "D =" and both brackets each span every input row, vertically centred.
-    addCell("matrix-equals", "$\\m{D} = $", 2, 2, n).style.alignSelf = "center";
-    addCell("matrix-bracket left", "", 3, 2, n);
+    addCell("matrix-equals", "$\\m{D} = $", 1, 2, n).style.alignSelf = "center";
+    addCell("matrix-bracket left", "", 2, 2, n);
     addCell("matrix-bracket right", "", 4 + n, 2, n);
 
     // Row labels and the actual coefficient inputs.
     for (let i = 0; i < n; i++) {
-      addCell("matrix-row-label", "$" + listOfSpecies[i] + "$", 1, 2 + i);
+      addCell(
+        "matrix-row-label",
+        "$" + parseStringToTEX(listOfSpecies[i]) + "$",
+        3,
+        2 + i,
+      );
       for (let j = 0; j < n; j++) {
         const key = diffCtrlKey(i + 1, j + 1);
         const fieldName = "diffusionStr_" + (i + 1) + "_" + (j + 1);
