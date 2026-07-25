@@ -911,6 +911,10 @@ async function VisualPDE(url) {
     if (!wantsTour && restart) {
       playSim();
     }
+  } else {
+    // Only show the updates message if the user wasn't just shown the
+    // welcome message, so they see at most one popup on load.
+    await showUpdatesMessage("2026-07-multi-species-llm", "2026-08-25");
   }
   if (wantsTour) {
     await new Promise(function (resolve) {
@@ -2163,7 +2167,7 @@ async function VisualPDE(url) {
 
     controllers["whatToDraw"] = root
       .add(options, "whatToDraw", listOfSpecies)
-      .name("Species")
+      .name("Variable")
       .onChange(setBrushType);
 
     // Domain folder.
@@ -2959,7 +2963,7 @@ async function VisualPDE(url) {
         7: 7,
         8: 8,
       })
-      .name("# Species")
+      .name("# Variables")
       .onChange(function () {
         document.activeElement.blur();
         options.speciesNames = speciesNamesToString();
@@ -2992,7 +2996,7 @@ async function VisualPDE(url) {
 
     controllers["speciesNames"] = root
       .add(options, "speciesNames")
-      .name("Species names")
+      .name("Variables")
       .onFinishChange(function () {
         setCustomNames();
       });
@@ -9409,6 +9413,35 @@ async function VisualPDE(url) {
 
   function setSeenFullWelcomeUser() {
     localStorage.setItem("seenFullWelcome", true);
+  }
+
+  // Wraps the logic gating whether "What's new" popups should be shown, so
+  // it can diverge from shouldShowErrors() independently in future.
+  function shouldShowUpdatesMessage() {
+    return shouldShowErrors();
+  }
+
+  // Shows the "What's new" popup identified by id, provided today's date is
+  // before expiryDate and this user hasn't already dismissed it. Resolves
+  // once the user has dismissed the message (or immediately, if it's not
+  // shown). id should be unique per update, so unrelated updates each get
+  // their own localStorage entry and their own one-time showing.
+  async function showUpdatesMessage(id, expiryDate) {
+    if (
+      !shouldShowUpdatesMessage() ||
+      new Date() >= new Date(expiryDate) ||
+      localStorage.getItem("seenUpdate:" + id)
+    ) {
+      return;
+    }
+    $("#updates-message").css("display", "block");
+    await waitListener(
+      document.getElementById("updates_message_ok"),
+      "click",
+      true
+    );
+    $("#updates-message").css("display", "none");
+    localStorage.setItem("seenUpdate:" + id, true);
   }
 
   function waitListener(element, listenerName, val) {
