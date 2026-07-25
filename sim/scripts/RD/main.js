@@ -3167,7 +3167,7 @@ async function VisualPDE(url) {
 
     // Miscellaneous folder.
     root = rightGUI.addFolder("Misc.");
-    addInfoButton(root, "/user-guide/advanced-options#misc-");
+    addInfoButton(root, "/user-guide/advanced-options#misc");
 
     root
       .addColor(options, "backgroundColour")

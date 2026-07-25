@@ -204,7 +204,7 @@ Line plots are the default plot type for 1D domains. Cubic splines are used to i
 
 Surface plots are constructed by using the chosen **Expression** as a height map, the limits of the colour axis and the **Height scale** parameter.
 
-### Colour
+### Colour <a class="anchor" id='colour'>
 
 Customise everything about the colours used to display the solution.
 
@@ -231,7 +231,7 @@ Customise everything about the colours used to display the solution.
 - #### Auto snap
   Toggle the automatic snapping of the colour map limits. This can be very useful if you don't know the range in which **Expression** will fall, especially if it is changing frequently.
 
-### Contours
+### Contours <a class="anchor" id='contours'>
 
 Toggle the rendering of contours on top of the simulation display. The number, colour, and sensitivity of these (equally spaced) contours can be configured in the **Contours** menu that appears when contours are enabled.
 
@@ -246,7 +246,7 @@ Toggle the rendering of contours on top of the simulation display. The number, c
 - ##### Threshold
   Set the relative numerical threshold, between 0 and 1, within which a contour will be detected. Smaller values result in more precise, thinner contours. Larger values may be needed to detect contours in solutions that vary rapidly in space. Under the hood, VisualPDE checks if a given output pixel is within this threshold of a given contour value, with all values normalised by the range of the colourbar. If the range of the colourbar is 0, the behaviour of contours is undefined.
 
-### Lighting
+### Lighting <a class="anchor" id='lighting'>
 
 Toggle lighting effects, which adds reflections and shadows to the solution. This often adds a fluid-like character to a simulation, as can be seen in the [Visual Story on water waves](/visual-stories/ripples). We make use of the [Phong reflection model](https://en.wikipedia.org/wiki/Phong_reflection_model). Details of the filter, including its strength and the orientation of the simulated light, can be specified in the **Lighting** menu that appears when lighting is enabled. Some lighting effects may appear slightly pixellated on some devices (typically Android tablets and iPadOS devices), though increasing the grid refinement will mitigate this.
 
@@ -277,7 +277,7 @@ Toggle lighting effects, which adds reflections and shadows to the solution. Thi
 - #### Direction
   Specify the in-plane direction of the light source, rotating any shadows and highlights.
 
-### Overlay
+### Overlay <a class="anchor" id='overlay'>
 
 Toggle the display of an overlay. The expression, colour, and threshold used in displaying the overlay can be specified in the **Overlay** menu that appears when the overlay is enabled.
 
@@ -292,7 +292,7 @@ Toggle the display of an overlay. The expression, colour, and threshold used in 
 - #### Threshold
   Set the relative numerical threshold, between 0 and 1, within which the zero set will be detected. Smaller values result in more precise, thinner curves. Larger values may be needed to detect curves in large spatial domains or for expressions that vary rapidly in space. Under the hood, VisualPDE checks if a given pixel is in the zero set to within this threshold.
 
-### 3D options
+### 3D options <a class="anchor" id='3d-options'>
 
 When viewing surface plots, this menu will appear to allow you to customise aspects of the display.
 
@@ -322,7 +322,7 @@ When viewing line plots, this menu will appear to allow you to customise aspects
 - #### Thickness
   The thickness of the plotted line relative to the default. Must be a numerical value.
 
-### Vector field
+### Vector field <a class="anchor" id='vector-field'>
 
 Toggle the rendering of a vector field on top of the simulation. The definition, colour, density, and size of the vectors can be fully customised. This option is often used to visualise flows or fluxes.
 
@@ -524,7 +524,7 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 
   The number of timesteps between updates of the global integral. Lower numbers result in more frequent updates, but may slow down the simulation. Must be an integer greater than 0.
 
-- #### Dev
+- #### Dev <a class="anchor" id='dev'>
 
   Tools intended for the development and benchmarking of VisualPDE.
 
