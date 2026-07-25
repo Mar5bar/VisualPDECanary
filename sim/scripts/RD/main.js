@@ -215,7 +215,7 @@ async function VisualPDE(url) {
     reactionTermsFolder,
     boundaryConditionsFolder,
     initialConditionsFolder,
-    advancedOptionsFolder,
+    variablesAndParamsFolder,
     editViewFolder,
     linesAnd3DFolder,
     linesFolderButton,
@@ -2369,16 +2369,6 @@ async function VisualPDE(url) {
     addInfoButton(root, "/user-guide/advanced-options#edit");
     addFocusLeftGUIButton(editEquationsFolder);
 
-    const defButtonList = addButtonList(root, "typesetCustomEqsButtonRow");
-    addToggle(
-      defButtonList,
-      "typesetCustomEqs",
-      '<i class="fa-regular fa-square-root-variable"></i> Typeset',
-      setEquationDisplayType,
-      null,
-      "Typeset the specified equations",
-    );
-
     // Timescale controllers get their own sub-folder, shown only when the "Scales" toggle is
     // on (configureGUI() shows/hides the folder itself, mirroring how it already showed/hid
     // each controller individually before this folder existed).
@@ -2717,18 +2707,111 @@ async function VisualPDE(url) {
       setOnblur(controllers[key], deselectTeX, [texKey]);
     }
 
-    parametersFolder = leftGUI.addFolder("Parameters");
-    addInfoButton(parametersFolder, "/user-guide/advanced-options#parameters");
-    addFocusLeftGUIButton(parametersFolder);
+    // Typeset toggle, then Cross diffusion/Scales toggles, at the very bottom of "Equations"
+    // (below the Timescales/Diffusion coefficients/Reaction terms sub-folders above).
+    root = editEquationsFolder;
+    const defButtonList = addButtonList(root, "typesetCustomEqsButtonRow");
+    addToggle(
+      defButtonList,
+      "typesetCustomEqs",
+      '<i class="fa-regular fa-square-root-variable"></i> Typeset',
+      setEquationDisplayType,
+      null,
+      "Typeset the specified equations",
+    );
+
+    const crossDiffusionButtonList = addButtonList(root);
+    addToggle(
+      crossDiffusionButtonList,
+      "crossDiffusion",
+      '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
+      function () {
+        updateProblem();
+      },
+      "cross_diffusion_controller",
+      "Toggle cross diffusion",
+    );
+
+    addToggle(
+      crossDiffusionButtonList,
+      "timescales",
+      '<i class="fa-regular fa-clock"></i>Scales',
+      function () {
+        configureGUI();
+        setRDEquations();
+        setEquationDisplayType();
+      },
+      "timescales_controller",
+      "Toggle the use of custom timescales",
+    );
+
+    // Variables and params folder: houses Parameters and Expressions as sub-folders, plus the
+    // species-count/naming controllers previously in their own "Advanced options" folder (now
+    // removed, since this was its entire content).
+    variablesAndParamsFolder = leftGUI.addFolder("Variables and params");
+    root = variablesAndParamsFolder;
+    root.domElement.classList.add("advancedOptions");
+    addInfoButton(root, "/user-guide/advanced-options#advanced-options-");
+    addFocusLeftGUIButton(variablesAndParamsFolder);
+
+    parametersFolder = variablesAndParamsFolder.addFolder("Parameters");
     setParamsFromKineticString();
 
     // Expressions folder: named text macros (not uniforms - see the Expressions design near
     // refreshExpressionExpansions()), substituted directly into shader source at shader-
     // construction time.
-    expressionsFolder = leftGUI.addFolder("Expressions");
-    addInfoButton(expressionsFolder, "/user-guide/advanced-options#expressions");
-    addFocusLeftGUIButton(expressionsFolder);
+    expressionsFolder = variablesAndParamsFolder.addFolder("Expressions");
     setExpressionsFromString();
+
+    // Number of species.
+    root
+      .add(options, "numSpecies", {
+        1: 1,
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+        6: 6,
+        7: 7,
+        8: 8,
+      })
+      .name("# Variables")
+      .onChange(function () {
+        document.activeElement.blur();
+        options.speciesNames = speciesNamesToString();
+        setCustomNames();
+        // updateProblem() (De)allocates the MRT render targets itself now, before it
+        // triggers configureDimension()'s resize/render chain - see its definition.
+        updateProblem();
+        resetSim();
+      });
+
+    // Number of algebraic species.
+    controllers["algebraicSpecies"] = root
+      .add(options, "numAlgebraicSpecies", {
+        0: 0,
+        1: 1,
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+        6: 6,
+        7: 7,
+      })
+      .name("# Algebraic")
+      .onChange(function () {
+        updatingAlgebraicSpecies = true;
+        updateProblem();
+        updatingAlgebraicSpecies = false;
+        resetSim();
+      });
+
+    controllers["speciesNames"] = root
+      .add(options, "speciesNames")
+      .name("Variables")
+      .onFinishChange(function () {
+        setCustomNames();
+      });
 
     // Boundary conditions folder.
     boundaryConditionsFolder = leftGUI.addFolder("Boundary conditions");
@@ -3010,88 +3093,6 @@ async function VisualPDE(url) {
           setClearShader();
         });
     }
-
-    // Equations folder.
-    advancedOptionsFolder = leftGUI.addFolder("Advanced options");
-    root = advancedOptionsFolder;
-    root.domElement.classList.add("advancedOptions");
-    addInfoButton(root, "/user-guide/advanced-options#advanced-options-");
-
-    // Number of species.
-    root
-      .add(options, "numSpecies", {
-        1: 1,
-        2: 2,
-        3: 3,
-        4: 4,
-        5: 5,
-        6: 6,
-        7: 7,
-        8: 8,
-      })
-      .name("# Variables")
-      .onChange(function () {
-        document.activeElement.blur();
-        options.speciesNames = speciesNamesToString();
-        setCustomNames();
-        // updateProblem() (De)allocates the MRT render targets itself now, before it
-        // triggers configureDimension()'s resize/render chain - see its definition.
-        updateProblem();
-        resetSim();
-      });
-
-    // Number of algebraic species.
-    controllers["algebraicSpecies"] = root
-      .add(options, "numAlgebraicSpecies", {
-        0: 0,
-        1: 1,
-        2: 2,
-        3: 3,
-        4: 4,
-        5: 5,
-        6: 6,
-        7: 7,
-      })
-      .name("# Algebraic")
-      .onChange(function () {
-        updatingAlgebraicSpecies = true;
-        updateProblem();
-        updatingAlgebraicSpecies = false;
-        resetSim();
-      });
-
-    controllers["speciesNames"] = root
-      .add(options, "speciesNames")
-      .name("Variables")
-      .onFinishChange(function () {
-        setCustomNames();
-      });
-
-    // Cross diffusion.
-    const crossDiffusionButtonList = addButtonList(root);
-    addToggle(
-      crossDiffusionButtonList,
-      "crossDiffusion",
-      '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
-      function () {
-        updateProblem();
-      },
-      "cross_diffusion_controller",
-      "Toggle cross diffusion",
-    );
-
-    addToggle(
-      crossDiffusionButtonList,
-      "timescales",
-      '<i class="fa-regular fa-clock"></i>Scales',
-      function () {
-        configureGUI();
-        setRDEquations();
-        setEquationDisplayType();
-      },
-      "timescales_controller",
-      "Toggle the use of custom timescales",
-    );
 
     // Images folder.
     fIm = rightGUI.addFolder("Images");
@@ -12656,19 +12657,17 @@ async function VisualPDE(url) {
   /**
    * Adds a focus button to a leftGUI folder that hides other folders.
    */
-  function addFocusLeftGUIButton(folder = parametersFolder) {
+  function addFocusLeftGUIButton(folder = variablesAndParamsFolder) {
     const focusButton = document.createElement("button");
     focusButton.classList.add("focus-params");
     focusButton.innerHTML = `<i class="fa-solid fa-eye"></i>`;
     focusButton.title = "Focus this folder";
     focusButton.onclick = function () {
       focusButton.classList.toggle("active");
-      advancedOptionsFolder.domElement.classList.toggle("hidden-aug");
+      variablesAndParamsFolder.domElement.classList.toggle("hidden-aug");
       boundaryConditionsFolder.domElement.classList.toggle("hidden-aug");
       editEquationsFolder.domElement.classList.toggle("hidden-aug");
       initialConditionsFolder.domElement.classList.toggle("hidden-aug");
-      parametersFolder.domElement.classList.toggle("hidden-aug");
-      expressionsFolder.domElement.classList.toggle("hidden-aug");
       // Repeat this toggle for the target folder.
       folder.domElement.classList.toggle("hidden-aug");
       document
