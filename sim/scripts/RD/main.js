@@ -2710,15 +2710,6 @@ async function VisualPDE(url) {
     // Typeset toggle, then Cross diffusion/Scales toggles, at the very bottom of "Equations"
     // (below the Timescales/Diffusion coefficients/Reaction terms sub-folders above).
     root = editEquationsFolder;
-    const defButtonList = addButtonList(root, "typesetCustomEqsButtonRow");
-    addToggle(
-      defButtonList,
-      "typesetCustomEqs",
-      '<i class="fa-regular fa-square-root-variable"></i> Typeset',
-      setEquationDisplayType,
-      null,
-      "Typeset the specified equations",
-    );
 
     const crossDiffusionButtonList = addButtonList(root);
     addToggle(
@@ -2745,10 +2736,20 @@ async function VisualPDE(url) {
       "Toggle the use of custom timescales",
     );
 
+    const defButtonList = addButtonList(root, "typesetCustomEqsButtonRow");
+    addToggle(
+      defButtonList,
+      "typesetCustomEqs",
+      '<i class="fa-regular fa-square-root-variable"></i> Typeset',
+      setEquationDisplayType,
+      null,
+      "Typeset the specified equations",
+    );
+
     // Variables and params folder: houses Parameters and Expressions as sub-folders, plus the
     // species-count/naming controllers previously in their own "Advanced options" folder (now
     // removed, since this was its entire content).
-    variablesAndParamsFolder = leftGUI.addFolder("Variables and params");
+    variablesAndParamsFolder = leftGUI.addFolder("Variables and parameters");
     root = variablesAndParamsFolder;
     root.domElement.classList.add("advancedOptions");
     addInfoButton(root, "/user-guide/advanced-options#advanced-options-");
@@ -13037,7 +13038,10 @@ async function VisualPDE(url) {
     document.getElementById("diffusionMatrixEquation").innerHTML =
       "$\\pd{\\v{u}}{t} = \\vnabla \\cdot (\\m{D} \\vnabla \\v{u}) + \\v{f}, \\ \\v{u} = [SPECIES]^T$".replace(
         "SPECIES",
-        listOfSpecies.map((s) => parseStringToTEX(s)).join(","),
+        listOfSpecies
+          .slice(0, options.numSpecies)
+          .map((s) => parseStringToTEX(s))
+          .join(","),
       );
 
     const grid = document.getElementById("diffusionMatrixGrid");
