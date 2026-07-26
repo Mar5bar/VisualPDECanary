@@ -223,6 +223,76 @@ test("diffCtrlKey: species 1-4 (1-based) use legacy letter-pair keys; anything t
   assert.equal(m.diffCtrlKey(5, 5), "D_5_5");
 });
 
+// --- getGlobalIntegralComponents / setGlobalIntegralComponent ---------------
+
+test("getGlobalIntegralComponents: splits the packed field on ';', trimming whitespace", () => {
+  m.__setState({ options: { globalIntegralFun: "u ; v ; 0 ; w*v" } });
+  assert.deepEqual(m.getGlobalIntegralComponents(), ["u", "v", "0", "w*v"]);
+});
+
+test("getGlobalIntegralComponents: missing/blank components (including a bare, unsplit field, for backwards compatibility) default to '0'", () => {
+  m.__setState({ options: { globalIntegralFun: "u" } });
+  assert.deepEqual(m.getGlobalIntegralComponents(), ["u", "0", "0", "0"]);
+
+  m.__setState({ options: { globalIntegralFun: "u;;w;" } });
+  assert.deepEqual(m.getGlobalIntegralComponents(), ["u", "0", "w", "0"]);
+});
+
+test("setGlobalIntegralComponent: updates only the given (0-based) slot, preserving the others", () => {
+  m.__setState({ options: { globalIntegralFun: "u;v;0;0" } });
+  m.setGlobalIntegralComponent(2, "w*v");
+  assert.equal(m.options.globalIntegralFun, "u;v;w*v;0");
+  m.setGlobalIntegralComponent(0, "");
+  assert.equal(m.options.globalIntegralFun, "0;v;w*v;0");
+});
+
+test("parseShaderString: substitutes GlobalInt1-4 with globalIntegralValue1-4, and bare GlobalInt with globalIntegralValue1", () => {
+  m.__setState({
+    options: { minX: "0", minY: "0", globalIntegralFun: "u;v;0;0" },
+    listOfSpecies: ["u", "v"],
+    listOfReactions: ["UFUN", "VFUN"],
+    expandedExpressionDefs: {},
+  });
+  stubThrowError();
+  m.genAnySpeciesRegexStrs();
+  const out = m.parseShaderString("GlobalInt1 + GlobalInt2 + GlobalInt");
+  assert.equal(out.trim(), "globalIntegralValue1 + globalIntegralValue2 + globalIntegralValue1");
+});
+
+test("parseStringToTEX: substitutes GlobalInt1-4 (and bare GlobalInt) with \\iint_{\\Omega}(the matching component)", () => {
+  m.__setState({
+    options: { minX: "0", minY: "0", globalIntegralFun: "u;v;0;0", dimension: "2" },
+    listOfSpecies: ["u", "v"],
+    listOfReactions: ["UFUN", "VFUN"],
+  });
+  stubThrowError();
+  const out = m.parseStringToTEX("a*GlobalInt2 + GlobalInt");
+  assert.match(out, /a \\iint_\{\\Omega\} v\\, \\d x \\d y\\ /);
+  assert.match(out, /\\iint_\{\\Omega\} u\\, \\d x \\d y\\ /);
+});
+
+test("parseStringToTEX: each integral component gets its own full TeX formatting (e.g. '*' removed), not spliced in as a raw expression string", () => {
+  m.__setState({
+    options: { minX: "0", minY: "0", globalIntegralFun: "u*v;0;0;0", dimension: "2" },
+    listOfSpecies: ["u", "v"],
+    listOfReactions: ["UFUN", "VFUN"],
+  });
+  stubThrowError();
+  const out = m.parseStringToTEX("GlobalInt1");
+  assert.doesNotMatch(out, /\*/);
+  assert.match(out, /\\iint_\{\\Omega\} u v\\, \\d x \\d y\\ /);
+});
+
+test("parseStringToTEX: doesn't infinitely recurse when a component's own text is unrelated to GlobalInt (regression: the substitution must use a lazy replacer function, since parseStringToTEX(component) is only safe to call when there's an actual GlobalInt match to replace)", () => {
+  m.__setState({
+    options: { minX: "0", minY: "0", globalIntegralFun: "u*v;v;0;0", dimension: "2" },
+    listOfSpecies: ["u", "v"],
+    listOfReactions: ["UFUN", "VFUN"],
+  });
+  stubThrowError();
+  assert.equal(m.parseStringToTEX("a - b"), "a - b");
+});
+
 // --- lerp / lerpArrays -------------------------------------------------------
 
 test("lerp: interpolates and clamps t to [0,1]", () => {

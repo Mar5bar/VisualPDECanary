@@ -294,9 +294,16 @@ function splitTopLevelCommas(text) {
  * Given one declarator (e.g. "foo", "foo = bar()", "foo = { a: 1, b: 2 }"), returns just the
  * bare variable name, discarding any initializer. Only handles simple identifier declarators
  * (confirmed there's no destructuring in main.js's top-level let/const/var statements).
+ *
+ * splitTopLevelCommas() doesn't treat comments as split points, so a comment sitting between
+ * two declarators in a multi-name list (e.g. "let a,\n  // describes b\n  b = {};") gets
+ * captured as a prefix of the declarator that follows it - strip that the same way
+ * stripLeadingCommentsAndWhitespace() does for statements, or the name after the comment is
+ * silently dropped instead of extracted.
  */
 function bareDeclaratorName(declarator) {
-  const match = declarator.trim().match(/^([a-zA-Z_$][\w$]*)/);
+  const stripped = stripLeadingCommentsAndWhitespace(declarator);
+  const match = stripped.match(/^([a-zA-Z_$][\w$]*)/);
   return match ? match[1] : null;
 }
 

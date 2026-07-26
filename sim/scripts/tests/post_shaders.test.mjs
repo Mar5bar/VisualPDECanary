@@ -55,7 +55,8 @@ test("postShaderDomainIndicator/postGenericShaderBot: minimal fixed fragments", 
 test("interpolationShader/minMaxShader/sumShader: non-empty, self-contained shaders", () => {
   assert.match(interpolationShader(), /Bilinear interpolation/);
   assert.match(minMaxShader(), /gl_FragColor = vec4\(minVal, maxVal, 0\.0, 0\.0\);/);
-  assert.match(sumShader(), /gl_FragColor = vec4\(sumVal, 0\.0, 0\.0, 0\.0\);/);
+  assert.match(sumShader(), /gl_FragColor = sumVal;/);
+  assert.match(sumShader(), /vec4 sumVal = vec4\(0\.0\);/); // sums all 4 channels independently
 });
 
 test("probeShader: contains PROBE_FUN/PROBE_X/PROBE_Y placeholders and the 9-point stencil", () => {

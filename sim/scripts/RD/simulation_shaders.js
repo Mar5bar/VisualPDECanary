@@ -59,7 +59,10 @@ export function RDShaderTop(type) {
     uniform float L_min;
     uniform float t;
     uniform float seed;
-    uniform float globalIntegralValue;
+    uniform float globalIntegralValue1;
+    uniform float globalIntegralValue2;
+    uniform float globalIntegralValue3;
+    uniform float globalIntegralValue4;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
 
@@ -419,7 +422,10 @@ export function RDShaderTopMRT(type) {
     uniform float L_min;
     uniform float t;
     uniform float seed;
-    uniform float globalIntegralValue;
+    uniform float globalIntegralValue1;
+    uniform float globalIntegralValue2;
+    uniform float globalIntegralValue3;
+    uniform float globalIntegralValue4;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
 
@@ -1356,12 +1362,16 @@ export function globalIntegralShader() {
         uvwqYB = uvwqY;
       }
 
-      float value = GLOBAL_INTEGRAL_FUN;
-      if (isnan(value)) {
-        value = 1.0/0.0;
-      }
+      float value1 = GLOBAL_INTEGRAL_FUN1;
+      float value2 = GLOBAL_INTEGRAL_FUN2;
+      float value3 = GLOBAL_INTEGRAL_FUN3;
+      float value4 = GLOBAL_INTEGRAL_FUN4;
+      if (isnan(value1)) { value1 = 1.0/0.0; }
+      if (isnan(value2)) { value2 = 1.0/0.0; }
+      if (isnan(value3)) { value3 = 1.0/0.0; }
+      if (isnan(value4)) { value4 = 1.0/0.0; }
       float in_domain = float(float(indicatorFun) > 0.0);
-      gl_FragColor = vec4(value * in_domain, 0.0, 0.0, 0.0);
+      gl_FragColor = vec4(value1 * in_domain, value2 * in_domain, value3 * in_domain, value4 * in_domain);
     }`;
 }
 
@@ -1378,7 +1388,7 @@ export function globalIntegralShaderMRT() {
       "uniform sampler2D textureSource;\n    uniform sampler2D textureSourceGroup1;",
     )
     .replace(
-      "float value = GLOBAL_INTEGRAL_FUN;",
+      "float value1 = GLOBAL_INTEGRAL_FUN1;",
       `vec4 uvwq2 = texture2D(textureSourceGroup1, textureCoords);
       vec4 uvwq2L = texture2D(textureSourceGroup1, textureCoords + vec2(-step_x, 0.0));
       vec4 uvwq2R = texture2D(textureSourceGroup1, textureCoords + vec2(+step_x, 0.0));
@@ -1419,6 +1429,6 @@ export function globalIntegralShaderMRT() {
         uvwq2YB = uvwq2Y;
       }
 
-      float value = GLOBAL_INTEGRAL_FUN;`,
+      float value1 = GLOBAL_INTEGRAL_FUN1;`,
     );
 }

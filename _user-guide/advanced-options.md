@@ -174,6 +174,22 @@ An additional type of condition, 'Ghost', can also be specified with Mixed bound
 
 Initial conditions can be specified for any variables in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), the random quantity `RAND`, a uniformly random value in $[0,1]$, the random quantity `RANDN`, a normally-distributed random number with unit variance and zero mean, and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
+### Integrals <a class="anchor" id='integrals'>
+
+Up to 4 quantities can be integrated over the domain at every timestep, then used in equation right-hand-sides via the variables `GlobalInt1`, `GlobalInt2`, `GlobalInt3` and `GlobalInt4`. For backwards compatibility, `GlobalInt` on its own is equivalent to `GlobalInt1`.
+
+- #### Integral 1 / Integral 2 / Integral 3 / Integral 4
+
+  The expressions to be integrated over the domain, corresponding to `GlobalInt1`-`GlobalInt4`. Each can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$). See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions. Leave an entry as `0` (the default) if you don't need that integral - it won't be computed.
+
+  As an example, you can track the total mass of a variable $u$ by setting **Integral 1** to `u`, then using `GlobalInt1` (or, equivalently, `GlobalInt`) in a reaction term. Each integral is coarsely approximated by a simple Riemann sum, with accuracy (and computational cost) increasing with mesh refinement.
+
+  Integrals are only computed while at least one of `GlobalInt1`-`GlobalInt4` (or `GlobalInt`) is actually referenced somewhere in your equations - simply filling in an entry here has no computational cost until it's used.
+
+- #### Update period
+
+  The number of timesteps between updates of the integrals. Lower numbers result in more frequent updates, but may slow down the simulation. Must be an integer greater than 0.
+
 ---
 
 ## Views {{ layout.views }} <a class="anchor" id='views'>
@@ -513,16 +529,6 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 - #### Blend amount
 
   The degree to which the blend image should be blended into the simulation view. 0 corresponds to no blending.
-
-- #### To integrate (global integral)
-
-  The expression to be integrated over the domain at each timestep, available in equation right-hand-sides as the variable `GlobalInt`. This can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$). See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
-
-  As an example, you can track the total mass of a variable $u$ by setting this to `u`. The integral is coarsely approximated by a simple Riemann sum, with accuracy (and computational cost) increasing with mesh refinement.
-
-- #### Update period (global integral)
-
-  The number of timesteps between updates of the global integral. Lower numbers result in more frequent updates, but may slow down the simulation. Must be an integer greater than 0.
 
 - #### Dev <a class="anchor" id='dev'>
 

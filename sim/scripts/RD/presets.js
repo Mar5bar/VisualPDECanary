@@ -7843,7 +7843,7 @@ presets["default"] = {
   flippedColourmap: false,
   forceManualInterpolation: false,
   forceTryClickingPopup: false,
-  globalIntegralFun: "0",
+  globalIntegralFun: "u;v;0;0",
   globalIntegralUpdatePeriod: 10,
   guiUpdatePeriod: 2,
   imagePathOne: "./images/Sofya.webp",

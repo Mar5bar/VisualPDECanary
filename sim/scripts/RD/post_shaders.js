@@ -262,24 +262,26 @@ export function minMaxShader() {
 }
 
 export function sumShader() {
-  return `varying vec2 textureCoords; 
+  return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
     uniform vec2 srcResolution;
 
     void main()
     {
-      // Sum the nearby pixels in the texture source.
+      // Sum the nearby pixels in the texture source, independently per channel (so this can
+      // reduce up to 4 quantities packed into r/g/b/a at once - e.g. the global integrals -
+      // as well as the single-channel case, which just leaves g/b/a as 0).
       ivec2 outTexel = ivec2(gl_FragCoord.xy);
-      float sumVal = 0.0;
+      vec4 sumVal = vec4(0.0);
       for (int y = 0; y < 2; ++y) {
         for (int x = 0; x < 2; ++x) {
           ivec2 srcTexel = outTexel * 2 + ivec2(x, y);
           if (srcTexel.x < int(srcResolution.x) && srcTexel.y < int(srcResolution.y)) {
-            sumVal += texture2D(textureSource, (vec2(srcTexel) + 0.5) / srcResolution).r;
+            sumVal += texture2D(textureSource, (vec2(srcTexel) + 0.5) / srcResolution);
           }
         }
       }
-      gl_FragColor = vec4(sumVal, 0.0, 0.0, 0.0);
+      gl_FragColor = sumVal;
     }`;
 }
 

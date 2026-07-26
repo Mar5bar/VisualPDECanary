@@ -215,6 +215,7 @@ async function VisualPDE(url) {
     reactionTermsFolder,
     boundaryConditionsFolder,
     initialConditionsFolder,
+    integralsFolder,
     variablesAndParamsFolder,
     variablesFolder,
     editViewFolder,
@@ -1946,7 +1947,16 @@ async function VisualPDE(url) {
       embossLightDir: {
         type: "vec3",
       },
-      globalIntegralValue: {
+      globalIntegralValue1: {
+        type: "f",
+      },
+      globalIntegralValue2: {
+        type: "f",
+      },
+      globalIntegralValue3: {
+        type: "f",
+      },
+      globalIntegralValue4: {
         type: "f",
       },
       L: {
@@ -3109,6 +3119,43 @@ async function VisualPDE(url) {
         });
     }
 
+    // Integrals folder.
+    integralsFolder = leftGUI.addFolder("Integrals");
+    root = integralsFolder;
+    addInfoButton(root, "/user-guide/advanced-options#integrals");
+
+    controllers["globalIntegralUpdatePeriod"] = root
+      .add(options, "globalIntegralUpdatePeriod", 1, 1000, 1)
+      .name("Update period");
+
+    // The 4 integral expressions are packed into one field (options.globalIntegralFun,
+    // separated by ";") for backwards compatibility with simulations that only ever set a
+    // single expression there - see getGlobalIntegralComponents/setGlobalIntegralComponent.
+    // globalIntegralComponentProxy exposes each of the 4 components as its own accessor
+    // property, so dat.gui can bind a normal text controller to each one while they all
+    // actually read/write through to the same underlying packed string.
+    const globalIntegralComponentProxy = {};
+    for (let i = 1; i <= 4; i++) {
+      const ind = i - 1;
+      Object.defineProperty(
+        globalIntegralComponentProxy,
+        "globalIntegralFun_" + i,
+        {
+          get: () => getGlobalIntegralComponents()[ind],
+          set: (value) => setGlobalIntegralComponent(ind, value),
+          enumerable: true,
+          configurable: true,
+        },
+      );
+      controllers["globalIntegralFun_" + i] = root
+        .add(globalIntegralComponentProxy, "globalIntegralFun_" + i)
+        .name("Integral " + i)
+        .onFinishChange(function () {
+          this.setValue(autoCorrectSyntax(this.getValue()));
+          updateGlobalIntegralFun();
+        });
+    }
+
     // Images folder.
     fIm = rightGUI.addFolder("Images");
     root = fIm;
@@ -3287,17 +3334,6 @@ async function VisualPDE(url) {
       .onFinishChange(function () {
         updateRandomSeed();
       });
-
-    controllers["globalIntegralFun"] = root
-      .add(options, "globalIntegralFun")
-      .name("To integrate")
-      .onFinishChange(function () {
-        updateGlobalIntegralFun();
-      });
-
-    controllers["globalIntegralUpdatePeriod"] = root
-      .add(options, "globalIntegralUpdatePeriod", 1, 1000, 1)
-      .name("Update period");
 
     devFolder = root.addFolder("Dev");
     root = devFolder;
@@ -5568,8 +5604,12 @@ async function VisualPDE(url) {
     // Insert MINX and MINY.
     str = replaceMINXMINY(str);
 
-    // Replace 'GlobalInt' with globalIntegralValue, which is a uniform that stores the integral of the quantity.
-    str = str.replaceAll(/\bGlobalInt\b/g, "globalIntegralValue");
+    // Replace 'GlobalInt1'-'GlobalInt4' with globalIntegralValue1-4, uniforms that store each
+    // of up to 4 integral quantities (see the Integrals folder/getGlobalIntegralComponents).
+    // Bare 'GlobalInt' maps to GlobalInt1, for backwards compatibility with simulations
+    // written before GlobalInt2-4 existed.
+    str = str.replaceAll(/\bGlobalInt([1-4])\b/g, "globalIntegralValue$1");
+    str = str.replaceAll(/\bGlobalInt\b/g, "globalIntegralValue1");
 
     return str;
   }
@@ -6110,7 +6150,7 @@ async function VisualPDE(url) {
       middle = randNShader() + middle;
     }
     shaderContainsRAND = containsRAND || containsRANDN;
-    shaderContainsGlobalIntegral = /\bglobalIntegralValue\b/.test(middle);
+    shaderContainsGlobalIntegral = /\bglobalIntegralValue[1-4]\b/.test(middle);
     let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
 
     // MRT (>4-species) path, used by every timestepping scheme once numGroups>1 (Stage 13 of
@@ -7110,10 +7150,39 @@ async function VisualPDE(url) {
     probeMaterial.needsUpdate = true;
   }
 
+  /**
+   * The "To integrate" field (options.globalIntegralFun) packs up to 4 integral expressions
+   * into one string, separated by ";" - one per channel of the global-integral texture (see
+   * globalIntegralShader/MRT in simulation_shaders.js and the Integrals GUI folder). Returns
+   * exactly 4 trimmed expression strings; a missing or blank component - including every
+   * component past the first, for a bare (un-split) options.globalIntegralFun kept from before
+   * GlobalInt2-4 existed - defaults to "0" (an empty/unused integral).
+   */
+  function getGlobalIntegralComponents() {
+    const parts = options.globalIntegralFun.split(";");
+    const components = [];
+    for (let i = 0; i < 4; i++) {
+      const part = parts[i]?.trim();
+      components.push(part ? part : "0");
+    }
+    return components;
+  }
+
+  /**
+   * Sets the ind-th (0-based) component of the packed options.globalIntegralFun field,
+   * preserving the other 3.
+   */
+  function setGlobalIntegralComponent(ind, value) {
+    const components = getGlobalIntegralComponents();
+    const trimmed = value.trim();
+    components[ind] = trimmed === "" ? "0" : trimmed;
+    options.globalIntegralFun = components.join(";");
+  }
+
   function setGlobalIntegralShader() {
     // Insert any user-defined kinetic parameters, as uniforms. globalIntegralShaderMRT
     // (>4 species) just adds a second input sampler + group-1 locals so
-    // GLOBAL_INTEGRAL_FUN can reference species 5-8 - still single-output, so no
+    // GLOBAL_INTEGRAL_FUN1-4 can reference species 5-8 - still single-output, so no
     // glslVersion toggle is needed here.
     let shaderStr =
       kineticUniformsForShader() +
@@ -7121,10 +7190,13 @@ async function VisualPDE(url) {
         ? globalIntegralShaderMRT()
         : globalIntegralShader());
     shaderStr = replaceMINXMINY(shaderStr);
-    shaderStr = shaderStr.replace(
-      /GLOBAL_INTEGRAL_FUN/g,
-      parseShaderString(options.globalIntegralFun),
-    );
+    const globalIntegralComponents = getGlobalIntegralComponents();
+    for (let i = 1; i <= 4; i++) {
+      shaderStr = shaderStr.replace(
+        new RegExp("GLOBAL_INTEGRAL_FUN" + i, "g"),
+        parseShaderString(globalIntegralComponents[i - 1]),
+      );
+    }
     let replacement = "1";
     if (options.domainViaIndicatorFun) {
       replacement = parseShaderString(getModifiedDomainIndicatorFun());
@@ -8631,16 +8703,31 @@ async function VisualPDE(url) {
     // Replace Gauss with \mathcal{N}.
     str = str.replaceAll(/\bGauss\b/g, "\\mathcal{N}");
 
-    // Replace GlobalInt with \int_{\Omega}(options.globalIntegralFun).
-    let replacement = "";
-    if (options.dimension == 1) {
-      replacement =
-        "\\int_{\\Omega} " + options.globalIntegralFun + "\\, \\d x \\ ";
-    } else {
-      replacement =
-        "\\iint_{\\Omega} " + options.globalIntegralFun + "\\, \\d x \\d y\\ ";
+    // Replace GlobalInt1-4 with \int_{\Omega}(the corresponding integral expression). Bare
+    // GlobalInt maps to GlobalInt1, for backwards compatibility. Each component is itself a
+    // raw expression string (e.g. "u*v"), so it needs its own trip through parseStringToTEX
+    // (recursing here is safe - each call is a fresh, independent conversion) to get the same
+    // TeX formatting (removing "*", species substitution, etc.) as the rest of the equation.
+    // Substitution must use a replacer *function* (called lazily, only on an actual match) -
+    // passing the computed string directly would call parseStringToTEX(component) - and hence
+    // re-enter this same substitution - unconditionally on every parseStringToTEX() call
+    // anywhere in the app, infinitely recursing regardless of whether "GlobalInt" ever
+    // actually appears in str.
+    const globalIntegralComponents = getGlobalIntegralComponents();
+    const globalIntegralTeXFor = (component) =>
+      (options.dimension == 1
+        ? "\\int_{\\Omega} "
+        : "\\iint_{\\Omega} ") +
+      parseStringToTEX(component) +
+      (options.dimension == 1 ? "\\, \\d x \\ " : "\\, \\d x \\d y\\ ");
+    for (let i = 1; i <= 4; i++) {
+      str = str.replaceAll(new RegExp("\\bGlobalInt" + i + "\\b", "g"), () =>
+        globalIntegralTeXFor(globalIntegralComponents[i - 1]),
+      );
     }
-    str = str.replaceAll(/\bGlobalInt\b/g, replacement);
+    str = str.replaceAll(/\bGlobalInt\b/g, () =>
+      globalIntegralTeXFor(globalIntegralComponents[0]),
+    );
 
     // If there's an underscore, put {} around the word that follows it.
     str = str.replaceAll(/_(\w+\b)/g, "_{$1}");
@@ -9751,7 +9838,9 @@ async function VisualPDE(url) {
   }
 
   function computeTextureSumGPU() {
-    // Get the sum of vals in postTexture, using a shader to compute this on the GPU.
+    // Get the sum of vals in postTexture, using a shader to compute this on the GPU. Returns
+    // all 4 (r,g,b,a) channel sums at once - sumShader() sums each channel independently, so
+    // this doubles as the reduction for up to 4 simultaneous global integrals.
     simDomain.material = sumMaterial;
     minMaxUniforms.textureSource.value = postTexture.texture;
     minMaxUniforms.srcResolution.value = new THREE.Vector2(nXDisc, nYDisc);
@@ -9774,12 +9863,12 @@ async function VisualPDE(url) {
         1,
         smallBuffer,
       );
-      return smallBuffer[0];
+      return smallBuffer;
     } catch {
       alert(
         "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!",
       );
-      return 0;
+      return new Float32Array(4);
     }
   }
 
@@ -12701,6 +12790,7 @@ async function VisualPDE(url) {
       boundaryConditionsFolder.domElement.classList.toggle("hidden-aug");
       editEquationsFolder.domElement.classList.toggle("hidden-aug");
       initialConditionsFolder.domElement.classList.toggle("hidden-aug");
+      integralsFolder.domElement.classList.toggle("hidden-aug");
       // Repeat this toggle for the target folder.
       folder.domElement.classList.toggle("hidden-aug");
       document
@@ -13847,6 +13937,10 @@ async function VisualPDE(url) {
     } else if (options.dimension == 2) {
       dA = uniforms.dx.value * uniforms.dy.value;
     }
-    uniforms.globalIntegralValue.value = computeTextureSumGPU() * dA;
+    const sums = computeTextureSumGPU();
+    uniforms.globalIntegralValue1.value = sums[0] * dA;
+    uniforms.globalIntegralValue2.value = sums[1] * dA;
+    uniforms.globalIntegralValue3.value = sums[2] * dA;
+    uniforms.globalIntegralValue4.value = sums[3] * dA;
   }
 }
