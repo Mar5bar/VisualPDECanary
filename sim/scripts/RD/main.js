@@ -2387,52 +2387,10 @@ async function VisualPDE(url) {
     root = timescalesFolder;
     addInfoButton(root, "/user-guide/advanced-options#timescales");
 
-    controllers["TU"] = root
-      .add(options, "timescale_1")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["TU"], selectTeX, ["TU"]);
-    setOnblur(controllers["TU"], deselectTeX, ["TU"]);
-
-    controllers["TV"] = root
-      .add(options, "timescale_2")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["TV"], selectTeX, ["TV"]);
-    setOnblur(controllers["TV"], deselectTeX, ["TV"]);
-
-    controllers["TW"] = root
-      .add(options, "timescale_3")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["TW"], selectTeX, ["TW"]);
-    setOnblur(controllers["TW"], deselectTeX, ["TW"]);
-
-    controllers["TQ"] = root
-      .add(options, "timescale_4")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["TQ"], selectTeX, ["TQ"]);
-    setOnblur(controllers["TQ"], deselectTeX, ["TQ"]);
-
-    // Species 5-8 timescales (Stage 9 of the 8-species upgrade), grouped with species 1-4's
-    // timescales above rather than left after the reaction terms (as originally generated) -
-    // reordered per user request so all timescales/diffusion/reaction terms are each grouped
-    // together, in that order, rather than interleaved.
-    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
-      const tTag = "TU" + i;
+    // Timescale controllers for all 8 species. See timescaleTag() for the species 1-4 vs 5-8
+    // key-naming split (matching timescaleTags above).
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const tTag = timescaleTag(i);
       controllers[tTag] = root
         .add(options, "timescale_" + i)
         .onFinishChange(function () {
@@ -2448,8 +2406,8 @@ async function VisualPDE(url) {
     // timescales sub-folder. They get their own nested sub-folder in turn (rather than
     // sitting directly in "Equations" alongside timescales/reaction terms) since
     // cross-diffusion can show up to 64 of them at once. Always created (regardless of
-    // crossDiffusion), matching the existing show/hide pattern (showVGUIPanels etc. already
-    // hide most of these when cross-diffusion is off) - only the "expand as matrix" button
+    // crossDiffusion), matching the existing show/hide pattern (showSpeciesGUIPanels etc.
+    // already hide most of these when cross-diffusion is off) - only the "expand as matrix" button
     // (added below, once all these controllers exist) is conditional.
     root = editEquationsFolder;
     diffusionCoeffsFolder = editEquationsFolder.addFolder(
@@ -2458,178 +2416,13 @@ async function VisualPDE(url) {
     root = diffusionCoeffsFolder;
     addInfoButton(root, "/user-guide/advanced-options#diffusion-coefficients");
 
-    controllers["Duu"] = root
-      .add(options, "diffusionStr_1_1")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Duu"], selectTeX, ["U", "UU"]);
-    setOnblur(controllers["Duu"], deselectTeX, ["U", "UU"]);
-
-    controllers["Duv"] = root
-      .add(options, "diffusionStr_1_2")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Duv"], selectTeX, ["UV"]);
-    setOnblur(controllers["Duv"], deselectTeX, ["UV"]);
-
-    controllers["Duw"] = root
-      .add(options, "diffusionStr_1_3")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Duw"], selectTeX, ["UW"]);
-    setOnblur(controllers["Duw"], deselectTeX, ["UW"]);
-
-    controllers["Duq"] = root
-      .add(options, "diffusionStr_1_4")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Duq"], selectTeX, ["UQ"]);
-    setOnblur(controllers["Duq"], deselectTeX, ["UQ"]);
-
-    controllers["Dvu"] = root
-      .add(options, "diffusionStr_2_1")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dvu"], selectTeX, ["VU"]);
-    setOnblur(controllers["Dvu"], deselectTeX, ["VU"]);
-
-    controllers["Dvv"] = root
-      .add(options, "diffusionStr_2_2")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dvv"], selectTeX, ["V", "VV"]);
-    setOnblur(controllers["Dvv"], deselectTeX, ["V", "VV"]);
-
-    controllers["Dvw"] = root
-      .add(options, "diffusionStr_2_3")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dvw"], selectTeX, ["VW"]);
-    setOnblur(controllers["Dvw"], deselectTeX, ["VW"]);
-
-    controllers["Dvq"] = root
-      .add(options, "diffusionStr_2_4")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dvq"], selectTeX, ["VQ"]);
-    setOnblur(controllers["Dvq"], deselectTeX, ["VQ"]);
-
-    controllers["Dwu"] = root
-      .add(options, "diffusionStr_3_1")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dwu"], selectTeX, ["WU"]);
-    setOnblur(controllers["Dwu"], deselectTeX, ["WU"]);
-
-    controllers["Dwv"] = root
-      .add(options, "diffusionStr_3_2")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dwv"], selectTeX, ["WV"]);
-    setOnblur(controllers["Dwv"], deselectTeX, ["WV"]);
-
-    controllers["Dww"] = root
-      .add(options, "diffusionStr_3_3")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dww"], selectTeX, ["W", "WW"]);
-    setOnblur(controllers["Dww"], deselectTeX, ["W", "WW"]);
-
-    controllers["Dwq"] = root
-      .add(options, "diffusionStr_3_4")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dwq"], selectTeX, ["WQ"]);
-    setOnblur(controllers["Dwq"], deselectTeX, ["WQ"]);
-
-    controllers["Dqu"] = root
-      .add(options, "diffusionStr_4_1")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dqu"], selectTeX, ["QU"]);
-    setOnblur(controllers["Dqu"], deselectTeX, ["QU"]);
-
-    controllers["Dqv"] = root
-      .add(options, "diffusionStr_4_2")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dqv"], selectTeX, ["QV"]);
-    setOnblur(controllers["Dqv"], deselectTeX, ["QV"]);
-
-    controllers["Dqw"] = root
-      .add(options, "diffusionStr_4_3")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dqw"], selectTeX, ["QW"]);
-    setOnblur(controllers["Dqw"], deselectTeX, ["QW"]);
-
-    controllers["Dqq"] = root
-      .add(options, "diffusionStr_4_4")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["Dqq"], selectTeX, ["Q", "QQ"]);
-    setOnblur(controllers["Dqq"], deselectTeX, ["Q", "QQ"]);
-
-    // Species 5-8 diffusion coefficients (Stage 9 of the 8-species upgrade), grouped with
-    // species 1-4's diffusion coefficients above (reordered per user request so all
-    // timescales/diffusion/reaction terms are each grouped together, rather than
-    // interleaved). Loop-generated (species 1-4 keep their hand-declared, letter-keyed
-    // controllers above, untouched) since species 5-8 have no natural single-letter name.
-    // Controller keys use diffCtrlKey(i,j) (1-based; only pairs touching species 5-8 - the
-    // <=4x4 block above owns Duu..Dqq). TeX select keys reuse defaultSpecies so Stage 10
-    // (TeX display) can hook into them; selectTeX/deselectTeX are no-ops for keys with no
-    // TeXStrings entry.
+    // Diffusion coefficient controllers for every (i,j) pair, all 8 species. Controller keys
+    // use diffCtrlKey(i,j) - species 1-4 keep their legacy letter-pair keys (Duu..Dqq),
+    // touching species 5-8 uses a numeric key (see species_config.js/diffusionLabel for the
+    // same convention). TeX select keys reuse defaultSpecies so the TeX display can hook into
+    // them; selectTeX/deselectTeX are no-ops for keys with no TeXStrings entry.
     for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
-        if (i <= 4 && j <= 4) continue; // Already declared above (Duu..Dqq).
         const key = diffCtrlKey(i, j);
         const texKey =
           defaultSpecies[i - 1].toUpperCase() +
@@ -2642,8 +2435,8 @@ async function VisualPDE(url) {
             setEquationDisplayType();
           });
         // Self-diffusion (i===j) needs both the single-subscript key ("U5", matched when
-        // cross-diffusion is off) and the doubled key ("U5U5", matched when it's on) - mirrors
-        // Dqq etc. above passing ["Q", "QQ"], not just "QQ".
+        // cross-diffusion is off) and the doubled key ("U5U5", matched when it's on) - e.g.
+        // Dqq passes ["Q", "QQ"], not just "QQ".
         const texKeys =
           i === j ? [defaultSpecies[i - 1].toUpperCase(), texKey] : [texKey];
         setOnfocus(controllers[key], selectTeX, texKeys);
@@ -2663,51 +2456,11 @@ async function VisualPDE(url) {
     root = reactionTermsFolder;
     addInfoButton(root, "/user-guide/advanced-options#reaction-terms");
 
-    // Custom f(u,v) and g(u,v).
-    controllers["f"] = root
-      .add(options, "reactionStr_1")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["f"], selectTeX, ["UFUN"]);
-    setOnblur(controllers["f"], deselectTeX, ["UFUN"]);
-
-    controllers["g"] = root
-      .add(options, "reactionStr_2")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["g"], selectTeX, ["VFUN"]);
-    setOnblur(controllers["g"], deselectTeX, ["VFUN"]);
-
-    controllers["h"] = root
-      .add(options, "reactionStr_3")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["h"], selectTeX, ["WFUN"]);
-    setOnblur(controllers["h"], deselectTeX, ["WFUN"]);
-
-    controllers["j"] = root
-      .add(options, "reactionStr_4")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-        setEquationDisplayType();
-      });
-    setOnfocus(controllers["j"], selectTeX, ["QFUN"]);
-    setOnblur(controllers["j"], deselectTeX, ["QFUN"]);
-
-    // Species 5-8 reaction terms, grouped with species 1-4's reaction terms above so all
-    // reaction terms are together in the "Reaction terms" sub-folder (reordered per user
-    // request - previously these appeared before the species 5-8 diffusion coefficients).
-    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+    // Reaction term controllers for all 8 species, keyed "reaction_1".."reaction_8" (species
+    // 1-4 historically used "f"/"g"/"h"/"j" - purely an internal lookup key, never serialized
+    // to options/URLs - renamed here to match species 5-8's naming, which has no natural
+    // single-letter mnemonic).
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       const key = "reaction_" + i;
       const texKey = reactionTokenOfSpecies(i - 1);
       controllers[key] = root
@@ -2844,188 +2597,14 @@ async function VisualPDE(url) {
     addInfoButton(root, "/user-guide/advanced-options#boundary-conditions");
     addFocusLeftGUIButton(boundaryConditionsFolder);
 
-    controllers["uBCs"] = root
-      .add(options, "boundaryConditions_1", {})
-      .onChange(function () {
-        setRDEquations();
-        setBCsGUI();
-        // Show the combo BCs GUI if the user has selected combo.
-        if (this.getValue() == "combo") {
-          document.getElementById("comboBCsButton0").click();
-        }
-        document.activeElement.blur();
-      });
-    addComboBCsButton(controllers["uBCs"], 0);
-
-    controllers["dirichletU"] = root
-      .add(options, "dirichletStr_1")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["neumannU"] = root
-      .add(options, "neumannStr_1")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["robinU"] = root
-      .add(options, "robinStr_1")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["comboU"] = root
-      .add(options, "comboStr_1")
-      .name("Details")
-      .onFinishChange(function () {
-        this.setValue(this.getValue());
-        setRDEquations();
-        if (options.boundaryConditions_1 == "combo") configureComboBCsGUI();
-      });
-
-    controllers["vBCs"] = root
-      .add(options, "boundaryConditions_2", {})
-      .onChange(function () {
-        setRDEquations();
-        setBCsGUI();
-        // Show the combo BCs GUI if the user has selected combo.
-        if (this.getValue() == "combo") {
-          document.getElementById("comboBCsButton1").click();
-        }
-        document.activeElement.blur();
-      });
-    addComboBCsButton(controllers["vBCs"], 1);
-
-    controllers["dirichletV"] = root
-      .add(options, "dirichletStr_2")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["neumannV"] = root
-      .add(options, "neumannStr_2")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["robinV"] = root
-      .add(options, "robinStr_2")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["comboV"] = root
-      .add(options, "comboStr_2")
-      .name("Details")
-      .onFinishChange(function () {
-        this.setValue(this.getValue());
-        setRDEquations();
-        if (options.boundaryConditions_2 == "combo") configureComboBCsGUI();
-      });
-
-    controllers["wBCs"] = root
-      .add(options, "boundaryConditions_3", {})
-      .onChange(function () {
-        setRDEquations();
-        setBCsGUI();
-        // Show the combo BCs GUI if the user has selected combo.
-        if (this.getValue() == "combo") {
-          document.getElementById("comboBCsButton2").click();
-        }
-        document.activeElement.blur();
-      });
-    addComboBCsButton(controllers["wBCs"], 2);
-
-    controllers["dirichletW"] = root
-      .add(options, "dirichletStr_3")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["neumannW"] = root
-      .add(options, "neumannStr_3")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["robinW"] = root
-      .add(options, "robinStr_3")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["comboW"] = root
-      .add(options, "comboStr_3")
-      .name("Details")
-      .onFinishChange(function () {
-        this.setValue(this.getValue());
-        setRDEquations();
-        if (options.boundaryConditions_3 == "combo") configureComboBCsGUI();
-      });
-
-    controllers["qBCs"] = root
-      .add(options, "boundaryConditions_4", {})
-      .name("$q$")
-      .onChange(function () {
-        setRDEquations();
-        setBCsGUI();
-        // Show the combo BCs GUI if the user has selected combo.
-        if (this.getValue() == "combo") {
-          document.getElementById("comboBCsButton3").click();
-        }
-        document.activeElement.blur();
-      });
-    addComboBCsButton(controllers["qBCs"], 3);
-
-    controllers["dirichletQ"] = root
-      .add(options, "dirichletStr_4")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["neumannQ"] = root
-      .add(options, "neumannStr_4")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["robinQ"] = root
-      .add(options, "robinStr_4")
-      .onFinishChange(function () {
-        this.setValue(autoCorrectSyntax(this.getValue()));
-        setRDEquations();
-      });
-
-    controllers["comboQ"] = root
-      .add(options, "comboStr_4")
-      .name("Details")
-      .onFinishChange(function () {
-        this.setValue(this.getValue());
-        setRDEquations();
-        if (options.boundaryConditions_4 == "combo") configureComboBCsGUI();
-      });
-
-    // Species 5-8 boundary-condition controls (Stage 9 of the 8-species upgrade). Keyed by
-    // defaultSpecies[i]+"BCs"/"dirichlet"+S/"neumann"+S/"robin"+S/"combo"+S (S =
-    // defaultSpecies[i].toUpperCase(), e.g. "u5"->"U5") rather than a numeric "_i" scheme,
-    // because addComboBCsButton (reused unmodified below) already builds its "combo"+X /
-    // X+"BCs" controller keys from exactly this defaultSpecies-derived naming - matching it
-    // lets species 5-8 reuse that function with no changes.
-    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
-      const s = defaultSpecies[i - 1]; // "u5".."u8"
-      const S = s.toUpperCase(); // "U5".."U8"
+    // Boundary-condition controls (dropdown, dirichlet, neumann, robin, combo) for all 8
+    // species. Keyed by defaultSpecies[i]+"BCs"/"dirichlet"+S/"neumann"+S/"robin"+S/"combo"+S
+    // (S = defaultSpecies[i].toUpperCase(), e.g. "u"->"U", "u5"->"U5") - addComboBCsButton
+    // (reused unmodified below) already builds its "combo"+X/X+"BCs" controller keys from
+    // exactly this defaultSpecies-derived naming.
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const s = defaultSpecies[i - 1]; // "u".."q", "u5".."u8"
+      const S = s.toUpperCase(); // "U".."Q", "U5".."U8"
       const bcsKey = s + "BCs";
       const speciesInd = i - 1; // 0-based, for addComboBCsButton/comboBCsButton<N> DOM id.
 
@@ -3040,6 +2619,10 @@ async function VisualPDE(url) {
           }
           document.activeElement.blur();
         });
+      // Preserves the original qBCs controller's fallback label (likely superseded almost
+      // immediately by the setGUIControllerName call in setEquationDisplayType(), but kept for
+      // parity with pre-refactor behaviour).
+      if (i === 4) controllers[bcsKey].name("$q$");
       addComboBCsButton(controllers[bcsKey], speciesInd);
 
       controllers["dirichlet" + S] = root
@@ -6900,78 +6483,13 @@ async function VisualPDE(url) {
   }
 
   function setBCsGUI() {
-    // Update the GUI.
-    if (options.boundaryConditions_1 == "dirichlet") {
-      controllers["dirichletU"].show();
-    } else {
-      controllers["dirichletU"].hide();
-    }
-    if (options.boundaryConditions_2 == "dirichlet") {
-      controllers["dirichletV"].show();
-    } else {
-      controllers["dirichletV"].hide();
-    }
-    if (options.boundaryConditions_3 == "dirichlet") {
-      controllers["dirichletW"].show();
-    } else {
-      controllers["dirichletW"].hide();
-    }
-    if (options.boundaryConditions_4 == "dirichlet") {
-      controllers["dirichletQ"].show();
-    } else {
-      controllers["dirichletQ"].hide();
-    }
-
-    if (options.boundaryConditions_1 == "neumann") {
-      controllers["neumannU"].show();
-    } else {
-      controllers["neumannU"].hide();
-    }
-    if (options.boundaryConditions_2 == "neumann") {
-      controllers["neumannV"].show();
-    } else {
-      controllers["neumannV"].hide();
-    }
-    if (options.boundaryConditions_3 == "neumann") {
-      controllers["neumannW"].show();
-    } else {
-      controllers["neumannW"].hide();
-    }
-    if (options.boundaryConditions_4 == "neumann") {
-      controllers["neumannQ"].show();
-    } else {
-      controllers["neumannQ"].hide();
-    }
-
-    if (options.boundaryConditions_1 == "robin") {
-      controllers["robinU"].show();
-    } else {
-      controllers["robinU"].hide();
-    }
-    if (options.boundaryConditions_2 == "robin") {
-      controllers["robinV"].show();
-    } else {
-      controllers["robinV"].hide();
-    }
-    if (options.boundaryConditions_3 == "robin") {
-      controllers["robinW"].show();
-    } else {
-      controllers["robinW"].hide();
-    }
-    if (options.boundaryConditions_4 == "robin") {
-      controllers["robinQ"].show();
-    } else {
-      controllers["robinQ"].hide();
-    }
-
-    // Species 5-8's dirichlet/neumann/robin/combo sub-controls (Stage 9 of the 8-species
-    // upgrade) - mirrors the species 1-4 blocks above, generalized since these species have
-    // no natural letter-keyed controller names.
-    const bcsKeys5to8 = [];
-    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+    // Update the GUI. Show/hide each species' dirichlet/neumann/robin sub-controls based on
+    // its currently selected boundary-condition type.
+    const bcsKeys = [];
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       const s = defaultSpecies[i - 1];
       const S = s.toUpperCase();
-      bcsKeys5to8.push(s + "BCs");
+      bcsKeys.push(s + "BCs");
       const bc = options["boundaryConditions_" + i];
       controllers["dirichlet" + S][bc == "dirichlet" ? "show" : "hide"]();
       controllers["neumann" + S][bc == "neumann" ? "show" : "hide"]();
@@ -6980,7 +6498,7 @@ async function VisualPDE(url) {
 
     let overrideShowComboStr = true;
     if (options.plotType != "surface") {
-      ["uBCs", "vBCs", "wBCs", "qBCs", ...bcsKeys5to8].forEach((str) => {
+      bcsKeys.forEach((str) => {
         controllers[str].domElement
           .getElementsByClassName("combo-bcs")[0]
           .classList.remove("hidden");
@@ -6989,20 +6507,12 @@ async function VisualPDE(url) {
     }
 
     // Always hide the combo BCs string.
-    controllers["comboU"].hide();
-    controllers["comboV"].hide();
-    controllers["comboW"].hide();
-    controllers["comboQ"].hide();
-    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       controllers["combo" + defaultSpecies[i - 1].toUpperCase()].hide();
     }
 
     if (options.showComboStr || overrideShowComboStr) {
-      if (options.boundaryConditions_1 == "combo") controllers["comboU"].show();
-      if (options.boundaryConditions_2 == "combo") controllers["comboV"].show();
-      if (options.boundaryConditions_3 == "combo") controllers["comboW"].show();
-      if (options.boundaryConditions_4 == "combo") controllers["comboQ"].show();
-      for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+      for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
         if (options["boundaryConditions_" + i] == "combo") {
           controllers["combo" + defaultSpecies[i - 1].toUpperCase()].show();
         }
@@ -7014,13 +6524,7 @@ async function VisualPDE(url) {
       revealClickAreas();
     }
 
-    const BCsControllers = [
-      controllers["uBCs"],
-      controllers["vBCs"],
-      controllers["wBCs"],
-      controllers["qBCs"],
-      ...bcsKeys5to8.map((key) => controllers[key]),
-    ];
+    const BCsControllers = bcsKeys.map((key) => controllers[key]);
     if (options.domainViaIndicatorFun) {
       BCsControllers.forEach((cont) => {
         updateGUIDropdown(
@@ -7291,109 +6795,21 @@ async function VisualPDE(url) {
     configureIntegralDisplay();
   }
 
-  function showVGUIPanels() {
-    if (options.timescales) controllers["TV"].show();
-    if (options.crossDiffusion) {
-      controllers["Duv"].show();
-      controllers["Dvu"].show();
-    } else {
-      controllers["Duv"].hide();
-      controllers["Dvu"].hide();
-    }
-    controllers["Dvv"].show();
-    controllers["g"].show();
-    controllers["initCond_2"].show();
-    controllers["vBCs"].show();
+  // Species 1-4 use a short letter-suffixed timescale key ("TU".."TQ", matching
+  // timescaleTags); species 5-8 have no natural single-letter mnemonic, so they use
+  // "TU5".."TU8" instead (same convention as diffCtrlKey/reactionTokenOfSpecies).
+  function timescaleTag(i) {
+    return i <= 4 ? "T" + defaultSpecies[i - 1].toUpperCase() : "TU" + i;
   }
 
-  function showWGUIPanels() {
-    if (options.timescales) controllers["TW"].show();
-    if (options.crossDiffusion) {
-      controllers["Duw"].show();
-      controllers["Dvw"].show();
-      controllers["Dwu"].show();
-      controllers["Dwv"].show();
-    } else {
-      controllers["Duw"].hide();
-      controllers["Dvw"].hide();
-      controllers["Dwu"].hide();
-      controllers["Dwv"].hide();
-    }
-    controllers["Dww"].show();
-    controllers["h"].show();
-    controllers["initCond_3"].show();
-    controllers["wBCs"].show();
-  }
-
-  function showQGUIPanels() {
-    if (options.timescales) controllers["TQ"].show();
-    if (options.crossDiffusion) {
-      controllers["Duq"].show();
-      controllers["Dvq"].show();
-      controllers["Dwq"].show();
-      controllers["Dqu"].show();
-      controllers["Dqv"].show();
-      controllers["Dqw"].show();
-    } else {
-      controllers["Dwq"].hide();
-      controllers["Dqu"].hide();
-      controllers["Dvq"].hide();
-      controllers["Duq"].hide();
-      controllers["Dqv"].hide();
-      controllers["Dqw"].hide();
-    }
-    controllers["Dqq"].show();
-    controllers["j"].show();
-    controllers["initCond_4"].show();
-    controllers["qBCs"].show();
-  }
-
-  function hideVGUIPanels() {
-    controllers["TV"].hide();
-    controllers["Duv"].hide();
-    controllers["Dvu"].hide();
-    controllers["Dvv"].hide();
-    controllers["g"].hide();
-    controllers["initCond_2"].hide();
-    controllers["vBCs"].hide();
-  }
-
-  function hideWGUIPanels() {
-    controllers["TW"].hide();
-    controllers["Duw"].hide();
-    controllers["Dvw"].hide();
-    controllers["Dwu"].hide();
-    controllers["Dwv"].hide();
-    controllers["Dww"].hide();
-    controllers["h"].hide();
-    controllers["initCond_3"].hide();
-    controllers["wBCs"].hide();
-  }
-
-  function hideQGUIPanels() {
-    controllers["TQ"].hide();
-    controllers["Duq"].hide();
-    controllers["Dvq"].hide();
-    controllers["Dwq"].hide();
-    controllers["Dqu"].hide();
-    controllers["Dqv"].hide();
-    controllers["Dqw"].hide();
-    controllers["Dqq"].hide();
-    controllers["j"].hide();
-    controllers["initCond_4"].hide();
-    controllers["qBCs"].hide();
-  }
-
-  // Generalized species show/hide for species 5-8 (Stage 9 of the 8-species upgrade).
-  // Mirrors showVGUIPanels/showWGUIPanels/showQGUIPanels/hideVGUIPanels/hideWGUIPanels/
-  // hideQGUIPanels above (species 1-4, left untouched) but loops over cross-diffusion pairs
-  // instead of hand-listing them, since species 5-8 have no natural per-species function
-  // name. Following the same convention as those hand-written functions, each only handles
-  // cross-diffusion pairs with STRICTLY LOWER-indexed species (j<i): the species-count
-  // switch in configureGUI() calls these in descending order (8,7,6,...,2), so a
-  // higher-indexed species' own call already handles its pairing with this one.
+  // Shows/hides one species' GUI panels (timescale, diffusion row/column, reaction term,
+  // initial condition, boundary condition), for species 2-8 (species 1/u is always shown -
+  // numSpecies is never less than 1). Only handles cross-diffusion pairs with
+  // STRICTLY LOWER-indexed species (j<i): the species-count switch in configureGUI() calls
+  // these in descending order (8,7,...,2), so a higher-indexed species' own call already
+  // handles its pairing with this one.
   function showSpeciesGUIPanels(i) {
-    if (options.timescales) controllers["TU" + i].show();
+    if (options.timescales) controllers[timescaleTag(i)].show();
     for (let j = 1; j < i; j++) {
       if (options.crossDiffusion) {
         controllers[diffCtrlKey(i, j)].show();
@@ -7410,7 +6826,7 @@ async function VisualPDE(url) {
   }
 
   function hideSpeciesGUIPanels(i) {
-    controllers["TU" + i].hide();
+    controllers[timescaleTag(i)].hide();
     for (let j = 1; j < i; j++) {
       controllers[diffCtrlKey(i, j)].hide();
       controllers[diffCtrlKey(j, i)].hide();
@@ -7656,27 +7072,10 @@ async function VisualPDE(url) {
     // TU5-TU8 don't exist until the GUI is extended to 8 species (Stage 9 of the upgrade).
     timescaleTags.forEach((tag) => controllers[tag]?.show());
 
-    // Hide/Show VWQGUI panels.
-    hideVGUIPanels();
-    hideWGUIPanels();
-    hideQGUIPanels();
-    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) hideSpeciesGUIPanels(i);
-    switch (parseInt(options.numSpecies)) {
-      case 8:
-        showSpeciesGUIPanels(8);
-      case 7:
-        showSpeciesGUIPanels(7);
-      case 6:
-        showSpeciesGUIPanels(6);
-      case 5:
-        showSpeciesGUIPanels(5);
-      case 4:
-        showQGUIPanels();
-      case 3:
-        showWGUIPanels();
-      case 2:
-        showVGUIPanels();
-    }
+    // Hide every species' panels (species 1/u is always shown), then show them back in for
+    // however many species are actually active.
+    for (let i = 2; i <= MAX_SPECIES_SUPPORTED; i++) hideSpeciesGUIPanels(i);
+    for (let i = 2; i <= parseInt(options.numSpecies); i++) showSpeciesGUIPanels(i);
     // Hide timescale panels if we don't need them. Guarded with ?. (see note above).
     if (!options.timescales) {
       timescaleTags.forEach((tag) => controllers[tag]?.hide());
@@ -7688,130 +7087,92 @@ async function VisualPDE(url) {
     // pattern for hiding other folders (e.g. editViewFolder above).
     timescalesFolder.domElement.classList.toggle("hidden", !options.timescales);
 
-    // Configure the controller names.
-    // We'll set the generic names then alter any algebraic ones.
-    if (options.crossDiffusion) {
-      setGUIControllerName(controllers["Duu"], TeXStrings["Duu"], tooltip);
-      setGUIControllerName(controllers["Duv"], TeXStrings["Duv"], tooltip);
-      setGUIControllerName(controllers["Duw"], TeXStrings["Duw"], tooltip);
-      setGUIControllerName(controllers["Duq"], TeXStrings["Duq"], tooltip);
-      setGUIControllerName(controllers["Dvu"], TeXStrings["Dvu"], tooltip);
-      setGUIControllerName(controllers["Dvv"], TeXStrings["Dvv"], tooltip);
-      setGUIControllerName(controllers["Dvw"], TeXStrings["Dvw"], tooltip);
-      setGUIControllerName(controllers["Dvq"], TeXStrings["Dvq"], tooltip);
-      setGUIControllerName(controllers["Dwu"], TeXStrings["Dwu"], tooltip);
-      setGUIControllerName(controllers["Dwv"], TeXStrings["Dwv"], tooltip);
-      setGUIControllerName(controllers["Dww"], TeXStrings["Dww"], tooltip);
-      setGUIControllerName(controllers["Dwq"], TeXStrings["Dwq"], tooltip);
-      setGUIControllerName(controllers["Dqu"], TeXStrings["Dqu"], tooltip);
-      setGUIControllerName(controllers["Dqv"], TeXStrings["Dqv"], tooltip);
-      setGUIControllerName(controllers["Dqw"], TeXStrings["Dqw"], tooltip);
-      setGUIControllerName(controllers["Dqq"], TeXStrings["Dqq"], tooltip);
-    } else {
-      setGUIControllerName(controllers["Duu"], TeXStrings["Du"], tooltip);
-      setGUIControllerName(controllers["Dvv"], TeXStrings["Dv"], tooltip);
-      setGUIControllerName(controllers["Dww"], TeXStrings["Dw"], tooltip);
-      setGUIControllerName(controllers["Dqq"], TeXStrings["Dq"], tooltip);
-    }
-    setGUIControllerName(controllers["f"], TeXStrings["UFUN"], tooltip);
-    setGUIControllerName(controllers["g"], TeXStrings["VFUN"], tooltip);
-    setGUIControllerName(controllers["h"], TeXStrings["WFUN"], tooltip);
-    setGUIControllerName(controllers["j"], TeXStrings["QFUN"], tooltip);
-
-    setGUIControllerName(controllers["TU"], TeXStrings["TU"], tooltip);
-    setGUIControllerName(controllers["TV"], TeXStrings["TV"], tooltip);
-    setGUIControllerName(controllers["TW"], TeXStrings["TW"], tooltip);
-    setGUIControllerName(controllers["TQ"], TeXStrings["TQ"], tooltip);
-
-    // Configure the names of algebraic controllers.
-    if (algebraicV) {
-      setGUIControllerName(controllers["Dvu"], TeXStrings["Dvu"], Vtooltip);
-      setGUIControllerName(controllers["Dvw"], TeXStrings["Dvw"], Vtooltip);
-      setGUIControllerName(controllers["Dvq"], TeXStrings["Dvq"], Vtooltip);
-      setGUIControllerName(controllers["g"], TeXStrings["VFUN"], Vtooltip);
-      controllers["Dvv"].hide();
-    }
-    if (algebraicW) {
-      setGUIControllerName(controllers["Dwu"], TeXStrings["Dwu"], Wtooltip);
-      setGUIControllerName(controllers["Dwv"], TeXStrings["Dwv"], Wtooltip);
-      setGUIControllerName(controllers["Dwq"], TeXStrings["Dwq"], Wtooltip);
-      setGUIControllerName(controllers["h"], TeXStrings["WFUN"], Wtooltip);
-      controllers["Dww"].hide();
-    }
-    if (algebraicQ) {
-      setGUIControllerName(controllers["Dqu"], TeXStrings["Dqu"], Qtooltip);
-      setGUIControllerName(controllers["Dqv"], TeXStrings["Dqv"], Qtooltip);
-      setGUIControllerName(controllers["Dqw"], TeXStrings["Dqw"], Qtooltip);
-      setGUIControllerName(controllers["j"], TeXStrings["QFUN"], Qtooltip);
-      controllers["Dqq"].hide();
-    }
-
-    // Set the names of the BCs and ICs controllers.
-    setGUIControllerName(controllers["uBCs"], TeXStrings["u"]);
-    setGUIControllerName(controllers["vBCs"], TeXStrings["v"]);
-    setGUIControllerName(controllers["wBCs"], TeXStrings["w"]);
-    setGUIControllerName(controllers["qBCs"], TeXStrings["q"]);
-    setGUIControllerName(controllers["dirichletU"], TeXStrings["uD"]);
-    setGUIControllerName(controllers["dirichletV"], TeXStrings["vD"]);
-    setGUIControllerName(controllers["dirichletW"], TeXStrings["wD"]);
-    setGUIControllerName(controllers["dirichletQ"], TeXStrings["qD"]);
-    setGUIControllerName(controllers["neumannU"], TeXStrings["uN"]);
-    setGUIControllerName(controllers["neumannV"], TeXStrings["vN"]);
-    setGUIControllerName(controllers["neumannW"], TeXStrings["wN"]);
-    setGUIControllerName(controllers["neumannQ"], TeXStrings["qN"]);
-    setGUIControllerName(controllers["robinU"], TeXStrings["uN"]);
-    setGUIControllerName(controllers["robinV"], TeXStrings["vN"]);
-    setGUIControllerName(controllers["robinW"], TeXStrings["wN"]);
-    setGUIControllerName(controllers["robinQ"], TeXStrings["qN"]);
-    setGUIControllerName(controllers["initCond_1"], TeXStrings["uInit"]);
-    setGUIControllerName(controllers["initCond_2"], TeXStrings["vInit"]);
-    setGUIControllerName(controllers["initCond_3"], TeXStrings["wInit"]);
-    setGUIControllerName(controllers["initCond_4"], TeXStrings["qInit"]);
-
-    // Species 5-8 controller names (Stage 9 of the 8-species upgrade). Mirrors the
-    // crossDiffusion on/off split used for Duu..Dqq above (found missing via live-testing
-    // feedback - species 5-8's self-diffusion always showed the doubled "D_{u5 u5}" form,
-    // even with cross-diffusion off): when cross-diffusion is off, only self-diffusion
-    // controllers are (re)named here, using the single-letter-style "Du5".."Du8" form -
-    // cross-term controllers stay hidden in that case (see hideSpeciesGUIPanels), so their
-    // name is never visible and is left untouched, exactly matching the Duv-etc precedent
-    // above. When cross-diffusion is on, every pair uses the doubled "U5U1"-style form.
-    // TeXStrings falls back to a plain, functional label for any key Stage 10 hasn't
-    // populated yet.
+    // Configure the controller names. We'll set the generic names then alter any algebraic
+    // ones. Diffusion TeX keys: species 1-4 pairs use the legacy "D"+letter+letter form
+    // (e.g. "Duv"); any pair touching species 5-8 uses an uppercase-letter/number form with no
+    // "D" prefix (e.g. "U5U", "U5U6" - see getDefaultTeXLabelsDiffusion in TEX.js). Self-
+    // diffusion when cross-diffusion is off uses a single-subscript form ("Du" for species
+    // 1-4, "Du5" for species 5-8) - cross-term controllers stay hidden in that case (see
+    // hideSpeciesGUIPanels), so their name is never visible and is left untouched.
     for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
-        if (i <= 4 && j <= 4) continue;
         if (!options.crossDiffusion && i !== j) continue;
-        let texKey, fallback;
+        let texKey;
         if (i === j && !options.crossDiffusion) {
-          texKey = "Du" + i;
-          fallback = "D_" + i;
+          texKey = i <= 4 ? "D" + defaultSpecies[i - 1] : "Du" + i;
+        } else if (i <= 4 && j <= 4) {
+          texKey = "D" + defaultSpecies[i - 1] + defaultSpecies[j - 1];
         } else {
           texKey =
             defaultSpecies[i - 1].toUpperCase() +
             defaultSpecies[j - 1].toUpperCase();
-          fallback = "D_" + i + "_" + j;
         }
         setGUIControllerName(
           controllers[diffCtrlKey(i, j)],
-          TeXStrings[texKey] || fallback,
+          TeXStrings[texKey] || "D_" + i + "_" + j,
           tooltip,
         );
       }
     }
-    for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
+
+    // Reaction term and timescale names. reactionTokenOfSpecies/timescaleTag already handle
+    // the species 1-4 (legacy letter-keyed) vs 5-8 (numeric-suffixed) key-naming split.
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       const s = defaultSpecies[i - 1];
-      const S = s.toUpperCase();
-      setGUIControllerName(
-        controllers["TU" + i],
-        TeXStrings["TU" + i] || "T_" + s,
-        tooltip,
-      );
       setGUIControllerName(
         controllers["reaction_" + i],
         TeXStrings[reactionTokenOfSpecies(i - 1)] || s + "'",
         tooltip,
       );
+      setGUIControllerName(
+        controllers[timescaleTag(i)],
+        TeXStrings[timescaleTag(i)] || "T_" + s,
+        tooltip,
+      );
+    }
+
+    // Configure the names/visibility of algebraic species' controllers: retitle their
+    // diffusion row (against every other species) and reaction term with a tooltip that
+    // omits their own name from the "function of ..." list, and hide their self-diffusion
+    // controller entirely (an algebraic species has no diffusion term).
+    //
+    // NOTE (pre-existing behaviour, preserved as-is by this loop, not fixed here): the
+    // per-species tooltip lookup below reuses Vtooltip/Wtooltip/Qtooltip exactly as they were
+    // before this was a loop - but Wtooltip actually omits species 4 (q) rather than species 3
+    // (w), and Qtooltip omits species 3 (w) rather than species 4 (q) (see their definitions
+    // above) - so an algebraic w or q's tooltip currently omits the wrong species' name.
+    // Species 5-8 never got a name-omitting tooltip at all; they always use the plain
+    // `tooltip`. Flagging both as a separate, likely-wanted follow-up fix.
+    const algebraicTooltips = [tooltip, Vtooltip, Wtooltip, Qtooltip];
+    for (let s = 1; s < MAX_SPECIES_SUPPORTED; s++) {
+      if (!isSpeciesAlgebraic(s)) continue;
+      const i = s + 1; // 1-based species number.
+      const algTooltip = algebraicTooltips[s] ?? tooltip;
+      for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
+        if (j === i) continue;
+        const texKey =
+          i <= 4 && j <= 4
+            ? "D" + defaultSpecies[i - 1] + defaultSpecies[j - 1]
+            : defaultSpecies[i - 1].toUpperCase() +
+              defaultSpecies[j - 1].toUpperCase();
+        setGUIControllerName(
+          controllers[diffCtrlKey(i, j)],
+          TeXStrings[texKey] || "D_" + i + "_" + j,
+          algTooltip,
+        );
+      }
+      setGUIControllerName(
+        controllers["reaction_" + i],
+        TeXStrings[reactionTokenOfSpecies(s)] || defaultSpecies[s] + "'",
+        algTooltip,
+      );
+      controllers[diffCtrlKey(i, i)].hide();
+    }
+
+    // Set the names of the BCs and ICs controllers.
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const s = defaultSpecies[i - 1];
+      const S = s.toUpperCase();
       setGUIControllerName(controllers[s + "BCs"], TeXStrings[s] || s);
       setGUIControllerName(
         controllers["dirichlet" + S],
@@ -7829,30 +7190,6 @@ async function VisualPDE(url) {
         controllers["initCond_" + i],
         TeXStrings[s + "Init"] || s + "(x,y,0)",
       );
-    }
-    // Configure algebraic species 5-8's controller names/visibility, mirroring the
-    // algebraicV/W/Q block above (which retitles the algebraic species' own diffusion row
-    // against every other species, and hides its self-diffusion controller).
-    for (let s = 4; s < MAX_SPECIES_SUPPORTED; s++) {
-      if (!algebraicSpeciesFlags[s]) continue;
-      const i = s + 1; // 1-based species number.
-      for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
-        if (j === i) continue;
-        setGUIControllerName(
-          controllers[diffCtrlKey(i, j)],
-          TeXStrings[
-            defaultSpecies[i - 1].toUpperCase() +
-              defaultSpecies[j - 1].toUpperCase()
-          ] || "D_" + i + "_" + j,
-          tooltip,
-        );
-      }
-      setGUIControllerName(
-        controllers["reaction_" + i],
-        TeXStrings[reactionTokenOfSpecies(s)] || defaultSpecies[s] + "'",
-        tooltip,
-      );
-      controllers[diffCtrlKey(i, i)].hide();
     }
 
     // Configure timestepping folder for automata mode.
@@ -13223,8 +12560,8 @@ async function VisualPDE(url) {
         input.style.gridColumn = 4 + j;
         input.style.gridRow = 2 + i;
         if (i === j && isSpeciesAlgebraic(i)) {
-          // Mirrors showVGUIPanels/etc. hiding the self-diffusion controller entirely for
-          // an algebraic species (configureOptions() forces it to "0" and any edit here
+          // Mirrors showSpeciesGUIPanels/etc. hiding the self-diffusion controller entirely
+          // for an algebraic species (configureOptions() forces it to "0" and any edit here
           // would just be silently overwritten again on the next options change).
           input.value = "0";
           input.disabled = true;
