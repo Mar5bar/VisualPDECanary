@@ -3124,10 +3124,6 @@ async function VisualPDE(url) {
     root = integralsFolder;
     addInfoButton(root, "/user-guide/advanced-options#integrals");
 
-    controllers["globalIntegralUpdatePeriod"] = root
-      .add(options, "globalIntegralUpdatePeriod", 1, 1000, 1)
-      .name("Update period");
-
     // The 4 integral expressions are packed into one field (options.globalIntegralFun,
     // separated by ";") for backwards compatibility with simulations that only ever set a
     // single expression there - see getGlobalIntegralComponents/setGlobalIntegralComponent.
@@ -3149,12 +3145,16 @@ async function VisualPDE(url) {
       );
       controllers["globalIntegralFun_" + i] = root
         .add(globalIntegralComponentProxy, "globalIntegralFun_" + i)
-        .name("Integral " + i)
+        .name("Integrand " + i)
         .onFinishChange(function () {
           this.setValue(autoCorrectSyntax(this.getValue()));
           updateGlobalIntegralFun();
         });
     }
+
+    controllers["globalIntegralUpdatePeriod"] = root
+      .add(options, "globalIntegralUpdatePeriod", 1, 1000, 1)
+      .name("Update period");
 
     // Images folder.
     fIm = rightGUI.addFolder("Images");

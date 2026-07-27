@@ -178,13 +178,13 @@ Initial conditions can be specified for any variables in the simulation. They ca
 
 Up to 4 quantities can be integrated over the domain at every timestep, then used in equation right-hand-sides via the variables `GlobalInt1`, `GlobalInt2`, `GlobalInt3` and `GlobalInt4`. For backwards compatibility, `GlobalInt` on its own is equivalent to `GlobalInt1`.
 
-- #### Integral 1 / Integral 2 / Integral 3 / Integral 4
+- #### Integrand 1 / Integrand 2 / Integrand 3 / Integrand 4
 
   The expressions to be integrated over the domain, corresponding to `GlobalInt1`-`GlobalInt4`. Each can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$). See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions. Leave an entry as `0` (the default) if you don't need that integral - it won't be computed.
 
-  As an example, you can track the total mass of a variable $u$ by setting **Integral 1** to `u`, then using `GlobalInt1` (or, equivalently, `GlobalInt`) in a reaction term. Each integral is coarsely approximated by a simple Riemann sum, with accuracy (and computational cost) increasing with mesh refinement.
+  As an example, you can track the total mass of a variable $u$ by setting **Integrand 1** to `u`, then using `GlobalInt1` (or, equivalently, `GlobalInt`) in a reaction term. Each integral is coarsely approximated by a simple Riemann sum, with accuracy (and computational cost) increasing with mesh refinement.
 
-  Integrals are only computed while at least one of `GlobalInt1`-`GlobalInt4` (or `GlobalInt`) is actually referenced somewhere in your equations - simply filling in an entry here has no computational cost until it's used.
+  Integrals are only computed while at least one of `GlobalInt1`-`GlobalInt4` is actually referenced somewhere in your equations - simply filling in an entry here has no computational cost until it is used.
 
 - #### Update period
 
