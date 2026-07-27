@@ -12707,7 +12707,7 @@ async function VisualPDE(url) {
       "float(" +
       options.domainIndicatorFun +
       ")*float(textureCoords.x - step_x >= 0.0)*float(textureCoords.x + step_x <= 1.0)";
-    if (options.dimensions == 2) {
+    if (options.dimension == 2) {
       str +=
         "*float(textureCoords.y - step_y >= 0.0)*float(textureCoords.y + step_y <= 1.0)";
     }
