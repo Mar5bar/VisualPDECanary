@@ -39,7 +39,7 @@ onSubmit="page_search(document.getElementById('pageSearchInput').value); return 
 
 ## Equations {{ layout.equations }} <a class="anchor" id='equations'>
 
-VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Parameters and variables**](#variables).
+VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Parameters and notation**](#variables).
 
 ### Equations <a class="anchor" id='edit'>
 
@@ -81,9 +81,9 @@ Customise all the terms in the PDEs that you would like to solve using natural s
 
   Toggle the use of custom, per-equation timescales, revealing the **Timescales** sub-menu above where they can be configured.
 
-### Parameters <a class="anchor" id='parameters'>
+### Parameters and notation <a class="anchor" id='parameters'>
 
-Parameters, Expressions and Variables (described below) are grouped together in the **Parameters and variables** menu.
+Parameters, Expressions and Variables (described below) are grouped together in the **Parameters and notation** menu.
 
 This menu contains a list of all the user-specified values that can be used throughout VisualPDE. New parameters can be defined using the empty input field at the bottom of the list of parameters. Parameters can depend on one another, but their definitions cannot be cyclic.
 

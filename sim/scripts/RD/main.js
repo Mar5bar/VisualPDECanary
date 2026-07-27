@@ -2763,7 +2763,7 @@ async function VisualPDE(url) {
     // Variables and params folder: houses Parameters and Expressions as sub-folders, plus the
     // species-count/naming controllers previously in their own "Advanced options" folder (now
     // removed, since this was its entire content).
-    variablesAndParamsFolder = leftGUI.addFolder("Parameters and variables");
+    variablesAndParamsFolder = leftGUI.addFolder("Parameters and notation");
     root = variablesAndParamsFolder;
     root.domElement.classList.add("advancedOptions");
     // #parameters is the doc's entry point for this whole folder - it, Expressions, and
