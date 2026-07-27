@@ -9083,8 +9083,9 @@ async function VisualPDE(url) {
    *   to a full rebuild that removes those controllers anyway).
    * @param {string} label - The (internal, not user-visible) key into ctx.strs.
    * @param {boolean} isNext - Whether this is the trailing always-empty "add new" controller.
-   * @param {Object} hooks - Feature-specific behaviour: {ariaLabel, validateName(name),
-   *   afterChange(isPromotion), onDeleted(name), extraControllerSetup(controller, str)}.
+   * @param {Object} hooks - Feature-specific behaviour: {ariaLabel, placeholder,
+   *   validateName(name), afterChange(isPromotion), onDeleted(name),
+   *   extraControllerSetup(controller, str)}.
    * @returns {dat.GUI controller}
    */
   function createDefinitionController(ctx, label, isNext, hooks) {
@@ -9103,6 +9104,10 @@ async function VisualPDE(url) {
     controller.domElement.firstChild.setAttribute(
       "aria-label",
       hooks.ariaLabel,
+    );
+    controller.domElement.firstChild.setAttribute(
+      "placeholder",
+      hooks.placeholder,
     );
 
     controller.onFinishChange(function () {
@@ -9229,6 +9234,7 @@ async function VisualPDE(url) {
   function getParamHooks() {
     return {
       ariaLabel: "Custom parameter definition",
+      placeholder: "Add parameter e.g. a = 1 in [0,1]",
       validateName: validateParamName,
       onDeleted: (name) => {
         if (!isReservedName(name)) delete uniforms[name];
@@ -9402,6 +9408,7 @@ async function VisualPDE(url) {
   function getExpressionHooks() {
     return {
       ariaLabel: "Custom expression definition",
+      placeholder: "Define notation e.g. f = u + 1",
       validateName: validateExpressionName,
       onDeleted: () => {},
       // Expressions can never be sliders.
