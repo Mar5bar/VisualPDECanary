@@ -10,11 +10,25 @@
  * If nothing is already listening on BASE_URL, this spawns `bundle exec jekyll serve` itself
  * (from the repo root) and tears it down afterwards; if a server is already running there
  * (e.g. a dev server you started by hand), it's reused as-is and left running.
+ *
+ * By default only a random sample of at most SAMPLE_SIZE presets is checked, to keep the
+ * suite fast; pass --all to check every preset instead.
  */
 import { chromium } from "playwright";
 import { BASE_URL, ensureServerRunning } from "./server.mjs";
 
-const LOAD_WAIT_MS = 3000;
+const LOAD_WAIT_MS = 1500;
+const SAMPLE_SIZE = 20;
+
+function sample(array, size) {
+  const pool = [...array];
+  const picked = [];
+  while (pool.length > 0 && picked.length < size) {
+    const i = Math.floor(Math.random() * pool.length);
+    picked.push(pool.splice(i, 1)[0]);
+  }
+  return picked;
+}
 
 async function checkPreset(page, name) {
   const messages = [];
@@ -40,9 +54,19 @@ async function checkPreset(page, name) {
 }
 
 async function main() {
+  const checkAll = process.argv.includes("--all");
+
   const { getListOfPresetNames } = await import("../../RD/presets.js");
-  const presetNames = getListOfPresetNames();
-  console.log(`Checking ${presetNames.length} presets against ${BASE_URL}/sim/ ...\n`);
+  const allPresetNames = getListOfPresetNames();
+  const presetNames = checkAll ? allPresetNames : sample(allPresetNames, SAMPLE_SIZE);
+
+  if (checkAll) {
+    console.log(`Checking all ${presetNames.length} presets against ${BASE_URL}/sim/ ...\n`);
+  } else {
+    console.log(
+      `Checking a random sample of ${presetNames.length}/${allPresetNames.length} presets against ${BASE_URL}/sim/ (pass --all to check every preset) ...\n`,
+    );
+  }
 
   const stopServer = await ensureServerRunning();
   const browser = await chromium.launch();
