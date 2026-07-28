@@ -2532,7 +2532,10 @@ async function VisualPDE(url) {
     // refreshExpressionExpansions()), substituted directly into shader source at shader-
     // construction time.
     expressionsFolder = variablesAndParamsFolder.addFolder("Expressions");
-    addInfoButton(expressionsFolder, "/user-guide/advanced-options#expressions");
+    addInfoButton(
+      expressionsFolder,
+      "/user-guide/advanced-options#expressions",
+    );
     setExpressionsFromString();
 
     // Species-count/naming controllers get their own sub-folder too, alongside Parameters/
@@ -7075,7 +7078,8 @@ async function VisualPDE(url) {
     // Hide every species' panels (species 1/u is always shown), then show them back in for
     // however many species are actually active.
     for (let i = 2; i <= MAX_SPECIES_SUPPORTED; i++) hideSpeciesGUIPanels(i);
-    for (let i = 2; i <= parseInt(options.numSpecies); i++) showSpeciesGUIPanels(i);
+    for (let i = 2; i <= parseInt(options.numSpecies); i++)
+      showSpeciesGUIPanels(i);
     // Hide timescale panels if we don't need them. Guarded with ?. (see note above).
     if (!options.timescales) {
       timescaleTags.forEach((tag) => controllers[tag]?.hide());
@@ -8052,9 +8056,7 @@ async function VisualPDE(url) {
     // actually appears in str.
     const globalIntegralComponents = getGlobalIntegralComponents();
     const globalIntegralTeXFor = (component) =>
-      (options.dimension == 1
-        ? "\\int_{\\Omega} "
-        : "\\iint_{\\Omega} ") +
+      (options.dimension == 1 ? "\\int_{\\Omega} " : "\\iint_{\\Omega} ") +
       parseStringToTEX(component) +
       (options.dimension == 1 ? "\\, \\d x \\ " : "\\, \\d x \\d y\\ ");
     for (let i = 1; i <= 4; i++) {
@@ -11637,7 +11639,8 @@ async function VisualPDE(url) {
    */
   function validateParamName(name) {
     const val =
-      isReservedName(name, getSpecAndReacNames()) || name in expressionNameToCont;
+      isReservedName(name, getSpecAndReacNames()) ||
+      name in expressionNameToCont;
     if (val) {
       throwError(
         "The name '" +
