@@ -154,3 +154,30 @@ test("replaceBump: normalizes every arity of Bump(...) to the full 5-argument Bu
   assert.equal(m.replaceBump("Bump(1,2)"), "Bump(x,y,1,0.5*L_y,2)");
   assert.equal(m.replaceBump("a+b"), "a+b");
 });
+
+test("replaceBinOperator: replaces every top-level match of the given operator with form(match, left, right), respecting balanced brackets", () => {
+  const pow = (str) => m.replaceBinOperator(str, "^", (full, p1, p2) => `POW(${p1},${p2})`);
+  assert.equal(pow("a^2"), "POW(a,2)");
+  assert.equal(pow("(a+b)^2"), "POW((a+b),2)");
+  assert.equal(pow("a+b"), "a+b"); // no match, unchanged
+});
+
+test("replaceSymbolsInStr: substitutes every whole-word original with its replacement, via placeholders so overlapping names don't clash", () => {
+  assert.equal(m.replaceSymbolsInStr("u + v", ["u", "v"], ["prey", "predator"]), "prey + predator");
+  assert.equal(
+    m.replaceSymbolsInStr("u_x + v", ["u", "v"], ["p", "q"], "_(?:[xy])"),
+    "p_x + q",
+  );
+});
+
+test("timescaleTag: species 1-4 use a letter suffix (matching timescaleTags), species 5-8 use a numeric suffix", () => {
+  m.__setState({ defaultSpecies: ["u", "v", "w", "q", "u5", "u6", "u7", "u8"] });
+  assert.equal(m.timescaleTag(1), "TU");
+  assert.equal(m.timescaleTag(4), "TQ");
+  assert.equal(m.timescaleTag(5), "TU5");
+});
+
+test("computeColourBrightness: mean of the RGB components", () => {
+  assert.equal(m.computeColourBrightness([1, 0.5, 0]), 0.5);
+  assert.equal(m.computeColourBrightness([0, 0, 0]), 0);
+});
