@@ -19,3 +19,6 @@ fi
 
 echo "== Checking every preset for console errors =="
 node check-presets.mjs
+
+echo "== Running GUI interaction tests =="
+node --test *.test.mjs
