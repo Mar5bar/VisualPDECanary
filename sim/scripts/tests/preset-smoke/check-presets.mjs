@@ -12,7 +12,8 @@
  * (e.g. a dev server you started by hand), it's reused as-is and left running.
  *
  * By default only a random sample of at most SAMPLE_SIZE presets is checked, to keep the
- * suite fast; pass --all to check every preset instead.
+ * suite fast; pass --all to check every preset instead, or --names=NameOne,NameTwo to check
+ * only specific preset(s) by name (case-insensitive, matching the ?preset= lookup itself).
  */
 import { chromium } from "playwright";
 import { BASE_URL, ensureServerRunning } from "./server.mjs";
@@ -53,14 +54,38 @@ async function checkPreset(page, name) {
   return messages;
 }
 
+function parseNamesArg() {
+  const arg = process.argv.find((a) => a.startsWith("--names="));
+  if (!arg) return null;
+  return arg
+    .slice("--names=".length)
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
 async function main() {
   const checkAll = process.argv.includes("--all");
+  const requestedNames = parseNamesArg();
 
   const { getListOfPresetNames } = await import("../../RD/presets.js");
   const allPresetNames = getListOfPresetNames();
-  const presetNames = checkAll ? allPresetNames : sample(allPresetNames, SAMPLE_SIZE);
 
-  if (checkAll) {
+  let presetNames;
+  if (requestedNames) {
+    const lowerToActual = new Map(allPresetNames.map((n) => [n.toLowerCase(), n]));
+    const missing = requestedNames.filter((n) => !lowerToActual.has(n.toLowerCase()));
+    if (missing.length > 0) {
+      throw new Error(`Unknown preset name(s): ${missing.join(", ")}`);
+    }
+    presetNames = requestedNames.map((n) => lowerToActual.get(n.toLowerCase()));
+  } else {
+    presetNames = checkAll ? allPresetNames : sample(allPresetNames, SAMPLE_SIZE);
+  }
+
+  if (requestedNames) {
+    console.log(`Checking ${presetNames.length} named preset(s) against ${BASE_URL}/sim/ ...\n`);
+  } else if (checkAll) {
     console.log(`Checking all ${presetNames.length} presets against ${BASE_URL}/sim/ ...\n`);
   } else {
     console.log(

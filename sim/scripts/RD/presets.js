@@ -146,8 +146,9 @@ presets["quantumTunneling"] = {
   diffusionStr_2_2: "0",
   dimension: "1",
   dt: 0.0002,
-  initCond_1: "exp(-(0.5*pi/s^2)*(x/100-x0)^2)*cos(a*x)/N",
-  initCond_2: "exp(-(0.5*pi/s^2)*(x/100-x0)^2)*sin(a*x)/N",
+  expressions: "chi = exp(-(0.5*pi/s^2)*(x/100-x0)^2);",
+  initCond_1: "chi*cos(a*x)/N",
+  initCond_2: "chi*sin(a*x)/N",
   integrate: true,
   kineticParams: "D = 1;a = 4;s = 0.08;x0 = 0.2;p = 15;N = 2.8279;d = 0.000;",
   numAlgebraicSpecies: 1,
@@ -319,8 +320,7 @@ presets["penguinsInOut"] = {
   diffusionStr_3_3: "0",
   dirichletStr_1: "x",
   dirichletStr_3: "S",
-  domainIndicatorFun:
-    "(x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2 > (0.05*L)^2 || (x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2 < (0.045*L)^2",
+  domainIndicatorFun: "rho > (0.05*L)^2 || rho < (0.045*L)^2",
   domainScale: "320",
   domainViaIndicatorFun: true,
   initCond_1: "x",
@@ -330,7 +330,7 @@ presets["penguinsInOut"] = {
   reactionStr_1:
     "10*(x - phi)*ind(y+2*dy > L_y || y-2*dy < 0 || x - 2*dx < 0 || x + 2*dx > L_x)",
   reactionStr_2:
-    "-0.1*Pe*(phi_x*T_x + phi_y*T_y)*ind((x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2 > (0.045*L)^2) + alpha*ind((x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2 < (0.045*L)^2)",
+    "-0.1*Pe*(phi_x*T_x + phi_y*T_y)*ind(rho > (0.045*L)^2) + alpha*ind(rho < (0.045*L)^2)",
   reactionStr_3: "0",
   speciesNames: "phi T S",
   typesetCustomEqs: false,
@@ -365,8 +365,9 @@ presets["penguinsBlobStatic"] = {
   diffusionStr_2_2: "0.1",
   dirichletStr_2:
     "1 - ind(y+2*dy > L_y || y-2*dy < 0 || x - 2*dx < 0 || x + 2*dx > L_x)",
-  domainIndicatorFun:
-    "(x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2 > (0.05*L)^2",
+  domainIndicatorFun: "rho > (0.05*L)^2",
+  expressions:
+    "rho = (x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2;",
   kineticParams: "Pe = 1.00 in [0.1, 1];a = 0 in [0, 1.5];",
   numSpecies: 3,
   parent: "penguinsBlob",
@@ -494,6 +495,7 @@ presets["KymographLinearGrowth"] = {
   domainScale: "1000",
   domainViaIndicatorFun: true,
   dt: 0.05,
+  expressions: "g = (L_x - L_0) / (L_0*T+t*(L_x-L_0));",
   initCond_1: "0.2+0.15*cos(pi*x/L_0)",
   initCond_2: "0.5-0.2*cos(pi*x/L_0)",
   kineticParams:
@@ -502,10 +504,8 @@ presets["KymographLinearGrowth"] = {
   numSpecies: 3,
   numTimestepsPerFrame: 200,
   preset: "KymographLinearGrowth",
-  reactionStr_1:
-    "(2)*u_xx+u^2*v - (a+b)*u - (L_x - L_0) / (L_0*T+t*(L_x-L_0))*u - (L_x - L_0) / (L_0*T+t*(L_x-L_0))*x*u_x",
-  reactionStr_2:
-    "10*v_xx-u^2*v + a*(1 - v) - (L_x - L_0) / (L_0*T+t*(L_x-L_0))*v - (L_x - L_0) / (L_0*T+t*(L_x-L_0))*x*v_x",
+  reactionStr_1: "(2)*u_xx+u^2*v - (a+b)*u - g*(u+x*u_x)",
+  reactionStr_2: "10*v_xx-u^2*v + a*(1 - v) - g*(v+x*v_x)",
   reactionStr_3: "ind(abs(y-L_y*t/T)<dy)*(u-m)",
   spatialStep: "2",
   speciesNames: "u v m",
@@ -554,6 +554,7 @@ presets["KymographExponentialGrowth"] = {
   domainScale: "1000",
   domainViaIndicatorFun: true,
   dt: 0.02,
+  expressions: "g = 0.2*r;",
   initCond_1: "0.2+0.15*cos(10*pi*x/L_x)",
   initCond_2: "0.5-0.2*cos(10*pi*x/L_x)",
   kineticParams:
@@ -562,8 +563,8 @@ presets["KymographExponentialGrowth"] = {
   numSpecies: 3,
   numTimestepsPerFrame: 400,
   preset: "KymographExponentialGrowth",
-  reactionStr_1: "(2)*u_xx+u^2*v - (a+b)*u - 0.2*r*u - 0.2*r*x*u_x",
-  reactionStr_2: "10*v_xx-u^2*v + a*(1 - v) - 0.2*r*v - 0.2*r*x*v_x",
+  reactionStr_1: "(2)*u_xx+u^2*v - (a+b)*u - g*(u+x*u_x)",
+  reactionStr_2: "10*v_xx-u^2*v + a*(1 - v) - g*(v+x*v_x)",
   reactionStr_3: "ind(abs(y-L_y*t/T)<dy)*(u-m)",
   spatialStep: "2",
   speciesNames: "u v m",
@@ -2718,6 +2719,8 @@ presets["Conway"] = {
   diffusionStr_2_2: "0",
   diffusionStr_3_3: "0",
   domainScale: "80",
+  expressions:
+    "N = ind(v[x+dx,y+dy]>0) + ind(v[x-dx,y+dy]>0) + ind(v[x,y+dy]>0) + ind(v[x,y-dy]>0) + ind(v[x-dx,y]>0) + ind(v[x-dx,y-dy]>0) + ind(v[x+dx,y-dy]>0) + ind(v[x+dx,y]>0);",
   forceManualInterpolation: true,
   initCond_1: "0",
   initCond_2: "H(ind(RAND-0.5))",
@@ -2730,8 +2733,7 @@ presets["Conway"] = {
   probeFun: "u",
   probeLength: 3000,
   reactionStr_1: "0",
-  reactionStr_2:
-    "ind(v==0 && (ind(v[x+dx,y+dy]>0) + ind(v[x-dx,y+dy]>0) + ind(v[x,y+dy]>0) + ind(v[x,y-dy]>0) + ind(v[x-dx,y]>0) + ind(v[x-dx,y-dy]>0) + ind(v[x+dx,y-dy]>0) + ind(v[x+dx,y]>0))>2.5 && (ind(v[x+dx,y+dy]>0) + ind(v[x-dx,y+dy]>0) + ind(v[x,y+dy]>0) + ind(v[x,y-dy]>0) + ind(v[x-dx,y]>0) + ind(v[x-dx,y-dy]>0) + ind(v[x+dx,y-dy]>0) + ind(v[x+dx,y]>0))<3.5) + ind(v>0 && (ind(v[x+dx,y+dy]>0) + ind(v[x-dx,y+dy]>0) + ind(v[x,y+dy]>0) + ind(v[x,y-dy]>0) + ind(v[x-dx,y]>0) + ind(v[x-dx,y-dy]>0) + ind(v[x+dx,y-dy]>0) + ind(v[x+dx,y]>0))>1.5 && (ind(v[x+dx,y+dy]>0) + ind(v[x-dx,y+dy]>0) + ind(v[x,y+dy]>0) + ind(v[x,y-dy]>0) + ind(v[x-dx,y]>0) + ind(v[x-dx,y-dy]>0) + ind(v[x+dx,y-dy]>0) + ind(v[x+dx,y]>0))<3.5)",
+  reactionStr_2: "ind(v==0 && N>2.5 && N<3.5) + ind(v>0 && N>1.5 && N<3.5)",
   reactionStr_3: "0",
   spatialStep: "1",
   typesetCustomEqs: false,
@@ -3115,6 +3117,7 @@ presets["ducks"] = {
   diffusionStr_2_2: "0",
   domainScale: "100",
   dt: 0.01,
+  expressions: "mu = abs(m-6)/6; chi = ind(I_SA==0);",
   flippedColourmap: true,
   imagePathOne: "./images/world_map.webp",
   imagePathTwo: "./images/world_flow.png",
@@ -3134,8 +3137,8 @@ presets["ducks"] = {
   reactionStr_1:
     "-(u*d_x +v*d_y) - d*(u_x + v_y) - 0.1*ind(I_SA>0)*d + Bump(-L_x/2,-L_y/4,L/20)*(S-d)",
   reactionStr_2: "0",
-  reactionStr_3: "(abs(m-6)/6*I_TR+(1-abs(m-6)/6)*I_TB-0.5)*ind(I_SA==0)",
-  reactionStr_4: "(abs(m-6)/6*I_TG+(1-abs(m-6)/6)*I_TA-0.5)*ind(I_SA==0)",
+  reactionStr_3: "(mu*I_TR+(1-mu)*I_TB-0.5)*chi",
+  reactionStr_4: "(mu*I_TG+(1-mu)*I_TA-0.5)*chi",
   spatialStep: "0.2",
   speciesNames: "d s u v",
   vectorField: true,
@@ -3293,12 +3296,9 @@ presets["maskFrontFaceBreathing"] = {
   kineticParams:
     "k = 8.000 in [0.25, 8];mu = 1.0 in [0, 1];y_offset = 0.22;f = 1/500;s = 0.025 in [0,0.05];",
   parent: "maskFrontFace",
-  reactionStr_1:
-    "-c*(u_x + v_y) - u*c_x - v*c_y + s*mu*sin(t*f)*ind((x/L_x)^2 + 5*(y/L_y+y_offset)^2 < 0.02)",
-  reactionStr_2:
-    "mu*sin(t*f)*(ind(k<=1)*(I_SR + (I_SB-I_SR)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SB + (I_TR-I_SB)*(k-1)/(4-1)) + ind(k>4)*(I_TR + (I_TB-I_TR)*(k-4)/(8-4))-0.5)",
-  reactionStr_3:
-    "mu*sin(t*f)*(ind(k<=1)*(I_SG + (I_SA-I_SG)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SA + (I_TG-I_SA)*(k-1)/(4-1)) + ind(k>4)*(I_TG + (I_TA-I_TG)*(k-4)/(8-4))-0.5)",
+  reactionStr_1: "-c*(u_x + v_y) - u*c_x - v*c_y + s*mu*sin(t*f)*ind(rho < 0.02)",
+  reactionStr_2: "mu*sin(t*f)*(chi-0.5)",
+  reactionStr_3: "mu*sin(t*f)*(psi-0.5)",
   preset: "maskFrontFaceBreathing",
 };
 
@@ -3306,12 +3306,9 @@ presets["maskFrontBreathing"] = {
   kineticParams:
     "k = 8.000 in [0.25, 8];mu = 1.0 in [0, 1];y_offset = 0.0;f = 1/500;s = 0.025 in [0,0.05];",
   parent: "maskFront",
-  reactionStr_1:
-    "-c*(u_x + v_y) - u*c_x - v*c_y + s*mu*sin(t*f)*ind((x/L_x)^2 + 5*(y/L_y+y_offset)^2 < 0.02)",
-  reactionStr_2:
-    "mu*sin(t*f)*(ind(k<=1)*(I_SR + (I_SB-I_SR)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SB + (I_TR-I_SB)*(k-1)/(4-1)) + ind(k>4)*(I_TR + (I_TB-I_TR)*(k-4)/(8-4))-0.5)",
-  reactionStr_3:
-    "mu*sin(t*f)*(ind(k<=1)*(I_SG + (I_SA-I_SG)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SA + (I_TG-I_SA)*(k-1)/(4-1)) + ind(k>4)*(I_TG + (I_TA-I_TG)*(k-4)/(8-4))-0.5)",
+  reactionStr_1: "-c*(u_x + v_y) - u*c_x - v*c_y + s*mu*sin(t*f)*ind(rho < 0.02)",
+  reactionStr_2: "mu*sin(t*f)*(chi-0.5)",
+  reactionStr_3: "mu*sin(t*f)*(psi-0.5)",
   preset: "maskFrontBreathing",
 };
 
@@ -3326,10 +3323,10 @@ presets["maskFrontFace"] = {
 presets["maskFront"] = {
   arrowLengthMax: "0.5",
   arrowScale: "relative",
-  arrowX: "u * ind((x/L_x)^2 + 5*(y/L_y+y_offset)^2 >= 0.02)",
-  arrowY: "v * ind((x/L_x)^2 + 5*(y/L_y+y_offset)^2 >= 0.02)",
+  arrowX: "u * ind(rho >= 0.02)",
+  arrowY: "v * ind(rho >= 0.02)",
   boundaryConditions_1: "dirichlet",
-  brushRadius: "ind((x/L_x)^2 + 5*(y/L_y+y_offset)^2 <= 0.01)",
+  brushRadius: "ind(rho <= 0.01)",
   brushType: "custom",
   colourbar: true,
   colourmap: "turbo",
@@ -3337,6 +3334,8 @@ presets["maskFront"] = {
   diffusionStr_1_1: "0.1",
   diffusionStr_2_2: "0",
   domainScale: "100",
+  expressions:
+    "rho = (x/L_x)^2 + 5*(y/L_y+y_offset)^2; chi = ind(k<=1)*(I_SR + (I_SB-I_SR)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SB + (I_TR-I_SB)*(k-1)/(4-1)) + ind(k>4)*(I_TR + (I_TB-I_TR)*(k-4)/(8-4)); psi = ind(k<=1)*(I_SG + (I_SA-I_SG)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SA + (I_TG-I_SA)*(k-1)/(4-1)) + ind(k>4)*(I_TG + (I_TA-I_TG)*(k-4)/(8-4));",
   imagePathOne: "./images/maskFrontA.png",
   imagePathTwo: "./images/maskFrontB.png",
   initCond_1: "0",
@@ -3351,14 +3350,12 @@ presets["maskFront"] = {
   overlay: true,
   overlayColour: 16777215,
   overlayEpsilon: 0.01,
-  overlayExpr: "(x/L_x)^2 + 5*(y/L_y+y_offset)^2 - 0.005",
+  overlayExpr: "rho - 0.005",
   preset: "maskFront",
   resetOnImageLoad: true,
   reactionStr_1: "-c*(u_x + v_y) - u*c_x - v*c_y",
-  reactionStr_2:
-    "mu*(ind(k<=1)*(I_SR + (I_SB-I_SR)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SB + (I_TR-I_SB)*(k-1)/(4-1)) + ind(k>4)*(I_TR + (I_TB-I_TR)*(k-4)/(8-4))-0.5)",
-  reactionStr_3:
-    "mu*(ind(k<=1)*(I_SG + (I_SA-I_SG)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SA + (I_TG-I_SA)*(k-1)/(4-1)) + ind(k>4)*(I_TG + (I_TA-I_TG)*(k-4)/(8-4))-0.5)",
+  reactionStr_2: "mu*(chi-0.5)",
+  reactionStr_3: "mu*(psi-0.5)",
   spatialStep: "0.5",
   speciesNames: "c u v q",
   squareCanvas: true,
@@ -3420,6 +3417,8 @@ presets["bacteriaInAReach2DIllustrated"] = {
   blendImagePath: "./images/river_illustrated.webp",
   colourbarMaxStr: "Great",
   colourbarMinStr: "Poor",
+  expressions:
+    "m = 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01); n = sqrt(1+m^2);",
   flippedColourmap: false,
   imagePathOne: "./images/river_illustrated.webp",
   kineticParams:
@@ -3427,7 +3426,7 @@ presets["bacteriaInAReach2DIllustrated"] = {
   parent: "bacteriaInAReach2D",
   preset: "bacteriaInAReach2DIllustrated",
   reactionStr_1:
-    "-u*C_xb/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) + u*C_y*0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)/sqrt(1 + 0.11*0.93*2*pi*L_y/L_x*cos(0.93*2*pi*x/L_x + 1.01)^2) - k*C + (1-c0)*0.1*Bump(0.1*L_x,0.365*L_y,L/20)/u + c1*0.1*Bump(0.64*L_x,0.68*L_y,0.1*L)/u + 0.001*(w+(1-s)-o)*u^2",
+    "-u*C_xb/n + u*C_y*m/n - k*C + (1-c0)*0.1*Bump(0.1*L_x,0.365*L_y,L/20)/u + c1*0.1*Bump(0.64*L_x,0.68*L_y,0.1*L)/u + 0.001*(w+(1-s)-o)*u^2",
   maxColourValue: "1",
   views: [
     {
@@ -3658,9 +3657,10 @@ presets["WavesOnABeach"] = {
   dimension: "1",
   domainScale: "1000",
   dt: 0.005,
+  expressions: "z = (m-0.1)/k;",
   initCond_1: "0",
   initCond_3:
-    "0.1 +(k*(x/L_x - 0.2))*ind(x/L_x>0.2)*ind(x/L_x < 0.2+(m-0.1)/k) + (m-0.1)*ind(x/L_x > 0.2+(m-0.1)/k)",
+    "0.1 +(k*(x/L_x - LHS))*ind(x/L_x>LHS)*ind(x/L_x < LHS+z) + (m-0.1)*ind(x/L_x > LHS+z)",
   kineticParams:
     "D = 0.1;k = 10.00 in [1, 0.1, 10];m = 1.00 in [1, 5];LHS = 0.20 in [0, 1];",
   minColourValue: "-m",
@@ -3674,7 +3674,7 @@ presets["WavesOnABeach"] = {
   reactionStr_1: "v",
   reactionStr_2: "0",
   reactionStr_3:
-    "0.1 +(k*(x/L_x - LHS))*ind(x/L_x>LHS)*ind(x/L_x < LHS+(m-0.1)/k) + (m-0.1)*ind(x/L_x > LHS+(m-0.1)/k)",
+    "0.1 +(k*(x/L_x - LHS))*ind(x/L_x>LHS)*ind(x/L_x < LHS+z) + (m-0.1)*ind(x/L_x > LHS+z)",
   simTitle: "Waves on a beach",
   spatialStep: "3",
   speciesNames: "u v h q",
@@ -3829,12 +3829,13 @@ presets["WaterOnTopography"] = {
   comboStr_1:
     "Left: Ghost = -1; Right: Ghost = -1; Top: Ghost = -1; Bottom: Ghost = -1;",
   crossDiffusion: true,
-  diffusionStr_1_1: "min(ind(h>0)*h^3,F_max)",
-  diffusionStr_1_2: "min(ind(h>0)*h^3,F_max)",
+  diffusionStr_1_1: "phi",
+  diffusionStr_1_2: "phi",
   diffusionStr_2_2: "0.1*ind(t<30)",
   diffusionStr_3_3: "0",
   domainScale: "320",
   dt: 0.008,
+  expressions: "phi = min(ind(h>0)*h^3,F_max);",
   guiUpdatePeriod: 3,
   imagePathTwo: "./images/topography.webp",
   initCond_1: "0",
@@ -4010,12 +4011,13 @@ presets["lavaFlow"] = {
   comboStr_1:
     "Left: Ghost = -1; Right: Ghost = -1; Top: Ghost = -1; Bottom: Ghost = -1;",
   crossDiffusion: true,
-  diffusionStr_1_1: "min(ind(u>0)*u^3,F_max)",
-  diffusionStr_1_2: "min(ind(u>0)*u^3,F_max)",
+  diffusionStr_1_1: "phi",
+  diffusionStr_1_2: "phi",
   diffusionStr_2_2: "0.001",
   diffusionStr_3_3: "0",
   domainScale: "320",
   dt: 0.01,
+  expressions: "phi = min(ind(u>0)*u^3,F_max);",
   initCond_1: "0",
   initCond_2: "40*y/L_y",
   initCond_3: "exp(-0.1*((x-L_x/2)^2 + (y-0.9*L_y)^2))",
@@ -4338,13 +4340,14 @@ presets["GrayScottPearsonClassificationRescaled"] = {
   diffusionStr_1_1: "1",
   diffusionStr_2_2: "D",
   diffusionStr_3_3: "0",
+  expressions: "k = 0.001+0.069*(y/L_y)^s;",
   initCond_2: "1",
   kineticParams: "s = 2;D = 2;",
   maxColourValue: "1",
   parent: "GrayScottPearsonClassification",
   preset: "GrayScottPearsonClassificationRescaled",
-  reactionStr_1: "u^2*v - (0.001+0.069*(y/L_y)^(s)+0.01+0.057*(x/L_x)^(1/s))*u",
-  reactionStr_2: "-u^2*v + (0.001+0.069*(y/L_y)^(s))*(1 - v)",
+  reactionStr_1: "u^2*v - (k+0.01+0.057*(x/L_x)^(1/s))*u",
+  reactionStr_2: "-u^2*v + k*(1 - v)",
   reactionStr_3: "0",
   simTitle: "Gray–Scott with Pearson's classification",
   views: [
@@ -4369,12 +4372,13 @@ presets["GrayScottPearsonClassification"] = {
   domainScale: "3500",
   dt: 0.2,
   emboss: true,
+  expressions: "k = 0.07*y/L_y;",
   initCond_1: "Bump(0,L_y,L/10)",
   kineticParams: "",
   maxColourValue: "0.65",
   parent: "GrayScott",
-  reactionStr_1: "u^2*v - (0.07*y/L_y+0.02+0.048*x/L_x)*u",
-  reactionStr_2: "-u^2*v + 0.07*y/L_y*(1 - v)",
+  reactionStr_1: "u^2*v - (k+0.02+0.048*x/L_x)*u",
+  reactionStr_2: "-u^2*v + k*(1 - v)",
   simTitle: "Gray–Scott with Pearson's classification",
   spatialStep: "5",
   preset: "GrayScottPearsonClassification",
@@ -4760,6 +4764,7 @@ presets["GeneralisedWavePinningModel"] = {
   emboss: true,
   embossPhi: 0.9,
   embossSmoothness: 0.3,
+  expressions: "mu = k+gamma*u^n/(1+u^n); nu = eta+s*F/(1+F);",
   fixRandSeed: true,
   initCond_1: "0.1*RANDN+10*1/cosh(5*((x-L_x/2)^2+(y-L_y/2)^2))",
   initCond_2: "1",
@@ -4771,8 +4776,8 @@ presets["GeneralisedWavePinningModel"] = {
   numSpecies: "3",
   numTimestepsPerFrame: 150,
   preset: "GeneralisedWavePinningModel",
-  reactionStr_1: "(k+gamma*u^n/(1+u^n))*v-(eta+s*F/(1+F))*u-c*theta*u",
-  reactionStr_2: "-(k+gamma*u^n/(1+u^n))*v+(eta+s*F/(1+F))*u+c*alpha",
+  reactionStr_1: "mu*v-nu*u-c*theta*u",
+  reactionStr_2: "-mu*v+nu*u+c*alpha",
   reactionStr_3: "epsilon*(k_n*u-k_s*F)",
   simTitle: "Generalised wave pinning",
   spatialStep: "0.01",
@@ -4912,15 +4917,16 @@ presets["InhomogeneousFisherKPP"] = {
   boundaryConditions_1: "dirichlet",
   brushRadius: "5",
   initCond_1: "1/cosh(10*sqrt((x-L_x/2)^2+(y-L_y/2)^2))",
-  diffusionStr_1_1: "D*(1+E*cos(n*pi*x/L_x)*cos(m*pi*y/L_y))",
+  diffusionStr_1_1: "D*(1+E*chi)",
   diffusionStr_2_2: "0",
   diffusionStr_3_3: "0",
   dt: 0.002,
   emboss: true,
+  expressions: "chi = cos(n*pi*x/L_x)*cos(m*pi*y/L_y);",
   kineticParams: "D = 0.5;E = 1 in [0, 1];n = 40 in [1, 50];m = 37;",
   numSpecies: 1,
   preset: "InhomogeneousFisherKPP",
-  reactionStr_1: "1*u*(1-u/(0.8+0.55*cos(n*pi*x/L_x)*cos(m*pi*y/L_y)))",
+  reactionStr_1: "1*u*(1-u/(0.8+0.55*chi))",
   reactionStr_2: "0",
   reactionStr_3: "0",
   simTitle: "Inhomogeneous Fisher–KPP",
@@ -5251,6 +5257,8 @@ presets["CoupledCGL"] = {
   diffusionStr_4_4: "D_2r",
   domainScale: "300",
   dt: 0.001,
+  expressions:
+    "rho_1 = (u_1^2+v_1^2)+alpha_1*(u_2^2+v_2^2); rho_2 = (u_2^2+v_2^2)+alpha_2*(u_1^2+v_1^2);",
   kineticParams:
     "b_1i = 5 in [-5, 5];D_1r = 1;D_1i = 0.1;a_1r = 1;a_1i = 0;b_1r = -1;b_2i = 5;D_2r = 1;D_2i = 0.1;a_2r = 1;a_2i = 0;b_2r = -1;alpha_1 = 4;alpha_2 = 4;",
   maxColourValue: "1",
@@ -5258,14 +5266,10 @@ presets["CoupledCGL"] = {
   numSpecies: "4",
   numTimestepsPerFrame: 100,
   preset: "CoupledCGL",
-  reactionStr_1:
-    "a_1r*u_1-a_1i*v_1+(b_1r*u_1-b_1i*v_1)*((u_1^2+v_1^2)+alpha_1*(u_2^2+v_2^2))",
-  reactionStr_2:
-    "a_1r*v_1+a_1i*u_1+(b_1r*v_1+b_1i*u_1)*((u_1^2+v_1^2)+alpha_1*(u_2^2+v_2^2))",
-  reactionStr_3:
-    "a_2r*u_2-a_2i*v_2+(b_2r*u_2-b_2i*v_2)*((u_2^2+v_2^2)+alpha_2*(u_1^2+v_1^2))",
-  reactionStr_4:
-    "a_2r*v_2+a_2i*u_2+(b_2r*v_2+b_2i*u_2)*((u_2^2+v_2^2)+alpha_2*(u_1^2+v_1^2))",
+  reactionStr_1: "a_1r*u_1-a_1i*v_1+(b_1r*u_1-b_1i*v_1)*rho_1",
+  reactionStr_2: "a_1r*v_1+a_1i*u_1+(b_1r*v_1+b_1i*u_1)*rho_1",
+  reactionStr_3: "a_2r*u_2-a_2i*v_2+(b_2r*u_2-b_2i*v_2)*rho_2",
+  reactionStr_4: "a_2r*v_2+a_2i*u_2+(b_2r*v_2+b_2i*u_2)*rho_2",
   simTitle: "Coupled complex Ginzburg–Landau",
   speciesNames: "u_1 v_1 u_2 v_2",
   views: [
@@ -5787,7 +5791,7 @@ presets["swiftHohenbergLocalisedDirectedAdvection"] = {
   autoSetColourRange: true,
   brushRadius: "1",
   initCond_1:
-    "H(1.5-P)*((cos(x-L_x/2) - cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) - cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) - cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) - cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))+H(P-2.5)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) + cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) + cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))",
+    "H(1.5-P)*((cos(xi) - phi + cos(eta) - psi)*chi) + H(P-1.5)*H(2.5-P)*((cos(xi) + phi)*chi) + H(P-2.5)*((cos(xi) + phi + cos(eta) + psi)*chi)",
   crossDiffusion: true,
   diffusionStr_1_1: "0",
   diffusionStr_1_2: "-D",
@@ -5796,6 +5800,8 @@ presets["swiftHohenbergLocalisedDirectedAdvection"] = {
   diffusionStr_3_3: "0",
   domainScale: "150",
   dt: 0.0008,
+  expressions:
+    "xi = x - L_x/2; eta = y - L_y/2; chi = exp(-sqrt(0.28)*sqrt(xi^2+eta^2)/5); phi = cos((xi+sqrt(3)*eta)/2) + cos((xi-sqrt(3)*eta)/2); psi = cos((eta+sqrt(3)*xi)/2) + cos((eta-sqrt(3)*xi)/2);",
   kineticParams:
     "r  =  -0.28  in  [-2, 2];a  =  1.6  in  [-2,  2];b  =  -1  in  [-2,  0.1,  2];c  =  -1;D  =  1;P  =  3.0  in  [1,  1,  3];V = 2.000 in  [0, 0.01, 10];theta = -2.00000 in  [-6.4, 0.01, 6.4];",
   maxColourValue: "1.4107916355133057",
@@ -5817,7 +5823,7 @@ presets["swiftHohenbergLocalisedRotationalAdvection"] = {
   boundaryConditions_2: "dirichlet",
   brushRadius: "1",
   initCond_1:
-    "H(1.5-P)*((cos(x-L_x/2) - cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) - cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) - cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) - cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))+H(P-2.5)*((cos(x-L_x/2) + cos((x-L_x/2+sqrt(3)*(y-L_y/2))/2) + cos((x-L_x/2-sqrt(3)*(y-L_y/2))/2)+cos(y-L_y/2) + cos((y-L_y/2+sqrt(3)*(x-L_x/2))/2) + cos((y-L_y/2-sqrt(3)*(x-L_x/2))/2))*exp(-sqrt(0.28)*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/5))",
+    "H(1.5-P)*((cos(xi) - phi + cos(eta) - psi)*chi) + H(P-1.5)*H(2.5-P)*((cos(xi) + phi)*chi) + H(P-2.5)*((cos(xi) + phi + cos(eta) + psi)*chi)",
   crossDiffusion: true,
   diffusionStr_1_1: "0",
   diffusionStr_1_2: "-D",
@@ -5826,13 +5832,15 @@ presets["swiftHohenbergLocalisedRotationalAdvection"] = {
   diffusionStr_3_3: "0",
   domainScale: "150",
   dt: 0.001,
+  expressions:
+    "xi = x - L_x/2; eta = y - L_y/2; chi = exp(-sqrt(0.28)*sqrt(xi^2+eta^2)/5); phi = cos((xi+sqrt(3)*eta)/2) + cos((xi-sqrt(3)*eta)/2); psi = cos((eta+sqrt(3)*xi)/2) + cos((eta-sqrt(3)*xi)/2);",
   kineticParams:
     "r = -0.28  in  [-2,2];a = 1.6  in  [-2, 2];b = -1  in  [-2, 0.1, 2];c = -1;D = 1;P = 3.0 in  [1, 1, 3];V = 0.100 in [0,0.01,1];",
   maxColourValue: "1.2757612466812134",
   minColourValue: -0.3343241214752197,
   numTimestepsPerFrame: 200,
   preset: "swiftHohenbergLocalisedRotationalAdvection",
-  reactionStr_1: "(r-1)*u-2*v+a*u^2+b*u^3+V*((y-L_y/2)*u_x-(x-L_x/2)*u_y)",
+  reactionStr_1: "(r-1)*u-2*v+a*u^2+b*u^3+V*(eta*u_x-xi*u_y)",
   reactionStr_2: "0",
   reactionStr_3: "0",
   simTitle: "Swift–Hohenberg with spinning patterns",
@@ -6225,8 +6233,9 @@ presets["FHNBeatingHeart"] = {
 presets["FHNGrowingHeart"] = {
   brushRadius: "5.5",
   domainIndicatorFun:
-    "(min(L/50 + 0.3*ts*t,L_min/3))^5*(((x-L_x/2)/(min(L/50 + 0.3*ts*t,L_min/3)))^2 + ((y-L_y/2)/(min(L/50 + 0.3*ts*t,L_min/3)))^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
+    "rho^5*(((x-L_x/2)/rho)^2 + ((y-L_y/2)/rho)^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
   dt: 0.002,
+  expressions: "rho = min(L/50 + 0.3*ts*t, L_min/3);",
   kineticParams: "e_v = 0.5;a_v = .01;a_z = -0.1;ts = 1.0",
   parent: "FHNBeatingHeart",
   preset: "FHNGrowingHeart",
@@ -6287,9 +6296,9 @@ presets["cyclicCompetition"] = {
   boundaryConditions_2: "neumann",
   boundaryConditions_3: "neumann",
   brushRadius: "10",
-  initCond_1: "1/cosh(sqrt((x-L_x/2)^2+(y-L_y/2)^2))",
-  initCond_2: "1/cosh(sqrt((x-L_x/2)^2+(y-L_y/2)^2))",
-  initCond_3: "1/cosh(sqrt((x-L_x/2)^2+(y-L_y/2)^2))",
+  initCond_1: "s",
+  initCond_2: "s",
+  initCond_3: "s",
   colourmap: "ice",
   diffusionStr_1_1: "2",
   diffusionStr_2_2: "0.5",
@@ -6297,6 +6306,7 @@ presets["cyclicCompetition"] = {
   domainScale: "500",
   dt: 0.005,
   emboss: true,
+  expressions: "s = 1/cosh(sqrt((x-L_x/2)^2+(y-L_y/2)^2));",
   fixRandSeed: true,
   kineticParams: "a = 0.8;b = 1.9",
   numSpecies: "3",
@@ -6622,14 +6632,15 @@ presets["FitzHugh-Nagumo-Hopf"] = {
 presets["FitzHugh-Nagumo-3"] = {
   brushRadius: "12.6",
   brushValue: "0",
-  initCond_1: "5*(exp(-0.1*((x-L_x/2)^2+(y-L_y/2)^2)))",
-  initCond_2: "5*(exp(-0.1*((x-L_x/2)^2+(y-L_y/2)^2)))",
-  initCond_3: "5*(exp(-0.1*((x-L_x/2)^2+(y-L_y/2)^2)))",
+  initCond_1: "p",
+  initCond_2: "p",
+  initCond_3: "p",
   diffusionStr_1_1: "1",
   diffusionStr_2_2: "40",
   diffusionStr_3_3: "200",
   domainScale: 300,
   dt: 0.002,
+  expressions: "p = 5*exp(-0.1*((x-L_x/2)^2+(y-L_y/2)^2));",
   fixRandSeed: true,
   kineticParams:
     "a_v = 0.2 in [0, 0.5];m = 4;e_v = 0.2;e_w = 1;a_w = 0.5;a_z = -0.1;",
@@ -6792,7 +6803,8 @@ presets["KellerSegelHeart"] = {
 presets["KellerSegelGrowingHeart"] = {
   brushRadius: "5.5",
   domainIndicatorFun:
-    "(min(L/50 + 0.5*ts*t,L_min/3))^5*(((x-L_x/2)/(min(L/50 + 0.5*ts*t,L_min/3)))^2 + ((y-L_y/2)/(min(L/50 + 0.5*ts*t,L_min/3)))^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
+    "rho^5*(((x-L_x/2)/rho)^2 + ((y-L_y/2)/rho)^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
+  expressions: "rho = min(L/50 + 0.5*ts*t, L_min/3);",
   kineticParams: "c = 4;a = 0.1;ts = 1.0",
   parent: "KellerSegelHeart",
   preset: "KellerSegelGrowingHeart",
@@ -7409,6 +7421,8 @@ presets["SchnakenbergGrowingDisk"] = {
   domainScale: "400",
   domainViaIndicatorFun: true,
   dt: 0.001,
+  expressions:
+    "g = L/L_0 + r*t; s = 2*r/g; p = r*(x-L_x/2)/(L/20+r*t); q = r*(y-L_y/2)/(L/20+r*t);",
   initCond_1: "a + b+RANDN",
   kineticParams: "D_v = 100 in [0, 100];a = 0.01;b = 2;r = 1;L_0 = 10;",
   maxColourValue: "9",
@@ -7417,10 +7431,8 @@ presets["SchnakenbergGrowingDisk"] = {
   preset: "SchnakenbergGrowingDisk",
   probeFun: "u",
   probeLength: 30,
-  reactionStr_1:
-    "a - u +u^2*v - 2*r/(L/L_0 + r*t)*u - r*(x - L_x/2)/(L/20 + r*t)*u_x - r*(y - L_y/2)/(L/20 + r*t)*u_y",
-  reactionStr_2:
-    "b - u^2*v - 2*r/(L/L_0 + r*t)*v - r*(x - L_x/2)/(L/20 + r*t)*v_x - r*(y - L_y/2)/(L/20 + r*t)*v_y",
+  reactionStr_1: "a - u +u^2*v - s*u - p*u_x - q*u_y",
+  reactionStr_2: "b - u^2*v - s*v - p*v_x - q*v_y",
   spatialStep: "0.8",
   speciesNames: "u v",
   timesteppingScheme: "Mid",
@@ -7551,11 +7563,12 @@ presets["stabilizedSchrodingerEquationPotential"] = {
   diffusionStr_3_3: "0",
   domainScale: "100",
   dt: 0.0001,
+  expressions: "psi = sin(n*pi*x/100)*sin(m*pi*y/100);",
   kineticParams: "D=1; C=0.004;n=15 in [0,50];m=15 in [0,50]",
   maxColourValue: "1.5228073596954346",
   preset: "stabilizedSchrodingerEquationPotential",
-  reactionStr_1: "-sin(n*pi*x/100)*sin(m*pi*y/100)*v",
-  reactionStr_2: "sin(n*pi*x/100)*sin(m*pi*y/100)*u",
+  reactionStr_1: "-psi*v",
+  reactionStr_2: "psi*u",
   reactionStr_3: "0",
   simTitle: "Schr\u00f6dinger: potential",
   spatialStep: "0.5",
@@ -7571,8 +7584,9 @@ presets["stabilizedSchrodinger1D"] = {
   diffusionStr_2_2: "0",
   dimension: "1",
   dt: 0.0002,
-  initCond_1: "exp(-(0.5*pi/s^2)*(x/100-x0)^2)*cos(a*x)/N",
-  initCond_2: "exp(-(0.5*pi/s^2)*(x/100-x0)^2)*sin(a*x)/N",
+  expressions: "chi = exp(-(0.5*pi/s^2)*(x/100-x0)^2);",
+  initCond_1: "chi*cos(a*x)/N",
+  initCond_2: "chi*sin(a*x)/N",
   integrate: true,
   kineticParams: "D = 1;a = 4;s = 0.08;x0 = 0.5;p = 100;N = 2.8279;d = 0.000;",
   maxColourValue: "0.35",
@@ -7655,7 +7669,7 @@ presets["swiftHohenbergLocalised"] = {
   boundaryConditions_2: "periodic",
   brushRadius: 1,
   initCond_1:
-    "H(1.5-P)*((cos(x-75) - cos((x-75+sqrt(3)*(y-75))/2) - cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) - cos((y-75+sqrt(3)*(x-75))/2) - cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5)) +H(P-1.5)*H(2.5-P)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))+H(P-2.5)*((cos(x-75) + cos((x-75+sqrt(3)*(y-75))/2) + cos((x-75-sqrt(3)*(y-75))/2)+cos(y-75) + cos((y-75+sqrt(3)*(x-75))/2) + cos((y-75-sqrt(3)*(x-75))/2))*exp(-sqrt(0.28)*sqrt((x-75)^2+(y-75)^2)/5))",
+    "H(1.5-P)*((cos(xi) - phi + cos(eta) - psi)*chi) + H(P-1.5)*H(2.5-P)*((cos(xi) + phi)*chi) + H(P-2.5)*((cos(xi) + phi + cos(eta) + psi)*chi)",
   crossDiffusion: true,
   diffusionStr_1_1: "0",
   diffusionStr_1_2: "-D",
@@ -7664,6 +7678,8 @@ presets["swiftHohenbergLocalised"] = {
   diffusionStr_3_3: "0",
   domainScale: "150",
   dt: 0.0005,
+  expressions:
+    "xi = x - L_x/2; eta = y - L_y/2; chi = exp(-sqrt(0.28)*sqrt(xi^2+eta^2)/5); phi = cos((xi+sqrt(3)*eta)/2) + cos((xi-sqrt(3)*eta)/2); psi = cos((eta+sqrt(3)*xi)/2) + cos((eta-sqrt(3)*xi)/2);",
   kineticParams:
     "r=-0.28 in [-2,2];a=1.6 in [-2,2];b=-1 in [-2,0.1,2];c=-1;D=1;P=1 in [1,1,3];",
   maxColourValue: "1.325366735458374",
