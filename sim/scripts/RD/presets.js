@@ -367,8 +367,7 @@ presets["penguinsBlobStatic"] = {
   dirichletStr_2:
     "1 - ind(y+2*dy > L_y || y-2*dy < 0 || x - 2*dx < 0 || x + 2*dx > L_x)",
   domainIndicatorFun: "rho > (0.05*L)^2",
-  expressions:
-    "rho = (x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2;",
+  expressions: "rho = (x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2;",
   kineticParams: "Pe = 1.00 in [0.1, 1];a = 0 in [0, 1.5];",
   numSpecies: 3,
   parent: "penguinsBlob",
@@ -3297,7 +3296,8 @@ presets["maskFrontFaceBreathing"] = {
   kineticParams:
     "k = 8.000 in [0.25, 8];mu = 1.0 in [0, 1];y_offset = 0.22;f = 1/500;s = 0.025 in [0,0.05];",
   parent: "maskFrontFace",
-  reactionStr_1: "-c*(u_x + v_y) - u*c_x - v*c_y + s*mu*sin(t*f)*ind(rho < 0.02)",
+  reactionStr_1:
+    "-c*(u_x + v_y) - u*c_x - v*c_y + s*mu*sin(t*f)*ind(rho < 0.02)",
   reactionStr_2: "mu*sin(t*f)*(chi-0.5)",
   reactionStr_3: "mu*sin(t*f)*(psi-0.5)",
   preset: "maskFrontFaceBreathing",
@@ -3307,7 +3307,8 @@ presets["maskFrontBreathing"] = {
   kineticParams:
     "k = 8.000 in [0.25, 8];mu = 1.0 in [0, 1];y_offset = 0.0;f = 1/500;s = 0.025 in [0,0.05];",
   parent: "maskFront",
-  reactionStr_1: "-c*(u_x + v_y) - u*c_x - v*c_y + s*mu*sin(t*f)*ind(rho < 0.02)",
+  reactionStr_1:
+    "-c*(u_x + v_y) - u*c_x - v*c_y + s*mu*sin(t*f)*ind(rho < 0.02)",
   reactionStr_2: "mu*sin(t*f)*(chi-0.5)",
   reactionStr_3: "mu*sin(t*f)*(psi-0.5)",
   preset: "maskFrontBreathing",
@@ -6961,8 +6962,7 @@ presets["inhomogDiffusionHeatEquation"] = {
   diffusionStr_3_3: "0",
   domainScale: "100",
   dt: 0.004,
-  expressions:
-    "chi = cos(n*pi*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/sqrt(L_x*L_y));",
+  expressions: "chi = cos(n*pi*sqrt((x-L_x/2)^2+(y-L_y/2)^2)/sqrt(L_x*L_y));",
   kineticParams: "D=1;E=0.99 in [0,1];n=40 in [1,50];",
   numSpecies: 1,
   preset: "inhomogDiffusionHeatEquation",
