@@ -368,6 +368,7 @@ presets["penguinsBlobStatic"] = {
     "1 - ind(y+2*dy > L_y || y-2*dy < 0 || x - 2*dx < 0 || x + 2*dx > L_x)",
   domainIndicatorFun: "rho > (0.05*L)^2",
   expressions: "rho = (x-L_x/2)^2/((1+a)*(1 + a*ind(x>L_x/2)))^2+(y-L_y/2)^2;",
+  expressionsShow: "0",
   kineticParams: "Pe = 1.00 in [0.1, 1];a = 0 in [0, 1.5];",
   numSpecies: 3,
   parent: "penguinsBlob",
@@ -3338,6 +3339,7 @@ presets["maskFront"] = {
   domainScale: "100",
   expressions:
     "rho = (x/L_x)^2 + 5*(y/L_y+y_offset)^2; chi = ind(k<=1)*(I_SR + (I_SB-I_SR)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SB + (I_TR-I_SB)*(k-1)/(4-1)) + ind(k>4)*(I_TR + (I_TB-I_TR)*(k-4)/(8-4)); psi = ind(k<=1)*(I_SG + (I_SA-I_SG)*(k-0.25)/(1-0.25)) + ind(k>1)*ind(k<=4)*(I_SA + (I_TG-I_SA)*(k-1)/(4-1)) + ind(k>4)*(I_TG + (I_TA-I_TG)*(k-4)/(8-4));",
+  expressionsShow: "000",
   imagePathOne: "./images/maskFrontA.png",
   imagePathTwo: "./images/maskFrontB.png",
   initCond_1: "0",
@@ -5804,6 +5806,7 @@ presets["swiftHohenbergLocalisedDirectedAdvection"] = {
   dt: 0.0008,
   expressions:
     "xi = x - L_x/2; eta = y - L_y/2; chi = exp(-sqrt(0.28)*sqrt(xi^2+eta^2)/5); phi = cos((xi+sqrt(3)*eta)/2) + cos((xi-sqrt(3)*eta)/2); psi = cos((eta+sqrt(3)*xi)/2) + cos((eta-sqrt(3)*xi)/2);",
+  expressionsShow: "00000",
   kineticParams:
     "r  =  -0.28  in  [-2, 2];a  =  1.6  in  [-2,  2];b  =  -1  in  [-2,  0.1,  2];c  =  -1;D  =  1;P  =  3.0  in  [1,  1,  3];V = 2.000 in  [0, 0.01, 10];theta = -2.00000 in  [-6.4, 0.01, 6.4];",
   maxColourValue: "1.4107916355133057",
@@ -5836,6 +5839,7 @@ presets["swiftHohenbergLocalisedRotationalAdvection"] = {
   dt: 0.001,
   expressions:
     "xi = x - L_x/2; eta = y - L_y/2; chi = exp(-sqrt(0.28)*sqrt(xi^2+eta^2)/5); phi = cos((xi+sqrt(3)*eta)/2) + cos((xi-sqrt(3)*eta)/2); psi = cos((eta+sqrt(3)*xi)/2) + cos((eta-sqrt(3)*xi)/2);",
+  expressionsShow: "00000",
   kineticParams:
     "r = -0.28  in  [-2,2];a = 1.6  in  [-2, 2];b = -1  in  [-2, 0.1, 2];c = -1;D = 1;P = 3.0 in  [1, 1, 3];V = 0.100 in [0,0.01,1];",
   maxColourValue: "1.2757612466812134",
@@ -6238,6 +6242,7 @@ presets["FHNGrowingHeart"] = {
     "rho^5*(((x-L_x/2)/rho)^2 + ((y-L_y/2)/rho)^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
   dt: 0.002,
   expressions: "rho = min(L/50 + 0.3*ts*t, L_min/3);",
+  expressionsShow: "0",
   kineticParams: "e_v = 0.5;a_v = .01;a_z = -0.1;ts = 1.0",
   parent: "FHNBeatingHeart",
   preset: "FHNGrowingHeart",
@@ -6311,6 +6316,7 @@ presets["cyclicCompetition"] = {
   dt: 0.005,
   emboss: true,
   expressions: "s = 1/cosh(sqrt((x-L_x/2)^2+(y-L_y/2)^2));",
+  expressionsShow: "0",
   fixRandSeed: true,
   kineticParams: "a = 0.8;b = 1.9",
   numSpecies: "3",
@@ -6645,6 +6651,7 @@ presets["FitzHugh-Nagumo-3"] = {
   domainScale: 300,
   dt: 0.002,
   expressions: "p = 5*exp(-0.1*((x-L_x/2)^2+(y-L_y/2)^2));",
+  expressionsShow: "0",
   fixRandSeed: true,
   kineticParams:
     "a_v = 0.2 in [0, 0.5];m = 4;e_v = 0.2;e_w = 1;a_w = 0.5;a_z = -0.1;",
@@ -6809,6 +6816,7 @@ presets["KellerSegelGrowingHeart"] = {
   domainIndicatorFun:
     "rho^5*(((x-L_x/2)/rho)^2 + ((y-L_y/2)/rho)^2 - 1)^3 - (x-L_x/2)^2*(y-L_y/2)^3 < 0",
   expressions: "rho = min(L/50 + 0.5*ts*t, L_min/3);",
+  expressionsShow: "0",
   kineticParams: "c = 4;a = 0.1;ts = 1.0",
   parent: "KellerSegelHeart",
   preset: "KellerSegelGrowingHeart",
@@ -7590,6 +7598,7 @@ presets["stabilizedSchrodinger1D"] = {
   dimension: "1",
   dt: 0.0002,
   expressions: "chi = exp(-(0.5*pi/s^2)*(x/100-x0)^2);",
+  expressionsShow: "0",
   initCond_1: "chi*cos(a*x)/N",
   initCond_2: "chi*sin(a*x)/N",
   integrate: true,
@@ -7685,6 +7694,7 @@ presets["swiftHohenbergLocalised"] = {
   dt: 0.0005,
   expressions:
     "xi = x - L_x/2; eta = y - L_y/2; chi = exp(-sqrt(0.28)*sqrt(xi^2+eta^2)/5); phi = cos((xi+sqrt(3)*eta)/2) + cos((xi-sqrt(3)*eta)/2); psi = cos((eta+sqrt(3)*xi)/2) + cos((eta-sqrt(3)*xi)/2);",
+  expressionsShow: "00000",
   kineticParams:
     "r=-0.28 in [-2,2];a=1.6 in [-2,2];b=-1 in [-2,0.1,2];c=-1;D=1;P=1 in [1,1,3];",
   maxColourValue: "1.325366735458374",
