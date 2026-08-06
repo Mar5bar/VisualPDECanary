@@ -7860,6 +7860,7 @@ presets["default"] = {
   embossSpecular: 0.2,
   embossTheta: 0.7854,
   expressions: "",
+  expressionsShow: "",
   fixRandSeed: false,
   flippedColourmap: false,
   forceManualInterpolation: false,

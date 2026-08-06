@@ -182,6 +182,7 @@ function presetMap() {
     embossSpecular: "eSp",
     embossTheta: "eT",
     expressions: "ex",
+    expressionsShow: "exS",
     fixRandSeed: "f",
     flippedColourmap: "fc",
     forceManualInterpolation: "fI",

@@ -6216,6 +6216,16 @@ async function VisualPDE(url) {
     kineticParamsStrs = {};
     kineticNameToCont = {};
 
+    // Reset the Expressions' "Show" checkbox states too: unlike options.expressions itself,
+    // most presets don't specify options.expressionsShow at all (it's fine for it to be
+    // absent - see getExpressionNameVals, which treats a short/missing string as "shown"),
+    // so without this reset a preset switch could otherwise leave a previous preset's
+    // checkbox states (for a different number of expressions) sitting in options past the
+    // point where they'd be meaningful. A preset/link that does specify its own
+    // expressionsShow (e.g. one generated from getShareableURL) overrides this via the
+    // Object.assign below, same as any other option.
+    options.expressionsShow = "";
+
     // Coerce the new options into the correct types.
     coerceOptions(newOptions);
 
@@ -7973,14 +7983,14 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Appends one row per defined expression ("name &= rhs", using the expression's own raw
-   * definition, not substituted/expanded - expressions are deliberately shown as themselves
-   * here, never inlined into other equations, see setEquationDisplayType()) to the end of the
-   * aligned equation block in `str`, right before its closing "\end{aligned}$". A no-op if no
-   * expressions are defined.
+   * Appends one row per defined expression whose "Show" checkbox is checked ("name &= rhs",
+   * using the expression's own raw definition, not substituted/expanded - expressions are
+   * deliberately shown as themselves here, never inlined into other equations, see
+   * setEquationDisplayType()) to the end of the aligned equation block in `str`, right before
+   * its closing "\end{aligned}$". A no-op if no expressions are defined, or none are shown.
    */
   function appendExpressionRowsToTEX(str) {
-    const nameVals = getExpressionNameVals();
+    const nameVals = getExpressionNameVals().filter(([, , shown]) => shown);
     if (nameVals.length === 0) return str;
     const rows = nameVals
       .map(([name, rhs]) => "\\textstyle " + name + " &= " + rhs)
@@ -8759,10 +8769,15 @@ async function VisualPDE(url) {
       placeholder: "Define notation e.g. f = u + 1",
       validateName: validateExpressionName,
       onDeleted: () => {},
-      // Expressions can never be sliders.
-      extraControllerSetup: undefined,
+      // Expressions can never be sliders, but they do get a "TeX" toggle button controlling
+      // whether they're typeset (see setupExpressionShowToggle).
+      extraControllerSetup: setupExpressionShowToggle,
       afterChange: () => {
         setExpressionsStringFromExpressions();
+        // Keep options.expressionsShow in sync with the current set of expression rows -
+        // see setExpressionsShowStringFromControllers for why this is always safe/cheap to
+        // just recompute from scratch here.
+        setExpressionsShowStringFromControllers();
         // Unlike parameters (which only need a shader rebuild when a brand new uniform is
         // added), every expression change needs a full shader reconstruction - expressions
         // are substituted directly into shader source at construction time, not read as
@@ -8781,6 +8796,111 @@ async function VisualPDE(url) {
       getExpressionHooks(),
       options.expressions,
     );
+    // Restore each expression's "TeX" toggle from options.expressionsShow (a "1"/"0" per
+    // expression, in order - see setExpressionsShowStringFromControllers), then immediately
+    // re-derive options.expressionsShow from the result so it's always exactly as long as
+    // the current number of expressions, even if the persisted string was stale (e.g. left
+    // over from a previously-loaded preset with a different number of expressions).
+    applyExpressionsShowString(options.expressionsShow);
+  }
+
+  /**
+   * Creates the "TeX" toggle button for a real (non-blank) Expression row, appended inside
+   * the controller's own domElement so - like Parameters' slider (see syncParamSlider) - it's
+   * a DOM descendant of the row and gets removed automatically when the row does (see
+   * createDefinitionController's onFinishChange). Styled like the toggle buttons elsewhere in
+   * the UI (see addToggle/.toggle_button), on by default. A no-op for the trailing always-
+   * empty "add new expression" row, and idempotent, since extraControllerSetup is invoked
+   * again on every edit of an already-set-up row, not just on creation.
+   */
+  function setupExpressionShowToggle(controller) {
+    if (controller === nextExpressionController || controller.showToggle)
+      return;
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.classList.add("toggle_button", "expr-show-toggle", "toggled_on");
+    toggle.title = "Typeset this expression in the equations display";
+    toggle.setAttribute("aria-pressed", "true");
+    // Plain-text fallback - replaced with MathJax's stylised \TeX logo below if available, and
+    // fallen back to again if that typesetting ever fails.
+    toggle.textContent = "TeX";
+    toggle.addEventListener("click", () => {
+      toggle.classList.toggle("toggled_on");
+      toggle.setAttribute(
+        "aria-pressed",
+        toggle.classList.contains("toggled_on").toString(),
+      );
+      setExpressionsShowStringFromControllers();
+      setEquationDisplayType();
+    });
+    controller.domElement.classList.add("hasShowToggle");
+    controller.domElement.appendChild(toggle);
+    controller.showToggle = toggle;
+    typesetTexToggleLabel(toggle);
+  }
+
+  /**
+   * Upgrades an Expression's "TeX" toggle button from its plain-text fallback to MathJax's
+   * stylised \TeX logo, typesetting only this one small element (runMathJax's element-scoped
+   * form) rather than re-running the whole equation display. MathJax's script tag loads
+   * asynchronously (see _includes/mathjax.html) and is frequently still mid-load the first
+   * time an Expression row is created (e.g. right at page load), so - unlike the main equation
+   * display, which gets typeset again on practically every subsequent options change and so
+   * doesn't need its own retry - this polls briefly until MathJax is ready, giving up after
+   * ~10s and leaving the plain-text fallback in place (also the fallback if typesetting this
+   * element fails for any reason once MathJax is ready).
+   */
+  function typesetTexToggleLabel(toggle, attempt = 0) {
+    if (typeof MathJax === "undefined" || MathJax.typesetPromise == undefined) {
+      if (attempt >= 50) return;
+      setTimeout(() => typesetTexToggleLabel(toggle, attempt + 1), 200);
+      return;
+    }
+    const mathSpan = document.createElement("span");
+    mathSpan.textContent = "\\(\\TeX\\)";
+    toggle.replaceChildren(mathSpan);
+    runMathJax([mathSpan])?.catch(() => {
+      toggle.textContent = "TeX";
+    });
+  }
+
+  /**
+   * The Expressions folder's real (non-blank) controllers, in display order - i.e. those with
+   * a "TeX" toggle button (see setupExpressionShowToggle), which excludes the trailing
+   * always-empty "add new expression" row.
+   */
+  function getExpressionShowToggleControllers() {
+    return expressionsFolder.__controllers.filter((c) => c.showToggle);
+  }
+
+  /**
+   * Rebuilds options.expressionsShow (one "1"/"0" char per currently-defined expression, in
+   * display order) from the live toggle-button DOM state, which is the single source of truth
+   * for "should this expression be typeset". Called on every Expressions add/remove/edit (see
+   * getExpressionHooks' afterChange) and after restoring persisted state (see
+   * applyExpressionsShowString), so the option string is always exactly as long as the
+   * current number of expressions - never longer, per the Expressions design.
+   */
+  function setExpressionsShowStringFromControllers() {
+    options.expressionsShow = getExpressionShowToggleControllers()
+      .map((c) => (c.showToggle.classList.contains("toggled_on") ? "1" : "0"))
+      .join("");
+  }
+
+  /**
+   * Applies a persisted options.expressionsShow string (see
+   * setExpressionsShowStringFromControllers) to the toggle buttons just (re)created by
+   * rebuildDefinitionsFromString - missing/extra characters default to "shown", so a shorter
+   * string (a brand new expression added since the string was saved) or longer one (fewer
+   * expressions than when it was saved) are both handled gracefully.
+   */
+  function applyExpressionsShowString(showStr) {
+    getExpressionShowToggleControllers().forEach((c, i) => {
+      const shown = !showStr || showStr[i] !== "0";
+      c.showToggle.classList.toggle("toggled_on", shown);
+      c.showToggle.setAttribute("aria-pressed", shown.toString());
+    });
+    setExpressionsShowStringFromControllers();
   }
 
   function setExpressionsStringFromExpressions() {
@@ -8812,16 +8932,25 @@ async function VisualPDE(url) {
     return names;
   }
 
+  /**
+   * Returns [name, rhs, shown] triples, one per defined expression, in order. `shown` is this
+   * expression's "Show" checkbox state (see setExpressionsShowStringFromControllers), read
+   * positionally from options.expressionsShow by index into the same non-empty, semicolon-
+   * separated segments this parses - defaulting to true (shown) if that string is short (or
+   * absent), so a segment gets a sensible default even before options.expressionsShow has
+   * caught up with a just-added expression.
+   */
   function getExpressionNameVals() {
     const regex = /^\s*([a-zA-Z]\w*)\b\s*=\s*(.*)/;
+    const showStr = options.expressionsShow ?? "";
     let nameVals = [];
     getExpressionDefs()
       .split(";")
       .filter((x) => x.length > 0)
-      .forEach(function (x) {
+      .forEach(function (x, i) {
         const m = x.match(regex);
         if (m) {
-          nameVals.push([m[1].trim(), m[2].trim()]);
+          nameVals.push([m[1].trim(), m[2].trim(), showStr[i] !== "0"]);
         } else {
           throwError(
             "Unable to evaluate the expression definition '" +

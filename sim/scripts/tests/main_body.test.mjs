@@ -169,9 +169,22 @@ test("getKineticParamNameVals: reports unparseable definitions via throwError an
 test("getExpressionNames/NameVals: parses semicolon-separated 'name = value' definitions", () => {
   m.__setState({ options: { expressions: "f = 1; g = f + 2" } });
   assert.deepEqual(m.getExpressionNames(), ["f", "g"]);
+  // The third element of each triple is the expression's "TeX" toggle state (see
+  // setExpressionsShowStringFromControllers) - defaults to true (shown) when
+  // options.expressionsShow is absent, as here.
   assert.deepEqual(m.getExpressionNameVals(), [
-    ["f", "1"],
-    ["g", "f + 2"],
+    ["f", "1", true],
+    ["g", "f + 2", true],
+  ]);
+});
+
+test("getExpressionNameVals: reads the shown/hidden flag positionally from options.expressionsShow", () => {
+  m.__setState({
+    options: { expressions: "f = 1; g = f + 2", expressionsShow: "01" },
+  });
+  assert.deepEqual(m.getExpressionNameVals(), [
+    ["f", "1", false],
+    ["g", "f + 2", true],
   ]);
 });
 

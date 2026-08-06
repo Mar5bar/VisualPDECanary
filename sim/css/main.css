@@ -1861,6 +1861,60 @@ select {
   display: none;
 }
 
+/* Expressions' per-row "TeX" toggle button (see setupExpressionShowToggle in main.js): lays
+   the text input and toggle out side by side within the row, instead of the default
+   full-width single-input layout. */
+.dg .c.params.hasShowToggle {
+  display: flex !important;
+  align-items: center;
+}
+
+.dg .c.params.hasShowToggle input[type="text"],
+.dg .c.params.hasShowToggle input[type="text"]:focus {
+  width: auto !important;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Styled like the toggle buttons elsewhere in the UI (see .button_list button/.toggled_on
+   above), just sized to sit inline within an Expression row rather than in a .button_list. */
+.expr-show-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  height: 21px;
+  min-width: 2.6em;
+  margin: 3px -5px 0 9px;
+  padding: 0 6px;
+  border: 1px solid var(--ui-button-border-color);
+  border-radius: 5px;
+  background-color: unset;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.expr-show-toggle.toggled_on {
+  background-color: var(--active-button-background-color);
+}
+
+@media (hover: hover) {
+  .expr-show-toggle:hover {
+    background-color: var(--views-hover-color);
+  }
+
+  .expr-show-toggle.toggled_on:hover {
+    background-color: var(--toggled-on-hover-color);
+  }
+}
+
+.expr-show-toggle mjx-container {
+  margin: 0 !important;
+  font-size: 0.85rem !important;
+}
+
 #embed,
 #record {
   display: inline-block;
