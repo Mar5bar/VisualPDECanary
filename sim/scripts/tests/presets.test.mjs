@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   getPreset,
+  getResolvedPreset,
   getListOfPresetNames,
   coerceOptions,
   getUserTextFields,
@@ -29,6 +30,38 @@ test("getPreset(): returns an independent copy each call (mutating one doesn't a
   const b = getPreset("default");
   a.numSpecies = 999;
   assert.notEqual(b.numSpecies, 999);
+});
+
+test("getResolvedPreset(): fills in fields inherited from a parent that the child preset doesn't redeclare itself (e.g. 'expressions')", () => {
+  // penguinsInOut inherits from penguinsBlobStatic, which declares
+  // `expressions`, but penguinsInOut does not declare it itself - so
+  // getPreset() alone won't see it, only getResolvedPreset() will.
+  const child = getPreset("penguinsInOut");
+  assert.ok(!Object.hasOwn(child, "expressions"));
+  const parent = getPreset("penguinsBlobStatic");
+  assert.ok(Object.hasOwn(parent, "expressions"));
+
+  const resolved = getResolvedPreset("penguinsInOut");
+  assert.equal(resolved.expressions, parent.expressions);
+});
+
+test("getResolvedPreset(): resolves a multi-level parent chain all the way to 'default' (e.g. GrayScottPorousMedia, which has a 3-level chain)", () => {
+  const defaultPreset = getPreset("default");
+  const resolved = getResolvedPreset("GrayScottPorousMedia");
+  // Every field on the default preset is present on the fully resolved
+  // result, even fields not touched by any preset in the chain.
+  for (const key of Object.keys(defaultPreset)) {
+    assert.ok(Object.hasOwn(resolved, key), `expected resolved preset to have field "${key}"`);
+  }
+  // And the leaf's own overrides win over anything inherited.
+  const leaf = getPreset("GrayScottPorousMedia");
+  for (const [key, value] of Object.entries(leaf)) {
+    assert.deepEqual(resolved[key], value);
+  }
+});
+
+test("getResolvedPreset(): matches getPreset('default') for a preset with no parent", () => {
+  assert.deepEqual(getResolvedPreset("default"), getPreset("default"));
 });
 
 test("getListOfPresetNames(): includes 'default' and a substantial number of named presets", () => {

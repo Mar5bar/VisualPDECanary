@@ -83,6 +83,7 @@ import { getColours } from "../colourmaps.js";
 import { genericVertexShader } from "../generic_shaders.js";
 import {
   getPreset,
+  getResolvedPreset,
   getUserTextFields,
   getFieldsInView,
   getOldPresetFieldsToNew,
@@ -1031,8 +1032,16 @@ async function VisualPDE(url) {
     if (isRecording) {
       stopRecording();
     }
-    // Check if the simulation has changed (options.preset will have changed).
-    if (Object.keys(diffObjects(getPreset(options.preset), options)).length) {
+    // Check if the simulation has changed from the preset it was loaded from
+    // (using the fully resolved preset, since a preset may inherit fields
+    // such as `expressions` from a parent rather than declaring them
+    // itself). `options` must be the first argument to diffObjects, since it
+    // only inspects the first argument's keys, and `options` is the side
+    // guaranteed to be complete.
+    if (
+      Object.keys(diffObjects(options, getResolvedPreset(options.preset)))
+        .length
+    ) {
       // If so, add to session storage so that it can be loaded on return, and add the URL to history.
       sessionStorage.setItem("options", JSON.stringify(options));
       sessionStorage.setItem("oldQueryString", window.location.search);
@@ -11038,10 +11047,7 @@ async function VisualPDE(url) {
    * @returns {void}
    */
   function copyConfigAsJSON() {
-    const parentOptions = Object.assign(
-      getPreset("default"),
-      getPreset(options.parent),
-    );
+    const parentOptions = getResolvedPreset(options.parent);
 
     // Get the options that differ from the default.
     let objDiff = diffObjects(options, parentOptions);

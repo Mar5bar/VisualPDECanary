@@ -7974,6 +7974,25 @@ export function getPreset(id) {
   return deepcopy(presets["default"]);
 }
 
+/**
+ * Returns a fully resolved preset: the preset's own overrides merged on top
+ * of its full parent chain (recursively) and the "default" preset, mirroring
+ * how loadOptions() layers options onto the live simulation at runtime.
+ * Unlike getPreset(), which only returns a preset's own (possibly sparse)
+ * overrides, this always returns a complete options object, suitable for
+ * direct comparison against the live `options`.
+ * @param {string} id - preset id.
+ * @returns {Object} the fully resolved preset options.
+ */
+export function getResolvedPreset(id) {
+  const preset = getPreset(id);
+  const base =
+    preset.hasOwnProperty("parent") && preset.parent != null
+      ? getResolvedPreset(preset.parent)
+      : getPreset("default");
+  return Object.assign(base, preset);
+}
+
 function deepcopy(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
