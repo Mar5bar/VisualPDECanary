@@ -8769,7 +8769,7 @@ async function VisualPDE(url) {
       placeholder: "Define notation e.g. f = u + 1",
       validateName: validateExpressionName,
       onDeleted: () => {},
-      // Expressions can never be sliders, but they do get a "TeX" toggle button controlling
+      // Expressions can never be sliders, but they do get a "Show" toggle button controlling
       // whether they're typeset (see setupExpressionShowToggle).
       extraControllerSetup: setupExpressionShowToggle,
       afterChange: () => {
@@ -8796,7 +8796,7 @@ async function VisualPDE(url) {
       getExpressionHooks(),
       options.expressions,
     );
-    // Restore each expression's "TeX" toggle from options.expressionsShow (a "1"/"0" per
+    // Restore each expression's "Show" toggle from options.expressionsShow (a "1"/"0" per
     // expression, in order - see setExpressionsShowStringFromControllers), then immediately
     // re-derive options.expressionsShow from the result so it's always exactly as long as
     // the current number of expressions, even if the persisted string was stale (e.g. left
@@ -8805,7 +8805,7 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Creates the "TeX" toggle button for a real (non-blank) Expression row, appended inside
+   * Creates the "Show" toggle button for a real (non-blank) Expression row, appended inside
    * the controller's own domElement so - like Parameters' slider (see syncParamSlider) - it's
    * a DOM descendant of the row and gets removed automatically when the row does (see
    * createDefinitionController's onFinishChange). Styled like the toggle buttons elsewhere in
@@ -8821,9 +8821,7 @@ async function VisualPDE(url) {
     toggle.classList.add("toggle_button", "expr-show-toggle", "toggled_on");
     toggle.title = "Typeset this expression in the equations display";
     toggle.setAttribute("aria-pressed", "true");
-    // Plain-text fallback - replaced with MathJax's stylised \TeX logo below if available, and
-    // fallen back to again if that typesetting ever fails.
-    toggle.textContent = "TeX";
+    toggle.textContent = "Show";
     toggle.addEventListener("click", () => {
       toggle.classList.toggle("toggled_on");
       toggle.setAttribute(
@@ -8836,37 +8834,11 @@ async function VisualPDE(url) {
     controller.domElement.classList.add("hasShowToggle");
     controller.domElement.appendChild(toggle);
     controller.showToggle = toggle;
-    typesetTexToggleLabel(toggle);
-  }
-
-  /**
-   * Upgrades an Expression's "TeX" toggle button from its plain-text fallback to MathJax's
-   * stylised \TeX logo, typesetting only this one small element (runMathJax's element-scoped
-   * form) rather than re-running the whole equation display. MathJax's script tag loads
-   * asynchronously (see _includes/mathjax.html) and is frequently still mid-load the first
-   * time an Expression row is created (e.g. right at page load), so - unlike the main equation
-   * display, which gets typeset again on practically every subsequent options change and so
-   * doesn't need its own retry - this polls briefly until MathJax is ready, giving up after
-   * ~10s and leaving the plain-text fallback in place (also the fallback if typesetting this
-   * element fails for any reason once MathJax is ready).
-   */
-  function typesetTexToggleLabel(toggle, attempt = 0) {
-    if (typeof MathJax === "undefined" || MathJax.typesetPromise == undefined) {
-      if (attempt >= 50) return;
-      setTimeout(() => typesetTexToggleLabel(toggle, attempt + 1), 200);
-      return;
-    }
-    const mathSpan = document.createElement("span");
-    mathSpan.textContent = "\\(\\TeX\\)";
-    toggle.replaceChildren(mathSpan);
-    runMathJax([mathSpan])?.catch(() => {
-      toggle.textContent = "TeX";
-    });
   }
 
   /**
    * The Expressions folder's real (non-blank) controllers, in display order - i.e. those with
-   * a "TeX" toggle button (see setupExpressionShowToggle), which excludes the trailing
+   * a "Show" toggle button (see setupExpressionShowToggle), which excludes the trailing
    * always-empty "add new expression" row.
    */
   function getExpressionShowToggleControllers() {
