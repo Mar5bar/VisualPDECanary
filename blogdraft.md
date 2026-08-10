@@ -50,4 +50,4 @@ VisualPDE is open source and you can find the [details on GitHub](https://github
 
 Start by picking from 60 models in our [explore gallery](https://visualpde.com/explore.html), or watch a [six-minute video](https://visualpde.com/create) to create your own from scratch. The first time you use VisualPDE, there’s a little tour you can take that shows you where you can find the useful tools, and a '?' button on the right of any simulation allows you to get help anytime.
 
-We’re really keen to hear from users, so [let us know](https://visualpde.com/contact.html) if you have any questions or have used VisualPDE in a fun way. We know that people like the tool, but we can only develop it in the way the community wants if we hear from the community.
+We’re really keen to hear from users, so [let us know](https://visualpde.com/contact.html) if you have any questions or have used VisualPDE in a fun way. We'd love to make VisualPDE better, and would love for you to help us do that with your feedback.
