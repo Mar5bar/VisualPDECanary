@@ -149,6 +149,41 @@ export function overlayShader() {
   col = mix(col, overlayColour, float(abs(overlayExpr) < overlayEpsilon));`;
 }
 
+// MRT counterpart of fiveColourDisplayTop(), used only once numGroups(numSpecies)>1. Adds a
+// third sampler (textureSourceGroup1, group 1's raw current state) alongside the existing
+// textureSource (post-processed display value) and textureSource1 (group 0's raw state,
+// used by overlayShaderMRT below), so an overlay expression can reference species 5-8.
+export function fiveColourDisplayTopMRT() {
+  return fiveColourDisplayTop().replace(
+    "uniform sampler2D textureSource1;",
+    "uniform sampler2D textureSource1;\n    uniform sampler2D textureSourceGroup1;",
+  );
+}
+
+// MRT counterpart of overlayShader(): samples group 1's 5-point stencil (uvwq2-family) from
+// textureSourceGroup1, in addition to the existing group-0 stencil from textureSource1, so
+// OVERLAYEXPR (already group-aware via parseShaderString) resolves correctly for group-1
+// species references. The group-1 locals must be declared *before* "float overlayExpr =
+// OVERLAYEXPR;" (not simply appended after overlayShader()'s text), since OVERLAYEXPR gets
+// substituted with an expression that may reference them.
+export function overlayShaderMRT() {
+  return overlayShader().replace(
+    "float overlayExpr = OVERLAYEXPR;",
+    `vec4 uvwq2 = texture2D(textureSourceGroup1, textureCoords);
+  vec4 uvwq2L = texture2D(textureSourceGroup1, textureCoords + vec2(-step_x, 0.0));
+  vec4 uvwq2R = texture2D(textureSourceGroup1, textureCoords + vec2(+step_x, 0.0));
+  vec4 uvwq2T = texture2D(textureSourceGroup1, textureCoords + vec2(0.0, +step_y));
+  vec4 uvwq2B = texture2D(textureSourceGroup1, textureCoords + vec2(0.0, -step_y));
+  vec4 uvwq2X = (uvwq2R - uvwq2L) / (2.0*dx) * dxUpscaledScale;
+  vec4 uvwq2Y = (uvwq2T - uvwq2B) / (2.0*dy) * dyUpscaledScale;
+  vec4 uvwq2XF = (uvwq2R - uvwq2) / dx * dxUpscaledScale;
+  vec4 uvwq2YF = (uvwq2T - uvwq2) / dy * dyUpscaledScale;
+  vec4 uvwq2XB = (uvwq2 - uvwq2L) / dx * dxUpscaledScale;
+  vec4 uvwq2YB = (uvwq2 - uvwq2B) / dy * dyUpscaledScale;
+  float overlayExpr = OVERLAYEXPR;`,
+  );
+}
+
 export function largestSpeciesShader() {
   return `varying vec2 textureCoords;
       uniform sampler2D textureSource;

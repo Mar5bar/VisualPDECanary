@@ -70,6 +70,11 @@ p > a:visited {
   text-decoration: underline;
 }
 
+.soft {
+  color: var(--soft-text-color);
+  font-size: 0.9rem;
+}
+
 noscript {
   position: absolute;
   text-align: center;
@@ -430,6 +435,28 @@ button.combo-bcs {
   pointer-events: all;
   font-size: 0.9rem;
   visibility: visible;
+}
+
+button.matrix-view {
+  /* .hidden (global utility class, toggled from JS) handles show/hide - see main.js.
+     right: 30px (not the default info-link slot, 10px) since "Diffusion coefficients" now
+     also has an info-link button of its own, which would otherwise sit at the same spot. */
+  background: none;
+  border: none;
+  color: var(--link-color);
+  position: absolute;
+  top: 0.5rem;
+  right: 30px;
+  opacity: 100%;
+  pointer-events: all;
+  cursor: pointer;
+  padding: 2px 6px 3px 6px;
+}
+
+@media (hover: hover) {
+  button.matrix-view:hover {
+    color: var(--text-color);
+  }
 }
 
 button.focus-params:has(~ ul:not(.closed)) {
@@ -973,6 +1000,99 @@ button.focus-params.active {
   padding-bottom: min(1rem, 2vw);
 }
 
+.big-popup ul {
+  color: var(--text-color);
+  font-size: min(1.2rem, 5vw);
+  padding-bottom: min(1rem, 2vw);
+  padding-left: 1.5rem;
+  margin: 0 auto 0.5rem auto;
+  text-align: left;
+  width: fit-content;
+}
+
+/* Wider variant of .big-popup, for content that needs more than the default 20rem (the
+   diffusion matrix popup's grid, which can be up to 8x8). */
+.big-popup.wide {
+  width: min(95vw, 44rem);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+#diffusionMatrixEquation {
+  color: var(--text-color);
+  font-size: min(1.3rem, 5vw);
+  padding-bottom: min(1rem, 2vw);
+}
+
+/* Grid layout set dynamically (grid-template-columns/rows) from JS, since the number of
+   species (and so columns/rows) varies from 1 to 8. */
+#diffusionMatrixGrid {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  gap: 0.35rem 0.5rem;
+  margin: 0 auto 1.5rem auto;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+#diffusionMatrixGrid .matrix-col-label,
+#diffusionMatrixGrid .matrix-row-label {
+  color: var(--text-color);
+  opacity: 0.7;
+  font-size: min(1rem, 4vw);
+}
+
+#diffusionMatrixGrid .matrix-equals {
+  color: var(--text-color);
+  font-size: min(1.3rem, 5vw);
+  justify-self: end;
+}
+
+/* A pair of CSS-drawn "(" ")" brackets, stretched (via CSS grid row span) to the full
+   height of the input grid regardless of how many rows/species there are. */
+#diffusionMatrixGrid .matrix-bracket {
+  align-self: stretch;
+  width: 0.6rem;
+  border-top: 3px solid var(--text-color);
+  border-bottom: 3px solid var(--text-color);
+}
+
+#diffusionMatrixGrid .matrix-bracket.left {
+  border-left: 3px solid var(--text-color);
+  border-radius: 50% 0 0 50% / 14px 0 0 14px;
+  margin-right: -0.15rem;
+}
+
+#diffusionMatrixGrid .matrix-bracket.right {
+  border-right: 3px solid var(--text-color);
+  border-radius: 0 50% 50% 0 / 0 14px 14px 0;
+  margin-left: -0.15rem;
+}
+
+#diffusionMatrixGrid input[type="text"] {
+  background: var(--input-background-color);
+  color: var(--text-color);
+  border: 1px solid var(--tile-border-color);
+  border-radius: 3px;
+  font-size: 0.9rem;
+  width: 3.4rem;
+  height: 1.6rem;
+  text-align: center;
+  padding: 0 2px;
+}
+
+#diffusionMatrixGrid input[type="text"]:focus {
+  border: 1px solid var(--link-color);
+  outline: none;
+}
+
+#diffusionMatrix_ok {
+  display: block;
+  margin: 0 auto;
+}
+
 #error_description {
   font-family: monospace;
   font-size: small;
@@ -1418,7 +1538,7 @@ a#add_view {
 }
 
 .dg li.folder {
-  border-left: 0;
+  border-left: 4px solid var(--active-button-background-color) !important;
 }
 
 .button_list {
@@ -1739,6 +1859,60 @@ select {
 
 .dg .c .slider {
   display: none;
+}
+
+/* Expressions' per-row "TeX" toggle button (see setupExpressionShowToggle in main.js): lays
+   the text input and toggle out side by side within the row, instead of the default
+   full-width single-input layout. */
+.dg .c.params.hasShowToggle {
+  display: flex !important;
+  align-items: center;
+}
+
+.dg .c.params.hasShowToggle input[type="text"],
+.dg .c.params.hasShowToggle input[type="text"]:focus {
+  width: auto !important;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Styled like the toggle buttons elsewhere in the UI (see .button_list button/.toggled_on
+   above), just sized to sit inline within an Expression row rather than in a .button_list. */
+.expr-show-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  height: 21px;
+  min-width: 2.6em;
+  margin: 3px -5px 0 9px;
+  padding: 0 6px;
+  border: 1px solid var(--ui-button-border-color);
+  border-radius: 5px;
+  background-color: unset;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.expr-show-toggle.toggled_on {
+  background-color: var(--active-button-background-color);
+}
+
+@media (hover: hover) {
+  .expr-show-toggle:hover {
+    background-color: var(--views-hover-color);
+  }
+
+  .expr-show-toggle.toggled_on:hover {
+    background-color: var(--toggled-on-hover-color);
+  }
+}
+
+.expr-show-toggle mjx-container {
+  margin: 0 !important;
+  font-size: 0.85rem !important;
 }
 
 #embed,

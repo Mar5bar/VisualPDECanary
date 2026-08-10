@@ -475,7 +475,7 @@
         simulation.
       </p>
       <button class="btn-primary message_ok highlight" id="llm_click_open">Open LLM
-        <svg style="color:" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
           <path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"></path>
           <path fill="currentColor" d="M5 5h6v2H7v10h10v-4h2v6H5z"></path>
         </svg>
@@ -484,6 +484,25 @@
       <p style="font-size: 0.8em">
         If you don't see a VisualPDE-tailored chat, please sign in to Google, then open the LLM again.
       </p>
+    </div>
+    <div class="message big-popup" id="updates-message">
+      <div class="centre_symbol"><i class="fa-solid fa-star"></i></div>
+      <p><strong>What's new with VisualPDE?</strong></p>
+      <ul>
+        <li>Solve up to 8 equations at once <span class="soft">and explore countless new possibilities.</span></li>
+        <li>Use $\int_{\domain} f(x,y,u,...) \dx \dy$ <span class="soft">with new <code>GlobalInt</code> <a href="/user-guide/advanced-options.html#integrals" target="_blank">syntax</a>.</span></li>
+      </ul>
+      <button class="btn-primary message_ok highlight" id="updates_message_ok">
+        OK!
+      </button>
+    </div>
+
+    <div class="message big-popup wide" id="diffusionMatrix_ui">
+      <p id="diffusionMatrixEquation"></p>
+      <div id="diffusionMatrixGrid"></div>
+      <button class="btn-primary message_ok highlight" id="diffusionMatrix_ok">
+        OK
+      </button>
     </div>
 
     <div id="comboBCs_ui" class="ui hidden">
