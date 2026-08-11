@@ -27,7 +27,7 @@ VisualPDE solves systems of PDEs in 1D or 2D space, originally focusing on time-
 
 By default the domain is your device screen (your computer, your phone, your TV, etc.) but you can switch to other shapes by using indicator functions, or uploading a picture. While the interface is intended to be simple, one can modify the spatial discretisation and timestepping, alongside many other aspects of the simulation and its display. You can even make simulations where the user can change the domain itself; below is an example of [wave propagation](https://visualpde.com/basic-pdes/inhomogeneous-wave-equation) where clicking introduces obstacles, allowing you to observe reflection of waves from obstacles in real-time.
 
-IFRAME: <iframe title="VisualPDE simulation" style="border:0;width:100%;height:100%;" src="preset=wavesGeometryOscillatingSponge" frameborder="0"></iframe>
+IFRAME: <iframe title="VisualPDE simulation" style="width:100%;aspect-ratio:1;" src="https://visualpde.com/sim?preset=wavesGeometryOscillatingSponge" frameborder="0"></iframe>
 
 You can see 60 pre-made examples on our [explore gallery](https://visualpde.com/explore.html), from spatial mathematical biology and fluid dynamics, to solitons and image processing PDEs. But the real power is in you being able to enter the system you’re most interested in. There is a [short video guide](https://visualpde.com/create) to creating your own systems, and [complete documentation](https://visualpde.com/user-guide) of all features on the website. Play around and, if you'd like help, [get in touch](https://visualpde.com/contact.html).
 
