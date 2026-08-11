@@ -213,6 +213,7 @@ async function VisualPDE(url) {
     timescalesFolder,
     diffusionCoeffsFolder,
     diffusionMatrixButton,
+    crossDiffusionToggle,
     reactionTermsFolder,
     boundaryConditionsFolder,
     initialConditionsFolder,
@@ -1485,10 +1486,7 @@ async function VisualPDE(url) {
         // is otherwise only re-checked inside configureGUI(), so without this the button
         // could stay (in)visible after crossing the breakpoint until some other option
         // change happens to trigger a reconfigure.
-        diffusionMatrixButton.classList.toggle(
-          "hidden",
-          !options.crossDiffusion || onSmallScreen(),
-        );
+        diffusionMatrixButton.classList.toggle("hidden", onSmallScreen());
       },
       false,
     );
@@ -2506,7 +2504,7 @@ async function VisualPDE(url) {
 
     // Cross-diffusion toggle button.
     const crossDiffusionButtonList = addButtonList(root);
-    addToggle(
+    crossDiffusionToggle = addToggle(
       crossDiffusionButtonList,
       "crossDiffusion",
       '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
@@ -7079,13 +7077,9 @@ async function VisualPDE(url) {
       $("#cross_diffusion_controller").hide();
     }
 
-    // The "edit as a matrix" button only makes sense once there's a matrix to edit (cross
-    // diffusion on), and is hidden on small screens - the popup's grid needs real screen
+    // The "edit as a matrix" button is hidden on small screens - the popup's grid needs real screen
     // space to be usable.
-    diffusionMatrixButton.classList.toggle(
-      "hidden",
-      !options.crossDiffusion || onSmallScreen(),
-    );
+    diffusionMatrixButton.classList.toggle("hidden", onSmallScreen());
 
     // Show all timescale panels to begin with. Guarded with ?. because controllers for
     // TU5-TU8 don't exist until the GUI is extended to 8 species (Stage 9 of the upgrade).
@@ -12223,6 +12217,9 @@ async function VisualPDE(url) {
     diffusionMatrixButton.onclick = function (e) {
       e.stopPropagation();
       openDiffusionMatrixGUI();
+      if (!options.crossDiffusion) {
+        crossDiffusionToggle.click();
+      }
     };
     // Reuses has-info-link purely for its `position: relative` effect on the folder title
     // (no actual info-link on this folder) - the same anchor every absolutely-positioned
