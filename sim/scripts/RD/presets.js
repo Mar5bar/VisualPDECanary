@@ -7875,7 +7875,11 @@ presets["default"] = {
   flippedColourmap: false,
   forceManualInterpolation: false,
   forceTryClickingPopup: false,
-  globalIntegralFun: "u;v;0;0",
+  // Up to 4 slots holding the current Int(expression) -> globalIntegralValueN
+  // assignment (null = free), stably reconciled by reconcileGlobalIntegrals() in
+  // main.js as Int(...) usages appear/disappear across the simulation's fields. Not a
+  // user text field - see getUserTextFields().
+  globalIntExprs: [null, null, null, null],
   globalIntegralUpdatePeriod: 10,
   guiUpdatePeriod: 2,
   imagePathOne: "./images/Sofya.webp",
@@ -8136,7 +8140,6 @@ export function getUserTextFields() {
     "dirichletStr_8",
     "domainIndicatorFun",
     "expressions",
-    "globalIntegralFun",
     "overlayExpr",
     "probeFun",
     "probeX",

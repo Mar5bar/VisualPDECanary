@@ -16,6 +16,16 @@ function stubThrowError() {
   return messages;
 }
 
+// reconcileGlobalIntegrals() calls these (only when options.globalIntExprs actually
+// changes) to rebuild the GPU integral shader and refresh the on-screen equation display -
+// both real DOM/THREE work, well beyond what these unit tests need to cover.
+function stubGlobalIntegralRebuild() {
+  m.__setState({
+    setGlobalIntegralShader: () => {},
+    setEquationDisplayType: () => {},
+  });
+}
+
 // --- parseNamedDefinition ---------------------------------------------------
 
 test("parseNamedDefinition: parses 'name = rhs', trims whitespace, handles multi-line rhs", () => {
@@ -236,74 +246,216 @@ test("diffCtrlKey: species 1-4 (1-based) use legacy letter-pair keys; anything t
   assert.equal(m.diffCtrlKey(5, 5), "D_5_5");
 });
 
-// --- getGlobalIntegralComponents / setGlobalIntegralComponent ---------------
+// --- parseIntCalls / replaceIntCalls -----------------------------------------
 
-test("getGlobalIntegralComponents: splits the packed field on ';', trimming whitespace", () => {
-  m.__setState({ options: { globalIntegralFun: "u ; v ; 0 ; w*v" } });
-  assert.deepEqual(m.getGlobalIntegralComponents(), ["u", "v", "0", "w*v"]);
+test("parseIntCalls: extracts the argument of each Int(...) call, matching balanced (nested) brackets", () => {
+  const calls = m.parseIntCalls("Int(u*(v+1)) + Int(w)");
+  assert.deepEqual(
+    calls.map((c) => c.expr),
+    ["u*(v+1)", "w"],
+  );
 });
 
-test("getGlobalIntegralComponents: missing/blank components (including a bare, unsplit field, for backwards compatibility) default to '0'", () => {
-  m.__setState({ options: { globalIntegralFun: "u" } });
-  assert.deepEqual(m.getGlobalIntegralComponents(), ["u", "0", "0", "0"]);
-
-  m.__setState({ options: { globalIntegralFun: "u;;w;" } });
-  assert.deepEqual(m.getGlobalIntegralComponents(), ["u", "0", "w", "0"]);
+test("parseIntCalls: canonicalizes whitespace so equivalent expressions compare equal", () => {
+  const calls = m.parseIntCalls("Int( u * v ) + Int(u*v)");
+  assert.equal(calls[0].expr, calls[1].expr);
+  assert.equal(calls[0].expr, "u*v");
 });
 
-test("setGlobalIntegralComponent: updates only the given (0-based) slot, preserving the others", () => {
-  m.__setState({ options: { globalIntegralFun: "u;v;0;0" } });
-  m.setGlobalIntegralComponent(2, "w*v");
-  assert.equal(m.options.globalIntegralFun, "u;v;w*v;0");
-  m.setGlobalIntegralComponent(0, "");
-  assert.equal(m.options.globalIntegralFun, "0;v;w*v;0");
+test("parseIntCalls: unbalanced brackets are skipped rather than crashing", () => {
+  assert.deepEqual(m.parseIntCalls("Int(u"), []);
 });
 
-test("parseShaderString: substitutes GlobalInt1-4 with globalIntegralValue1-4, and bare GlobalInt with globalIntegralValue1", () => {
+test("parseIntCalls: nested Int(...) is rejected via throwError", () => {
+  const messages = stubThrowError();
+  m.parseIntCalls("Int(Int(u))");
+  assert.equal(messages.length, 1);
+  assert.match(messages[0], /cannot be nested/);
+});
+
+test("replaceIntCalls: splices each Int(...) call's replacement in place, keeping surrounding text intact", () => {
+  const out = m.replaceIntCalls("2*Int(u) + Int(v*2)", (expr) => "<" + expr + ">");
+  assert.equal(out, "2*<u> + <v*2>");
+});
+
+// --- reconcileGlobalIntegrals -------------------------------------------------
+
+function baseOptionsForReconcile(overrides = {}) {
+  // getUserTextFields() is real (imported from presets.js), so reconcileGlobalIntegrals
+  // scans ~140 fields; only the ones under test need to actually be strings.
+  return { globalIntExprs: [null, null, null, null], ...overrides };
+}
+
+test("reconcileGlobalIntegrals: assigns newly-seen expressions to the lowest free slot, in first-appearance order", () => {
   m.__setState({
-    options: { minX: "0", minY: "0", globalIntegralFun: "u;v;0;0" },
+    options: baseOptionsForReconcile({
+      // All in one field, so the assertion only depends on left-to-right appearance order,
+      // not on getUserTextFields()'s (unspecified-by-this-test) field iteration order.
+      reactionStr_1: "Int(u) + Int(v) + Int(w)",
+    }),
+  });
+  stubThrowError();
+  stubGlobalIntegralRebuild();
+  const changed = m.reconcileGlobalIntegrals();
+  assert.equal(changed, true);
+  assert.deepEqual(m.options.globalIntExprs, ["u", "v", "w", null]);
+});
+
+test("reconcileGlobalIntegrals: is a no-op (returns false, doesn't touch the array) when nothing changed", () => {
+  m.__setState({
+    options: baseOptionsForReconcile({
+      globalIntExprs: ["u", null, null, null],
+      reactionStr_1: "Int(u)",
+    }),
+  });
+  stubThrowError();
+  stubGlobalIntegralRebuild();
+  const before = m.options.globalIntExprs;
+  const changed = m.reconcileGlobalIntegrals();
+  assert.equal(changed, false);
+  assert.equal(m.options.globalIntExprs, before); // same array instance, not just deepEqual
+});
+
+test("reconcileGlobalIntegrals: stability - removing one Int(...) frees its slot without renumbering the others", () => {
+  m.__setState({
+    options: baseOptionsForReconcile({
+      globalIntExprs: ["u", "v", "w", null],
+      // "u" no longer appears anywhere; "v" and "w" still do.
+      reactionStr_1: "Int(v)",
+      initCond_1: "Int(w)",
+    }),
+  });
+  stubThrowError();
+  stubGlobalIntegralRebuild();
+  m.reconcileGlobalIntegrals();
+  assert.deepEqual(m.options.globalIntExprs, [null, "v", "w", null]);
+});
+
+test("reconcileGlobalIntegrals: a freed slot is reused by a new expression rather than the others being compacted down", () => {
+  m.__setState({
+    options: baseOptionsForReconcile({
+      globalIntExprs: [null, "v", "w", null],
+      reactionStr_1: "Int(v) + Int(x)",
+      initCond_1: "Int(w)",
+    }),
+  });
+  stubThrowError();
+  stubGlobalIntegralRebuild();
+  m.reconcileGlobalIntegrals();
+  assert.deepEqual(m.options.globalIntExprs, ["x", "v", "w", null]);
+});
+
+test("reconcileGlobalIntegrals: the same expression used in multiple fields only takes one slot", () => {
+  m.__setState({
+    options: baseOptionsForReconcile({
+      reactionStr_1: "Int(u)",
+      reactionStr_2: "Int(u) + 1",
+    }),
+  });
+  stubThrowError();
+  stubGlobalIntegralRebuild();
+  m.reconcileGlobalIntegrals();
+  assert.deepEqual(m.options.globalIntExprs, ["u", null, null, null]);
+});
+
+test("reconcileGlobalIntegrals: a 5th distinct expression overflows, throwing an error and leaving it unassigned", () => {
+  m.__setState({
+    options: baseOptionsForReconcile({
+      reactionStr_1: "Int(a) + Int(b) + Int(c) + Int(d) + Int(e)",
+    }),
+  });
+  const messages = stubThrowError();
+  stubGlobalIntegralRebuild();
+  m.reconcileGlobalIntegrals();
+  assert.deepEqual(m.options.globalIntExprs, ["a", "b", "c", "d"]);
+  assert.equal(messages.length, 1);
+  assert.match(messages[0], /at most 4/);
+});
+
+// --- parseShaderString / parseStringToTEX: Int(...) --------------------------
+
+test("parseShaderString: substitutes Int(expr) with the globalIntegralValueN uniform for expr's reconciled slot", () => {
+  m.__setState({
+    options: { minX: "0", minY: "0", globalIntExprs: ["u", "v", null, null] },
     listOfSpecies: ["u", "v"],
     listOfReactions: ["UFUN", "VFUN"],
     expandedExpressionDefs: {},
   });
   stubThrowError();
   m.genAnySpeciesRegexStrs();
-  const out = m.parseShaderString("GlobalInt1 + GlobalInt2 + GlobalInt");
-  assert.equal(out.trim(), "globalIntegralValue1 + globalIntegralValue2 + globalIntegralValue1");
+  const out = m.parseShaderString("Int(u) + Int(v)");
+  assert.equal(out.trim(), "globalIntegralValue1 + globalIntegralValue2");
 });
 
-test("parseStringToTEX: substitutes GlobalInt1-4 (and bare GlobalInt) with \\iint_{\\Omega}(the matching component)", () => {
+test("parseShaderString: an Int(expr) with no reconciled slot degrades to 0.0 rather than crashing", () => {
   m.__setState({
-    options: { minX: "0", minY: "0", globalIntegralFun: "u;v;0;0", dimension: "2" },
+    options: { minX: "0", minY: "0", globalIntExprs: [null, null, null, null] },
+    listOfSpecies: ["u"],
+    listOfReactions: ["UFUN"],
+    expandedExpressionDefs: {},
+  });
+  stubThrowError();
+  m.genAnySpeciesRegexStrs();
+  const out = m.parseShaderString("Int(u)");
+  assert.equal(out.trim(), "0.0");
+});
+
+test("parseStringToTEX: substitutes Int(expr) with \\iint_{\\Omega}(expr, fully TeX-formatted)", () => {
+  m.__setState({
+    options: { minX: "0", minY: "0", dimension: "2" },
     listOfSpecies: ["u", "v"],
     listOfReactions: ["UFUN", "VFUN"],
   });
   stubThrowError();
-  const out = m.parseStringToTEX("a*GlobalInt2 + GlobalInt");
-  assert.match(out, /a \\iint_\{\\Omega\} v\\, \\d x \\d y\\ /);
-  assert.match(out, /\\iint_\{\\Omega\} u\\, \\d x \\d y\\ /);
+  const out = m.parseStringToTEX("a*Int(u*v)");
+  assert.doesNotMatch(out, /\*/); // each Int(...) argument gets its own TeX formatting
+  assert.match(out, /\\iint_\{\\Omega\} \\left\(u v\\right\)\\, \\d x \\d y\\ /);
 });
 
-test("parseStringToTEX: each integral component gets its own full TeX formatting (e.g. '*' removed), not spliced in as a raw expression string", () => {
+test("parseStringToTEX: doesn't infinitely recurse when str has no Int(...) at all (regression: the substitution must only recurse when an actual Int(...) match exists)", () => {
   m.__setState({
-    options: { minX: "0", minY: "0", globalIntegralFun: "u*v;0;0;0", dimension: "2" },
-    listOfSpecies: ["u", "v"],
-    listOfReactions: ["UFUN", "VFUN"],
-  });
-  stubThrowError();
-  const out = m.parseStringToTEX("GlobalInt1");
-  assert.doesNotMatch(out, /\*/);
-  assert.match(out, /\\iint_\{\\Omega\} u v\\, \\d x \\d y\\ /);
-});
-
-test("parseStringToTEX: doesn't infinitely recurse when a component's own text is unrelated to GlobalInt (regression: the substitution must use a lazy replacer function, since parseStringToTEX(component) is only safe to call when there's an actual GlobalInt match to replace)", () => {
-  m.__setState({
-    options: { minX: "0", minY: "0", globalIntegralFun: "u*v;v;0;0", dimension: "2" },
+    options: { minX: "0", minY: "0", dimension: "2" },
     listOfSpecies: ["u", "v"],
     listOfReactions: ["UFUN", "VFUN"],
   });
   stubThrowError();
   assert.equal(m.parseStringToTEX("a - b"), "a - b");
+});
+
+// --- migrateGlobalIntSyntax ---------------------------------------------------
+
+test("migrateGlobalIntSyntax: is a no-op when there's no old globalIntegralFun field", () => {
+  m.__setState({ options: { reactionStr_1: "u" } });
+  m.migrateGlobalIntSyntax();
+  assert.deepEqual(m.options, { reactionStr_1: "u" });
+});
+
+test("migrateGlobalIntSyntax: rewrites GlobalInt1-4 and bare GlobalInt (slot 1) into Int(<old component>), then deletes globalIntegralFun", () => {
+  m.__setState({
+    options: {
+      globalIntegralFun: "u;v;0;0",
+      reactionStr_1: "GlobalInt1 + GlobalInt2",
+      reactionStr_2: "GlobalInt", // bare form == slot 1, for backwards compatibility
+      initCond_1: "1.0", // untouched, no GlobalInt reference
+    },
+  });
+  m.migrateGlobalIntSyntax();
+  assert.equal(m.options.reactionStr_1, "Int(u) + Int(v)");
+  assert.equal(m.options.reactionStr_2, "Int(u)");
+  assert.equal(m.options.initCond_1, "1.0");
+  assert.equal(m.options.hasOwnProperty("globalIntegralFun"), false);
+});
+
+test("migrateGlobalIntSyntax: also rewrites GlobalInt tokens inside per-view field overrides", () => {
+  m.__setState({
+    options: {
+      globalIntegralFun: "u;v;0;0",
+      probeFun: "0",
+      views: [{ probeFun: "GlobalInt2" }],
+    },
+  });
+  m.migrateGlobalIntSyntax();
+  assert.equal(m.options.views[0].probeFun, "Int(v)");
 });
 
 // --- lerp / lerpArrays -------------------------------------------------------

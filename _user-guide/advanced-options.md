@@ -156,22 +156,6 @@ An additional type of condition, 'Ghost', can also be specified with Mixed bound
 
 Initial conditions can be specified for any variables in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), the random quantity `RAND`, a uniformly random value in $[0,1]$, the random quantity `RANDN`, a normally-distributed random number with unit variance and zero mean, and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
-### Integrals <a class="anchor" id='integrals'>
-
-Up to 4 quantities can be integrated over the domain at every timestep, then used in equation right-hand-sides via the variables `GlobalInt1`, `GlobalInt2`, `GlobalInt3` and `GlobalInt4`. For backwards compatibility, `GlobalInt` on its own is equivalent to `GlobalInt1`.
-
-- #### Integrand 1 / Integrand 2 / Integrand 3 / Integrand 4
-
-  The expressions to be integrated over the domain, corresponding to `GlobalInt1`-`GlobalInt4`. Each can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$). See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions. Leave an entry as `0` (the default) if you don't need that integral - it won't be computed.
-
-  As an example, you can track the total mass of a variable $u$ by setting **Integrand 1** to `u`, then using `GlobalInt1` (or, equivalently, `GlobalInt`) in a reaction term. Each integral is coarsely approximated by a simple Riemann sum, with accuracy (and computational cost) increasing with mesh refinement.
-
-  Integrals are only computed while at least one of `GlobalInt1`-`GlobalInt4` is actually referenced somewhere in your equations - simply filling in an entry here has no computational cost until it is used.
-
-- #### Update period
-
-  The number of timesteps between updates of the integrals. Lower numbers result in more frequent updates, but may slow down the simulation. Must be an integer greater than 0.
-
 ---
 
 ## Views {{ layout.views }} <a class="anchor" id='views'>
@@ -512,6 +496,10 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 
   The degree to which the blend image should be blended into the simulation view. 0 corresponds to no blending.
 
+- #### Int. update
+
+  The number of timesteps between updates of any `Int(...)` quantities used in the simulation - see our discussion of [domain integrals](#special-functions). Lower numbers result in more frequent updates, but may slow down the simulation. Must be an integer greater than 0.
+
 - #### Dev <a class="anchor" id='dev'>
 
   Tools intended for the development and benchmarking of VisualPDE.
@@ -571,13 +559,17 @@ First derivatives in space, accessed with `u_x`, `u_y`, ..., are computed using 
 
 Forward and backward differences can also be computed with second-order numerical schemes by appending `2` to the subscript, though in general this will only respect Periodic boundary conditions in the direction of the derivative. This syntax can only be used in the [**Equations**](#edit) menu.
 
-### Special functions
+### Special functions <a class="anchor" id='special-functions'>
 
 Throughout VisualPDE, you can make use of the special functions `sin`, `cos`, `tan`, `exp`, `log`, `sqrt`, `sinh`, `cosh`, `tanh` and `H`, where the latter is a [Heaviside function](https://en.wikipedia.org/wiki/Heaviside_step_function) smoothed over the interval $[-1,1]$ (see the [GLSL reference](https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml) for details). All function arguments should be surrounded by parentheses, e.g. `sin(x)`. You can also use `min` and `max` as functions with two arguments, which return the minimum or maximum of their arguments, e.g. `min(u,1)` returns the minimum of $u$ and 1. If you wish to raise the output of a function to a power, you must enclose the function in parentheses, e.g. write `(cos(x))^2`, not `cos(x)^2`. You can also use `mod(a,b)` to compute the remainder of $a$ upon division by $b$ (see the [GLSL reference](https://registry.khronos.org/OpenGL-Refpages/gl4/html/mod.xhtml) for details).
 
 A [bump function](https://en.m.wikipedia.org/wiki/Bump_function) with compact support can be used via the syntax `Bump(X, Y, radius)` (or `Bump(X, radius)` in 1D, with `Y` implicitly set to `L_y/2`), which localises a bump of unit maximum of the given radius at the point $(X, Y)$.
 
 A [bivariate Gaussian function](https://en.wikipedia.org/wiki/Multivariate_normal_distribution) can be used with similar syntax to the bump function: `Gauss(X, Y, s)` is a correctly normalised Gaussian function centred at $(X,Y)$ with standard deviation `s`. The extended syntax `Gauss(X, Y, s_x, s_y)` produces a potentially asymmetric Gaussian with standard deviations `s_x` and `s_y` in the $x$ and $y$ directions, with zero correlation. Correlation can be specified via `Gauss(X, Y, s_x, s_y, r)`, where `r` is the correlation between the two directions.
+
+A quantity can be integrated over the domain at every timestep using the syntax `Int(expression)`, where `expression` can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$). See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions. As an example, you can track the total mass of a variable $u$ in a reaction term by writing `Int(u)` directly in that term.
+
+Up to 4 distinct `Int(...)` expressions can be used across a simulation - VisualPDE automatically manages their evaluation behind the scenes, so the same expression, e.g. `Int(u)`, can be reused in as many fields as you like at no extra cost, while an unrelated 5th expression will raise an error. Each integral is coarsely approximated by a simple Riemann sum, with accuracy (and computational cost) increasing with mesh refinement, and is only computed while actually referenced somewhere in your simulation. The rate at which these integrals are recomputed is set by **Int. update** in <span class='click_sequence'>{{ layout.settings }} → **Misc.**</span>. `Int(...)` expressions cannot be nested (e.g. `Int(Int(u))` is not valid), since the result of an integral is already constant over space.
 
 ### Non-local evaluation
 

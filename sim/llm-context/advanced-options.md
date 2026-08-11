@@ -553,6 +553,11 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
   The degree to which the blend image should be blended into the simulation view. 0 corresponds to no blending.
   JSON key: `blendImageAmount`, float.
 
+- #### Int. update
+
+  The number of timesteps between updates of any `Int(...)` quantities used in the simulation - see the "Special functions" section below. Lower numbers result in more frequent updates, but may slow down the simulation. Must be an integer greater than 0.
+  JSON key: `globalIntegralUpdatePeriod`, integer.
+
 - #### Dev
 
   Tools intended for the development and benchmarking of VisualPDE.
@@ -620,6 +625,8 @@ Throughout VisualPDE, you can make use of the special functions `sin`, `cos`, `t
 A [bump function](https://en.m.wikipedia.org/wiki/Bump_function) with compact support can be used via the syntax `Bump(X, Y, radius)` (or `Bump(X, radius)` in 1D, with `Y` implicitly set to `L_y/2`), which localises a bump of unit maximum of the given radius at the point $(X, Y)$.
 
 A [bivariate Gaussian function](https://en.wikipedia.org/wiki/Multivariate_normal_distribution) can be used with similar syntax to the bump function: `Gauss(X, Y, s)` is a correctly normalised Gaussian function centred at $(X,Y)$ with standard deviation `s`. The extended syntax `Gauss(X, Y, s_x, s_y)` produces a potentially asymmetric Gaussian with standard deviations `s_x` and `s_y` in the $x$ and $y$ directions, with zero correlation. Correlation can be specified via `Gauss(X, Y, s_x, s_y, r)`, where `r` is the correlation between the two directions.
+
+A quantity can be integrated over the domain at every timestep using the syntax `Int(expression)`, where `expression` follows the same rules as any other expression. As an example, you can track the total mass of a variable $u$ in a reaction term by writing `Int(u)` directly in that term. Up to 4 distinct `Int(...)` expressions can be used across a simulation - the same expression can be reused in as many fields as you like at no extra cost, while a 5th distinct expression raises an error. `Int(...)` expressions cannot be nested. The update rate is set by **Int. update** under **Misc** (JSON key: `globalIntegralUpdatePeriod`). There is no separate JSON key for the integrand expressions themselves - they live inline, wherever `Int(...)` is used.
 
 ### Non-local evaluation
 
