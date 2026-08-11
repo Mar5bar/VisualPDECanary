@@ -409,7 +409,7 @@ test("parseStringToTEX: substitutes Int(expr) with \\iint_{\\Omega}(expr, fully 
   stubThrowError();
   const out = m.parseStringToTEX("a*Int(u*v)");
   assert.doesNotMatch(out, /\*/); // each Int(...) argument gets its own TeX formatting
-  assert.match(out, /\\iint_\{\\Omega\} \\left\(u v\\right\)\\, \\d x \\d y\\ /);
+  assert.match(out, /\\iint_\{\\Omega\} u v\\, \\d x \\d y\\ /);
 });
 
 test("parseStringToTEX: doesn't infinitely recurse when str has no Int(...) at all (regression: the substitution must only recurse when an actual Int(...) match exists)", () => {

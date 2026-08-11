@@ -8233,7 +8233,7 @@ async function VisualPDE(url) {
     str = str.replaceAll(/\bGauss\b/g, "\\mathcal{N}");
 
     // Swap each Int(...) placeholder (see the top of this function) for its actual
-    // \int_{\Omega}(expression, as TeX) rendering. This must happen here - after the
+    // \int_{\Omega} expression \d x \d y rendering. This must happen here - after the
     // bracket/left-right/function-name passes above (which would otherwise mangle the raw
     // "Int(...)" syntax before we could find it, hence resolving it into an inert
     // placeholder up front instead) but before the underscore/subscript passes below (which
@@ -8244,13 +8244,12 @@ async function VisualPDE(url) {
     // actually existed in the original string, so there's no risk of unconditionally
     // recursing on every parseStringToTEX() call regardless of whether "Int(" was ever
     // actually present) to get the same TeX formatting (removing "*", species substitution,
-    // etc.) as the rest of the equation.
+    // etc.) as the rest of the equation. No outer parens around the integrand - matches how
+    // the rest of the equation display renders bare terms.
     intCallPlaceholders.forEach(([placeholder, expr]) => {
       const replacement =
         (options.dimension == 1 ? "\\int_{\\Omega} " : "\\iint_{\\Omega} ") +
-        "\\left(" +
         parseStringToTEX(expr) +
-        "\\right)" +
         (options.dimension == 1 ? "\\, \\d x \\ " : "\\, \\d x \\d y\\ ");
       // split/join rather than replaceAll, so a "$"-containing expression (e.g. a species
       // name never actually looks like this, but a user-defined parameter safely could)
