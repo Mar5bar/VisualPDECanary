@@ -2389,27 +2389,63 @@ async function VisualPDE(url) {
     addInfoButton(root, "/user-guide/advanced-options#edit");
     addFocusLeftGUIButton(editEquationsFolder);
 
-    // Timescale controllers get their own sub-folder, shown only when the "Scales" toggle is
-    // on (configureGUI() shows/hides the folder itself, mirroring how it already showed/hid
-    // each controller individually before this folder existed).
-    timescalesFolder = editEquationsFolder.addFolder("Timescales");
-    root = timescalesFolder;
-    addInfoButton(root, "/user-guide/advanced-options#timescales");
+    // Species-count/naming controllers get their own sub-folder too, back directly under
+    // "Equations" as a sibling of Timescales/Diffusion coefficients/Reaction terms (not nested
+    // inside "Parameters and notation" - Parameters/Expressions live there instead).
+    root = editEquationsFolder;
+    variablesFolder = editEquationsFolder.addFolder("Variables");
+    addInfoButton(variablesFolder, "/user-guide/advanced-options#variables");
+    root = variablesFolder;
 
-    // Timescale controllers for all 8 species. See timescaleTag() for the species 1-4 vs 5-8
-    // key-naming split (matching timescaleTags above).
-    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
-      const tTag = timescaleTag(i);
-      controllers[tTag] = root
-        .add(options, "timescale_" + i)
-        .onFinishChange(function () {
-          this.setValue(autoCorrectSyntax(this.getValue()));
-          setRDEquations();
-          setEquationDisplayType();
-        });
-      setOnfocus(controllers[tTag], selectTeX, [tTag]);
-      setOnblur(controllers[tTag], deselectTeX, [tTag]);
-    }
+    controllers["speciesNames"] = root
+      .add(options, "speciesNames")
+      .name("Names")
+      .onFinishChange(function () {
+        setCustomNames();
+      });
+
+    // Number of species.
+    root
+      .add(options, "numSpecies", {
+        1: 1,
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+        6: 6,
+        7: 7,
+        8: 8,
+      })
+      .name("Number")
+      .onChange(function () {
+        document.activeElement.blur();
+        options.speciesNames = speciesNamesToString();
+        setCustomNames();
+        // updateProblem() (De)allocates the MRT render targets itself now, before it
+        // triggers configureDimension()'s resize/render chain - see its definition.
+        updateProblem();
+        resetSim();
+      });
+
+    // Number of algebraic species.
+    controllers["algebraicSpecies"] = root
+      .add(options, "numAlgebraicSpecies", {
+        0: 0,
+        1: 1,
+        2: 2,
+        3: 3,
+        4: 4,
+        5: 5,
+        6: 6,
+        7: 7,
+      })
+      .name("No. algebraic")
+      .onChange(function () {
+        updatingAlgebraicSpecies = true;
+        updateProblem();
+        updatingAlgebraicSpecies = false;
+        resetSim();
+      });
 
     // Diffusion coefficients go back directly under "Equations", not nested in the
     // timescales sub-folder. They get their own nested sub-folder in turn (rather than
@@ -2468,6 +2504,19 @@ async function VisualPDE(url) {
       allDiffusionTexKeys,
     );
 
+    // Cross-diffusion toggle button.
+    const crossDiffusionButtonList = addButtonList(root);
+    addToggle(
+      crossDiffusionButtonList,
+      "crossDiffusion",
+      '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
+      function () {
+        updateProblem();
+      },
+      "cross_diffusion_controller",
+      "Toggle cross diffusion",
+    );
+
     // Button to open the diffusion matrix popup, injected into the sub-folder's title bar
     // (mirroring addInfoButton's DOM-injection pattern). Its visibility (crossDiffusion on,
     // not a small screen) is kept up to date in configureGUI(), not here.
@@ -2476,9 +2525,9 @@ async function VisualPDE(url) {
     // Reaction terms get their own sub-folder too, back directly under "Equations" rather
     // than nested in the diffusion sub-folder.
     root = editEquationsFolder;
-    reactionTermsFolder = editEquationsFolder.addFolder("Reaction terms");
+    reactionTermsFolder = editEquationsFolder.addFolder("Forcing terms");
     root = reactionTermsFolder;
-    addInfoButton(root, "/user-guide/advanced-options#reaction-terms");
+    addInfoButton(root, "/user-guide/advanced-options#forcing-terms");
 
     // Reaction term controllers for all 8 species, keyed "reaction_1".."reaction_8" (species
     // 1-4 historically used "f"/"g"/"h"/"j" - purely an internal lookup key, never serialized
@@ -2502,133 +2551,50 @@ async function VisualPDE(url) {
       allReactionTexKeys.push(texKey);
     }
     setOnFolderHoverEnter(reactionTermsFolder, selectTeX, allReactionTexKeys);
-    setOnFolderHoverLeave(
-      reactionTermsFolder,
-      deselectTeX,
-      allReactionTexKeys,
-    );
+    setOnFolderHoverLeave(reactionTermsFolder, deselectTeX, allReactionTexKeys);
 
-    // Species-count/naming controllers get their own sub-folder too, back directly under
-    // "Equations" as a sibling of Timescales/Diffusion coefficients/Reaction terms (not nested
-    // inside "Parameters and notation" - Parameters/Expressions live there instead).
-    root = editEquationsFolder;
-    variablesFolder = editEquationsFolder.addFolder("Variables");
-    addInfoButton(variablesFolder, "/user-guide/advanced-options#variables");
-    root = variablesFolder;
+    // Timescale controllers get their own sub-folder, shown only when the "Scales" toggle is
+    // on (configureGUI() shows/hides the folder itself, mirroring how it already showed/hid
+    // each controller individually before this folder existed).
+    timescalesFolder = editEquationsFolder.addFolder("Timescales");
+    root = timescalesFolder;
+    addInfoButton(root, "/user-guide/advanced-options#timescales");
 
-    // Number of species.
-    root
-      .add(options, "numSpecies", {
-        1: 1,
-        2: 2,
-        3: 3,
-        4: 4,
-        5: 5,
-        6: 6,
-        7: 7,
-        8: 8,
-      })
-      .name("# Variables")
-      .onChange(function () {
-        document.activeElement.blur();
-        options.speciesNames = speciesNamesToString();
-        setCustomNames();
-        // updateProblem() (De)allocates the MRT render targets itself now, before it
-        // triggers configureDimension()'s resize/render chain - see its definition.
-        updateProblem();
-        resetSim();
-      });
+    // Timescale controllers for all 8 species. See timescaleTag() for the species 1-4 vs 5-8
+    // key-naming split (matching timescaleTags above).
+    const allTimescaleTexKeys = [];
+    for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
+      const tTag = timescaleTag(i);
+      controllers[tTag] = root
+        .add(options, "timescale_" + i)
+        .onFinishChange(function () {
+          this.setValue(autoCorrectSyntax(this.getValue()));
+          setRDEquations();
+          setEquationDisplayType();
+        });
+      setOnfocus(controllers[tTag], selectTeX, [tTag]);
+      setOnblur(controllers[tTag], deselectTeX, [tTag]);
+      allTimescaleTexKeys.push(tTag);
+    }
+    setOnFolderHoverEnter(timescalesFolder, selectTeX, allTimescaleTexKeys);
+    setOnFolderHoverLeave(timescalesFolder, deselectTeX, allTimescaleTexKeys);
 
-    // Number of algebraic species.
-    controllers["algebraicSpecies"] = root
-      .add(options, "numAlgebraicSpecies", {
-        0: 0,
-        1: 1,
-        2: 2,
-        3: 3,
-        4: 4,
-        5: 5,
-        6: 6,
-        7: 7,
-      })
-      .name("# Algebraic")
-      .onChange(function () {
-        updatingAlgebraicSpecies = true;
-        updateProblem();
-        updatingAlgebraicSpecies = false;
-        resetSim();
-      });
-
-    controllers["speciesNames"] = root
-      .add(options, "speciesNames")
-      .name("Variables")
-      .onFinishChange(function () {
-        setCustomNames();
-      });
-
-    // Typeset toggle, then Cross diffusion/Scales toggles, at the very bottom of "Equations"
-    // (below the Timescales/Diffusion coefficients/Reaction terms/Variables sub-folders above).
     root = editEquationsFolder;
 
-    const crossDiffusionButtonList = addButtonList(root);
-    addToggle(
-      crossDiffusionButtonList,
-      "crossDiffusion",
-      '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
-      function () {
-        updateProblem();
-      },
-      "cross_diffusion_controller",
-      "Toggle cross diffusion",
-    );
-
-    addToggle(
-      crossDiffusionButtonList,
-      "timescales",
-      '<i class="fa-regular fa-clock"></i>Scales',
-      function () {
-        configureGUI();
-        setRDEquations();
-        setEquationDisplayType();
-      },
-      "timescales_controller",
-      "Toggle the use of custom timescales",
-    );
-
-    const defButtonList = addButtonList(root, "typesetCustomEqsButtonRow");
-    addToggle(
-      defButtonList,
-      "typesetCustomEqs",
-      '<i class="fa-regular fa-square-root-variable"></i> Typeset',
-      setEquationDisplayType,
-      null,
-      "Typeset the specified equations",
-    );
-
-    // Variables and params folder: houses Parameters and Expressions as sub-folders (the
-    // species-count/naming controllers that used to live here as a third "Variables"
-    // sub-folder now sit under "Equations" instead, alongside Timescales/Diffusion
-    // coefficients/Reaction terms).
-    variablesAndParamsFolder = leftGUI.addFolder("Parameters and notation");
-    root = variablesAndParamsFolder;
-    root.domElement.classList.add("advancedOptions");
-    // #parameters is the doc's entry point for this whole folder - it and Expressions (the
-    // two sub-folders below) are documented together there.
-    addInfoButton(root, "/user-guide/advanced-options#parameters");
-    addFocusLeftGUIButton(variablesAndParamsFolder);
-
-    parametersFolder = variablesAndParamsFolder.addFolder("Parameters");
+    parametersFolder = leftGUI.addFolder("Parameters");
     addInfoButton(parametersFolder, "/user-guide/advanced-options#parameters");
+    addFocusLeftGUIButton(parametersFolder);
     setParamsFromKineticString();
 
     // Expressions folder: named text macros (not uniforms - see the Expressions design near
     // refreshExpressionExpansions()), substituted directly into shader source at shader-
     // construction time.
-    expressionsFolder = variablesAndParamsFolder.addFolder("Expressions");
+    expressionsFolder = leftGUI.addFolder("Substitutions");
     addInfoButton(
       expressionsFolder,
-      "/user-guide/advanced-options#expressions",
+      "/user-guide/advanced-options#substitutions",
     );
+    addFocusLeftGUIButton(expressionsFolder);
     setExpressionsFromString();
 
     // Boundary conditions folder.
@@ -6308,6 +6274,9 @@ async function VisualPDE(url) {
     delete options.algebraicV;
     delete options.algebraicW;
     delete options.algebraicQ;
+
+    // Set options.timescales = true, as these are now always enabled.
+    options.timescales = true;
 
     // Renaming of U/V/W/Q fields.
     // Map old to new.
