@@ -217,7 +217,6 @@ async function VisualPDE(url) {
     reactionTermsFolder,
     boundaryConditionsFolder,
     initialConditionsFolder,
-    integralsFolder,
     variablesAndParamsFolder,
     variablesFolder,
     editViewFolder,
@@ -391,7 +390,6 @@ async function VisualPDE(url) {
     ...getDefaultTeXLabelsBCsICs(),
     ...getDefaultTeXLabelsTimescales(),
   };
-  let globalIntegralFunTexStr = "";
   let listOfSpecies, listOfReactions, anySpeciesRegexStrs;
   const fieldsInView = getFieldsInView();
 
@@ -2706,43 +2704,6 @@ async function VisualPDE(url) {
         });
     }
 
-    // Integrals folder.
-    integralsFolder = leftGUI.addFolder("Integrals");
-    root = integralsFolder;
-    addInfoButton(root, "/user-guide/advanced-options#integrals");
-
-    // The 4 integral expressions are packed into one field (options.globalIntegralFun,
-    // separated by ";") for backwards compatibility with simulations that only ever set a
-    // single expression there - see getGlobalIntegralComponents/setGlobalIntegralComponent.
-    // globalIntegralComponentProxy exposes each of the 4 components as its own accessor
-    // property, so dat.gui can bind a normal text controller to each one while they all
-    // actually read/write through to the same underlying packed string.
-    const globalIntegralComponentProxy = {};
-    for (let i = 1; i <= 4; i++) {
-      const ind = i - 1;
-      Object.defineProperty(
-        globalIntegralComponentProxy,
-        "globalIntegralFun_" + i,
-        {
-          get: () => getGlobalIntegralComponents()[ind],
-          set: (value) => setGlobalIntegralComponent(ind, value),
-          enumerable: true,
-          configurable: true,
-        },
-      );
-      controllers["globalIntegralFun_" + i] = root
-        .add(globalIntegralComponentProxy, "globalIntegralFun_" + i)
-        .name("Integrand " + i)
-        .onFinishChange(function () {
-          this.setValue(autoCorrectSyntax(this.getValue()));
-          updateGlobalIntegralFun();
-        });
-    }
-
-    controllers["globalIntegralUpdatePeriod"] = root
-      .add(options, "globalIntegralUpdatePeriod", 1, 1000, 1)
-      .name("Update period");
-
     // Images folder.
     fIm = rightGUI.addFolder("Images");
     root = fIm;
@@ -2921,6 +2882,13 @@ async function VisualPDE(url) {
       .onFinishChange(function () {
         updateRandomSeed();
       });
+
+    // The number of timesteps between updates of any Int(...) quantities referenced in
+    // the simulation (see reconcileGlobalIntegrals()). No onFinishChange rebuild needed -
+    // this field only gates a per-timestep modulo check, not a shader rebuild.
+    controllers["globalIntegralUpdatePeriod"] = root
+      .add(options, "globalIntegralUpdatePeriod", 1, 1000, 1)
+      .name("Int. update");
 
     devFolder = root.addFolder("Dev");
     root = devFolder;
@@ -3985,6 +3953,9 @@ async function VisualPDE(url) {
   }
 
   function setBrushType() {
+    // Must run before anything below that could reference an Int(...) expression - see
+    // reconcileGlobalIntegrals().
+    reconcileGlobalIntegrals();
     // Construct a drawing shader based on the selected type and the value string.
     // Insert any user-defined kinetic parameters, given as a string that needs parsing.
     // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
@@ -4086,6 +4057,9 @@ async function VisualPDE(url) {
   }
 
   function setDisplayColourAndType() {
+    // Must run before anything below that could reference an Int(...) expression - see
+    // reconcileGlobalIntegrals().
+    reconcileGlobalIntegrals();
     colourmap = getColours(options.colourmap);
     if (options.flippedColourmap) {
       colourmap.reverse();
@@ -5080,6 +5054,23 @@ async function VisualPDE(url) {
     // Pad the string.
     str = " " + str + " ";
 
+    // Replace each Int(expression) with the globalIntegralValueN uniform holding its
+    // current value, N being whichever of the (at most 4) slots reconcileGlobalIntegrals()
+    // has assigned that expression to. reconcileGlobalIntegrals() always runs earlier in
+    // the same shader-rebuild call than parseShaderString(), so the slot should always be
+    // found; fall back to "0.0" (mirroring expandDependentExpressions' degrade-to-"0.0" for
+    // cyclic expressions) if it somehow isn't, e.g. a slot that overflowed the max of 4. Must
+    // run first, before anything below (including expression-macro substitution just below)
+    // has a chance to rewrite the raw text inside "Int(...)" - reconcileGlobalIntegrals()
+    // populated options.globalIntExprs from that same raw, unrewritten field text, so the
+    // lookup here has to see exactly the same text to find a match. The result is a bare
+    // identifier, immune to every later substitution pass, so there's no downside to
+    // resolving it up front.
+    str = replaceIntCalls(str, (expr) => {
+      const ind = options.globalIntExprs.indexOf(expr);
+      return ind == -1 ? "0.0" : "globalIntegralValue" + (ind + 1);
+    });
+
     // Substitute user-defined expressions (raw text macros, not GLSL quantities) before any
     // other parsing, so everything below only ever sees expression-free text.
     // expandedExpressionDefs is kept up to date by refreshExpressionExpansions(), called once
@@ -5190,13 +5181,6 @@ async function VisualPDE(url) {
 
     // Insert MINX and MINY.
     str = replaceMINXMINY(str);
-
-    // Replace 'GlobalInt1'-'GlobalInt4' with globalIntegralValue1-4, uniforms that store each
-    // of up to 4 integral quantities (see the Integrals folder/getGlobalIntegralComponents).
-    // Bare 'GlobalInt' maps to GlobalInt1, for backwards compatibility with simulations
-    // written before GlobalInt2-4 existed.
-    str = str.replaceAll(/\bGlobalInt([1-4])\b/g, "globalIntegralValue$1");
-    str = str.replaceAll(/\bGlobalInt\b/g, "globalIntegralValue1");
 
     return str;
   }
@@ -5392,6 +5376,9 @@ async function VisualPDE(url) {
   }
 
   function setRDEquations() {
+    // Must run before anything below that could reference an Int(...) expression - see
+    // reconcileGlobalIntegrals().
+    reconcileGlobalIntegrals();
     let neumannShader = "";
     let ghostShader = "";
     let dirichletShader = "";
@@ -6141,9 +6128,6 @@ async function VisualPDE(url) {
     // Set the camera.
     configureCameraAndClicks();
 
-    // Update the globalIntegralFunTexStr.
-    globalIntegralFunTexStr = parseStringToTEX(options.globalIntegralFun);
-
     // To get around an annoying bug in dat.GUI.image, in which the
     // controller doesn't update the value of the underlying property,
     // we'll destroy and create a new image controller everytime we load
@@ -6289,6 +6273,13 @@ async function VisualPDE(url) {
       }
     });
 
+    // Migrate the old GlobalInt1-GlobalInt4/bare-GlobalInt token syntax to the new inline
+    // Int(expression) syntax. options.globalIntExprs itself is deliberately left for the
+    // next reconcileGlobalIntegrals() call (triggered by updateProblem() below) to
+    // (re)populate from the now-rewritten text, rather than duplicating that assignment
+    // logic here.
+    migrateGlobalIntSyntax();
+
     // If min/max colour value is null (happens if we've blown up to +-inf), set them to 0 and 1.
     if (options.minColourValue == null) options.minColourValue = "0";
     if (options.maxColourValue == null) options.maxColourValue = "1";
@@ -6350,7 +6341,6 @@ async function VisualPDE(url) {
       options.dirichletStr_2,
       options.dirichletStr_3,
       options.dirichletStr_4,
-      options.globalIntegralFun,
       options.robinStr_1,
       options.robinStr_2,
       options.robinStr_3,
@@ -6572,6 +6562,9 @@ async function VisualPDE(url) {
   }
 
   function setClearShader() {
+    // Must run before anything below that could reference an Int(...) expression - see
+    // reconcileGlobalIntegrals().
+    reconcileGlobalIntegrals();
     // Insert any user-defined kinetic parameters, as uniforms.
     let kineticStr = kineticUniformsForShader();
     if (numGroups(Number(options.numSpecies)) > 1) {
@@ -6644,6 +6637,9 @@ async function VisualPDE(url) {
   }
 
   function setProbeShader() {
+    // Must run before anything below that could reference an Int(...) expression - see
+    // reconcileGlobalIntegrals().
+    reconcileGlobalIntegrals();
     // Insert any user-defined kinetic parameters, as uniforms. probeShaderMRT (>4 species)
     // just adds a second input sampler + group-1 locals so PROBE_FUN can reference species
     // 5-8 - still single-output, so no glslVersion toggle is needed here (unlike the main
@@ -6672,32 +6668,151 @@ async function VisualPDE(url) {
   }
 
   /**
-   * The "To integrate" field (options.globalIntegralFun) packs up to 4 integral expressions
-   * into one string, separated by ";" - one per channel of the global-integral texture (see
-   * globalIntegralShader/MRT in simulation_shaders.js and the Integrals GUI folder). Returns
-   * exactly 4 trimmed expression strings; a missing or blank component - including every
-   * component past the first, for a bare (un-split) options.globalIntegralFun kept from before
-   * GlobalInt2-4 existed - defaults to "0" (an empty/unused integral).
+   * Finds every top-level Int(...) call in str, matching balanced brackets so nested
+   * parens inside the argument (e.g. Int(u*(v+1))) are handled correctly - mirrors the
+   * depth-counting bracket walk in enableImageLookupInShader(). A nested Int(...) call
+   * (e.g. Int(Int(u))) isn't a meaningful quantity (Int(u) is already constant over
+   * space, so integrating it again is degenerate), so it's rejected via throwError
+   * rather than silently resolved.
+   *
+   * @param {string} str
+   * @returns {{start: number, end: number, expr: string}[]} One entry per Int(...) call,
+   *   in order of appearance. start/end span the whole "Int(...)" call (end exclusive);
+   *   expr is the argument text, canonicalized via canonicalizeIntExpr() so equivalent
+   *   expressions that only differ by incidental whitespace compare equal.
    */
-  function getGlobalIntegralComponents() {
-    const parts = options.globalIntegralFun.split(";");
-    const components = [];
-    for (let i = 0; i < 4; i++) {
-      const part = parts[i]?.trim();
-      components.push(part ? part : "0");
+  function parseIntCalls(str) {
+    const calls = [];
+    const regex = /\bInt\s*\(/g;
+    let match;
+    while ((match = regex.exec(str))) {
+      const argStart = match.index + match[0].length;
+      let depth = 1;
+      let ind = argStart;
+      while (ind < str.length && depth > 0) {
+        if (str[ind] == "(") depth++;
+        else if (str[ind] == ")") depth--;
+        ind++;
+      }
+      if (depth != 0) {
+        // Unbalanced brackets - nothing sensible to extract. Leave as-is; general
+        // syntax checking elsewhere (isValidSyntax) will already flag this string.
+        continue;
+      }
+      const argStr = str.slice(argStart, ind - 1);
+      if (/\bInt\s*\(/.test(argStr)) {
+        throwError(
+          "Int(...) expressions cannot be nested. Please rewrite your expression so that Int(...) is not used inside another Int(...).",
+        );
+      }
+      calls.push({
+        start: match.index,
+        end: ind,
+        expr: canonicalizeIntExpr(argStr),
+      });
+      regex.lastIndex = ind;
     }
-    return components;
+    return calls;
+  }
+
+  // Canonicalizes an Int(...) argument for equality comparison, so that e.g. "u*v" and
+  // "u * v" (or any other incidental whitespace difference) are recognized as the same
+  // expression and share a slot. Used only as a comparison/lookup key (options.globalIntExprs
+  // entries, parseShaderString's slot lookup) - never shown to the user or spliced into
+  // shader/TeX output, so there's no readability cost to stripping whitespace entirely
+  // rather than just collapsing it.
+  function canonicalizeIntExpr(str) {
+    return str.replace(/\s+/g, "");
   }
 
   /**
-   * Sets the ind-th (0-based) component of the packed options.globalIntegralFun field,
-   * preserving the other 3.
+   * Replaces every top-level Int(expression) call in str with replacer(canonicalExpr),
+   * using parseIntCalls() to correctly match balanced brackets around each argument (so
+   * e.g. Int(u*(v+1)) is replaced as a whole, not split on the inner parens). Mirrors the
+   * offset-tracking splice loop in enableImageLookupInShader().
+   *
+   * @param {string} str
+   * @param {(expr: string) => string} replacer
+   * @returns {string}
    */
-  function setGlobalIntegralComponent(ind, value) {
-    const components = getGlobalIntegralComponents();
-    const trimmed = value.trim();
-    components[ind] = trimmed === "" ? "0" : trimmed;
-    options.globalIntegralFun = components.join(";");
+  function replaceIntCalls(str, replacer) {
+    let out = str;
+    let offset = 0;
+    parseIntCalls(str).forEach(({ start, end, expr }) => {
+      const replacement = replacer(expr);
+      out = replaceStrAtIndex(out, replacement, start + offset, end + offset);
+      offset += replacement.length - (end - start);
+    });
+    return out;
+  }
+
+  /**
+   * Scans every user-editable expression field for Int(expression) usages and keeps
+   * options.globalIntExprs - the stable expression -> globalIntegralValueN slot
+   * assignment consumed by parseShaderString/parseStringToTEX/setGlobalIntegralShader -
+   * in sync. This is the Int(...) analog of refreshExpressionExpansions() (which plays
+   * the same "resolve once per rebuild, report errors via throwError" role for the
+   * separate Expressions macro feature).
+   *
+   * Slot assignment is deliberately stable, not recomputed from scratch: an expression
+   * that's still referenced anywhere keeps its existing slot, a freed slot (its
+   * expression no longer appears anywhere) is left empty rather than compacting the
+   * others down, and a newly-appearing expression takes the lowest free slot. This means
+   * adding or removing an unrelated Int(...) elsewhere never renumbers - and hence never
+   * forces a shader rebuild for - an existing one.
+   *
+   * Only ever called from the various shader-rebuild entry points (setRDEquations,
+   * setClearShader, setProbeShader, setBrushType, setPostFunFragShader,
+   * setDisplayColourAndType, updateShaders) - never from setGlobalIntegralShader()
+   * itself, which is this function's own (conditional) output step.
+   *
+   * @returns {boolean} Whether options.globalIntExprs actually changed - i.e. whether
+   *   the integral shader/equation display needed rebuilding.
+   */
+  function reconcileGlobalIntegrals() {
+    const seen = [];
+    getUserTextFields().forEach((key) => {
+      const text = options[key];
+      if (typeof text !== "string") return;
+      parseIntCalls(text).forEach(({ expr }) => {
+        if (!seen.includes(expr)) seen.push(expr);
+      });
+    });
+
+    const prev = options.globalIntExprs;
+    const next = prev.slice();
+
+    // Free slots whose expression is no longer referenced anywhere - without shifting
+    // the remaining slots. That's what gives us stability.
+    next.forEach((expr, i) => {
+      if (expr != null && !seen.includes(expr)) next[i] = null;
+    });
+
+    // Assign newly-appearing expressions to the lowest free slot, in first-appearance order.
+    const overflow = [];
+    seen.forEach((expr) => {
+      if (next.includes(expr)) return;
+      const freeInd = next.indexOf(null);
+      if (freeInd == -1) {
+        overflow.push(expr);
+      } else {
+        next[freeInd] = expr;
+      }
+    });
+
+    if (overflow.length > 0) {
+      throwError(
+        "You can define at most 4 unique Int(...) expressions across your simulation. Please remove one before adding another.",
+      );
+    }
+
+    const changed = next.some((expr, i) => expr !== prev[i]);
+    if (changed) {
+      options.globalIntExprs = next;
+      setGlobalIntegralShader();
+      setEquationDisplayType();
+    }
+    return changed;
   }
 
   function setGlobalIntegralShader() {
@@ -6711,7 +6826,9 @@ async function VisualPDE(url) {
         ? globalIntegralShaderMRT()
         : globalIntegralShader());
     shaderStr = replaceMINXMINY(shaderStr);
-    const globalIntegralComponents = getGlobalIntegralComponents();
+    const globalIntegralComponents = options.globalIntExprs.map(
+      (expr) => expr || "0",
+    );
     for (let i = 1; i <= 4; i++) {
       shaderStr = shaderStr.replace(
         new RegExp("GLOBAL_INTEGRAL_FUN" + i, "g"),
@@ -6727,10 +6844,52 @@ async function VisualPDE(url) {
     globalIntegralMaterial.needsUpdate = true;
   }
 
-  function updateGlobalIntegralFun() {
-    globalIntegralFunTexStr = parseShaderString(options.globalIntegralFun);
-    setGlobalIntegralShader();
-    setEquationDisplayType();
+  /**
+   * One-shot migration, run from loadOptions(), of the old GlobalInt1-GlobalInt4/bare-
+   * GlobalInt token syntax (which referred to one of 4 expressions packed into the old
+   * options.globalIntegralFun field, "expr1;expr2;expr3;expr4") into the new inline
+   * Int(expression) syntax: rewrites every occurrence embedded in any field in
+   * getUserTextFields() (and any per-view override of one) into Int(<that slot's old
+   * expression>), then deletes options.globalIntegralFun. A no-op if options has no
+   * globalIntegralFun field (i.e. nothing old-format to migrate).
+   */
+  function migrateGlobalIntSyntax() {
+    if (!options.hasOwnProperty("globalIntegralFun")) return;
+    const oldParts = options.globalIntegralFun.split(";");
+    const oldComponents = [0, 1, 2, 3].map((i) => oldParts[i]?.trim() || "0");
+    const rewriteOldGlobalIntSyntax = (text) => {
+      if (typeof text != "string") return text;
+      // Bare GlobalInt means slot 1, for backwards compatibility - matched separately
+      // since \bGlobalInt\b doesn't also match GlobalInt1-4 (the trailing digit breaks
+      // the word boundary), so the two passes can't double up on the same occurrence.
+      let out = text.replaceAll(
+        /\bGlobalInt\b/g,
+        "Int(" + oldComponents[0] + ")",
+      );
+      for (let i = 1; i <= 4; i++) {
+        out = out.replaceAll(
+          new RegExp("\\bGlobalInt" + i + "\\b", "g"),
+          "Int(" + oldComponents[i - 1] + ")",
+        );
+      }
+      return out;
+    };
+    const fieldsToScan = getUserTextFields();
+    fieldsToScan.forEach((key) => {
+      if (options.hasOwnProperty(key)) {
+        options[key] = rewriteOldGlobalIntSyntax(options[key]);
+      }
+    });
+    options.views = (options.views || []).map((view) => {
+      const newView = { ...view };
+      Object.keys(view).forEach((key) => {
+        if (fieldsToScan.includes(key)) {
+          newView[key] = rewriteOldGlobalIntSyntax(view[key]);
+        }
+      });
+      return newView;
+    });
+    delete options.globalIntegralFun;
   }
 
   function loadImageSourceOne() {
@@ -6886,6 +7045,9 @@ async function VisualPDE(url) {
   }
 
   function setPostFunFragShader() {
+    // Must run before anything below that could reference an Int(...) expression - see
+    // reconcileGlobalIntegrals().
+    reconcileGlobalIntegrals();
     // computeDisplayFunShaderTopMRT/MidMRT (>4 species) just add a second input sampler +
     // group-1 locals so FUN/HEIGHT/XVECFUN/YVECFUN can reference species 5-8 - still
     // single-output, so no glslVersion toggle is needed here.
@@ -7994,6 +8156,22 @@ async function VisualPDE(url) {
 
   function parseStringToTEX(str) {
     // Parse a string into valid TEX by replacing * and ^.
+
+    // Resolve each Int(...) call to an inert placeholder token immediately, before any of
+    // the transforms below get a chance to mangle the raw "Int(...)" syntax itself (in
+    // particular the \left/\right bracket-escaping pass a little further down, which would
+    // otherwise turn "Int(" into "Int\left(", making it unrecognizable). Each placeholder is
+    // swapped for its actual rendered TeX further down (see intCallPlaceholders below),
+    // after the passes that would mangle raw "Int(...)" syntax but before the ones that
+    // would mangle the placeholder token itself (e.g. the underscore/subscript passes at the
+    // end, which would otherwise treat a trailing digit as a subscript).
+    const intCallPlaceholders = [];
+    str = replaceIntCalls(str, (expr) => {
+      const placeholder = "IntCallPlaceholder" + intCallPlaceholders.length;
+      intCallPlaceholders.push([placeholder, expr]);
+      return placeholder;
+    });
+
     // If the string is surrounded by [] but doesn't contain +, -, or /, remove the brackets.
     str = str.replaceAll(/\[([^\+\/\[\]-]*)\]/g, "$1");
 
@@ -8054,29 +8232,30 @@ async function VisualPDE(url) {
     // Replace Gauss with \mathcal{N}.
     str = str.replaceAll(/\bGauss\b/g, "\\mathcal{N}");
 
-    // Replace GlobalInt1-4 with \int_{\Omega}(the corresponding integral expression). Bare
-    // GlobalInt maps to GlobalInt1, for backwards compatibility. Each component is itself a
-    // raw expression string (e.g. "u*v"), so it needs its own trip through parseStringToTEX
-    // (recursing here is safe - each call is a fresh, independent conversion) to get the same
-    // TeX formatting (removing "*", species substitution, etc.) as the rest of the equation.
-    // Substitution must use a replacer *function* (called lazily, only on an actual match) -
-    // passing the computed string directly would call parseStringToTEX(component) - and hence
-    // re-enter this same substitution - unconditionally on every parseStringToTEX() call
-    // anywhere in the app, infinitely recursing regardless of whether "GlobalInt" ever
-    // actually appears in str.
-    const globalIntegralComponents = getGlobalIntegralComponents();
-    const globalIntegralTeXFor = (component) =>
-      (options.dimension == 1 ? "\\int_{\\Omega} " : "\\iint_{\\Omega} ") +
-      parseStringToTEX(component) +
-      (options.dimension == 1 ? "\\, \\d x \\ " : "\\, \\d x \\d y\\ ");
-    for (let i = 1; i <= 4; i++) {
-      str = str.replaceAll(new RegExp("\\bGlobalInt" + i + "\\b", "g"), () =>
-        globalIntegralTeXFor(globalIntegralComponents[i - 1]),
-      );
-    }
-    str = str.replaceAll(/\bGlobalInt\b/g, () =>
-      globalIntegralTeXFor(globalIntegralComponents[0]),
-    );
+    // Swap each Int(...) placeholder (see the top of this function) for its actual
+    // \int_{\Omega} expression \d x \d y rendering. This must happen here - after the
+    // bracket/left-right/function-name passes above (which would otherwise mangle the raw
+    // "Int(...)" syntax before we could find it, hence resolving it into an inert
+    // placeholder up front instead) but before the underscore/subscript passes below (which
+    // would otherwise mangle the placeholder token itself). Each captured expression is
+    // itself a raw expression string (e.g. "u*v"), so it needs its own trip through
+    // parseStringToTEX (recursing here is safe - each call is a fresh, independent
+    // conversion, and intCallPlaceholders only ever holds entries for Int(...) calls that
+    // actually existed in the original string, so there's no risk of unconditionally
+    // recursing on every parseStringToTEX() call regardless of whether "Int(" was ever
+    // actually present) to get the same TeX formatting (removing "*", species substitution,
+    // etc.) as the rest of the equation. No outer parens around the integrand - matches how
+    // the rest of the equation display renders bare terms.
+    intCallPlaceholders.forEach(([placeholder, expr]) => {
+      const replacement =
+        (options.dimension == 1 ? "\\int_{\\Omega} " : "\\iint_{\\Omega} ") +
+        parseStringToTEX(expr) +
+        (options.dimension == 1 ? "\\, \\d x \\ " : "\\, \\d x \\d y\\ ");
+      // split/join rather than replaceAll, so a "$"-containing expression (e.g. a species
+      // name never actually looks like this, but a user-defined parameter safely could)
+      // can't be misread as a replaceAll() special replacement pattern.
+      str = str.split(placeholder).join(replacement);
+    });
 
     // If there's an underscore, put {} around the word that follows it.
     str = str.replaceAll(/_(\w+\b)/g, "_{$1}");
@@ -9813,6 +9992,13 @@ async function VisualPDE(url) {
     // Must run before anything below - parseShaderString() (called throughout the following
     // builders) substitutes expression names using the map this rebuilds.
     refreshExpressionExpansions();
+    // Likewise must run before anything below that could reference an Int(...) expression -
+    // see reconcileGlobalIntegrals(). Also called independently at the top of each of the
+    // narrower builders below, since they're each reachable directly from a field's
+    // onFinishChange without going through updateShaders() first; redundant calls here are
+    // cheap no-ops (reconcileGlobalIntegrals only does real work when the slot assignment
+    // actually changes).
+    reconcileGlobalIntegrals();
     setRDEquations();
     setClearShader();
     setProbeShader();
@@ -12263,7 +12449,6 @@ async function VisualPDE(url) {
       boundaryConditionsFolder.domElement.classList.toggle("hidden-aug");
       editEquationsFolder.domElement.classList.toggle("hidden-aug");
       initialConditionsFolder.domElement.classList.toggle("hidden-aug");
-      integralsFolder.domElement.classList.toggle("hidden-aug");
       // Repeat this toggle for the target folder.
       folder.domElement.classList.toggle("hidden-aug");
       document
