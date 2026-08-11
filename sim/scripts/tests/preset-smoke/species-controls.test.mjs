@@ -31,10 +31,10 @@ before(async () => {
   await launchAt(page);
   await ensureOpen(page, "Equations");
   await ensureOpen(page, "Diffusion coefficients");
-  await ensureOpen(page, "Reaction terms");
+  await ensureOpen(page, "Forcing terms");
   await ensureOpen(page, "Boundary conditions");
   await ensureOpen(page, "Initial conditions");
-  await ensureOpen(page, "Parameters and notation");
+  await ensureOpen(page, "Parameters");
   await ensureOpen(page, "Variables");
 });
 
@@ -58,7 +58,7 @@ for (const n of REPRESENTATIVE_NUM_SPECIES) {
       assert.equal(diffusion.total, 64, "all 8x8 diffusion controllers should always exist");
       assert.equal(diffusion.visible, cross ? n * n : n);
 
-      const reaction = await countVisibleControllers(page, "Reaction terms");
+      const reaction = await countVisibleControllers(page, "Forcing terms");
       assert.equal(reaction.visible, n);
 
       const bcs = await countVisibleControllers(page, "Boundary conditions");

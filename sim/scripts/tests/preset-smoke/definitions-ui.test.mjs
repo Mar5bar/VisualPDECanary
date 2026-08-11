@@ -26,7 +26,7 @@ before(async () => {
   errors = collectErrors(page);
   await launchAt(page);
   await ensureOpen(page, "Equations");
-  await ensureOpen(page, "Parameters and notation");
+  await ensureOpen(page, "Parameters");
 });
 
 after(async () => {
@@ -139,19 +139,19 @@ test("Parameters: a name already in use (an existing parameter) is rejected via 
 });
 
 test("Expressions: typing into the trailing empty field promotes it the same way as Parameters", async () => {
-  await ensureOpen(page, "Expressions");
-  const before = await folderRows("Expressions");
+  await ensureOpen(page, "Substitutions");
+  const before = await folderRows("Substitutions");
 
-  await fillTrailingField("Expressions", "myExpr = u + 1");
+  await fillTrailingField("Substitutions", "myExpr = u + 1");
 
-  const after = await folderRows("Expressions");
+  const after = await folderRows("Substitutions");
   assert.equal(after.length, before.length + 1);
   assert.equal(after[after.length - 2].value, "myExpr = u + 1");
   assert.equal(after[after.length - 1].value, "");
 });
 
 test("Expressions: a name colliding with a species name is rejected via the #error banner", async () => {
-  await fillTrailingField("Expressions", "u = 5");
+  await fillTrailingField("Substitutions", "u = 5");
   assert.ok(await page.locator("#error").isVisible(), "the error banner should appear for a species-name collision");
   assert.match(await page.locator("#error").innerText(), /'u' is already in use/);
   await dismissError();

@@ -38,7 +38,7 @@ function visibleControllerInput(folderTitle, index, selector = "input") {
 test("diffusion matrix popup: editing a cell updates the matching left-UI controller", async () => {
   await ensureOpen(page, "Equations");
   await ensureOpen(page, "Diffusion coefficients");
-  await ensureOpen(page, "Parameters and notation");
+  await ensureOpen(page, "Parameters");
   await ensureOpen(page, "Variables");
   await setNumSpecies(page, 2);
   await setCrossDiffusion(page, true);

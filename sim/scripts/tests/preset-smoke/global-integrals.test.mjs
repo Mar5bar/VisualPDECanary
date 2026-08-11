@@ -20,7 +20,11 @@ before(async () => {
   errors = collectErrors(page);
   await launchAt(page);
   await ensureOpen(page, "Equations");
-  await ensureOpen(page, "Reaction terms");
+  await ensureOpen(page, "Forcing terms");
+  // launchAt only opens the left GUI panel (via #equations) - "Misc." lives in the right
+  // panel, toggled separately by #settings (see toggleRightUI() in main.js).
+  await page.locator("#settings").click();
+  await page.waitForTimeout(200);
 });
 
 after(async () => {
@@ -28,10 +32,10 @@ after(async () => {
   stopServer();
 });
 
-/** The Nth (1-based) reaction-term text input, in DOM order under the "Reaction terms" title. */
+/** The Nth (1-based) reaction-term text input, in DOM order under the "Forcing terms" title. */
 function reactionTermInput(n) {
   return page
-    .locator("li.title", { hasText: "Reaction terms" })
+    .locator("li.title", { hasText: "Forcing terms" })
     .locator(`xpath=following-sibling::li[${n}]//input`)
     .first();
 }
@@ -52,8 +56,14 @@ test("the old 'Integrals' folder and its 'Integrand N' fields no longer exist", 
 test("Misc.: 'Int. update' replaces the old 'Update period' control", async () => {
   await ensureOpen(page, "Misc.");
   assert.ok(await page.locator("li.cr", { hasText: "Int. update" }).isVisible());
-  assert.equal(await page.locator("li.cr", { hasText: "Update period" }).count(), 0);
-  await ensureOpen(page, "Reaction terms");
+  // Match on the exact controller-name span, not a loose (case-insensitive) substring of the
+  // whole row - "Update period" is also a substring of the unrelated "GUI update period" (Dev)
+  // controller's own label.
+  assert.equal(
+    await page.locator("li.cr .property-name", { hasText: /^Update period$/ }).count(),
+    0,
+  );
+  await ensureOpen(page, "Forcing terms");
 });
 
 test("Int(u) in a reaction term renders as \\iint_{\\Omega}(...) with no raw '*' left in the typeset equation", async () => {

@@ -85,19 +85,27 @@ export async function countVisibleControllers(page, titleText) {
   }, titleText);
 }
 
-/** Drives the "Variables" folder's "# Variables" <select>. */
+/**
+ * Drives the "Variables" folder's "Number" <select>. Scoped to the controller whose
+ * .property-name is exactly "Number" (via .filter({has: ...}), not a loose/substring
+ * `hasText` match on the whole li.cr) - a plain substring match is both case-insensitive
+ * and matches multiple unrelated controls (e.g. "Contour Number").
+ */
 export async function setNumSpecies(page, n) {
   await page
-    .locator("li.cr", { hasText: "# Variables" })
+    .locator("li.cr")
+    .filter({ has: page.locator(".property-name", { hasText: /^Number$/ }) })
     .locator("select")
     .selectOption(String(n));
   await page.waitForTimeout(300);
 }
 
-/** Drives the "Variables" folder's "# Algebraic" <select>. */
+/** Drives the "Variables" folder's "No. algebraic" <select> - see setNumSpecies for why this
+ * is scoped to an exact .property-name match rather than a loose `hasText` substring. */
 export async function setNumAlgebraic(page, n) {
   await page
-    .locator("li.cr", { hasText: "# Algebraic" })
+    .locator("li.cr")
+    .filter({ has: page.locator(".property-name", { hasText: /^No\. algebraic$/ }) })
     .locator("select")
     .selectOption(String(n));
   await page.waitForTimeout(300);
