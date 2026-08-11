@@ -2483,73 +2483,11 @@ async function VisualPDE(url) {
       setOnblur(controllers[key], deselectTeX, [texKey]);
     }
 
-    // Typeset toggle, then Cross diffusion/Scales toggles, at the very bottom of "Equations"
-    // (below the Timescales/Diffusion coefficients/Reaction terms sub-folders above).
+    // Species-count/naming controllers get their own sub-folder too, back directly under
+    // "Equations" as a sibling of Timescales/Diffusion coefficients/Reaction terms (not nested
+    // inside "Parameters and notation" - Parameters/Expressions live there instead).
     root = editEquationsFolder;
-
-    const crossDiffusionButtonList = addButtonList(root);
-    addToggle(
-      crossDiffusionButtonList,
-      "crossDiffusion",
-      '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
-      function () {
-        updateProblem();
-      },
-      "cross_diffusion_controller",
-      "Toggle cross diffusion",
-    );
-
-    addToggle(
-      crossDiffusionButtonList,
-      "timescales",
-      '<i class="fa-regular fa-clock"></i>Scales',
-      function () {
-        configureGUI();
-        setRDEquations();
-        setEquationDisplayType();
-      },
-      "timescales_controller",
-      "Toggle the use of custom timescales",
-    );
-
-    const defButtonList = addButtonList(root, "typesetCustomEqsButtonRow");
-    addToggle(
-      defButtonList,
-      "typesetCustomEqs",
-      '<i class="fa-regular fa-square-root-variable"></i> Typeset',
-      setEquationDisplayType,
-      null,
-      "Typeset the specified equations",
-    );
-
-    // Variables and params folder: houses Parameters and Expressions as sub-folders, plus the
-    // species-count/naming controllers previously in their own "Advanced options" folder (now
-    // removed, since this was its entire content).
-    variablesAndParamsFolder = leftGUI.addFolder("Parameters and notation");
-    root = variablesAndParamsFolder;
-    root.domElement.classList.add("advancedOptions");
-    // #parameters is the doc's entry point for this whole folder - it, Expressions, and
-    // Variables (the three sub-folders below) are documented together there.
-    addInfoButton(root, "/user-guide/advanced-options#parameters");
-    addFocusLeftGUIButton(variablesAndParamsFolder);
-
-    parametersFolder = variablesAndParamsFolder.addFolder("Parameters");
-    addInfoButton(parametersFolder, "/user-guide/advanced-options#parameters");
-    setParamsFromKineticString();
-
-    // Expressions folder: named text macros (not uniforms - see the Expressions design near
-    // refreshExpressionExpansions()), substituted directly into shader source at shader-
-    // construction time.
-    expressionsFolder = variablesAndParamsFolder.addFolder("Expressions");
-    addInfoButton(
-      expressionsFolder,
-      "/user-guide/advanced-options#expressions",
-    );
-    setExpressionsFromString();
-
-    // Species-count/naming controllers get their own sub-folder too, alongside Parameters/
-    // Expressions.
-    variablesFolder = variablesAndParamsFolder.addFolder("Variables");
+    variablesFolder = editEquationsFolder.addFolder("Variables");
     addInfoButton(variablesFolder, "/user-guide/advanced-options#variables");
     root = variablesFolder;
 
@@ -2602,6 +2540,71 @@ async function VisualPDE(url) {
       .onFinishChange(function () {
         setCustomNames();
       });
+
+    // Typeset toggle, then Cross diffusion/Scales toggles, at the very bottom of "Equations"
+    // (below the Timescales/Diffusion coefficients/Reaction terms/Variables sub-folders above).
+    root = editEquationsFolder;
+
+    const crossDiffusionButtonList = addButtonList(root);
+    addToggle(
+      crossDiffusionButtonList,
+      "crossDiffusion",
+      '<i class="fa-regular fa-arrow-down-up-across-line"></i> Cross diffusion',
+      function () {
+        updateProblem();
+      },
+      "cross_diffusion_controller",
+      "Toggle cross diffusion",
+    );
+
+    addToggle(
+      crossDiffusionButtonList,
+      "timescales",
+      '<i class="fa-regular fa-clock"></i>Scales',
+      function () {
+        configureGUI();
+        setRDEquations();
+        setEquationDisplayType();
+      },
+      "timescales_controller",
+      "Toggle the use of custom timescales",
+    );
+
+    const defButtonList = addButtonList(root, "typesetCustomEqsButtonRow");
+    addToggle(
+      defButtonList,
+      "typesetCustomEqs",
+      '<i class="fa-regular fa-square-root-variable"></i> Typeset',
+      setEquationDisplayType,
+      null,
+      "Typeset the specified equations",
+    );
+
+    // Variables and params folder: houses Parameters and Expressions as sub-folders (the
+    // species-count/naming controllers that used to live here as a third "Variables"
+    // sub-folder now sit under "Equations" instead, alongside Timescales/Diffusion
+    // coefficients/Reaction terms).
+    variablesAndParamsFolder = leftGUI.addFolder("Parameters and notation");
+    root = variablesAndParamsFolder;
+    root.domElement.classList.add("advancedOptions");
+    // #parameters is the doc's entry point for this whole folder - it and Expressions (the
+    // two sub-folders below) are documented together there.
+    addInfoButton(root, "/user-guide/advanced-options#parameters");
+    addFocusLeftGUIButton(variablesAndParamsFolder);
+
+    parametersFolder = variablesAndParamsFolder.addFolder("Parameters");
+    addInfoButton(parametersFolder, "/user-guide/advanced-options#parameters");
+    setParamsFromKineticString();
+
+    // Expressions folder: named text macros (not uniforms - see the Expressions design near
+    // refreshExpressionExpansions()), substituted directly into shader source at shader-
+    // construction time.
+    expressionsFolder = variablesAndParamsFolder.addFolder("Expressions");
+    addInfoButton(
+      expressionsFolder,
+      "/user-guide/advanced-options#expressions",
+    );
+    setExpressionsFromString();
 
     // Boundary conditions folder.
     boundaryConditionsFolder = leftGUI.addFolder("Boundary conditions");

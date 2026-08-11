@@ -4,7 +4,7 @@ Almost everything in VisualPDE is customisable. Here, we describe the basic func
 
 ## Equations ($f(x)$)
 
-VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions. More advanced settings, including variable renaming, can be found under [**Settings**](#settings).
+VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions, and configure the number and names of the variables used throughout the interface (see **Variables**, below). More advanced settings can be found under [**Settings**](#settings).
 
 ### Edit
 
@@ -31,6 +31,25 @@ Customise all the terms in the PDEs that you would like to solve using natural s
   For convenience, we define `WhiteNoise` to be a normally distributed random variable with unit variance and zero mean, scaled by $1/\sqrt{\Delta t\Delta x^N}$ where $N=1,2$ is the spatial dimension. This scales appropriately with timestep and spatial step and is suitable for direct use in PDEs, such as in our [stochastic example](/nonlinear-physics/stochastic-pdes). You can use up to 4 independent WhiteNoise terms using the syntax `WhiteNoise_1`, `WhiteNoise_2`, `WhiteNoise_3` and `WhiteNoise_4`.
 
   JSON key: `reactionStr_1` ... `reactionStr_8`: definitions, string. Defaults: `reactionStr_1`: `"u^2*v - (a+b)*u"`, `reactionStr_2`: `"-u^2*v + a*(1 - v)"`, `reactionStr_3`: `"0"`.
+
+- #### Variables
+
+  Configure the number and names of the variables used throughout VisualPDE.
+
+  - ##### \# variables
+
+    Specify the number of unknowns (1 to 8) in the simulation.
+    JSON key: `numVariables`, one of `1`, `2`, `3`, `4`, `5`, `6`, `7` or `8`. Default: `2`.
+
+  - ##### \# algebraic
+
+    Choose how many equations you want to be in algebraic form in systems with cross diffusion enabled. The equations will be put in algebraic form in reverse order, e.g. an 8-variables system with 1 algebraic variables will convert the final equation to be algebraic.
+    JSON key: `numAlgebraicVariables`, one of `0`, `1`, `2`, `3`, `4`, `5`, `6` or `7`. Default: `0`.
+
+  - ##### Variables names
+
+    Specify custom names for the variables in VisualPDE. When changing "# variables" to a higher number than the variables names previously provided cover, any additional variables will be named by default to `VARIABLE2`, `VARIABLE3`, ..., `VARIABLE8` (whichever position they fall in). Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, `T_01` is a valid name (rendered as $T_{01}$) whilst `T 01` is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as `H` for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old variables everywhere in the simulation and interface.
+    JSON key: `variablesNames`, space separated string. Default: `"u v"`
 
 ### Parameters
 
@@ -99,22 +118,7 @@ JSON key: `initCond_i`, definition, string. Defaults: `initCond_1`: `"0"`, `init
 
 ### Advanced options
 
-Configure additional equation-related settings, including the number of variables and the type of terms that will be included.
-
-- #### \# variables
-
-  Specify the number of unknowns (1 to 8) in the simulation.
-  JSON key: `numVariables`, one of `1`, `2`, `3`, `4`, `5`, `6`, `7` or `8`. Default: `2`.
-
-- #### \# algebraic
-
-  Choose how many equations you want to be in algebraic form in systems with cross diffusion enabled. The equations will be put in algebraic form in reverse order, e.g. an 8-variables system with 1 algebraic variables will convert the final equation to be algebraic.
-  JSON key: `numAlgebraicVariables`, one of `0`, `1`, `2`, `3`, `4`, `5`, `6` or `7`. Default: `0`.
-
-- #### Variables names
-
-  Specify custom names for the variables in VisualPDE. When changing "# variables" to a higher number than the variables names previously provided cover, any additional variables will be named by default to `VARIABLE2`, `VARIABLE3`, ..., `VARIABLE8` (whichever position they fall in). Names can be multi-character and can include letters, numbers, and underscores, but must each be a single 'word'. For example, `T_01` is a valid name (rendered as $T_{01}$) whilst `T 01` is not. Space or commas can be used to separate names in the list. Certain names are reserved under the hood, such as `H` for the Heaviside function, but VisualPDE will warn you if you attempt to use a reserved name. VisualPDE will automatically substitute the names of old variables everywhere in the simulation and interface.
-  JSON key: `variablesNames`, space separated string. Default: `"u v"`
+Configure additional equation-related settings, including the type of terms that will be included.
 
 - #### Cross diffusion
 

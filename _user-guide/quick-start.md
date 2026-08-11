@@ -77,9 +77,9 @@ t_u\pd{u}{t} &= \vnabla \cdot(D_{uu}\vnabla u+D_{uv}\vnabla v+D_{uw}\vnabla w+D_
 
 where $D_{uu}, \dots,  D_{qq}$, $f_u, \dots, f_q$ and $t_u, \dots, t_q$ are functions of $u$, $v$, $w$, $q$, $x$, $y$ and $t$ that you can specify.
 
-* You can change the number of unknowns by choosing <span class='click_sequence'>**Parameters and notation** → **Variables** → **Num. variables**</span>
+* You can change the number of unknowns by choosing <span class='click_sequence'>{{ layout.equations }} → **Variables** → **Num. variables**</span>
 * In systems of multiple unknowns, you can include terms representing cross-diffusion (e.g. $D_{uv}$, $D_{vu}$) by toggling <span class='click_sequence'>{{ layout.equations }} → **Cross diffusion**</span>
-* In systems of multiple unknowns, you can choose between a differential or algebraic equation for some of the variables (e.g. '$\partial w/\partial t=$' or '$w=$') by setting <span class='click_sequence'>**Parameters and notation** → **Variables** → **Num. algebraic**</span>
+* In systems of multiple unknowns, you can choose between a differential or algebraic equation for some of the variables (e.g. '$\partial w/\partial t=$' or '$w=$') by setting <span class='click_sequence'>{{ layout.equations }} → **Variables** → **Num. algebraic**</span>
 
 ### More VisualPDE
 For a comprehensive list of all the options that you can set in VisualPDE, check out the [Advanced documentation](/user-guide/advanced-options), or discover what VisualPDE can solve in our brief [summary](/user-guide/what-can-visualpde-solve).
