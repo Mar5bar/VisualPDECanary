@@ -10270,8 +10270,7 @@ async function VisualPDE(url) {
    * @param {Array} args - The arguments to be passed to the function.
    */
   function setOnFolderHoverEnter(folder, fun, args) {
-    folder.domElement.querySelector("li.title").onmouseenter = () =>
-      fun(args);
+    folder.domElement.querySelector("li.title").onmouseenter = () => fun(args);
   }
 
   /**
@@ -10282,8 +10281,7 @@ async function VisualPDE(url) {
    * @param {Array} args - The arguments to be passed to the function.
    */
   function setOnFolderHoverLeave(folder, fun, args) {
-    folder.domElement.querySelector("li.title").onmouseleave = () =>
-      fun(args);
+    folder.domElement.querySelector("li.title").onmouseleave = () => fun(args);
   }
 
   /**
