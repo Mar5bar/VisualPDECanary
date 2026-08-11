@@ -2430,6 +2430,10 @@ async function VisualPDE(url) {
     // touching species 5-8 uses a numeric key (see species_config.js/diffusionLabel for the
     // same convention). TeX select keys reuse defaultSpecies so the TeX display can hook into
     // them; selectTeX/deselectTeX are no-ops for keys with no TeXStrings entry.
+    // allDiffusionTexKeys collects every key seen below, so hovering the folder's own title bar
+    // (rather than any individual controller) can highlight all of them at once - see the
+    // setOnFolderHoverEnter/Leave calls below the loop.
+    const allDiffusionTexKeys = [];
     for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
         const key = diffCtrlKey(i, j);
@@ -2450,8 +2454,19 @@ async function VisualPDE(url) {
           i === j ? [defaultSpecies[i - 1].toUpperCase(), texKey] : [texKey];
         setOnfocus(controllers[key], selectTeX, texKeys);
         setOnblur(controllers[key], deselectTeX, texKeys);
+        allDiffusionTexKeys.push(...texKeys);
       }
     }
+    setOnFolderHoverEnter(
+      diffusionCoeffsFolder,
+      selectTeX,
+      allDiffusionTexKeys,
+    );
+    setOnFolderHoverLeave(
+      diffusionCoeffsFolder,
+      deselectTeX,
+      allDiffusionTexKeys,
+    );
 
     // Button to open the diffusion matrix popup, injected into the sub-folder's title bar
     // (mirroring addInfoButton's DOM-injection pattern). Its visibility (crossDiffusion on,
@@ -2469,6 +2484,9 @@ async function VisualPDE(url) {
     // 1-4 historically used "f"/"g"/"h"/"j" - purely an internal lookup key, never serialized
     // to options/URLs - renamed here to match species 5-8's naming, which has no natural
     // single-letter mnemonic).
+    // allReactionTexKeys mirrors allDiffusionTexKeys above - collected so hovering the folder's
+    // own title bar can highlight every reaction term at once.
+    const allReactionTexKeys = [];
     for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       const key = "reaction_" + i;
       const texKey = reactionTokenOfSpecies(i - 1);
@@ -2481,7 +2499,14 @@ async function VisualPDE(url) {
         });
       setOnfocus(controllers[key], selectTeX, [texKey]);
       setOnblur(controllers[key], deselectTeX, [texKey]);
+      allReactionTexKeys.push(texKey);
     }
+    setOnFolderHoverEnter(reactionTermsFolder, selectTeX, allReactionTexKeys);
+    setOnFolderHoverLeave(
+      reactionTermsFolder,
+      deselectTeX,
+      allReactionTexKeys,
+    );
 
     // Species-count/naming controllers get their own sub-folder too, back directly under
     // "Equations" as a sibling of Timescales/Diffusion coefficients/Reaction terms (not nested
@@ -10263,6 +10288,33 @@ async function VisualPDE(url) {
    */
   function setOnblur(cont, fun, args) {
     cont.domElement.firstChild.onblur = () => fun(args);
+  }
+
+  /**
+   * Sets the mouseenter handler of a dat.GUI folder's title bar (the "li.title" row that
+   * toggles the folder open/closed - not any of its child rows). Mirrors setOnfocus, but for
+   * hovering a whole folder rather than focusing a single controller - e.g. used to highlight
+   * every term a folder controls (all diffusion coefficients, all reaction terms, ...) at once.
+   *
+   * @param {dat.GUI} folder - The dat.GUI folder whose title bar should get the handler.
+   * @param {Function} fun - The function to be called on mouseenter.
+   * @param {Array} args - The arguments to be passed to the function.
+   */
+  function setOnFolderHoverEnter(folder, fun, args) {
+    folder.domElement.querySelector("li.title").onmouseenter = () =>
+      fun(args);
+  }
+
+  /**
+   * Sets the mouseleave handler of a dat.GUI folder's title bar. See setOnFolderHoverEnter.
+   *
+   * @param {dat.GUI} folder - The dat.GUI folder whose title bar should get the handler.
+   * @param {Function} fun - The function to be called on mouseleave.
+   * @param {Array} args - The arguments to be passed to the function.
+   */
+  function setOnFolderHoverLeave(folder, fun, args) {
+    folder.domElement.querySelector("li.title").onmouseleave = () =>
+      fun(args);
   }
 
   /**
