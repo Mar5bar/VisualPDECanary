@@ -6609,10 +6609,14 @@ async function VisualPDE(url) {
       if (/\bRANDN(_[1234])?\b/.test(allClearShaders)) {
         shaderStr += randNShader();
       }
-      shaderStr += "float u = " + parseShaderString(options.initCond_1, false) + ";\n";
-      shaderStr += "float v = " + parseShaderString(options.initCond_2, false) + ";\n";
-      shaderStr += "float w = " + parseShaderString(options.initCond_3, false) + ";\n";
-      shaderStr += "float q = " + parseShaderString(options.initCond_4, false) + ";\n";
+      shaderStr +=
+        "float u = " + parseShaderString(options.initCond_1, false) + ";\n";
+      shaderStr +=
+        "float v = " + parseShaderString(options.initCond_2, false) + ";\n";
+      shaderStr +=
+        "float w = " + parseShaderString(options.initCond_3, false) + ";\n";
+      shaderStr +=
+        "float q = " + parseShaderString(options.initCond_4, false) + ";\n";
       shaderStr +=
         "float u5 = " + parseShaderString(options.initCond_5, false) + ";\n";
       shaderStr +=
@@ -6642,10 +6646,14 @@ async function VisualPDE(url) {
       if (/\bRANDN(_[1234])?\b/.test(allClearShaders)) {
         shaderStr += randNShader();
       }
-      shaderStr += "float u = " + parseShaderString(options.initCond_1, false) + ";\n";
-      shaderStr += "float v = " + parseShaderString(options.initCond_2, false) + ";\n";
-      shaderStr += "float w = " + parseShaderString(options.initCond_3, false) + ";\n";
-      shaderStr += "float q = " + parseShaderString(options.initCond_4, false) + ";\n";
+      shaderStr +=
+        "float u = " + parseShaderString(options.initCond_1, false) + ";\n";
+      shaderStr +=
+        "float v = " + parseShaderString(options.initCond_2, false) + ";\n";
+      shaderStr +=
+        "float w = " + parseShaderString(options.initCond_3, false) + ";\n";
+      shaderStr +=
+        "float q = " + parseShaderString(options.initCond_4, false) + ";\n";
       shaderStr += clearShaderBot();
       shaderStr = replaceMINXMINY(shaderStr);
       assignFragmentShader(clearMaterial, shaderStr);
