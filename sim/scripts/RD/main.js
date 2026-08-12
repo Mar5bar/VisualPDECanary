@@ -2499,6 +2499,12 @@ async function VisualPDE(url) {
       deselectTeX,
       allDiffusionTexKeys,
     );
+    setOnFolderTapToggle(
+      diffusionCoeffsFolder,
+      selectTeX,
+      deselectTeX,
+      allDiffusionTexKeys,
+    );
 
     // Cross-diffusion toggle button.
     const crossDiffusionButtonList = addButtonList(root);
@@ -2548,6 +2554,12 @@ async function VisualPDE(url) {
     }
     setOnFolderHoverEnter(reactionTermsFolder, selectTeX, allReactionTexKeys);
     setOnFolderHoverLeave(reactionTermsFolder, deselectTeX, allReactionTexKeys);
+    setOnFolderTapToggle(
+      reactionTermsFolder,
+      selectTeX,
+      deselectTeX,
+      allReactionTexKeys,
+    );
 
     // Timescale controllers get their own sub-folder, shown only when the "Scales" toggle is
     // on (configureGUI() shows/hides the folder itself, mirroring how it already showed/hid
@@ -2574,6 +2586,12 @@ async function VisualPDE(url) {
     }
     setOnFolderHoverEnter(timescalesFolder, selectTeX, allTimescaleTexKeys);
     setOnFolderHoverLeave(timescalesFolder, deselectTeX, allTimescaleTexKeys);
+    setOnFolderTapToggle(
+      timescalesFolder,
+      selectTeX,
+      deselectTeX,
+      allTimescaleTexKeys,
+    );
 
     root = editEquationsFolder;
 
@@ -10462,6 +10480,51 @@ async function VisualPDE(url) {
    */
   function setOnFolderHoverLeave(folder, fun, args) {
     folder.domElement.querySelector("li.title").onmouseleave = () => fun(args);
+  }
+
+  /**
+   * Makes a dat.GUI folder's title bar open/close correctly on a single tap on touch
+   * devices, for a folder that also has setOnFolderHoverEnter/Leave handlers wired up. On
+   * WebKit/iOS in particular, an element with a mouseenter handler has its click event
+   * deferred to a second tap (the browser treats the first tap as "simulate hovering it",
+   * only committing to "actually click it" on a second tap on the same target) - so, on such
+   * a folder, tapping only ever highlighted its TeX terms without ever toggling it open.
+   * Handling touchend explicitly - and preventing its default, which suppresses the
+   * following synthetic click - lets us toggle the folder open/closed and select/deselect
+   * its TeX highlight together, directly, on the very first tap.
+   *
+   * @param {dat.GUI} folder - The dat.GUI folder whose title bar should get the handler.
+   * @param {Function} selectFun - Called (with args) to highlight, when the folder opens.
+   * @param {Function} deselectFun - Called (with args) to un-highlight, when it closes.
+   * @param {Array} args
+   */
+  function setOnFolderTapToggle(folder, selectFun, deselectFun, args) {
+    const title = folder.domElement.querySelector("li.title");
+    // Track the touch's start position so a scroll gesture that happens to end (finger
+    // lifted) over this title bar - e.g. scrolling a tall GUI panel on a small screen -
+    // isn't misread as a tap; only a touchend close to where the touch started toggles.
+    const TAP_MOVE_THRESHOLD_PX = 10;
+    let startX, startY;
+    title.addEventListener(
+      "touchstart",
+      (e) => {
+        startX = e.changedTouches[0].clientX;
+        startY = e.changedTouches[0].clientY;
+      },
+      { passive: true },
+    );
+    title.addEventListener(
+      "touchend",
+      (e) => {
+        const dx = e.changedTouches[0].clientX - startX;
+        const dy = e.changedTouches[0].clientY - startY;
+        if (Math.hypot(dx, dy) > TAP_MOVE_THRESHOLD_PX) return;
+        e.preventDefault();
+        folder.closed = !folder.closed;
+        (folder.closed ? deselectFun : selectFun)(args);
+      },
+      { passive: false },
+    );
   }
 
   /**
