@@ -6748,6 +6748,12 @@ async function VisualPDE(url) {
         throwError(
           "Int(...) expressions cannot be nested. Please rewrite your expression so that Int(...) is not used inside another Int(...).",
         );
+        // Don't record the nested call - its argument text (literally containing "Int(...)")
+        // must never be treated as a real expression to assign a slot to or resolve to a
+        // uniform, or the outer Int(...) would end up wired straight to whatever uniform its
+        // own (bogus) argument happens to canonicalize to.
+        regex.lastIndex = ind;
+        continue;
       }
       calls.push({
         start: match.index,

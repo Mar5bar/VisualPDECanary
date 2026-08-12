@@ -15,6 +15,10 @@ export function clearShaderTop() {
     uniform int nXDisc;
     uniform int nYDisc;
     uniform float seed;
+    uniform float globalIntegralValue1;
+    uniform float globalIntegralValue2;
+    uniform float globalIntegralValue3;
+    uniform float globalIntegralValue4;
 
     AUXILIARY_GLSL_FUNS
 
