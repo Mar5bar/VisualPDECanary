@@ -24,6 +24,8 @@ import {
   clampSpeciesToEdgeShader,
   globalIntegralShader,
   globalIntegralShaderMRT,
+  RDShaderEnforceDirichletTop,
+  RDShaderEnforceDirichletTopMRT,
 } from "../RD/simulation_shaders.js";
 
 // Note: these builder functions return GLSL *fragments* meant to be spliced into a larger
@@ -167,5 +169,18 @@ test("globalIntegralShader: declares the globalIntegralValue1-4 uniforms itself,
   const shader = globalIntegralShader();
   for (let i = 1; i <= 4; i++) {
     assert.match(shader, new RegExp(`uniform float globalIntegralValue${i};`));
+  }
+});
+
+// Regression: RDShaderEnforceDirichletTop() is the separate shader (dirichletMaterial, built by
+// setRDEquations() and run every frame via enforceDirichlet()) that applies dirichletStr_i/combo
+// Dirichlet values - it was missing the globalIntegralValue1-4 uniforms even though every other
+// BC type (Neumann/Robin) already worked with Int(...), so a Dirichlet value using Int(...)
+// failed to compile ("Unknown symbol: globalIntegralValueN") for every species, 1-8.
+test("RDShaderEnforceDirichletTop/MRT: declare the globalIntegralValue1-4 uniforms Int(...) needs (Dirichlet BC values)", () => {
+  for (const shader of [RDShaderEnforceDirichletTop(), RDShaderEnforceDirichletTopMRT()]) {
+    for (let i = 1; i <= 4; i++) {
+      assert.match(shader, new RegExp(`uniform float globalIntegralValue${i};`));
+    }
   }
 });

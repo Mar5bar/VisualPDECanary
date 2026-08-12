@@ -1183,6 +1183,10 @@ export function RDShaderEnforceDirichletTop() {
     uniform float L_y;
     uniform float L_min;
     uniform float t;
+    uniform float globalIntegralValue1;
+    uniform float globalIntegralValue2;
+    uniform float globalIntegralValue3;
+    uniform float globalIntegralValue4;
     uniform sampler2D imageSourceOne;
     uniform sampler2D imageSourceTwo;
 
@@ -1201,7 +1205,7 @@ export function RDShaderEnforceDirichletTop() {
       float zERF = BETA + 0.5 * yERF;
       return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
     }
-    
+
     void main()
     {
         ivec2 texSize = textureSize(textureSource,0);

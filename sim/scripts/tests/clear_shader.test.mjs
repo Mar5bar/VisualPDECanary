@@ -12,6 +12,17 @@ test("clearShaderTop/Bot: non-empty, contain expected placeholders", () => {
   assert.match(clearShaderBot(), /gl_FragColor = vec4\(u, v, w, q\);/);
 });
 
+// Regression: minX/minY are free-text fields (getUserTextFields() in presets.js) that get
+// compiled into every shader via replaceMINXMINY(), including this one (used for MINX/MINY in
+// setClearShader()) - so Int(...) used in minX/minY must resolve to a declared uniform here
+// too, or the shader fails to compile ("Unknown symbol: globalIntegralValueN").
+test("clearShaderTop: declares the globalIntegralValue1-4 uniforms Int(...) needs (minX/minY)", () => {
+  const top = clearShaderTop();
+  for (let i = 1; i <= 4; i++) {
+    assert.match(top, new RegExp(`uniform float globalIntegralValue${i};`));
+  }
+});
+
 test("clearShaderTopMRT: derived from clearShaderTop() with dual fragColor outputs added", () => {
   const mrt = clearShaderTopMRT();
   assert.match(mrt, /layout\(location = 0\) out highp vec4 fragColor0;/);
