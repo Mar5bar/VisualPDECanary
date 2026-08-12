@@ -65,7 +65,18 @@ for (const name of ["Diffusion coefficients", "Forcing terms", "Timescales"]) {
     await folderTitle(name).tap();
     await page.waitForTimeout(300);
     assert.equal(await isFolderClosed(name), false, `${name} should be open after one tap`);
-    // Tapping again closes it, mirroring the desktop click-to-toggle behaviour.
+
+    // The individual field rows revealed inside never had a hover/mouseenter handler
+    // themselves (only the folder title bar does) - they're a normal dat.gui text input, so
+    // a single tap should focus it directly, without needing a second tap.
+    const firstInput = folderTitle(name).locator("xpath=following-sibling::li[1]//input").first();
+    await firstInput.tap();
+    await page.waitForTimeout(200);
+    const focusedTag = await page.evaluate(() => document.activeElement.tagName);
+    assert.equal(focusedTag, "INPUT", `${name}'s first field should be focused after one tap`);
+    await firstInput.evaluate((el) => el.blur());
+
+    // Tapping the title again closes it, mirroring the desktop click-to-toggle behaviour.
     await folderTitle(name).tap();
     await page.waitForTimeout(300);
     assert.equal(await isFolderClosed(name), true, `${name} should close again after a second tap`);
