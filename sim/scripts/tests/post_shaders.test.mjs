@@ -15,6 +15,25 @@ import {
   probeShaderMRT,
 } from "../RD/post_shaders.js";
 
+// Every field Int(...) can be used in (see getUserTextFields()) has to be compiled into a
+// shader that declares these 4 uniforms, or parseShaderString's Int(...) -> globalIntegralValueN
+// substitution produces a reference to an undeclared uniform - a GLSL compile error. Checked
+// wherever a View-eligible field (whatToPlot/surfaceFun/arrowX/arrowY here, probeFun/X/Y below)
+// gets compiled.
+function assertDeclaresGlobalIntegralUniforms(shaderSrc) {
+  for (let i = 1; i <= 4; i++) {
+    assert.match(shaderSrc, new RegExp(`uniform float globalIntegralValue${i};`));
+  }
+}
+
+test("computeDisplayFunShaderTop: declares the globalIntegralValue1-4 uniforms Int(...) needs (whatToPlot/surfaceFun/arrowX/arrowY)", () => {
+  assertDeclaresGlobalIntegralUniforms(computeDisplayFunShaderTop());
+});
+
+test("probeShader: declares the globalIntegralValue1-4 uniforms Int(...) needs (probeFun/probeX/probeY)", () => {
+  assertDeclaresGlobalIntegralUniforms(probeShader());
+});
+
 test("computeDisplayFunShaderTop/Mid: non-empty, contain expected placeholders", () => {
   assert.match(computeDisplayFunShaderTop(), /AUXILIARY_GLSL_FUNS/);
   const mid = computeDisplayFunShaderMid();

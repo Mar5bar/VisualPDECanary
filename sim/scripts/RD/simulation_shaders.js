@@ -1292,6 +1292,10 @@ export function globalIntegralShader() {
     uniform float L_y;
     uniform float L_min;
     uniform float t;
+    uniform float globalIntegralValue1;
+    uniform float globalIntegralValue2;
+    uniform float globalIntegralValue3;
+    uniform float globalIntegralValue4;
     uniform bool customSurface;
     uniform bool vectorField;
     uniform bool overlayLine;
