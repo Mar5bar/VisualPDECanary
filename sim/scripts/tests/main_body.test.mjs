@@ -266,11 +266,12 @@ test("parseIntCalls: unbalanced brackets are skipped rather than crashing", () =
   assert.deepEqual(m.parseIntCalls("Int(u"), []);
 });
 
-test("parseIntCalls: nested Int(...) is rejected via throwError", () => {
+test("parseIntCalls: nested Int(...) is rejected via throwError and NOT recorded as a call (regression: it must not silently consume a slot or resolve to a live uniform)", () => {
   const messages = stubThrowError();
-  m.parseIntCalls("Int(Int(u))");
+  const calls = m.parseIntCalls("Int(Int(u))");
   assert.equal(messages.length, 1);
   assert.match(messages[0], /cannot be nested/);
+  assert.deepEqual(calls, []);
 });
 
 test("replaceIntCalls: splices each Int(...) call's replacement in place, keeping surrounding text intact", () => {
@@ -370,6 +371,39 @@ test("reconcileGlobalIntegrals: a 5th distinct expression overflows, throwing an
   assert.deepEqual(m.options.globalIntExprs, ["a", "b", "c", "d"]);
   assert.equal(messages.length, 1);
   assert.match(messages[0], /at most 4/);
+});
+
+test("reconcileGlobalIntegrals: a nested Int(Int(...)) doesn't consume a slot (regression - parseIntCalls must not record a rejected nested call)", () => {
+  m.__setState({
+    options: baseOptionsForReconcile({
+      reactionStr_1: "Int(a) + Int(b) + Int(c) + Int(d) + Int(Int(e))",
+    }),
+  });
+  const messages = stubThrowError();
+  stubGlobalIntegralRebuild();
+  m.reconcileGlobalIntegrals();
+  // All 4 real slots go to a-d; the nested Int(Int(e)) must not itself take a slot (nor push
+  // a-d into overflow) and must not raise the separate "at most 4" overflow error - only the
+  // nesting error.
+  assert.deepEqual(m.options.globalIntExprs, ["a", "b", "c", "d"]);
+  assert.equal(messages.length, 1);
+  assert.match(messages[0], /cannot be nested/);
+});
+
+test("reconcileGlobalIntegrals: scans brushRadius, minX, minY and timescale_1-8 (regression - these are real free-text expression fields, e.g. presets.js's brushRadius: \"a*L\"/minX: \"-L_x/2\", that were missing from getUserTextFields())", () => {
+  for (const field of ["brushRadius", "minX", "minY", "timescale_3"]) {
+    m.__setState({
+      options: baseOptionsForReconcile({ [field]: "Int(u)" }),
+    });
+    stubThrowError();
+    stubGlobalIntegralRebuild();
+    m.reconcileGlobalIntegrals();
+    assert.deepEqual(
+      m.options.globalIntExprs,
+      ["u", null, null, null],
+      `Int(u) in ${field} should be assigned a slot`,
+    );
+  }
 });
 
 // --- parseShaderString / parseStringToTEX: Int(...) --------------------------
