@@ -400,6 +400,21 @@ test("parseShaderString: an Int(expr) with no reconciled slot degrades to 0.0 ra
   assert.equal(out.trim(), "0.0");
 });
 
+test("parseShaderString: Int(...) is rejected in initial conditions (allowIntegrals=false) - degrades to 0.0 and reports via throwError, even when the expression has a valid reconciled slot elsewhere", () => {
+  m.__setState({
+    options: { minX: "0", minY: "0", globalIntExprs: ["u", null, null, null] },
+    listOfSpecies: ["u"],
+    listOfReactions: ["UFUN"],
+    expandedExpressionDefs: {},
+  });
+  const messages = stubThrowError();
+  m.genAnySpeciesRegexStrs();
+  const out = m.parseShaderString("Int(u)", false);
+  assert.equal(out.trim(), "0.0");
+  assert.equal(messages.length, 1);
+  assert.match(messages[0], /can't be used in initial conditions/);
+});
+
 test("parseStringToTEX: substitutes Int(expr) with \\iint_{\\Omega}(expr, fully TeX-formatted)", () => {
   m.__setState({
     options: { minX: "0", minY: "0", dimension: "2" },

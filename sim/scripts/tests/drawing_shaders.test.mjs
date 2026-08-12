@@ -22,6 +22,13 @@ test("drawShaderTop: non-empty, contains expected placeholders", () => {
   assert.match(drawShaderTop(), /brushCoords/);
 });
 
+test("drawShaderTop: declares the globalIntegralValue1-4 uniforms Int(...) needs (brushValue)", () => {
+  const top = drawShaderTop();
+  for (let i = 1; i <= 4; i++) {
+    assert.match(top, new RegExp(`uniform float globalIntegralValue${i};`));
+  }
+});
+
 test("drawShaderTopMRT: adds textureSourceGroup1 sampler and dual fragColor outputs, samples group 1", () => {
   const mrt = drawShaderTopMRT();
   assert.match(mrt, /uniform sampler2D textureSourceGroup1;/);

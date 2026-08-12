@@ -571,6 +571,8 @@ A quantity can be integrated over the domain at every timestep using the syntax 
 
 Up to 4 distinct `Int(...)` expressions can be used across a simulation - VisualPDE automatically manages their evaluation behind the scenes, so the same expression, e.g. `Int(u)`, can be reused in as many fields as you like at no extra cost, while an unrelated 5th expression will raise an error. Each integral is coarsely approximated by a simple Riemann sum, with accuracy (and computational cost) increasing with mesh refinement, and is only computed while actually referenced somewhere in your simulation. The rate at which these integrals are recomputed is set by **Int. update** in <span class='click_sequence'>{{ layout.settings }} → **Misc.**</span>. `Int(...)` expressions cannot be nested (e.g. `Int(Int(u))` is not valid), since the result of an integral is already constant over space.
 
+`Int(...)` can be used almost anywhere, including in View expressions such as **Probe**, **Overlay**, **Expression** and **Surface $z$**, not just in reaction/forcing terms. The one exception is **Initial conditions**: since a domain integral isn't computed until the simulation is actually running, `Int(...)` can't be used there, and doing so will raise an error.
+
 ### Non-local evaluation
 
 Sometimes, you might want direct access to the values of a variables at points other than `(x,y)`, such as if you wanted to implement a higher order derivative or a lattice dynamical system. You can access a variables (e.g. `u`) at an arbitrary position via the syntax `u[x,y]`, where `x` and `y` can be any valid expression that points to somewhere in the domain. For instance, writing `u[x+dx,y+dy] - u[x-dx,y-dy]` will lookup nearby values of `u`, offset by the step sizes `dx` and `dy`.

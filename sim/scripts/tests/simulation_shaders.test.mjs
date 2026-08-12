@@ -162,3 +162,10 @@ test("globalIntegralShader/globalIntegralShaderMRT: non-empty, MRT variant refer
   assert.ok(mrt.length > 0);
   assert.match(mrt, /textureSourceGroup1|Group1/);
 });
+
+test("globalIntegralShader: declares the globalIntegralValue1-4 uniforms itself, for Int(...) used in domainIndicatorFun", () => {
+  const shader = globalIntegralShader();
+  for (let i = 1; i <= 4; i++) {
+    assert.match(shader, new RegExp(`uniform float globalIntegralValue${i};`));
+  }
+});

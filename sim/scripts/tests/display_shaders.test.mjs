@@ -13,6 +13,13 @@ import {
   surfaceVertexShaderCustom,
 } from "../RD/display_shaders.js";
 
+test("fiveColourDisplayTop: declares the globalIntegralValue1-4 uniforms Int(...) needs (overlayExpr)", () => {
+  const top = fiveColourDisplayTop();
+  for (let i = 1; i <= 4; i++) {
+    assert.match(top, new RegExp(`uniform float globalIntegralValue${i};`));
+  }
+});
+
 test("fiveColourDisplayTop/Bot: non-empty, contain expected placeholders/colour ramp", () => {
   const top = fiveColourDisplayTop();
   assert.match(top, /AUXILIARY_GLSL_FUNS/);

@@ -5049,27 +5049,10 @@ async function VisualPDE(url) {
     return out;
   }
 
-  function parseShaderString(str) {
+  function parseShaderString(str, allowIntegrals = true) {
     // Parse a string into valid GLSL by replacing u,v,^, and integers.
     // Pad the string.
     str = " " + str + " ";
-
-    // Replace each Int(expression) with the globalIntegralValueN uniform holding its
-    // current value, N being whichever of the (at most 4) slots reconcileGlobalIntegrals()
-    // has assigned that expression to. reconcileGlobalIntegrals() always runs earlier in
-    // the same shader-rebuild call than parseShaderString(), so the slot should always be
-    // found; fall back to "0.0" (mirroring expandDependentExpressions' degrade-to-"0.0" for
-    // cyclic expressions) if it somehow isn't, e.g. a slot that overflowed the max of 4. Must
-    // run first, before anything below (including expression-macro substitution just below)
-    // has a chance to rewrite the raw text inside "Int(...)" - reconcileGlobalIntegrals()
-    // populated options.globalIntExprs from that same raw, unrewritten field text, so the
-    // lookup here has to see exactly the same text to find a match. The result is a bare
-    // identifier, immune to every later substitution pass, so there's no downside to
-    // resolving it up front.
-    str = replaceIntCalls(str, (expr) => {
-      const ind = options.globalIntExprs.indexOf(expr);
-      return ind == -1 ? "0.0" : "globalIntegralValue" + (ind + 1);
-    });
 
     // Substitute user-defined expressions (raw text macros, not GLSL quantities) before any
     // other parsing, so everything below only ever sees expression-free text.
@@ -5080,6 +5063,41 @@ async function VisualPDE(url) {
         new RegExp("\\b" + name + "\\b", "g"),
         "(" + expandedExpressionDefs[name] + ")",
       );
+    });
+
+    // Replace each Int(expression) with the globalIntegralValueN uniform holding its
+    // current value, N being whichever of the (at most 4) slots reconcileGlobalIntegrals()
+    // has assigned that expression to. reconcileGlobalIntegrals() always runs earlier in
+    // the same shader-rebuild call than parseShaderString(), so the slot should always be
+    // found; fall back to "0.0" (mirroring expandDependentExpressions' degrade-to-"0.0" for
+    // cyclic expressions) if it somehow isn't, e.g. a slot that overflowed the max of 4. Must
+    // run after macro substitution above - reconcileGlobalIntegrals() scans every field's raw
+    // text (including a macro's own definition in options.expressions) for Int(...), so a
+    // macro like "myMacro = u + Int(u)" already gets "u" assigned a slot; if this ran before
+    // macro substitution, an Int(...) that only exists *inside* a macro's definition (only
+    // appearing here once "myMacro" gets expanded to "(u + Int(u))") would never be resolved,
+    // reaching the shader compiler as literal, invalid "Int(u)" text. Still runs before
+    // anything below that could otherwise mangle the raw text inside "Int(...)" (e.g. species
+    // substitution) - the lookup here needs to see the same canonical text
+    // reconcileGlobalIntegrals() saw. The result is a bare identifier, immune to every later
+    // substitution pass.
+    //
+    // allowIntegrals is false only for initial conditions (setClearShader) - domain integrals
+    // aren't computed until the simulation is actually running (they're derived from the
+    // current state, which doesn't exist yet at t=0, before the very first timestep), so
+    // there's no meaningful value Int(...) could resolve to there. Rather than let that reach
+    // the shader compiler as a reference to a uniform initCond's shader never declares
+    // (a confusing "undefined identifier" GLSL compile error), degrade straight to "0.0" and
+    // explain why via throwError.
+    str = replaceIntCalls(str, (expr) => {
+      if (!allowIntegrals) {
+        throwError(
+          "Int(...) can't be used in initial conditions, since domain integrals haven't been computed yet when the simulation starts. Use it in a reaction/forcing term or another field instead - initial conditions will be treated as 0 here.",
+        );
+        return "0.0";
+      }
+      const ind = options.globalIntExprs.indexOf(expr);
+      return ind == -1 ? "0.0" : "globalIntegralValue" + (ind + 1);
     });
 
     // Perform a syntax check.
@@ -6591,18 +6609,18 @@ async function VisualPDE(url) {
       if (/\bRANDN(_[1234])?\b/.test(allClearShaders)) {
         shaderStr += randNShader();
       }
-      shaderStr += "float u = " + parseShaderString(options.initCond_1) + ";\n";
-      shaderStr += "float v = " + parseShaderString(options.initCond_2) + ";\n";
-      shaderStr += "float w = " + parseShaderString(options.initCond_3) + ";\n";
-      shaderStr += "float q = " + parseShaderString(options.initCond_4) + ";\n";
+      shaderStr += "float u = " + parseShaderString(options.initCond_1, false) + ";\n";
+      shaderStr += "float v = " + parseShaderString(options.initCond_2, false) + ";\n";
+      shaderStr += "float w = " + parseShaderString(options.initCond_3, false) + ";\n";
+      shaderStr += "float q = " + parseShaderString(options.initCond_4, false) + ";\n";
       shaderStr +=
-        "float u5 = " + parseShaderString(options.initCond_5) + ";\n";
+        "float u5 = " + parseShaderString(options.initCond_5, false) + ";\n";
       shaderStr +=
-        "float u6 = " + parseShaderString(options.initCond_6) + ";\n";
+        "float u6 = " + parseShaderString(options.initCond_6, false) + ";\n";
       shaderStr +=
-        "float u7 = " + parseShaderString(options.initCond_7) + ";\n";
+        "float u7 = " + parseShaderString(options.initCond_7, false) + ";\n";
       shaderStr +=
-        "float u8 = " + parseShaderString(options.initCond_8) + ";\n";
+        "float u8 = " + parseShaderString(options.initCond_8, false) + ";\n";
       shaderStr += clearShaderBotMRT();
       shaderStr = replaceMINXMINY(shaderStr);
       assignFragmentShader(clearMaterial, shaderStr);
@@ -6624,10 +6642,10 @@ async function VisualPDE(url) {
       if (/\bRANDN(_[1234])?\b/.test(allClearShaders)) {
         shaderStr += randNShader();
       }
-      shaderStr += "float u = " + parseShaderString(options.initCond_1) + ";\n";
-      shaderStr += "float v = " + parseShaderString(options.initCond_2) + ";\n";
-      shaderStr += "float w = " + parseShaderString(options.initCond_3) + ";\n";
-      shaderStr += "float q = " + parseShaderString(options.initCond_4) + ";\n";
+      shaderStr += "float u = " + parseShaderString(options.initCond_1, false) + ";\n";
+      shaderStr += "float v = " + parseShaderString(options.initCond_2, false) + ";\n";
+      shaderStr += "float w = " + parseShaderString(options.initCond_3, false) + ";\n";
+      shaderStr += "float q = " + parseShaderString(options.initCond_4, false) + ";\n";
       shaderStr += clearShaderBot();
       shaderStr = replaceMINXMINY(shaderStr);
       assignFragmentShader(clearMaterial, shaderStr);
