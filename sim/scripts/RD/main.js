@@ -6198,13 +6198,13 @@ async function VisualPDE(url) {
         const closest = closestMatch(preset, listOfPresetNames, false);
         // Display an error if the preset doesn't exist.
         throwPresetError(
-          "We couldn't find a preset called '" +
+          "We couldn't find the preset ‘" +
             preset +
-            "'." +
+            "’." +
             (closest != null
-              ? " We've loaded the closest match, '" + closest + "'."
+              ? " We've loaded the closest match, ‘" + closest + "’, instead."
               : "") +
-            " Please check the preset specified in the URL.",
+            " Please check the preset name in the URL.",
         );
         // Load the default preset or the closest match.
         newOptions = getPreset(closest ? closest : defaultPreset);
@@ -10789,7 +10789,7 @@ async function VisualPDE(url) {
 
   /**
    * Sets the default render size based on the canvas dimensions and performance mode option.
-   
+
    * @returns {void}
    */
   function setDefaultRenderSize() {
@@ -11109,7 +11109,7 @@ async function VisualPDE(url) {
 
   /**
    * Removes the current view from the options.views array if there is more than one view. If there is only one view, renames it to "Custom".
-   
+
    * @returns {void}
    */
   function deleteView() {
@@ -11435,7 +11435,7 @@ async function VisualPDE(url) {
 
   /**
    * Copies the current configuration as a JSON string to the clipboard, with some modifications.
-   
+
    * @returns {void}
    */
   function copyConfigAsJSON() {
@@ -11483,7 +11483,7 @@ async function VisualPDE(url) {
 
   /**
    * Copies debugging data to the clipboard.
-   
+
    * @returns {void}
    */
   function copyDebug() {

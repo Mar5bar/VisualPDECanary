@@ -23,7 +23,7 @@
   <meta property="og:image" content="https://visualpde.com/assets/favicons/android-chrome-1200x630.webp" />
   <meta property="og:url" content="https://visualpde.com" />
   <meta property="og:site_name" content="VisualPDE" />
-  <link rel="stylesheet" href="{{ " /assets/main.css" | relative_url }}">
+  <link rel="stylesheet" href="{{ "/assets/main.css" | relative_url }}">
   <link type="text/css" rel="stylesheet" href="/assets/css/shepherd.css" />
   <link type="text/css" rel="stylesheet" href="/assets/css/custom.css" />
   <link type="text/css" rel="stylesheet" href="/sim/css/main.css" />
@@ -225,6 +225,7 @@
   <!-- The canvas for drawing on -->
   <canvas id="simCanvas"></canvas>
 
+  <!-- Welcome message -->
   <div class="message big-popup" id="welcome">
     <div class='centre_symbol'>
       <img src="/assets/images/2heart-light.webp" height="48" />
@@ -245,7 +246,7 @@
         Some simulations on VisualPDE.com may contain flashing images and
         patterns.
       </p>
-      <p style="font-size: 0.5em">
+      <p class="cookies">
         We use analytics cookies to evidence VisualPDEʼs impact to funders. By
         using this site, you consent to the use of cookies.
       </p>
@@ -256,6 +257,152 @@
       </button>
     </div>
   </div>
+
+  <!-- Error message: Hit NaN -->
+  <div class="message big-popup" id="oops_hit_nan">
+    <div class="centre_symbol">
+      <i class="fa-solid fa-infinity"></i>
+    </div>
+    <p class="error_para">
+      <strong>Oops!</strong> It looks like things have spiralled off to
+      infinity, or the numerical solver is unstable.
+    </p>
+    <p class="error_para">
+      Check the equations, or try reducing the timestep, and restart the
+      simulation.
+    </p>
+    <button class="btn-primary message_dismiss" id="oops_hit_nan_close">
+      <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
+    </button>
+  </div>
+
+  <!-- Error message: General error -->
+  <div class="message big-popup" id="error">
+    <div class="centre_symbol">
+      <i class="fa-solid fa-clipboard-question"></i>
+    </div>
+    <p class="header">VisualPDE is throwing an error</p>
+    <p class="error_para" id="error_description"></p>
+    <p class="error_para">
+      Check for
+      <a href="/user-guide/advanced-options.html#writing-valid-expressions" target="_blank">syntax errors</a>, and
+      reload the page if the interface is unresponsive.
+    </p>
+    <button class="btn-primary message_ok highlight" id="error_fix_button">
+      <i class="fa-solid fa-plus icon_on_text_button"></i><span id="error_fix_button_text"></span>
+    </button>
+    <button class="btn-primary message_dismiss" id="error_close_button">
+      <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
+    </button>
+  </div>
+
+  <!-- Error message: Invalid preset -->
+  <div class="message big-popup" id="bad_preset">
+    <div class="centre_symbol">
+      <i class="fa-solid fa-clipboard-question"></i>
+    </div>
+    <p class="header">Unknown preset</p>
+    <p class="error_para" id="preset_description"></p>
+    <button class="btn-primary message_dismiss" id="preset_error_close_button">
+      <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
+    </button>
+  </div>
+
+  <!-- Video clip message -->
+  <div class="message big-popup" id="first_video">
+    <div class="centre_symbol"><i class="fa-solid fa-file-video"></i></div>
+    <p class="header">First video downloaded!</p>
+    <p>
+      Congratulations! You've recorded your first video clip with VisualPDE.
+    </p>
+    <p>
+      If you're planning to share it on social media or messaging apps, check
+      out our
+      <a href="/user-guide/FAQ.html#videoHelp" target="_blank">FAQ on video compatibility</a>.
+    </p>
+    <p>
+    <button class="btn-primary message_dismiss" id="first_video_close">
+      <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
+    </button>
+    </p>
+  </div>
+
+  <!-- Webcam access message -->
+  <div class="message big-popup" id="webcam_access">
+    <div class="centre_symbol"><i class="fa-solid fa-file-video"></i></div>
+    <p>
+      This simulation is requesting access to your camera to put you in a
+      simulation.
+    </p>
+    <br />
+    <p>
+      Your data never leaves your device. Press OK to proceed, or navigate
+      away from this page.
+    </p>
+    <button class="btn-primary message_dismiss" id="webcam_ok">OK</button>
+  </div>
+
+  <!-- LLM message -->
+  <div class="message big-popup" id="llm-message">
+    <div class="centre_symbol"><i class="fa-solid fa-robot"></i></div>
+    <p class="header">LLM support</p>
+    <p>
+      This is an experimental feature
+      that will connect you to Google Gemini for help with your
+      simulation.
+    </p>
+    <p>
+      <button class="btn-primary message_ok highlight" id="llm_click_open">Open LLM
+        <small><i class="fa-solid fa-up-right-from-square" style="vertical-align: 0em"></i></small>
+      </button><br />
+      <button class="btn-primary message_dismiss" id="llm_click_close">
+        <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
+      </button>
+    </p>
+    <div id="secondary_notices">
+      <p>
+        If you don't see a VisualPDE-tailored chat, please sign in to Google, then open the LLM again.
+      </p>
+    </div>
+  </div>
+
+  <!-- What's new message -->
+  <div class="message big-popup" id="updates-message">
+    <div class="centre_symbol"><i class="fa-solid fa-star"></i></div>
+    <p class="header">What’s new with VisualPDE?</p>
+    <div class="feature-list">
+      <div class="feature">
+        <div class="feature-icon">8</div>
+        <div class="feature-text">
+          <div>Solve up to <strong>8</strong> equations at&nbsp;once.</div>
+          <div class="soft">Explore countless new possibilities.</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          $\int$
+        </div>
+        <div class="feature-text">
+          <div>Use $\int_{\domain} f(x,y,u,...) \, \d x \, \d y$.</div>
+          <div class="soft">Try the new <code>GlobalInt</code> <a
+              href="/user-guide/advanced-options.html#special-functions"
+              target="_blank">syntax</a>.</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary message_ok highlight" id="updates_message_ok">
+      Got it!
+    </button>
+  </div>
+
+  <div class="message big-popup wide" id="diffusionMatrix_ui">
+    <p id="diffusionMatrixEquation"></p>
+    <div id="diffusionMatrixGrid"></div>
+    <button class="btn-primary message_ok highlight" id="diffusionMatrix_ok">
+      OK
+    </button>
+  </div>
+
 
   <div class="ui hidden ui_button" id="equations" title="Edit equations"></div>
   <div id="left_ui" class="ui hidden">
@@ -328,122 +475,6 @@
 
   <div class="message" id="top_message" title="Try clicking!">
     <p>Try clicking!</p>
-  </div>
-  <div class="message big-popup" id="oops_hit_nan">
-    <div class="centre_symbol">
-      <i class="fa-solid fa-infinity"></i>
-    </div>
-    <p class="error_para">
-      <strong>Oops!</strong> It looks like things have spiralled off to
-      infinity, or the numerical solver is unstable.
-    </p>
-    <p class="error_para">
-      Check the equations, or try reducing the timestep, and restart the
-      simulation.
-    </p>
-    <button class="btn-primary message_dismiss" id="oops_hit_nan_close">
-      <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
-    </button>
-  </div>
-  <div class="message big-popup" id="error">
-    <div class="centre_symbol">
-      <i class="fa-solid fa-clipboard-question"></i>
-    </div>
-    <p class="error_para">VisualPDE is throwing an error.</p>
-    <p class="error_para" id="error_description"></p>
-    <p class="error_para">
-      Check for
-      <a href="/user-guide/advanced-options.html#writing-valid-expressions" target="_blank">syntax errors</a>, and
-      reload the page if the interface is unresponsive.
-    </p>
-    <button class="btn-primary message_ok highlight" id="error_fix_button">
-      <i class="fa-solid fa-plus icon_on_text_button"></i><span id="error_fix_button_text"></span>
-    </button>
-    <button class="btn-primary message_dismiss" id="error_close_button">
-      <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
-    </button>
-  </div>
-  <div class="message big-popup" id="bad_preset">
-    <div class="centre_symbol">
-      <i class="fa-solid fa-clipboard-question"></i>
-    </div>
-    <p class="error_para"><strong>Hmmm...</strong></p>
-    <p class="error_para" id="preset_description"></p>
-    <button class="btn-primary message_dismiss" id="preset_error_close_button">
-      <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
-    </button>
-  </div>
-  <div class="message big-popup" id="first_video">
-    <div class="centre_symbol"><i class="fa-solid fa-file-video"></i></div>
-    <p>
-      Congratulations! You've recorded your first video clip with VisualPDE!
-    </p>
-    <br />
-    <p>
-      If you're planning to share it on social media or messaging apps, check
-      out our
-      <a href="/user-guide/FAQ.html#videoHelp" target="_blank">FAQ on video compatibility</a>.
-    </p>
-    <button class="btn-primary message_dismiss" id="first_video_close">
-      <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
-    </button>
-  </div>
-  <div class="message big-popup" id="webcam_access">
-    <div class="centre_symbol"><i class="fa-solid fa-file-video"></i></div>
-    <p>
-      This simulation is requesting access to your camera to put you in a
-      simulation.
-    </p>
-    <br />
-    <p>
-      Your data never leaves your device. Press OK to proceed, or navigate
-      away from this page.
-    </p>
-    <button class="btn-primary message_dismiss" id="webcam_ok">OK</button>
-  </div>
-  <div class="message big-popup" id="llm-message">
-    <div class="centre_symbol"><i class="fa-solid fa-robot"></i></div>
-    <p class="header">LLM support</p>
-    <p>
-      This is an experimental feature
-      that will connect you to Google Gemini for help with your
-      simulation.
-    </p>
-    <p>
-      <button class="btn-primary message_ok highlight" id="llm_click_open">Open LLM
-        <small><i class="fa-solid fa-up-right-from-square" style="vertical-align: 0em"></i></small>
-      </button><br />
-      <button class="btn-primary message_dismiss" id="llm_click_close">
-        <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
-      </button>
-    </p>
-    <div id="secondary_notices">
-      <p>
-        If you don't see a VisualPDE-tailored chat, please sign in to Google, then open the LLM again.
-      </p>
-    </div>
-  </div>
-  <div class="message big-popup" id="updates-message">
-    <div class="centre_symbol"><i class="fa-solid fa-star"></i></div>
-    <p class="header">What’s new with VisualPDE?</p>
-    <ul>
-      <li>Solve up to <strong>8</strong> equations at once.<div class="soft">Explore countless new possibilities.</div>
-      </li>
-      <li>Use $\int_{\domain} f(x,y,u,...) \, \d x \, \d y$.<div class="soft">Try the new <code>GlobalInt</code> <a
-            href="/user-guide/advanced-options.html#special-functions" target="_blank">syntax</a>.</div>
-      </li>
-    </ul>
-    <button class="btn-primary message_ok highlight" id="updates_message_ok">
-      Got it!
-    </button>
-  </div>
-
-  <div class="message big-popup wide" id="diffusionMatrix_ui">
-    <p id="diffusionMatrixEquation"></p>
-    <div id="diffusionMatrixGrid"></div>
-    <button class="btn-primary message_ok highlight" id="diffusionMatrix_ok">
-      OK
-    </button>
   </div>
 
   <div id="comboBCs_ui" class="ui hidden">
