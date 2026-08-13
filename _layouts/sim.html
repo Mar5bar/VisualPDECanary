@@ -269,30 +269,33 @@
     <canvas id="simCanvas"></canvas>
 
     <div class="message big-popup" id="welcome">
-      <p>
-        <img src="/assets/images/2heart-light.webp" height="48" />
-      </p>
-      <p>Welcome to VisualPDE!</p>
+      <div class='centre_symbol'>
+        <img src="/assets/images/2heart-light.webp" height="48"/>
+      </div>
+      <p class="header">Welcome to VisualPDE!</p>
       <div id="tour_question">
-        <p>There is so much to explore. Would you like a tour?</p>
-        <br />
+        <p>There is so much to explore.<br />Would you like a tour?</p>
+        <p>
         <button id="welcome_ok" class="btn-primary message_ok highlight">
-          Yes, show me round!
+          Yes, show me around!
         </button>
         <br />
-        <button id="welcome_no" class="btn-primary message_ok">No, let me jump in!</button>
+        <button id="welcome_no" class="btn-primary message_ok">Skip the tour</button>
+        </p>
       </div>
-      <p>
+      <div id="secondary_notices">
+      <p class="warning">
         Some simulations on VisualPDE.com may contain flashing images and
         patterns.
       </p>
       <p style="font-size: 0.5em">
-        We use analytics cookies to evidence VisualPDE's impact to funders. By
+        We use analytics cookies to evidence VisualPDEʼs impact to funders. By
         using this site, you consent to the use of cookies.
       </p>
+      </div>
       <div id="lets_go_cont" style="display: none">
         <button id="lets_go" class="btn-primary message_ok highlight">
-          OK, let's go!
+          OK, let’s go!
         </button>
       </div>
     </div>
@@ -388,7 +391,7 @@
     </div>
     <div class="message big-popup" id="oops_hit_nan">
       <div class="centre_symbol">
-        <i class="fa-sharp fa-solid fa-infinity"></i>
+        <i class="fa-solid fa-infinity"></i>
       </div>
       <p class="error_para">
         <strong>Oops!</strong> It looks like things have spiralled off to
@@ -469,31 +472,35 @@
     </div>
     <div class="message big-popup" id="llm-message">
       <div class="centre_symbol"><i class="fa-solid fa-robot"></i></div>
+      <p class="header">LLM support</p>
       <p>
-        You've clicked the LLM support button! This is an experimental feature
-        that will connect you to a large language model for help with your
+        This is an experimental feature
+        that will connect you to Google Gemini for help with your
         simulation.
       </p>
+      <p>
       <button class="btn-primary message_ok highlight" id="llm_click_open">Open LLM
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-          <path fill="currentColor" d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z"></path>
-          <path fill="currentColor" d="M5 5h6v2H7v10h10v-4h2v6H5z"></path>
-        </svg>
+        <small><i class="fa-solid fa-up-right-from-square" style="vertical-align: 0em"></i></small>
+      </button><br />
+      <button class="btn-primary message_dismiss" id="llm_click_close">
+        <i class="fa-solid fa-xmark icon_on_text_button"></i>Close
       </button>
-      <button class="btn-primary message_dismiss" id="llm_click_close">Close</button>
-      <p style="font-size: 0.8em">
+      </p>
+      <div id="secondary_notices">
+      <p>
         If you don't see a VisualPDE-tailored chat, please sign in to Google, then open the LLM again.
       </p>
+      </div>
     </div>
     <div class="message big-popup" id="updates-message">
       <div class="centre_symbol"><i class="fa-solid fa-star"></i></div>
-      <p><strong>What's new with VisualPDE?</strong></p>
+      <p class="header">What’s new with VisualPDE?</p>
       <ul>
-        <li>Solve up to 8 equations at once <span class="soft">and explore countless new possibilities.</span></li>
-        <li>Use $\int_{\domain} f(x,y,u,...) \dx \dy$ <span class="soft">with new <code>GlobalInt</code> <a href="/user-guide/advanced-options.html#special-functions" target="_blank">syntax</a>.</span></li>
+        <li>Solve up to <strong>8</strong> equations at once.<div class="soft">Explore countless new possibilities.</div></li>
+        <li>Use $\int_{\domain} f(x,y,u,...) \, \d x \, \d y$.<div class="soft">Try the new <code>GlobalInt</code> <a href="/user-guide/advanced-options.html#special-functions" target="_blank">syntax</a>.</div></li>
       </ul>
       <button class="btn-primary message_ok highlight" id="updates_message_ok">
-        OK!
+        Got it!
       </button>
     </div>
 
