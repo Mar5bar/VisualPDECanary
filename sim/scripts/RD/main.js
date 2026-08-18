@@ -12530,7 +12530,7 @@ async function VisualPDE(url) {
   function addFocusLeftGUIButton(folder = variablesAndParamsFolder) {
     const focusButton = document.createElement("button");
     focusButton.classList.add("focus-params");
-    focusButton.innerHTML = `<i class="fa-solid fa-eye"></i>`;
+    focusButton.innerHTML = `<i class="fa-solid fa-thumbtack"></i>`;
     focusButton.title = "Focus this folder";
     focusButton.onclick = function () {
       focusButton.classList.toggle("active");
