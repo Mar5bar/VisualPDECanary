@@ -2779,7 +2779,7 @@ async function VisualPDE(url) {
       });
 
     // Miscellaneous folder.
-    root = rightGUI.addFolder("Misc.");
+    root = rightGUI.addFolder("More...");
     addInfoButton(root, "/user-guide/advanced-options#misc");
 
     root
@@ -2908,7 +2908,7 @@ async function VisualPDE(url) {
       .add(options, "globalIntegralUpdatePeriod", 1, 1000, 1)
       .name("Int. update");
 
-    devFolder = root.addFolder("Dev");
+    devFolder = root.addFolder("Developer tools");
     root = devFolder;
     addInfoButton(root, "/user-guide/advanced-options#dev");
     // Dev.
