@@ -401,10 +401,6 @@ span.highlight {
   position: relative;
 }
 
-.main > ul{
-  padding-bottom: 4px;
-}
-
 /* Second level folders and controls */
 .main > ul > li.folder > .dg > ul > li.folder,
 .main > ul > li.folder > .dg > ul > li.cr,
@@ -568,15 +564,20 @@ span.highlight {
 }
 
 .dg ul:not(.closed) {
-  border-bottom: 1px solid #eee !important;
+  border-bottom: 1px solid var(--tile-border-color) !important;
 }
 
 .main > ul > li > .dg > ul > li.title {
-  border-bottom: 1px solid #eee !important;
+  border-bottom: 1px solid var(--tile-border-color) !important;
 }
 
 .main > ul > li:last-of-type > .dg > ul {
   border-bottom: 0px solid red !important;
+}
+
+.main > ul{
+  padding-bottom: 4px;
+  border-bottom: 0px solid white !important;
 }
 
 .main > ul > li:last-of-type > .dg > ul.closed > li.title {
@@ -585,7 +586,7 @@ span.highlight {
 
 .dg li.folder li.folder ul.closed > li.title {
   /* border-bottom: 0px !important; */
-    border-bottom: 1px solid #eee !important;
+    border-bottom: 1px solid var(--tile-border-color) !important;
 }
 
 .dg li.folder li:last-of-type.folder ul > li.title {
@@ -619,6 +620,7 @@ span.highlight {
 
 .dg .c select {
   background: var(--input-background-color) !important;
+  color: var(--text-color);
   margin-top: 1px !important;
   height: 30px !important;
   border-radius: 6px !important;
@@ -842,11 +844,11 @@ button.focus-params.active {
   direction: rtl;
 }
 
-#rightGUI > ul > li.folder > div > ul,
+/* #rightGUI > ul > li.folder > div > ul,
 .dg li.folder li.folder ul {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   max-width: 100%;
-}
+} */
 
 #leftGUI {
   max-height: calc(
@@ -1980,7 +1982,7 @@ ul li.folder .dg ul:not(.closed) li.cr {
   left: -8px;
   top: -7px;
   font-size: 34px;
-  color: #dbdcdc;
+  color: var(--tile-border-color);
 }
 #leftGUI > ul > li.folder:nth-of-type(2) > .dg > ul:not(.closed) > li.cr:nth-of-type(2)::before,
 #leftGUI > ul > li.folder:nth-of-type(3) > .dg > ul:not(.closed) > li.cr:nth-of-type(2)::before {
@@ -2371,13 +2373,13 @@ div.cite_paper > a {
   }
 }
 
-.dark-mode .dg > ul:not(.closed) > li:not(.folder) {
-  border-bottom: 1px solid #c2a1ff58 !important;
+/* .dark-mode .dg > ul:not(.closed) > li:not(.folder) {
+  border-bottom: 1px solid var(--tile-border-color) !important;
 }
 
 .dark-mode .dg > ul.closed > li:first-child {
-  border-bottom: 1px solid #c2a1ff58 !important;
-}
+  border-bottom: 1px solid var(--tile-border-color) !important;
+} */
 
 .dark-mode .popout_panel .container {
   border: 1px solid var(--ui-button-border-color);
