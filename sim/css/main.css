@@ -630,6 +630,19 @@ span.highlight {
   border: 0px;
 }
 
+/* Share menu selects */
+div.container select {
+  background: var(--input-background-color) !important;
+  color: var(--text-color);
+  margin-top: 1px !important;
+  height: 30px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  padding: 0px 6px !important;
+  /* width: 100% !important; */
+  border: 0px;
+}
+
 .dg .c input[type="text"],
 .dg .c input[type="text"]:focus {
   color: var(--text-color) !important;
