@@ -35,7 +35,7 @@ onSubmit="page_search(document.getElementById('pageSearchInput').value); return 
 
 <div id="toc"></div>
 
----
+
 
 ## Equations {{ layout.equations }} <a class="anchor" id='equations'>
 
@@ -150,13 +150,13 @@ Left: Dirichlet = 0; Right: Neumann = 1; Top: Robin = u; Bottom: Dirichlet = sin
 
 for the variables $u$ would specify $u = 0$ on the left boundary, $\pd{u}{n} = 1$ on the right boundary, $\pd{u}{n} = u$ on the top boundary and $u = \sin(x)$ on the bottom boundary. Sides can be specified in any order and are case sensitive. Omitting any side will default to periodic boundary conditions (beware, this may have unexpected results if the matching side is not also periodic; using the graphical interface prevents this).
 
-An additional type of condition, 'Ghost', can also be specified with Mixed boundary conditions. This advanced option pushes VisualPDE to its limits, overriding the value of the [ghost nodes](https://kyleniemeyer.github.io/ME373-book/content/bvps/finite-difference.html#using-central-differences-for-derivative-bcs) used in the spatial discretisation of the PDE, and should be used with caution. We make use of this option in our Visual Story on [virus transmission](/visual-stories/airborne-infections) to effectively double the size of the computational domain in one direction. This must be toggled on in <span class='click_sequence'>{{ layout.settings }} → **Misc.**</span>
+An additional type of condition, 'Ghost', can also be specified with Mixed boundary conditions. This advanced option pushes VisualPDE to its limits, overriding the value of the [ghost nodes](https://kyleniemeyer.github.io/ME373-book/content/bvps/finite-difference.html#using-central-differences-for-derivative-bcs) used in the spatial discretisation of the PDE, and should be used with caution. We make use of this option in our Visual Story on [virus transmission](/visual-stories/airborne-infections) to effectively double the size of the computational domain in one direction. This must be toggled on in <span class='click_sequence'>{{ layout.settings }} → **More...**</span>
 
 ### Initial conditions <a class="anchor" id='initial-conditions'>
 
 Initial conditions can be specified for any variables in the simulation. They can be functions of space ($x$, $y$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), the random quantity `RAND`, a uniformly random value in $[0,1]$, the random quantity `RANDN`, a normally-distributed random number with unit variance and zero mean, and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
----
+
 
 ## Views {{ layout.views }} <a class="anchor" id='views'>
 
@@ -347,7 +347,7 @@ Toggle the display of a live time series graph of the simulation. This can show 
 
   Specify the length of the time series (in units of time). The series will be updated at regular intervals. For the best experience, this should be around 10-400 times the timestep times the number of timesteps per frame.
 
----
+
 
 ## Settings {{ layout.settings }} <a class="anchor" id='settings'>
 
@@ -458,7 +458,7 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 - #### Resize
   Specify how a checkpoint should be resized to fit the current simulation domain. 'Stretch' will stretch the checkpoint so that it fills the current domain, but will not preserve the aspect ratio in general. "Crop" will crop the checkpoint whilst preserving the aspect ratio, but may result in some information not being used.
 
-### Misc <a class="anchor" id='misc'>
+### More... <a class="anchor" id='misc'>
 
 - #### Background
 
@@ -500,7 +500,7 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 
   The number of timesteps between updates of any `Int(...)` quantities used in the simulation - see our discussion of [domain integrals](#special-functions). Lower numbers result in more frequent updates, but may slow down the simulation. Must be an integer greater than 0.
 
-- #### Dev <a class="anchor" id='dev'>
+- #### Developer tools <a class="anchor" id='dev'>
 
   Tools intended for the development and benchmarking of VisualPDE.
 
@@ -520,7 +520,7 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 
     ***Cam delay*** sets the delay (in milliseconds) between frames grabbed from the user's camera.
 
----
+
 
 ## Writing valid expressions <a class="anchor" id='writing-valid-expressions'>
 
@@ -569,7 +569,7 @@ A [bivariate Gaussian function](https://en.wikipedia.org/wiki/Multivariate_norma
 
 A quantity can be integrated over the domain at every timestep using the syntax `Int(expression)`, where `expression` can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$). See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions. As an example, you can track the total mass of a variable $u$ in a reaction term by writing `Int(u)` directly in that term.
 
-Up to 4 distinct `Int(...)` expressions can be used across a simulation - VisualPDE automatically manages their evaluation behind the scenes, so the same expression, e.g. `Int(u)`, can be reused in as many fields as you like at no extra cost, while an unrelated 5th expression will raise an error. Each integral is coarsely approximated by a simple Riemann sum, with accuracy (and computational cost) increasing with mesh refinement, and is only computed while actually referenced somewhere in your simulation. The rate at which these integrals are recomputed is set by **Int. update** in <span class='click_sequence'>{{ layout.settings }} → **Misc.**</span>. `Int(...)` expressions cannot be nested (e.g. `Int(Int(u))` is not valid), since the result of an integral is already constant over space.
+Up to 4 distinct `Int(...)` expressions can be used across a simulation - VisualPDE automatically manages their evaluation behind the scenes, so the same expression, e.g. `Int(u)`, can be reused in as many fields as you like at no extra cost, while an unrelated 5th expression will raise an error. Each integral is coarsely approximated by a simple Riemann sum, with accuracy (and computational cost) increasing with mesh refinement, and is only computed while actually referenced somewhere in your simulation. The rate at which these integrals are recomputed is set by **Int. update** in <span class='click_sequence'>{{ layout.settings }} → **More...**</span>. `Int(...)` expressions cannot be nested (e.g. `Int(Int(u))` is not valid), since the result of an integral is already constant over space.
 
 `Int(...)` can be used almost anywhere, including in View expressions such as **Probe**, **Overlay**, **Expression** and **Surface $z$**, not just in reaction/forcing terms. The one exception is **Initial conditions**: since a domain integral isn't computed until the simulation is actually running, `Int(...)` can't be used there, and doing so will raise an error.
 
