@@ -45,22 +45,6 @@ VisualPDE is all about solving equations. In the Equations pane, you can view an
 
 Customise all the terms in the PDEs that you would like to solve using natural syntax. See our discussion of [valid expressions](#writing-valid-expressions) for helpful examples that will guide you in posing your own PDE system. Typing in any of the fields will highlight the corresponding term in the typeset PDE above. This menu is itself divided into a few sub-menus, described below in the order they appear.
 
-- #### Diffusion coefficients <a class="anchor" id='diffusion-coefficients'>
-
-  Set the diffusion coefficients of all the variables in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are written $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
-
-  Advanced users seeking diagonal anisotropic diffusion tensors (i.e. distinct diffusion coefficients in the coordinate directions) can define two coefficients at once by separating definitions with a semicolon. For example, `1;2` sets diffusion coefficients of `1` and `2` in the $x$ and $y$ directions, respectively.
-
-  With **Cross diffusion** enabled, this sub-menu can contain up to 64 coefficients. On non-mobile devices, clicking <span><i class="fa-solid fa-table-cells"></i></span> beside the sub-menu's title opens a popup where all the coefficients can be viewed and edited together in matrix form.
-
-- #### Forcing terms <a class="anchor" id='forcing-terms'>
-
-  Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
-
-  Advanced users can also make careful use of `RAND`, a uniformly random value in $[0,1]$, and `RANDN`, a normally distributed random number with unit variance and zero mean. This converts the equations into [stochastic partial differential equations](https://en.wikipedia.org/wiki/Stochastic_partial_differential_equation), which should only be solved using the Forward Euler timestepping scheme. Both `RAND` and `RANDN` require manually dividing by `sqrt(dt)` in non-algebraic equations so that the scheme resembles the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler–Maruyama_method). The solution under other timestepping schemes is undefined.
-
-  For convenience, we define `WhiteNoise` to be a normally distributed random variable with unit variance and zero mean, scaled by $1/\sqrt{\dt\dx^N}$ where $N=1,2$ is the spatial dimension. This scales appropriately with timestep and spatial step and is suitable for direct use in PDEs, such as in our [stochastic example](/nonlinear-physics/stochastic-pdes). You can use up to 4 independent WhiteNoise terms using the syntax `WhiteNoise_1`, `WhiteNoise_2`, `WhiteNoise_3` and `WhiteNoise_4`.
-
 - #### Variables <a class="anchor" id='variables'>
 
   Configure the number and names of the variables used throughout VisualPDE.
@@ -71,15 +55,31 @@ Customise all the terms in the PDEs that you would like to solve using natural s
 
   - ##### Number
 
-    Specify the number of unknowns (1,...,8) in the simulation.
+    Specify the number of unknowns (1, …, 8) in the simulation.
 
-  - ##### Num. algebraic
+  - ##### No. algebraic
 
-    Choose how many equations you want to be in algebraic form. The equations will be put in algebraic form in reverse order, e.g. a 4-variables system with 1 algebraic variables will convert the final equation to be algebraic. Algebraic variables have no diffusion of their own; with **Cross diffusion** enabled they can still depend on the other variables' gradients via their (retained) cross-diffusion terms, and with it disabled, only via their reaction term.
+    Choose how many equations you want to be in algebraic form. The equations will be put in algebraic form in reverse order, For example, a 4-variable system with 1 algebraic variable will convert the final equation to be algebraic. Algebraic variables have no diffusion of their own; with **Cross diffusion** enabled they can still depend on the other variables' gradients via their (retained) cross-diffusion terms, and with it disabled, only via their reaction term.
+
+- #### Diffusion coefficients <a class="anchor" id='diffusion-coefficients'>
+
+  Set the diffusion coefficients of all the variables in the simulation. When **Cross diffusion** is enabled, you can also set interaction terms, which are written $D_{uv}$ etc. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, ...), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$) and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
+
+  Advanced users seeking diagonal anisotropic diffusion tensors (i.e. distinct diffusion coefficients in the coordinate directions) can define two coefficients at once by separating definitions with a semicolon. For example, `1;2` sets diffusion coefficients of `1` and `2` in the $x$ and $y$ directions, respectively.
+
+  With **Cross diffusion** enabled, this sub-menu can contain up to 64 coefficients. On non-mobile devices, clicking <span><i class="fa-solid fa-table-cells"></i></span> beside the sub-menu's title opens a popup where all the coefficients can be viewed and edited together in matrix form.
+
+- #### Forcing terms <a class="anchor" id='forcing-terms'>
+
+  Define the inhomogeneities in the equations. These can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, ...), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
+
+  Advanced users can also make careful use of `RAND`, a uniformly random value in $[0,1]$, and `RANDN`, a normally distributed random number with unit variance and zero mean. This converts the equations into [stochastic partial differential equations](https://en.wikipedia.org/wiki/Stochastic_partial_differential_equation), which should only be solved using the Forward Euler timestepping scheme. Both `RAND` and `RANDN` require manually dividing by `sqrt(dt)` in non-algebraic equations so that the scheme resembles the [Euler–Maruyama method](https://en.wikipedia.org/wiki/Euler–Maruyama_method). The solution under other timestepping schemes is undefined.
+
+  For convenience, we define `WhiteNoise` to be a normally distributed random variable with unit variance and zero mean, scaled by $1/\sqrt{\dt\dx^N}$ where $N=1,2$ is the spatial dimension. This scales appropriately with timestep and spatial step and is suitable for direct use in PDEs, such as in our [stochastic example](/nonlinear-physics/stochastic-pdes). You can use up to 4 independent WhiteNoise terms using the syntax `WhiteNoise_1`, `WhiteNoise_2`, `WhiteNoise_3` and `WhiteNoise_4`.
 
 - #### Timescales <a class="anchor" id='timescales'>
 
-  Set per-equation timescales (multiplying any time derivatives) $\tau_u$, $\tau_v$, $\tau_w$, $\tau_q$ to enable simpler entry of some types of systems. For algebraic equations, these quantities are no longer timescales, but retain their notation and function as per-equation scale factors. They can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, $q$), their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
+  Set per-equation timescales (multiplying any time derivatives) $\tau_u$, $\tau_v$, $\tau_w$, ... to enable simpler entry of some types of systems. For algebraic equations, these quantities are no longer timescales, but retain their notation and function as per-equation scale factors. They can be functions of space ($x$, $y$), time ($t$), any of the unknowns ($u$, $v$, $w$, ...), their gradients ($u_x$, $u_y$, etc.), the size of the domain ($L$, $L_x$, $L_y$), the images ($I_S$, $I_T$), and any quantities defined in **Parameters**. See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions.
 
   Importantly, **timescales must be non-zero**. Setting timescales to zero will result in singularities and are equivalent to large diffusion coefficients, large timesteps, or fast kinetic terms.
 
