@@ -437,7 +437,7 @@ VisualPDE allows you to interact directly with simulations via a brush by simply
 
 ### Checkpoints <a class="anchor" id='checkpoints'>
 
-VisualPDE supports checkpoints, which allow you to save the state of a simulation at the touch of a button. This allows you to instantly return to a previous solution state - very handy if you've crafted the perfect initial condition by painting with the brush. Revert to a checkpoint by pressing {{ layout.restart }}
+VisualPDE supports checkpoints, which allow you to save the state of a simulation at the touch of a button. This allows you to instantly return to a previous solution state – very handy if you've crafted the perfect initial condition by painting with the brush. Revert to a checkpoint by pressing {{ layout.restart }}
 
 - #### Enable checkpoints
 
@@ -569,7 +569,9 @@ A [bivariate Gaussian function](https://en.wikipedia.org/wiki/Multivariate_norma
 
 A quantity can be integrated over the domain at every timestep using the syntax `Int(expression)`, where `expression` can be a function of space ($x$, $y$), time ($t$), any user-defined parameters, any of the unknowns ($u$, $v$, $w$, $q$) and their first derivatives, the size of the domain ($L$, $L_x$, $L_y$) and the images ($I_S$, $I_T$). See our discussion of [valid expressions](#writing-valid-expressions) for valid syntax and a list of available in-built functions. As an example, you can track the total mass of a variable $u$ in a reaction term by writing `Int(u)` directly in that term.
 
-Up to 4 distinct `Int(...)` expressions can be used across a simulation - VisualPDE automatically manages their evaluation behind the scenes, so the same expression, e.g. `Int(u)`, can be reused in as many fields as you like at no extra cost, while an unrelated 5th expression will raise an error. Each integral is coarsely approximated by a simple Riemann sum, with accuracy (and computational cost) increasing with mesh refinement, and is only computed while actually referenced somewhere in your simulation. The rate at which these integrals are recomputed is set by **Int. update** in <span class='click_sequence'>{{ layout.settings }} → **More...**</span>. `Int(...)` expressions cannot be nested (e.g. `Int(Int(u))` is not valid), since the result of an integral is already constant over space.
+Up to 4 distinct `Int(...)` expressions can be used across a simulation – VisualPDE automatically manages their evaluation behind the scenes, so the same expression, e.g. `Int(u)`, can be reused in as many fields as you like at no extra cost, while an unrelated 5th expression will raise an error. Each integral is coarsely approximated by a simple Riemann sum, with accuracy (and computational cost) increasing with mesh refinement, and is only computed while actually referenced somewhere in your simulation. The rate at which these integrals are recomputed is set by **Int. update** in <span class='click_sequence'>{{ layout.settings }} → **More...**</span>
+
+`Int(...)` expressions cannot be nested (e.g. `Int(Int(u))` is not valid), since the result of an integral is already constant over space.
 
 `Int(...)` can be used almost anywhere, including in View expressions such as **Probe**, **Overlay**, **Expression** and **Surface $z$**, not just in reaction/forcing terms. The one exception is **Initial conditions**: since a domain integral isn't computed until the simulation is actually running, `Int(...)` can't be used there, and doing so will raise an error.
 
