@@ -210,15 +210,15 @@ async function VisualPDE(url) {
     imControllerTwo,
     imControllerBlend,
     editEquationsFolder,
-    timescalesFolder,
+    variablesFolder,
     diffusionCoeffsFolder,
+    reactionTermsFolder,
+    timescalesFolder,
     diffusionMatrixButton,
     crossDiffusionToggle,
-    reactionTermsFolder,
     boundaryConditionsFolder,
     initialConditionsFolder,
-    variablesAndParamsFolder,
-    variablesFolder,
+    // variablesAndParamsFolder,
     editViewFolder,
     linesAnd3DFolder,
     linesFolderButton,
@@ -12527,25 +12527,26 @@ async function VisualPDE(url) {
   /**
    * Adds a focus button to a leftGUI folder that hides other folders.
    */
-  function addFocusLeftGUIButton(folder = variablesAndParamsFolder) {
+  function addFocusLeftGUIButton(folder = parametersFolder) {
     const focusButton = document.createElement("button");
     focusButton.classList.add("focus-params");
     focusButton.innerHTML = `<i class="fa-solid fa-thumbtack"></i>`;
-    focusButton.title = "Focus this folder";
+    focusButton.title = "Pin this folder";
     focusButton.onclick = function () {
       focusButton.classList.toggle("active");
-      variablesAndParamsFolder.domElement.classList.toggle("hidden-aug");
-      boundaryConditionsFolder.domElement.classList.toggle("hidden-aug");
+      parametersFolder.domElement.classList.toggle("hidden-aug");
+      expressionsFolder.domElement.classList.toggle("hidden-aug");
       editEquationsFolder.domElement.classList.toggle("hidden-aug");
+      boundaryConditionsFolder.domElement.classList.toggle("hidden-aug");
       initialConditionsFolder.domElement.classList.toggle("hidden-aug");
       // Repeat this toggle for the target folder.
       folder.domElement.classList.toggle("hidden-aug");
       document
         .getElementById("equation_display")
         .classList.toggle("hidden-aug");
-      document
-        .getElementById("typesetCustomEqsButtonRow")
-        .classList.toggle("hidden-aug");
+      // document
+      //   .getElementById("typesetCustomEqsButtonRow")
+      //   .classList.toggle("hidden-aug");
       leftGUI.domElement.firstChild.classList.toggle("hidden-aug");
       document.getElementById("left_ui_arrow").classList.toggle("hidden-aug");
       $(".ui.ui_button").toggleClass("hidden-aug");
@@ -12557,13 +12558,15 @@ async function VisualPDE(url) {
         $("#play").css("top", "-=50");
         $("#pause").css("top", "-=50");
         $("#erase").css("top", "-=50");
-        focusButton.title = "Unfocus this folder";
+        focusButton.innerHTML = `<i class="fa-solid fa-thumbtack-slash"></i>`;
+        focusButton.title = "Unpin this folder";
       } else {
         // Reset play, pause, and erase position.
         $("#play").css("top", "");
         $("#pause").css("top", "");
         $("#erase").css("top", "");
-        focusButton.title = "Focus this folder";
+        focusButton.innerHTML = `<i class="fa-solid fa-thumbtack"></i>`;
+        focusButton.title = "Pin this folder";
       }
     };
     folder.domElement.insertBefore(focusButton, folder.domElement.firstChild);
