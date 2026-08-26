@@ -44,7 +44,7 @@ $$\m{M} \pd{\v{u}}{t} = \vnabla\cdot(\m{D}\vnabla\v{u}) + \v{f},$$
 where
 
 * $\v{u}$ is a vector of between one and eight unknowns,
-* $\m{M}$ is an invertible, diagonal matrix,
+* $\m{M}$ is a constant, invertible, diagonal matrix of timescales,
 * $\m{D}$ is a possibly non-constant matrix that may contain zeros; you might know this as a 'diffusion tensor',
 * $\v{f}$ is a vector of between one and eight components that contains our interaction or kinetic terms.
 
