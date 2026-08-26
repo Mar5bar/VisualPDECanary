@@ -35,14 +35,16 @@ $$\begin{aligned}
 \end{aligned}
 \end{aligned}$$
 
-where the diffusion coefficients ($D_{uu}$ etc.), the timescales ($\tau_u$ etc.) and the forcing/interaction/kinetic terms ($f_u$ etc.) can depend on the unknowns, space, and time. In matrix form, we can summarise this by saying we solve systems of the form
+where the diffusion coefficients ($D_{uu}$ etc.), the timescales ($\tau_u$ etc.) and the forcing/interaction/kinetic terms ($f_u$ etc.) can depend on the unknowns, space, and time. 
+
+A commonly used subset of these systems (in particular those without any algebraic equations) can be summarised succinctly in matrix form as
 
 $$\m{M} \pd{\v{u}}{t} = \vnabla\cdot(\m{D}\vnabla\v{u}) + \v{f},$$
 
 where
 
 * $\v{u}$ is a vector of between one and eight unknowns,
-* $\m{M}$ is a diagonal matrix with potentially some zeros on the diagonal; you might know this as a 'mass matrix',
+* $\m{M}$ is an invertible, diagonal matrix,
 * $\m{D}$ is a possibly non-constant matrix that may contain zeros; you might know this as a 'diffusion tensor',
 * $\v{f}$ is a vector of between one and eight components that contains our interaction or kinetic terms.
 
