@@ -2,6 +2,17 @@
 layout: default
 ---
 <h1>{{ page.title }}</h1>
-<p>{{ page.date | date_to_string }} - {{ page.author }}</p>
+<div class="post-byline">
+	{% if page.author %}
+		{% assign author_image = page.author %}
+		{% assign author_image_path = '/assets/images/' | append: author_image | append: '.webp' %}
+		{% assign author_image_file = site.static_files | where: 'path', author_image_path | first %}
+		{% if author_image_file %}
+			<img class="post-author-image" src="{{ author_image_path | relative_url }}" alt="Portrait of {{ page.author }}">
+		{% endif %}
+		<span>By {{ page.author }}</span>
+	{% endif %}
+	<time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%d %B %Y" }}</time>
+</div>
 
 {{ content }}

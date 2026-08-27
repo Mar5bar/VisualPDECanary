@@ -3,8 +3,8 @@
 # To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
 
 layout: blog
-title: Blog
+title: News
 thumbnail: /assets/images/Andrew.webp
-extract: Andrew writes a blog
+extract: News and updates about VisualPDE
 ---
 

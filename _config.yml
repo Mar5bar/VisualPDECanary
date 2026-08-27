@@ -34,6 +34,7 @@ theme: minima
 plugins:
   - jekyll-feed
   - jekyll-sitemap
+permalink: /news/:year-:month-:day-:title/
 sass:
   quiet_deps: true
 
