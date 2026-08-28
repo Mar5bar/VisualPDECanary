@@ -178,7 +178,7 @@ span.highlight {
 }
 
 #simCanvas {
-  background: no-repeat center/30vw url(/assets/images/loading.webp);
+  background: no-repeat center/30vw url(/assets/images/logo-loading.webp);
   background-color: #c7d0d8;
   display: block;
   margin: auto;
