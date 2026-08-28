@@ -930,7 +930,7 @@ async function VisualPDE(url) {
   } else {
     // Only show the updates message if the user wasn't just shown the
     // welcome message, so they see at most one popup on load.
-    await showUpdatesMessage("2026-07-multi-species-llm", "2026-08-25");
+    await showUpdatesMessage("2026-07-multi-species-llm", "2026-12-31");
   }
   if (wantsTour) {
     await new Promise(function (resolve) {
