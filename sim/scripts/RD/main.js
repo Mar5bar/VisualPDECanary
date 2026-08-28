@@ -210,15 +210,15 @@ async function VisualPDE(url) {
     imControllerTwo,
     imControllerBlend,
     editEquationsFolder,
-    timescalesFolder,
+    variablesFolder,
     diffusionCoeffsFolder,
+    reactionTermsFolder,
+    timescalesFolder,
     diffusionMatrixButton,
     crossDiffusionToggle,
-    reactionTermsFolder,
     boundaryConditionsFolder,
     initialConditionsFolder,
-    variablesAndParamsFolder,
-    variablesFolder,
+    // variablesAndParamsFolder,
     editViewFolder,
     linesAnd3DFolder,
     linesFolderButton,
@@ -2779,7 +2779,7 @@ async function VisualPDE(url) {
       });
 
     // Miscellaneous folder.
-    root = rightGUI.addFolder("Misc.");
+    root = rightGUI.addFolder("More...");
     addInfoButton(root, "/user-guide/advanced-options#misc");
 
     root
@@ -2908,7 +2908,7 @@ async function VisualPDE(url) {
       .add(options, "globalIntegralUpdatePeriod", 1, 1000, 1)
       .name("Int. update");
 
-    devFolder = root.addFolder("Dev");
+    devFolder = root.addFolder("Developer tools");
     root = devFolder;
     addInfoButton(root, "/user-guide/advanced-options#dev");
     // Dev.
@@ -6198,13 +6198,13 @@ async function VisualPDE(url) {
         const closest = closestMatch(preset, listOfPresetNames, false);
         // Display an error if the preset doesn't exist.
         throwPresetError(
-          "We couldn't find a preset called '" +
+          "We couldn't find the preset ‘" +
             preset +
-            "'." +
+            "’." +
             (closest != null
-              ? " We've loaded the closest match, '" + closest + "'."
+              ? " We've loaded the closest match, ‘" + closest + "’, instead."
               : "") +
-            " Please check the preset specified in the URL.",
+            " Please check the preset name in the URL.",
         );
         // Load the default preset or the closest match.
         newOptions = getPreset(closest ? closest : defaultPreset);
@@ -10795,7 +10795,7 @@ async function VisualPDE(url) {
 
   /**
    * Sets the default render size based on the canvas dimensions and performance mode option.
-   
+
    * @returns {void}
    */
   function setDefaultRenderSize() {
@@ -11115,7 +11115,7 @@ async function VisualPDE(url) {
 
   /**
    * Removes the current view from the options.views array if there is more than one view. If there is only one view, renames it to "Custom".
-   
+
    * @returns {void}
    */
   function deleteView() {
@@ -11441,7 +11441,7 @@ async function VisualPDE(url) {
 
   /**
    * Copies the current configuration as a JSON string to the clipboard, with some modifications.
-   
+
    * @returns {void}
    */
   function copyConfigAsJSON() {
@@ -11489,7 +11489,7 @@ async function VisualPDE(url) {
 
   /**
    * Copies debugging data to the clipboard.
-   
+
    * @returns {void}
    */
   function copyDebug() {
@@ -12533,25 +12533,26 @@ async function VisualPDE(url) {
   /**
    * Adds a focus button to a leftGUI folder that hides other folders.
    */
-  function addFocusLeftGUIButton(folder = variablesAndParamsFolder) {
+  function addFocusLeftGUIButton(folder = parametersFolder) {
     const focusButton = document.createElement("button");
     focusButton.classList.add("focus-params");
-    focusButton.innerHTML = `<i class="fa-solid fa-eye"></i>`;
-    focusButton.title = "Focus this folder";
+    focusButton.innerHTML = `<i class="fa-solid fa-thumbtack"></i>`;
+    focusButton.title = "Pin this folder";
     focusButton.onclick = function () {
       focusButton.classList.toggle("active");
-      variablesAndParamsFolder.domElement.classList.toggle("hidden-aug");
-      boundaryConditionsFolder.domElement.classList.toggle("hidden-aug");
+      parametersFolder.domElement.classList.toggle("hidden-aug");
+      expressionsFolder.domElement.classList.toggle("hidden-aug");
       editEquationsFolder.domElement.classList.toggle("hidden-aug");
+      boundaryConditionsFolder.domElement.classList.toggle("hidden-aug");
       initialConditionsFolder.domElement.classList.toggle("hidden-aug");
       // Repeat this toggle for the target folder.
       folder.domElement.classList.toggle("hidden-aug");
       document
         .getElementById("equation_display")
         .classList.toggle("hidden-aug");
-      document
-        .getElementById("typesetCustomEqsButtonRow")
-        .classList.toggle("hidden-aug");
+      // document
+      //   .getElementById("typesetCustomEqsButtonRow")
+      //   .classList.toggle("hidden-aug");
       leftGUI.domElement.firstChild.classList.toggle("hidden-aug");
       document.getElementById("left_ui_arrow").classList.toggle("hidden-aug");
       $(".ui.ui_button").toggleClass("hidden-aug");
@@ -12563,13 +12564,15 @@ async function VisualPDE(url) {
         $("#play").css("top", "-=50");
         $("#pause").css("top", "-=50");
         $("#erase").css("top", "-=50");
-        focusButton.title = "Unfocus this folder";
+        focusButton.innerHTML = `<i class="fa-solid fa-thumbtack-slash"></i>`;
+        focusButton.title = "Unpin this folder";
       } else {
         // Reset play, pause, and erase position.
         $("#play").css("top", "");
         $("#pause").css("top", "");
         $("#erase").css("top", "");
-        focusButton.title = "Focus this folder";
+        focusButton.innerHTML = `<i class="fa-solid fa-thumbtack"></i>`;
+        focusButton.title = "Pin this folder";
       }
     };
     folder.domElement.insertBefore(focusButton, folder.domElement.firstChild);
