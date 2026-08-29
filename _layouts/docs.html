@@ -36,7 +36,7 @@
         {% assign contact_page = site.pages | where: "permalink", "/contact/" | first %}
         {% if contact_page %}
           <a class='topic_tile' href='{{ contact_page.url }}'>
-            <div class='topic_banner' style="background-image:url('{{ contact_page.thumbnail | default: '/assets/images/question-marks.webp' }}')">
+            <div class='topic_banner' style="background-image:url('{{ contact_page.thumbnail }}')">
             </div>
             <div class='container'>
               <div class='title'>{{ contact_page.title }}</div>
