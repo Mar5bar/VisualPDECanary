@@ -8812,7 +8812,7 @@ async function VisualPDE(url) {
   function getParamHooks() {
     return {
       ariaLabel: "Custom parameter definition",
-      placeholder: "Add parameter e.g. a = 1 in [0,1]",
+      placeholder: "Add parameter e.g. a=1 in [0,1]",
       validateName: validateParamName,
       onDeleted: (name) => {
         if (!isReservedName(name)) delete uniforms[name];
