@@ -155,7 +155,8 @@ span.highlight {
   margin-left: 13px;
   margin-right: 2px;
   font-size: 14pt;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--soft-text-color);
+  /* color: rgba(255, 255, 255, 0.5); */
 }
 
 #simTitle {
@@ -2310,7 +2311,7 @@ div.cite_paper > a {
   --link-color: #c2a1ff;
   --tile-text-color: #dfdfdf;
   --tile-highlight-color: #564fddd0;
-  --hover-background-color: #171b29; /*#343434;*/
+  --hover-background-color: #171b29;
   --hover-color: #4c46c7;
   --toggled-on-hover-color: var(--hover-color);
   --button-color: #564fdd;
@@ -2353,7 +2354,6 @@ div.cite_paper > a {
 }
 
 .dark-mode #equations::after {
-  /* Preload the hovered function button to stop flickering */
   content: url("/assets/images/function-button-hover-dark.webp")
     url("/assets/images/function-button.webp")
     url("/assets/images/function-button-hover.webp");
@@ -2386,14 +2386,6 @@ div.cite_paper > a {
   }
 }
 
-/* .dark-mode .dg > ul:not(.closed) > li:not(.folder) {
-  border-bottom: 1px solid var(--tile-border-color) !important;
-}
-
-.dark-mode .dg > ul.closed > li:first-child {
-  border-bottom: 1px solid var(--tile-border-color) !important;
-} */
-
 .dark-mode .popout_panel .container {
   border: 1px solid var(--ui-button-border-color);
 }
@@ -2407,7 +2399,6 @@ div.cite_paper > a {
 
 .dark-mode .message {
   background-color: var(--background-color);
-  /* border-color: var(--background-color); */
 }
 
 .dark-mode .btn-primary .icon_on_text_button {
@@ -2495,7 +2486,6 @@ button {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
-
 #dark-on {
   display: inline;
 }
@@ -2512,10 +2502,11 @@ button {
   display: inline;
 }
 
-.dark-mode #simCanvas,
+#simCanvas,
 .colourbarMain {
-  filter: brightness(90%);
+  filter: brightness(99%);
 }
-
+/*
+ */
 
 
