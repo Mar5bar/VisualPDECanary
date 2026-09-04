@@ -21,8 +21,8 @@ before(async () => {
   await launchAt(page);
   await ensureOpen(page, "Equations");
   await ensureOpen(page, "Forcing terms");
-  // launchAt only opens the left GUI panel (via #equations) - "Misc." lives in the right
-  // panel, toggled separately by #settings (see toggleRightUI() in main.js).
+  // launchAt only opens the left GUI panel (via #equations) - "More..." (formerly "Misc.")
+  // lives in the right panel, toggled separately by #settings (see toggleRightUI() in main.js).
   await page.locator("#settings").click();
   await page.waitForTimeout(200);
 });
@@ -53,8 +53,8 @@ test("the old 'Integrals' folder and its 'Integrand N' fields no longer exist", 
   assert.equal(await page.locator("li.cr.string", { hasText: /Integrand/ }).count(), 0);
 });
 
-test("Misc.: 'Int. update' replaces the old 'Update period' control", async () => {
-  await ensureOpen(page, "Misc.");
+test("More...: 'Int. update' replaces the old 'Update period' control", async () => {
+  await ensureOpen(page, "More...");
   assert.ok(await page.locator("li.cr", { hasText: "Int. update" }).isVisible());
   // Match on the exact controller-name span, not a loose (case-insensitive) substring of the
   // whole row - "Update period" is also a substring of the unrelated "GUI update period" (Dev)

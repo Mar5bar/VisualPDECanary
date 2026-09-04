@@ -14,9 +14,11 @@ import { BASE_URL } from "./server.mjs";
 export async function launchAt(page, path = "/sim/") {
   await page.goto(BASE_URL + path, { waitUntil: "load", timeout: 30000 });
   await page.waitForTimeout(1200);
-  const jumpIn = page.getByText("No, let me jump in!");
-  if (await jumpIn.isVisible().catch(() => false)) {
-    await jumpIn.click();
+  // "Skip the tour" (id=welcome_no) - matched by id, not label text, since the copy on this
+  // button has already changed once (was "No, let me jump in!").
+  const skipTour = page.locator("#welcome_no");
+  if (await skipTour.isVisible().catch(() => false)) {
+    await skipTour.click();
     await page.waitForTimeout(200);
   }
   await page.locator("#equations").click();

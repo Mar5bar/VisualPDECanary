@@ -33,9 +33,11 @@ before(async () => {
 
   await page.goto("http://localhost:4000/sim/", { waitUntil: "load", timeout: 30000 });
   await page.waitForTimeout(1200);
-  const jumpIn = page.getByText("No, let me jump in!");
-  if (await jumpIn.isVisible().catch(() => false)) {
-    await jumpIn.click();
+  // "Skip the tour" (id=welcome_no) - matched by id, not label text, since the copy on this
+  // button has already changed once (was "No, let me jump in!"); see gui-helpers.mjs's launchAt.
+  const skipTour = page.locator("#welcome_no");
+  if (await skipTour.isVisible().catch(() => false)) {
+    await skipTour.click();
     await page.waitForTimeout(200);
   }
   await page.tap("#equations");
