@@ -220,6 +220,7 @@ async function VisualPDE(url) {
     initialConditionsFolder,
     // variablesAndParamsFolder,
     editViewFolder,
+    viewFeatureToggles,
     linesAnd3DFolder,
     linesFolderButton,
     threeDFolderButton,
@@ -3700,7 +3701,8 @@ async function VisualPDE(url) {
       ["wide"],
     );
 
-    addViewsSubmenuToggle(
+    viewFeatureToggles = {};
+    viewFeatureToggles["contours"] = addViewsSubmenuToggle(
       effectsButtons,
       '<i class="fa-solid fa-bullseye"></i> Contours',
       "Show contour options",
@@ -3708,7 +3710,7 @@ async function VisualPDE(url) {
       ["wide"],
     );
 
-    addViewsSubmenuToggle(
+    viewFeatureToggles["emboss"] = addViewsSubmenuToggle(
       effectsButtons,
       '<i class="fa-solid fa-lightbulb"></i> Lighting',
       "Show lighting options",
@@ -3716,7 +3718,7 @@ async function VisualPDE(url) {
       ["wide"],
     );
 
-    addViewsSubmenuToggle(
+    viewFeatureToggles["overlay"] = addViewsSubmenuToggle(
       effectsButtons,
       '<i class="fa-solid fa-clover"></i> Overlay',
       "Show overlay options",
@@ -3724,7 +3726,7 @@ async function VisualPDE(url) {
       ["wide"],
     );
 
-    addViewsSubmenuToggle(
+    viewFeatureToggles["vectorField"] = addViewsSubmenuToggle(
       effectsButtons,
       '<i class="fa-solid fa-arrow-right-arrow-left"></i> Vector field',
       "Show vector field options",
@@ -3732,7 +3734,7 @@ async function VisualPDE(url) {
       ["wide"],
     );
 
-    addViewsSubmenuToggle(
+    viewFeatureToggles["probing"] = addViewsSubmenuToggle(
       effectsButtons,
       '<i class="fa-solid fa-chart-line"></i> Time series',
       "Show time series options",
@@ -7545,6 +7547,7 @@ async function VisualPDE(url) {
     });
     // Configure the Views GUI from options.views.
     configureViewsGUI();
+    updateViewFeatureToggleClasses();
     // Configure the stats display.
     configureStatsGUI();
     // Refresh the GUI displays.
@@ -9763,7 +9766,7 @@ async function VisualPDE(url) {
       line.visible = true;
       // Toggle off options that have to be toggled off, and update the current View to reflect this.
       let keys = ["contours", "emboss", "vectorField"];
-      keys.forEach(function (key) {  
+      keys.forEach(function (key) {
         options[key] = false;
         updateView(key);
       });
@@ -11085,6 +11088,7 @@ async function VisualPDE(url) {
       configureProbe();
       configureVectorField();
       updateViewSliders();
+      updateViewFeatureToggleClasses();
       render();
       if (options.autoSetColourRange) {
         setColourRangeSnap();
@@ -11165,6 +11169,9 @@ async function VisualPDE(url) {
     if (options.activeViewInd < options.views.length)
       options.views[options.activeViewInd][property] =
         options[property]?.valueOf();
+
+    // If the property is an "enable" type, then we update a class on the folder to reflect the change.
+    updateViewFeatureToggleClasses(property);
   }
 
   /**
@@ -13706,5 +13713,22 @@ async function VisualPDE(url) {
     uniforms.globalIntegralValue2.value = sums[1] * dA;
     uniforms.globalIntegralValue3.value = sums[2] * dA;
     uniforms.globalIntegralValue4.value = sums[3] * dA;
+  }
+
+  function updateViewFeatureToggleClasses(feature) {
+    if (feature && viewFeatureToggles[feature]) {
+      viewFeatureToggles[feature].classList.toggle(
+        "feature-enabled",
+        options[feature],
+      );
+      return;
+    }
+    // If no feature is specified, update all feature toggles.
+    Object.keys(viewFeatureToggles).forEach((feature) => {
+      viewFeatureToggles[feature].classList.toggle(
+        "feature-enabled",
+        options[feature],
+      );
+    });
   }
 }

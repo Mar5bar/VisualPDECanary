@@ -1959,6 +1959,10 @@ sup {
   background-color: var(--input-background-color);
 }
 
+.tab_list .toggle_button.feature-enabled {
+  background-color: var(--active-button-background-color);
+}
+
 .dg .closed li:not(.title) {
   padding: 0 !important;
   border-bottom: 0px !important;
@@ -2060,6 +2064,7 @@ select {
 
 .button_list .toggle_button.toggled_on {
   background-color: var(--active-button-background-color);
+  outline: 2px solid var(--ui-button-highlight-color);
 }
 
 @media (hover: hover) {
