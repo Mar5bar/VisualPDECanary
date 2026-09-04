@@ -9761,9 +9761,12 @@ async function VisualPDE(url) {
       refreshGUI(rightGUI);
       domain.visible = false;
       line.visible = true;
-      options.contours = false;
-      options.emboss = false;
-      options.vectorField = false;
+      // Toggle off options that have to be toggled off, and update the current View to reflect this.
+      let keys = ["contours", "emboss", "vectorField"];
+      keys.forEach(function (key) {  
+        options[key] = false;
+        updateView(key);
+      });
       configureVectorField();
     } else {
       if (wasLinePlot && options.dimension > 1) {
@@ -9779,7 +9782,12 @@ async function VisualPDE(url) {
           usingLowResDomain = false;
           replaceDisplayDomains();
         }
-        options.vectorField = false;
+        // Toggle off options that have to be toggled off, and update the current View to reflect this.
+        let keys = ["vectorField"];
+        keys.forEach(function (key) {
+          options[key] = false;
+          updateView(key);
+        });
         configureVectorField();
       } else {
         $("#simCanvas").css("outline", "");
