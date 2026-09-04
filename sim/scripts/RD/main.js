@@ -9763,7 +9763,7 @@ async function VisualPDE(url) {
       line.visible = true;
       // Toggle off options that have to be toggled off, and update the current View to reflect this.
       let keys = ["contours", "emboss", "vectorField"];
-      keys.forEach(function (key) {  
+      keys.forEach(function (key) {
         options[key] = false;
         updateView(key);
       });
