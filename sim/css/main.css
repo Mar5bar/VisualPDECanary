@@ -747,7 +747,7 @@ button.matrix-view {
   opacity: 100%;
   pointer-events: all;
   cursor: pointer;
-  padding: 2px 6px 3px 6px;
+  padding: 1px 6px 3px 6px;
 }
 
 @media (hover: hover) {
@@ -1405,6 +1405,7 @@ a#add_view {
   justify-content: center;
   align-items: center;
   margin-top: -5px;
+  margin-right: 4px;
   cursor: pointer;
 }
 
