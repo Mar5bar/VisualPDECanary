@@ -36,6 +36,6 @@ A five-component variant of this model is given by,
       \pd{e}{t} &= D \nabla^2 e + e \left(1-\rho-r \left[a+c\right]+s \left[b+d\right]\right),\\
      \rho &= a+b+c+d+e,
 \end{aligned}
-where $\rho$ is the total density. This example is based on [Section 4 of this paper](https://arxiv.org/pdf/2010.05224).
+where $\rho$ is the total density, and the parameters $r$ and $s$ are related to removal and replacement rates of the populations, generalizing the cyclic structure from the above model. This example is based on [Section 4 of this paper](https://arxiv.org/pdf/2010.05224), which has further details (though a slightly different parameterization and notation).
 
 [Here is an interactive simulation of this model](/sim/?preset=rockpaperscissorslizardspock) where by default the first species $a$ is plotted, but you can cycle through each species (and plot the total density $\rho)) by clicking {{ layout.views }}. The initial perturbation leads to broad regions of plateau-like waves, which eventually break up into disorganized spiral waves. Interestingly, different regions come into and out of existence over time, suggesting pattern formation that selects multiple distinct lengthscales that is emergent from the increased number of species interacting. As a technical aside: Note that this simulation also has equal diffusion coefficients, suggesting a rather more complicated mechanism of these patterns.
