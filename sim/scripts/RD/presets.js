@@ -2,6 +2,46 @@
 
 let presets = {};
 
+presets["LocalVsGlobalCarryingCapacity"] = {
+	"boundaryConditions_1": "dirichlet",
+	"boundaryConditions_2": "dirichlet",
+	"brushRadius": "2",
+	"brushType": "vline",
+	"colourbar": true,
+	"diffusionStr_1_1": "D",
+	"diffusionStr_2_2": "D",
+	"diffusionStr_3_3": "0",
+	"dimension": "1",
+	"domainScale": "30",
+	"dt": 0.005,
+	"globalIntExprs": ["u",null,null,null],
+	"initCond_1": "0.01*cos(2*pi*x/L_x)^8",
+	"initCond_2": "0.01*cos(2*pi*x/L_x)^8",
+	"kineticParams": "K = 1;r = 1;D = 0.01;",
+	"maxColourValue": "3",
+	"numSpecies": "2",
+	"overlay": true,
+	"overlayExpr": "v",
+	"plotType": "line",
+	"preset": "LocalVsGlobalCarryingCapacity",
+	"probeFun": "u",
+	"probeLength": 3.0000000000000004,
+	"reactionStr_1": "r*u*(1-Int(u)/(L_x)) ",
+	"reactionStr_2": "r*v*(1-v) ",
+	"reactionStr_3": "0",
+	"setSeed": true,
+	"spatialStep": "0.1",
+	"speciesNames": "u v",
+	"squareCanvas": true,
+	"suppressTryClickingPopup": true,
+	"timeDisplay": true,
+	"timescales": true,
+	"whatToDraw": "u",
+	"whatToPlot": "u",
+	"simTitle": "Local vs global carrying capacity",
+};
+
+
 presets["RockPaperScissorsLizardSpock"] = {
   expressionsShow: "10",
   diffusionStr_1_1: "D",
