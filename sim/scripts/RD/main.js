@@ -8068,7 +8068,7 @@ async function VisualPDE(url) {
 
       // Look for div(const * grad(blah)), and move the constant outside the bracket.
       // Constant in space <=> it doesn't contain [xy], any species name (optionally
-      // suffixed with _x/_y/_xx/_yy), or (?:I_[ST][RGBA]?). We'll also treat matrices as
+      // suffixed with _x/_y/_xx/_yy), (?:I_[ST][RGBA]?), or the name of any user-defined expression. We'll also treat matrices as
       // non-constants for typesetting.
       regex = new RegExp(
         "\\\\vnabla\\s*\\\\cdot\\s*\\(\\s*((?!\\\\vnabla).*)\\s*\\\\vnabla\\s*(" +
@@ -8076,12 +8076,21 @@ async function VisualPDE(url) {
           ")\\s*\\)",
         "g",
       );
+      let expressionNames = getExpressionNameVals().map((x) => x[0]);
+      let expressionNameRegex = new RegExp(
+        "\\b(?:" + expressionNames.join("|") + ")\\b",
+        "g",
+      );
       str = str.replaceAll(regex, function (match, g1, g2) {
         const innerRegex = new RegExp(
           "\\b(?:[xy]|(?:" + speciesAlt + ")(?:_[xy])?|(?:I_[ST][RGBA]?))\\b",
           "g",
         );
-        if (!innerRegex.test(g1) && !g1.includes("\\dmat")) {
+        if (
+          !innerRegex.test(g1) &&
+          !expressionNameRegex.test(g1) &&
+          !g1.includes("\\dmat")
+        ) {
           return g1.trim() + " \\lap " + g2;
         } else {
           return match;
