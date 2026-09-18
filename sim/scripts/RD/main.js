@@ -2256,6 +2256,7 @@ async function VisualPDE(url) {
       .add(options, "domainScale")
       .name("Largest side")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         resize();
         renderIfNotRunning();
       });
@@ -2264,6 +2265,7 @@ async function VisualPDE(url) {
       .add(options, "spatialStep")
       .name("Space step")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         resize();
         renderIfNotRunning();
       });
@@ -2403,6 +2405,7 @@ async function VisualPDE(url) {
       .add(options, "autoPauseAt")
       .name("Pause at $t=$")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setAutoPauseStopValue();
         canAutoPause = uniforms.t.value < autoPauseStopValue;
         controllers["autoPauseAt"].domElement.blur();
@@ -2700,7 +2703,10 @@ async function VisualPDE(url) {
         .add(options, "comboStr_" + i)
         .name("Details")
         .onFinishChange(function () {
-          this.setValue(this.getValue());
+          // Unlike the purely mathematical fields, "" is meaningful here - it means "no
+          // per-side overrides" - so don't let autoCorrectSyntax turn it into a stray "0".
+          if (!isEmptyString(this.getValue()))
+            this.setValue(autoCorrectSyntax(this.getValue()));
           setRDEquations();
           if (options["boundaryConditions_" + i] == "combo") {
             configureComboBCsGUI();
@@ -3195,6 +3201,7 @@ async function VisualPDE(url) {
       .add(options, "minColourValue")
       .name("Min value")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setColourRangeFromDef();
         renderIfNotRunning();
         updateView(this.property);
@@ -3204,6 +3211,7 @@ async function VisualPDE(url) {
       .add(options, "maxColourValue")
       .name("Max value")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setColourRangeFromDef();
         renderIfNotRunning();
         updateView(this.property);
@@ -3635,6 +3643,7 @@ async function VisualPDE(url) {
     controllers["arrowLengthMax"] = root
       .add(options, "arrowLengthMax")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         configureVectorField();
         renderIfNotRunning();
         updateView(this.property);
@@ -3688,6 +3697,7 @@ async function VisualPDE(url) {
       .add(options, "probeFun")
       .name("Expression")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setProbeShader();
         renderIfNotRunning();
         updateView(this.property);
@@ -3697,6 +3707,7 @@ async function VisualPDE(url) {
       .add(options, "probeX")
       .name("$x$ location")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setProbeShader();
         renderIfNotRunning();
         updateView(this.property);
@@ -3706,6 +3717,7 @@ async function VisualPDE(url) {
       .add(options, "probeY")
       .name("$y$ location")
       .onFinishChange(function () {
+        this.setValue(autoCorrectSyntax(this.getValue()));
         setProbeShader();
         renderIfNotRunning();
         updateView(this.property);
@@ -8736,6 +8748,11 @@ async function VisualPDE(url) {
     );
 
     controller.onFinishChange(function () {
+      // Normalise what was just typed, exactly as every other expression field does. Must
+      // run before the empty-string checks below: autoCorrectSyntax turns "" into "0", which
+      // would stop an emptied row ever being deleted.
+      const corrected = autoCorrectDefinition(ctx.strs[label]);
+      if (corrected != ctx.strs[label]) controller.setValue(corrected);
       const str = removeWhitespace(ctx.strs[label]);
       if (isNext) {
         // If the string is empty, do nothing.
@@ -12910,6 +12927,22 @@ async function VisualPDE(url) {
     str = str.replaceAll(/__E__/g, "e");
 
     return str;
+  }
+
+  /**
+   * autoCorrectSyntax() for a "name = definition" string (a Parameters or Substitutions row),
+   * applied to the right-hand side only. The name is deliberately left alone: autoCorrectSyntax
+   * is written for bare expressions, so it would rewrite a perfectly legal definition name like
+   * "uv" to "u*v" (implicit multiplication of two single-character species names).
+   *
+   * Returns `str` unchanged if it isn't a parseable definition, or if the right-hand side is
+   * still empty - a half-typed "a = " is left for the usual "unable to evaluate" error to
+   * report, rather than being silently turned into "a = 0" by autoCorrectSyntax's empty case.
+   */
+  function autoCorrectDefinition(str) {
+    const match = str.match(/^(\s*[a-zA-Z]\w*\s*=\s*)(.*)$/s);
+    if (!match || match[2].trim() == "") return str;
+    return match[1] + autoCorrectSyntax(match[2]);
   }
 
   /**
