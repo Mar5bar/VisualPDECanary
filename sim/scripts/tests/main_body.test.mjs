@@ -615,14 +615,14 @@ test("validateParamName/validateExpressionName: accept a fresh, unused name", ()
 // --- autoCorrectSyntax --------------------------------------------------------
 
 test("autoCorrectSyntax: inserts implicit multiplication between a number and a following letter/paren", () => {
-  m.__setState({ listOfSpecies: ["u", "v"] });
+  m.__setState({ listOfSpecies: ["u", "v"], options: { kineticParams: "", expressions: "" } });
   m.genAnySpeciesRegexStrs();
   assert.equal(m.autoCorrectSyntax("2u"), "2*u");
   assert.equal(m.autoCorrectSyntax("3(a+1)"), "3*(a+1)");
 });
 
 test("autoCorrectSyntax: inserts implicit multiplication between adjacent parentheses, and simplifies +- chains", () => {
-  m.__setState({ listOfSpecies: ["u", "v"] });
+  m.__setState({ listOfSpecies: ["u", "v"], options: { kineticParams: "", expressions: "" } });
   m.genAnySpeciesRegexStrs();
   assert.equal(m.autoCorrectSyntax("(a)(b)"), "(a)*(b)");
   assert.equal(m.autoCorrectSyntax("a +- b"), "a - b");
@@ -633,4 +633,83 @@ test("autoCorrectSyntax: empty/whitespace-only input becomes '0'", () => {
   m.__setState({ listOfSpecies: [] });
   m.genAnySpeciesRegexStrs();
   assert.equal(m.autoCorrectSyntax("   "), "0");
+});
+
+/**
+ * CoupledCGL's setup: species and parameters whose names contain a digit in the middle
+ * ("D_1r", "a_1i"). The implicit-multiplication rule used to split those into "D_1*r",
+ * silently corrupting the expression as soon as any field was edited.
+ */
+function useCoupledCGLNames() {
+  m.__setState({
+    listOfSpecies: ["u_1", "v_1", "u_2", "v_2"],
+    options: {
+      kineticParams:
+        "b_1i = 5 in [-5, 5];D_1r = 1;D_1i = 0.1;a_1r = 1;a_1i = 0;b_1r = -1;alpha_1 = 4;",
+      expressions: "",
+    },
+  });
+  m.genAnySpeciesRegexStrs();
+}
+
+test("autoCorrectSyntax: a declared name containing a digit is never split", () => {
+  useCoupledCGLNames();
+  assert.equal(m.autoCorrectSyntax("D_1r"), "D_1r");
+  assert.equal(m.autoCorrectSyntax("a_1i"), "a_1i");
+  assert.equal(m.autoCorrectSyntax("alpha_1"), "alpha_1");
+  assert.equal(
+    m.autoCorrectSyntax("a_1r*u_1-a_1i*v_1+(b_1r*u_1-b_1i*v_1)*rho_1"),
+    "a_1r*u_1-a_1i*v_1+(b_1r*u_1-b_1i*v_1)*rho_1",
+  );
+});
+
+test("autoCorrectSyntax: two declared names written side by side still gain a *", () => {
+  useCoupledCGLNames();
+  // Lexically identical to "D_1r" above - only the declared-name list tells them apart.
+  assert.equal(m.autoCorrectSyntax("u_1u_2"), "u_1*u_2");
+  assert.equal(m.autoCorrectSyntax("2u_1"), "2*u_1");
+  assert.equal(m.autoCorrectSyntax("2D_1r"), "2*D_1r");
+});
+
+test("autoCorrectSyntax: an undeclared run keeps the old digit-splitting behaviour", () => {
+  useCoupledCGLNames();
+  assert.equal(m.autoCorrectSyntax("2u"), "2*u");
+  assert.equal(m.autoCorrectSyntax("x2y"), "x2*y");
+  assert.equal(m.autoCorrectSyntax("a0(x)"), "a0*(x)");
+});
+
+test("autoCorrectSyntax: scientific notation survives the digit rule", () => {
+  useCoupledCGLNames();
+  assert.equal(m.autoCorrectSyntax("1e5"), "1e5");
+  assert.equal(m.autoCorrectSyntax("2e-3"), "2e-3");
+  assert.equal(m.autoCorrectSyntax("1E5"), "1e5");
+});
+
+// --- autoCorrectDefinition ----------------------------------------------------------------
+
+test("autoCorrectDefinition: corrects the right-hand side but never the name", () => {
+  m.__setState({
+    listOfSpecies: ["u", "v"],
+    options: { kineticParams: "", expressions: "" },
+  });
+  m.genAnySpeciesRegexStrs();
+  // "uv" would become "u*v" if autoCorrectSyntax saw the whole row.
+  assert.equal(m.autoCorrectDefinition("uv = 3"), "uv = 3");
+  assert.equal(m.autoCorrectDefinition("q1 = 2u"), "q1 = 2*u");
+  assert.equal(
+    m.autoCorrectDefinition("p1 = 2(a+1) in [0,5]"),
+    "p1 = 2*(a+1) in [0,5]",
+  );
+});
+
+test("autoCorrectDefinition: leaves a half-typed row and a non-definition alone", () => {
+  m.__setState({
+    listOfSpecies: ["u", "v"],
+    options: { kineticParams: "", expressions: "" },
+  });
+  m.genAnySpeciesRegexStrs();
+  // Would become "a = 0" if the empty right-hand side reached autoCorrectSyntax, hiding the
+  // "unable to evaluate" error the user should see instead.
+  assert.equal(m.autoCorrectDefinition("a = "), "a = ");
+  assert.equal(m.autoCorrectDefinition("not a definition"), "not a definition");
 });

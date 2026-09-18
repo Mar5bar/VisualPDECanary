@@ -12218,6 +12218,28 @@ async function VisualPDE(url) {
   }
 
   /**
+   * Every name the user has declared and can legitimately write in an expression: the species,
+   * plus the Parameters and Substitutions they've defined. Used by autoCorrectSyntax to tell a
+   * single identifier from two names written side by side - "D_1r" from "u_1u_2" - which is
+   * otherwise impossible, since the two are lexically the same shape.
+   *
+   * Reactions are excluded: listOfReactions holds display forms like "f_{u}", not identifiers.
+   * Note this reads the *committed* options, so when called while a definition row is being
+   * edited it won't yet see that row's pending name - harmless, since autoCorrectDefinition
+   * only ever autocorrects a row's right-hand side, never its name.
+   */
+  function getDeclaredNames() {
+    // Tolerates options not being populated yet: with no names to go on, autoCorrectSyntax
+    // just falls back to its old blanket behaviour, which beats throwing out of a field's
+    // onFinishChange and taking the rest of that handler down with it.
+    if (options.kineticParams == undefined || options.expressions == undefined)
+      return listOfSpecies.slice();
+    return listOfSpecies
+      .concat(getKineticParamNames())
+      .concat(getExpressionNames());
+  }
+
+  /**
    * Validates if a parameter name is already in use (as a species/reaction/reserved name, or
    * as an existing expression name - parameters and expressions share one namespace, since a
    * parameter is a live uniform reference while an expression is inline-substituted text, and
@@ -12868,8 +12890,28 @@ async function VisualPDE(url) {
     // If an e or E is preceded by a number or . and is followed by a - or number, repkace it with a placeholder to enable scientific notation.
     str = str.replaceAll(/([0-9\.])[eE]([0-9\-])/g, "$1__E__$2");
 
-    // If a number is followed by a letter or (, add a *.
-    str = str.replaceAll(/(\d)([a-zA-Z(])/g, "$1*$2");
+    // If a number is followed by a letter, add a *. A run of word characters that the user has
+    // actually declared - a species, parameter or expression name - is one identifier and is
+    // left alone, so CoupledCGL's parameter "D_1r" stays "D_1r" instead of being mangled into
+    // "D_1*r". Every other run keeps the old blanket behaviour, so juxtaposed names still gain
+    // their implicit multiplication ("u_1u_2" -> "u_1*u_2"): a declared name and two names
+    // written side by side are lexically identical, so the declared-name list is the only
+    // thing that can tell them apart.
+    const declaredNames = new Set(getDeclaredNames());
+    str = str.replaceAll(/\w+/g, (word) => {
+      if (declaredNames.has(word)) return word;
+      // A number written straight onto a declared name ("2D_1r") is that number times that
+      // name, not something to be split up further.
+      const numberThenName = word.match(/^(\d+)(.+)$/);
+      if (numberThenName && declaredNames.has(numberThenName[2]))
+        return numberThenName[1] + "*" + numberThenName[2];
+      return word.replaceAll(/(\d)([a-zA-Z])/g, "$1*$2");
+    });
+
+    // A digit immediately before a ( is always implicit multiplication - it can't be inside a
+    // name, and no built-in function name ends in a digit - so this needs no such guard, and
+    // still applies to declared names ("a0(x)" -> "a0*(x)").
+    str = str.replaceAll(/(\d)(\()/g, "$1*$2");
 
     // If a ) is followed by a (, add a *.
     str = str.replaceAll(/\)\(/g, ")*(");
