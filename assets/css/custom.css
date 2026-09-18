@@ -1084,7 +1084,8 @@ vpde-chart {
   #siteSearchForm {
     width: calc(100% - 150px);
   }
-  #siteSearchForm:focus-within ~ .site-title {
+  #siteSearchForm:focus-within ~ .site-title,
+  #siteSearchForm.search-open ~ .site-title {
     opacity: 0;
     pointer-events: none;
   }
@@ -1123,7 +1124,8 @@ vpde-chart {
   padding: 6px 0px;
 }
 
-#siteSearchForm:focus-within #siteSearchInput {
+#siteSearchForm:focus-within #siteSearchInput,
+#siteSearchForm.search-open #siteSearchInput {
   width: calc(100% - 50px);
   background-color: var(--input-background-color);
   padding: 6px 16px;
@@ -1295,8 +1297,9 @@ vpde-chart {
   background-color: black;
   object-fit: cover;
 }
-#siteSearchBar:focus-within > #siteSearchResults {
-  display: unset;
+/* Class rather than :focus-within, so results survive a click on a result. */
+#siteSearchForm.search-open #siteSearchResults {
+  display: block;
 }
 
 #pageSearchResults {
@@ -1351,8 +1354,8 @@ vpde-chart {
 .pageSearchResult a:hover .title {
   text-decoration: none;
 }
-#pageSearchBar:focus-within > #pageSearchResults {
-  display: unset;
+#pageSearchForm.search-open #pageSearchResults {
+  display: block;
 }
 
 #toc > ul {
