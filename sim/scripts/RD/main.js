@@ -8807,9 +8807,6 @@ async function VisualPDE(url) {
     optionsStr.split(";").forEach((raw) => {
       let str = removeWhitespace(raw);
       if (str == "") return;
-      // Add whitespace around "=" and after commas, for consistent display.
-      str = str.replace(/(\S)=/, "$1 =").replace(/=(\S)/, "= $1");
-      str = str.replaceAll(/,(\S)/g, ", $1");
       const label = ctx.labelPrefix + ctx.getCounter();
       ctx.setCounter(ctx.getCounter() + 1);
       ctx.labels.push(label);
@@ -12873,6 +12870,10 @@ async function VisualPDE(url) {
 
     // If the string contains a ) followed by a letter or number, add a *.
     str = str.replaceAll(/\)([a-zA-Z0-9])/g, ")*$1");
+
+    // If the string contains "> =" or "< =", replace with ">=" or "<=".
+    str = str.replaceAll(/>\s*=/g, ">=");
+    str = str.replaceAll(/<\s*=/g, "<=");
 
     // For each pair of single-character species names that is not itself a species name, add a *.
     const singleCharNames = listOfSpecies.filter((name) => name.length == 1);
