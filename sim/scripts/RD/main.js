@@ -274,7 +274,20 @@ async function VisualPDE(url) {
     longSimURL,
     lastShortenedOpts,
     lastShortKey,
-    shortenAborter;
+    shortenAborter,
+    // State used by syncURLWithOptions() to keep the URL up to date with options.
+    lastOptionsFingerprint,
+    settlingFingerprint,
+    lastURLOptions,
+    urlSyncTimer;
+  // How often (in ms) to check whether the URL needs replacing to reflect a change in
+  // options. Checking is cheap (a JSON.stringify, well under a millisecond even on a
+  // throttled phone); it's rebuilding the URL that costs, so syncURLWithOptions() waits
+  // for a second unchanged check rather than rebuilding it on the first.
+  const urlSyncPeriod = 200;
+  // The search parameters that describe the state of the simulation, and which are
+  // therefore superseded by the options parameter written by syncURLWithOptions().
+  const stateSearchParams = ["options", "preset", "mini", "view"];
   let spatialStepValue,
     nXDisc,
     nYDisc,
@@ -664,7 +677,10 @@ async function VisualPDE(url) {
   const oldQueryString = sessionStorage.getItem("oldQueryString");
   if (sessionOptions && oldQueryString == window.location.search) {
     loadPreset(JSON.parse(sessionOptions));
-    history.pushState({}, "", getSimURL(false));
+    // Reflect the restored state in the URL. This replaces the current entry rather than
+    // pushing a new one, since it describes the same simulation and so doesn't warrant its
+    // own entry in the session history.
+    syncURLWithOptions(true);
   }
   sessionStorage.removeItem("options");
   sessionStorage.removeItem("oldQueryString");
@@ -1047,6 +1063,19 @@ async function VisualPDE(url) {
       sessionStorage.setItem("oldQueryString", window.location.search);
     }
   });
+
+  // Keep the URL in the address bar in sync with the state of the simulation, so that a
+  // reload, a bookmark or a copy-paste of the URL always captures whatever the user has
+  // changed. There's no address bar to keep up to date when we're embedded in an iframe,
+  // so don't pay the cost there.
+  if (!inIframe()) {
+    ["pointerdown", "keydown", "wheel"].forEach(function (eventName) {
+      window.addEventListener(eventName, startSyncingURL, {
+        capture: true,
+        once: true,
+      });
+    });
+  }
 
   // Begin the simulation.
   isLoading = false;
@@ -11632,10 +11661,11 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Returns a URL encoded string representing the current simulation configuration.
-   * @returns {string} The URL encoded string representing the current simulation configuration.
+   * Returns a compressed, URI-safe representation of the current simulation configuration,
+   * as used for the value of the `options` search parameter.
+   * @returns {string} The compressed options string.
    */
-  function getSimURL(shorten = true) {
+  function getCompressedOptions() {
     // First, get the options that differ from the default.
     let objDiff = diffObjects(options, getPreset("default"));
     objDiff.preset = "Custom";
@@ -11643,10 +11673,16 @@ async function VisualPDE(url) {
     delete objDiff.parent;
     // Minify the field names in order to generate shorter URLs.
     objDiff = minifyPreset(objDiff);
+    return LZString.compressToEncodedURIComponent(JSON.stringify(objDiff));
+  }
+
+  /**
+   * Returns a URL encoded string representing the current simulation configuration.
+   * @returns {string} The URL encoded string representing the current simulation configuration.
+   */
+  function getSimURL(shorten = true) {
     const base = location.origin + location.pathname.replace(/\/$/, "");
-    const shortOpts = LZString.compressToEncodedURIComponent(
-      JSON.stringify(objDiff),
-    );
+    const shortOpts = getCompressedOptions();
     const queryString = "?options=" + shortOpts;
     let str = [base, queryString].join("");
     // Keep the long URL as a fallback.
@@ -11655,6 +11691,110 @@ async function VisualPDE(url) {
     // Asynchronously shorten the URL, replcing the long URL with the shortened one when complete.
     if (shorten) shortenURL(base, shortOpts);
     return queryString;
+  }
+
+  /**
+   * Returns the fields of `options` that the simulation is currently tuning on the user's
+   * behalf, and which therefore shouldn't be enough on their own to replace the URL:
+   * optimiseFPS settles numTimestepsPerFrame over the first seconds of a simulation, and
+   * autoSetColourRange rewrites the colour limits several times a second for as long as
+   * it's enabled. Rewriting a tidy ?preset=... link into a long options string off the back
+   * of the first would be surprising, and off the back of the second would mean rebuilding
+   * the URL for as long as the simulation runs, and never letting it settle. The simulation
+   * overwrites both within
+   * a frame or two of the user setting them by hand, so nothing is lost by ignoring them:
+   * whatever they currently hold is still written into the URL as soon as anything else
+   * changes it.
+   * @returns {string[]} The names of the fields currently being tuned automatically.
+   */
+  function autoTunedOptionNames() {
+    return [
+      ...(isOptimising ? ["numTimestepsPerFrame"] : []),
+      ...(options.autoSetColourRange
+        ? ["minColourValue", "maxColourValue"]
+        : []),
+    ];
+  }
+
+  /**
+   * Returns a string that changes whenever the user-facing state of the simulation does,
+   * used by syncURLWithOptions() as a cheap check for whether the URL needs replacing.
+   * Fields that the simulation is tuning by itself are left out, both from options and from
+   * the copies of them that updateView() keeps in options.views.
+   * @returns {string} A fingerprint of the current state.
+   */
+  function optionsFingerprint() {
+    const autoTuned = autoTunedOptionNames();
+    if (!autoTuned.length) return JSON.stringify(options);
+    const stripped = Object.assign({}, options, {
+      views: options.views?.map(function (view) {
+        const copy = Object.assign({}, view);
+        autoTuned.forEach((key) => delete copy[key]);
+        return copy;
+      }),
+    });
+    autoTuned.forEach((key) => delete stripped[key]);
+    return JSON.stringify(stripped);
+  }
+
+  /**
+   * Replaces the URL in the address bar with one that encodes the current state of
+   * `options`, so that the URL is always ready to be copied, bookmarked or reloaded.
+   * Returns immediately if nothing has changed since the last call.
+   *
+   * `options` can change many times a second (dragging a slider, orbiting the camera,
+   * auto-scaling colour limits), so this is run on a timer rather than from each of the
+   * many places that write to `options`, and the comparatively expensive rebuilding of the
+   * URL is guarded behind a cheap check of whether anything has changed at all.
+   *
+   * @param {boolean} [immediate] - Rebuild the URL on this call rather than waiting for the
+   * state to settle first. Only for one-off changes that are known to have finished.
+   */
+  function syncURLWithOptions(immediate = false) {
+    const fingerprint = optionsFingerprint();
+    if (fingerprint == lastOptionsFingerprint) return;
+    // Wait for the state to stop changing before rebuilding the URL. A slider drag or a
+    // camera orbit writes to options on every frame, and rebuilding the URL mid-gesture
+    // costs roughly a frame on a phone, for intermediate links nobody ever sees.
+    if (!immediate && fingerprint != settlingFingerprint) {
+      settlingFingerprint = fingerprint;
+      return;
+    }
+    lastOptionsFingerprint = fingerprint;
+    const compressedOptions = getCompressedOptions();
+    if (compressedOptions == lastURLOptions) return;
+    lastURLOptions = compressedOptions;
+    // Carry over any search parameters that configure the page rather than the simulation
+    // (story, no_ui, sf, ...), preserving their original encoding. Anything that describes
+    // the state of the simulation is superseded by the new options string: that's preset,
+    // options and mini, plus view and any parameter named after a field of options, all of
+    // which are applied on top of the options string when loading and would otherwise
+    // clobber the state we're storing.
+    const otherParams = window.location.search
+      .replace(/^\?/, "")
+      .split("&")
+      .filter(function (param) {
+        if (!param.length) return false;
+        const key = decodeURIComponent(param.split("=")[0]);
+        return !stateSearchParams.includes(key) && !(key in options);
+      });
+    const queryString = ["options=" + compressedOptions]
+      .concat(otherParams)
+      .join("&");
+    history.replaceState({}, "", window.location.pathname + "?" + queryString);
+  }
+
+  /**
+   * Starts keeping the URL in sync with `options`. Called on the user's first interaction
+   * with the page, rather than on load, so that a tidy link like ?preset=GrayScott isn't
+   * replaced by a long options string just because something settled by itself after
+   * loading (optimiseFPS adjusting numTimestepsPerFrame, say).
+   */
+  function startSyncingURL() {
+    if (urlSyncTimer) return;
+    // Record the current state, so that we only replace the URL once something changes.
+    lastOptionsFingerprint = optionsFingerprint();
+    urlSyncTimer = setInterval(syncURLWithOptions, urlSyncPeriod);
   }
 
   /**
