@@ -8076,11 +8076,17 @@ async function VisualPDE(url) {
           ")\\s*\\)",
         "g",
       );
-      let expressionNames = getExpressionNameVals().map((x) => x[0]);
+
+      let expressionNames = getExpressionNames();
       let expressionNameRegex = new RegExp(
         "\\b(?:" + expressionNames.join("|") + ")\\b",
         "g",
       );
+      function containsExpressionName(s) {
+        if (expressionNames.length == 0) return false;
+        return expressionNameRegex.test(s);
+      }
+
       str = str.replaceAll(regex, function (match, g1, g2) {
         const innerRegex = new RegExp(
           "\\b(?:[xy]|(?:" + speciesAlt + ")(?:_[xy])?|(?:I_[ST][RGBA]?))\\b",
@@ -8088,7 +8094,7 @@ async function VisualPDE(url) {
         );
         if (
           !innerRegex.test(g1) &&
-          !expressionNameRegex.test(g1) &&
+          !containsExpressionName(g1) &&
           !g1.includes("\\dmat")
         ) {
           return g1.trim() + " \\lap " + g2;
