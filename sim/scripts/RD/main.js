@@ -3441,6 +3441,7 @@ async function VisualPDE(url) {
       `<i class="fa-solid fa-clover"></i> Enable`,
       function () {
         setDisplayColourAndType();
+        setPostFunFragShader();
         renderIfNotRunning();
         updateView("overlay");
       },
@@ -3465,7 +3466,7 @@ async function VisualPDE(url) {
       .onFinishChange(function () {
         this.setValue(autoCorrectSyntax(this.getValue()));
         setDisplayColourAndType();
-        if (options.plotType == "line") setPostFunFragShader();
+        setPostFunFragShader();
         renderIfNotRunning();
         updateView(this.property);
       });
