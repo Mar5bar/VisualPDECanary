@@ -2418,9 +2418,9 @@ async function VisualPDE(url) {
     addInfoButton(root, "/user-guide/advanced-options#edit");
     addFocusLeftGUIButton(editEquationsFolder);
 
-    // Species-count/naming controllers get their own sub-folder too, back directly under
-    // "Equations" as a sibling of Timescales/Diffusion coefficients/Reaction terms (not nested
-    // inside "Parameters and notation" - Parameters/Expressions live there instead).
+    // Species-count/naming controllers get their own sub-folder, directly under "Equations" as
+    // a sibling of Diffusion coefficients/Forcing terms/Timescales. Parameters and Substitutions
+    // are separate top-level folders in the left GUI.
     root = editEquationsFolder;
     variablesFolder = editEquationsFolder.addFolder("Variables");
     addInfoButton(variablesFolder, "/user-guide/advanced-options#variables");

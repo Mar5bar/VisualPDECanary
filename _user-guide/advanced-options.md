@@ -39,7 +39,7 @@ onSubmit="page_search(document.getElementById('pageSearchInput').value); return 
 
 ## Equations {{ layout.equations }} <a class="anchor" id='equations'>
 
-VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions, and configure the number and names of the variables used throughout the interface (see [**Variables**](#variables), below). More advanced settings, such as user-defined parameters and expressions, can be found under [**Parameters and notation**](#parameters).
+VisualPDE is all about solving equations. In the Equations pane, you can view and define the problem that VisualPDE will solve for you in your browser, complete with initial and boundary conditions, and configure the number and names of the variables used throughout the interface (see [**Variables**](#variables), below). The pane also contains user-defined [**Parameters**](#parameters) and [**Substitutions**](#substitutions), described below.
 
 ### Equations <a class="anchor" id='edit'>
 
@@ -129,7 +129,7 @@ name = substitution
 
 which makes `name` available as shorthand for `substitution` everywhere in VisualPDE: wherever `name` appears in another field, it is substituted for (a parenthesised copy of) `substitution` when the simulation is built. Substitutions cannot share a name with a Parameter, a variable, or a reaction term, and (unlike Parameters) never have sliders.
 
-Substitutions are shown as their own rows in the typeset equation display (see **Typeset**), rather than being substituted into the main system of equations, so that the equations remain readable. You can even hide individual substitutions from the typeset display with the `Show` button.
+Substitutions are shown as their own rows in the typeset equation display, rather than being substituted into the main system of equations, so that the equations remain readable. You can even hide individual substitutions from the typeset display with the `Show` button.
 
 ### Boundary conditions <a class="anchor" id='boundary-conditions'>
 
