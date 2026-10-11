@@ -1389,6 +1389,21 @@ async function VisualPDE(url) {
     // Create a GUI.
     initGUI();
 
+    // Scroll back to the top whenever any input loses focus, undoing Safari's zoom/scroll on
+    // focus. Delegated from the document so that it also covers inputs created after initGUI()
+    // (e.g. new Parameters/Substitutions rows, the diffusion matrix popup). Capture phase, as
+    // a definition row's own blur handler can remove it from the DOM before a bubbling
+    // listener would see the event.
+    document.addEventListener(
+      "blur",
+      function (e) {
+        if (e.target.tagName != "INPUT") return;
+        window.scrollTo({ top: -1, left: 0, behavior: "smooth" });
+        document.body.scrollTo(0, 0);
+      },
+      true,
+    );
+
     // Configure the GUI.
     configureGUI();
 
@@ -3891,14 +3906,9 @@ async function VisualPDE(url) {
     // Always make images controller, but hide them if they're not wanted.
     createImageControllers();
 
-    const inputs = document.querySelectorAll("input");
-    inputs.forEach((input) => disableAutocorrect(input));
-    inputs.forEach((input) =>
-      input.addEventListener("blur", function () {
-        window.scrollTo({ top: -1, left: 0, behaviour: "smooth" });
-        document.body.scrollTo(0, 0);
-      }),
-    );
+    document
+      .querySelectorAll("input")
+      .forEach((input) => disableAutocorrect(input));
 
     // Put all title elements in the taborder, and make Enter key click them.
     document.querySelectorAll(".dg li.title").forEach((title) => {
@@ -13221,6 +13231,7 @@ async function VisualPDE(url) {
         const fieldName = "diffusionStr_" + (i + 1) + "_" + (j + 1);
         const input = document.createElement("input");
         input.type = "text";
+        disableAutocorrect(input);
         input.style.gridColumn = 4 + j;
         input.style.gridRow = 2 + i;
         if (i === j && isSpeciesAlgebraic(i)) {
