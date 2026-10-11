@@ -299,7 +299,8 @@ export function substituteGreek(str) {
   // subscripted word is wrapped in {} so that it typesets as a single subscript. The Greek name
   // can't be followed directly by a letter (so x_nuclear is left alone). Subscripts without
   // any Greek are left for parseStringToTEX to wrap.
-  const greekAlt = "(" + listOfVar.concat(listOfGreek).join("|") + ")(?![a-zA-Z])";
+  const greekAlt =
+    "(" + listOfVar.concat(listOfGreek).join("|") + ")(?![a-zA-Z])";
   const leadingGreek = new RegExp("^" + greekAlt, "i");
   const hasGreek = new RegExp("(^|_)" + greekAlt, "i");
   const wrapSubscript = (word) => {
@@ -308,9 +309,7 @@ export function substituteGreek(str) {
     );
     const ind = word.indexOf("_");
     if (ind < 0 || ind == word.length - 1) return word;
-    return (
-      word.slice(0, ind) + "_{" + wrapSubscript(word.slice(ind + 1)) + "}"
-    );
+    return word.slice(0, ind) + "_{" + wrapSubscript(word.slice(ind + 1)) + "}";
   };
   str = str.replaceAll(/_(\w+)/g, (match, word) =>
     hasGreek.test(word) ? "_{" + wrapSubscript(word) + "}" : match,
@@ -318,6 +317,9 @@ export function substituteGreek(str) {
   let regex = new RegExp("\\b(" + listOfVar.join("|") + ")(\\b|_)", "ig");
   str = str.replaceAll(regex, "var" + "$1$2");
   // The lookbehind stops Greek that has already been substituted above from being matched again.
-  regex = new RegExp("(?<!\\\\)\\b(" + listOfGreek.join("|") + ")(\\b|_)", "ig");
+  regex = new RegExp(
+    "(?<!\\\\)\\b(" + listOfGreek.join("|") + ")(\\b|_)",
+    "ig",
+  );
   return str.replaceAll(regex, "\\" + "$1$2");
 }
