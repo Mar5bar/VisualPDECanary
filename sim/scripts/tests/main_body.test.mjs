@@ -471,6 +471,20 @@ test("parseStringToTEX: doesn't infinitely recurse when str has no Int(...) at a
   assert.equal(m.parseStringToTEX("a - b"), "a - b");
 });
 
+test("parseStringToTEX: Greek subscripts (e.g. D_alpha) typeset as a single braced subscript", () => {
+  m.__setState({
+    options: { minX: "0", minY: "0", dimension: "2" },
+    listOfSpecies: ["u", "v"],
+    listOfReactions: ["UFUN", "VFUN"],
+  });
+  stubThrowError();
+  assert.equal(m.parseStringToTEX("D_alpha*u"), "D_{\\alpha} u");
+  assert.equal(m.parseStringToTEX("k_alpha1*u"), "k_{\\alpha_{1}} u");
+  assert.equal(m.parseStringToTEX("u_ab_alpha + D_1"), "u_{ab_{\\alpha}} + D_{1}");
+  assert.equal(m.parseStringToTEX("beta_epsilon^2"), "{\\beta_{\\varepsilon}}^{2}");
+  assert.equal(m.parseStringToTEX("x_nuclear + y_12"), "x_{nuclear} + y_{12}");
+});
+
 // --- migrateGlobalIntSyntax ---------------------------------------------------
 
 test("migrateGlobalIntSyntax: is a no-op when there's no old globalIntegralFun field", () => {
