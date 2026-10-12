@@ -318,7 +318,10 @@ async function VisualPDE(url) {
     // rebuilt by refreshExpressionExpansions() (called at the top of updateShaders()) and
     // consumed by parseShaderString(). See the "Expressions" feature (main.js, search for
     // refreshExpressionExpansions) for the substitution design.
-    expandedExpressionDefs = {};
+    expandedExpressionDefs = {},
+    // The options.expressions string that expandedExpressionDefs was last built from - see
+    // ensureExpressionExpansionsCurrent().
+    expandedExpressionDefsSource = null;
   const llmURL =
     "https://gemini.google.com/gem/1mJ4572e1TJwEHcaYDst0_9keZkx78-zn";
   const defaultPreset = "GrayScott";
@@ -5128,8 +5131,12 @@ async function VisualPDE(url) {
 
     // Substitute user-defined expressions (raw text macros, not GLSL quantities) before any
     // other parsing, so everything below only ever sees expression-free text.
-    // expandedExpressionDefs is kept up to date by refreshExpressionExpansions(), called once
-    // per shader rebuild in updateShaders().
+    // expandedExpressionDefs is rebuilt by refreshExpressionExpansions(), called once per
+    // shader rebuild in updateShaders(). Shader builders can also run outside of
+    // updateShaders() (e.g. configureGUI() -> configureProbe() -> setProbeShader(), which
+    // runs before updateShaders() in updateProblem()), so make sure the expansions match the
+    // current expressions first.
+    ensureExpressionExpansionsCurrent();
     Object.keys(expandedExpressionDefs).forEach((name) => {
       str = str.replaceAll(
         new RegExp("\\b" + name + "\\b", "g"),
@@ -6662,6 +6669,8 @@ async function VisualPDE(url) {
     reconcileGlobalIntegrals();
     // Insert any user-defined kinetic parameters, as uniforms.
     let kineticStr = kineticUniformsForShader();
+    // Species whose initial conditions reference the solution - see parseInitCond().
+    const badInitConds = [];
     if (numGroups(Number(options.numSpecies)) > 1) {
       // MRT (>4-species) path: separate top/bot (dual output, GLSL3) and species-5-8
       // locals. Kept entirely separate from the numGroups===1 branch below (rather than
@@ -6687,21 +6696,21 @@ async function VisualPDE(url) {
         shaderStr += randNShader();
       }
       shaderStr +=
-        "float u = " + parseShaderString(options.initCond_1, false) + ";\n";
+        "float u = " + parseInitCond(0, badInitConds) + ";\n";
       shaderStr +=
-        "float v = " + parseShaderString(options.initCond_2, false) + ";\n";
+        "float v = " + parseInitCond(1, badInitConds) + ";\n";
       shaderStr +=
-        "float w = " + parseShaderString(options.initCond_3, false) + ";\n";
+        "float w = " + parseInitCond(2, badInitConds) + ";\n";
       shaderStr +=
-        "float q = " + parseShaderString(options.initCond_4, false) + ";\n";
+        "float q = " + parseInitCond(3, badInitConds) + ";\n";
       shaderStr +=
-        "float u5 = " + parseShaderString(options.initCond_5, false) + ";\n";
+        "float u5 = " + parseInitCond(4, badInitConds) + ";\n";
       shaderStr +=
-        "float u6 = " + parseShaderString(options.initCond_6, false) + ";\n";
+        "float u6 = " + parseInitCond(5, badInitConds) + ";\n";
       shaderStr +=
-        "float u7 = " + parseShaderString(options.initCond_7, false) + ";\n";
+        "float u7 = " + parseInitCond(6, badInitConds) + ";\n";
       shaderStr +=
-        "float u8 = " + parseShaderString(options.initCond_8, false) + ";\n";
+        "float u8 = " + parseInitCond(7, badInitConds) + ";\n";
       shaderStr += clearShaderBotMRT();
       shaderStr = replaceMINXMINY(shaderStr);
       assignFragmentShader(clearMaterial, shaderStr);
@@ -6724,19 +6733,45 @@ async function VisualPDE(url) {
         shaderStr += randNShader();
       }
       shaderStr +=
-        "float u = " + parseShaderString(options.initCond_1, false) + ";\n";
+        "float u = " + parseInitCond(0, badInitConds) + ";\n";
       shaderStr +=
-        "float v = " + parseShaderString(options.initCond_2, false) + ";\n";
+        "float v = " + parseInitCond(1, badInitConds) + ";\n";
       shaderStr +=
-        "float w = " + parseShaderString(options.initCond_3, false) + ";\n";
+        "float w = " + parseInitCond(2, badInitConds) + ";\n";
       shaderStr +=
-        "float q = " + parseShaderString(options.initCond_4, false) + ";\n";
+        "float q = " + parseInitCond(3, badInitConds) + ";\n";
       shaderStr += clearShaderBot();
       shaderStr = replaceMINXMINY(shaderStr);
       assignFragmentShader(clearMaterial, shaderStr);
       clearMaterial.glslVersion = null;
     }
     clearMaterial.needsUpdate = true;
+    if (badInitConds.length > 0) {
+      throwError(
+        "Initial conditions can't depend on the solution. Please check the initial condition" +
+          (badInitConds.length > 1 ? "s" : "") +
+          " for " +
+          badInitConds.map((name) => "'" + name + "'").join(", ") +
+          " and any expressions used in " +
+          (badInitConds.length > 1 ? "them" : "it") +
+          ". These will be treated as 0 for now.",
+      );
+    }
+  }
+
+  function parseInitCond(ind, badInitConds) {
+    // Parse the initial condition of species ind into GLSL for the clear shader. The clear
+    // shader has no access to the current state, so any reference to a species (uvwq/uvwq2
+    // after parsing, possibly arriving via an expression) would only surface later as a
+    // generic "undeclared identifier" compile error. Instead, record the species in
+    // badInitConds and substitute 0.0, so that the shader always compiles and setClearShader
+    // can report a descriptive error.
+    const str = parseShaderString(options["initCond_" + (ind + 1)], false);
+    if (/\buvwq2?\b/.test(str)) {
+      badInitConds.push(listOfSpecies[ind]);
+      return " 0.0 ";
+    }
+    return str;
   }
 
   function setProbeShader() {
@@ -9261,6 +9296,18 @@ async function VisualPDE(url) {
       );
     }
     expandedExpressionDefs = expanded;
+    expandedExpressionDefsSource = options.expressions;
+  }
+
+  /**
+   * Rebuilds expandedExpressionDefs only if options.expressions has changed since it was last
+   * built. Cheap enough to call from every parseShaderString(), and only reports duplicate/
+   * cyclic errors once per change, unlike calling refreshExpressionExpansions() directly.
+   */
+  function ensureExpressionExpansionsCurrent() {
+    if (expandedExpressionDefsSource !== options.expressions) {
+      refreshExpressionExpansions();
+    }
   }
 
   function addKineticParameterAfterError(paramName) {
