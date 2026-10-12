@@ -110,8 +110,7 @@ import { OrbitControls } from "../OrbitControls.js";
 import { Line2 } from "../lines/Line2.js";
 import { LineMaterial } from "../lines/LineMaterial.js";
 import { LineGeometry } from "../lines/LineGeometry.js";
-import { minifyPreset, maxifyPreset } from "./minify_preset.js";
-import { LZString } from "../lz-string.min.js";
+import { encodeOptions, decodeOptions } from "./url_codec.js";
 import {
   equationTEXFun,
   buildEquationTEX,
@@ -559,9 +558,21 @@ async function VisualPDE(url) {
 
   // Check URL for any specified options.
   // Take the URL stored as a string in url (if it exists) and get the search parameters
-  // from it. If it doesn't exist, use the current URL.
+  // from it. If it doesn't exist, use the current URL. Links store the simulation in the
+  // hash (#options=...), which is never sent to the server and so isn't subject to its
+  // limits on the length of URLs, so parameters in the hash are merged in on top of those in
+  // the query string.
+  const href = url ?? window.location.href;
+  const hashStart = href.includes("#") ? href.indexOf("#") : href.length;
+  const queryStart = href.slice(0, hashStart).indexOf("?");
   const params = new URLSearchParams(
-    (url ? url.split("?")[1] : window.location.search).replaceAll("&amp;", "&"),
+    (queryStart < 0 ? "" : href.slice(queryStart + 1, hashStart)).replaceAll(
+      "&amp;",
+      "&",
+    ),
+  );
+  new URLSearchParams(href.slice(hashStart + 1)).forEach((value, key) =>
+    params.set(key, value),
   );
 
   if (params.has("iframeID")) {
@@ -640,18 +651,12 @@ async function VisualPDE(url) {
     // If options have been provided, apply them on top of loaded options.
     window.gtag?.("event", "custom_link_followed");
     try {
-      var newParams = JSON.parse(
-        LZString.decompressFromEncodedURIComponent(params.get("options")),
-      );
+      var newParams = decodeOptions(params.get("options"));
     } catch (e) {
       throwError(
         "It looks like this link is missing something - please check that it has been copied and pasted correctly and try again.",
       );
       newParams = {};
-    }
-    if (newParams.hasOwnProperty("p")) {
-      // This has been minified, so maxify before loading.
-      newParams = maxifyPreset(newParams);
     }
     loadPreset(newParams);
     shouldLoadDefault = false;
@@ -678,7 +683,10 @@ async function VisualPDE(url) {
   // If there is an options object in sessionStorage, load it, so long as we're not changing simulation via the URL. This allows a simulation to persist across page reloads.
   const sessionOptions = sessionStorage.getItem("options");
   const oldQueryString = sessionStorage.getItem("oldQueryString");
-  if (sessionOptions && oldQueryString == window.location.search) {
+  if (
+    sessionOptions &&
+    oldQueryString == window.location.search + window.location.hash
+  ) {
     loadPreset(JSON.parse(sessionOptions));
     // Reflect the restored state in the URL. This replaces the current entry rather than
     // pushing a new one, since it describes the same simulation and so doesn't warrant its
@@ -1063,7 +1071,10 @@ async function VisualPDE(url) {
     ) {
       // If so, add to session storage so that it can be loaded on return, and add the URL to history.
       sessionStorage.setItem("options", JSON.stringify(options));
-      sessionStorage.setItem("oldQueryString", window.location.search);
+      sessionStorage.setItem(
+        "oldQueryString",
+        window.location.search + window.location.hash,
+      );
     }
   });
 
@@ -11718,15 +11729,16 @@ async function VisualPDE(url) {
     // Get the URL of the current sim.
     getSimURL(false);
     let url = longSimURL;
-    // Use the UI options specified in embed_ui_type to append ui options.
+    // Use the UI options specified in embed_ui_type to add ui options to the query string,
+    // which comes before the #options=... of the URL.
     switch (document.getElementById("embed_ui_type").value) {
       case "full":
         break;
       case "story":
-        url += "&story";
+        url = url.replace("#", "?story#");
         break;
       case "none":
-        url += "&logo_only";
+        url = url.replace("#", "?logo_only#");
         break;
     }
     // Put the url in an iframe and copy to clipboard.
@@ -11739,18 +11751,11 @@ async function VisualPDE(url) {
 
   /**
    * Returns a compressed, URI-safe representation of the current simulation configuration,
-   * as used for the value of the `options` search parameter.
+   * as used for the value of the `options` parameter in the hash of links (see url_codec.js).
    * @returns {string} The compressed options string.
    */
   function getCompressedOptions() {
-    // First, get the options that differ from the default.
-    let objDiff = diffObjects(options, getPreset("default"));
-    objDiff.preset = "Custom";
-    // Remove any parents so that loading happens from the default sim.
-    delete objDiff.parent;
-    // Minify the field names in order to generate shorter URLs.
-    objDiff = minifyPreset(objDiff);
-    return LZString.compressToEncodedURIComponent(JSON.stringify(objDiff));
+    return encodeOptions(options);
   }
 
   /**
@@ -11760,14 +11765,14 @@ async function VisualPDE(url) {
   function getSimURL(shorten = true) {
     const base = location.origin + location.pathname.replace(/\/$/, "");
     const shortOpts = getCompressedOptions();
-    const queryString = "?options=" + shortOpts;
-    let str = [base, queryString].join("");
+    const hashString = "#options=" + shortOpts;
+    let str = [base, hashString].join("");
     // Keep the long URL as a fallback.
     longSimURL = str;
     simURL = longSimURL;
     // Asynchronously shorten the URL, replcing the long URL with the shortened one when complete.
     if (shorten) shortenURL(base, shortOpts);
-    return queryString;
+    return hashString;
   }
 
   /**
@@ -11843,10 +11848,10 @@ async function VisualPDE(url) {
     lastURLOptions = compressedOptions;
     // Carry over any search parameters that configure the page rather than the simulation
     // (story, no_ui, sf, ...), preserving their original encoding. Anything that describes
-    // the state of the simulation is superseded by the new options string: that's preset,
-    // options and mini, plus view and any parameter named after a field of options, all of
-    // which are applied on top of the options string when loading and would otherwise
-    // clobber the state we're storing.
+    // the state of the simulation is superseded by the new options string in the hash:
+    // that's preset, options and mini, plus view and any parameter named after a field of
+    // options, all of which are applied on top of the options string when loading and would
+    // otherwise clobber the state we're storing.
     const otherParams = window.location.search
       .replace(/^\?/, "")
       .split("&")
@@ -11855,10 +11860,14 @@ async function VisualPDE(url) {
         const key = decodeURIComponent(param.split("=")[0]);
         return !stateSearchParams.includes(key) && !(key in options);
       });
-    const queryString = ["options=" + compressedOptions]
-      .concat(otherParams)
-      .join("&");
-    history.replaceState({}, "", window.location.pathname + "?" + queryString);
+    history.replaceState(
+      {},
+      "",
+      window.location.pathname +
+        (otherParams.length ? "?" + otherParams.join("&") : "") +
+        "#options=" +
+        compressedOptions,
+    );
   }
 
   /**

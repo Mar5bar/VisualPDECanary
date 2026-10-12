@@ -45,10 +45,10 @@
           localStorage.setItem("short:" + short, long);
           localStorage.setItem("long:" + long, short);
         }
-        // Get the current URL, remove the 'mini' from the query string, and append the full options.
+        // Get the current URL, remove the 'mini' from the query string, and put the full options in the hash.
         let currentURL = new URL(window.location.href);
         currentURL.searchParams.delete("mini");
-        currentURL.searchParams.set("options", long);
+        currentURL.hash = "options=" + long;
         // Set a variable to record the new URL, which may not be reflected in window.location.href until the page is reloaded.
         simURL = currentURL.toString();
         window.history.pushState(null, "", simURL);
