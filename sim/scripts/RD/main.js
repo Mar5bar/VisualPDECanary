@@ -6695,22 +6695,14 @@ async function VisualPDE(url) {
       if (/\bRANDN(_[1234])?\b/.test(allClearShaders)) {
         shaderStr += randNShader();
       }
-      shaderStr +=
-        "float u = " + parseInitCond(0, badInitConds) + ";\n";
-      shaderStr +=
-        "float v = " + parseInitCond(1, badInitConds) + ";\n";
-      shaderStr +=
-        "float w = " + parseInitCond(2, badInitConds) + ";\n";
-      shaderStr +=
-        "float q = " + parseInitCond(3, badInitConds) + ";\n";
-      shaderStr +=
-        "float u5 = " + parseInitCond(4, badInitConds) + ";\n";
-      shaderStr +=
-        "float u6 = " + parseInitCond(5, badInitConds) + ";\n";
-      shaderStr +=
-        "float u7 = " + parseInitCond(6, badInitConds) + ";\n";
-      shaderStr +=
-        "float u8 = " + parseInitCond(7, badInitConds) + ";\n";
+      shaderStr += "float u = " + parseInitCond(0, badInitConds) + ";\n";
+      shaderStr += "float v = " + parseInitCond(1, badInitConds) + ";\n";
+      shaderStr += "float w = " + parseInitCond(2, badInitConds) + ";\n";
+      shaderStr += "float q = " + parseInitCond(3, badInitConds) + ";\n";
+      shaderStr += "float u5 = " + parseInitCond(4, badInitConds) + ";\n";
+      shaderStr += "float u6 = " + parseInitCond(5, badInitConds) + ";\n";
+      shaderStr += "float u7 = " + parseInitCond(6, badInitConds) + ";\n";
+      shaderStr += "float u8 = " + parseInitCond(7, badInitConds) + ";\n";
       shaderStr += clearShaderBotMRT();
       shaderStr = replaceMINXMINY(shaderStr);
       assignFragmentShader(clearMaterial, shaderStr);
@@ -6732,14 +6724,10 @@ async function VisualPDE(url) {
       if (/\bRANDN(_[1234])?\b/.test(allClearShaders)) {
         shaderStr += randNShader();
       }
-      shaderStr +=
-        "float u = " + parseInitCond(0, badInitConds) + ";\n";
-      shaderStr +=
-        "float v = " + parseInitCond(1, badInitConds) + ";\n";
-      shaderStr +=
-        "float w = " + parseInitCond(2, badInitConds) + ";\n";
-      shaderStr +=
-        "float q = " + parseInitCond(3, badInitConds) + ";\n";
+      shaderStr += "float u = " + parseInitCond(0, badInitConds) + ";\n";
+      shaderStr += "float v = " + parseInitCond(1, badInitConds) + ";\n";
+      shaderStr += "float w = " + parseInitCond(2, badInitConds) + ";\n";
+      shaderStr += "float q = " + parseInitCond(3, badInitConds) + ";\n";
       shaderStr += clearShaderBot();
       shaderStr = replaceMINXMINY(shaderStr);
       assignFragmentShader(clearMaterial, shaderStr);
