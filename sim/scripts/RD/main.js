@@ -12988,9 +12988,11 @@ async function VisualPDE(url) {
     // If a ) is followed by a (, add a *.
     str = str.replaceAll(/\)\(/g, ")*(");
 
-    // If the string contains xy or yx, replace with x*y.
-    str = str.replaceAll(/\bxy\b/g, "x*y");
-    str = str.replaceAll(/\byx\b/g, "y*x");
+    // If the string contains xy or yx (and the user hasn't declared a name by that spelling),
+    // replace with x*y.
+    str = str.replaceAll(/\b(xy|yx)\b/g, (word) =>
+      declaredNames.has(word) ? word : word[0] + "*" + word[1],
+    );
 
     // If the string contains + + or ++, replace with +.
     while (str != (str = str.replace(/\+\s*\+/g, "+")));
@@ -13006,26 +13008,19 @@ async function VisualPDE(url) {
     str = str.replaceAll(/>\s*=/g, ">=");
     str = str.replaceAll(/<\s*=/g, "<=");
 
-    // For each pair of single-character species names that is not itself a species name, add a *.
-    const singleCharNames = listOfSpecies.filter((name) => name.length == 1);
-    singleCharNames.forEach((name1) => {
-      singleCharNames.forEach((name2) => {
-        if (!listOfSpecies.includes(name1 + name2)) {
-          // Replace all occurrences of name1 followed by name2 with name1*name2.
-          str = str.replaceAll(
-            new RegExp("\\b" + name1 + name2 + "\\b", "g"),
-            name1 + "*" + name2,
-          );
-        }
-        if (!listOfSpecies.includes(name2 + name1)) {
-          // Replace all occurrences of name1 followed by name2 with name1*name2.
-          str = str.replaceAll(
-            new RegExp("\\b" + name2 + name1 + "\\b", "g"),
-            name2 + "*" + name1,
-          );
-        }
-      });
-    });
+    // A two-letter word made of two single-character species names is their product - unless
+    // the user has declared that word as a name in its own right (a species, parameter or
+    // substitution called "uv" must stay "uv", not become "u*v").
+    const singleCharNames = new Set(
+      listOfSpecies.filter((name) => name.length == 1),
+    );
+    str = str.replaceAll(/\b[a-zA-Z]{2}\b/g, (word) =>
+      singleCharNames.has(word[0]) &&
+      singleCharNames.has(word[1]) &&
+      !declaredNames.has(word)
+        ? word[0] + "*" + word[1]
+        : word,
+    );
 
     // If the string contains a single species name (with optional _[xy]) followed by a (, add a *.
     str = str.replaceAll(

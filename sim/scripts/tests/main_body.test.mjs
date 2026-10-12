@@ -699,6 +699,31 @@ test("autoCorrectSyntax: scientific notation survives the digit rule", () => {
   assert.equal(m.autoCorrectSyntax("1E5"), "1e5");
 });
 
+test("autoCorrectSyntax: two single-character species written together gain a *", () => {
+  m.__setState({ listOfSpecies: ["u", "v"], options: { kineticParams: "", expressions: "" } });
+  m.genAnySpeciesRegexStrs();
+  assert.equal(m.autoCorrectSyntax("uv"), "u*v");
+  assert.equal(m.autoCorrectSyntax("a - vu^2"), "a - v*u^2");
+  assert.equal(m.autoCorrectSyntax("uu"), "u*u");
+  assert.equal(m.autoCorrectSyntax("xy + yx"), "x*y + y*x");
+  // Only whole two-letter words are split, never substrings of longer names.
+  assert.equal(m.autoCorrectSyntax("uva + uv_1"), "uva + uv_1");
+});
+
+test("autoCorrectSyntax: a declared name spelt like a product of species is left alone", () => {
+  m.__setState({
+    listOfSpecies: ["u", "v"],
+    options: { kineticParams: "vu = 2;xy = 1;", expressions: "uv = u*v;" },
+  });
+  m.genAnySpeciesRegexStrs();
+  assert.equal(m.autoCorrectSyntax("uv"), "uv");
+  assert.equal(m.autoCorrectSyntax("a - uv + vu"), "a - uv + vu");
+  assert.equal(m.autoCorrectSyntax("2uv"), "2*uv");
+  assert.equal(m.autoCorrectSyntax("xy + yx"), "xy + y*x");
+  // Undeclared pairs are still split.
+  assert.equal(m.autoCorrectSyntax("uu + vv"), "u*u + v*v");
+});
+
 // --- autoCorrectDefinition ----------------------------------------------------------------
 
 test("autoCorrectDefinition: corrects the right-hand side but never the name", () => {
