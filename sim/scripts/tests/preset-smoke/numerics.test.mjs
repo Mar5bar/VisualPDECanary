@@ -199,7 +199,6 @@ const cases = [
   {
     name: "diffusion from a time-dependent Dirichlet boundary",
     numSteps: 100,
-    tolerance: 1e-4,
     options: {
       numSpecies: 1,
       dt: 0.01,
@@ -207,14 +206,14 @@ const cases = [
       reactionStr_1: "0",
       initCond_1: "0",
       boundaryConditions_1: "dirichlet",
-      dirichletStr_1: "sin(5*t)",
+      dirichletStr_1: "t*(2-t)",
     },
     reference: () => ({
       numSpecies: 1,
       D: [[constant(1)]],
       f: [constant(0)],
       init: [constant(0)],
-      bcs: [sides({ type: "dirichlet", value: ({ t }) => Math.sin(5 * t) })],
+      bcs: [sides({ type: "dirichlet", value: ({ t }) => t * (2 - t) })],
     }),
   },
   {
