@@ -4425,6 +4425,12 @@ async function VisualPDE(url) {
   }
 
   function render(isResetting) {
+    // Loading a >4-species configuration can trigger a render (e.g. from pauseSim() in
+    // loadOptions()) before updateProblem() has created the MRT render targets that hold its
+    // state. There's nothing to draw yet, and loadPreset() always finishes with resetSim(),
+    // which renders again, so skip it.
+    if (numGroups(Number(options.numSpecies)) > 1 && !mrtSimTextures.length) return;
+
     // Perform any postprocessing on the last computed values.
     postprocess();
 
