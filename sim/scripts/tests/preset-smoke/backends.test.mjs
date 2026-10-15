@@ -120,3 +120,82 @@ test("brush: a custom brush that depends on the value under the brush's centre",
   for (let n = 0; n < a.length; n++) worst = Math.max(worst, Math.abs(a[n] - b[n]));
   assert.ok(worst < 1e-5, `largest difference ${worst}`);
 });
+
+// Steps and draws in rounds, as the animation loop does, so the probe and integral display
+// update; WebGPU reads them back asynchronously, so each round waits briefly.
+async function runAndRead(opts) {
+  const results = {};
+  for (const [backend, page] of Object.entries(pages)) {
+    results[backend] = await page.evaluate(async (opts) => {
+      const T = window.VisualPDETest;
+      await T.load(opts);
+      for (let round = 0; round < 6; round++) {
+        await T.step(10);
+        await T.render();
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      return {
+        probe: await T.probeData(),
+        integral: await T.integralDisplay(),
+        errors: await T.errorMessage(),
+      };
+    }, opts);
+  }
+  return results;
+}
+
+const probeBase = {
+  numSpecies: 1,
+  dimension: 2,
+  domainScale: 20,
+  spatialStep: 0.25,
+  dt: 0.01,
+  diffusionStr_1_1: "1",
+  reactionStr_1: "0",
+  initCond_1: "1 + cos(2*pi*x/L_x)*cos(2*pi*y/L_y)",
+  boundaryConditions_1: "periodic",
+  probing: true,
+  probeFun: "u",
+  probeX: "3.3",
+  probeY: "2.1",
+  probeLength: 10,
+  integrate: true,
+};
+
+for (const probeType of ["sample", "integral"]) {
+  test(`probe (${probeType}) values agree between backends at the same times`, async () => {
+    const r = await runAndRead({ ...probeBase, probeType });
+    assert.equal(r.webgl.errors, "");
+    assert.equal(r.webgpu.errors, "");
+    const webgl = new Map(r.webgl.probe.map(([t, v]) => [t.toFixed(6), v]));
+    const matched = r.webgpu.probe.filter(([t]) => webgl.has(t.toFixed(6)));
+    assert.ok(matched.length >= 3, `only ${matched.length} probe times in common`);
+    for (const [t, v] of matched) {
+      const w = webgl.get(t.toFixed(6));
+      assert.ok(Math.abs(v - w) <= 1e-5 * Math.max(1, Math.abs(w)), `at t=${t}: ${w} vs ${v}`);
+    }
+  });
+}
+
+test("integral display agrees between backends", async () => {
+  const r = await runAndRead({ ...probeBase, probing: false });
+  assert.ok(r.webgl.integral.length > 0, "no integral displayed on WebGL");
+  assert.equal(r.webgpu.integral, r.webgl.integral);
+});
+
+test("domain integrals Int(...) feed back into the equations identically", async () => {
+  const states = await onBoth(
+    {
+      ...probeBase,
+      probing: false,
+      integrate: false,
+      reactionStr_1: "u*(1 - Int(u)/(L_x*L_y))",
+      globalIntegralUpdatePeriod: 1,
+    },
+    [["step", 50]],
+  );
+  const [a, b] = [decode(states.webgl.data), decode(states.webgpu.data)];
+  let worst = 0;
+  for (let n = 0; n < a.length; n += 4) worst = Math.max(worst, Math.abs(a[n] - b[n]));
+  assert.ok(worst < 1e-5, `largest difference ${worst}`);
+});

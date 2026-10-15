@@ -81,12 +81,19 @@ export class WebGPUBackend {
         { binding: 8, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: "float" } },
         { binding: 9, visibility: GPUShaderStage.COMPUTE, sampler: { type: "filtering" } },
         { binding: 10, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } },
+        { binding: 11, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } },
       ],
     });
     this.pipelineLayout = device.createPipelineLayout({
       bindGroupLayouts: [this.bindGroupLayout],
     });
     this.ensureUniformCapacity(64);
+    // The domain integrals Int(...), computed on the GPU by WebGPUDisplay.updateGlobals().
+    this.globalsBuffer = device.createBuffer({
+      label: "globals",
+      size: 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+    });
     // Named values some kernels read (see values.js), such as the brush's position.
     this.valuesBuffer = device.createBuffer({
       label: "values",
@@ -348,6 +355,7 @@ export class WebGPUBackend {
         { binding: 8, resource: this.images[1].createView() },
         { binding: 9, resource: this.sampler },
         { binding: 10, resource: { buffer: this.valuesBuffer } },
+        { binding: 11, resource: { buffer: this.globalsBuffer } },
       ],
     });
     const pass = this.getEncoder().beginComputePass();

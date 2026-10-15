@@ -158,6 +158,9 @@ async function VisualPDE(url) {
     // Set once the page is reloading (see reloadPreservingSimulation), as nothing should
     // start in the meantime.
     isReloading = false,
+    // Whether a probe value or the integral display is being read back on WebGPU.
+    gpuProbePending = false,
+    gpuIntegralPending = false,
     // Every error raised since the test hooks last loaded something (see initTestHooks).
     testErrors = [],
     // Whether the post-processed values are being read back for a line plot on WebGPU.
@@ -4136,9 +4139,6 @@ async function VisualPDE(url) {
   function webGPUUnsupportedFeature() {
     if (options.plotType == "surface") return "surface plots";
     if (options.blendImage) return "image blending";
-    if (options.probing) return "probes";
-    if (options.integrate) return "integral display";
-    if ((options.globalIntExprs ?? []).some((e) => e)) return "domain integrals";
     if (options.initialState) return "saved initial states";
     if (checkpointExists) return "checkpoints";
     if (options.captureWebcam) return "webcam input";
@@ -4188,7 +4188,10 @@ async function VisualPDE(url) {
       draw: "brush",
       post: "display",
       display: "display",
-    }[kind];
+      probePoint: "probe",
+      probeField: "probe",
+      integrands: "domain integrals",
+    }[kind] ?? kind;
     throwError(
       "WebGPU couldn't build the " +
         what +
@@ -4372,6 +4375,14 @@ async function VisualPDE(url) {
           ? await gpuDisplay.readPost()
           : (getPostState(), postBuffer);
         return { nX: nXDisc, nY: nYDisc, data: toBase64(data) };
+      },
+      // The probe chart's data, as [time, value] pairs.
+      async probeData() {
+        return (probeChart?.dataStore ?? []).map((d) => [d.x, d.y]);
+      },
+      // The integral display's text.
+      async integralDisplay() {
+        return document.getElementById("integralValue")?.innerText ?? "";
       },
       async time() {
         return uniforms.t.value;
@@ -5006,6 +5017,10 @@ async function VisualPDE(url) {
       updateTimeDisplay();
     }
     if (options.plotType == "line") gpuUpdateLinePlot();
+    if (options.probing && readyForProbeUpdate()) gpuUpdateProbe();
+    if (options.integrate && !(frameCount % options.guiUpdatePeriod)) {
+      gpuUpdateIntegralDisplay();
+    }
     if (
       options.vectorField &&
       arrowGroup &&
@@ -5119,6 +5134,59 @@ async function VisualPDE(url) {
         }
         break;
     }
+  }
+
+  // The probe's settings, as WebGL's probe material reads them from its uniforms.
+  function gpuProbeValues() {
+    return {
+      pointProbe: uniforms.pointProbe.value,
+      probeUVs: uniforms.probeUVs.value,
+      probeU: uniforms.probeU.value,
+      probeV: uniforms.probeV.value,
+    };
+  }
+
+  // Evaluates the probe on WebGPU and adds its value to the chart, as postprocess() and
+  // render() do on WebGL. The value is read back asynchronously, labelled with the time it
+  // was evaluated at.
+  function gpuUpdateProbe() {
+    if (gpuProbePending) return;
+    gpuProbePending = true;
+    const time = uniforms.t.value;
+    gpuDisplay
+      .probe(gpuUniformValues(), gpuProbeValues(), areaElement())
+      .then((result) => {
+        gpuProbePending = false;
+        if (!result) return;
+        addProbeData(time, result[0]);
+        updateProbeDisplay();
+      });
+  }
+
+  // Sets the probe's position from where it was clicked, which the probe shader converts to
+  // the domain's coordinates (see addProbeTargetButton).
+  function gpuUpdateProbeXY() {
+    gpuDisplay
+      .probe(gpuUniformValues(), gpuProbeValues(), areaElement())
+      .then((result) => {
+        if (!result) return;
+        options.probeX = result[2];
+        options.probeY = result[3];
+        refreshGUI(viewsGUI);
+        updateView("probeX");
+        updateView("probeY");
+      });
+  }
+
+  // Updates the integral display from the GPU, as updateIntegralDisplay() does on WebGL.
+  function gpuUpdateIntegralDisplay() {
+    if (gpuIntegralPending) return;
+    gpuIntegralPending = true;
+    gpuDisplay.integral(areaElement()).then((total) => {
+      gpuIntegralPending = false;
+      $("#integralValue").html(formatLabelNum(total, 4));
+      checkColourbarPosition();
+    });
   }
 
   // Reads the post-processed values back for the vector field on WebGPU, then points the
@@ -5237,6 +5305,12 @@ async function VisualPDE(url) {
   }
 
   function postprocess(updateProbeXY = false) {
+    if (gpuDisplay) {
+      // WebGPU post-processes while rendering (see renderWebGPU), so only the probe's
+      // position needs handling here.
+      if (updateProbeXY) gpuUpdateProbeXY();
+      return;
+    }
     simDomain.material = postMaterial;
     // The real 8-species state lives in mrtSimTextures once numGroups>1. textureSourceGroup1
     // is bound here (used by both postMaterial's computeDisplayFunShaderMidMRT and, via the
@@ -5473,6 +5547,8 @@ async function VisualPDE(url) {
       }
       syncGpuParams();
       gpuBackend.clear(gpuUniformValues());
+      // As resetSim() does, but here too in case this clear was deferred until after it.
+      if (shaderContainsGlobalIntegral) updateGlobalIntegral();
       gpuBackend.flush();
       render();
       return;
@@ -7477,6 +7553,7 @@ async function VisualPDE(url) {
     shaderStr = shaderStr.replace(/indicatorFun/g, replacement);
     assignFragmentShader(probeMaterial, shaderStr);
     probeMaterial.needsUpdate = true;
+    gpuDisplay?.setProbe({ ...gpuShaderParts(), body: gpuMainBody(shaderStr) });
   }
 
   /**
@@ -7660,6 +7737,10 @@ async function VisualPDE(url) {
     shaderStr = shaderStr.replace(/indicatorFun/g, replacement);
     assignFragmentShader(globalIntegralMaterial, shaderStr);
     globalIntegralMaterial.needsUpdate = true;
+    gpuDisplay?.setIntegrands({
+      ...gpuShaderParts(),
+      body: gpuMainBody(shaderStr),
+    });
   }
 
   /**
@@ -14669,7 +14750,20 @@ async function VisualPDE(url) {
     document.title = str;
   }
 
+  // The area (in 2D) or length (in 1D) of each node's cell, for integrals over the domain.
+  function areaElement() {
+    return options.dimension == 1
+      ? uniforms.dx.value
+      : uniforms.dx.value * uniforms.dy.value;
+  }
+
   function updateGlobalIntegral() {
+    if (gpuDisplay) {
+      // Computed and used entirely on the GPU, so never read back.
+      syncGpuParams();
+      gpuDisplay.updateGlobals(gpuUniformValues(), areaElement());
+      return;
+    }
     simDomain.material = globalIntegralMaterial;
     if (numGroups(Number(options.numSpecies)) > 1) {
       uniforms.textureSource.value = mrtSimTextures[1].texture[0];

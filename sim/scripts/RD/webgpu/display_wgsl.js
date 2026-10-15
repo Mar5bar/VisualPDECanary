@@ -71,10 +71,10 @@ function sharedLets(parts) {
   let L_min = U.L_min;
   let t = U.t;
   let seed = U.seed;
-  let globalIntegralValue1 = U.gi1;
-  let globalIntegralValue2 = U.gi2;
-  let globalIntegralValue3 = U.gi3;
-  let globalIntegralValue4 = U.gi4;
+  let globalIntegralValue1 = globals.x;
+  let globalIntegralValue2 = globals.y;
+  let globalIntegralValue3 = globals.z;
+  let globalIntegralValue4 = globals.w;
 ${params}`;
 }
 
@@ -157,47 +157,72 @@ function translationCalls(extra = {}) {
   };
 }
 
+// The values the probe shader reads besides the simulation uniforms.
+export const PROBE_VALUES = new ValueLayout([
+  ["pointProbe", "bool"],
+  ["probeUVs", "bool"],
+  ["probeU", "f32"],
+  ["probeV", "f32"],
+]);
+
 /**
- * @typedef {Object} PostShaderParts
+ * @typedef {Object} FieldShaderParts
  * @property {number} numGroups
  * @property {[boolean, boolean][]} clamp
  * @property {string[]} paramNames
- * @property {string} body - The body of the WebGL post-processing shader's main().
+ * @property {string} body - The body of a WebGL shader's main() that sets gl_FragColor from
+ *   the state at textureCoords, such as the post-processing, probe or domain integral shaders.
  */
 
 /**
- * Generates the compute shader that writes the post-processed values (value, outside-domain
- * flag, height, y vector component) of every node, as WebGL's postMaterial does.
- * @param {PostShaderParts} parts
+ * Generates a compute shader that writes what a WebGL fragment shader computes from the
+ * state into gl_FragColor, at every node (into output[j * nX + i]), or, if point is set, once
+ * (into output[0], as for the probe's 1x1 render target).
+ * @param {FieldShaderParts} parts
+ * @param {ValueLayout} values - The values the body reads besides the simulation uniforms.
+ * @param {boolean} [point]
  */
-export function postShader(parts) {
-  const body = replaceRuntimeInfinity(parts.body);
+export function fieldShader(parts, values, point = false) {
+  let body = replaceRuntimeInfinity(parts.body);
+  // Drop the brace closing main(), if the body includes it.
+  const count = (c) => body.split(c).length - 1;
+  if (count("}") > count("{")) body = body.replace(/\}\s*$/, "");
   const opts = { renames: renamesFor(parts), calls: translationCalls() };
+  const coords = point
+    ? "vec2f(0.5)"
+    : "(vec2f(f32(i), f32(j)) + 0.5) / vec2f(f32(U.nX), f32(U.nY))";
+  const index = point ? "0u" : "u32(j) * U.nX + u32(i)";
   return `${UNIFORMS_STRUCT}
 @group(0) @binding(0) var<uniform> U: Uniforms;
 @group(0) @binding(1) var<storage, read> params: array<vec4f>;
 @group(0) @binding(2) var<storage, read> state: array<vec4f>;
-@group(0) @binding(3) var<storage, read_write> post: array<vec4f>;
+@group(0) @binding(3) var<storage, read_write> output: array<vec4f>;
 @group(0) @binding(4) var<storage, read> V: array<vec4f>;
 @group(0) @binding(5) var imageOne: texture_2d<f32>;
 @group(0) @binding(6) var imageTwo: texture_2d<f32>;
 @group(0) @binding(7) var imageSampler: sampler;
+@group(0) @binding(8) var<storage, read> globals: vec4f;
 ${lookupHelpers(parts)}
 ${AUXILIARY_WGSL}
 
 @compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
 fn main(@builtin(global_invocation_id) gid: vec3u) {
-  if (gid.x >= U.nX || gid.y >= U.nY) { return; }
+  if (${point ? "gid.x > 0u || gid.y > 0u" : "gid.x >= U.nX || gid.y >= U.nY"}) { return; }
   let i = i32(gid.x);
   let j = i32(gid.y);
 ${sharedLets(parts)}
-${POST_VALUES.lets("V")}
+${values.lets("V")}
   let vpde_infinity = U.inf;
-  let textureCoords = (vec2f(f32(i), f32(j)) + 0.5) / vec2f(f32(U.nX), f32(U.nY));
+  let textureCoords = ${coords};
   var fragColour: vec4f;
 ${translateStatements(body, opts)}
-  post[u32(j) * U.nX + u32(i)] = fragColour;
+  output[${index}] = fragColour;
 }`;
+}
+
+/** The post-processing shader: fieldShader with the post-processing values. */
+export function postShader(parts) {
+  return fieldShader(parts, POST_VALUES);
 }
 
 /**
@@ -248,6 +273,7 @@ struct Camera {
 @group(0) @binding(6) var imageTwo: texture_2d<f32>;
 @group(0) @binding(7) var imageSampler: sampler;
 @group(0) @binding(8) var<uniform> camera: Camera;
+@group(0) @binding(9) var<storage, read> globals: vec4f;
 ${lookupHelpers(parts)}
 ${AUXILIARY_WGSL}
 
@@ -484,3 +510,43 @@ fn fragmentMain() -> @location(0) vec4f {
   return mesh.colour;
 }
 `;
+
+/**
+ * Generates a two-stage sum reduction, as WebGL's sumMaterial does for domain integrals.
+ * Each invocation of "main" sums R.count vec4fs into one per workgroup, multiplying the
+ * total by R.scale. In the first stage, if masked is set, only the masked value r * (1 - g)
+ * is summed (into x), as main.js does for the integral display and probe: r is the value and
+ * g flags nodes outside the domain.
+ */
+export function sumShader(first, masked) {
+  const term = first && masked ? "vec4f(v.x * (1.0 - v.y), 0.0, 0.0, 0.0)" : "v";
+  return `
+struct Reduce { count: u32, scale: f32 }
+@group(0) @binding(0) var<uniform> R: Reduce;
+@group(0) @binding(1) var<storage, read> input: array<vec4f>;
+@group(0) @binding(2) var<storage, read_write> output: array<vec4f>;
+
+const SIZE = 256u;
+var<workgroup> sums: array<vec4f, SIZE>;
+
+@compute @workgroup_size(SIZE)
+fn main(@builtin(local_invocation_index) local: u32, @builtin(workgroup_id) wg: vec3u, @builtin(num_workgroups) groups: vec3u) {
+  var total = vec4f(0.0);
+  let stride = SIZE * groups.x;
+  for (var k = wg.x * SIZE + local; k < R.count; k += stride) {
+    let v = input[k];
+    total += ${term};
+  }
+  sums[local] = total;
+  workgroupBarrier();
+  for (var s = SIZE / 2u; s > 0u; s /= 2u) {
+    if (local < s) {
+      sums[local] += sums[local + s];
+    }
+    workgroupBarrier();
+  }
+  if (local == 0u) {
+    output[wg.x] = sums[0] * R.scale;
+  }
+}`;
+}

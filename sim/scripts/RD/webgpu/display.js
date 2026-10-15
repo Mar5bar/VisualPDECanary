@@ -7,11 +7,17 @@
 // which are only used for their maths.
 
 import { UNIFORM_STRIDE, writeUniforms } from "./sim_wgsl.js";
+import { ValueLayout } from "./values.js";
+
+const NO_VALUES = new ValueLayout([]);
 import {
   postShader,
   displayShader,
   minMaxShader,
+  sumShader,
+  fieldShader,
   POST_VALUES,
+  PROBE_VALUES,
   DISPLAY_VALUES,
   LINE_SHADER,
   MESH_SHADER,
@@ -255,11 +261,14 @@ export class WebGPUDisplay {
     const kinds = (write) => [
       "uniform", "read", "read", write ? "write" : "read", "read", "texture", "texture", "sampler",
     ];
+    // Field shaders (post-processing, probes, domain integrands): binding 8 is the domain
+    // integrals.
     this.postLayout = this.device.createBindGroupLayout({
-      entries: kinds(true).map((kind, binding) => entry(binding, C, kind)),
+      entries: [...kinds(true), "read"].map((kind, binding) => entry(binding, C, kind)),
     });
+    // The display: binding 8 is the camera, 9 the domain integrals.
     this.displayLayout = this.device.createBindGroupLayout({
-      entries: [...kinds(false), "uniform"].map((kind, binding) => entry(binding, VF, kind)),
+      entries: [...kinds(false), "uniform", "read"].map((kind, binding) => entry(binding, VF, kind)),
     });
   }
 
@@ -271,27 +280,49 @@ export class WebGPUDisplay {
   }
 
   buildReductions() {
-    for (const first of [true, false]) {
-      const module = this.device.createShaderModule({ code: minMaxShader(first) });
-      this.pipelines[first ? "minMaxFirst" : "minMaxSecond"] =
-        this.device.createComputePipeline({
-          layout: "auto",
-          compute: { module, entryPoint: "main" },
-        });
-    }
+    const build = (code) =>
+      this.device.createComputePipeline({
+        layout: "auto",
+        compute: { module: this.device.createShaderModule({ code }), entryPoint: "main" },
+      });
+    this.pipelines.minMaxFirst = build(minMaxShader(true));
+    this.pipelines.minMaxSecond = build(minMaxShader(false));
+    this.pipelines.sum = build(sumShader(true, false));
+    this.pipelines.sumMasked = build(sumShader(true, true));
+    this.pipelines.sumSecond = build(sumShader(false, false));
+    this.fieldBuffer = null;
+  }
+
+  // Requests a build of a field shader pipeline (see fieldShader), named kind.
+  buildField(kind, code) {
+    this.backend.requestBuild(kind, async () => {
+      const module = await this.backend.compileModule(kind, code);
+      const pipeline = await this.device.createComputePipelineAsync({
+        label: kind,
+        layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.postLayout] }),
+        compute: { module, entryPoint: "main" },
+      });
+      return () => (this.pipelines[kind] = pipeline);
+    });
   }
 
   /** Builds the post-processing pipeline from the WebGL post shader's body. */
   setPost(parts) {
-    this.backend.requestBuild("post", async () => {
-      const module = await this.backend.compileModule("post", postShader(parts));
-      const pipeline = await this.device.createComputePipelineAsync({
-        label: "post",
-        layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.postLayout] }),
-        compute: { module, entryPoint: "main" },
-      });
-      return () => (this.pipelines.post = pipeline);
-    });
+    this.buildField("post", postShader(parts));
+  }
+
+  /**
+   * Builds the probe's pipelines from the WebGL probe shader's body: one evaluating it at
+   * the probe's position, for point probes, and one at every node, for integral probes.
+   */
+  setProbe(parts) {
+    this.buildField("probePoint", fieldShader(parts, PROBE_VALUES, true));
+    this.buildField("probeField", fieldShader(parts, PROBE_VALUES));
+  }
+
+  /** Builds the domain integrals' integrand pipeline from the WebGL shader's body. */
+  setIntegrands(parts) {
+    this.buildField("integrands", fieldShader(parts, NO_VALUES));
   }
 
   /** Builds the display pipeline from the WebGL display shader's body. */
@@ -400,28 +431,176 @@ export class WebGPUDisplay {
    * @returns {boolean} Whether it ran.
    */
   postprocess(simValues, postValues) {
-    const backend = this.backend;
-    if (!this.pipelines.post || !backend.slots.length) return false;
+    if (!this.pipelines.post || !this.backend.slots.length) return false;
     this.ensurePostBuffer();
-    this.writeSimUniforms(simValues);
-    this.device.queue.writeBuffer(this.postValues, 0, POST_VALUES.pack(postValues));
+    this.runField(this.pipelines.post, simValues, POST_VALUES, postValues, this.postBuffer);
+    return true;
+  }
+
+  // Records a field shader pass over the current state, writing into output, at every node or
+  // (if point is set) once.
+  runField(pipeline, simValues, layout, values, output, point = false) {
+    const backend = this.backend;
+    // Each pass gets its own uniform and values buffers, as several passes may be recorded
+    // before a submit (e.g. domain integrals at different times within a frame).
+    const uniformBuffer = this.device.createBuffer({
+      size: UNIFORM_STRIDE,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    const uniformData = new ArrayBuffer(UNIFORM_STRIDE);
+    writeUniforms(new DataView(uniformData), 0, {
+      nX: backend.nX,
+      nY: backend.nY,
+      ...simValues,
+    });
+    this.device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+    const valuesBuffer = this.device.createBuffer({
+      size: 16 * Math.max(1, layout.entries.length),
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+    this.device.queue.writeBuffer(valuesBuffer, 0, layout.pack(values));
     const bindGroup = this.device.createBindGroup({
       layout: this.postLayout,
       entries: [
-        { binding: 0, resource: { buffer: this.simUniforms } },
+        { binding: 0, resource: { buffer: uniformBuffer } },
         { binding: 1, resource: { buffer: backend.paramsBuffer } },
         { binding: 2, resource: { buffer: backend.slots[1] } },
-        { binding: 3, resource: { buffer: this.postBuffer } },
-        { binding: 4, resource: { buffer: this.postValues } },
+        { binding: 3, resource: { buffer: output } },
+        { binding: 4, resource: { buffer: valuesBuffer } },
         ...this.imageEntries(5),
+        { binding: 8, resource: { buffer: backend.globalsBuffer } },
       ],
     });
     const pass = backend.getEncoder().beginComputePass();
-    pass.setPipeline(this.pipelines.post);
+    pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(Math.ceil(backend.nX / 8), Math.ceil(backend.nY / 8));
+    if (point) pass.dispatchWorkgroups(1, 1);
+    else pass.dispatchWorkgroups(Math.ceil(backend.nX / 8), Math.ceil(backend.nY / 8));
     pass.end();
-    return true;
+  }
+
+  // A scratch buffer of nX * nY vec4fs, for field passes whose results are reduced.
+  ensureFieldBuffer() {
+    const size = Math.max(16, this.backend.nX * this.backend.nY * 16);
+    if (this.fieldBuffer?.size == size) return this.fieldBuffer;
+    this.fieldBuffer?.destroy();
+    this.fieldBuffer = this.device.createBuffer({ label: "field", size, usage: GPUBufferUsage.STORAGE });
+    return this.fieldBuffer;
+  }
+
+  // Records a sum of `input`'s first `count` vec4fs (or, if masked, of r * (1 - g)), times
+  // `scale`, into the first element of `output`.
+  recordSum(input, count, { masked = false, scale = 1, output }) {
+    const device = this.device;
+    const params = (n, s) => {
+      const buffer = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+      const data = new ArrayBuffer(16);
+      new Uint32Array(data, 0, 1)[0] = n;
+      new Float32Array(data, 4, 1)[0] = s;
+      device.queue.writeBuffer(buffer, 0, data);
+      return buffer;
+    };
+    const encoder = this.backend.getEncoder();
+    const run = (pipeline, uniforms, from, to, groups) => {
+      const pass = encoder.beginComputePass();
+      pass.setPipeline(pipeline);
+      pass.setBindGroup(
+        0,
+        device.createBindGroup({
+          layout: pipeline.getBindGroupLayout(0),
+          entries: [
+            { binding: 0, resource: { buffer: uniforms } },
+            { binding: 1, resource: { buffer: from } },
+            { binding: 2, resource: { buffer: to } },
+          ],
+        }),
+      );
+      pass.dispatchWorkgroups(groups);
+      pass.end();
+    };
+    run(
+      masked ? this.pipelines.sumMasked : this.pipelines.sum,
+      params(count, 1),
+      input,
+      this.partials,
+      this.reduceGroups,
+    );
+    run(this.pipelines.sumSecond, params(this.reduceGroups, scale), this.partials, output, 1);
+  }
+
+  // Copies `bytes` bytes of a buffer to the CPU, after everything recorded so far.
+  async readBack(buffer, bytes) {
+    const staging = this.device.createBuffer({
+      size: bytes,
+      usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+    });
+    this.backend.getEncoder().copyBufferToBuffer(buffer, 0, staging, 0, bytes);
+    this.backend.flush();
+    await staging.mapAsync(GPUMapMode.READ);
+    const data = new Float32Array(staging.getMappedRange().slice(0));
+    staging.destroy();
+    return data;
+  }
+
+  /**
+   * Updates the domain integrals Int(...) on the GPU, as updateGlobalIntegral() does: the
+   * integrands are summed over the domain and scaled by the area element dA, into the buffer
+   * every shader reads them from. Nothing is read back.
+   */
+  updateGlobals(simValues, dA) {
+    if (!this.pipelines.integrands || !this.backend.slots.length) return;
+    const field = this.ensureFieldBuffer();
+    this.runField(this.pipelines.integrands, simValues, NO_VALUES, {}, field);
+    this.recordSum(field, this.backend.nX * this.backend.nY, {
+      scale: dA,
+      output: this.backend.globalsBuffer,
+    });
+  }
+
+  /**
+   * Evaluates the probe, as WebGL's probe passes do: at the probe's position for a point
+   * probe, returning the probe shader's output (value, 0, x, y); otherwise, its value summed
+   * over the domain times dA, in the first component.
+   * @returns {Promise<Float32Array>}
+   */
+  async probe(simValues, probeValues, dA) {
+    if (probeValues.pointProbe) {
+      if (!this.pipelines.probePoint) return null;
+      const out = this.ensureSmallBuffer();
+      this.runField(this.pipelines.probePoint, simValues, PROBE_VALUES, probeValues, out, true);
+      return this.readBack(out, 16);
+    }
+    if (!this.pipelines.probeField) return null;
+    const field = this.ensureFieldBuffer();
+    this.runField(this.pipelines.probeField, simValues, PROBE_VALUES, probeValues, field);
+    const out = this.ensureSmallBuffer();
+    this.recordSum(field, this.backend.nX * this.backend.nY, { masked: true, scale: dA, output: out });
+    return this.readBack(out, 16);
+  }
+
+  /**
+   * The plotted value summed over the domain times dA, as updateIntegralDisplay() computes it
+   * from the post-processed values.
+   * @returns {Promise<number>}
+   */
+  async integral(dA) {
+    if (!this.postBuffer) return 0;
+    const out = this.ensureSmallBuffer();
+    this.recordSum(this.postBuffer, this.backend.nX * this.backend.nY, {
+      masked: true,
+      scale: dA,
+      output: out,
+    });
+    return (await this.readBack(out, 16))[0];
+  }
+
+  // A buffer for a single vec4f result. Each call returns a fresh one, as several results may
+  // be pending at once.
+  ensureSmallBuffer() {
+    return this.device.createBuffer({
+      size: 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+    });
   }
 
   /**
@@ -591,6 +770,7 @@ export class WebGPUDisplay {
           { binding: 4, resource: { buffer: this.displayValues } },
           ...this.imageEntries(5),
           { binding: 8, resource: { buffer: this.cameraBuffer } },
+          { binding: 9, resource: { buffer: backend.globalsBuffer } },
         ],
       });
       pass.setPipeline(this.pipelines.display);

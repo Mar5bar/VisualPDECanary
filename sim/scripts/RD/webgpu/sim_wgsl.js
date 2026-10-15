@@ -190,10 +190,10 @@ function commonLets(parts, opts, { withT = true, clearCoords = false, withXY = t
   let L_y = U.L_y;
   let L_min = U.L_min;
   let seed = U.seed;
-  let globalIntegralValue1 = U.gi1;
-  let globalIntegralValue2 = U.gi2;
-  let globalIntegralValue3 = U.gi3;
-  let globalIntegralValue4 = U.gi4;
+  let globalIntegralValue1 = globals.x;
+  let globalIntegralValue2 = globals.y;
+  let globalIntegralValue3 = globals.z;
+  let globalIntegralValue4 = globals.w;
   let nXDisc = i32(U.nX);
   let nYDisc = i32(U.nY);
 ${withT ? "  let t = U.t;" : ""}
@@ -228,6 +228,8 @@ function prelude(parts) {
 @group(0) @binding(8) var imageTwo: texture_2d<f32>;
 @group(0) @binding(9) var imageSampler: sampler;
 @group(0) @binding(10) var<storage, read> V: array<vec4f>;
+// The domain integrals Int(...), computed on the GPU (see display_wgsl.js).
+@group(0) @binding(11) var<storage, read> globals: vec4f;
 
 const G = ${G}u;
 ${clampConsts}
