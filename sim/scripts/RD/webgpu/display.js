@@ -13,7 +13,16 @@ import {
   minMaxShader,
   POST_VALUES,
   DISPLAY_VALUES,
+  LINE_SHADER,
 } from "./display_wgsl.js";
+
+// The template quad of three.js's LineSegmentsGeometry: each line segment is an instance of
+// it, with y < 0 and y > 1 forming the round end caps.
+const LINE_QUAD_POSITIONS = new Float32Array([
+  -1, 2, 0, 1, 2, 0, -1, 1, 0, 1, 1, 0, -1, 0, 0, 1, 0, 0, -1, -1, 0, 1, -1, 0,
+]);
+const LINE_QUAD_UVS = new Float32Array([-1, 2, 1, 2, -1, 1, 1, 1, -1, -1, 1, -1, -1, -2, 1, -2]);
+const LINE_QUAD_INDICES = new Uint32Array([0, 2, 1, 2, 3, 1, 2, 4, 3, 4, 5, 3, 4, 6, 5, 6, 7, 5]);
 
 // three.js's projection matrices map depth to [-1, 1], as WebGL does; WebGPU's clip space
 // uses [0, 1].
@@ -36,8 +45,10 @@ export class WebGPUDisplay {
   /**
    * @param {import("./webgpu_backend.js").WebGPUBackend} backend
    * @param {HTMLCanvasElement} canvas
+   * @param {boolean} [antialias] - Whether to multisample, as WebGL's antialias option does.
    */
-  constructor(backend, canvas) {
+  constructor(backend, canvas, antialias = false) {
+    this.sampleCount = antialias ? 4 : 1;
     this.backend = backend;
     this.device = backend.device;
     this.canvas = canvas;
@@ -86,6 +97,72 @@ export class WebGPUDisplay {
     });
     this.buildReductions();
     this.buildLayouts();
+    this.buildLines();
+  }
+
+  buildLines() {
+    const device = this.device;
+    const module = device.createShaderModule({ label: "line", code: LINE_SHADER });
+    const instance = (location, offset) => ({
+      shaderLocation: location,
+      offset,
+      format: "float32x3",
+    });
+    this.pipelines.line = device.createRenderPipeline({
+      label: "line",
+      layout: "auto",
+      vertex: {
+        module,
+        entryPoint: "vertexMain",
+        buffers: [
+          { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }] },
+          { arrayStride: 8, attributes: [{ shaderLocation: 1, offset: 0, format: "float32x2" }] },
+          { arrayStride: 24, stepMode: "instance", attributes: [instance(2, 0), instance(3, 12)] },
+          { arrayStride: 24, stepMode: "instance", attributes: [instance(4, 0), instance(5, 12)] },
+        ],
+      },
+      fragment: { module, entryPoint: "fragmentMain", targets: [{ format: this.format }] },
+      primitive: { topology: "triangle-list", cullMode: "none" },
+      depthStencil: { format: "depth24plus", depthWriteEnabled: true, depthCompare: "less-equal" },
+      multisample: { count: this.sampleCount },
+    });
+    const upload = (data, usage) => {
+      const buffer = device.createBuffer({ size: data.byteLength, usage: usage | GPUBufferUsage.COPY_DST });
+      device.queue.writeBuffer(buffer, 0, data);
+      return buffer;
+    };
+    this.lineQuad = [
+      upload(LINE_QUAD_POSITIONS, GPUBufferUsage.VERTEX),
+      upload(LINE_QUAD_UVS, GPUBufferUsage.VERTEX),
+      upload(LINE_QUAD_INDICES, GPUBufferUsage.INDEX),
+    ];
+    // Per line drawn in a frame, its uniforms and instance buffers, reused across frames.
+    this.lineResources = [];
+  }
+
+  // Returns line k's resources, with instance buffers large enough for `bytes` bytes.
+  lineResource(k, bytes) {
+    const device = this.device;
+    let r = this.lineResources[k];
+    if (!r) {
+      r = {
+        uniforms: device.createBuffer({ size: 96, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }),
+      };
+      r.bindGroup = device.createBindGroup({
+        layout: this.pipelines.line.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: r.uniforms } }],
+      });
+      this.lineResources[k] = r;
+    }
+    if (!r.positions || r.positions.size < bytes) {
+      r.positions?.destroy();
+      r.colours?.destroy();
+      const make = () =>
+        device.createBuffer({ size: bytes, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+      r.positions = make();
+      r.colours = make();
+    }
+    return r;
   }
 
   // Explicit layouts, so every binding is always supplied, whether or not a shader uses it.
@@ -169,6 +246,7 @@ export class WebGPUDisplay {
           depthWriteEnabled: true,
           depthCompare: "less-equal",
         },
+        multisample: { count: this.sampleCount },
       });
       return () => (this.pipelines.display = pipeline);
     });
@@ -262,6 +340,26 @@ export class WebGPUDisplay {
   }
 
   /**
+   * Reads the post-processed values back, as WebGL's fillBuffer() does (RGBA per node, row by
+   * row from the bottom).
+   * @returns {Promise<Float32Array>}
+   */
+  async readPost() {
+    if (!this.postBuffer) return new Float32Array(0);
+    const size = this.backend.nX * this.backend.nY * 16;
+    const staging = this.device.createBuffer({
+      size,
+      usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+    });
+    this.backend.getEncoder().copyBufferToBuffer(this.postBuffer, 0, staging, 0, size);
+    this.backend.flush();
+    await staging.mapAsync(GPUMapMode.READ);
+    const data = new Float32Array(staging.getMappedRange().slice(0));
+    staging.destroy();
+    return data;
+  }
+
+  /**
    * Draws the display mesh into the canvas.
    * @param {Object} options
    * @param {Object} options.simValues - The simulation uniforms.
@@ -273,8 +371,25 @@ export class WebGPUDisplay {
    * @param {number[]} options.background - The background colour, RGBA.
    * @param {number} options.width - The drawing buffer's size, in pixels.
    * @param {number} options.height
+   * @param {boolean} [options.showDomain] - Whether to draw the display mesh (not for line
+   *   plots).
+   * @param {Object[]} [options.lines] - Lines to draw, as three.js Line2 objects describe
+   *   them: modelView (matrix), segments (start and end of each, as LineSegmentsGeometry's
+   *   instanceStart buffer holds them), colours (likewise, or null), colour (RGBA) and
+   *   linewidth.
    */
-  draw({ simValues, displayValues, projection, modelView, heightMode, background, width, height }) {
+  draw({
+    simValues,
+    displayValues,
+    projection,
+    modelView,
+    heightMode,
+    background,
+    width,
+    height,
+    showDomain = true,
+    lines = [],
+  }) {
     const backend = this.backend;
     // A zero-sized canvas has no texture to draw into.
     if (!(width > 0 && height > 0)) return;
@@ -284,17 +399,34 @@ export class WebGPUDisplay {
     }
     if (!this.depthTexture || this.depthTexture.width != width || this.depthTexture.height != height) {
       this.depthTexture?.destroy();
+      this.msaaTexture?.destroy();
       this.depthTexture = this.device.createTexture({
         size: [width, height],
         format: "depth24plus",
+        sampleCount: this.sampleCount,
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
       });
+      // When multisampling, draw into this and resolve into the canvas.
+      this.msaaTexture =
+        this.sampleCount > 1
+          ? this.device.createTexture({
+              size: [width, height],
+              format: this.format,
+              sampleCount: this.sampleCount,
+              usage: GPUTextureUsage.RENDER_ATTACHMENT,
+            })
+          : null;
     }
     const encoder = backend.getEncoder();
     const pass = encoder.beginRenderPass({
       colorAttachments: [
         {
-          view: this.context.getCurrentTexture().createView(),
+          view: this.msaaTexture
+            ? this.msaaTexture.createView()
+            : this.context.getCurrentTexture().createView(),
+          resolveTarget: this.msaaTexture
+            ? this.context.getCurrentTexture().createView()
+            : undefined,
           clearValue: { r: background[0], g: background[1], b: background[2], a: background[3] },
           loadOp: "clear",
           storeOp: "store",
@@ -307,7 +439,34 @@ export class WebGPUDisplay {
         depthStoreOp: "discard",
       },
     });
-    if (this.pipelines.display && this.geometry && this.postBuffer && backend.slots.length) {
+    const toClip = (mv) => multiply(DEPTH_TO_WEBGPU, multiply(projection, mv));
+    lines.forEach((line, k) => {
+      const count = line.segments.length / 6;
+      if (!count) return;
+      const r = this.lineResource(k, line.segments.byteLength);
+      const uniforms = new ArrayBuffer(96);
+      new Float32Array(uniforms, 0, 16).set(toClip(line.modelView));
+      new Float32Array(uniforms, 64, 5).set([...line.colour, line.linewidth]);
+      new Uint32Array(uniforms, 84, 1)[0] = line.colours ? 1 : 0;
+      this.device.queue.writeBuffer(r.uniforms, 0, uniforms);
+      this.device.queue.writeBuffer(r.positions, 0, line.segments);
+      if (line.colours) this.device.queue.writeBuffer(r.colours, 0, line.colours);
+      pass.setPipeline(this.pipelines.line);
+      pass.setBindGroup(0, r.bindGroup);
+      pass.setVertexBuffer(0, this.lineQuad[0]);
+      pass.setVertexBuffer(1, this.lineQuad[1]);
+      pass.setVertexBuffer(2, r.positions);
+      pass.setVertexBuffer(3, r.colours);
+      pass.setIndexBuffer(this.lineQuad[2], "uint32");
+      pass.drawIndexed(LINE_QUAD_INDICES.length, count);
+    });
+    if (
+      showDomain &&
+      this.pipelines.display &&
+      this.geometry &&
+      this.postBuffer &&
+      backend.slots.length
+    ) {
       this.writeSimUniforms(simValues);
       this.device.queue.writeBuffer(this.displayValues, 0, DISPLAY_VALUES.pack(displayValues));
       const camera = new ArrayBuffer(80);

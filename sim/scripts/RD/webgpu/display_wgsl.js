@@ -385,3 +385,69 @@ fn main(@builtin(local_invocation_index) local: u32, @builtin(workgroup_id) wg: 
 export function translateDisplayExpression(expr, parts) {
   return translateExpression(expr, { renames: renamesFor(parts), calls: translationCalls() });
 }
+
+/**
+ * WGSL drawing three.js Line2 lines (as used for 1D plots) as LineMaterial does with
+ * worldUnits off and its resolution left at (1, 1), as main.js leaves it: each segment is an
+ * instance of a quad with round end caps, widened in clip space.
+ */
+export const LINE_SHADER = `
+struct Line {
+  mvp: mat4x4f,
+  colour: vec4f,
+  linewidth: f32,
+  useVertexColours: u32,
+}
+@group(0) @binding(0) var<uniform> line: Line;
+
+struct VertexOut {
+  @builtin(position) position: vec4f,
+  @location(0) colour: vec3f,
+  @location(1) uv: vec2f,
+}
+
+@vertex
+fn vertexMain(
+  @location(0) position: vec3f,
+  @location(1) uv: vec2f,
+  @location(2) instanceStart: vec3f,
+  @location(3) instanceEnd: vec3f,
+  @location(4) colourStart: vec3f,
+  @location(5) colourEnd: vec3f,
+) -> VertexOut {
+  var out: VertexOut;
+  out.colour = select(colourEnd, colourStart, position.y < 0.5);
+  out.uv = uv;
+  let clipStart = line.mvp * vec4f(instanceStart, 1.0);
+  let clipEnd = line.mvp * vec4f(instanceEnd, 1.0);
+  let ndcStart = clipStart.xyz / clipStart.w;
+  let ndcEnd = clipEnd.xyz / clipEnd.w;
+  var dir = normalize(ndcEnd.xy - ndcStart.xy);
+  var offset = vec2f(dir.y, -dir.x);
+  if (position.x < 0.0) { offset = -offset; }
+  if (position.y < 0.0) {
+    offset += -dir;
+  } else if (position.y > 1.0) {
+    offset += dir;
+  }
+  offset *= line.linewidth;
+  var clip = select(clipEnd, clipStart, position.y < 0.5);
+  offset *= clip.w;
+  clip = vec4f(clip.xy + offset, clip.zw);
+  out.position = clip;
+  return out;
+}
+
+@fragment
+fn fragmentMain(in: VertexOut) -> @location(0) vec4f {
+  // Round end caps.
+  if (abs(in.uv.y) > 1.0) {
+    let a = in.uv.x;
+    let b = select(in.uv.y + 1.0, in.uv.y - 1.0, in.uv.y > 0.0);
+    if (a * a + b * b > 1.0) { discard; }
+  }
+  var colour = line.colour.rgb;
+  if (line.useVertexColours != 0u) { colour *= in.colour; }
+  return vec4f(colour, line.colour.a);
+}
+`;

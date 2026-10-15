@@ -147,3 +147,19 @@ test("translateExpression: unary plus is dropped, binary plus kept", () => {
   assert.equal(translateExpression("(+a)*b + c"), "(a)*b+c");
   assert.equal(translateExpression("x[0] + 1."), "x[0]+1.");
 });
+
+test("translateExpression: makes the precedence of && over || explicit, as WGSL requires", () => {
+  assert.equal(translateExpression("a && b || c"), "(a&&b)||c");
+  assert.equal(translateExpression("a || b && c || d"), "a||(b&&c)||d");
+  assert.equal(translateExpression("(a || b) && c"), "(a||b)&&c");
+  assert.equal(translateExpression("f(a && b || c, d)"), "f((a&&b)||c, d)");
+  assert.equal(translateExpression("float((x > 1. || x < -1.) && y < 2. || z > 0.)"), "f32(((x>1.||x<-1.)&&y<2.)||z>0.)");
+  assert.equal(translateExpression("a && b && c"), "a&&b&&c");
+});
+
+test("translateStatements: parenthesises mixed logic inside if conditions", () => {
+  assert.equal(
+    translateStatements("if (a < 1. && b > 0. || c > 2.) { x = 1.; }"),
+    "if ((a<1.&&b>0.)||c>2.)\n{\n  x = 1.;\n}",
+  );
+});

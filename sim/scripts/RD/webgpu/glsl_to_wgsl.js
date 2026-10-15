@@ -75,6 +75,74 @@ export function tokenize(src) {
   return tokens;
 }
 
+// Tokens that separate expressions, at the level of nesting where they occur.
+const SEPARATORS = new Set([",", ";", "{", "}", "=", "+=", "-=", "*=", "/=", "?", ":"]);
+
+/**
+ * Makes the precedence of && over || explicit, which WGSL requires: wherever both occur in
+ * the same expression at the same level of nesting, each ||-separated operand containing &&
+ * is parenthesised. (GLSL gives && precedence, so this doesn't change the meaning.)
+ * @param {{type: string, value: string}[]} tokens
+ * @returns {{type: string, value: string}[]}
+ */
+export function parenthesiseLogic(tokens) {
+  const open = (value) => ({ type: "punct", value });
+  // Processes tokens[start, end), which contains no unmatched brackets.
+  function level(start, end) {
+    // First, the contents of each bracketed group, recursively.
+    const items = [];
+    for (let i = start; i < end; i++) {
+      const v = tokens[i].value;
+      if (v == "(" || v == "[") {
+        const close = matchingBracket(tokens, i);
+        items.push([tokens[i], ...level(i + 1, close), tokens[close]]);
+        i = close;
+      } else {
+        items.push([tokens[i]]);
+      }
+    }
+    // Then each expression at this level.
+    const out = [];
+    let sequence = [];
+    const flush = () => {
+      const has = (op) => sequence.some((item) => item.length == 1 && item[0].value == op);
+      if (has("||") && has("&&")) {
+        let operand = [];
+        const emitOperand = () => {
+          const needsBrackets = operand.some((item) => item.length == 1 && item[0].value == "&&");
+          if (needsBrackets) out.push(open("("));
+          operand.forEach((item) => out.push(...item));
+          if (needsBrackets) out.push(open(")"));
+          operand = [];
+        };
+        for (const item of sequence) {
+          if (item.length == 1 && item[0].value == "||") {
+            emitOperand();
+            out.push(...item);
+          } else {
+            operand.push(item);
+          }
+        }
+        emitOperand();
+      } else {
+        sequence.forEach((item) => out.push(...item));
+      }
+      sequence = [];
+    };
+    for (const item of items) {
+      if (item.length == 1 && SEPARATORS.has(item[0].value)) {
+        flush();
+        out.push(...item);
+      } else {
+        sequence.push(item);
+      }
+    }
+    flush();
+    return out;
+  }
+  return level(0, tokens.length);
+}
+
 /**
  * @typedef {Object} TranslateOptions
  * @property {Object<string, string>} [renames] - Identifiers to rename (e.g. parameters,
@@ -92,7 +160,7 @@ export function tokenize(src) {
  * @returns {string}
  */
 export function translateExpression(src, options = {}) {
-  const tokens = tokenize(src);
+  const tokens = parenthesiseLogic(tokenize(src));
   const out = translateTokens(tokens, 0, tokens.length, options);
   return out;
 }
@@ -213,7 +281,7 @@ function normaliseNumber(value) {
  * @returns {string}
  */
 export function translateStatements(src, options = {}) {
-  const tokens = tokenize(src);
+  const tokens = parenthesiseLogic(tokenize(src));
   const lines = [];
   let i = 0;
   let swizzleCounter = 0;

@@ -158,6 +158,8 @@ async function VisualPDE(url) {
     // Set once the page is reloading (see reloadPreservingSimulation), as nothing should
     // start in the meantime.
     isReloading = false,
+    // Whether the post-processed values are being read back for a line plot on WebGPU.
+    gpuLineReadPending = false,
     gpuAdapterInfo = null,
     gpuParamNames = [];
   let simTextures = [],
@@ -1195,7 +1197,7 @@ async function VisualPDE(url) {
     // Create a renderer. On WebGPU, the page's canvas shows WebGPU's display instead, and
     // three.js renders off screen: it then only provides the scene's maths and the rarely
     // used WebGL code paths that WebGPU doesn't replace.
-    if (gpuBackend) gpuDisplay = new WebGPUDisplay(gpuBackend, canvas);
+    if (gpuBackend) gpuDisplay = new WebGPUDisplay(gpuBackend, canvas, antialias);
     renderer = new THREE.WebGLRenderer({
       canvas: gpuBackend ? document.createElement("canvas") : canvas,
       preserveDrawingBuffer: true,
@@ -4128,7 +4130,6 @@ async function VisualPDE(url) {
   // WebGPU supports everything in use. While WebGPU support is being completed, simulations
   // using anything else run on WebGL instead (see fallBackToWebGL).
   function webGPUUnsupportedFeature() {
-    if (options.plotType == "line") return "line plots";
     if (options.plotType == "surface") return "surface plots";
     if (options.vectorField) return "vector fields";
     if (options.blendImage) return "image blending";
@@ -4867,60 +4868,7 @@ async function VisualPDE(url) {
     if (options.plotType == "line") {
       // Get the output from the buffer, in the form of (value,0,0,1).
       fillBuffer();
-      let ind = 0;
-      var range = cLims[1] - cLims[0];
-      range = range == 0 ? 0.5 : range;
-      for (let i = 0; i < buffer.length; i += 4) {
-        // Set the height.
-        yDisplayDomainCoords[ind++] = (buffer[i] - cLims[0]) / range - 0.5;
-      }
-      // Use spline-smoothed points for plotting.
-      let curve = new THREE.SplineCurve(
-        xDisplayDomainCoords.map(
-          (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
-        ),
-      );
-      let points;
-      try {
-        points = curve.getSpacedPoints(numPointsInLine);
-      } catch (e) {
-        // If this fails, we've almost certainly hit NaN. Try to recover.
-        hitNaN();
-        yDisplayDomainCoords = yDisplayDomainCoords.map(() => 0);
-        curve = new THREE.SplineCurve(
-          xDisplayDomainCoords.map(
-            (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
-          ),
-        );
-        points = curve.getSpacedPoints(numPointsInLine);
-      }
-      setLineXY(line, points);
-      setLineColour(line, points);
-      if (options.overlay) {
-        ind = 0;
-        for (let i = 2; i < 4 * nXDisc; i += 4) {
-          yDisplayDomainCoords[ind++] = (buffer[i] - cLims[0]) / range - 0.5;
-        }
-        curve = new THREE.SplineCurve(
-          xDisplayDomainCoords.map(
-            (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
-          ),
-        );
-        try {
-          points = curve.getSpacedPoints(numPointsInLine);
-        } catch (e) {
-          // If this fails, we've almost certainly hit NaN for the overlay species. Try to recover.
-          hitNaN();
-          yDisplayDomainCoords = yDisplayDomainCoords.map(() => 0);
-          curve = new THREE.SplineCurve(
-            xDisplayDomainCoords.map(
-              (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
-            ),
-          );
-          points = curve.getSpacedPoints(numPointsInLine);
-        }
-        setLineXY(overlayLine, points);
-      }
+      updateLinePlot();
     }
 
     // If a vector field is requested, update arrows. They will already be set as visible.
@@ -5084,6 +5032,7 @@ async function VisualPDE(url) {
     if (options.timeDisplay && !(frameCount % options.guiUpdatePeriod)) {
       updateTimeDisplay();
     }
+    if (options.plotType == "line") gpuUpdateLinePlot();
 
     scene.updateMatrixWorld();
     camera.updateMatrixWorld();
@@ -5111,6 +5060,21 @@ async function VisualPDE(url) {
       background: [background.r, background.g, background.b, 1],
       width: size.x,
       height: size.y,
+      showDomain: domain.visible,
+      lines: [line, overlayLine]
+        .filter((l) => l.visible)
+        .map((l) => ({
+          modelView: new THREE.Matrix4().multiplyMatrices(
+            camera.matrixWorldInverse,
+            l.matrixWorld,
+          ).elements,
+          segments: l.geometry.attributes.instanceStart.data.array,
+          colours: l.material.vertexColors
+            ? l.geometry.attributes.instanceColorStart.data.array
+            : null,
+          colour: [...l.material.color.toArray(), l.material.opacity],
+          linewidth: l.material.linewidth,
+        })),
     });
     gpuBackend.flush();
     if (takeAScreenshot) {
@@ -5127,6 +5091,83 @@ async function VisualPDE(url) {
       link.click();
     }
     frameCount = (frameCount + 1) % options.guiUpdatePeriod;
+  }
+
+  // Reads the post-processed values back for a line plot on WebGPU, then updates the line
+  // from them. Readback is asynchronous, so the line lags the simulation by a frame or so.
+  function gpuUpdateLinePlot() {
+    if (gpuLineReadPending) return;
+    gpuLineReadPending = true;
+    gpuDisplay.readPost().then((data) => {
+      gpuLineReadPending = false;
+      if (data.length != buffer.length) return;
+      const changed = data.some((v, k) => !Object.is(v, buffer[k]));
+      buffer.set(data);
+      bufferFilled = true;
+      updateLinePlot();
+      // A paused simulation only draws on demand, so draw the new line, unless nothing's
+      // changed (which would just read the same values back again).
+      if (changed && !isRunning) render();
+    });
+  }
+
+  // Sets the line plot's (and any overlay line's) points and colours from buffer, which
+  // holds the post-processed values.
+  function updateLinePlot() {
+    let ind = 0;
+    var range = cLims[1] - cLims[0];
+    range = range == 0 ? 0.5 : range;
+    for (let i = 0; i < buffer.length; i += 4) {
+      // Set the height.
+      yDisplayDomainCoords[ind++] = (buffer[i] - cLims[0]) / range - 0.5;
+    }
+    // Use spline-smoothed points for plotting.
+    let curve = new THREE.SplineCurve(
+      xDisplayDomainCoords.map(
+        (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
+      ),
+    );
+    let points;
+    try {
+      points = curve.getSpacedPoints(numPointsInLine);
+    } catch (e) {
+      // If this fails, we've almost certainly hit NaN. Try to recover.
+      hitNaN();
+      yDisplayDomainCoords = yDisplayDomainCoords.map(() => 0);
+      curve = new THREE.SplineCurve(
+        xDisplayDomainCoords.map(
+          (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
+        ),
+      );
+      points = curve.getSpacedPoints(numPointsInLine);
+    }
+    setLineXY(line, points);
+    setLineColour(line, points);
+    if (options.overlay) {
+      ind = 0;
+      for (let i = 2; i < 4 * nXDisc; i += 4) {
+        yDisplayDomainCoords[ind++] = (buffer[i] - cLims[0]) / range - 0.5;
+      }
+      curve = new THREE.SplineCurve(
+        xDisplayDomainCoords.map(
+          (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
+        ),
+      );
+      try {
+        points = curve.getSpacedPoints(numPointsInLine);
+      } catch (e) {
+        // If this fails, we've almost certainly hit NaN for the overlay species. Try to recover.
+        hitNaN();
+        yDisplayDomainCoords = yDisplayDomainCoords.map(() => 0);
+        curve = new THREE.SplineCurve(
+          xDisplayDomainCoords.map(
+            (x, ind) => new THREE.Vector2(x, yDisplayDomainCoords[ind]),
+          ),
+        );
+        points = curve.getSpacedPoints(numPointsInLine);
+      }
+      setLineXY(overlayLine, points);
+    }
   }
 
   function postprocess(updateProbeXY = false) {
