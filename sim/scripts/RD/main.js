@@ -41,6 +41,7 @@ import {
   RDShaderDirichletX,
   RDShaderDirichletY,
   RDShaderDirichletIndicatorFun,
+  RDShaderDirichletForStage,
   RDShaderRobinX,
   RDShaderRobinY,
   RDShaderRobinCustomDomainX,
@@ -5841,7 +5842,14 @@ async function VisualPDE(url) {
     }
     shaderContainsRAND = containsRAND || containsRANDN;
     shaderContainsGlobalIntegral = /\bglobalIntegralValue[1-4]\b/.test(middle);
-    let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
+    // The Dirichlet code is wrapped per timestepping pass (see RDShaderDirichletForStage), so
+    // each pass's "bot" is assembled in the loop below.
+    const bot = (type) =>
+      [
+        RDShaderDirichletForStage(type, dirichletShader),
+        algebraicShader,
+        RDShaderBot(),
+      ].join(" ");
 
     // MRT (>4-species) path, used by every timestepping scheme once numGroups>1 (Stage 13 of
     // the 8-species upgrade extended this from Forward-Euler-only to all 8 scheme
@@ -5945,9 +5953,12 @@ async function VisualPDE(url) {
       // come from) is identical whether it ends up embedded in `middle` or `middleMRT`.
       if (containsRAND) middleMRT = randShader() + middleMRT;
       if (containsRANDN) middleMRT = randNShader() + middleMRT;
-      botMRT = [
-        dirichletShader,
-        bcGroup1.dirichletShader,
+      botMRT = (type) => [
+        RDShaderDirichletForStage(
+          type,
+          dirichletShader + bcGroup1.dirichletShader,
+          true,
+        ),
         algebraicShader,
         algebraicShaderGroup1,
         RDShaderBotMRT(),
@@ -5972,7 +5983,7 @@ async function VisualPDE(url) {
                 RDShaderTopMRT(type),
                 middleMRT,
                 insertRates(RDShaderMainMRT(type)),
-                botMRT,
+                botMRT(type),
               ].join(" "),
             ),
           );
@@ -5986,7 +5997,7 @@ async function VisualPDE(url) {
                 RDShaderTop(type),
                 middle,
                 insertRates(RDShaderMain(type)),
-                bot,
+                bot(type),
               ].join(" "),
             ),
           );

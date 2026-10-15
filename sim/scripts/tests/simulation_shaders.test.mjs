@@ -18,6 +18,7 @@ import {
   RDShaderRobinCustomDomainX,
   RDShaderRobinCustomDomainY,
   RDShaderAlgebraicSpecies,
+  RDShaderDirichletForStage,
   RDShaderDirichletX,
   RDShaderDirichletY,
   RDShaderBot,
@@ -193,6 +194,33 @@ test("RDShaderTop/RDShaderMain (+MRT): computeRHS takes the time, and AB2's prev
       const expected = type == "AB2" ? ["t", "t - dt"] : ["t"];
       assert.deepEqual(calls, expected, type);
     }
+  }
+});
+
+test("RDShaderDirichletForStage: no Dirichlet code means no wrapper", () => {
+  assert.equal(RDShaderDirichletForStage("RK41", " \n "), "");
+});
+
+test("RDShaderDirichletForStage: boundary values are evaluated at the time of the state each pass produces", () => {
+  const offsets = { FE: "dt", AB2: "dt", Mid1: "0.5*dt", Mid2: "0.5*dt", RK41: "0.5*dt", RK42: "0.0", RK43: "0.5*dt", RK44: "0.0" };
+  for (const [type, offset] of Object.entries(offsets)) {
+    const shader = RDShaderDirichletForStage(type, "updated.r = g;");
+    assert.ok(shader.includes(`float tDirichlet = t + ${offset};`), type);
+    assert.match(shader, /\{\s*float t = tDirichlet;\s*updated\.r = g;\s*\}/, type);
+  }
+});
+
+test("RDShaderDirichletForStage: stage-slope passes apply the condition to the intermediate state and recover the slope", () => {
+  const coefficients = { Mid1: "0.5", RK41: "0.5", RK42: "0.5", RK43: "1.0" };
+  for (const [type, c] of Object.entries(coefficients)) {
+    const shader = RDShaderDirichletForStage(type, "updated.r = g;");
+    assert.ok(shader.includes(`updated = stageBase + ${c}*dt*stageSlope;`), type);
+    assert.ok(shader.includes(`updated = mix(stageSlope, (updated - stageBase) / (${c}*dt), vec4(notEqual(updated, stageState)));`), type);
+    assert.ok(!shader.includes("updated2"), type);
+    assert.ok(RDShaderDirichletForStage(type, "updated.r = g;", true).includes(`updated2 = stage2Base + ${c}*dt*stage2Slope;`), type);
+  }
+  for (const type of ["FE", "AB2", "Mid2", "RK44"]) {
+    assert.ok(!RDShaderDirichletForStage(type, "updated.r = g;", true).includes("Slope"), type);
   }
 });
 
