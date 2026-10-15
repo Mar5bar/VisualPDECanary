@@ -126,6 +126,7 @@ import { Stats } from "../stats.min.js";
 import { createWelcomeTour } from "./tours.js";
 import { WebGPUBackend } from "./webgpu/webgpu_backend.js";
 import { WebGPUDisplay } from "./webgpu/display.js";
+import { stateFormats } from "./webgpu/sim_wgsl.js";
 import { POST_VALUES, DISPLAY_VALUES } from "./webgpu/display_wgsl.js";
 import {
   shouldTryWebGPU,
@@ -1933,11 +1934,7 @@ async function VisualPDE(url) {
   }
 
   function resizeTextures(shift = 0) {
-    gpuBackend?.resize(
-      nXDisc + shift,
-      nYDisc + shift,
-      numGroups(Number(options.numSpecies)),
-    );
+    gpuBackend?.resize(nXDisc + shift, nYDisc + shift, Number(options.numSpecies));
     // Resize the computational domain by interpolating the existing domain onto the new discretisation.
     // mrtSimTextures (the real 8-species state once numGroups>1) is allocated once at
     // options.maxDisc size (Stage 3) and, unlike simTextures, was never being resized down
@@ -4075,6 +4072,7 @@ async function VisualPDE(url) {
     gpuParamNames = getKineticParamNames();
     return {
       numGroups: numGroups(Number(options.numSpecies)),
+      formats: stateFormats(Number(options.numSpecies)),
       // Per species group, whether the state is clamped at the edges in x and y, mirroring
       // the wrap modes setRDEquations() gives the WebGL textures (species 5-8 always wrap,
       // and clamp in the shader where needed).
@@ -6789,7 +6787,7 @@ async function VisualPDE(url) {
     if (gpuBackend) {
       // The number of species groups may have changed (as on WebGL, where switching between
       // single and multiple render targets starts the state afresh).
-      gpuBackend.resize(nXDisc, nYDisc, numGroups(Number(options.numSpecies)));
+      gpuBackend.resize(nXDisc, nYDisc, Number(options.numSpecies));
       const parts = gpuShaderParts();
       parts.middle = replaceMINXMINY(isMRT ? middleMRT : middle);
       parts.bot = {};

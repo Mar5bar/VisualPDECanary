@@ -29,6 +29,23 @@ export const SOURCE_BINDING = 10;
 export const SAMPLER_BINDING = 7;
 export const OUTPUT_BINDING = 20;
 
+/**
+ * The texture formats storing each species group's state, for numSpecies species: only as
+ * many float32 channels as the group has species, as large grids are limited by memory
+ * bandwidth. (There's no three-channel storage format, so three species take four.) Reads
+ * of the missing channels give 0 (and 1 for the fourth).
+ * @param {number} numSpecies
+ * @returns {string[]}
+ */
+export function stateFormats(numSpecies) {
+  const formats = [];
+  for (let first = 0; first == 0 || first < numSpecies; first += 4) {
+    const count = Math.min(4, numSpecies - first);
+    formats.push(count == 1 ? "r32float" : count == 2 ? "rg32float" : "rgba32float");
+  }
+  return formats;
+}
+
 // The size in bytes of the Uniforms struct below, rounded up to the 256-byte alignment that
 // dynamic uniform buffer offsets require.
 export const UNIFORM_STRIDE = 256;
@@ -132,6 +149,8 @@ const SAMPLERS = {
 /**
  * @typedef {Object} SimShaderParts - What setRDEquations() assembles, as GLSL.
  * @property {number} numGroups - 1 (up to 4 species) or 2 (5-8 species).
+ * @property {string[]} formats - Per group, the format of its state textures (see
+ *   stateFormats()).
  * @property {[boolean, boolean][]} clamp - Per group, whether the state is clamped (rather
  *   than wrapped) at the edges in x and in y, mirroring the WebGL textures' wrap modes.
  * @property {string[]} paramNames - The kinetic parameters, in the order of the params buffer.
@@ -255,7 +274,7 @@ function prelude(parts) {
   const outputs = Array.from(
     { length: G },
     (_, g) =>
-      `@group(0) @binding(${OUTPUT_BINDING + g}) var dst${g}: texture_storage_2d<rgba32float, write>;`,
+      `@group(0) @binding(${OUTPUT_BINDING + g}) var dst${g}: texture_storage_2d<${parts.formats[g]}, write>;`,
   ).join("\n");
   return `${UNIFORMS_STRUCT}
 @group(0) @binding(0) var<uniform> U: Uniforms;

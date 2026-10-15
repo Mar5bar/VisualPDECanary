@@ -23,10 +23,14 @@ import {
   SOURCE_BINDING,
   SAMPLER_BINDING,
   OUTPUT_BINDING,
+  stateFormats,
 } from "./sim_wgsl.js";
 
 const NUM_SLOTS = 5;
-const STATE_FORMAT = "rgba32float";
+// The format of checkpoints' textures, before they're resampled into the state's.
+const CHECKPOINT_FORMAT = "rgba32float";
+// Bytes per node of each state format.
+const FORMAT_BYTES = { r32float: 4, rg32float: 8, rgba32float: 16 };
 const PASS_TYPES = ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"];
 
 /** Raised for WGSL that fails to compile, with the compiler's messages. */
@@ -47,6 +51,7 @@ export class WebGPUBackend {
     this.nX = 0;
     this.nY = 0;
     this.numGroups = 1;
+    this.formats = stateFormats(1);
     this.slots = [];
     this.pipelines = {};
     this.encoder = null;
@@ -101,18 +106,24 @@ export class WebGPUBackend {
   }
 
   /**
-   * Allocates the history slots for an nX by nY grid with the given number of species
-   * groups. The previous contents are discarded.
+   * Allocates the history slots for an nX by nY grid with the given number of species.
    */
-  resize(nX, nY, numGroups) {
-    if (nX == this.nX && nY == this.nY && numGroups == this.numGroups && this.slots.length) {
+  resize(nX, nY, numSpecies) {
+    const formats = stateFormats(numSpecies);
+    if (
+      nX == this.nX &&
+      nY == this.nY &&
+      formats.join() == this.formats.join() &&
+      this.slots.length
+    ) {
       return;
     }
     const old = { slots: this.slots, nX: this.nX, nY: this.nY };
-    const keep = old.slots.length && numGroups == this.numGroups;
+    const keep = old.slots.length && formats.length == this.numGroups;
     this.nX = nX;
     this.nY = nY;
-    this.numGroups = numGroups;
+    this.formats = formats;
+    this.numGroups = formats.length;
     this.invalidateBindGroups();
     this.slots = Array.from({ length: NUM_SLOTS }, (_, k) => this.createSlot(`slot ${k}`));
     // As resizeTextures() does on WebGL, interpolate the state onto the new grid, unless the
@@ -137,7 +148,7 @@ export class WebGPUBackend {
       this.device.createTexture({
         label: `${label} group ${g}`,
         size: [this.nX, this.nY],
-        format: STATE_FORMAT,
+        format: this.formats[g],
         usage:
           GPUTextureUsage.TEXTURE_BINDING |
           GPUTextureUsage.STORAGE_BINDING |
@@ -215,11 +226,13 @@ export class WebGPUBackend {
   }
 
   /**
-   * The bind group layout (and pipeline layout) of simulation kernels with G species groups.
-   * See the bindings in sim_wgsl.js's prelude().
+   * The bind group layout (and pipeline layout) of simulation kernels writing state of the
+   * given formats (one per species group). See the bindings in sim_wgsl.js's prelude().
    */
-  layout(G) {
-    if (this.layouts[G]) return this.layouts[G];
+  layout(formats) {
+    const key = formats.join();
+    if (this.layouts[key]) return this.layouts[key];
+    const G = formats.length;
     const visibility = GPUShaderStage.COMPUTE;
     const entries = [
       { binding: 0, visibility, buffer: { type: "uniform", hasDynamicOffset: true } },
@@ -246,32 +259,32 @@ export class WebGPUBackend {
       entries.push({
         binding: OUTPUT_BINDING + g,
         visibility,
-        storageTexture: { access: "write-only", format: STATE_FORMAT },
+        storageTexture: { access: "write-only", format: formats[g] },
       });
     }
     const bindGroupLayout = this.device.createBindGroupLayout({ entries });
-    this.layouts[G] = {
+    this.layouts[key] = {
       bindGroupLayout,
       pipelineLayout: this.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] }),
     };
-    return this.layouts[G];
+    return this.layouts[key];
   }
 
   /**
-   * Compiles a simulation kernel for G species groups and returns it with what dispatch()
-   * needs to know about it.
+   * Compiles a simulation kernel writing state of the given formats (one per species group)
+   * and returns it with what dispatch() needs to know about it.
    */
-  async compile(label, code, G) {
+  async compile(label, code, formats) {
     const module = await this.compileModule(label, code);
     this.device.pushErrorScope("validation");
     const pipeline = await this.device.createComputePipelineAsync({
       label,
-      layout: this.layout(G).pipelineLayout,
+      layout: this.layout(formats).pipelineLayout,
       compute: { module, entryPoint: "main" },
     });
     const error = await this.device.popErrorScope();
     if (error) throw new ShaderCompileError(label, [error.message], code);
-    return { pipeline, G };
+    return { pipeline, formats, G: formats.length };
   }
 
   // Requests a build of the given kind of pipeline(s). Builds are deferred to the end of the
@@ -313,9 +326,14 @@ export class WebGPUBackend {
     return (
       this.compiling == 0 &&
       this.slots.length > 0 &&
-      PASS_TYPES.every((type) => this.pipelines[type]) &&
-      !!this.pipelines.clear
+      PASS_TYPES.every((type) => this.fitsState(this.pipelines[type])) &&
+      this.fitsState(this.pipelines.clear)
     );
+  }
+
+  // Whether a kernel exists and writes state in the formats the slots have.
+  fitsState(kernel) {
+    return !!kernel && kernel.formats.join() == this.formats.join();
   }
 
   /** Resolves once no pipelines are being built. */
@@ -328,13 +346,16 @@ export class WebGPUBackend {
    * @param {import("./sim_wgsl.js").SimShaderParts} parts
    */
   setSimulation(parts) {
-    const G = parts.numGroups;
     this.setClamping(parts.clamp);
     this.requestBuild("simulation", async () => {
       const pipelines = {};
       await Promise.all(
         PASS_TYPES.map(async (type) => {
-          pipelines[type] = await this.compile(`timestep ${type}`, timestepShader(type, parts), G);
+          pipelines[type] = await this.compile(
+            `timestep ${type}`,
+            timestepShader(type, parts),
+            parts.formats,
+          );
         }),
       );
       return () => Object.assign(this.pipelines, pipelines);
@@ -344,7 +365,7 @@ export class WebGPUBackend {
   /** Builds the initial-condition pipeline. */
   setClear(parts) {
     this.requestBuild("clear", async () => {
-      const pipeline = await this.compile("clear", clearShader(parts), parts.numGroups);
+      const pipeline = await this.compile("clear", clearShader(parts), parts.formats);
       return () => (this.pipelines.clear = pipeline);
     });
   }
@@ -352,7 +373,7 @@ export class WebGPUBackend {
   /** Builds the brush pipeline. */
   setDraw(parts) {
     this.requestBuild("draw", async () => {
-      const pipeline = await this.compile("draw", drawShader(parts), parts.numGroups);
+      const pipeline = await this.compile("draw", drawShader(parts), parts.formats);
       return () => (this.pipelines.draw = pipeline);
     });
   }
@@ -364,7 +385,7 @@ export class WebGPUBackend {
         ? await this.compile(
             "enforce Dirichlet",
             enforceDirichletShader(parts),
-            parts.numGroups,
+            parts.formats,
           )
         : null;
       return () => (this.pipelines.enforce = pipeline);
@@ -417,6 +438,10 @@ export class WebGPUBackend {
   // Records one pass of a kernel (from compile()) writing slot dst from the given input
   // slots.
   dispatch(kernel, uniforms, inputs, dst) {
+    if (!this.fitsState(kernel)) {
+      console.error(`WebGPU kernel ${kernel?.pipeline.label} doesn't fit the state's formats`);
+      return;
+    }
     const offset = this.pushUniforms(uniforms);
     const sources = [0, 1, 2, 3].map((k) => this.slots[inputs[k] ?? inputs[0]]);
     const target = this.slots[dst];
@@ -460,7 +485,7 @@ export class WebGPUBackend {
       entries.push({ binding: OUTPUT_BINDING + g, resource: target.views[g] });
     }
     return this.device.createBindGroup({
-      layout: this.layout(kernel.G).bindGroupLayout,
+      layout: this.layout(kernel.formats).bindGroupLayout,
       entries,
     });
   }
@@ -592,14 +617,15 @@ export class WebGPUBackend {
     this.flush();
     const empty = new Float32Array(4 * this.nX * this.nY);
     this.slots.forEach((slot) =>
-      slot.textures.forEach((texture, g) =>
+      slot.textures.forEach((texture, g) => {
+        const channels = FORMAT_BYTES[texture.format] / 4;
         this.device.queue.writeTexture(
           { texture },
-          groups[g] ?? empty,
-          { bytesPerRow: 16 * this.nX },
+          selectChannels(groups[g] ?? empty, 4, channels),
+          { bytesPerRow: 4 * channels * this.nX },
           [this.nX, this.nY],
-        ),
-      ),
+        );
+      }),
     );
   }
 
@@ -621,7 +647,7 @@ export class WebGPUBackend {
     const sources = Array.from({ length: this.numGroups }, (_, g) => {
       const texture = this.device.createTexture({
         size: [width, height],
-        format: STATE_FORMAT,
+        format: CHECKPOINT_FORMAT,
         usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
       });
       this.device.queue.writeTexture(
@@ -656,17 +682,18 @@ export class WebGPUBackend {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
     device.queue.writeBuffer(paramsBuffer, 0, params);
+    const formats = target.textures.map((texture) => texture.format);
     this.restorePipelines ??= {};
-    if (!this.restorePipelines[G]) {
-      this.restorePipelines[G] = device.createComputePipeline({
+    if (!this.restorePipelines[formats]) {
+      this.restorePipelines[formats] = device.createComputePipeline({
         layout: "auto",
         compute: {
-          module: device.createShaderModule({ code: restoreShader(G) }),
+          module: device.createShaderModule({ code: restoreShader(formats) }),
           entryPoint: "main",
         },
       });
     }
-    const pipeline = this.restorePipelines[G];
+    const pipeline = this.restorePipelines[formats];
     const pass = this.getEncoder().beginComputePass();
     pass.setPipeline(pipeline);
     pass.setBindGroup(
@@ -711,39 +738,53 @@ export class WebGPUBackend {
    */
   async readState() {
     this.flush();
-    // Rows of a texture copy must be a multiple of 256 bytes apart.
-    const rowBytes = 16 * this.nX;
-    const bytesPerRow = Math.ceil(rowBytes / 256) * 256;
     const encoder = this.device.createCommandEncoder();
-    const stagings = this.slots[1].textures.map((texture) => {
+    const copies = this.slots[1].textures.map((texture) => {
+      const channels = FORMAT_BYTES[texture.format] / 4;
+      // Rows of a texture copy must be a multiple of 256 bytes apart.
+      const rowBytes = 4 * channels * this.nX;
+      const bytesPerRow = Math.ceil(rowBytes / 256) * 256;
       const staging = this.device.createBuffer({
         size: bytesPerRow * this.nY,
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
       });
       encoder.copyTextureToBuffer({ texture }, { buffer: staging, bytesPerRow }, [this.nX, this.nY]);
-      return staging;
+      return { staging, channels, rowBytes, bytesPerRow };
     });
     this.device.queue.submit([encoder.finish()]);
     return Promise.all(
-      stagings.map(async (staging) => {
+      copies.map(async ({ staging, channels, rowBytes, bytesPerRow }) => {
         await staging.mapAsync(GPUMapMode.READ);
         const padded = new Uint8Array(staging.getMappedRange());
-        const out = new Float32Array(4 * this.nX * this.nY);
-        const bytes = new Uint8Array(out.buffer);
+        const packed = new Float32Array(channels * this.nX * this.nY);
+        const bytes = new Uint8Array(packed.buffer);
         for (let j = 0; j < this.nY; j++) {
           bytes.set(padded.subarray(j * bytesPerRow, j * bytesPerRow + rowBytes), j * rowBytes);
         }
         staging.unmap();
         staging.destroy();
-        return out;
+        return selectChannels(packed, channels, 4);
       }),
     );
   }
 }
 
+// Copies data with from channels per node into an array with to channels per node, dropping
+// channels or filling them with 0.
+function selectChannels(data, from, to) {
+  if (from == to) return data;
+  const nodes = data.length / from;
+  const out = new Float32Array(to * nodes);
+  const shared = Math.min(from, to);
+  for (let k = 0; k < nodes; k++) {
+    for (let c = 0; c < shared; c++) out[to * k + c] = data[from * k + c];
+  }
+  return out;
+}
+
 // Resamples state textures onto the grid (see WebGPUBackend.resample).
-function restoreShader(G) {
-  const groups = Array.from({ length: G }, (_, g) => g);
+function restoreShader(formats) {
+  const groups = formats.map((_, g) => g);
   return `
 struct Params {
   width: u32, height: u32, linear: u32, snap: u32,
@@ -752,7 +793,7 @@ struct Params {
 }
 @group(0) @binding(0) var<uniform> P: Params;
 ${groups.map((g) => `@group(0) @binding(${1 + g}) var source${g}: texture_2d<f32>;`).join("\n")}
-${groups.map((g) => `@group(0) @binding(${3 + g}) var dst${g}: texture_storage_2d<${STATE_FORMAT}, write>;`).join("\n")}
+${groups.map((g) => `@group(0) @binding(${3 + g}) var dst${g}: texture_storage_2d<${formats[g]}, write>;`).join("\n")}
 
 fn at(g: u32, i: i32, j: i32) -> vec4f {
   let ij = vec2i(clamp(i, 0, i32(P.width) - 1), clamp(j, 0, i32(P.height) - 1));
