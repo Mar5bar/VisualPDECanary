@@ -7,9 +7,8 @@
 // algebraic species) is the very GLSL that setRDEquations() assembles for WebGL, translated by
 // glsl_to_wgsl.js. So both backends share one source of truth for the maths.
 //
-// State layout: each history slot is one storage buffer of vec4f, with the species groups
-// (species 1-4, 5-8) of each node interleaved: node n of group g is element n * G + g. Nodes
-// are numbered row by row from the bottom, n = j * nX + i, as in a WebGL readback.
+// State layout: each history slot is one rgba32float texture per species group (species 1-4,
+// 5-8), with node (i, j) at texel (i, j), so row j = 0 is first, as in a WebGL readback.
 
 import { translateExpression, translateStatements } from "./glsl_to_wgsl.js";
 import { ValueLayout } from "./values.js";
@@ -21,6 +20,14 @@ export const BRUSH_VALUES = new ValueLayout([
 ]);
 
 export const WORKGROUP_SIZE = [8, 8];
+
+// Binding numbers shared by the simulation kernels' bind group layouts (see
+// WebGPUBackend.layout). Input slot s of group g is a texture at SOURCE_BINDING + 4g + s,
+// read through the sampler at SAMPLER_BINDING + g, and a compute kernel writes group g to a
+// storage texture at OUTPUT_BINDING + g.
+export const SOURCE_BINDING = 10;
+export const SAMPLER_BINDING = 7;
+export const OUTPUT_BINDING = 20;
 
 // The size in bytes of the Uniforms struct below, rounded up to the 256-byte alignment that
 // dynamic uniform buffer offsets require.
@@ -43,6 +50,8 @@ export function writeUniforms(view, offset, u) {
     u.L, u.L_x, u.L_y, u.L_min,
     u.seed, ...(u.globalIntegralValues ?? [0, 0, 0, 0]),
     u.inf ?? Infinity,
+    1 / u.nX,
+    1 / u.nY,
   ];
   floats.forEach((v, k) => view.setFloat32(offset + 16 + 4 * k, v, true));
 }
@@ -54,6 +63,8 @@ struct Uniforms {
   L: f32, L_x: f32, L_y: f32, L_min: f32,
   seed: f32, gi1: f32, gi2: f32, gi3: f32,
   gi4: f32, inf: f32,
+  // 1/nX and 1/nY, for turning node indices into texture coordinates.
+  inverseSize: vec2f,
 }`;
 
 // The helper functions that auxiliary_GLSL_funs.js (and the erfinv defined alongside it in
@@ -207,29 +218,57 @@ ${xy}
 `;
 }
 
-// Bindings, index helpers and fetches for a module with the given number of input slots.
+// Bindings, index helpers and fetches for a kernel, and the storage textures it writes.
 function prelude(parts) {
   const G = parts.numGroups;
   const clampConsts = parts.clamp
     .map(([cx, cy], g) => `const CLAMP_X_${g} = ${cx};\nconst CLAMP_Y_${g} = ${cy};`)
     .join("\n");
-  const selectSlot = [0, 1, 2, 3]
-    .map((s) => `  if (slot == ${s}u) { return src${s}[k]; }`)
-    .join("\n");
+  const sources = [];
+  const loads = [];
+  for (let g = 0; g < G; g++) {
+    for (let slot = 0; slot < 4; slot++) {
+      sources.push(
+        `@group(0) @binding(${SOURCE_BINDING + 4 * g + slot}) var src${slot}_${g}: texture_2d<f32>;`,
+      );
+      loads.push(
+        `  if (g == ${g}u && slot == ${slot}u) { return textureLoad(src${slot}_${g}, ij, 0); }`,
+      );
+    }
+  }
+  const samplers = Array.from(
+    { length: G },
+    (_, g) => `@group(0) @binding(${SAMPLER_BINDING + g}) var stateSampler${g}: sampler;`,
+  ).join("\n");
+  const samples = [];
+  const fetchers = [];
+  for (let g = 0; g < G; g++) {
+    for (let slot = 0; slot < 4; slot++) {
+      samples.push(`  if (g == ${g}u && slot == ${slot}u) { return fetch${slot}_${g}(i, j); }`);
+      fetchers.push(
+        `fn fetch${slot}_${g}(i: i32, j: i32) -> vec4f {
+  return textureSampleLevel(src${slot}_${g}, stateSampler${g}, (vec2f(f32(i), f32(j)) + 0.5) * U.inverseSize, 0.0);
+}`,
+      );
+    }
+  }
+  const outputs = Array.from(
+    { length: G },
+    (_, g) =>
+      `@group(0) @binding(${OUTPUT_BINDING + g}) var dst${g}: texture_storage_2d<rgba32float, write>;`,
+  ).join("\n");
   return `${UNIFORMS_STRUCT}
 @group(0) @binding(0) var<uniform> U: Uniforms;
 @group(0) @binding(1) var<storage, read> params: array<vec4f>;
-@group(0) @binding(2) var<storage, read> src0: array<vec4f>;
-@group(0) @binding(3) var<storage, read> src1: array<vec4f>;
-@group(0) @binding(4) var<storage, read> src2: array<vec4f>;
-@group(0) @binding(5) var<storage, read> src3: array<vec4f>;
-@group(0) @binding(6) var<storage, read_write> dst: array<vec4f>;
-@group(0) @binding(7) var imageOne: texture_2d<f32>;
-@group(0) @binding(8) var imageTwo: texture_2d<f32>;
-@group(0) @binding(9) var imageSampler: sampler;
-@group(0) @binding(10) var<storage, read> V: array<vec4f>;
+@group(0) @binding(2) var imageOne: texture_2d<f32>;
+@group(0) @binding(3) var imageTwo: texture_2d<f32>;
+@group(0) @binding(4) var imageSampler: sampler;
+@group(0) @binding(5) var<storage, read> V: array<vec4f>;
 // The domain integrals Int(...), computed on the GPU (see display_wgsl.js).
-@group(0) @binding(11) var<storage, read> globals: vec4f;
+@group(0) @binding(6) var<storage, read> globals: vec4f;
+${sources.join("\n")}
+${samplers}
+${outputs}
 
 const G = ${G}u;
 ${clampConsts}
@@ -239,22 +278,22 @@ fn wrapIndex(k: i32, n: i32, clampIt: bool) -> i32 {
   return ((k % n) + n) % n;
 }
 
-// The element of a slot holding group g at node (i, j), wrapping or clamping out-of-range
-// indices as the WebGL textures do.
-fn element(g: u32, i: i32, j: i32) -> u32 {
-  let nX = i32(U.nX);
-  let nY = i32(U.nY);
-  var cx = CLAMP_X_0;
-  var cy = CLAMP_Y_0;
-${G > 1 ? "  if (g == 1u) { cx = CLAMP_X_1; cy = CLAMP_Y_1; }" : ""}
-  let ii = wrapIndex(i, nX, cx);
-  let jj = wrapIndex(j, nY, cy);
-  return u32(jj * nX + ii) * G + g;
+// Group g of slot at texel ij.
+fn load(slot: u32, g: u32, ij: vec2i) -> vec4f {
+${loads.join("\n")}
+  return vec4f(0.0);
 }
 
+// Group g of slot s at node (i, j), wrapping or clamping out-of-range indices as the WebGL
+// textures do: fetch{s}_{g}(i, j). Like WebGL, these sample (nearest, at the node's centre,
+// so exactly the node's value) through a sampler whose address modes do the wrapping or
+// clamping, which is far cheaper than doing it with integer arithmetic. There's one function
+// per slot and group, so that no fetch branches on which it is.
+${fetchers.join("\n")}
+
+// The same, for a slot and group only known at run time.
 fn fetch(slot: u32, g: u32, i: i32, j: i32) -> vec4f {
-  let k = element(g, i, j);
-${selectSlot}
+${samples.join("\n")}
   return vec4f(0.0);
 }
 
@@ -284,6 +323,23 @@ fn fetchBilinear(slot: u32, g: u32, uv: vec2f) -> vec4f {
 ${AUXILIARY_WGSL}`;
 }
 
+/**
+ * Wraps a kernel's body, which computes the node (i, j)'s new value of each group into out0
+ * (and out1), as a compute shader writing them to storage textures.
+ */
+function entryPoint(G, body) {
+  const outs = Array.from({ length: G }, (_, g) => `out${g}`);
+  return `
+@compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
+fn main(@builtin(global_invocation_id) gid: vec3u) {
+  if (gid.x >= U.nX || gid.y >= U.nY) { return; }
+  let i = i32(gid.x);
+  let j = i32(gid.y);
+${body}
+${outs.map((o, g) => `  textureStore(dst${g}, vec2i(i, j), ${o});`).join("\n")}
+}`;
+}
+
 const STENCIL = [
   ["", 0, 0],
   ["L", -1, 0],
@@ -303,11 +359,11 @@ function stencilFetch(G, slot, combineSlot, coefficient) {
   for (let g = 0; g < G; g++) {
     const prefix = g == 0 ? "uvwq" : "uvwq2";
     for (const [suffix, di, dj] of STENCIL) {
-      const base = `fetch(${slot}u, ${g}u, i + ${di}, j + ${dj})`;
+      const base = `fetch${slot}_${g}(i + ${di}, j + ${dj})`;
       const value =
         combineSlot == undefined
           ? base
-          : `${base} + ${coefficient}*fetch(${combineSlot}u, ${g}u, i + ${di}, j + ${dj})`;
+          : `${base} + ${coefficient}*fetch${combineSlot}_${g}(i + ${di}, j + ${dj})`;
       lines.push(`  ${prefix}${suffix} = ${value};`);
     }
   }
@@ -370,15 +426,15 @@ function schemeBody(type, G, timescales) {
   const call = (srcSlot, time, out) =>
     `  let ${out} = computeRHS(${srcSlot}u, ${time}, i, j, ${stencilArgs(G)});\n` +
     (out == "outPrev" || out == "outCur" ? "" : timescales);
-  const centre = (slot, g) => `fetch(${slot}u, ${g}u, i, j)`;
+  const centre = (slot, g) => `fetch${slot}_${g}(i, j)`;
   const lines = [];
   const each = (f) => {
     for (let g = 0; g < G; g++) lines.push(f(g, g == 0 ? "" : "2", g == 0 ? "" : "Group1"));
   };
   switch (type) {
     case "FE":
-      lines.push(stencilFetch(G, 0), call(0, "t", "out1"));
-      each((g, n) => `  RHS${n} = out1.r${g};`);
+      lines.push(stencilFetch(G, 0), call(0, "t", "rhs1"));
+      each((g, n) => `  RHS${n} = rhs1.r${g};`);
       each((g, n, s) => `  updated${n} = dt * RHS${n} / timescales${s} + uvwq${n};`);
       break;
     case "AB2":
@@ -389,28 +445,28 @@ function schemeBody(type, G, timescales) {
       break;
     case "Mid1":
     case "RK41":
-      lines.push(stencilFetch(G, 0), call(0, "t", "out1"));
-      each((g, n) => `  RHS${n} = out1.r${g};`);
+      lines.push(stencilFetch(G, 0), call(0, "t", "rhs1"));
+      each((g, n) => `  RHS${n} = rhs1.r${g};`);
       each((g, n, s) => `  updated${n} = RHS${n} / timescales${s};`);
       break;
     case "RK42":
     case "RK43":
-      lines.push(stencilFetch(G, 0, type == "RK42" ? 1 : 2, "0.5*dt"), call(0, "t", "out1"));
-      each((g, n) => `  RHS${n} = out1.r${g};`);
+      lines.push(stencilFetch(G, 0, type == "RK42" ? 1 : 2, "0.5*dt"), call(0, "t", "rhs1"));
+      each((g, n) => `  RHS${n} = rhs1.r${g};`);
       each((g, n, s) => `  updated${n} = RHS${n} / timescales${s};`);
       break;
     case "Mid2":
       each((g, n) => `  let uvwq${n}Last = ${centre(0, g)};`);
-      lines.push(stencilFetch(G, 0, 1, "0.5*dt"), call(0, "t", "out1"));
-      each((g, n) => `  RHS${n} = out1.r${g};`);
+      lines.push(stencilFetch(G, 0, 1, "0.5*dt"), call(0, "t", "rhs1"));
+      each((g, n) => `  RHS${n} = rhs1.r${g};`);
       each((g, n, s) => `  updated${n} = dt * RHS${n} / timescales${s} + uvwq${n}Last;`);
       break;
     case "RK44":
       each((g, n) => `  let uvwq${n}Last = ${centre(0, g)};`);
-      lines.push(stencilFetch(G, 0, 3, "dt"), call(0, "t", "out1"));
+      lines.push(stencilFetch(G, 0, 3, "dt"), call(0, "t", "rhs1"));
       each(
         (g, n, s) =>
-          `  RHS${n} = (timescales${s} * (${centre(1, g)} + 2.0*(${centre(2, g)} + ${centre(3, g)})) + out1.r${g}) / 6.0;`,
+          `  RHS${n} = (timescales${s} * (${centre(1, g)} + 2.0*(${centre(2, g)} + ${centre(3, g)})) + rhs1.r${g}) / 6.0;`,
       );
       each((g, n, s) => `  updated${n} = dt * RHS${n} / timescales${s} + uvwq${n}Last;`);
       break;
@@ -434,17 +490,9 @@ export function timestepShader(type, parts) {
     const prefix = g == 0 ? "uvwq" : "uvwq2";
     for (const [suffix] of STENCIL) declarations.push(`  var ${prefix}${suffix}: vec4f;`);
   }
-  const outputs = ["  dst[element(0u, i, j)] = updated;"];
-  if (G > 1) outputs.push("  dst[element(1u, i, j)] = updated2;");
-  return `${prelude(parts)}
-${computeRHSFunction(parts, opts)}
-
-@compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
-fn main(@builtin(global_invocation_id) gid: vec3u) {
-  if (gid.x >= U.nX || gid.y >= U.nY) { return; }
-  let i = i32(gid.x);
-  let j = i32(gid.y);
-${commonLets(parts, opts)}
+  const outputs = ["  let out0 = updated;"];
+  if (G > 1) outputs.push("  let out1 = updated2;");
+  const body = `${commonLets(parts, opts)}
 ${declarations.join("\n")}
   var timescales: vec4f;
   var RHS: vec4f;
@@ -465,8 +513,10 @@ ${schemeBody(
       : ""),
 )}
 ${translateStatements(parts.bot[type], opts)}
-${outputs.join("\n")}
-}`;
+${outputs.join("\n")}`;
+  return `${prelude(parts)}
+${computeRHSFunction(parts, opts)}
+${entryPoint(G, body)}`;
 }
 
 /**
@@ -487,18 +537,15 @@ ${outputs.join("\n")}
  */
 export function clearShader(parts) {
   const opts = translationOptions(parts);
-  const outputs = ["  dst[element(0u, i, j)] = vec4f(u, v, w, q);"];
-  if (parts.numGroups > 1) outputs.push("  dst[element(1u, i, j)] = vec4f(u5, u6, u7, u8);");
+  const outputs = ["  let out0 = vec4f(u, v, w, q);"];
+  if (parts.numGroups > 1) outputs.push("  let out1 = vec4f(u5, u6, u7, u8);");
   return `${prelude(parts)}
-@compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
-fn main(@builtin(global_invocation_id) gid: vec3u) {
-  if (gid.x >= U.nX || gid.y >= U.nY) { return; }
-  let i = i32(gid.x);
-  let j = i32(gid.y);
-${commonLets(parts, opts, { clearCoords: true })}
+${entryPoint(
+  parts.numGroups,
+  `${commonLets(parts, opts, { clearCoords: true })}
 ${translateStatements(parts.body, opts)}
-${outputs.join("\n")}
-}`;
+${outputs.join("\n")}`,
+)}`;
 }
 
 /**
@@ -511,21 +558,18 @@ ${outputs.join("\n")}
 export function enforceDirichletShader(parts) {
   const G = parts.numGroups;
   const opts = translationOptions(parts);
-  const outputs = ["  dst[element(0u, i, j)] = updated;"];
-  if (G > 1) outputs.push("  dst[element(1u, i, j)] = updated2;");
+  const outputs = ["  let out0 = updated;"];
+  if (G > 1) outputs.push("  let out1 = updated2;");
   return `${prelude(parts)}
-@compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
-fn main(@builtin(global_invocation_id) gid: vec3u) {
-  if (gid.x >= U.nX || gid.y >= U.nY) { return; }
-  let i = i32(gid.x);
-  let j = i32(gid.y);
-${commonLets(parts, opts)}
+${entryPoint(
+  G,
+  `${commonLets(parts, opts)}
   var uvwq = fetch(0u, 0u, i, j);
   var updated = uvwq;
 ${G > 1 ? "  var uvwq2 = fetch(0u, 1u, i, j);\n  var updated2 = uvwq2;" : ""}
 ${translateStatements(parts.enforceBody, opts)}
-${outputs.join("\n")}
-}`;
+${outputs.join("\n")}`,
+)}`;
 }
 
 /**
@@ -541,19 +585,14 @@ export function drawShader(parts) {
   const declarations =
     G == 1 ? "  var fragColour: vec4f;" : "  var fragColor0: vec4f;\n  var fragColor1: vec4f;";
   const outputs =
-    G == 1
-      ? "  dst[element(0u, i, j)] = fragColour;"
-      : "  dst[element(0u, i, j)] = fragColor0;\n  dst[element(1u, i, j)] = fragColor1;";
+    G == 1 ? "  let out0 = fragColour;" : "  let out0 = fragColor0;\n  let out1 = fragColor1;";
   return `${prelude(parts)}
-@compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
-fn main(@builtin(global_invocation_id) gid: vec3u) {
-  if (gid.x >= U.nX || gid.y >= U.nY) { return; }
-  let i = i32(gid.x);
-  let j = i32(gid.y);
-${commonLets(parts, opts, { withXY: false })}
+${entryPoint(
+  G,
+  `${commonLets(parts, opts, { withXY: false })}
 ${BRUSH_VALUES.lets("V")}
 ${declarations}
 ${translateStatements(body, opts)}
-${outputs}
-}`;
+${outputs}`,
+)}`;
 }

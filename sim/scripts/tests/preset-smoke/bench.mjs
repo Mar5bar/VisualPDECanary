@@ -3,8 +3,8 @@
  * presets at a few grid resolutions. Reported, not asserted: the numbers depend on the GPU.
  *
  * Each measurement steps the simulation in batches, as the animation loop does, and waits for
- * the GPU to finish (by reading the state back) before stopping the clock, so it measures the
- * simulation alone, without drawing.
+ * the GPU to finish before stopping the clock, so it measures the simulation alone, without
+ * drawing or reading the state back.
  *
  * Usage: node bench.mjs [--names=a,b] [--scales=1,2,4] [--seconds=2]
  */
@@ -25,7 +25,7 @@ const names = (args.names ?? "GrayScott,BrusselatorPDE,KellerSegel,heatEquation1
 // How much finer than the preset's own grid to run, per dimension.
 const scales = (args.scales ?? "1,2,4").split(",").map(Number);
 const SECONDS = Number(args.seconds ?? 2);
-// Steps between readbacks, which wait for the GPU to finish; large, to amortise their cost.
+// Steps between waits for the GPU to finish; large, to amortise their cost.
 const BATCH = Number(args.batch ?? 500);
 
 const stopServer = await ensureServerRunning();
@@ -65,13 +65,17 @@ async function measure(page, backend, name, scale) {
       await T.reset();
       // Batches of steps, as one animation frame's worth.
       const batch = Number(BATCH);
-      await T.step(batch);
-      await T.readState();
+      // Warm up.
+      const warmUp = performance.now();
+      while (performance.now() - warmUp < 1000) {
+        await T.step(batch);
+        await T.finish();
+      }
       let steps = 0;
       const start = performance.now();
       while (performance.now() - start < 1000 * seconds) {
         await T.step(batch);
-        await T.readState();
+        await T.finish();
         steps += batch;
       }
       const elapsed = (performance.now() - start) / 1000;

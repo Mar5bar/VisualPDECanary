@@ -253,23 +253,28 @@ export class WebGPUDisplay {
       else if (kind == "read") e.buffer = { type: "read-only-storage" };
       else if (kind == "write") e.buffer = { type: "storage" };
       else if (kind == "texture") e.texture = { sampleType: "float" };
+      else if (kind == "state") e.texture = { sampleType: "unfilterable-float" };
       else if (kind == "sampler") e.sampler = { type: "filtering" };
       return e;
     };
     const C = GPUShaderStage.COMPUTE;
     const VF = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT;
+    // Binding 2 and 12 are the state's two species groups.
     const kinds = (write) => [
-      "uniform", "read", "read", write ? "write" : "read", "read", "texture", "texture", "sampler",
+      "uniform", "read", "state", write ? "write" : "read", "read", "texture", "texture", "sampler",
     ];
+    const withState1 = (entries) => [...entries, entry(12, entries[0].visibility, "state")];
     // Field shaders (post-processing, probes, domain integrands): binding 8 is the domain
     // integrals.
     this.postLayout = this.device.createBindGroupLayout({
-      entries: [...kinds(true), "read"].map((kind, binding) => entry(binding, C, kind)),
+      entries: withState1([...kinds(true), "read"].map((kind, binding) => entry(binding, C, kind))),
     });
     // The display: binding 8 is the camera, 9 the domain integrals, 10 the blend image.
     this.displayLayout = this.device.createBindGroupLayout({
-      entries: [...kinds(false), "uniform", "read", "texture"].map((kind, binding) =>
-        entry(binding, VF, kind),
+      entries: withState1(
+        [...kinds(false), "uniform", "read", "texture"].map((kind, binding) =>
+          entry(binding, VF, kind),
+        ),
       ),
     });
   }
@@ -437,6 +442,15 @@ export class WebGPUDisplay {
     this.device.queue.writeBuffer(this.simUniforms, 0, data);
   }
 
+  // The current state's textures, at bindings 2 and 12.
+  stateEntries() {
+    const views = this.backend.slots[1].views;
+    return [
+      { binding: 2, resource: views[0] },
+      { binding: 12, resource: views[1] ?? views[0] },
+    ];
+  }
+
   imageEntries(first) {
     return [
       { binding: first, resource: this.backend.images[0].createView() },
@@ -485,7 +499,7 @@ export class WebGPUDisplay {
       entries: [
         { binding: 0, resource: { buffer: uniformBuffer } },
         { binding: 1, resource: { buffer: backend.paramsBuffer } },
-        { binding: 2, resource: { buffer: backend.slots[1] } },
+        ...this.stateEntries(),
         { binding: 3, resource: { buffer: output } },
         { binding: 4, resource: { buffer: valuesBuffer } },
         ...this.imageEntries(5),
@@ -799,7 +813,7 @@ export class WebGPUDisplay {
       entries: [
         { binding: 0, resource: { buffer: this.simUniforms } },
         { binding: 1, resource: { buffer: backend.paramsBuffer } },
-        { binding: 2, resource: { buffer: backend.slots[1] } },
+        ...this.stateEntries(),
         { binding: 3, resource: { buffer: this.postBuffer } },
         { binding: 4, resource: { buffer: this.displayValues } },
         ...this.imageEntries(5),

@@ -4394,6 +4394,23 @@ async function VisualPDE(url) {
         options.resetFromCheckpoints = true;
         resetSim();
       },
+      // Resolves once the GPU has finished all the work submitted so far, without reading
+      // anything back (beyond a single value on WebGL, which has no other way to wait).
+      async finish() {
+        if (gpuBackend) {
+          gpuBackend.flush();
+          await gpuBackend.device.queue.onSubmittedWorkDone();
+        } else {
+          renderer.readRenderTargetPixels(
+            numGroups(Number(options.numSpecies)) > 1 ? postTexture : simTextures[1],
+            0,
+            0,
+            1,
+            1,
+            new Float32Array(4),
+          );
+        }
+      },
       // The probe chart's data, as [time, value] pairs.
       async probeData() {
         return (probeChart?.dataStore ?? []).map((d) => [d.x, d.y]);

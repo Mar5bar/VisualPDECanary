@@ -105,8 +105,9 @@ fn stateAt(g: u32, i: i32, j: i32) -> vec4f {
   var cx = CLAMP_X_0;
   var cy = CLAMP_Y_0;
 ${parts.numGroups > 1 ? "  if (g == 1u) { cx = CLAMP_X_1; cy = CLAMP_Y_1; }" : ""}
-  let k = u32(wrapIndex(j, nY, cy) * nX + wrapIndex(i, nX, cx)) * G + g;
-  return state[k];
+  let ij = vec2i(wrapIndex(i, nX, cx), wrapIndex(j, nY, cy));
+  if (g == 1u) { return textureLoad(state1, ij, 0); }
+  return textureLoad(state0, ij, 0);
 }
 
 fn stateNearest(g: u32, uv: vec2f) -> vec4f {
@@ -195,7 +196,9 @@ export function fieldShader(parts, values, point = false) {
   return `${UNIFORMS_STRUCT}
 @group(0) @binding(0) var<uniform> U: Uniforms;
 @group(0) @binding(1) var<storage, read> params: array<vec4f>;
-@group(0) @binding(2) var<storage, read> state: array<vec4f>;
+// The state, per species group (group 1's is group 0's again when there's only one).
+@group(0) @binding(2) var state0: texture_2d<f32>;
+@group(0) @binding(12) var state1: texture_2d<f32>;
 @group(0) @binding(3) var<storage, read_write> output: array<vec4f>;
 @group(0) @binding(4) var<storage, read> V: array<vec4f>;
 @group(0) @binding(5) var imageOne: texture_2d<f32>;
@@ -268,7 +271,9 @@ struct Camera {
 }
 @group(0) @binding(0) var<uniform> U: Uniforms;
 @group(0) @binding(1) var<storage, read> params: array<vec4f>;
-@group(0) @binding(2) var<storage, read> state: array<vec4f>;
+// The state, per species group (group 1's is group 0's again when there's only one).
+@group(0) @binding(2) var state0: texture_2d<f32>;
+@group(0) @binding(12) var state1: texture_2d<f32>;
 @group(0) @binding(3) var<storage, read> post: array<vec4f>;
 @group(0) @binding(4) var<storage, read> V: array<vec4f>;
 @group(0) @binding(5) var imageOne: texture_2d<f32>;
