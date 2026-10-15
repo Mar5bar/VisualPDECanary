@@ -14,6 +14,27 @@ export function auxiliary_GLSL_funs() {
         return RES;
     }
 
+    // Bilinear interpolation of a texture, honouring its wrap mode. Simulation textures use
+    // nearest filtering, so that stencil reads at texel centres are exact, so lookups at
+    // arbitrary points (u[x,y], probes, overlays, resampling) interpolate with this instead.
+    // Weights within rounding error of a texel centre are snapped, so sampling at a node
+    // returns exactly its value.
+    vec4 textureBilinear(sampler2D tex, vec2 uv) {
+      vec2 size = vec2(textureSize(tex, 0));
+      vec2 st = uv * size - 0.5;
+      vec2 base = floor(st);
+      vec2 f = st - base;
+      f = mix(f, vec2(0.0), vec2(lessThan(f, vec2(1e-4))));
+      f = mix(f, vec2(1.0), vec2(greaterThan(f, vec2(1.0 - 1e-4))));
+      vec2 c0 = (base + 0.5) / size;
+      vec2 c1 = (base + 1.5) / size;
+      return mix(
+        mix(texture(tex, c0), texture(tex, vec2(c1.x, c0.y)), f.x),
+        mix(texture(tex, vec2(c0.x, c1.y)), texture(tex, c1), f.x),
+        f.y
+      );
+    }
+
     float safetanh(float VALUE)
     {
         return 1.0 - 2.0/(1.0+exp(2.0*VALUE));

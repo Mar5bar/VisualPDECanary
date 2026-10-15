@@ -9,3 +9,11 @@ test("auxiliary_GLSL_funs: defines every helper function referenced elsewhere in
   }
   assert.match(glsl, /const float pi = 3\.141592653589793;/);
 });
+
+test("auxiliary_GLSL_funs: textureBilinear interpolates between the four surrounding texel centres, snapping near-centre weights", () => {
+  const src = auxiliary_GLSL_funs();
+  assert.match(src, /vec4 textureBilinear\(sampler2D tex, vec2 uv\)/);
+  assert.match(src, /vec2 st = uv \* size - 0\.5;/);
+  assert.match(src, /lessThan\(f, vec2\(1e-4\)\)/);
+  assert.match(src, /greaterThan\(f, vec2\(1\.0 - 1e-4\)\)/);
+});

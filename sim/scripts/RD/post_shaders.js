@@ -349,15 +349,15 @@ export function probeShader() {
       vec2 probeTexCoordsBB = probeTexCoordsB + vec2(0.0, -step_y);
 
       // Sample.
-      vec4 uvwq = texture2D(textureSource, probeTexCoords);
-      vec4 uvwqL = texture2D(textureSource, probeTexCoordsL);
-      vec4 uvwqR = texture2D(textureSource, probeTexCoordsR);
-      vec4 uvwqT = texture2D(textureSource, probeTexCoordsT);
-      vec4 uvwqB = texture2D(textureSource, probeTexCoordsB);
-      vec4 uvwqLL = texture2D(textureSource, probeTexCoordsLL);
-      vec4 uvwqRR = texture2D(textureSource, probeTexCoordsRR);
-      vec4 uvwqTT = texture2D(textureSource, probeTexCoordsTT);
-      vec4 uvwqBB = texture2D(textureSource, probeTexCoordsBB);
+      vec4 uvwq = textureBilinear(textureSource, probeTexCoords);
+      vec4 uvwqL = textureBilinear(textureSource, probeTexCoordsL);
+      vec4 uvwqR = textureBilinear(textureSource, probeTexCoordsR);
+      vec4 uvwqT = textureBilinear(textureSource, probeTexCoordsT);
+      vec4 uvwqB = textureBilinear(textureSource, probeTexCoordsB);
+      vec4 uvwqLL = textureBilinear(textureSource, probeTexCoordsLL);
+      vec4 uvwqRR = textureBilinear(textureSource, probeTexCoordsRR);
+      vec4 uvwqTT = textureBilinear(textureSource, probeTexCoordsTT);
+      vec4 uvwqBB = textureBilinear(textureSource, probeTexCoordsBB);
 
       // Compute derivatives.
       vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
@@ -391,15 +391,15 @@ export function probeShaderMRT() {
     .replace(
       "      // Compute derivatives.",
       `      // Sample (group 1).
-      vec4 uvwq2 = texture2D(textureSourceGroup1, probeTexCoords);
-      vec4 uvwq2L = texture2D(textureSourceGroup1, probeTexCoordsL);
-      vec4 uvwq2R = texture2D(textureSourceGroup1, probeTexCoordsR);
-      vec4 uvwq2T = texture2D(textureSourceGroup1, probeTexCoordsT);
-      vec4 uvwq2B = texture2D(textureSourceGroup1, probeTexCoordsB);
-      vec4 uvwq2LL = texture2D(textureSourceGroup1, probeTexCoordsLL);
-      vec4 uvwq2RR = texture2D(textureSourceGroup1, probeTexCoordsRR);
-      vec4 uvwq2TT = texture2D(textureSourceGroup1, probeTexCoordsTT);
-      vec4 uvwq2BB = texture2D(textureSourceGroup1, probeTexCoordsBB);
+      vec4 uvwq2 = textureBilinear(textureSourceGroup1, probeTexCoords);
+      vec4 uvwq2L = textureBilinear(textureSourceGroup1, probeTexCoordsL);
+      vec4 uvwq2R = textureBilinear(textureSourceGroup1, probeTexCoordsR);
+      vec4 uvwq2T = textureBilinear(textureSourceGroup1, probeTexCoordsT);
+      vec4 uvwq2B = textureBilinear(textureSourceGroup1, probeTexCoordsB);
+      vec4 uvwq2LL = textureBilinear(textureSourceGroup1, probeTexCoordsLL);
+      vec4 uvwq2RR = textureBilinear(textureSourceGroup1, probeTexCoordsRR);
+      vec4 uvwq2TT = textureBilinear(textureSourceGroup1, probeTexCoordsTT);
+      vec4 uvwq2BB = textureBilinear(textureSourceGroup1, probeTexCoordsBB);
 
       // Compute derivatives (group 1).
       vec4 uvwq2X = (uvwq2R - uvwq2L) / (2.0*dx);

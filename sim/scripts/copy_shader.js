@@ -4,9 +4,11 @@ export function copyShader() {
     return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
 
+    AUXILIARY_GLSL_FUNS
+
     void main()
     {
-        gl_FragColor = texture2D(textureSource, textureCoords);
+        gl_FragColor = textureBilinear(textureSource, textureCoords);
     }`;
 }
 
@@ -21,9 +23,11 @@ export function copyShaderMRT() {
     layout(location = 0) out highp vec4 fragColor0;
     layout(location = 1) out highp vec4 fragColor1;
 
+    AUXILIARY_GLSL_FUNS
+
     void main()
     {
-        fragColor0 = texture2D(textureSource, textureCoords);
-        fragColor1 = texture2D(textureSourceGroup1, textureCoords);
+        fragColor0 = textureBilinear(textureSource, textureCoords);
+        fragColor1 = textureBilinear(textureSourceGroup1, textureCoords);
     }`;
 }
