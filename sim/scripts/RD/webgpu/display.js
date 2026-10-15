@@ -364,7 +364,26 @@ export class WebGPUDisplay {
         },
         multisample: { count: this.sampleCount },
       });
-      return () => (this.pipelines.display = pipeline);
+      // The same mesh, outputting texture coordinates into a 1x1 target, for picking.
+      const pick = await this.device.createRenderPipelineAsync({
+        label: "pick",
+        layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.displayLayout] }),
+        vertex: {
+          module,
+          entryPoint: "vertexMain",
+          buffers: [
+            { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }] },
+            { arrayStride: 8, attributes: [{ shaderLocation: 1, offset: 0, format: "float32x2" }] },
+          ],
+        },
+        fragment: { module, entryPoint: "pickMain", targets: [{ format: "rgba32float" }] },
+        primitive: { topology: "triangle-list", cullMode: "none" },
+        depthStencil: { format: "depth24plus", depthWriteEnabled: true, depthCompare: "less-equal" },
+      });
+      return () => {
+        this.pipelines.display = pipeline;
+        this.pipelines.pick = pick;
+      };
     });
   }
 
@@ -760,19 +779,7 @@ export class WebGPUDisplay {
       );
       new Uint32Array(camera, 64, 1)[0] = heightMode;
       this.device.queue.writeBuffer(this.cameraBuffer, 0, camera);
-      const bindGroup = this.device.createBindGroup({
-        layout: this.displayLayout,
-        entries: [
-          { binding: 0, resource: { buffer: this.simUniforms } },
-          { binding: 1, resource: { buffer: backend.paramsBuffer } },
-          { binding: 2, resource: { buffer: backend.slots[1] } },
-          { binding: 3, resource: { buffer: this.postBuffer } },
-          { binding: 4, resource: { buffer: this.displayValues } },
-          ...this.imageEntries(5),
-          { binding: 8, resource: { buffer: this.cameraBuffer } },
-          { binding: 9, resource: { buffer: backend.globalsBuffer } },
-        ],
-      });
+      const bindGroup = this.displayBindGroup(this.cameraBuffer);
       pass.setPipeline(this.pipelines.display);
       pass.setBindGroup(0, bindGroup);
       pass.setVertexBuffer(0, this.geometry.buffers[0]);
@@ -781,6 +788,81 @@ export class WebGPUDisplay {
       pass.drawIndexed(this.geometry.count);
     }
     pass.end();
+  }
+
+  displayBindGroup(cameraBuffer) {
+    const backend = this.backend;
+    return this.device.createBindGroup({
+      layout: this.displayLayout,
+      entries: [
+        { binding: 0, resource: { buffer: this.simUniforms } },
+        { binding: 1, resource: { buffer: backend.paramsBuffer } },
+        { binding: 2, resource: { buffer: backend.slots[1] } },
+        { binding: 3, resource: { buffer: this.postBuffer } },
+        { binding: 4, resource: { buffer: this.displayValues } },
+        ...this.imageEntries(5),
+        { binding: 8, resource: { buffer: cameraBuffer } },
+        { binding: 9, resource: { buffer: backend.globalsBuffer } },
+      ],
+    });
+  }
+
+  /**
+   * Finds the texture coordinates of the display mesh under a pixel, as setBrushCoords()
+   * does on WebGL for surface plots: projection is the camera's projection with its view
+   * offset set to that one pixel. Resolves to [u, v], or null if the pixel misses the mesh.
+   * The mesh is drawn as last drawn by draw().
+   * @returns {Promise<number[]|null>}
+   */
+  async pick(projection, modelView, heightMode) {
+    if (!this.pipelines.pick || !this.geometry || !this.postBuffer) return null;
+    const device = this.device;
+    const target = device.createTexture({
+      size: [1, 1],
+      format: "rgba32float",
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC,
+    });
+    const depth = device.createTexture({
+      size: [1, 1],
+      format: "depth24plus",
+      usage: GPUTextureUsage.RENDER_ATTACHMENT,
+    });
+    const camera = device.createBuffer({ size: 80, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    const cameraData = new ArrayBuffer(80);
+    new Float32Array(cameraData, 0, 16).set(
+      multiply(DEPTH_TO_WEBGPU, multiply(projection, modelView)),
+    );
+    new Uint32Array(cameraData, 64, 1)[0] = heightMode;
+    device.queue.writeBuffer(camera, 0, cameraData);
+    const encoder = this.backend.getEncoder();
+    const pass = encoder.beginRenderPass({
+      colorAttachments: [
+        { view: target.createView(), clearValue: { r: -1, g: -1, b: 0, a: 0 }, loadOp: "clear", storeOp: "store" },
+      ],
+      depthStencilAttachment: {
+        view: depth.createView(),
+        depthClearValue: 1,
+        depthLoadOp: "clear",
+        depthStoreOp: "discard",
+      },
+    });
+    pass.setPipeline(this.pipelines.pick);
+    pass.setBindGroup(0, this.displayBindGroup(camera));
+    pass.setVertexBuffer(0, this.geometry.buffers[0]);
+    pass.setVertexBuffer(1, this.geometry.buffers[1]);
+    pass.setIndexBuffer(this.geometry.buffers[2], "uint32");
+    pass.drawIndexed(this.geometry.count);
+    pass.end();
+    const staging = device.createBuffer({ size: 16, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    encoder.copyTextureToBuffer({ texture: target }, { buffer: staging, bytesPerRow: 256 }, [1, 1]);
+    this.backend.flush();
+    await staging.mapAsync(GPUMapMode.READ);
+    const [u, v, , a] = new Float32Array(staging.getMappedRange().slice(0));
+    staging.destroy();
+    target.destroy();
+    depth.destroy();
+    camera.destroy();
+    return a > 0 ? [u, v] : null;
   }
 
   /**

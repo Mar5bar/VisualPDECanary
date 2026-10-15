@@ -199,3 +199,48 @@ test("domain integrals Int(...) feed back into the equations identically", async
   for (let n = 0; n < a.length; n += 4) worst = Math.max(worst, Math.abs(a[n] - b[n]));
   assert.ok(worst < 1e-5, `largest difference ${worst}`);
 });
+
+// Clicks the canvas at the given fraction of its size, as a user would, and returns the
+// state afterwards. Uses a replacing brush, so the result doesn't depend on how many frames
+// the click lasts.
+async function clickAndRead(page, opts, fx, fy) {
+  await page.evaluate(async (opts) => {
+    const T = window.VisualPDETest;
+    if (opts.preset) await T.loadPreset(opts.preset, opts.overrides);
+    else await T.load(opts);
+    await T.render();
+  }, opts);
+  const box = await page.locator("#simCanvas").boundingBox();
+  await page.mouse.move(box.x + fx * box.width, box.y + fy * box.height);
+  await page.mouse.down();
+  await page.waitForTimeout(300);
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+  return page.evaluate(() => window.VisualPDETest.readState());
+}
+
+for (const plotType of ["plane", "surface"]) {
+  test(`clicking draws at the same place on both backends (${plotType})`, async () => {
+    const brush = { brushType: "circle", brushAction: "replace", brushValue: "1", runningOnLoad: false };
+    // Surfaces are configured as a surface preset is loaded.
+    const opts =
+      plotType == "plane"
+        ? { ...brushBase, ...brush }
+        : { preset: "waveEquation3D", overrides: { ...brush, brushRadius: "5", whatToDraw: "v" } };
+    const states = {};
+    for (const [backend, page] of Object.entries(pages)) {
+      states[backend] = await clickAndRead(page, opts, 0.5, 0.5);
+    }
+    const [a, b] = [decode(states.webgl.data), decode(states.webgpu.data)];
+    let drawn = 0,
+      differing = 0;
+    for (let n = 1; n < a.length; n += 4) {
+      if (a[n] == 1) drawn++;
+      if (a[n] != b[n]) differing++;
+    }
+    const drawnGPU = b.filter((v, n) => n % 4 == 1 && v == 1).length;
+    assert.ok(drawn > 10, `the click only drew ${drawn} nodes on WebGL (${drawnGPU} on WebGPU)`);
+    // The pick may land a node away, from rounding in the camera maths.
+    assert.ok(differing <= drawn * 0.2, `${differing} of ${drawn} drawn nodes differ`);
+  });
+}

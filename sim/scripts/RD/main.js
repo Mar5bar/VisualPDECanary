@@ -4137,7 +4137,6 @@ async function VisualPDE(url) {
   // WebGPU supports everything in use. While WebGPU support is being completed, simulations
   // using anything else run on WebGL instead (see fallBackToWebGL).
   function webGPUUnsupportedFeature() {
-    if (options.plotType == "surface") return "surface plots";
     if (options.blendImage) return "image blending";
     if (options.initialState) return "saved initial states";
     if (checkpointExists) return "checkpoints";
@@ -5399,11 +5398,51 @@ async function VisualPDE(url) {
     }
   }
 
+  // Rounds brush coordinates to near-pixel coordinates.
+  function snapBrushCoords(x, y) {
+    if (options.automataMode) {
+      return [
+        (Math.ceil(x * nXDisc) - 0.5) / nXDisc,
+        (Math.ceil(y * nYDisc) - 0.5) / nYDisc,
+      ];
+    }
+    return [Math.round(x * nXDisc) / nXDisc, Math.round(y * nYDisc) / nYDisc];
+  }
+
   function setBrushCoords(event, container) {
     // Set the brush coordinates to the mouse position, and return whether we're in the container.
     var cRect = container.getBoundingClientRect();
     let x = (event.clientX - cRect.x) / cRect.width;
     let y = 1 - (event.clientY - cRect.y) / cRect.height;
+    if (options.plotType == "surface" && gpuDisplay) {
+      // As below, but read back asynchronously, so until the result arrives the brush is
+      // placed off the domain, where it does nothing.
+      camera.setViewOffset(
+        cRect.width,
+        cRect.height,
+        Math.floor(event.clientX - cRect.x),
+        Math.floor(event.clientY - cRect.y),
+        1,
+        1,
+      );
+      const projection = camera.projectionMatrix.elements.slice();
+      camera.clearViewOffset();
+      scene.updateMatrixWorld();
+      camera.updateMatrixWorld();
+      const modelView = new THREE.Matrix4().multiplyMatrices(
+        camera.matrixWorldInverse,
+        domain.matrixWorld,
+      ).elements;
+      uniforms.brushCoords.value = new THREE.Vector2(-10, -10);
+      gpuDisplay
+        .pick(projection, modelView, options.customSurface ? 2 : 1)
+        .then((uv) => {
+          if (!uv) return;
+          const [u, v] = snapBrushCoords(uv[0], uv[1]);
+          uniforms.brushCoords.value = new THREE.Vector2(u, v);
+        });
+      return true;
+    }
     if (options.plotType == "surface") {
       // If we're in 3D, we'll do some GPU-side raycasting to find the coordinates.
       camera.setViewOffset(
@@ -5435,14 +5474,7 @@ async function VisualPDE(url) {
       x = (x - 0.5) / camera.zoom + 0.5;
       y = 0.5;
     }
-    // Round to near-pixel coordinates.
-    if (options.automataMode) {
-      x = (Math.ceil(x * nXDisc) - 0.5) / nXDisc;
-      y = (Math.ceil(y * nYDisc) - 0.5) / nYDisc;
-    } else {
-      x = Math.round(x * nXDisc) / nXDisc;
-      y = Math.round(y * nYDisc) / nYDisc;
-    }
+    [x, y] = snapBrushCoords(x, y);
     uniforms.brushCoords.value = new THREE.Vector2(x, y);
     return 0 <= x && x <= 1 && 0 <= y && y <= 1;
   }

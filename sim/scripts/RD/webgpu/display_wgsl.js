@@ -366,6 +366,12 @@ ${translateStatements(body, opts)}
 @fragment
 fn fragmentMain(in: VertexOut) -> @location(0) vec4f {
   return displayColour(in.textureCoords);
+}
+
+// For picking: the texture coordinates of the surface under a pixel, as WebGL's uvFragShader.
+@fragment
+fn pickMain(in: VertexOut) -> @location(0) vec4f {
+  return vec4f(in.textureCoords, 0.0, 1.0);
 }`;
 }
 
