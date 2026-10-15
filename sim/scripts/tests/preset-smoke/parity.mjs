@@ -148,8 +148,8 @@ for (const [index, name] of names.entries()) {
       lastStep: lastStep.difference,
       firstStepWhere: firstStep.where,
       nonFinite: lastStep.nonFinite,
-      webglError: a.message.split("\n").filter(Boolean).slice(1, 2).join(" "),
-      webgpuError: b.message.split("\n").filter(Boolean).slice(1, 2).join(" "),
+      webglError: a.message,
+      webgpuError: b.message,
       webgpuConsole: webgpu.errors.slice(0, 2).map((e) => e.slice(0, 300)),
     };
   } catch (e) {

@@ -158,8 +158,12 @@ async function VisualPDE(url) {
     // Set once the page is reloading (see reloadPreservingSimulation), as nothing should
     // start in the meantime.
     isReloading = false,
+    // Every error raised since the test hooks last loaded something (see initTestHooks).
+    testErrors = [],
     // Whether the post-processed values are being read back for a line plot on WebGPU.
     gpuLineReadPending = false,
+    // Likewise, for a vector field's arrows.
+    gpuArrowReadPending = false,
     gpuAdapterInfo = null,
     gpuParamNames = [];
   let simTextures = [],
@@ -4131,7 +4135,6 @@ async function VisualPDE(url) {
   // using anything else run on WebGL instead (see fallBackToWebGL).
   function webGPUUnsupportedFeature() {
     if (options.plotType == "surface") return "surface plots";
-    if (options.vectorField) return "vector fields";
     if (options.blendImage) return "image blending";
     if (options.probing) return "probes";
     if (options.integrate) return "integral display";
@@ -4285,6 +4288,7 @@ async function VisualPDE(url) {
       fallbackReason: webGPUFailureReason(),
       // Loads the given options on top of the default preset, paused and reset to t = 0.
       async load(opts) {
+        testErrors = [];
         loadPreset({ parent: "default", ...opts });
         pauseSim();
         if (gpuBackend) await gpuBackend.whenReady();
@@ -4293,6 +4297,7 @@ async function VisualPDE(url) {
       // Loads a preset as the app does from a ?preset= link, applying any overrides as
       // further URL options would be, then pauses and resets to t = 0.
       async loadPreset(name, overrides) {
+        testErrors = [];
         loadPreset(name);
         if (overrides) loadPreset(overrides, true, true);
         pauseSim();
@@ -4360,6 +4365,14 @@ async function VisualPDE(url) {
         uniforms.brushValueModifier.value = erase ? -1 : 1;
         draw();
       },
+      // Returns the post-processed values (value, outside-domain flag, height, y vector
+      // component) per node, as computed for the last frame drawn.
+      async readPost() {
+        const data = gpuDisplay
+          ? await gpuDisplay.readPost()
+          : (getPostState(), postBuffer);
+        return { nX: nXDisc, nY: nYDisc, data: toBase64(data) };
+      },
       async time() {
         return uniforms.t.value;
       },
@@ -4385,9 +4398,10 @@ async function VisualPDE(url) {
           webgpu: gpuBackend?.sources ?? null,
         };
       },
+      // Every error raised since the last load (or page load), whether or not it was shown.
       async errorMessage() {
-        const error = document.getElementById("error");
-        return error && error.offsetParent !== null ? error.innerText : "";
+        if (gpuBackend) await gpuBackend.whenReady();
+        return testErrors.join("\n");
       },
     };
   }
@@ -4879,48 +4893,7 @@ async function VisualPDE(url) {
     ) {
       // Update the direction of each arrow using the b and a components of postTexture.
       getPostState();
-      let ind,
-        xComp,
-        yComp,
-        sizes = [];
-      for (const arrow of arrowGroup.children) {
-        ind = 4 * arrow.ind;
-        xComp = postBuffer[ind + 2];
-        yComp = postBuffer[ind + 3];
-        arrow.visible = postBuffer[ind + 1] <= 0.5;
-        arrow.lookAt(
-          arrow.position.x + xComp,
-          arrow.position.y + yComp,
-          arrow.position.z,
-        );
-        arrow.size = xComp ** 2 + yComp ** 2;
-        sizes.push(arrow.size);
-      }
-      let maxSize = 1;
-      switch (options.arrowScale) {
-        case "auto":
-          maxSize = Math.sqrt(Math.max(...sizes));
-          if (maxSize == 0) maxSize = 1;
-          for (const arrow of arrowGroup.children) {
-            const scale =
-              baseArrowScale * lerp(0.1, 1.5, Math.sqrt(arrow.size) / maxSize);
-            arrow.scale.set(scale, scale, scale);
-          }
-          break;
-        case "relative":
-          maxSize = arrowGroup.customMax > 0 ? arrowGroup.customMax : 1;
-          for (const arrow of arrowGroup.children) {
-            const scale =
-              baseArrowScale * lerp(0.1, 1.5, Math.sqrt(arrow.size) / maxSize);
-            arrow.scale.set(scale, scale, scale);
-          }
-          break;
-        case "none":
-          for (const arrow of arrowGroup.children) {
-            arrow.scale.set(baseArrowScale, baseArrowScale, baseArrowScale);
-          }
-          break;
-      }
+      updateArrows();
     }
 
     // If selected, update the time display.
@@ -5033,6 +5006,13 @@ async function VisualPDE(url) {
       updateTimeDisplay();
     }
     if (options.plotType == "line") gpuUpdateLinePlot();
+    if (
+      options.vectorField &&
+      arrowGroup &&
+      !(frameCount % options.guiUpdatePeriod)
+    ) {
+      gpuUpdateArrows();
+    }
 
     scene.updateMatrixWorld();
     camera.updateMatrixWorld();
@@ -5075,6 +5055,7 @@ async function VisualPDE(url) {
           colour: [...l.material.color.toArray(), l.material.opacity],
           linewidth: l.material.linewidth,
         })),
+      meshes: gpuArrowMeshes(),
     });
     gpuBackend.flush();
     if (takeAScreenshot) {
@@ -5091,6 +5072,91 @@ async function VisualPDE(url) {
       link.click();
     }
     frameCount = (frameCount + 1) % options.guiUpdatePeriod;
+  }
+
+  // Points and scales the vector field's arrows from postBuffer, which holds the
+  // post-processed values (with the vector components in b and a).
+  function updateArrows() {
+    let ind,
+      xComp,
+      yComp,
+      sizes = [];
+    for (const arrow of arrowGroup.children) {
+      ind = 4 * arrow.ind;
+      xComp = postBuffer[ind + 2];
+      yComp = postBuffer[ind + 3];
+      arrow.visible = postBuffer[ind + 1] <= 0.5;
+      arrow.lookAt(
+        arrow.position.x + xComp,
+        arrow.position.y + yComp,
+        arrow.position.z,
+      );
+      arrow.size = xComp ** 2 + yComp ** 2;
+      sizes.push(arrow.size);
+    }
+    let maxSize = 1;
+    switch (options.arrowScale) {
+      case "auto":
+        maxSize = Math.sqrt(Math.max(...sizes));
+        if (maxSize == 0) maxSize = 1;
+        for (const arrow of arrowGroup.children) {
+          const scale =
+            baseArrowScale * lerp(0.1, 1.5, Math.sqrt(arrow.size) / maxSize);
+          arrow.scale.set(scale, scale, scale);
+        }
+        break;
+      case "relative":
+        maxSize = arrowGroup.customMax > 0 ? arrowGroup.customMax : 1;
+        for (const arrow of arrowGroup.children) {
+          const scale =
+            baseArrowScale * lerp(0.1, 1.5, Math.sqrt(arrow.size) / maxSize);
+          arrow.scale.set(scale, scale, scale);
+        }
+        break;
+      case "none":
+        for (const arrow of arrowGroup.children) {
+          arrow.scale.set(baseArrowScale, baseArrowScale, baseArrowScale);
+        }
+        break;
+    }
+  }
+
+  // Reads the post-processed values back for the vector field on WebGPU, then points the
+  // arrows. As for line plots, the arrows lag the simulation by a frame or so.
+  function gpuUpdateArrows() {
+    if (gpuArrowReadPending) return;
+    gpuArrowReadPending = true;
+    gpuDisplay.readPost().then((data) => {
+      gpuArrowReadPending = false;
+      if (!arrowGroup) return;
+      const changed =
+        !postBuffer ||
+        postBuffer.length != data.length ||
+        data.some((v, k) => !Object.is(v, postBuffer[k]));
+      postBuffer = data;
+      updateArrows();
+      if (changed && !isRunning) render();
+    });
+  }
+
+  // The vector field's arrows, as instanced meshes for WebGPU's display: one for the tails
+  // and one for the heads.
+  function gpuArrowMeshes() {
+    if (!options.vectorField || !arrowGroup?.visible) return [];
+    const arrows = arrowGroup.children.filter((arrow) => arrow.visible);
+    const colour = [...arrowMaterial.color.toArray(), arrowMaterial.opacity];
+    return [0, 1].map((part) => {
+      const matrices = new Float32Array(16 * arrows.length);
+      arrows.forEach((arrow, k) =>
+        matrices.set(arrow.children[part].matrixWorld.elements, 16 * k),
+      );
+      return {
+        geometry: part == 0 ? tailGeometry : headGeometry,
+        matrices,
+        viewMatrix: camera.matrixWorldInverse.elements,
+        colour,
+      };
+    });
   }
 
   // Reads the post-processed values back for a line plot on WebGPU, then updates the line
@@ -11562,6 +11628,8 @@ async function VisualPDE(url) {
    * @param {string} message - The error message to display.
    */
   function throwError(message, fixButtonMessage, fixButtonFunc) {
+    // Recorded for the test hooks, whether or not errors are shown.
+    testErrors.push(message);
     if (!shouldShowErrors()) return;
     runningBeforeError = isRunning;
     try {

@@ -48,9 +48,13 @@ export const DISPLAY_VALUES = new ValueLayout([
 ]);
 
 // The runtime +inf that the GLSL computes as 1.0/(0.0*gl_FragCoord.x), to dodge constant
-// folding; WGSL rejects a constant infinity outright, so it comes from a uniform instead.
+// folding; WGSL rejects a constant infinity outright, so it comes from a uniform instead,
+// via a name that can't clash with (and so be renamed as) a user's parameter.
 function replaceRuntimeInfinity(glsl) {
-  return glsl.replaceAll(/1\.0\s*\/\s*\(\s*0\.0\s*\*\s*gl_FragCoord\.x\s*\)/g, "U.inf");
+  return glsl.replaceAll(
+    /1\.0\s*\/\s*\(\s*0\.0\s*\*\s*gl_FragCoord\.x\s*\)/g,
+    "vpde_infinity",
+  );
 }
 
 function sharedLets(parts) {
@@ -188,6 +192,7 @@ fn main(@builtin(global_invocation_id) gid: vec3u) {
   let j = i32(gid.y);
 ${sharedLets(parts)}
 ${POST_VALUES.lets("V")}
+  let vpde_infinity = U.inf;
   let textureCoords = (vec2f(f32(i), f32(j)) + 0.5) / vec2f(f32(U.nX), f32(U.nY));
   var fragColour: vec4f;
 ${translateStatements(body, opts)}
@@ -449,5 +454,33 @@ fn fragmentMain(in: VertexOut) -> @location(0) vec4f {
   var colour = line.colour.rgb;
   if (line.useVertexColours != 0u) { colour *= in.colour; }
   return vec4f(colour, line.colour.a);
+}
+`;
+
+/**
+ * WGSL drawing instanced meshes in a flat colour, as three.js's MeshBasicMaterial does (used
+ * for the vector field's arrows). Each instance's world matrix is a per-instance attribute.
+ */
+export const MESH_SHADER = `
+struct Mesh {
+  viewProjection: mat4x4f,
+  colour: vec4f,
+}
+@group(0) @binding(0) var<uniform> mesh: Mesh;
+
+@vertex
+fn vertexMain(
+  @location(0) position: vec3f,
+  @location(1) m0: vec4f,
+  @location(2) m1: vec4f,
+  @location(3) m2: vec4f,
+  @location(4) m3: vec4f,
+) -> @builtin(position) vec4f {
+  return mesh.viewProjection * mat4x4f(m0, m1, m2, m3) * vec4f(position, 1.0);
+}
+
+@fragment
+fn fragmentMain() -> @location(0) vec4f {
+  return mesh.colour;
 }
 `;

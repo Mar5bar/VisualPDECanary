@@ -14,6 +14,7 @@ import {
   POST_VALUES,
   DISPLAY_VALUES,
   LINE_SHADER,
+  MESH_SHADER,
 } from "./display_wgsl.js";
 
 // The template quad of three.js's LineSegmentsGeometry: each line segment is an instance of
@@ -138,6 +139,79 @@ export class WebGPUDisplay {
     ];
     // Per line drawn in a frame, its uniforms and instance buffers, reused across frames.
     this.lineResources = [];
+
+    const meshModule = device.createShaderModule({ label: "mesh", code: MESH_SHADER });
+    this.pipelines.mesh = device.createRenderPipeline({
+      label: "mesh",
+      layout: "auto",
+      vertex: {
+        module: meshModule,
+        entryPoint: "vertexMain",
+        buffers: [
+          { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }] },
+          {
+            arrayStride: 64,
+            stepMode: "instance",
+            attributes: [1, 2, 3, 4].map((location, k) => ({
+              shaderLocation: location,
+              offset: 16 * k,
+              format: "float32x4",
+            })),
+          },
+        ],
+      },
+      fragment: { module: meshModule, entryPoint: "fragmentMain", targets: [{ format: this.format }] },
+      primitive: { topology: "triangle-list", cullMode: "none" },
+      depthStencil: { format: "depth24plus", depthWriteEnabled: true, depthCompare: "less-equal" },
+      multisample: { count: this.sampleCount },
+    });
+    // Uploaded geometries, by the three.js BufferGeometry they came from.
+    this.meshGeometries = new WeakMap();
+    this.meshResources = [];
+  }
+
+  // Uploads a three.js BufferGeometry's positions and indices, once.
+  meshGeometry(geometry) {
+    let g = this.meshGeometries.get(geometry);
+    if (g) return g;
+    const device = this.device;
+    const positions = geometry.attributes.position.array;
+    const index = geometry.index
+      ? Uint32Array.from(geometry.index.array)
+      : Uint32Array.from({ length: positions.length / 3 }, (_, k) => k);
+    const upload = (data, usage) => {
+      const buffer = device.createBuffer({ size: data.byteLength, usage: usage | GPUBufferUsage.COPY_DST });
+      device.queue.writeBuffer(buffer, 0, data);
+      return buffer;
+    };
+    g = {
+      positions: upload(Float32Array.from(positions), GPUBufferUsage.VERTEX),
+      index: upload(index, GPUBufferUsage.INDEX),
+      count: index.length,
+    };
+    this.meshGeometries.set(geometry, g);
+    return g;
+  }
+
+  // Returns mesh k's resources, with an instance buffer large enough for `bytes` bytes.
+  meshResource(k, bytes) {
+    const device = this.device;
+    let r = this.meshResources[k];
+    if (!r) {
+      r = {
+        uniforms: device.createBuffer({ size: 80, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }),
+      };
+      r.bindGroup = device.createBindGroup({
+        layout: this.pipelines.mesh.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: r.uniforms } }],
+      });
+      this.meshResources[k] = r;
+    }
+    if (!r.instances || r.instances.size < bytes) {
+      r.instances?.destroy();
+      r.instances = device.createBuffer({ size: bytes, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+    }
+    return r;
   }
 
   // Returns line k's resources, with instance buffers large enough for `bytes` bytes.
@@ -238,7 +312,18 @@ export class WebGPUDisplay {
         fragment: {
           module,
           entryPoint: "fragmentMain",
-          targets: [{ format: this.format }],
+          // Blended as three.js blends the WebGL display material (transparent, so
+          // NormalBlending with non-premultiplied alpha): outside the domain, where the shader
+          // outputs transparent black, the background shows.
+          targets: [
+            {
+              format: this.format,
+              blend: {
+                color: { srcFactor: "src-alpha", dstFactor: "one-minus-src-alpha", operation: "add" },
+                alpha: { srcFactor: "one", dstFactor: "one-minus-src-alpha", operation: "add" },
+              },
+            },
+          ],
         },
         primitive: { topology: "triangle-list", cullMode: "none" },
         depthStencil: {
@@ -377,6 +462,9 @@ export class WebGPUDisplay {
    *   them: modelView (matrix), segments (start and end of each, as LineSegmentsGeometry's
    *   instanceStart buffer holds them), colours (likewise, or null), colour (RGBA) and
    *   linewidth.
+   * @param {Object[]} [options.meshes] - Instanced meshes to draw in a flat colour: geometry
+   *   (a three.js BufferGeometry), matrices (each instance's world matrix, 16 floats apiece),
+   *   viewMatrix (the camera's inverse world matrix) and colour (RGBA).
    */
   draw({
     simValues,
@@ -389,6 +477,7 @@ export class WebGPUDisplay {
     height,
     showDomain = true,
     lines = [],
+    meshes = [],
   }) {
     const backend = this.backend;
     // A zero-sized canvas has no texture to draw into.
@@ -459,6 +548,23 @@ export class WebGPUDisplay {
       pass.setVertexBuffer(3, r.colours);
       pass.setIndexBuffer(this.lineQuad[2], "uint32");
       pass.drawIndexed(LINE_QUAD_INDICES.length, count);
+    });
+    meshes.forEach((m, k) => {
+      const count = m.matrices.length / 16;
+      if (!count) return;
+      const g = this.meshGeometry(m.geometry);
+      const r = this.meshResource(k, m.matrices.byteLength);
+      const uniforms = new Float32Array(20);
+      uniforms.set(toClip(m.viewMatrix), 0);
+      uniforms.set(m.colour, 16);
+      this.device.queue.writeBuffer(r.uniforms, 0, uniforms);
+      this.device.queue.writeBuffer(r.instances, 0, m.matrices);
+      pass.setPipeline(this.pipelines.mesh);
+      pass.setBindGroup(0, r.bindGroup);
+      pass.setVertexBuffer(0, g.positions);
+      pass.setVertexBuffer(1, r.instances);
+      pass.setIndexBuffer(g.index, "uint32");
+      pass.drawIndexed(g.count, count);
     });
     if (
       showDomain &&
