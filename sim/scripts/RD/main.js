@@ -918,7 +918,9 @@ async function VisualPDE(url) {
   if (
     (!isReturningUser() || (viewFullWelcome && !seenFullWelcomeUser())) &&
     options.preset != "Banner" &&
-    !(logo_only || cleanDisplay)
+    !(logo_only || cleanDisplay) &&
+    // Automated tests (see initTestHooks) can't dismiss the popup.
+    !params.has("testHooks")
   ) {
     pauseSim();
     let noButtonId = "welcome_no";
@@ -1095,6 +1097,7 @@ async function VisualPDE(url) {
   isLoading = false;
   resetSim();
   animate();
+  if (params.has("testHooks")) initTestHooks();
   if (options.captureWebcam) {
     // Show the webcam access pane.
     $("#webcam_access").show();
@@ -3949,40 +3952,7 @@ async function VisualPDE(url) {
     }
 
     // Only timestep if the simulation is running.
-    if (isRunning && canTimeStep) {
-      // Ensure that any Dirichlet BCs are satisfied before timestepping (required due to brushes/init condition).
-      anyDirichletBCs ? enforceDirichlet() : {};
-      // Perform a number of timesteps per frame.
-      for (let i = 0; i < options.numTimestepsPerFrame; i++) {
-        if (
-          options.autoPause &&
-          canAutoPause &&
-          uniforms.t.value >= autoPauseStopValue
-        ) {
-          // Pause automatically if this option is selected and we're past the set time, but only once.
-          canAutoPause = false;
-          pauseSim();
-          break;
-        }
-        if (shaderContainsRAND && !options.setSeed) updateRandomSeed();
-        if (shaderContainsGlobalIntegral) {
-          timestepCount =
-            (timestepCount + 1) % options.globalIntegralUpdatePeriod;
-          if (!(timestepCount % options.globalIntegralUpdatePeriod)) {
-            updateGlobalIntegral();
-          }
-        }
-        timestep();
-        // Leave the loop after one timestep if we're in automata mode.
-        if (options.automataMode) {
-          canTimeStep = false;
-          setTimeout(() => {
-            canTimeStep = true;
-          }, 1000 / options.numTimestepsPerFrame);
-          break;
-        }
-      }
-    }
+    if (isRunning && canTimeStep) advance(options.numTimestepsPerFrame);
 
     // Render if something has happened.
     if (hasDrawn || isRunning) render();
@@ -3994,6 +3964,110 @@ async function VisualPDE(url) {
     if (isRunning && isOptimising) optimiseFPS();
 
     requestAnimationFrame(animate);
+  }
+
+  /**
+   * Advances the simulation by up to numSteps timesteps, as done once per animation frame.
+   * Also used by the test hooks (see initTestHooks), so tests step exactly as the app does.
+   * @param {number} numSteps - The number of timesteps to take.
+   */
+  function advance(numSteps) {
+    // Ensure that any Dirichlet BCs are satisfied before timestepping (required due to brushes/init condition).
+    anyDirichletBCs ? enforceDirichlet() : {};
+    for (let i = 0; i < numSteps; i++) {
+      if (
+        options.autoPause &&
+        canAutoPause &&
+        uniforms.t.value >= autoPauseStopValue
+      ) {
+        // Pause automatically if this option is selected and we're past the set time, but only once.
+        canAutoPause = false;
+        pauseSim();
+        break;
+      }
+      if (shaderContainsRAND && !options.setSeed) updateRandomSeed();
+      if (shaderContainsGlobalIntegral) {
+        timestepCount =
+          (timestepCount + 1) % options.globalIntegralUpdatePeriod;
+        if (!(timestepCount % options.globalIntegralUpdatePeriod)) {
+          updateGlobalIntegral();
+        }
+      }
+      timestep();
+      // Leave the loop after one timestep if we're in automata mode.
+      if (options.automataMode) {
+        canTimeStep = false;
+        setTimeout(() => {
+          canTimeStep = true;
+        }, 1000 / numSteps);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Exposes window.VisualPDETest, a small deterministic driver for the numerical test suites
+   * in sim/scripts/tests/preset-smoke. Only enabled by loading the page with ?testHooks, so it
+   * never exists for normal visitors. Every method is async so that a backend whose readback
+   * is asynchronous can implement the same interface.
+   */
+  function initTestHooks() {
+    // Encodes a Float32Array as base64, which is far cheaper to pass out of the page than a
+    // plain array of numbers.
+    function toBase64(floats) {
+      const bytes = new Uint8Array(floats.buffer, floats.byteOffset, floats.byteLength);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i += 0x8000) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      }
+      return btoa(binary);
+    }
+    window.VisualPDETest = {
+      backend: "webgl",
+      // Loads the given options on top of the default preset, paused and reset to t = 0.
+      async load(opts) {
+        loadPreset({ parent: "default", ...opts });
+        pauseSim();
+        resetSim();
+      },
+      async reset() {
+        resetSim();
+      },
+      async step(numSteps) {
+        advance(numSteps);
+      },
+      // Returns the current state as RGBA float32 texels, row by row from the bottom, with
+      // species 5-8 (if any) in a second array.
+      async readState() {
+        getRawState();
+        return {
+          nX: nXDisc,
+          nY: nYDisc,
+          data: toBase64(stateBuffer),
+          dataGroup1: stateBufferGroup1 ? toBase64(stateBufferGroup1) : null,
+        };
+      },
+      async time() {
+        return uniforms.t.value;
+      },
+      // The discretisation actually in use, which in 2D depends on the canvas's aspect ratio.
+      async grid() {
+        return {
+          nX: nXDisc,
+          nY: nYDisc,
+          dx: uniforms.dx.value,
+          dy: uniforms.dy.value,
+          Lx: uniforms.L_x.value,
+          Ly: uniforms.L_y.value,
+          minX: evaluateWithParams(options.minX),
+          minY: evaluateWithParams(options.minY),
+        };
+      },
+      async errorMessage() {
+        const error = document.getElementById("error");
+        return error && error.offsetParent !== null ? error.innerText : "";
+      },
+    };
   }
 
   function optimiseFPS() {
@@ -9778,7 +9852,9 @@ async function VisualPDE(url) {
   // Wraps the logic gating whether "What's new" popups should be shown, so
   // it can diverge from shouldShowErrors() independently in future.
   function shouldShowUpdatesMessage() {
-    return shouldShowErrors();
+    // Automated tests (see initTestHooks) can't dismiss the popup, which would otherwise block
+    // the rest of the start-up sequence.
+    return shouldShowErrors() && !params.has("testHooks");
   }
 
   // Shows the "What's new" popup identified by id, provided today's date is
