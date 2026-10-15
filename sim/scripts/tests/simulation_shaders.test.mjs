@@ -181,6 +181,21 @@ test("RDShaderMain/RDShaderMainMRT: Midpoint/RK4 stage slopes are divided by the
   assert.match(RDShaderMainMRT("RK44"), /RHS2 = \(timescalesGroup1 \* \(texture2D\(textureSource1Group1/);
 });
 
+// computeRHS takes the time explicitly (shadowing the uniform t), so that AB2 can evaluate
+// its previous RHS at the previous time rather than the current one.
+test("RDShaderTop/RDShaderMain (+MRT): computeRHS takes the time, and AB2's previous RHS uses t - dt", () => {
+  assert.match(RDShaderTop("FE"), /void computeRHS\(sampler2D textureSource, float t,/);
+  assert.match(RDShaderTopMRT("FE"), /void computeRHS\(sampler2D textureSource, float t,/);
+  const types = ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"];
+  for (const type of types) {
+    for (const main of [RDShaderMain(type), RDShaderMainMRT(type)]) {
+      const calls = [...main.matchAll(/computeRHS\(\w+, ([^,]+),/g)].map((m) => m[1]);
+      const expected = type == "AB2" ? ["t", "t - dt"] : ["t"];
+      assert.deepEqual(calls, expected, type);
+    }
+  }
+});
+
 test("RDShaderBotMRT: assigns both fragColor0 and fragColor1", () => {
   const shader = RDShaderBotMRT();
   assert.match(shader, /fragColor0/);

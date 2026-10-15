@@ -82,7 +82,7 @@ export function RDShaderTop(type) {
       return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
     }
 
-    void computeRHS(sampler2D textureSource, vec4 uvwqIn, vec4 uvwqLIn, vec4 uvwqRIn, vec4 uvwqTIn, vec4 uvwqBIn, vec4 uvwqLLIn, vec4 uvwqRRIn, vec4 uvwqTTIn, vec4 uvwqBBIn, out highp vec4 result) {
+    void computeRHS(sampler2D textureSource, float t, vec4 uvwqIn, vec4 uvwqLIn, vec4 uvwqRIn, vec4 uvwqTIn, vec4 uvwqBIn, vec4 uvwqLLIn, vec4 uvwqRRIn, vec4 uvwqTTIn, vec4 uvwqBBIn, out highp vec4 result) {
 
         ivec2 texSize = textureSize(textureSource,0);
         float step_x = 1.0 / float(texSize.x);
@@ -130,7 +130,7 @@ export function RDShaderMain(type) {
     uvwqRR = texture2D(textureSource, textureCoordsRR);
     uvwqTT = texture2D(textureSource, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB);
-    computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
+    computeRHS(textureSource, t, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
     vec4 timescales = TIMESCALES;
     updated = dt * RHS / timescales + uvwq;`;
   update.AB2 = `uvwq = texture2D(textureSource, textureCoords);
@@ -142,7 +142,7 @@ export function RDShaderMain(type) {
     uvwqRR = texture2D(textureSource, textureCoordsRR);
     uvwqTT = texture2D(textureSource, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB);
-    computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS1);
+    computeRHS(textureSource, t, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS1);
     uvwq = texture2D(textureSource1, textureCoords);
     uvwqL = texture2D(textureSource1, textureCoordsL);
     uvwqR = texture2D(textureSource1, textureCoordsR);
@@ -152,7 +152,7 @@ export function RDShaderMain(type) {
     uvwqRR = texture2D(textureSource1, textureCoordsRR);
     uvwqTT = texture2D(textureSource1, textureCoordsTT);
     uvwqBB = texture2D(textureSource1, textureCoordsBB);
-    computeRHS(textureSource1, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS2);
+    computeRHS(textureSource1, t - dt, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS2);
     RHS = 1.5 * RHS1 - 0.5 * RHS2;
     vec4 timescales = TIMESCALES;
     updated = dt * RHS / timescales + texture2D(textureSource, textureCoords);`;
@@ -165,7 +165,7 @@ export function RDShaderMain(type) {
     uvwqRR = texture2D(textureSource, textureCoordsRR);
     uvwqTT = texture2D(textureSource, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB);
-    computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
+    computeRHS(textureSource, t, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
     vec4 timescales = TIMESCALES;
     updated = RHS / timescales;`;
   update.Mid2 = `uvwqLast = texture2D(textureSource, textureCoords);
@@ -178,7 +178,7 @@ export function RDShaderMain(type) {
     uvwqRR = texture2D(textureSource, textureCoordsRR) + 0.5*dt*texture2D(textureSource1, textureCoordsRR);
     uvwqTT = texture2D(textureSource, textureCoordsTT) + 0.5*dt*texture2D(textureSource1, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB) + 0.5*dt*texture2D(textureSource1, textureCoordsBB);
-    computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
+    computeRHS(textureSource, t, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
     vec4 timescales = TIMESCALES;
     updated = dt * RHS / timescales + uvwqLast;`;
   update.RK41 = `uvwq = texture2D(textureSource, textureCoords);
@@ -190,7 +190,7 @@ export function RDShaderMain(type) {
     uvwqRR = texture2D(textureSource, textureCoordsRR);
     uvwqTT = texture2D(textureSource, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB);
-    computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
+    computeRHS(textureSource, t, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
     vec4 timescales = TIMESCALES;
     updated = RHS / timescales;`;
   update.RK42 = `uvwq = texture2D(textureSource, textureCoords) + 0.5*dt*texture2D(textureSource1, textureCoords);
@@ -202,7 +202,7 @@ export function RDShaderMain(type) {
     uvwqRR = texture2D(textureSource, textureCoordsRR) + 0.5*dt*texture2D(textureSource1, textureCoordsRR);
     uvwqTT = texture2D(textureSource, textureCoordsTT) + 0.5*dt*texture2D(textureSource1, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB) + 0.5*dt*texture2D(textureSource1, textureCoordsBB);
-    computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
+    computeRHS(textureSource, t, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
     vec4 timescales = TIMESCALES;
     updated = RHS / timescales;`;
   update.RK43 = `uvwq = texture2D(textureSource, textureCoords) + 0.5*dt*texture2D(textureSource2, textureCoords);
@@ -214,7 +214,7 @@ export function RDShaderMain(type) {
     uvwqRR = texture2D(textureSource, textureCoordsRR) + 0.5*dt*texture2D(textureSource2, textureCoordsRR);
     uvwqTT = texture2D(textureSource, textureCoordsTT) + 0.5*dt*texture2D(textureSource2, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB) + 0.5*dt*texture2D(textureSource2, textureCoordsBB);
-    computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
+    computeRHS(textureSource, t, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
     vec4 timescales = TIMESCALES;
     updated = RHS / timescales;`;
   update.RK44 = `uvwqLast = texture2D(textureSource, textureCoords);
@@ -227,7 +227,7 @@ export function RDShaderMain(type) {
     uvwqRR = texture2D(textureSource, textureCoordsRR) + dt*texture2D(textureSource3, textureCoordsRR);
     uvwqTT = texture2D(textureSource, textureCoordsTT) + dt*texture2D(textureSource3, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB) + dt*texture2D(textureSource3, textureCoordsBB);
-    computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS1);
+    computeRHS(textureSource, t, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS1);
     vec4 timescales = TIMESCALES;
     // The stored stage slopes k1-k3 are already divided by the timescales, so multiply them
     // back here: the final update (and any algebraic species) then divides exactly once.
@@ -345,12 +345,15 @@ function stencilBlockMRT(tex0, tex1, combineTex0, combineTex1, coefficient) {
  *   calls still pass the scheme's primary "textureSource").
  * @param {string} rhsOut - Group 0's result variable name.
  * @param {string} rhsOutGroup1 - Group 1's result variable name.
+ * @param {string} [time] - GLSL expression for the time at which to evaluate the RHS.
  * @returns {string} The generated shader code.
  */
-function computeRHSCallMRT(tex, rhsOut, rhsOutGroup1) {
+function computeRHSCallMRT(tex, rhsOut, rhsOutGroup1, time = "t") {
   return (
     "computeRHS(" +
     tex +
+    ", " +
+    time +
     ", uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, " +
     "uvwq2, uvwq2L, uvwq2R, uvwq2T, uvwq2B, uvwq2LL, uvwq2RR, uvwq2TT, uvwq2BB, " +
     rhsOut +
@@ -447,7 +450,7 @@ export function RDShaderTopMRT(type) {
       return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
     }
 
-    void computeRHS(sampler2D textureSource,
+    void computeRHS(sampler2D textureSource, float t,
       vec4 uvwqIn, vec4 uvwqLIn, vec4 uvwqRIn, vec4 uvwqTIn, vec4 uvwqBIn, vec4 uvwqLLIn, vec4 uvwqRRIn, vec4 uvwqTTIn, vec4 uvwqBBIn,
       vec4 uvwq2In, vec4 uvwq2LIn, vec4 uvwq2RIn, vec4 uvwq2TIn, vec4 uvwq2BIn, vec4 uvwq2LLIn, vec4 uvwq2RRIn, vec4 uvwq2TTIn, vec4 uvwq2BBIn,
       out highp vec4 result0, out highp vec4 result1) {
@@ -517,7 +520,7 @@ export function RDShaderMainMRT(type) {
     ${stencilBlockMRT("textureSource", "textureSourceGroup1")}
     ${computeRHSCallMRT("textureSource", "RHSCur", "RHSCurGroup1")}
     ${stencilBlockMRT("textureSource1", "textureSource1Group1")}
-    ${computeRHSCallMRT("textureSource1", "RHSPrev", "RHSPrevGroup1")}
+    ${computeRHSCallMRT("textureSource1", "RHSPrev", "RHSPrevGroup1", "t - dt")}
     RHS = 1.5 * RHSCur - 0.5 * RHSPrev;
     RHS2 = 1.5 * RHSCurGroup1 - 0.5 * RHSPrevGroup1;
     vec4 timescales = TIMESCALES;
