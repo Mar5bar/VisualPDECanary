@@ -19,19 +19,21 @@ export function auxiliary_GLSL_funs() {
     // arbitrary points (u[x,y], probes, overlays, resampling) interpolate with this instead.
     // Weights within rounding error of a texel centre are snapped, so sampling at a node
     // returns exactly its value.
-    vec4 textureBilinear(sampler2D tex, vec2 uv) {
-      vec2 size = vec2(textureSize(tex, 0));
-      vec2 st = uv * size - 0.5;
-      vec2 base = floor(st);
-      vec2 f = st - base;
-      f = mix(f, vec2(0.0), vec2(lessThan(f, vec2(1e-4))));
-      f = mix(f, vec2(1.0), vec2(greaterThan(f, vec2(1.0 - 1e-4))));
-      vec2 c0 = (base + 0.5) / size;
-      vec2 c1 = (base + 1.5) / size;
+    // Locals are uppercase because getReservedStrs() in main.js reserves every name declared
+    // here, and these mustn't clash with users' species or parameter names.
+    vec4 textureBilinear(sampler2D TEX, vec2 UV) {
+      vec2 SIZE = vec2(textureSize(TEX, 0));
+      vec2 ST = UV * SIZE - 0.5;
+      vec2 BASE = floor(ST);
+      vec2 FRAC = ST - BASE;
+      FRAC = mix(FRAC, vec2(0.0), vec2(lessThan(FRAC, vec2(1e-4))));
+      FRAC = mix(FRAC, vec2(1.0), vec2(greaterThan(FRAC, vec2(1.0 - 1e-4))));
+      vec2 C0 = (BASE + 0.5) / SIZE;
+      vec2 C1 = (BASE + 1.5) / SIZE;
       return mix(
-        mix(texture(tex, c0), texture(tex, vec2(c1.x, c0.y)), f.x),
-        mix(texture(tex, vec2(c0.x, c1.y)), texture(tex, c1), f.x),
-        f.y
+        mix(texture(TEX, C0), texture(TEX, vec2(C1.x, C0.y)), FRAC.x),
+        mix(texture(TEX, vec2(C0.x, C1.y)), texture(TEX, C1), FRAC.x),
+        FRAC.y
       );
     }
 
