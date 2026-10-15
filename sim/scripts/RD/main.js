@@ -7613,7 +7613,11 @@ async function VisualPDE(url) {
     shaderStr = shaderStr.replace(/indicatorFun/g, replacement);
     assignFragmentShader(probeMaterial, shaderStr);
     probeMaterial.needsUpdate = true;
-    gpuDisplay?.setProbe({ ...gpuShaderParts(), body: gpuMainBody(shaderStr) });
+    // Only built while probing, as WebGL only compiles it when it's used (and it can refer to
+    // names that aren't defined while it isn't, such as a default species name).
+    if (options.probing) {
+      gpuDisplay?.setProbe({ ...gpuShaderParts(), body: gpuMainBody(shaderStr) });
+    }
   }
 
   /**
@@ -7797,10 +7801,13 @@ async function VisualPDE(url) {
     shaderStr = shaderStr.replace(/indicatorFun/g, replacement);
     assignFragmentShader(globalIntegralMaterial, shaderStr);
     globalIntegralMaterial.needsUpdate = true;
-    gpuDisplay?.setIntegrands({
-      ...gpuShaderParts(),
-      body: gpuMainBody(shaderStr),
-    });
+    // Likewise, only built while some Int(...) is in use.
+    if (options.globalIntExprs.some((expr) => expr)) {
+      gpuDisplay?.setIntegrands({
+        ...gpuShaderParts(),
+        body: gpuMainBody(shaderStr),
+      });
+    }
   }
 
   /**

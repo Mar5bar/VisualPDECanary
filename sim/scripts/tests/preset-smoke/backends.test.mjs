@@ -276,3 +276,38 @@ test("changing the grid mid-run resamples the state identically on both backends
   for (let n = 0; n < a.length; n += 4) worst = Math.max(worst, Math.abs(a[n] - b[n]));
   assert.ok(worst < 1e-5, `largest difference ${worst}`);
 });
+
+test("timescales depending on the state are evaluated from the current state", async () => {
+  for (const timesteppingScheme of ["Euler", "AB2", "Mid", "RK4"]) {
+    const states = await onBoth(
+      {
+        ...probeBase,
+        probing: false,
+        integrate: false,
+        numSpecies: 2,
+        timesteppingScheme,
+        reactionStr_1: "-u",
+        reactionStr_2: "0",
+        diffusionStr_2_2: "0",
+        initCond_2: "1 + 0.5*cos(2*pi*x/L_x)",
+        boundaryConditions_2: "periodic",
+        timescales: true,
+        timescale_1: "v",
+        // Small enough to be stable where v, which divides the timestep, is smallest.
+        dt: 0.002,
+      },
+      [["step", 50]],
+    );
+    const [a, b] = [decode(states.webgl.data), decode(states.webgpu.data)];
+    let worst = 0,
+      at = 0;
+    for (let n = 0; n < a.length; n += 4) {
+      const d = Math.abs(a[n] - b[n]);
+      if (!(d <= worst)) [worst, at] = [d, n];
+    }
+    assert.ok(
+      worst < 1e-5,
+      `${timesteppingScheme}: largest difference ${worst} at node ${at / 4} of ${states.webgl.nX}x${states.webgl.nY}: u ${a[at]} vs ${b[at]}, v ${a[at + 1]} vs ${b[at + 1]}`,
+    );
+  }
+});

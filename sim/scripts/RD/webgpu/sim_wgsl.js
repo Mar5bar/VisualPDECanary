@@ -364,9 +364,12 @@ ${translateStatements(body, {
 }
 
 // The body of each pass, after the stencils' declarations, mirroring RDShaderMain(MRT).
-function schemeBody(type, G) {
+// The timescales are evaluated where RDShaderMain evaluates them, after the RHS, as they can
+// depend on the state (e.g. on an algebraic species), so on the stencil's latest values.
+function schemeBody(type, G, timescales) {
   const call = (srcSlot, time, out) =>
-    `  let ${out} = computeRHS(${srcSlot}u, ${time}, i, j, ${stencilArgs(G)});`;
+    `  let ${out} = computeRHS(${srcSlot}u, ${time}, i, j, ${stencilArgs(G)});\n` +
+    (out == "outPrev" || out == "outCur" ? "" : timescales);
   const centre = (slot, g) => `fetch(${slot}u, ${g}u, i, j)`;
   const lines = [];
   const each = (f) => {
@@ -380,7 +383,7 @@ function schemeBody(type, G) {
       break;
     case "AB2":
       lines.push(stencilFetch(G, 0), call(0, "t", "outCur"));
-      lines.push(stencilFetch(G, 1), call(1, "t - dt", "outPrev"));
+      lines.push(stencilFetch(G, 1), call(1, "t - dt", "outPrev"), timescales);
       each((g, n) => `  RHS${n} = 1.5 * outCur.r${g} - 0.5 * outPrev.r${g};`);
       each((g, n, s) => `  updated${n} = dt * RHS${n} / timescales${s} + ${centre(0, g)};`);
       break;
@@ -443,17 +446,24 @@ fn main(@builtin(global_invocation_id) gid: vec3u) {
   let j = i32(gid.y);
 ${commonLets(parts, opts)}
 ${declarations.join("\n")}
-  let timescales = ${translateExpression(parts.timescales, opts)};
+  var timescales: vec4f;
   var RHS: vec4f;
   var updated: vec4f;
 ${
   G > 1
-    ? `  let timescalesGroup1 = ${translateExpression(parts.timescalesGroup1, opts)};
+    ? `  var timescalesGroup1: vec4f;
   var RHS2: vec4f;
   var updated2: vec4f;`
     : ""
 }
-${schemeBody(type, G)}
+${schemeBody(
+  type,
+  G,
+  `  timescales = ${translateExpression(parts.timescales, opts)};\n` +
+    (G > 1
+      ? `  timescalesGroup1 = ${translateExpression(parts.timescalesGroup1, opts)};\n`
+      : ""),
+)}
 ${translateStatements(parts.bot[type], opts)}
 ${outputs.join("\n")}
 }`;

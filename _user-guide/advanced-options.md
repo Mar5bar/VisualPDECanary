@@ -514,6 +514,8 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 
     ***Antialias*** will toggle the use of antialiasing when displaying the simulation. Antialiasing in VisualPDE smooths out the jagged edges of displayed vector fields, though always causes a slight device-dependent performance loss. This is off by default for mobile devices, but can be overridden. Toggle requires a page reload.
 
+    ***WebGPU*** will switch the simulation between [WebGL](https://en.wikipedia.org/wiki/WebGL) and the newer [WebGPU](https://en.wikipedia.org/wiki/WebGPU), which can run simulations faster on devices that support it. Both give the same results, up to tiny differences in rounding. Toggling reloads the page, keeping your simulation. If WebGPU isn't available on your device, VisualPDE uses WebGL.
+
     ***Mixed strings*** will toggle the visibility of verbose strings associated with mixed boundary conditions. These are off by default, but can be useful for advanced cases such as simultaneously imposing Dirichlet and Neumann conditions.
 
     ***Long url*** will copy a long URL that is guaranteed to not be minified.

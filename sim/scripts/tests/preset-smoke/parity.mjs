@@ -106,6 +106,7 @@ function compare(a, b, numSpecies) {
     min = Infinity,
     max = -Infinity,
     nonFinite = 0,
+    differing = 0,
     where = "";
   groups.forEach(([ga, gb], g) => {
     if (!ga || !gb) return;
@@ -118,6 +119,7 @@ function compare(a, b, numSpecies) {
       min = Math.min(min, ga[n]);
       max = Math.max(max, ga[n]);
       const d = Math.abs(ga[n] - gb[n]);
+      if (d > 1e-5 * Math.max(1, Math.abs(ga[n]))) differing++;
       if (d > worst) {
         worst = d;
         const node = Math.floor(n / 4);
@@ -126,7 +128,12 @@ function compare(a, b, numSpecies) {
     }
   });
   const range = Math.max(max - min, Math.abs(max), Math.abs(min), 1e-12);
-  return { difference: worst / range, nonFinite, where };
+  // A value that's finite on one backend but not the other is as different as can be.
+  return {
+    difference: nonFinite ? Infinity : worst / range,
+    nonFinite,
+    where: `${where}; ${differing} values differ by more than rounding`,
+  };
 }
 
 const webgl = await openPage("webgl");
