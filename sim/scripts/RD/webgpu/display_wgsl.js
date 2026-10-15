@@ -1,0 +1,424 @@
+// display_wgsl.js
+//
+// Generates the WGSL that turns the simulation state into a picture on WebGPU, mirroring the
+// WebGL post-processing material (post_shaders.js: the value to plot, the domain mask,
+// surface heights and vector-field components, per node) and display material
+// (display_shaders.js: colouring, embossing, contours and overlays, per pixel). As for the
+// timestep, the bodies of those GLSL shaders are translated, so both backends share them.
+
+import { translateExpression, translateStatements } from "./glsl_to_wgsl.js";
+import { WORKGROUP_SIZE, UNIFORMS_STRUCT, AUXILIARY_WGSL } from "./sim_wgsl.js";
+
+/**
+ * Describes a block of named values (uniforms the GLSL shaders read, such as colour limits),
+ * each stored in one vec4f of a storage buffer, so that any set of them can be passed
+ * without a hand-written struct.
+ */
+export class ValueLayout {
+  /** @param {[string, "f32"|"vec2f"|"vec3f"|"vec4f"|"bool"][]} entries */
+  constructor(entries) {
+    this.entries = entries;
+  }
+
+  /** WGSL declaring each value as a local, read from the array named `array`. */
+  lets(array) {
+    const swizzle = { f32: ".x", vec2f: ".xy", vec3f: ".xyz", vec4f: "" };
+    return this.entries
+      .map(([name, type], k) =>
+        type == "bool"
+          ? `  let ${name} = ${array}[${k}].x != 0.0;`
+          : `  let ${name} = ${array}[${k}]${swizzle[type]};`,
+      )
+      .join("\n");
+  }
+
+  /**
+   * Packs values (numbers, booleans, arrays or three.js vectors and colours) into a buffer.
+   * @param {Object} values
+   */
+  pack(values) {
+    const data = new Float32Array(4 * Math.max(1, this.entries.length));
+    this.entries.forEach(([name], k) => {
+      const v = values[name];
+      let components;
+      if (typeof v == "boolean") components = [v ? 1 : 0];
+      else if (typeof v == "number") components = [v];
+      else if (Array.isArray(v)) components = v;
+      else if (v && "r" in v && "g" in v) components = [v.r, v.g, v.b];
+      else if (v && "x" in v) components = [v.x, v.y, v.z ?? 0, v.w ?? 0];
+      else components = [0];
+      data.set(components.slice(0, 4), 4 * k);
+    });
+    return data;
+  }
+}
+
+// The values the post-processing shader reads besides the simulation uniforms.
+export const POST_VALUES = new ValueLayout([
+  ["customSurface", "bool"],
+  ["vectorField", "bool"],
+  ["overlayLine", "bool"],
+]);
+
+// The values the display shader reads besides the simulation uniforms.
+export const DISPLAY_VALUES = new ValueLayout([
+  ["minColourValue", "f32"],
+  ["maxColourValue", "f32"],
+  ["colour1", "vec4f"],
+  ["colour2", "vec4f"],
+  ["colour3", "vec4f"],
+  ["colour4", "vec4f"],
+  ["colour5", "vec4f"],
+  ["dxUpscaledScale", "f32"],
+  ["dyUpscaledScale", "f32"],
+  ["embossAmbient", "f32"],
+  ["embossDiffuse", "f32"],
+  ["embossShiny", "f32"],
+  ["embossSmoothness", "f32"],
+  ["embossSpecular", "f32"],
+  ["embossLightDir", "vec3f"],
+  ["contourColour", "vec3f"],
+  ["contourEpsilon", "f32"],
+  ["contourStep", "f32"],
+  ["overlayColour", "vec3f"],
+  ["overlayEpsilon", "f32"],
+  ["blendImage", "bool"],
+  ["blendImageAmount", "f32"],
+  ["heightScale", "f32"],
+]);
+
+// The runtime +inf that the GLSL computes as 1.0/(0.0*gl_FragCoord.x), to dodge constant
+// folding; WGSL rejects a constant infinity outright, so it comes from a uniform instead.
+function replaceRuntimeInfinity(glsl) {
+  return glsl.replaceAll(/1\.0\s*\/\s*\(\s*0\.0\s*\*\s*gl_FragCoord\.x\s*\)/g, "U.inf");
+}
+
+function sharedLets(parts) {
+  const params = parts.paramNames
+    .map((name, k) => `  let P_${name} = params[${k >> 2}][${k & 3}];`)
+    .join("\n");
+  return `
+  let dt = U.dt;
+  let dx = U.dx;
+  let dy = U.dy;
+  let L = U.L;
+  let L_x = U.L_x;
+  let L_y = U.L_y;
+  let L_min = U.L_min;
+  let t = U.t;
+  let seed = U.seed;
+  let globalIntegralValue1 = U.gi1;
+  let globalIntegralValue2 = U.gi2;
+  let globalIntegralValue3 = U.gi3;
+  let globalIntegralValue4 = U.gi4;
+${params}`;
+}
+
+function renamesFor(parts) {
+  const renames = { gl_FragColor: "fragColour" };
+  parts.paramNames.forEach((name) => (renames[name] = "P_" + name));
+  return renames;
+}
+
+// Index helpers over the state (species groups interleaved, as in sim_wgsl.js) and post
+// buffers, and their nearest and bilinear lookups.
+function lookupHelpers(parts) {
+  const clampConsts = parts.clamp
+    .map(([cx, cy], g) => `const CLAMP_X_${g} = ${cx};\nconst CLAMP_Y_${g} = ${cy};`)
+    .join("\n");
+  return `
+const G = ${parts.numGroups}u;
+${clampConsts}
+
+fn wrapIndex(k: i32, n: i32, clampIt: bool) -> i32 {
+  if (clampIt) { return clamp(k, 0, n - 1); }
+  return ((k % n) + n) % n;
+}
+
+fn stateAt(g: u32, i: i32, j: i32) -> vec4f {
+  let nX = i32(U.nX);
+  let nY = i32(U.nY);
+  var cx = CLAMP_X_0;
+  var cy = CLAMP_Y_0;
+${parts.numGroups > 1 ? "  if (g == 1u) { cx = CLAMP_X_1; cy = CLAMP_Y_1; }" : ""}
+  let k = u32(wrapIndex(j, nY, cy) * nX + wrapIndex(i, nX, cx)) * G + g;
+  return state[k];
+}
+
+fn stateNearest(g: u32, uv: vec2f) -> vec4f {
+  let ij = vec2i(floor(uv * vec2f(f32(U.nX), f32(U.nY))));
+  return stateAt(g, ij.x, ij.y);
+}
+
+fn stateBilinear(g: u32, uv: vec2f) -> vec4f {
+  let size = vec2f(f32(U.nX), f32(U.nY));
+  let st = uv * size - 0.5;
+  let base = floor(st);
+  var f = st - base;
+  f = select(f, vec2f(0.0), f < vec2f(1e-4));
+  f = select(f, vec2f(1.0), f > vec2f(1.0 - 1e-4));
+  let i0 = i32(base.x);
+  let j0 = i32(base.y);
+  return mix(
+    mix(stateAt(g, i0, j0), stateAt(g, i0 + 1, j0), f.x),
+    mix(stateAt(g, i0, j0 + 1), stateAt(g, i0 + 1, j0 + 1), f.x),
+    f.y
+  );
+}
+`;
+}
+
+function translationCalls(extra = {}) {
+  return {
+    // The state and post buffers are both nX by nY.
+    textureSize: () => "vec2i(i32(U.nX), i32(U.nY))",
+    texture2D: ([tex, uv]) => {
+      if (tex == "textureSource") return `stateNearest(0u, ${uv})`;
+      if (tex == "textureSourceGroup1") return `stateNearest(1u, ${uv})`;
+      throw new Error("Unknown sampler " + tex);
+    },
+    texture: ([tex, uv]) => {
+      if (tex == "imageSourceOne") return `textureSampleLevel(imageOne, imageSampler, ${uv}, 0.0)`;
+      if (tex == "imageSourceTwo") return `textureSampleLevel(imageTwo, imageSampler, ${uv}, 0.0)`;
+      if (tex == "textureSource") return `stateNearest(0u, ${uv})`;
+      if (tex == "textureSourceGroup1") return `stateNearest(1u, ${uv})`;
+      throw new Error("Unknown sampler " + tex);
+    },
+    textureBilinear: ([tex, uv]) => {
+      if (tex == "textureSource") return `stateBilinear(0u, ${uv})`;
+      if (tex == "textureSourceGroup1") return `stateBilinear(1u, ${uv})`;
+      throw new Error("Unknown sampler " + tex);
+    },
+    ...extra,
+  };
+}
+
+/**
+ * @typedef {Object} PostShaderParts
+ * @property {number} numGroups
+ * @property {[boolean, boolean][]} clamp
+ * @property {string[]} paramNames
+ * @property {string} body - The body of the WebGL post-processing shader's main().
+ */
+
+/**
+ * Generates the compute shader that writes the post-processed values (value, outside-domain
+ * flag, height, y vector component) of every node, as WebGL's postMaterial does.
+ * @param {PostShaderParts} parts
+ */
+export function postShader(parts) {
+  const body = replaceRuntimeInfinity(parts.body);
+  const opts = { renames: renamesFor(parts), calls: translationCalls() };
+  return `${UNIFORMS_STRUCT}
+@group(0) @binding(0) var<uniform> U: Uniforms;
+@group(0) @binding(1) var<storage, read> params: array<vec4f>;
+@group(0) @binding(2) var<storage, read> state: array<vec4f>;
+@group(0) @binding(3) var<storage, read_write> post: array<vec4f>;
+@group(0) @binding(4) var<storage, read> V: array<vec4f>;
+@group(0) @binding(5) var imageOne: texture_2d<f32>;
+@group(0) @binding(6) var imageTwo: texture_2d<f32>;
+@group(0) @binding(7) var imageSampler: sampler;
+${lookupHelpers(parts)}
+${AUXILIARY_WGSL}
+
+@compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
+fn main(@builtin(global_invocation_id) gid: vec3u) {
+  if (gid.x >= U.nX || gid.y >= U.nY) { return; }
+  let i = i32(gid.x);
+  let j = i32(gid.y);
+${sharedLets(parts)}
+${POST_VALUES.lets("V")}
+  let textureCoords = (vec2f(f32(i), f32(j)) + 0.5) / vec2f(f32(U.nX), f32(U.nY));
+  var fragColour: vec4f;
+${translateStatements(body, opts)}
+  post[u32(j) * U.nX + u32(i)] = fragColour;
+}`;
+}
+
+/**
+ * @typedef {Object} DisplayShaderParts
+ * @property {number} numGroups
+ * @property {[boolean, boolean][]} clamp
+ * @property {string[]} paramNames
+ * @property {string} body - The body of the WebGL display shader's main(), including its
+ *   closing brace.
+ * @property {boolean} [linear] - Whether the post-processed values are interpolated (as the
+ *   WebGL post texture's linear filtering does) or not (as when interpolating manually).
+ */
+
+/**
+ * Generates the render pipeline's shaders for the display: a vertex shader for the display
+ * domain's mesh and a fragment shader colouring it from the post-processed values.
+ * @param {DisplayShaderParts} parts
+ */
+export function displayShader(parts) {
+  const body = parts.body.replace(/\}\s*$/, "");
+  const postLookup = parts.linear ? "postBilinear" : "postNearest";
+  const opts = {
+    renames: renamesFor(parts),
+    returnValue: "fragColour",
+    calls: translationCalls({
+      texture2D: ([tex, uv]) => {
+        if (tex == "textureSource") return `${postLookup}(${uv})`;
+        if (tex == "imageSourceBlend") return "vec4f(0.0)";
+        return translationCalls().texture2D([tex, uv]);
+      },
+      textureBilinear: ([tex, uv]) => {
+        if (tex == "textureSource1") return `stateBilinear(0u, ${uv})`;
+        return translationCalls().textureBilinear([tex, uv]);
+      },
+      colFromValue: ([value]) =>
+        `colFromValue(${value}, colour1, colour2, colour3, colour4, colour5)`,
+    }),
+  };
+  return `${UNIFORMS_STRUCT}
+struct Camera {
+  mvp: mat4x4f,
+  heightMode: u32,
+}
+@group(0) @binding(0) var<uniform> U: Uniforms;
+@group(0) @binding(1) var<storage, read> params: array<vec4f>;
+@group(0) @binding(2) var<storage, read> state: array<vec4f>;
+@group(0) @binding(3) var<storage, read> post: array<vec4f>;
+@group(0) @binding(4) var<storage, read> V: array<vec4f>;
+@group(0) @binding(5) var imageOne: texture_2d<f32>;
+@group(0) @binding(6) var imageTwo: texture_2d<f32>;
+@group(0) @binding(7) var imageSampler: sampler;
+@group(0) @binding(8) var<uniform> camera: Camera;
+${lookupHelpers(parts)}
+${AUXILIARY_WGSL}
+
+fn postAt(i: i32, j: i32) -> vec4f {
+  let nX = i32(U.nX);
+  let nY = i32(U.nY);
+  return post[u32(clamp(j, 0, nY - 1) * nX + clamp(i, 0, nX - 1))];
+}
+
+fn postNearest(uv: vec2f) -> vec4f {
+  let ij = vec2i(floor(uv * vec2f(f32(U.nX), f32(U.nY))));
+  return postAt(ij.x, ij.y);
+}
+
+// Bilinear interpolation clamped at the edges, as the WebGL post texture's linear filtering.
+fn postBilinear(uv: vec2f) -> vec4f {
+  let st = uv * vec2f(f32(U.nX), f32(U.nY)) - 0.5;
+  let base = floor(st);
+  let f = st - base;
+  let i0 = i32(base.x);
+  let j0 = i32(base.y);
+  return mix(
+    mix(postAt(i0, j0), postAt(i0 + 1, j0), f.x),
+    mix(postAt(i0, j0 + 1), postAt(i0 + 1, j0 + 1), f.x),
+    f.y
+  );
+}
+
+fn colFromValue(val: f32, colour1: vec4f, colour2: vec4f, colour3: vec4f, colour4: vec4f, colour5: vec4f) -> vec3f {
+  var col: vec3f;
+  var a = 0.0;
+  if (val <= colour1.a) { col = colour1.rgb; }
+  if (val > colour1.a && val <= colour2.a) {
+    a = (val - colour1.a)/(colour2.a - colour1.a);
+    col = mix(colour1.rgb, colour2.rgb, a);
+  }
+  if (val > colour2.a && val <= colour3.a) {
+    a = (val - colour2.a)/(colour3.a - colour2.a);
+    col = mix(colour2.rgb, colour3.rgb, a);
+  }
+  if (val > colour3.a && val <= colour4.a) {
+    a = (val - colour3.a)/(colour4.a - colour3.a);
+    col = mix(colour3.rgb, colour4.rgb, a);
+  }
+  if (val > colour4.a && val <= colour5.a) {
+    a = (val - colour4.a)/(colour5.a - colour4.a);
+    col = mix(colour4.rgb, colour5.rgb, a);
+  }
+  if (val > colour5.a) { col = colour5.rgb; }
+  return clamp(col, vec3f(0.0), vec3f(1.0));
+}
+
+struct VertexOut {
+  @builtin(position) position: vec4f,
+  @location(0) textureCoords: vec2f,
+}
+
+// heightMode: 0 for a flat plane; 1 to displace by the scaled plotted value, as
+// surfaceVertexShaderColour does; 2 to displace by the custom height, as
+// surfaceVertexShaderCustom does.
+@vertex
+fn vertexMain(@location(0) position: vec3f, @location(1) uv: vec2f) -> VertexOut {
+${DISPLAY_VALUES.lets("V")}
+  var p = position;
+  if (camera.heightMode == 1u && minColourValue != maxColourValue) {
+    let value = postBilinear(uv).r;
+    p.z += heightScale * ((value - minColourValue) / (maxColourValue - minColourValue) - 0.5);
+  } else if (camera.heightMode == 2u && minColourValue != maxColourValue) {
+    p.z += postBilinear(uv).b;
+  }
+  var out: VertexOut;
+  out.position = camera.mvp * vec4f(p, 1.0);
+  out.textureCoords = uv;
+  return out;
+}
+
+fn displayColour(textureCoords: vec2f) -> vec4f {
+${sharedLets(parts)}
+${DISPLAY_VALUES.lets("V")}
+  var fragColour: vec4f;
+${translateStatements(body, opts)}
+  return fragColour;
+}
+
+@fragment
+fn fragmentMain(in: VertexOut) -> @location(0) vec4f {
+  return displayColour(in.textureCoords);
+}`;
+}
+
+/**
+ * Generates a two-stage reduction finding the minimum and maximum of the post-processed
+ * values (their .r), as WebGL's minMaxMaterial does. Each invocation of "main" reduces
+ * `count` vec2f (min, max) pairs, or the post buffer's values when FIRST is true, into one
+ * pair per workgroup.
+ */
+export function minMaxShader(first) {
+  return `
+struct Reduce { count: u32 }
+@group(0) @binding(0) var<uniform> R: Reduce;
+@group(0) @binding(1) var<storage, read> input: array<vec4f>;
+@group(0) @binding(2) var<storage, read_write> output: array<vec4f>;
+
+const SIZE = 256u;
+var<workgroup> lows: array<f32, SIZE>;
+var<workgroup> highs: array<f32, SIZE>;
+
+@compute @workgroup_size(SIZE)
+fn main(@builtin(local_invocation_index) local: u32, @builtin(workgroup_id) wg: vec3u, @builtin(num_workgroups) groups: vec3u) {
+  var low = 1e38;
+  var high = -1e38;
+  let stride = SIZE * groups.x;
+  for (var k = wg.x * SIZE + local; k < R.count; k += stride) {
+    let v = input[k];
+    low = min(low, v.x);
+    high = max(high, ${first ? "v.x" : "v.y"});
+  }
+  lows[local] = low;
+  highs[local] = high;
+  workgroupBarrier();
+  for (var s = SIZE / 2u; s > 0u; s /= 2u) {
+    if (local < s) {
+      lows[local] = min(lows[local], lows[local + s]);
+      highs[local] = max(highs[local], highs[local + s]);
+    }
+    workgroupBarrier();
+  }
+  if (local == 0u) {
+    output[wg.x] = vec4f(lows[0], highs[0], 0.0, 0.0);
+  }
+}`;
+}
+
+/** WGSL for a GLSL expression, using the post shader's conventions (for testing). */
+export function translateDisplayExpression(expr, parts) {
+  return translateExpression(expr, { renames: renamesFor(parts), calls: translationCalls() });
+}

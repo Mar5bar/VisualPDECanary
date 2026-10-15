@@ -81,6 +81,8 @@ export function tokenize(src) {
  *   to keep them clear of WGSL's reserved words).
  * @property {Object<string, (args: string[]) => string>} [calls] - Functions whose calls the
  *   caller translates itself, given their already-translated arguments (e.g. texture lookups).
+ * @property {string} [returnValue] - When translating the body of a void GLSL function into
+ *   that of a WGSL function returning a value, what a bare "return;" returns.
  */
 
 /**
@@ -236,7 +238,41 @@ export function translateStatements(src, options = {}) {
       i++;
       continue;
     }
-    if (["for", "while", "do", "return", "switch", "discard"].includes(tok.value)) {
+    if (tok.value == "return" && tokens[i + 1]?.value == ";") {
+      if (options.returnValue == undefined) {
+        throw new TranslationError("'return' statements aren't supported here.");
+      }
+      lines.push(`return ${options.returnValue};`);
+      i += 2;
+      continue;
+    }
+    if (tok.value == "for") {
+      // for (init; condition; update), each translated as the statement or expression it is.
+      if (tokens[i + 1]?.value != "(") throw new TranslationError("Expected ( after for.");
+      const close = matchingBracket(tokens, i + 1);
+      const semicolons = [];
+      let depth = 0;
+      for (let k = i + 2; k < close; k++) {
+        const v = tokens[k].value;
+        if (v == "(" || v == "[") depth++;
+        else if (v == ")" || v == "]") depth--;
+        else if (v == ";" && depth == 0) semicolons.push(k);
+      }
+      if (semicolons.length != 2) throw new TranslationError("Malformed for loop.");
+      const [first, second] = semicolons;
+      const init = translateSimpleStatement(tokens, i + 2, first, options, () => 0);
+      if (init.length != 1) throw new TranslationError("Malformed for loop.");
+      const condition = translateTokens(tokens, first + 1, second, options);
+      const update = translateSimpleStatement(tokens, second + 1, close, options, () => 0);
+      if (update.length != 1) throw new TranslationError("Malformed for loop.");
+      lines.push(
+        `for (${init[0].replace(/;$/, "")}; ${condition}; ${update[0].replace(/;$/, "")})`,
+      );
+      i = close + 1;
+      if (tokens[i]?.value != "{") throw new TranslationError("for loops must use braces.");
+      continue;
+    }
+    if (["while", "do", "return", "switch", "discard"].includes(tok.value)) {
       throw new TranslationError(`'${tok.value}' statements aren't supported.`);
     }
     // Find the end of this simple statement.

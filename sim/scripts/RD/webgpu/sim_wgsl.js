@@ -40,7 +40,7 @@ export function writeUniforms(view, offset, u) {
   floats.forEach((v, k) => view.setFloat32(offset + 16 + 4 * k, v, true));
 }
 
-const UNIFORMS_STRUCT = `
+export const UNIFORMS_STRUCT = `
 struct Uniforms {
   nX: u32, nY: u32, isTwoD: u32, pad0: u32,
   dt: f32, dx: f32, dy: f32, t: f32,
@@ -51,7 +51,7 @@ struct Uniforms {
 
 // The helper functions that auxiliary_GLSL_funs.js (and the erfinv defined alongside it in
 // the GLSL templates) provide to WebGL shaders.
-const AUXILIARY_WGSL = `
+export const AUXILIARY_WGSL = `
 const pi = 3.141592653589793;
 
 fn vpde_mod(x: f32, y: f32) -> f32 { return x - y * floor(x / y); }

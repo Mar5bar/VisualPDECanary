@@ -119,7 +119,24 @@ test("translateStatements: nested blocks can shadow names, as the Dirichlet wrap
   );
 });
 
-test("translateStatements: loops and returns are rejected", () => {
-  assert.throws(() => translateStatements("for (int i = 0; i < 2; i++) { x = 1.; }"), TranslationError);
+test("translateStatements: for loops keep their structure", () => {
+  assert.equal(
+    translateStatements(
+      "for (float contourVal = contourStep; contourVal < 1.0; contourVal += contourStep) { col = mix(col, c, 0.5); }",
+    ),
+    "for (var contourVal: f32 = contourStep; contourVal<1.0; contourVal += contourStep)\n{\n  col = mix(col, c, 0.5);\n}",
+  );
+});
+
+test("translateStatements: a bare return returns the given value, if there is one", () => {
+  assert.equal(
+    translateStatements("if (v > 0.5) { fragColour = vec4(0); return; }", { returnValue: "fragColour" }),
+    "if (v>0.5)\n{\n  fragColour = vec4f(0);\n  return fragColour;\n}",
+  );
+  assert.throws(() => translateStatements("return;"), TranslationError);
+});
+
+test("translateStatements: other loops and value returns are rejected", () => {
+  assert.throws(() => translateStatements("while (x < 1.) { x += 1.; }"), TranslationError);
   assert.throws(() => translateStatements("return x;"), TranslationError);
 });

@@ -166,7 +166,8 @@ export class WebGPUBackend {
     this.images[index] = texture;
   }
 
-  async compile(label, code) {
+  /** Compiles WGSL, throwing a ShaderCompileError with the compiler's messages if it fails. */
+  async compileModule(label, code) {
     // Kept for debugging (see the test hooks' shaderSources()).
     this.sources[label] = code;
     const module = this.device.createShaderModule({ label, code });
@@ -179,6 +180,11 @@ export class WebGPUBackend {
         code,
       );
     }
+    return module;
+  }
+
+  async compile(label, code) {
+    const module = await this.compileModule(label, code);
     this.device.pushErrorScope("validation");
     const pipeline = await this.device.createComputePipelineAsync({
       label,
