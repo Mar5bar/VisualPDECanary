@@ -125,10 +125,16 @@ import { closestMatch } from "../../../assets/js/closest-match.js";
 import { Stats } from "../stats.min.js";
 import { createWelcomeTour } from "./tours.js";
 import { WebGPUBackend } from "./webgpu/webgpu_backend.js";
+import { WebGPUDisplay } from "./webgpu/display.js";
+import { POST_VALUES, DISPLAY_VALUES } from "./webgpu/display_wgsl.js";
 import {
   shouldTryWebGPU,
   createWebGPUDevice,
   recordWebGPUFailure,
+  requestWebGLOnce,
+  webGPUFailureReason,
+  storedBackendChoice,
+  storeBackendChoice,
 } from "./webgpu/backend_select.js";
 
 if (expandingOptionsInProgress) {
@@ -148,6 +154,10 @@ async function VisualPDE(url) {
   // The WebGPU backend, if this page is running on WebGPU (see webgpu/backend_select.js);
   // null on WebGL. Functions that touch the GPU delegate to it when it's set.
   let gpuBackend = null,
+    gpuDisplay = null,
+    // Set once the page is reloading (see reloadPreservingSimulation), as nothing should
+    // start in the meantime.
+    isReloading = false,
     gpuAdapterInfo = null,
     gpuParamNames = [];
   let simTextures = [],
@@ -655,9 +665,9 @@ async function VisualPDE(url) {
       gpuAdapterInfo = adapterInfo;
       device.lost.then((info) => {
         if (info.reason == "destroyed") return;
+        console.error("WebGPU device lost (" + info.reason + "): " + info.message);
         // Fall back to WebGL for the rest of the session.
-        recordWebGPUFailure("WebGPU device lost: " + info.message);
-        window.location.reload();
+        fallBackToWebGL("WebGPU device lost: " + info.message, true);
       });
     } catch (error) {
       console.warn("Using WebGL, as WebGPU is unavailable: " + error.message);
@@ -1128,7 +1138,9 @@ async function VisualPDE(url) {
   isLoading = false;
   resetSim();
   animate();
-  if (params.has("testHooks")) initTestHooks();
+  // The test hooks aren't installed on a page that's about to reload, so that tests wait for
+  // the reloaded page instead.
+  if (params.has("testHooks") && !isReloading) initTestHooks();
   if (options.captureWebcam) {
     // Show the webcam access pane.
     $("#webcam_access").show();
@@ -1180,9 +1192,12 @@ async function VisualPDE(url) {
       : !onMobile() && devicePixelRatio < 3;
     localOpts.antialias = antialias;
 
-    // Create a renderer.
+    // Create a renderer. On WebGPU, the page's canvas shows WebGPU's display instead, and
+    // three.js renders off screen: it then only provides the scene's maths and the rarely
+    // used WebGL code paths that WebGPU doesn't replace.
+    if (gpuBackend) gpuDisplay = new WebGPUDisplay(gpuBackend, canvas);
     renderer = new THREE.WebGLRenderer({
-      canvas: canvas,
+      canvas: gpuBackend ? document.createElement("canvas") : canvas,
       preserveDrawingBuffer: true,
       powerPreference: "high-performance",
       antialias: antialias,
@@ -1836,6 +1851,11 @@ async function VisualPDE(url) {
       displayDomainSize[1],
     );
     domain = new THREE.Mesh(plane, displayMaterial);
+    gpuDisplay?.setGeometry(
+      plane.attributes.position.array,
+      plane.attributes.uv.array,
+      plane.index.array,
+    );
     domain.position.z = 0;
     domain.visible = options.plotType != "line";
     domain.matrixAutoUpdate = false;
@@ -3054,6 +3074,30 @@ async function VisualPDE(url) {
       "Show performance statistics",
     );
 
+    // Which GPU API runs the simulation. Changing it reloads the page, keeping the simulation.
+    localOpts.webgpu = storedBackendChoice() != "webgl";
+    const fallbackReason = webGPUFailureReason();
+    addToggle(
+      devButtons,
+      "webgpu",
+      '<i class="fa-regular fa-microchip"></i> WebGPU',
+      function () {
+        storeBackendChoice(localOpts.webgpu ? "webgpu" : "webgl");
+        reloadPreservingSimulation();
+      },
+      undefined,
+      gpuBackend
+        ? "Running on WebGPU. Turn off to use WebGL (reloads the page)."
+        : "Running on WebGL" +
+            (localOpts.webgpu && fallbackReason
+              ? " (" + fallbackReason + ")"
+              : "") +
+            ". Turn on to use WebGPU where available (reloads the page).",
+      undefined,
+      undefined,
+      localOpts,
+    );
+
     addToggle(
       devButtons,
       "antialias",
@@ -4080,6 +4124,55 @@ async function VisualPDE(url) {
     return replaceMINXMINY(body);
   }
 
+  // The first feature in use that WebGPU doesn't support yet, as a description, or null if
+  // WebGPU supports everything in use. While WebGPU support is being completed, simulations
+  // using anything else run on WebGL instead (see fallBackToWebGL).
+  function webGPUUnsupportedFeature() {
+    if (options.plotType == "line") return "line plots";
+    if (options.plotType == "surface") return "surface plots";
+    if (options.vectorField) return "vector fields";
+    if (options.blendImage) return "image blending";
+    if (options.probing) return "probes";
+    if (options.integrate) return "integral display";
+    if ((options.globalIntExprs ?? []).some((e) => e)) return "domain integrals";
+    if (options.initialState) return "saved initial states";
+    if (checkpointExists) return "checkpoints";
+    if (options.captureWebcam) return "webcam input";
+    return null;
+  }
+
+  // Reloads the page, keeping the simulation's options, as for a refresh (see the
+  // sessionStorage handling where the URL is parsed). Any backend given in the URL is
+  // dropped, so that the stored choice (or a fallback) applies.
+  function reloadPreservingSimulation() {
+    isReloading = true;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("backend");
+    window.history.replaceState(null, "", url);
+    try {
+      sessionStorage.setItem("options", JSON.stringify(options));
+      sessionStorage.setItem(
+        "oldQueryString",
+        window.location.search + window.location.hash,
+      );
+    } catch {}
+    window.location.reload();
+  }
+
+  // Switches to WebGL, keeping the simulation: for the rest of the session if WebGPU itself
+  // failed (forSession), otherwise just for this simulation.
+  function fallBackToWebGL(reason, forSession = false) {
+    console.warn("Switching to WebGL: " + reason);
+    (forSession ? recordWebGPUFailure : requestWebGLOnce)(reason);
+    reloadPreservingSimulation();
+  }
+
+  // The body of a GLSL shader's main(), from just after its opening brace.
+  function gpuMainBody(shader) {
+    const start = shader.indexOf("{", shader.search(/\bvoid\s+main\s*\(\s*\)/));
+    return shader.slice(start + 1);
+  }
+
   // Reports a failed WebGPU pipeline build like a WebGL compile error.
   function onGpuBuildError(kind, error) {
     console.error(error.message);
@@ -4088,6 +4181,9 @@ async function VisualPDE(url) {
       simulation: "simulation",
       clear: "initial conditions",
       enforce: "Dirichlet boundary conditions",
+      draw: "brush",
+      post: "display",
+      display: "display",
     }[kind];
     throwError(
       "WebGPU couldn't build the " +
@@ -4184,6 +4280,8 @@ async function VisualPDE(url) {
     window.VisualPDETest = {
       backend: gpuBackend ? "webgpu" : "webgl",
       adapterInfo: gpuAdapterInfo,
+      // Why this session is on WebGL rather than WebGPU, if it fell back.
+      fallbackReason: webGPUFailureReason(),
       // Loads the given options on top of the default preset, paused and reset to t = 0.
       async load(opts) {
         loadPreset({ parent: "default", ...opts });
@@ -4236,6 +4334,30 @@ async function VisualPDE(url) {
           return new Float32Array(bytes.buffer);
         };
         gpuBackend.writeState([decode(state.data), decode(state.dataGroup1)]);
+      },
+      // Draws the current state, setting the colour range first if that's automatic, and
+      // resolves once the GPU has finished.
+      async render() {
+        if (gpuBackend) {
+          await gpuBackend.whenReady();
+          // The colour range is read back asynchronously on WebGPU: draw once to compute it,
+          // wait for it, then draw again with it.
+          render(true);
+          await gpuBackend.device.queue.onSubmittedWorkDone();
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          render(true);
+          await gpuBackend.device.queue.onSubmittedWorkDone();
+        } else {
+          render(true);
+        }
+      },
+      // Applies the brush once at (x, y), in texture coordinates, as a click does; erases if
+      // erase is set, as a right click does.
+      async brush(x, y, erase = false) {
+        if (gpuBackend) await gpuBackend.whenReady();
+        uniforms.brushCoords.value = new THREE.Vector2(x, y);
+        uniforms.brushValueModifier.value = erase ? -1 : 1;
+        draw();
       },
       async time() {
         return uniforms.t.value;
@@ -4413,6 +4535,7 @@ async function VisualPDE(url) {
     assignFragmentShader(drawMaterial, shaderStr);
     drawMaterial.glslVersion = isMRT ? THREE.GLSL3 : null;
     drawMaterial.needsUpdate = true;
+    gpuBackend?.setDraw({ ...gpuShaderParts(), body: gpuMainBody(shaderStr) });
   }
 
   function setDisplayColourAndType() {
@@ -4459,6 +4582,7 @@ async function VisualPDE(url) {
     shader += fiveColourDisplayBot();
     assignFragmentShader(displayMaterial, shader);
     displayMaterial.needsUpdate = true;
+    gpuDisplay?.setDisplay({ ...gpuShaderParts(), body: gpuMainBody(shader) });
     postMaterial.needsUpdate = true;
     colourmapEndpoints = colourmap.map((x) => x[3]);
     colourmap = colourmap.map((x) => x.slice(0, -1));
@@ -4485,6 +4609,15 @@ async function VisualPDE(url) {
     // Update the random seed if we're drawing using random.
     if (!options.setSeed && options.brushValue.includes("RAND")) {
       updateRandomSeed();
+    }
+
+    if (gpuBackend) {
+      syncGpuParams();
+      gpuBackend.draw(gpuUniformValues(), {
+        brushCoords: uniforms.brushCoords.value,
+        brushValueModifier: uniforms.brushValueModifier.value,
+      });
+      return;
     }
 
     simDomain.material = drawMaterial;
@@ -4711,8 +4844,7 @@ async function VisualPDE(url) {
   }
 
   function render(isResetting) {
-    // Submit the frame's simulation work.
-    gpuBackend?.flush();
+    if (gpuDisplay) return renderWebGPU(isResetting);
 
     // Loading a >4-species configuration can trigger a render (e.g. from pauseSim() in
     // loadOptions()) before updateProblem() has created the MRT render targets that hold its
@@ -4919,6 +5051,81 @@ async function VisualPDE(url) {
       updateProbeDisplay();
     }
 
+    frameCount = (frameCount + 1) % options.guiUpdatePeriod;
+  }
+
+  // The WebGPU counterpart of render(), for the features WebGPU supports so far (see
+  // webGPUUnsupportedFeature()).
+  function renderWebGPU(isResetting) {
+    const unsupported = webGPUUnsupportedFeature();
+    if (unsupported) {
+      fallBackToWebGL(unsupported + " aren't available on WebGPU yet");
+      return;
+    }
+    // WebGPU interpolates the plotted values itself, at the display's resolution, so
+    // gradients (for embossing and overlays) are taken at the simulation's resolution, as
+    // WebGL does when it isn't interpolating manually.
+    uniforms.dxUpscaledScale.value = 1;
+    uniforms.dyUpscaledScale.value = 1;
+    syncGpuParams();
+    const simValues = gpuUniformValues();
+    gpuDisplay.postprocess(
+      simValues,
+      Object.fromEntries(
+        POST_VALUES.entries.map(([name]) => [name, uniforms[name].value]),
+      ),
+    );
+    if (
+      options.autoSetColourRange &&
+      (isResetting || !(frameCount % options.guiUpdatePeriod))
+    ) {
+      setColourRangeSnap();
+    }
+    if (options.timeDisplay && !(frameCount % options.guiUpdatePeriod)) {
+      updateTimeDisplay();
+    }
+
+    scene.updateMatrixWorld();
+    camera.updateMatrixWorld();
+    const modelView = new THREE.Matrix4().multiplyMatrices(
+      camera.matrixWorldInverse,
+      domain.matrixWorld,
+    );
+    const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+    const background = scene.background ?? new THREE.Color(0, 0, 0);
+    gpuDisplay.draw({
+      simValues,
+      displayValues: {
+        ...Object.fromEntries(
+          DISPLAY_VALUES.entries.map(([name]) => [name, uniforms[name]?.value]),
+        ),
+        // Interpolate the plotted values except in automata mode, where cells should look
+        // like cells.
+        linearDisplay: !options.automataMode,
+        blendImage: false,
+      },
+      projection: camera.projectionMatrix.elements,
+      modelView: modelView.elements,
+      heightMode:
+        options.plotType == "surface" ? (options.customSurface ? 2 : 1) : 0,
+      background: [background.r, background.g, background.b, 1],
+      width: size.x,
+      height: size.y,
+    });
+    gpuBackend.flush();
+    if (takeAScreenshot) {
+      // The canvas must be read in the same task as it was drawn to.
+      takeAScreenshot = false;
+      const link = document.createElement("a");
+      link.download = "VisualPDEScreenshot.png";
+      link.href = canvas
+        .toDataURL()
+        .replace(
+          /^data:image\/?[A-z]*;base64,/,
+          "data:application/octet-stream;base64,",
+        );
+      link.click();
+    }
     frameCount = (frameCount + 1) % options.guiUpdatePeriod;
   }
 
@@ -7590,6 +7797,7 @@ async function VisualPDE(url) {
     setOverlayUniforms();
     assignFragmentShader(postMaterial, shaderStr + postGenericShaderBot());
     postMaterial.needsUpdate = true;
+    gpuDisplay?.setPost({ ...gpuShaderParts(), body: gpuMainBody(shaderStr) });
   }
 
   function setAlgebraicVarsFromOptions() {
@@ -9965,6 +10173,16 @@ async function VisualPDE(url) {
   }
 
   function setMinMaxValGPU() {
+    if (gpuDisplay) {
+      // The reduction is read back asynchronously, so this returns the latest result and,
+      // when a new one arrives, applies it if the colour range is being set automatically.
+      return gpuDisplay.requestMinMax((minMax) => {
+        if (!options.autoSetColourRange) return;
+        if (minMax[0] == cLims[0] && minMax[1] == cLims[1]) return;
+        setColourRangeSnap();
+        renderIfNotRunning();
+      });
+    }
     // Get the min and max vals in postTexture, using a shader to compute min and max on the GPU.
     simDomain.material = minMaxMaterial;
     minMaxUniforms.textureSource.value = postTexture.texture;
@@ -11998,6 +12216,9 @@ async function VisualPDE(url) {
       domainWidth: domainWidth,
       aspectRatio: aspectRatio,
       canvas: canvas.getBoundingClientRect(),
+      backend: gpuBackend ? "webgpu" : "webgl",
+      webGPUAdapter: gpuAdapterInfo,
+      webGPUFallback: webGPUFailureReason(),
     });
     copyToClipboard(str);
   }

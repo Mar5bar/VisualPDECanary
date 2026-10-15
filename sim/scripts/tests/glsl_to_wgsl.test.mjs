@@ -140,3 +140,10 @@ test("translateStatements: other loops and value returns are rejected", () => {
   assert.throws(() => translateStatements("while (x < 1.) { x += 1.; }"), TranslationError);
   assert.throws(() => translateStatements("return x;"), TranslationError);
 });
+
+test("translateExpression: unary plus is dropped, binary plus kept", () => {
+  assert.equal(translateExpression("vec2(+step_x, 0.0)"), "vec2f(step_x, 0.0)");
+  assert.equal(translateExpression("a + +b"), "a+b");
+  assert.equal(translateExpression("(+a)*b + c"), "(a)*b+c");
+  assert.equal(translateExpression("x[0] + 1."), "x[0]+1.");
+});

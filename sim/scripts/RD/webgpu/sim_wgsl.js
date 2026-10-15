@@ -12,6 +12,13 @@
 // are numbered row by row from the bottom, n = j * nX + i, as in a WebGL readback.
 
 import { translateExpression, translateStatements } from "./glsl_to_wgsl.js";
+import { ValueLayout } from "./values.js";
+
+// The values the brush shader reads besides the simulation uniforms.
+export const BRUSH_VALUES = new ValueLayout([
+  ["brushCoords", "vec2f"],
+  ["brushValueModifier", "f32"],
+]);
 
 export const WORKGROUP_SIZE = [8, 8];
 
@@ -55,8 +62,10 @@ export const AUXILIARY_WGSL = `
 const pi = 3.141592653589793;
 
 fn vpde_mod(x: f32, y: f32) -> f32 { return x - y * floor(x / y); }
-fn vpde_isnan(x: f32) -> bool { return x != x; }
-fn vpde_isinf(x: f32) -> bool { return abs(x) > 3.4028234663852886e38; }
+// By bit pattern, since WGSL implementations may assume NaNs and infinities don't occur and
+// fold comparisons such as x != x away.
+fn vpde_isnan(x: f32) -> bool { return (bitcast<u32>(x) & 0x7fffffffu) > 0x7f800000u; }
+fn vpde_isinf(x: f32) -> bool { return (bitcast<u32>(x) & 0x7fffffffu) == 0x7f800000u; }
 
 fn H1(VALUE: f32) -> f32 { return smoothstep(-0.01, 0.01, VALUE); }
 fn H2(VALUE: f32, EDGE: f32) -> f32 { return smoothstep(-0.01, 0.01, VALUE - EDGE); }
@@ -133,15 +142,18 @@ function translationOptions(parts, extraCalls = {}) {
     if (!sampler) throw new Error("Unknown sampler " + tex);
     return `fetchNearest(${sampler[0]}u, ${sampler[1]}u, ${uv})`;
   };
+  const image = ([tex, uv]) => {
+    if (tex == "imageSourceOne") return `textureSampleLevel(imageOne, imageSampler, ${uv}, 0.0)`;
+    if (tex == "imageSourceTwo") return `textureSampleLevel(imageTwo, imageSampler, ${uv}, 0.0)`;
+    return nearest([tex, uv]);
+  };
+  renames.gl_FragColor = "fragColour";
   return {
     renames,
     calls: {
-      texture2D: nearest,
-      texture: ([tex, uv]) => {
-        if (tex == "imageSourceOne") return `textureSampleLevel(imageOne, imageSampler, ${uv}, 0.0)`;
-        if (tex == "imageSourceTwo") return `textureSampleLevel(imageTwo, imageSampler, ${uv}, 0.0)`;
-        return nearest([tex, uv]);
-      },
+      texture2D: image,
+      textureSize: () => "vec2i(i32(U.nX), i32(U.nY))",
+      texture: image,
       textureBilinear: ([tex, uv]) => {
         const sampler = SAMPLERS[tex];
         if (!sampler) throw new Error("Unknown sampler " + tex);
@@ -154,7 +166,7 @@ function translationOptions(parts, extraCalls = {}) {
 
 // Declarations shared by every entry point and helper: the uniforms, parameters and the
 // node-relative quantities the GLSL templates expect (x, y, textureCoords, step_x, ...).
-function commonLets(parts, opts, { withT = true, clearCoords = false } = {}) {
+function commonLets(parts, opts, { withT = true, clearCoords = false, withXY = true } = {}) {
   const params = parts.paramNames
     .map((name, k) => `  let P_${name} = params[${k >> 2}][${k & 3}];`)
     .join("\n");
@@ -162,7 +174,9 @@ function commonLets(parts, opts, { withT = true, clearCoords = false } = {}) {
   const minY = translateExpression(parts.minY, opts);
   // The initial-condition shader positions nodes using the grid size and spatial step,
   // rather than the domain size, exactly as clear_shader.js does.
-  const xy = clearCoords
+  const xy = !withXY
+    ? ""
+    : clearCoords
     ? `  let x = ${minX} + textureCoords.x * f32(U.nX) * dx;
   let y = ${minY} + textureCoords.y * f32(U.nY) * dy;`
     : `  let x = textureCoords.x * L_x + ${minX};
@@ -213,6 +227,7 @@ function prelude(parts) {
 @group(0) @binding(7) var imageOne: texture_2d<f32>;
 @group(0) @binding(8) var imageTwo: texture_2d<f32>;
 @group(0) @binding(9) var imageSampler: sampler;
+@group(0) @binding(10) var<storage, read> V: array<vec4f>;
 
 const G = ${G}u;
 ${clampConsts}
@@ -498,5 +513,35 @@ ${commonLets(parts, opts)}
 ${G > 1 ? "  var uvwq2 = fetch(0u, 1u, i, j);\n  var updated2 = uvwq2;" : ""}
 ${translateStatements(parts.enforceBody, opts)}
 ${outputs.join("\n")}
+}`;
+}
+
+/**
+ * Generates the WGSL that applies the brush to a slot, as WebGL's drawMaterial does.
+ * @param {Object} parts - As for timestepShader, plus body: the body of the WebGL brush
+ *   shader's main(), including its closing brace.
+ * @returns {string}
+ */
+export function drawShader(parts) {
+  const G = parts.numGroups;
+  const opts = translationOptions(parts);
+  const body = parts.body.replace(/\}\s*$/, "");
+  const declarations =
+    G == 1 ? "  var fragColour: vec4f;" : "  var fragColor0: vec4f;\n  var fragColor1: vec4f;";
+  const outputs =
+    G == 1
+      ? "  dst[element(0u, i, j)] = fragColour;"
+      : "  dst[element(0u, i, j)] = fragColor0;\n  dst[element(1u, i, j)] = fragColor1;";
+  return `${prelude(parts)}
+@compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
+fn main(@builtin(global_invocation_id) gid: vec3u) {
+  if (gid.x >= U.nX || gid.y >= U.nY) { return; }
+  let i = i32(gid.x);
+  let j = i32(gid.y);
+${commonLets(parts, opts, { withXY: false })}
+${BRUSH_VALUES.lets("V")}
+${declarations}
+${translateStatements(body, opts)}
+${outputs}
 }`;
 }

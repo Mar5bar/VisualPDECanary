@@ -3,12 +3,17 @@
 // Decides whether the simulator runs on WebGL or WebGPU, and sets up the WebGPU device.
 //
 // The choice is "webgl", "webgpu" or "auto" (WebGPU if it's available). It comes from, in
-// order of precedence: a ?backend= URL parameter (for testing; never written into share
-// links), this session's fallback flag (set if WebGPU failed, so a reload doesn't retry it),
-// and the Developer tools setting stored in localStorage.
+// order of precedence: a request to use WebGL for one page load (made when a simulation
+// uses something WebGPU doesn't support yet), a ?backend= URL parameter (for testing; never
+// written into share links), this session's fallback flag (set if WebGPU failed, so a reload
+// doesn't retry it), and the Developer tools setting stored in localStorage.
 
 export const BACKEND_STORAGE_KEY = "backend";
 const FALLBACK_SESSION_KEY = "backendFallback";
+const ONCE_SESSION_KEY = "backendWebGLOnce";
+
+// Why this page load is on WebGL, if it was asked to be (see requestWebGLOnce).
+let webGLOnceReason = null;
 
 // The default while WebGPU support is being rolled out.
 const DEFAULT_CHOICE = "webgl";
@@ -38,9 +43,16 @@ export function recordWebGPUFailure(reason) {
   safeStorage("sessionStorage", (s) => s.setItem(FALLBACK_SESSION_KEY, String(reason)));
 }
 
-/** Why this session fell back to WebGL, if it did. */
+/** Asks for the next page load to use WebGL, e.g. for a feature WebGPU lacks. */
+export function requestWebGLOnce(reason) {
+  safeStorage("sessionStorage", (s) => s.setItem(ONCE_SESSION_KEY, String(reason)));
+}
+
+/** Why this page is on WebGL rather than WebGPU, if it fell back. */
 export function webGPUFailureReason() {
-  return safeStorage("sessionStorage", (s) => s.getItem(FALLBACK_SESSION_KEY));
+  return (
+    webGLOnceReason ?? safeStorage("sessionStorage", (s) => s.getItem(FALLBACK_SESSION_KEY))
+  );
 }
 
 /**
@@ -48,6 +60,12 @@ export function webGPUFailureReason() {
  * @param {URLSearchParams} params
  */
 export function shouldTryWebGPU(params) {
+  webGLOnceReason = safeStorage("sessionStorage", (s) => {
+    const reason = s.getItem(ONCE_SESSION_KEY);
+    s.removeItem(ONCE_SESSION_KEY);
+    return reason;
+  });
+  if (webGLOnceReason) return false;
   const fromURL = params.get("backend");
   if (fromURL == "webgl") return false;
   if (fromURL == "webgpu" || fromURL == "auto") return true;

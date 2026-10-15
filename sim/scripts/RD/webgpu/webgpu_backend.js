@@ -17,6 +17,8 @@ import {
   timestepShader,
   clearShader,
   enforceDirichletShader,
+  drawShader,
+  BRUSH_VALUES,
 } from "./sim_wgsl.js";
 
 const NUM_SLOTS = 5;
@@ -78,12 +80,19 @@ export class WebGPUBackend {
         { binding: 7, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: "float" } },
         { binding: 8, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: "float" } },
         { binding: 9, visibility: GPUShaderStage.COMPUTE, sampler: { type: "filtering" } },
+        { binding: 10, visibility: GPUShaderStage.COMPUTE, buffer: { type: "read-only-storage" } },
       ],
     });
     this.pipelineLayout = device.createPipelineLayout({
       bindGroupLayouts: [this.bindGroupLayout],
     });
     this.ensureUniformCapacity(64);
+    // Named values some kernels read (see values.js), such as the brush's position.
+    this.valuesBuffer = device.createBuffer({
+      label: "values",
+      size: 16 * 16,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
   }
 
   placeholderImage() {
@@ -269,6 +278,14 @@ export class WebGPUBackend {
     });
   }
 
+  /** Builds the brush pipeline. */
+  setDraw(parts) {
+    this.requestBuild("draw", async () => {
+      const pipeline = await this.compile("draw", drawShader(parts));
+      return () => (this.pipelines.draw = pipeline);
+    });
+  }
+
   /** Builds the Dirichlet enforcement pipeline, or removes it if parts is null. */
   setEnforceDirichlet(parts) {
     this.requestBuild("enforce", async () => {
@@ -330,6 +347,7 @@ export class WebGPUBackend {
         { binding: 7, resource: this.images[0].createView() },
         { binding: 8, resource: this.images[1].createView() },
         { binding: 9, resource: this.sampler },
+        { binding: 10, resource: { buffer: this.valuesBuffer } },
       ],
     });
     const pass = this.getEncoder().beginComputePass();
@@ -394,6 +412,23 @@ export class WebGPUBackend {
     if (!this.pipelines.enforce) return;
     for (let k = 1; k < NUM_SLOTS; k++) {
       this.dispatch(this.pipelines.enforce, uniforms, [k], k - 1);
+    }
+    this.rotate();
+  }
+
+  /**
+   * Applies the brush to every slot, as draw() in main.js does: slot k+1 is drawn on into
+   * slot k, then rotated.
+   * @param {Object} uniforms
+   * @param {Object} brush - brushCoords ([x, y] in texture coordinates) and
+   *   brushValueModifier (1 to draw, -1 to erase).
+   */
+  draw(uniforms, brush) {
+    if (!this.pipelines.draw) return;
+    this.flush();
+    this.device.queue.writeBuffer(this.valuesBuffer, 0, BRUSH_VALUES.pack(brush));
+    for (let k = 1; k < NUM_SLOTS; k++) {
+      this.dispatch(this.pipelines.draw, uniforms, [k], k - 1);
     }
     this.rotate();
   }

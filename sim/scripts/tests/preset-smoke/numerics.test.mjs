@@ -28,7 +28,10 @@ let browser, page, stopServer;
 before(async () => {
   stopServer = await ensureServerRunning();
   browser = await chromium.launch({
-    args: BACKEND == "webgpu" ? ["--enable-unsafe-webgpu"] : [],
+    // ANGLE's Metal backend, so that WebGL and WebGPU both run on the real GPU (headless
+    // Chromium otherwise gives WebGPU a software adapter that loses its device alongside
+    // WebGL).
+    args: ["--use-angle=metal", ...(BACKEND == "webgpu" ? ["--enable-unsafe-webgpu"] : [])],
   });
   const context = await browser.newContext({
     serviceWorkers: "block",

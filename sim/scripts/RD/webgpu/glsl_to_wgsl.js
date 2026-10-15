@@ -152,6 +152,14 @@ function translateTokens(tokens, start, end, options) {
       continue;
     }
     if (tok.type != "ident") {
+      // WGSL has no unary plus, so drop it (e.g. "vec2(+step_x, 0.0)").
+      const previous = i > start ? tokens[i - 1] : null;
+      const isUnary =
+        !previous ||
+        (previous.type == "punct" && !["(", "[", ")", "]"].includes(previous.value)
+          ? true
+          : previous.value == "(" || previous.value == "[");
+      if (tok.value == "+" && isUnary) continue;
       emit(tok.value);
       continue;
     }

@@ -276,6 +276,8 @@ export class WebGPUDisplay {
    */
   draw({ simValues, displayValues, projection, modelView, heightMode, background, width, height }) {
     const backend = this.backend;
+    // A zero-sized canvas has no texture to draw into.
+    if (!(width > 0 && height > 0)) return;
     if (this.canvas.width != width || this.canvas.height != height) {
       this.canvas.width = width;
       this.canvas.height = height;

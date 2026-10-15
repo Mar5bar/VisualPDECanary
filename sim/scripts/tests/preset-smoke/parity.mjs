@@ -29,8 +29,13 @@ const names = args.names
   : getListOfPresetNames().filter((n) => n != "default");
 const NUM_STEPS = Number(args.steps ?? 20);
 
+// Thrown when a preset can't run on WebGPU yet, so falls back to WebGL.
+class Skip extends Error {}
+
 const stopServer = await ensureServerRunning();
-const browser = await chromium.launch({ args: ["--enable-unsafe-webgpu"] });
+// ANGLE's Metal backend, so that WebGL and WebGPU both run on the real GPU (headless
+// Chromium otherwise gives WebGPU a software adapter that loses its device alongside WebGL).
+const browser = await chromium.launch({ args: ["--enable-unsafe-webgpu", "--use-angle=metal"] });
 
 async function openPage(backend) {
   const context = await browser.newContext({
@@ -67,7 +72,10 @@ async function run({ page, errors, backend }, name, initialState) {
   await page.goto(BASE_URL + "/sim/?" + query, { waitUntil: "load" });
   await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
   const actual = await page.evaluate(() => window.VisualPDETest.backend);
-  if (actual != backend) throw new Error(`Expected ${backend}, got ${actual}`);
+  if (actual != backend) {
+    const reason = await page.evaluate(() => window.VisualPDETest.fallbackReason);
+    throw new Skip(reason ?? `expected ${backend}, got ${actual}`);
+  }
   return page.evaluate(
     async ([numSteps, initialState]) => {
       const T = window.VisualPDETest;
@@ -145,10 +153,15 @@ for (const [index, name] of names.entries()) {
       webgpuConsole: webgpu.errors.slice(0, 2).map((e) => e.slice(0, 300)),
     };
   } catch (e) {
-    result = { name, failure: String(e).slice(0, 300) };
+    result =
+      e instanceof Skip
+        ? { name, skipped: e.message }
+        : { name, failure: String(e).slice(0, 300) };
   }
   results.push(result);
-  const status = result.failure
+  const status = result.skipped
+    ? "SKIP  " + result.skipped
+    : result.failure
     ? "FAIL  " + result.failure
     : result.webgpuError && result.webgpuError != result.webglError
       ? "ERROR " + result.webgpuError

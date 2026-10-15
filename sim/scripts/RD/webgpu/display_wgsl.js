@@ -8,50 +8,7 @@
 
 import { translateExpression, translateStatements } from "./glsl_to_wgsl.js";
 import { WORKGROUP_SIZE, UNIFORMS_STRUCT, AUXILIARY_WGSL } from "./sim_wgsl.js";
-
-/**
- * Describes a block of named values (uniforms the GLSL shaders read, such as colour limits),
- * each stored in one vec4f of a storage buffer, so that any set of them can be passed
- * without a hand-written struct.
- */
-export class ValueLayout {
-  /** @param {[string, "f32"|"vec2f"|"vec3f"|"vec4f"|"bool"][]} entries */
-  constructor(entries) {
-    this.entries = entries;
-  }
-
-  /** WGSL declaring each value as a local, read from the array named `array`. */
-  lets(array) {
-    const swizzle = { f32: ".x", vec2f: ".xy", vec3f: ".xyz", vec4f: "" };
-    return this.entries
-      .map(([name, type], k) =>
-        type == "bool"
-          ? `  let ${name} = ${array}[${k}].x != 0.0;`
-          : `  let ${name} = ${array}[${k}]${swizzle[type]};`,
-      )
-      .join("\n");
-  }
-
-  /**
-   * Packs values (numbers, booleans, arrays or three.js vectors and colours) into a buffer.
-   * @param {Object} values
-   */
-  pack(values) {
-    const data = new Float32Array(4 * Math.max(1, this.entries.length));
-    this.entries.forEach(([name], k) => {
-      const v = values[name];
-      let components;
-      if (typeof v == "boolean") components = [v ? 1 : 0];
-      else if (typeof v == "number") components = [v];
-      else if (Array.isArray(v)) components = v;
-      else if (v && "r" in v && "g" in v) components = [v.r, v.g, v.b];
-      else if (v && "x" in v) components = [v.x, v.y, v.z ?? 0, v.w ?? 0];
-      else components = [0];
-      data.set(components.slice(0, 4), 4 * k);
-    });
-    return data;
-  }
-}
+import { ValueLayout } from "./values.js";
 
 // The values the post-processing shader reads besides the simulation uniforms.
 export const POST_VALUES = new ValueLayout([
@@ -85,6 +42,9 @@ export const DISPLAY_VALUES = new ValueLayout([
   ["blendImage", "bool"],
   ["blendImageAmount", "f32"],
   ["heightScale", "f32"],
+  // Whether the plotted values are interpolated between nodes, as the WebGL post texture's
+  // linear filtering does, or shown as flat cells.
+  ["linearDisplay", "bool"],
 ]);
 
 // The runtime +inf that the GLSL computes as 1.0/(0.0*gl_FragCoord.x), to dodge constant
@@ -242,8 +202,6 @@ ${translateStatements(body, opts)}
  * @property {string[]} paramNames
  * @property {string} body - The body of the WebGL display shader's main(), including its
  *   closing brace.
- * @property {boolean} [linear] - Whether the post-processed values are interpolated (as the
- *   WebGL post texture's linear filtering does) or not (as when interpolating manually).
  */
 
 /**
@@ -253,13 +211,13 @@ ${translateStatements(body, opts)}
  */
 export function displayShader(parts) {
   const body = parts.body.replace(/\}\s*$/, "");
-  const postLookup = parts.linear ? "postBilinear" : "postNearest";
+  const linearIndex = DISPLAY_VALUES.entries.findIndex(([name]) => name == "linearDisplay");
   const opts = {
     renames: renamesFor(parts),
     returnValue: "fragColour",
     calls: translationCalls({
       texture2D: ([tex, uv]) => {
-        if (tex == "textureSource") return `${postLookup}(${uv})`;
+        if (tex == "textureSource") return `postSample(${uv})`;
         if (tex == "imageSourceBlend") return "vec4f(0.0)";
         return translationCalls().texture2D([tex, uv]);
       },
@@ -311,6 +269,11 @@ fn postBilinear(uv: vec2f) -> vec4f {
     mix(postAt(i0, j0 + 1), postAt(i0 + 1, j0 + 1), f.x),
     f.y
   );
+}
+
+fn postSample(uv: vec2f) -> vec4f {
+  if (V[${linearIndex}].x != 0.0) { return postBilinear(uv); }
+  return postNearest(uv);
 }
 
 fn colFromValue(val: f32, colour1: vec4f, colour2: vec4f, colour3: vec4f, colour4: vec4f, colour5: vec4f) -> vec3f {
