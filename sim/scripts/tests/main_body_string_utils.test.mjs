@@ -130,12 +130,12 @@ test("replaceUserDefDiff: special-cases 0/1/-1, otherwise wraps the input in the
   assert.equal(m.replaceUserDefDiff("FOO BAR", re(), "2*a", "[]"), "[2*a]BAR");
 });
 
-test("replaceWhiteNoise: substitutes WhiteNoise/WhiteNoise_2-4 with scaled RANDN terms, using dx (1D) or dx^2 (2D+)", () => {
+test("replaceWhiteNoise: substitutes WhiteNoise/WhiteNoise_2-4 with scaled RANDN terms, using dx (1D) or dx*dy (2D)", () => {
   m.__setState({ numsAsWords: ["zero", "one", "two", "three", "four", "five"] });
   m.__setState({ options: { dimension: 2 } });
   assert.equal(
     m.replaceWhiteNoise("WhiteNoise + WhiteNoise_2"),
-    "sqrt(1/(dt*safepow(dx,2)))*RANDN + sqrt(1/(dt*safepow(dx,2)))*RANDNTWO",
+    "sqrt(1/(dt*(dx*dy)))*RANDN + sqrt(1/(dt*(dx*dy)))*RANDNTWO",
   );
   m.__setState({ options: { dimension: 1 } });
   assert.equal(m.replaceWhiteNoise("WhiteNoise"), "sqrt(1/(dt*dx))*RANDN");

@@ -1739,8 +1739,11 @@ async function VisualPDE(url) {
     uniforms.L_y.value = domainHeight;
     uniforms.L_x.value = domainWidth;
     uniforms.L_min.value = Math.min(domainHeight, domainWidth);
-    uniforms.dx.value = spatialStepValue;
-    uniforms.dy.value = spatialStepValue;
+    // The actual spacing of the nodes, which setSizes() makes at least the requested spatial
+    // step (so as close to it as fits the domain a whole number of times), so that the
+    // finite differences and the nodes' positions agree.
+    uniforms.dx.value = domainWidth / nXDisc;
+    uniforms.dy.value = domainHeight / nYDisc;
   }
 
   function computeCanvasSizesAndAspect() {
@@ -13898,8 +13901,9 @@ async function VisualPDE(url) {
    * @returns {string} The modified string.
    */
   function replaceWhiteNoise(str) {
-    // Replace WhiteNoise with RANDN*sqrt(1/(dt*dx^dim)), where dim is dimension.
-    let dxStr = options.dimension == 1 ? "dx" : "safepow(dx,2)";
+    // Replace WhiteNoise with RANDN*sqrt(1/(dt*V)), where V is the length (in 1D) or area (in
+    // 2D) of a node's cell.
+    let dxStr = options.dimension == 1 ? "dx" : "(dx*dy)";
     str = str.replaceAll(
       /\bWhiteNoise(_1)?\b/g,
       "sqrt(1/(dt*" + dxStr + "))*RANDN",
