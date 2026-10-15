@@ -4133,14 +4133,11 @@ async function VisualPDE(url) {
     return replaceMINXMINY(body);
   }
 
-  // The first feature in use that WebGPU doesn't support yet, as a description, or null if
-  // WebGPU supports everything in use. While WebGPU support is being completed, simulations
-  // using anything else run on WebGL instead (see fallBackToWebGL).
+  // The first feature in use that WebGPU doesn't support, as a description, or null if it
+  // supports everything in use. Simulations using anything it doesn't run on WebGL instead
+  // (see fallBackToWebGL). WebGPU currently supports everything WebGL does; this is where to
+  // exclude any feature added to WebGL before WebGPU.
   function webGPUUnsupportedFeature() {
-    if (options.blendImage) return "image blending";
-    if (options.initialState) return "saved initial states";
-    if (checkpointExists) return "checkpoints";
-    if (options.captureWebcam) return "webcam input";
     return null;
   }
 
@@ -4374,6 +4371,23 @@ async function VisualPDE(url) {
           ? await gpuDisplay.readPost()
           : (getPostState(), postBuffer);
         return { nX: nXDisc, nY: nYDisc, data: toBase64(data) };
+      },
+      // Changes the spatial step without resetting, as editing it in the GUI does, so the
+      // state is resampled onto the new grid.
+      async setSpatialStep(value) {
+        if (gpuBackend) await gpuBackend.whenReady();
+        options.spatialStep = value;
+        resize();
+      },
+      // Saves a checkpoint of the current state, as the checkpoint button does.
+      async saveCheckpoint() {
+        await saveSimState();
+      },
+      // Resets the simulation from the saved checkpoint.
+      async resetFromCheckpoint() {
+        if (gpuBackend) await gpuBackend.whenReady();
+        options.resetFromCheckpoints = true;
+        resetSim();
       },
       // The probe chart's data, as [time, value] pairs.
       async probeData() {
@@ -5045,7 +5059,6 @@ async function VisualPDE(url) {
         // Interpolate the plotted values except in automata mode, where cells should look
         // like cells.
         linearDisplay: !options.automataMode,
-        blendImage: false,
       },
       projection: camera.projectionMatrix.elements,
       modelView: modelView.elements,
@@ -5578,7 +5591,22 @@ async function VisualPDE(url) {
         return;
       }
       syncGpuParams();
-      gpuBackend.clear(gpuUniformValues());
+      if (checkpointExists && options.resetFromCheckpoints) {
+        // As WebGL draws checkpointTexture (with setStretchOrCropTexture's fit).
+        gpuBackend.restoreCheckpoint({
+          groups: [
+            checkpointTexture.image.data,
+            checkpointTextureGroup1?.image.data,
+          ],
+          width: checkpointTexture.image.width,
+          height: checkpointTexture.image.height,
+          repeat: checkpointTexture.repeat.toArray(),
+          offset: checkpointTexture.offset.toArray(),
+          linear: checkpointTexture.magFilter == THREE.LinearFilter,
+        });
+      } else {
+        gpuBackend.clear(gpuUniformValues());
+      }
       // As resetSim() does, but here too in case this clear was deferred until after it.
       if (shaderContainsGlobalIntegral) updateGlobalIntegral();
       gpuBackend.flush();
@@ -7869,6 +7897,7 @@ async function VisualPDE(url) {
     image.onload = function () {
       texture.needsUpdate = true;
       uniforms.imageSourceBlend.value = texture;
+      Promise.resolve(gpuBackend?.setImage(2, image)).then(renderIfNotRunning);
     };
     texture.dispose();
   }
@@ -11577,6 +11606,14 @@ async function VisualPDE(url) {
    * Saves the current simulation state in memory as a buffer and creates a texture from it.
    */
   function saveSimState() {
+    if (gpuBackend) {
+      // Read back asynchronously, so return a promise that resolves once saved.
+      return gpuBackend.readState().then((groups) => {
+        [stateBuffer, stateBufferGroup1] = groups;
+        createCheckpointTexture(stateBuffer, undefined, stateBufferGroup1);
+        checkpointExists = true;
+      });
+    }
     // Save the current state in memory as a buffer (getRawState also (re)populates
     // stateBufferGroup1 - a Float32Array once numGroups>1, undefined otherwise).
     getRawState();
@@ -11591,10 +11628,10 @@ async function VisualPDE(url) {
    * Saves a checkpoint of the simulation state and downloads it as a file.
    * If no checkpoint exists, creates one before downloading.
    */
-  function exportSimState() {
+  async function exportSimState() {
     // Save a checkpoint to file. If no checkpoint exists, create one.
     if (!checkpointExists) {
-      saveSimState();
+      await saveSimState();
     }
 
     // Download the buffer as a file, with the dimensions prepended. Group 1's (species 5-8)
@@ -14671,6 +14708,7 @@ async function VisualPDE(url) {
             texture.image = image;
             texture.needsUpdate = true;
             uniforms.imageSourceOne.value = texture;
+            gpuBackend?.setImage(0, image);
           };
         }
         webcamTimer = setTimeout(function tick() {

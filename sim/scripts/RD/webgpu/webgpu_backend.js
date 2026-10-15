@@ -60,7 +60,8 @@ export class WebGPUBackend {
     this.uniformData = null;
     this.paramsBuffer = null;
     this.setParams([]);
-    this.images = [this.placeholderImage(), this.placeholderImage()];
+    // I_S, I_T, and the image the display can be blended with.
+    this.images = [this.placeholderImage(), this.placeholderImage(), this.placeholderImage()];
     this.sampler = device.createSampler({
       magFilter: "nearest",
       minFilter: "nearest",
@@ -120,11 +121,9 @@ export class WebGPUBackend {
     if (nX == this.nX && nY == this.nY && numGroups == this.numGroups && this.slots.length) {
       return;
     }
-    this.flush();
-    this.slots.forEach((buffer) => buffer.destroy());
+    const old = { slots: this.slots, nX: this.nX, nY: this.nY };
     this.nX = nX;
     this.nY = nY;
-    this.numGroups = numGroups;
     const size = nX * nY * numGroups * 16;
     this.slots = Array.from({ length: NUM_SLOTS }, (_, k) =>
       this.device.createBuffer({
@@ -133,6 +132,21 @@ export class WebGPUBackend {
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
       }),
     );
+    // As resizeTextures() does on WebGL, interpolate the state onto the new grid, unless the
+    // number of species groups has changed (which starts the state afresh on WebGL too).
+    if (old.slots.length && numGroups == this.numGroups) {
+      old.slots.forEach((source, k) =>
+        this.resample(source, old.nX, old.nY, this.slots[k], {
+          repeat: [1, 1],
+          offset: [0, 0],
+          linear: true,
+          snap: true,
+        }),
+      );
+    }
+    this.numGroups = numGroups;
+    this.flush();
+    old.slots.forEach((buffer) => buffer.destroy());
   }
 
   /** Sets the kinetic parameters' values, in the order of SimShaderParts.paramNames. */
@@ -151,7 +165,7 @@ export class WebGPUBackend {
   }
 
   /**
-   * Uploads an image as one of the two image inputs (0 for I_S, 1 for I_T).
+   * Uploads an image as one of the image inputs (0 for I_S, 1 for I_T, 2 for blending).
    * @param {number} index
    * @param {ImageBitmapSource} source
    */
@@ -469,6 +483,93 @@ export class WebGPUBackend {
     this.slots.forEach((slot) => this.device.queue.writeBuffer(slot, 0, interleaved));
   }
 
+  /**
+   * Sets every slot to a checkpoint, resampled onto the grid as WebGL draws its checkpoint
+   * texture: at each node's texture coordinates times repeat plus offset (see
+   * setStretchOrCropTexture), clamped at the edges, interpolated bilinearly where the
+   * checkpoint is enlarged (if linear is set) and nearest where it's shrunk.
+   * @param {Object} checkpoint
+   * @param {Float32Array[]} checkpoint.groups - Per species group, RGBA per node.
+   * @param {number} checkpoint.width
+   * @param {number} checkpoint.height
+   * @param {number[]} checkpoint.repeat
+   * @param {number[]} checkpoint.offset
+   * @param {boolean} checkpoint.linear
+   */
+  restoreCheckpoint({ groups, width, height, repeat, offset, linear }) {
+    const device = this.device;
+    const G = this.numGroups;
+    const N = width * height;
+    const data = new Float32Array(4 * N * G);
+    for (let g = 0; g < G; g++) {
+      if (!groups[g]) continue;
+      for (let n = 0; n < N; n++) {
+        data.set(groups[g].subarray(4 * n, 4 * n + 4), 4 * (n * G + g));
+      }
+    }
+    const source = device.createBuffer({
+      size: Math.max(16, data.byteLength),
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    });
+    device.queue.writeBuffer(source, 0, data);
+    // Enlarged in either direction counts as enlarged, as for a texture's LOD.
+    const enlarged = linear && (this.nX * repeat[0] > width || this.nY * repeat[1] > height);
+    this.resample(source, width, height, this.slots[0], { repeat, offset, linear: enlarged });
+    const encoder = this.getEncoder();
+    for (let k = 1; k < NUM_SLOTS; k++) {
+      encoder.copyBufferToBuffer(this.slots[0], 0, this.slots[k], 0, this.slots[0].size);
+    }
+  }
+
+  /**
+   * Records resampling a state buffer of width by height nodes (groups interleaved, as the
+   * slots) onto the grid, into target: at each node's texture coordinates times repeat plus
+   * offset, clamped at the edges, bilinearly if linear is set (snapping weights near texel
+   * centres if snap is set, as textureBilinear does), otherwise nearest.
+   */
+  resample(source, width, height, target, { repeat, offset, linear, snap = false }) {
+    const device = this.device;
+    const G = this.numGroups;
+    const params = new ArrayBuffer(48);
+    new Uint32Array(params, 0, 4).set([width, height, linear ? 1 : 0, snap ? 1 : 0]);
+    new Float32Array(params, 16, 4).set([...repeat, ...offset]);
+    new Uint32Array(params, 32, 2).set([this.nX, this.nY]);
+    const paramsBuffer = device.createBuffer({
+      size: 48,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    device.queue.writeBuffer(paramsBuffer, 0, params);
+    this.restorePipelines ??= {};
+    if (!this.restorePipelines[G]) {
+      this.restorePipelines[G] = device.createComputePipeline({
+        layout: "auto",
+        compute: {
+          module: device.createShaderModule({ code: restoreShader(G) }),
+          entryPoint: "main",
+        },
+      });
+    }
+    const pipeline = this.restorePipelines[G];
+    const pass = this.getEncoder().beginComputePass();
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(
+      0,
+      device.createBindGroup({
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: { buffer: paramsBuffer } },
+          { binding: 1, resource: { buffer: source } },
+          { binding: 2, resource: { buffer: target } },
+        ],
+      }),
+    );
+    pass.dispatchWorkgroups(
+      Math.ceil(this.nX / WORKGROUP_SIZE[0]),
+      Math.ceil(this.nY / WORKGROUP_SIZE[1]),
+    );
+    pass.end();
+  }
+
   /** Submits everything recorded since the last flush. */
   flush() {
     if (!this.encoder && !this.uniformCount) return;
@@ -515,4 +616,53 @@ export class WebGPUBackend {
       return out;
     });
   }
+}
+
+// Resamples a checkpoint onto the grid (see WebGPUBackend.restoreCheckpoint).
+function restoreShader(G) {
+  return `
+struct Params {
+  width: u32, height: u32, linear: u32, snap: u32,
+  repeat: vec2f, offset: vec2f,
+  nX: u32, nY: u32,
+}
+@group(0) @binding(0) var<uniform> P: Params;
+@group(0) @binding(1) var<storage, read> source: array<vec4f>;
+@group(0) @binding(2) var<storage, read_write> dst: array<vec4f>;
+
+fn at(g: u32, i: i32, j: i32) -> vec4f {
+  let ii = clamp(i, 0, i32(P.width) - 1);
+  let jj = clamp(j, 0, i32(P.height) - 1);
+  return source[u32(jj * i32(P.width) + ii) * ${G}u + g];
+}
+
+@compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
+fn main(@builtin(global_invocation_id) gid: vec3u) {
+  if (gid.x >= P.nX || gid.y >= P.nY) { return; }
+  let uv = (vec2f(gid.xy) + 0.5) / vec2f(f32(P.nX), f32(P.nY)) * P.repeat + P.offset;
+  let size = vec2f(f32(P.width), f32(P.height));
+  for (var g = 0u; g < ${G}u; g++) {
+    var value: vec4f;
+    if (P.linear != 0u) {
+      let st = uv * size - 0.5;
+      let base = floor(st);
+      var f = st - base;
+      if (P.snap != 0u) {
+        f = select(f, vec2f(0.0), f < vec2f(1e-4));
+        f = select(f, vec2f(1.0), f > vec2f(1.0 - 1e-4));
+      }
+      let i0 = i32(base.x);
+      let j0 = i32(base.y);
+      value = mix(
+        mix(at(g, i0, j0), at(g, i0 + 1, j0), f.x),
+        mix(at(g, i0, j0 + 1), at(g, i0 + 1, j0 + 1), f.x),
+        f.y
+      );
+    } else {
+      let ij = vec2i(floor(uv * size));
+      value = at(g, ij.x, ij.y);
+    }
+    dst[(gid.y * P.nX + gid.x) * ${G}u + g] = value;
+  }
+}`;
 }

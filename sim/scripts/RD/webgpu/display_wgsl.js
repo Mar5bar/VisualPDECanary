@@ -248,7 +248,9 @@ export function displayShader(parts) {
     calls: translationCalls({
       texture2D: ([tex, uv]) => {
         if (tex == "textureSource") return `postSample(${uv})`;
-        if (tex == "imageSourceBlend") return "vec4f(0.0)";
+        if (tex == "imageSourceBlend") {
+          return `textureSampleLevel(imageBlend, imageSampler, ${uv}, 0.0)`;
+        }
         return translationCalls().texture2D([tex, uv]);
       },
       textureBilinear: ([tex, uv]) => {
@@ -274,6 +276,7 @@ struct Camera {
 @group(0) @binding(7) var imageSampler: sampler;
 @group(0) @binding(8) var<uniform> camera: Camera;
 @group(0) @binding(9) var<storage, read> globals: vec4f;
+@group(0) @binding(10) var imageBlend: texture_2d<f32>;
 ${lookupHelpers(parts)}
 ${AUXILIARY_WGSL}
 

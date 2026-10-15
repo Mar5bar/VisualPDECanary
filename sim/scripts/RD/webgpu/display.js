@@ -266,9 +266,11 @@ export class WebGPUDisplay {
     this.postLayout = this.device.createBindGroupLayout({
       entries: [...kinds(true), "read"].map((kind, binding) => entry(binding, C, kind)),
     });
-    // The display: binding 8 is the camera, 9 the domain integrals.
+    // The display: binding 8 is the camera, 9 the domain integrals, 10 the blend image.
     this.displayLayout = this.device.createBindGroupLayout({
-      entries: [...kinds(false), "uniform", "read"].map((kind, binding) => entry(binding, VF, kind)),
+      entries: [...kinds(false), "uniform", "read", "texture"].map((kind, binding) =>
+        entry(binding, VF, kind),
+      ),
     });
   }
 
@@ -803,6 +805,7 @@ export class WebGPUDisplay {
         ...this.imageEntries(5),
         { binding: 8, resource: { buffer: cameraBuffer } },
         { binding: 9, resource: { buffer: backend.globalsBuffer } },
+        { binding: 10, resource: backend.images[2].createView() },
       ],
     });
   }

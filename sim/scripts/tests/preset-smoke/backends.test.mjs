@@ -244,3 +244,35 @@ for (const plotType of ["plane", "surface"]) {
     assert.ok(differing <= drawn * 0.2, `${differing} of ${drawn} drawn nodes differ`);
   });
 }
+
+test("checkpoints restore the saved state exactly, on both backends", async () => {
+  for (const [backend, page] of Object.entries(pages)) {
+    const { saved, restored } = await page.evaluate(async (opts) => {
+      const T = window.VisualPDETest;
+      await T.load(opts);
+      await T.step(20);
+      await T.saveCheckpoint();
+      const saved = await T.readState();
+      await T.step(20);
+      await T.resetFromCheckpoint();
+      return { saved, restored: await T.readState() };
+    }, { ...probeBase, probing: false, integrate: false, numSpecies: 5, speciesNames: "a b c d e", whatToPlot: "a", reactionStr_5: "a - e", diffusionStr_5_5: "1", initCond_5: "sin(x)", boundaryConditions_5: "periodic" });
+    for (const key of ["data", "dataGroup1"]) {
+      assert.ok(saved[key], `${backend}: no ${key}`);
+      assert.equal(restored[key], saved[key], `${backend}: ${key} wasn't restored exactly`);
+    }
+  }
+});
+
+test("changing the grid mid-run resamples the state identically on both backends", async () => {
+  const states = await onBoth({ ...probeBase, probing: false, integrate: false }, [
+    ["step", 20],
+    ["setSpatialStep", "0.4"],
+    ["step", 5],
+  ]);
+  assert.equal(states.webgpu.nX, states.webgl.nX);
+  const [a, b] = [decode(states.webgl.data), decode(states.webgpu.data)];
+  let worst = 0;
+  for (let n = 0; n < a.length; n += 4) worst = Math.max(worst, Math.abs(a[n] - b[n]));
+  assert.ok(worst < 1e-5, `largest difference ${worst}`);
+});
