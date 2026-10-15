@@ -124,6 +124,12 @@ import {
 import { closestMatch } from "../../../assets/js/closest-match.js";
 import { Stats } from "../stats.min.js";
 import { createWelcomeTour } from "./tours.js";
+import { WebGPUBackend } from "./webgpu/webgpu_backend.js";
+import {
+  shouldTryWebGPU,
+  createWebGPUDevice,
+  recordWebGPUFailure,
+} from "./webgpu/backend_select.js";
 
 if (expandingOptionsInProgress) {
   let checkIfOptionsLoaded = setInterval(() => {
@@ -139,6 +145,11 @@ if (expandingOptionsInProgress) {
 async function VisualPDE(url) {
   let canvas, gl, manualInterpolationNeeded, camCanvas;
   let camera, simCamera, scene, simScene, renderer, aspectRatio, controls;
+  // The WebGPU backend, if this page is running on WebGPU (see webgpu/backend_select.js);
+  // null on WebGL. Functions that touch the GPU delegate to it when it's set.
+  let gpuBackend = null,
+    gpuAdapterInfo = null,
+    gpuParamNames = [];
   let simTextures = [],
     // Only allocated once numGroups(options.numSpecies)>1 (i.e. numSpecies>4). Each entry is
     // a THREE.WebGLMultipleRenderTargets holding one colour attachment per texture group, so
@@ -634,6 +645,24 @@ async function VisualPDE(url) {
 
   // Load default options.
   loadOptions({ preset: "default", isInitialLoad: true });
+
+  // Set up WebGPU if it's been asked for and is available, otherwise stay on WebGL.
+  if (shouldTryWebGPU(params)) {
+    try {
+      const { device, adapterInfo } = await createWebGPUDevice();
+      gpuBackend = new WebGPUBackend(device);
+      gpuAdapterInfo = adapterInfo;
+      device.lost.then((info) => {
+        if (info.reason == "destroyed") return;
+        // Fall back to WebGL for the rest of the session.
+        recordWebGPUFailure("WebGPU device lost: " + info.message);
+        window.location.reload();
+      });
+    } catch (error) {
+      console.warn("Using WebGL, as WebGPU is unavailable: " + error.message);
+      recordWebGPUFailure(error.message);
+    }
+  }
 
   // Initialise simulation and GUI.
   init();
@@ -1871,6 +1900,11 @@ async function VisualPDE(url) {
   }
 
   function resizeTextures(shift = 0) {
+    gpuBackend?.resize(
+      nXDisc + shift,
+      nYDisc + shift,
+      numGroups(Number(options.numSpecies)),
+    );
     // Resize the computational domain by interpolating the existing domain onto the new discretisation.
     // mrtSimTextures (the real 8-species state once numGroups>1) is allocated once at
     // options.maxDisc size (Stage 3) and, unlike simTextures, was never being resized down
@@ -3975,12 +4009,124 @@ async function VisualPDE(url) {
     requestAnimationFrame(animate);
   }
 
+  // --- WebGPU ------------------------------------------------------------------------
+  // When gpuBackend is set, the simulation runs on WebGPU (see webgpu/). These helpers give
+  // it what the WebGL materials get from main.js: shader pieces, uniforms and parameters.
+
+  // The shader pieces common to every WebGPU pipeline.
+  function gpuShaderParts() {
+    gpuParamNames = getKineticParamNames();
+    return {
+      numGroups: numGroups(Number(options.numSpecies)),
+      // Per species group, whether the state is clamped at the edges in x and y, mirroring
+      // the wrap modes setRDEquations() gives the WebGL textures (species 5-8 always wrap,
+      // and clamp in the shader where needed).
+      clamp: [
+        [
+          simTextures[0].texture.wrapS == THREE.ClampToEdgeWrapping,
+          simTextures[0].texture.wrapT == THREE.ClampToEdgeWrapping,
+        ],
+        [false, false],
+      ],
+      paramNames: gpuParamNames,
+      minX: replaceMINXMINY("MINX"),
+      minY: replaceMINXMINY("MINY"),
+    };
+  }
+
+  // The GLSL enforcing Dirichlet conditions on "updated" (and "updated2" for species 5-8),
+  // as dirichletMaterial does on WebGL.
+  function gpuDirichletEnforceBody() {
+    const numSpeciesInGroups = 4 * numGroups(Number(options.numSpecies));
+    let body = "";
+    if (options.domainViaIndicatorFun) {
+      const str = RDShaderDirichletIndicatorFun().replace(
+        /indicatorFun/,
+        parseShaderString(getModifiedDomainIndicatorFun()),
+      );
+      for (let ind = 0; ind < numSpeciesInGroups; ind++) {
+        const isDirichlet =
+          options["boundaryConditions_" + (ind + 1)] == "dirichlet";
+        body +=
+          selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
+          (isDirichlet
+            ? parseShaderString(options["dirichletStr_" + (ind + 1)])
+            : "0.0") +
+          ";\n}\n";
+      }
+    } else {
+      for (let ind = 0; ind < numSpeciesInGroups; ind++) {
+        const bcStr = options["boundaryConditions_" + (ind + 1)];
+        if (bcStr == "dirichlet") {
+          body += parseDirichletRHS(
+            options["dirichletStr_" + (ind + 1)],
+            listOfSpecies[ind],
+          );
+          body += dirichletEnforceShaderMRT(ind);
+        } else if (bcStr == "combo") {
+          [
+            ...(options["comboStr_" + (ind + 1)] + ";").matchAll(
+              /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/gi,
+            ),
+          ].forEach(function (m) {
+            const side = m[1][0].toUpperCase();
+            body += parseDirichletRHS(m[2], listOfSpecies[ind], side);
+            body += dirichletEnforceShaderMRT(ind, side);
+          });
+        }
+      }
+    }
+    return replaceMINXMINY(body);
+  }
+
+  // Waits for a WebGPU pipeline build, reporting any failure like a WebGL compile error.
+  function gpuBuild(what, promise) {
+    promise.catch((error) => {
+      console.error(error.message);
+      if (error.source) console.error(error.source);
+      throwError(
+        "WebGPU couldn't build the " +
+          what +
+          ". Please check for syntax errors, or switch to WebGL in the Developer tools.",
+      );
+    });
+  }
+
+  // The uniforms a WebGPU pass needs, from the ones WebGL's materials use.
+  function gpuUniformValues() {
+    return {
+      isTwoD: options.dimension == 2,
+      dt: uniforms.dt.value,
+      dx: uniforms.dx.value,
+      dy: uniforms.dy.value,
+      t: uniforms.t.value,
+      L: uniforms.L.value,
+      L_x: uniforms.L_x.value,
+      L_y: uniforms.L_y.value,
+      L_min: uniforms.L_min.value,
+      seed: uniforms.seed.value,
+      globalIntegralValues: [1, 2, 3, 4].map(
+        (k) => uniforms["globalIntegralValue" + k].value,
+      ),
+    };
+  }
+
+  // Sends the kinetic parameters' current values to WebGPU.
+  function syncGpuParams() {
+    gpuBackend.setParams(gpuParamNames.map((name) => uniforms[name]?.value ?? 0));
+  }
+
   /**
    * Advances the simulation by up to numSteps timesteps, as done once per animation frame.
    * Also used by the test hooks (see initTestHooks), so tests step exactly as the app does.
    * @param {number} numSteps - The number of timesteps to take.
    */
   function advance(numSteps) {
+    if (gpuBackend) {
+      // Wait for any pipelines that are still being built.
+      if (!gpuBackend.isReady()) return;
+      syncGpuParams();
+    }
     // Ensure that any Dirichlet BCs are satisfied before timestepping (required due to brushes/init condition).
     anyDirichletBCs ? enforceDirichlet() : {};
     for (let i = 0; i < numSteps; i++) {
@@ -4032,11 +4178,13 @@ async function VisualPDE(url) {
       return btoa(binary);
     }
     window.VisualPDETest = {
-      backend: "webgl",
+      backend: gpuBackend ? "webgpu" : "webgl",
+      adapterInfo: gpuAdapterInfo,
       // Loads the given options on top of the default preset, paused and reset to t = 0.
       async load(opts) {
         loadPreset({ parent: "default", ...opts });
         pauseSim();
+        if (gpuBackend) await gpuBackend.whenReady();
         resetSim();
       },
       async reset() {
@@ -4048,12 +4196,18 @@ async function VisualPDE(url) {
       // Returns the current state as RGBA float32 texels, row by row from the bottom, with
       // species 5-8 (if any) in a second array.
       async readState() {
-        getRawState();
+        let groups;
+        if (gpuBackend) {
+          groups = await gpuBackend.readState();
+        } else {
+          getRawState();
+          groups = [stateBuffer, stateBufferGroup1].filter(Boolean);
+        }
         return {
           nX: nXDisc,
           nY: nYDisc,
-          data: toBase64(stateBuffer),
-          dataGroup1: stateBufferGroup1 ? toBase64(stateBufferGroup1) : null,
+          data: toBase64(groups[0]),
+          dataGroup1: groups[1] ? toBase64(groups[1]) : null,
         };
       },
       async time() {
@@ -4327,6 +4481,15 @@ async function VisualPDE(url) {
     // textures are already defined above, and their resolution defines the resolution
     // of solution.
 
+    if (gpuBackend) {
+      uniforms.dt.value = options.dt;
+      uniforms.t.value = gpuBackend.timestep(
+        options.timesteppingScheme,
+        gpuUniformValues(),
+      );
+      return;
+    }
+
     // Use the scheme specified in options.timesteppingScheme.
     switch (options.timesteppingScheme) {
       case "Euler":
@@ -4479,6 +4642,10 @@ async function VisualPDE(url) {
   }
 
   function enforceDirichlet() {
+    if (gpuBackend) {
+      gpuBackend.enforceDirichlet(gpuUniformValues());
+      return;
+    }
     // Enforce any Dirichlet boundary conditions.
     simDomain.material = dirichletMaterial;
     // The real 8-species state lives in mrtSimTextures once numGroups>1 (matching every
@@ -4508,6 +4675,9 @@ async function VisualPDE(url) {
   }
 
   function render(isResetting) {
+    // Submit the frame's simulation work.
+    gpuBackend?.flush();
+
     // Loading a >4-species configuration can trigger a render (e.g. from pauseSim() in
     // loadOptions()) before updateProblem() has created the MRT render targets that hold its
     // state. There's nothing to draw yet, and loadPreset() always finishes with resetSim(),
@@ -4942,6 +5112,21 @@ async function VisualPDE(url) {
   }
 
   function clearTextures() {
+    if (gpuBackend) {
+      // The pipelines may still be building (e.g. just after loading a preset), in which
+      // case clear once they're ready.
+      if (!gpuBackend.isReady()) {
+        gpuBackend.whenReady().then(() => {
+          if (gpuBackend.isReady()) clearTextures();
+        });
+        return;
+      }
+      syncGpuParams();
+      gpuBackend.clear(gpuUniformValues());
+      gpuBackend.flush();
+      render();
+      return;
+    }
     setRenderSizeToDisc();
     const isMRT = numGroups(Number(options.numSpecies)) > 1;
     // If restoring a checkpoint captured/loaded while numGroups was 1 (no group-1 data) but
@@ -5926,12 +6111,11 @@ async function VisualPDE(url) {
     shaderContainsGlobalIntegral = /\bglobalIntegralValue[1-4]\b/.test(middle);
     // The Dirichlet code is wrapped per timestepping pass (see RDShaderDirichletForStage), so
     // each pass's "bot" is assembled in the loop below.
-    const bot = (type) =>
-      [
-        RDShaderDirichletForStage(type, dirichletShader),
-        algebraicShader,
-        RDShaderBot(),
-      ].join(" ");
+    const botBody = (type) =>
+      [RDShaderDirichletForStage(type, dirichletShader), algebraicShader].join(
+        " ",
+      );
+    const bot = (type) => botBody(type) + " " + RDShaderBot();
 
     // MRT (>4-species) path, used by every timestepping scheme once numGroups>1 (Stage 13 of
     // the 8-species upgrade extended this from Forward-Euler-only to all 8 scheme
@@ -5946,7 +6130,7 @@ async function VisualPDE(url) {
     // already include species 5-8 and cross-group terms unconditionally (generalized
     // earlier in this stage), so they're reused here as-is - only the final
     // "close computeRHS"/shader-wrapper functions differ.
-    let middleMRT, botMRT;
+    let middleMRT, botMRT, botBodyMRT;
     if (numGroups(Number(options.numSpecies)) > 1) {
       let diffusionShaderMRT = parseNormalDiffusionStrings() + "\n";
       if (options.crossDiffusion) {
@@ -6035,16 +6219,17 @@ async function VisualPDE(url) {
       // come from) is identical whether it ends up embedded in `middle` or `middleMRT`.
       if (containsRAND) middleMRT = randShader() + middleMRT;
       if (containsRANDN) middleMRT = randNShader() + middleMRT;
-      botMRT = (type) => [
-        RDShaderDirichletForStage(
-          type,
-          dirichletShader + bcGroup1.dirichletShader,
-          true,
-        ),
-        algebraicShader,
-        algebraicShaderGroup1,
-        RDShaderBotMRT(),
-      ].join(" ");
+      botBodyMRT = (type) =>
+        [
+          RDShaderDirichletForStage(
+            type,
+            dirichletShader + bcGroup1.dirichletShader,
+            true,
+          ),
+          algebraicShader,
+          algebraicShaderGroup1,
+        ].join(" ");
+      botMRT = (type) => botBodyMRT(type) + " " + RDShaderBotMRT();
     }
 
     // Build every timestepping scheme's material (AB2/Mid/RK4's MRT support added when the
@@ -6091,6 +6276,25 @@ async function VisualPDE(url) {
     Object.keys(simMaterials).forEach(
       (key) => (simMaterials[key].needsUpdate = true),
     );
+
+    // Give WebGPU the same pieces, which it translates to WGSL (see webgpu/sim_wgsl.js).
+    if (gpuBackend) {
+      // The number of species groups may have changed (as on WebGL, where switching between
+      // single and multiple render targets starts the state afresh).
+      gpuBackend.resize(nXDisc, nYDisc, numGroups(Number(options.numSpecies)));
+      const parts = gpuShaderParts();
+      parts.middle = replaceMINXMINY(isMRT ? middleMRT : middle);
+      parts.bot = {};
+      ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"].forEach(
+        (type) =>
+          (parts.bot[type] = replaceMINXMINY(
+            isMRT ? botBodyMRT(type) : botBody(type),
+          )),
+      );
+      parts.timescales = insertRates("TIMESCALES");
+      parts.timescalesGroup1 = insertRates("TIMESCALESGROUP1");
+      gpuBuild("simulation", gpuBackend.setSimulation(parts));
+    }
 
     // We will use a shader to enforce Dirichlet BCs before each timestep, but only if some Dirichlet
     // BCs have been specified.
@@ -6208,6 +6412,16 @@ async function VisualPDE(url) {
         dirichletMaterial.glslVersion = null;
       }
       dirichletMaterial.needsUpdate = true;
+    }
+    if (gpuBackend) {
+      gpuBuild(
+        "Dirichlet enforcement",
+        gpuBackend.setEnforceDirichlet(
+          anyDirichletBCs
+            ? { ...gpuShaderParts(), enforceBody: gpuDirichletEnforceBody() }
+            : null,
+        ),
+      );
     }
 
     // Every diffusion coefficient controller's onFinishChange calls setRDEquations(), so this
@@ -6784,11 +6998,14 @@ async function VisualPDE(url) {
     let kineticStr = kineticUniformsForShader();
     // Species whose initial conditions reference the solution - see parseInitCond().
     const badInitConds = [];
+    // The declarations of u, v, ... between the shader's top and bottom templates.
+    let clearBody;
     if (numGroups(Number(options.numSpecies)) > 1) {
       // MRT (>4-species) path: separate top/bot (dual output, GLSL3) and species-5-8
       // locals. Kept entirely separate from the numGroups===1 branch below (rather than
       // sharing partial state) so that branch is provably byte-for-byte unchanged.
       let shaderStr = kineticStr + clearShaderTopMRT();
+      const clearBodyStart = shaderStr.length;
       let allClearShaders = [
         options.initCond_1,
         options.initCond_2,
@@ -6816,12 +7033,14 @@ async function VisualPDE(url) {
       shaderStr += "float u6 = " + parseInitCond(5, badInitConds) + ";\n";
       shaderStr += "float u7 = " + parseInitCond(6, badInitConds) + ";\n";
       shaderStr += "float u8 = " + parseInitCond(7, badInitConds) + ";\n";
+      clearBody = shaderStr.slice(clearBodyStart);
       shaderStr += clearShaderBotMRT();
       shaderStr = replaceMINXMINY(shaderStr);
       assignFragmentShader(clearMaterial, shaderStr);
       clearMaterial.glslVersion = THREE.GLSL3;
     } else {
       let shaderStr = kineticStr + clearShaderTop();
+      const clearBodyStart = shaderStr.length;
       let allClearShaders = [
         options.initCond_1,
         options.initCond_2,
@@ -6841,12 +7060,22 @@ async function VisualPDE(url) {
       shaderStr += "float v = " + parseInitCond(1, badInitConds) + ";\n";
       shaderStr += "float w = " + parseInitCond(2, badInitConds) + ";\n";
       shaderStr += "float q = " + parseInitCond(3, badInitConds) + ";\n";
+      clearBody = shaderStr.slice(clearBodyStart);
       shaderStr += clearShaderBot();
       shaderStr = replaceMINXMINY(shaderStr);
       assignFragmentShader(clearMaterial, shaderStr);
       clearMaterial.glslVersion = null;
     }
     clearMaterial.needsUpdate = true;
+    if (gpuBackend) {
+      gpuBuild(
+        "initial conditions",
+        gpuBackend.setClear({
+          ...gpuShaderParts(),
+          body: replaceMINXMINY(clearBody),
+        }),
+      );
+    }
     if (badInitConds.length > 0) {
       throwError(
         "Initial conditions can't depend on the solution. Please check the initial condition" +
@@ -7147,6 +7376,7 @@ async function VisualPDE(url) {
     image.onload = function () {
       texture.needsUpdate = true;
       uniforms.imageSourceOne.value = texture;
+      gpuBackend?.setImage(0, image);
       if (options.resetOnImageLoad) {
         resetSim();
       }
@@ -7164,6 +7394,7 @@ async function VisualPDE(url) {
     image.onload = function () {
       texture.needsUpdate = true;
       uniforms.imageSourceTwo.value = texture;
+      gpuBackend?.setImage(1, image);
       if (options.resetOnImageLoad) {
         resetSim();
       }

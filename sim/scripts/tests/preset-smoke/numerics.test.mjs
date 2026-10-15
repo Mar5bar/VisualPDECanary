@@ -20,12 +20,16 @@ import { createSolver } from "../numerics/reference_solver.mjs";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const SCHEMES = ["Euler", "AB2", "Mid", "RK4"];
+// Which backend to test: BACKEND=webgpu node --test numerics.test.mjs
+const BACKEND = process.env.BACKEND ?? "webgl";
 
 let browser, page, stopServer;
 
 before(async () => {
   stopServer = await ensureServerRunning();
-  browser = await chromium.launch();
+  browser = await chromium.launch({
+    args: BACKEND == "webgpu" ? ["--enable-unsafe-webgpu"] : [],
+  });
   const context = await browser.newContext({
     serviceWorkers: "block",
     viewport: { width: 1200, height: 800 },
@@ -43,8 +47,12 @@ before(async () => {
     });
   });
   page = await context.newPage();
-  await page.goto(BASE_URL + "/sim/?testHooks&noop", { waitUntil: "load" });
+  await page.goto(BASE_URL + `/sim/?testHooks&noop&backend=${BACKEND}`, {
+    waitUntil: "load",
+  });
   await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
+  const backend = await page.evaluate(() => window.VisualPDETest.backend);
+  assert.equal(backend, BACKEND, `expected the ${BACKEND} backend, but the page is using ${backend}`);
 });
 
 after(async () => {
