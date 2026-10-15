@@ -4288,7 +4288,8 @@ async function VisualPDE(url) {
       // Loads the given options on top of the default preset, paused and reset to t = 0.
       async load(opts) {
         testErrors = [];
-        loadPreset({ parent: "default", ...opts });
+        // Start from the initial conditions, not any checkpoint saved by an earlier test.
+        loadPreset({ parent: "default", resetFromCheckpoints: false, ...opts });
         pauseSim();
         if (gpuBackend) await gpuBackend.whenReady();
         resetSim();
@@ -4298,7 +4299,8 @@ async function VisualPDE(url) {
       async loadPreset(name, overrides) {
         testErrors = [];
         loadPreset(name);
-        if (overrides) loadPreset(overrides, true, true);
+        // As load(), start from the initial conditions.
+        loadPreset({ resetFromCheckpoints: false, ...overrides }, true, true);
         pauseSim();
         if (gpuBackend) await gpuBackend.whenReady();
         resetSim();

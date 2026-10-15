@@ -25,6 +25,8 @@ const names = (args.names ?? "GrayScott,BrusselatorPDE,KellerSegel,heatEquation1
 // How much finer than the preset's own grid to run, per dimension.
 const scales = (args.scales ?? "1,2,4").split(",").map(Number);
 const SECONDS = Number(args.seconds ?? 2);
+// Steps between readbacks, which wait for the GPU to finish; large, to amortise their cost.
+const BATCH = Number(args.batch ?? 500);
 
 const stopServer = await ensureServerRunning();
 // ANGLE's Metal backend, so that WebGL and WebGPU both run on the real GPU.
@@ -55,14 +57,14 @@ async function measure(page, backend, name, scale) {
   );
   await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
   return page.evaluate(
-    async ([scale, seconds]) => {
+    async ([scale, seconds, BATCH]) => {
       const T = window.VisualPDETest;
       const grid = await T.grid();
       if (scale != 1) await T.setSpatialStep(String(grid.dx / scale));
       const { nX, nY } = await T.grid();
       await T.reset();
       // Batches of steps, as one animation frame's worth.
-      const batch = 50;
+      const batch = Number(BATCH);
       await T.step(batch);
       await T.readState();
       let steps = 0;
@@ -75,7 +77,7 @@ async function measure(page, backend, name, scale) {
       const elapsed = (performance.now() - start) / 1000;
       return { nX, nY, stepsPerSecond: steps / elapsed };
     },
-    [scale, SECONDS],
+    [scale, SECONDS, BATCH],
   );
 }
 

@@ -125,6 +125,7 @@ export class WebGPUBackend {
     this.nX = nX;
     this.nY = nY;
     const size = nX * nY * numGroups * 16;
+    this.invalidateBindGroups();
     this.slots = Array.from({ length: NUM_SLOTS }, (_, k) =>
       this.device.createBuffer({
         label: `slot ${k}`,
@@ -155,6 +156,7 @@ export class WebGPUBackend {
     data.set(values);
     if (!this.paramsBuffer || this.paramsBuffer.size < data.byteLength) {
       this.paramsBuffer?.destroy();
+      this.invalidateBindGroups();
       this.paramsBuffer = this.device.createBuffer({
         label: "params",
         size: data.byteLength,
@@ -194,6 +196,7 @@ export class WebGPUBackend {
     bitmap.close();
     this.images[index].destroy();
     this.images[index] = texture;
+    this.invalidateBindGroups();
   }
 
   /** Compiles WGSL, throwing a ShaderCompileError with the compiler's messages if it fails. */
@@ -322,6 +325,7 @@ export class WebGPUBackend {
     const capacity = Math.max(count, 2 * this.uniformCapacity);
     this.flush();
     this.uniformBuffer?.destroy();
+    this.invalidateBindGroups();
     this.uniformBuffer = this.device.createBuffer({
       label: "uniforms",
       size: capacity * UNIFORM_STRIDE,
@@ -354,11 +358,36 @@ export class WebGPUBackend {
     return this.encoder;
   }
 
+  // Forgets cached bind groups, after a resource they bind has been replaced.
+  invalidateBindGroups() {
+    this.bindGroups = new WeakMap();
+  }
+
   // Records one compute pass writing slot dst from the given input slots.
   dispatch(pipeline, uniforms, inputs, dst) {
     const offset = this.pushUniforms(uniforms);
     const sources = [0, 1, 2, 3].map((k) => this.slots[inputs[k] ?? inputs[0]]);
-    const bindGroup = this.device.createBindGroup({
+    // Bind groups are cached by pipeline and the slot buffers bound, as creating one per
+    // pass is a large part of the CPU's cost per timestep on small grids.
+    if (!this.bindGroups) this.invalidateBindGroups();
+    let cache = this.bindGroups.get(pipeline);
+    if (!cache) this.bindGroups.set(pipeline, (cache = new Map()));
+    const key = [...sources, this.slots[dst]].map((b) => b.label).join(",");
+    let bindGroup = cache.get(key);
+    if (!bindGroup) bindGroup = this.createDispatchBindGroup(sources, dst);
+    cache.set(key, bindGroup);
+    const pass = this.getEncoder().beginComputePass();
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, bindGroup, [offset]);
+    pass.dispatchWorkgroups(
+      Math.ceil(this.nX / WORKGROUP_SIZE[0]),
+      Math.ceil(this.nY / WORKGROUP_SIZE[1]),
+    );
+    pass.end();
+  }
+
+  createDispatchBindGroup(sources, dst) {
+    return this.device.createBindGroup({
       layout: this.bindGroupLayout,
       entries: [
         { binding: 0, resource: { buffer: this.uniformBuffer, size: UNIFORM_STRIDE } },
@@ -372,14 +401,6 @@ export class WebGPUBackend {
         { binding: 11, resource: { buffer: this.globalsBuffer } },
       ],
     });
-    const pass = this.getEncoder().beginComputePass();
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup, [offset]);
-    pass.dispatchWorkgroups(
-      Math.ceil(this.nX / WORKGROUP_SIZE[0]),
-      Math.ceil(this.nY / WORKGROUP_SIZE[1]),
-    );
-    pass.end();
   }
 
   rotate() {
