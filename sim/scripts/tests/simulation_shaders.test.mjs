@@ -152,6 +152,19 @@ test("RDShaderTopMRT/RDShaderMainMRT: return non-empty text for each scheme type
   }
 });
 
+// The algebraic-species block (RDShaderAlgebraicSpecies, and its groupified copy for species
+// 5-8) is appended after every scheme stage and reads timescales/timescalesGroup1, so every
+// stage must declare them or the shader fails to compile.
+test("RDShaderMain/RDShaderMainMRT: every scheme stage declares the timescales the algebraic block reads", () => {
+  const types = ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"];
+  for (const type of types) {
+    assert.match(RDShaderMain(type), /vec4 timescales = TIMESCALES;/, `RDShaderMain(${type})`);
+    const mrt = RDShaderMainMRT(type);
+    assert.match(mrt, /vec4 timescales = TIMESCALES;/, `RDShaderMainMRT(${type})`);
+    assert.match(mrt, /vec4 timescalesGroup1 = TIMESCALESGROUP1;/, `RDShaderMainMRT(${type})`);
+  }
+});
+
 test("RDShaderBotMRT: assigns both fragColor0 and fragColor1", () => {
   const shader = RDShaderBotMRT();
   assert.match(shader, /fragColor0/);

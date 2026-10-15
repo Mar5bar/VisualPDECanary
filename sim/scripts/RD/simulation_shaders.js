@@ -525,6 +525,8 @@ export function RDShaderMainMRT(type) {
   update.Mid1 = `
     ${stencilBlockMRT("textureSource", "textureSourceGroup1")}
     ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
+    vec4 timescales = TIMESCALES;
+    vec4 timescalesGroup1 = TIMESCALESGROUP1;
     updated = RHS;
     updated2 = RHS2;`;
   update.Mid2 = `
@@ -539,16 +541,22 @@ export function RDShaderMainMRT(type) {
   update.RK41 = `
     ${stencilBlockMRT("textureSource", "textureSourceGroup1")}
     ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
+    vec4 timescales = TIMESCALES;
+    vec4 timescalesGroup1 = TIMESCALESGROUP1;
     updated = RHS;
     updated2 = RHS2;`;
   update.RK42 = `
     ${stencilBlockMRT("textureSource", "textureSourceGroup1", "textureSource1", "textureSource1Group1", "0.5*dt")}
     ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
+    vec4 timescales = TIMESCALES;
+    vec4 timescalesGroup1 = TIMESCALESGROUP1;
     updated = RHS;
     updated2 = RHS2;`;
   update.RK43 = `
     ${stencilBlockMRT("textureSource", "textureSourceGroup1", "textureSource2", "textureSource2Group1", "0.5*dt")}
     ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
+    vec4 timescales = TIMESCALES;
+    vec4 timescalesGroup1 = TIMESCALESGROUP1;
     updated = RHS;
     updated2 = RHS2;`;
   update.RK44 = `
