@@ -167,7 +167,7 @@ export function RDShaderMain(type) {
     uvwqBB = texture2D(textureSource, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
     vec4 timescales = TIMESCALES;
-    updated = RHS;`;
+    updated = RHS / timescales;`;
   update.Mid2 = `uvwqLast = texture2D(textureSource, textureCoords);
     uvwq = uvwqLast + 0.5*dt*texture2D(textureSource1, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL) + 0.5*dt*texture2D(textureSource1, textureCoordsL);
@@ -192,7 +192,7 @@ export function RDShaderMain(type) {
     uvwqBB = texture2D(textureSource, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
     vec4 timescales = TIMESCALES;
-    updated = RHS;`;
+    updated = RHS / timescales;`;
   update.RK42 = `uvwq = texture2D(textureSource, textureCoords) + 0.5*dt*texture2D(textureSource1, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL) + 0.5*dt*texture2D(textureSource1, textureCoordsL);
     uvwqR = texture2D(textureSource, textureCoordsR) + 0.5*dt*texture2D(textureSource1, textureCoordsR);
@@ -204,7 +204,7 @@ export function RDShaderMain(type) {
     uvwqBB = texture2D(textureSource, textureCoordsBB) + 0.5*dt*texture2D(textureSource1, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
     vec4 timescales = TIMESCALES;
-    updated = RHS;`;
+    updated = RHS / timescales;`;
   update.RK43 = `uvwq = texture2D(textureSource, textureCoords) + 0.5*dt*texture2D(textureSource2, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL) + 0.5*dt*texture2D(textureSource2, textureCoordsL);
     uvwqR = texture2D(textureSource, textureCoordsR) + 0.5*dt*texture2D(textureSource2, textureCoordsR);
@@ -216,7 +216,7 @@ export function RDShaderMain(type) {
     uvwqBB = texture2D(textureSource, textureCoordsBB) + 0.5*dt*texture2D(textureSource2, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS);
     vec4 timescales = TIMESCALES;
-    updated = RHS;`;
+    updated = RHS / timescales;`;
   update.RK44 = `uvwqLast = texture2D(textureSource, textureCoords);
     uvwq = uvwqLast + dt*texture2D(textureSource3, textureCoords);
     uvwqL = texture2D(textureSource, textureCoordsL) + dt*texture2D(textureSource3, textureCoordsL);
@@ -228,8 +228,10 @@ export function RDShaderMain(type) {
     uvwqTT = texture2D(textureSource, textureCoordsTT) + dt*texture2D(textureSource3, textureCoordsTT);
     uvwqBB = texture2D(textureSource, textureCoordsBB) + dt*texture2D(textureSource3, textureCoordsBB);
     computeRHS(textureSource, uvwq, uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB, RHS1);
-    RHS = (texture2D(textureSource1, textureCoords) + 2.0*(texture2D(textureSource2, textureCoords) + texture2D(textureSource3, textureCoords)) + RHS1) / 6.0;
     vec4 timescales = TIMESCALES;
+    // The stored stage slopes k1-k3 are already divided by the timescales, so multiply them
+    // back here: the final update (and any algebraic species) then divides exactly once.
+    RHS = (timescales * (texture2D(textureSource1, textureCoords) + 2.0*(texture2D(textureSource2, textureCoords) + texture2D(textureSource3, textureCoords))) + RHS1) / 6.0;
     updated = dt * RHS / timescales + uvwqLast;`;
   return (
     `
@@ -527,8 +529,8 @@ export function RDShaderMainMRT(type) {
     ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
     vec4 timescales = TIMESCALES;
     vec4 timescalesGroup1 = TIMESCALESGROUP1;
-    updated = RHS;
-    updated2 = RHS2;`;
+    updated = RHS / timescales;
+    updated2 = RHS2 / timescalesGroup1;`;
   update.Mid2 = `
     uvwqLast = texture2D(textureSource, textureCoords);
     uvwq2Last = texture2D(textureSourceGroup1, textureCoords);
@@ -543,31 +545,32 @@ export function RDShaderMainMRT(type) {
     ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
     vec4 timescales = TIMESCALES;
     vec4 timescalesGroup1 = TIMESCALESGROUP1;
-    updated = RHS;
-    updated2 = RHS2;`;
+    updated = RHS / timescales;
+    updated2 = RHS2 / timescalesGroup1;`;
   update.RK42 = `
     ${stencilBlockMRT("textureSource", "textureSourceGroup1", "textureSource1", "textureSource1Group1", "0.5*dt")}
     ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
     vec4 timescales = TIMESCALES;
     vec4 timescalesGroup1 = TIMESCALESGROUP1;
-    updated = RHS;
-    updated2 = RHS2;`;
+    updated = RHS / timescales;
+    updated2 = RHS2 / timescalesGroup1;`;
   update.RK43 = `
     ${stencilBlockMRT("textureSource", "textureSourceGroup1", "textureSource2", "textureSource2Group1", "0.5*dt")}
     ${computeRHSCallMRT("textureSource", "RHS", "RHS2")}
     vec4 timescales = TIMESCALES;
     vec4 timescalesGroup1 = TIMESCALESGROUP1;
-    updated = RHS;
-    updated2 = RHS2;`;
+    updated = RHS / timescales;
+    updated2 = RHS2 / timescalesGroup1;`;
   update.RK44 = `
     uvwqLast = texture2D(textureSource, textureCoords);
     uvwq2Last = texture2D(textureSourceGroup1, textureCoords);
     ${stencilBlockMRT("textureSource", "textureSourceGroup1", "textureSource3", "textureSource3Group1", "dt")}
     ${computeRHSCallMRT("textureSource", "RHS1", "RHS1Group1")}
-    RHS = (texture2D(textureSource1, textureCoords) + 2.0*(texture2D(textureSource2, textureCoords) + texture2D(textureSource3, textureCoords)) + RHS1) / 6.0;
-    RHS2 = (texture2D(textureSource1Group1, textureCoords) + 2.0*(texture2D(textureSource2Group1, textureCoords) + texture2D(textureSource3Group1, textureCoords)) + RHS1Group1) / 6.0;
     vec4 timescales = TIMESCALES;
     vec4 timescalesGroup1 = TIMESCALESGROUP1;
+    // See the non-MRT RK44: the stored stage slopes are already divided by the timescales.
+    RHS = (timescales * (texture2D(textureSource1, textureCoords) + 2.0*(texture2D(textureSource2, textureCoords) + texture2D(textureSource3, textureCoords))) + RHS1) / 6.0;
+    RHS2 = (timescalesGroup1 * (texture2D(textureSource1Group1, textureCoords) + 2.0*(texture2D(textureSource2Group1, textureCoords) + texture2D(textureSource3Group1, textureCoords))) + RHS1Group1) / 6.0;
     updated = dt * RHS / timescales + uvwqLast;
     updated2 = dt * RHS2 / timescalesGroup1 + uvwq2Last;`;
   return (

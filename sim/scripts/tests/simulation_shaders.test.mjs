@@ -165,6 +165,22 @@ test("RDShaderMain/RDShaderMainMRT: every scheme stage declares the timescales t
   }
 });
 
+// Midpoint/RK4 stage slopes are combined into intermediate states (u + c*dt*k), so they must
+// be du/dt itself, i.e. RHS divided by the timescales, or those schemes lose their order of
+// accuracy whenever a timescale isn't 1.
+test("RDShaderMain/RDShaderMainMRT: Midpoint/RK4 stage slopes are divided by the timescales", () => {
+  for (const type of ["Mid1", "RK41", "RK42", "RK43"]) {
+    assert.match(RDShaderMain(type), /updated = RHS \/ timescales;/, `RDShaderMain(${type})`);
+    const mrt = RDShaderMainMRT(type);
+    assert.match(mrt, /updated = RHS \/ timescales;/, `RDShaderMainMRT(${type})`);
+    assert.match(mrt, /updated2 = RHS2 \/ timescalesGroup1;/, `RDShaderMainMRT(${type})`);
+  }
+  // RK44 undoes the division on the stored slopes so the final update divides only once.
+  assert.match(RDShaderMain("RK44"), /RHS = \(timescales \* \(texture2D\(textureSource1/);
+  assert.match(RDShaderMainMRT("RK44"), /RHS = \(timescales \* \(texture2D\(textureSource1,/);
+  assert.match(RDShaderMainMRT("RK44"), /RHS2 = \(timescalesGroup1 \* \(texture2D\(textureSource1Group1/);
+});
+
 test("RDShaderBotMRT: assigns both fragColor0 and fragColor1", () => {
   const shader = RDShaderBotMRT();
   assert.match(shader, /fragColor0/);
