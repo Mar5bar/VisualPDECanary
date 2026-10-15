@@ -103,8 +103,10 @@ export function computeDisplayFunShaderMid() {
         if (overlayLine) {
           height = OVERLAYEXPR;
         }
+        // Runtime +inf: a constant 1.0/0.0 is folded by ANGLE into uintBitsToFloat(), which
+        // fails to compile on some drivers (e.g. Firefox/Linux/NVIDIA, pre-GLSL 330).
         if (isnan(value)) {
-          value = 1.0/0.0;
+          value = 1.0 / (0.0 * gl_FragCoord.x);
         }
         gl_FragColor = vec4(value, 0.0, height, yVecComp);`;
 }

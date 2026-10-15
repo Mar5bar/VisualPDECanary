@@ -1374,10 +1374,11 @@ export function globalIntegralShader() {
       float value2 = GLOBAL_INTEGRAL_FUN2;
       float value3 = GLOBAL_INTEGRAL_FUN3;
       float value4 = GLOBAL_INTEGRAL_FUN4;
-      if (isnan(value1)) { value1 = 1.0/0.0; }
-      if (isnan(value2)) { value2 = 1.0/0.0; }
-      if (isnan(value3)) { value3 = 1.0/0.0; }
-      if (isnan(value4)) { value4 = 1.0/0.0; }
+      // Runtime +inf (see computeDisplayFunShaderMid): avoids ANGLE folding 1.0/0.0.
+      if (isnan(value1)) { value1 = 1.0 / (0.0 * gl_FragCoord.x); }
+      if (isnan(value2)) { value2 = 1.0 / (0.0 * gl_FragCoord.x); }
+      if (isnan(value3)) { value3 = 1.0 / (0.0 * gl_FragCoord.x); }
+      if (isnan(value4)) { value4 = 1.0 / (0.0 * gl_FragCoord.x); }
       float in_domain = float(float(indicatorFun) > 0.0);
       gl_FragColor = vec4(value1 * in_domain, value2 * in_domain, value3 * in_domain, value4 * in_domain);
     }`;
