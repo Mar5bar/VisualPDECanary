@@ -41,6 +41,7 @@ import {
   RDShaderDirichletX,
   RDShaderDirichletY,
   RDShaderDirichletIndicatorFun,
+  RDShaderDirichletForStage,
   RDShaderRobinX,
   RDShaderRobinY,
   RDShaderRobinCustomDomainX,
@@ -1165,10 +1166,15 @@ async function VisualPDE(url) {
 
     // Configure textures with placeholder sizes. We'll need two textures for simulation (A,B), one for
     // post processing, and another for (optional) manual interpolation.
+    // Simulation textures always use nearest filtering, so that stencil reads at texel centres
+    // are exact: with linear filtering, rounding in the texture coordinates blends in a sliver
+    // of the neighbouring texel at every read. Lookups at arbitrary points interpolate
+    // explicitly instead (textureBilinear in auxiliary_GLSL_funs.js).
     simTextureOpts = {
       format: THREE.RGBAFormat,
       type: THREE.FloatType,
       minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
     };
 
     // Check if we should be interpolating manually due to extensions not being supported.
@@ -1184,9 +1190,6 @@ async function VisualPDE(url) {
       navigator.maxTouchPoints > 0 ||
       navigator.msMaxTouchPoints > 0;
 
-    manualInterpolationNeeded
-      ? (simTextureOpts.magFilter = THREE.NearestFilter)
-      : (simTextureOpts.magFilter = THREE.LinearFilter);
     // Store all the simulation textures in an array. They'll be in history order, so that the first element is the most
     // recent. We'll write to the first texture, with later elements being further back in time.
     simTextures.push(
@@ -1198,6 +1201,12 @@ async function VisualPDE(url) {
     );
     postTexture = simTextures[0].clone();
     interpolationTexture = simTextures[0].clone();
+    // The display textures interpolate in hardware unless we're interpolating manually.
+    [postTexture, interpolationTexture].forEach((tex) => {
+      tex.texture.magFilter = manualInterpolationNeeded
+        ? THREE.NearestFilter
+        : THREE.LinearFilter;
+    });
 
     // Periodic boundary conditions (for now).
 
@@ -1325,8 +1334,8 @@ async function VisualPDE(url) {
     copyMaterial = new THREE.ShaderMaterial({
       uniforms: uniforms,
       vertexShader: genericVertexShader(),
-      fragmentShader: copyShader(),
     });
+    assignFragmentShader(copyMaterial, copyShader());
     // A material for clearing the domain.
     clearMaterial = new THREE.ShaderMaterial({
       uniforms: uniforms,
@@ -1368,9 +1377,9 @@ async function VisualPDE(url) {
         textureSourceGroup1: { type: "t", value: null },
       },
       vertexShader: genericVertexShader(),
-      fragmentShader: copyShaderMRT(),
       glslVersion: THREE.GLSL3,
     });
+    assignFragmentShader(checkpointMaterialMRT, copyShaderMRT());
     minMaxMaterial = new THREE.ShaderMaterial({
       uniforms: minMaxUniforms,
       vertexShader: genericVertexShader(),
@@ -5294,7 +5303,7 @@ async function VisualPDE(url) {
         const textureUniform =
           speciesToGroupInd(d1) === 0 ? "textureSource" : "textureSourceGroup1";
         return (
-          "texture(" +
+          "textureBilinear(" +
           textureUniform +
           ", vec2((" +
           d2 +
@@ -5915,7 +5924,14 @@ async function VisualPDE(url) {
     }
     shaderContainsRAND = containsRAND || containsRANDN;
     shaderContainsGlobalIntegral = /\bglobalIntegralValue[1-4]\b/.test(middle);
-    let bot = [dirichletShader, algebraicShader, RDShaderBot()].join(" ");
+    // The Dirichlet code is wrapped per timestepping pass (see RDShaderDirichletForStage), so
+    // each pass's "bot" is assembled in the loop below.
+    const bot = (type) =>
+      [
+        RDShaderDirichletForStage(type, dirichletShader),
+        algebraicShader,
+        RDShaderBot(),
+      ].join(" ");
 
     // MRT (>4-species) path, used by every timestepping scheme once numGroups>1 (Stage 13 of
     // the 8-species upgrade extended this from Forward-Euler-only to all 8 scheme
@@ -6019,9 +6035,12 @@ async function VisualPDE(url) {
       // come from) is identical whether it ends up embedded in `middle` or `middleMRT`.
       if (containsRAND) middleMRT = randShader() + middleMRT;
       if (containsRANDN) middleMRT = randNShader() + middleMRT;
-      botMRT = [
-        dirichletShader,
-        bcGroup1.dirichletShader,
+      botMRT = (type) => [
+        RDShaderDirichletForStage(
+          type,
+          dirichletShader + bcGroup1.dirichletShader,
+          true,
+        ),
         algebraicShader,
         algebraicShaderGroup1,
         RDShaderBotMRT(),
@@ -6046,7 +6065,7 @@ async function VisualPDE(url) {
                 RDShaderTopMRT(type),
                 middleMRT,
                 insertRates(RDShaderMainMRT(type)),
-                botMRT,
+                botMRT(type),
               ].join(" "),
             ),
           );
@@ -6060,7 +6079,7 @@ async function VisualPDE(url) {
                 RDShaderTop(type),
                 middle,
                 insertRates(RDShaderMain(type)),
-                bot,
+                bot(type),
               ].join(" "),
             ),
           );
@@ -9801,16 +9820,11 @@ async function VisualPDE(url) {
   }
 
   function configureManualInterpolation() {
+    // Only the display textures change: simulation textures always use nearest filtering.
     if (isManuallyInterpolating()) {
-      simTextures.forEach((simTex) => {
-        simTex.texture.magFilter = THREE.NearestFilter;
-      });
       postTexture.texture.magFilter = THREE.NearestFilter;
       interpolationTexture.texture.magFilter = THREE.NearestFilter;
     } else {
-      simTextures.forEach((simTex) => {
-        simTex.texture.magFilter = THREE.LinearFilter;
-      });
       postTexture.texture.magFilter = THREE.LinearFilter;
       interpolationTexture.texture.magFilter = THREE.LinearFilter;
     }

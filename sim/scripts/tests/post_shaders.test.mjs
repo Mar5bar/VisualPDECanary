@@ -90,7 +90,7 @@ test("probeShader: contains PROBE_FUN/PROBE_X/PROBE_Y placeholders and the 9-poi
 test("probeShaderMRT: adds textureSourceGroup1 sampler and group-1 9-point stencil before derivative computation", () => {
   const mrt = probeShaderMRT();
   assert.match(mrt, /uniform sampler2D textureSourceGroup1;/);
-  assert.match(mrt, /uvwq2LL = texture2D\(textureSourceGroup1/);
+  assert.match(mrt, /uvwq2LL = textureBilinear\(textureSourceGroup1/);
   const group1Index = mrt.indexOf("// Sample (group 1).");
   const derivIndex = mrt.indexOf("// Compute derivatives.\n      vec4 uvwqX");
   assert.ok(group1Index >= 0 && derivIndex >= 0 && group1Index < derivIndex);

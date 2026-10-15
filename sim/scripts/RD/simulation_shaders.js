@@ -1172,6 +1172,65 @@ export function RDShaderDirichletIndicatorFun() {
         updated.SPECIES = `;
 }
 
+// For each timestepping pass: the offset from the pass's uniform t to the time of the state
+// the pass produces, and, for passes that produce a stage slope k rather than a state, the
+// coefficient c in the intermediate state u + c*dt*k that the slope is used to form. See
+// timestep() in main.js for the uniform t during each pass.
+const DIRICHLET_STAGE_TIMING = {
+  FE: { offset: "dt" },
+  AB2: { offset: "dt" },
+  Mid1: { offset: "0.5*dt", c: "0.5" },
+  Mid2: { offset: "0.5*dt" },
+  RK41: { offset: "0.5*dt", c: "0.5" },
+  RK42: { offset: "0.0", c: "0.5" },
+  RK43: { offset: "0.5*dt", c: "1.0" },
+  RK44: { offset: "0.0" },
+};
+
+/**
+ * Wraps the Dirichlet-condition code (which assigns boundary values to "updated", and
+ * "updated2" for species 5-8) for use at the end of a timestepping pass, so that:
+ * - boundary values are evaluated at the time of the state the pass produces, by shadowing t;
+ * - in passes producing a Midpoint/RK4 stage slope k, the boundary nodes get whichever slope
+ *   makes the intermediate state u + c*dt*k equal to the boundary value. The slope is
+ *   converted to that state, the Dirichlet code applied, and the slope recovered only where a
+ *   value actually changed, so interior slopes stay exact.
+ * @param {string} type - The pass ("FE", "AB2", "Mid1", "Mid2", "RK41", ..., "RK44").
+ * @param {string} dirichletShader - The Dirichlet-condition code.
+ * @param {boolean} [isMRT] - Whether the pass also produces species 5-8 in updated2.
+ * @returns {string} The shader code, or "" if there are no Dirichlet conditions.
+ */
+export function RDShaderDirichletForStage(type, dirichletShader, isMRT = false) {
+  if (!dirichletShader.trim()) return "";
+  const { offset, c } = DIRICHLET_STAGE_TIMING[type];
+  const block = `
+    float tDirichlet = t + ${offset};
+    {
+      float t = tDirichlet;
+      ${dirichletShader}
+    }
+    `;
+  if (c == undefined) return block;
+  const groups = [["updated", "textureSource", "stage"]];
+  if (isMRT) groups.push(["updated2", "textureSourceGroup1", "stage2"]);
+  const toState = groups
+    .map(
+      ([v, tex, name]) => `
+    vec4 ${name}Base = texture2D(${tex}, textureCoords);
+    vec4 ${name}Slope = ${v};
+    ${v} = ${name}Base + ${c}*dt*${name}Slope;
+    vec4 ${name}State = ${v};`,
+    )
+    .join("");
+  const toSlope = groups
+    .map(
+      ([v, , name]) => `
+    ${v} = mix(${name}Slope, (${v} - ${name}Base) / (${c}*dt), vec4(notEqual(${v}, ${name}State)));`,
+    )
+    .join("");
+  return toState + block + toSlope;
+}
+
 /**
  * Returns the final part of shader code for a reaction-diffusion simulation.
  * @returns {string} The shader code.

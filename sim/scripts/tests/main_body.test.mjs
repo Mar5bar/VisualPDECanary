@@ -445,6 +445,22 @@ test("parseShaderString: a negated exponent is kept as the exponent, not dropped
   assert.equal(m.parseShaderString("u^-0.5").trim(), "safepow(uvwq.r,-0.5)");
 });
 
+test("parseShaderString: species[x,y] lookups interpolate explicitly, since simulation textures use nearest filtering", () => {
+  m.__setState({
+    options: { minX: "0", minY: "0", globalIntExprs: [null, null, null, null] },
+    listOfSpecies: ["u", "v", "w", "q", "a"],
+    listOfReactions: ["UFUN", "VFUN", "WFUN", "QFUN", "UFUN5"],
+    expandedExpressionDefs: {},
+  });
+  stubThrowError();
+  m.genAnySpeciesRegexStrs();
+  assert.equal(
+    m.parseShaderString("v[1,2]").trim(),
+    "textureBilinear(textureSource, vec2((1.- 0. )/L_x,(2.- 0. )/L_y)).g",
+  );
+  assert.match(m.parseShaderString("a[x,y]"), /^ *textureBilinear\(textureSourceGroup1, /);
+});
+
 // --- parseShaderString / parseStringToTEX: Int(...) --------------------------
 
 test("parseShaderString: substitutes Int(expr) with the globalIntegralValueN uniform for expr's reconciled slot", () => {
