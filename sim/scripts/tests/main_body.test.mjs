@@ -406,6 +406,45 @@ test("reconcileGlobalIntegrals: scans brushRadius, minX, minY and timescale_1-8 
   }
 });
 
+// --- parseShaderString: ^ (powers) ------------------------------------------
+
+function setupPowerParsing() {
+  m.__setState({
+    options: { minX: "0", minY: "0", globalIntExprs: [null, null, null, null] },
+    listOfSpecies: ["u"],
+    listOfReactions: ["UFUN"],
+    expandedExpressionDefs: {},
+  });
+  m.genAnySpeciesRegexStrs();
+  return stubThrowError();
+}
+
+test("parseShaderString: small positive integer powers are unrolled into products rather than safepow", () => {
+  setupPowerParsing();
+  assert.equal(m.parseShaderString("u^2").trim(), "((uvwq.r)*(uvwq.r))");
+  assert.equal(m.parseShaderString("u^3.0").trim(), "((uvwq.r)*(uvwq.r)*(uvwq.r))");
+  assert.equal(m.parseShaderString("(u+1)^2").trim(), "(((uvwq.r+1.))*((uvwq.r+1.)))");
+});
+
+test("parseShaderString: non-integer, large or negative powers use safepow", () => {
+  setupPowerParsing();
+  assert.equal(m.parseShaderString("u^0.5").trim(), "safepow(uvwq.r,0.5)");
+  assert.equal(m.parseShaderString("u^7").trim(), "safepow(uvwq.r,7.)");
+});
+
+test("parseShaderString: a zero power (in any spelling) gives 1 rather than throwing", () => {
+  setupPowerParsing();
+  for (const zero of ["0", "0.0", "00"]) {
+    assert.equal(m.parseShaderString("u^" + zero).trim(), "1.", zero);
+  }
+});
+
+test("parseShaderString: a negated exponent is kept as the exponent, not dropped", () => {
+  setupPowerParsing();
+  assert.equal(m.parseShaderString("u^-1").trim(), "safepow(uvwq.r,-1.)");
+  assert.equal(m.parseShaderString("u^-0.5").trim(), "safepow(uvwq.r,-0.5)");
+});
+
 // --- parseShaderString / parseStringToTEX: Int(...) --------------------------
 
 test("parseShaderString: substitutes Int(expr) with the globalIntegralValueN uniform for expr's reconciled slot", () => {

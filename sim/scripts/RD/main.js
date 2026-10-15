@@ -5226,11 +5226,14 @@ async function VisualPDE(url) {
       },
     );
 
-    // Replace powers with safepow, including nested powers.
+    // Replace powers with safepow, including nested powers. Small positive integer powers
+    // are unrolled into products instead, which is both cheaper and more accurate than pow.
+    // The unrolling is capped at 4 because the base is repeated textually, so nested powers
+    // of large expressions would otherwise blow up the shader size.
     str = replaceBinOperator(str, "^", function (m, p1, p2) {
-      if (p2 == "0") return "1";
       const exp = Number(p2);
-      if (Number.isInteger(exp && exp > 0 && exp < 101)) {
+      if (p2 != "" && exp == 0) return "1";
+      if (Number.isInteger(exp) && exp > 0 && exp <= 4) {
         return "((" + p1 + ")" + ("*(" + p1 + ")").repeat(exp - 1) + ")";
       } else return "safepow(" + p1 + "," + p2 + ")";
     });
@@ -5311,9 +5314,9 @@ async function VisualPDE(url) {
       str = joker + (tab.length - 1);
       let regex;
       if (needsEscaping) {
-        regex = new RegExp("([\\w.]*)\\s*\\" + op + "\\s*([\\w.]*)", "g");
+        regex = new RegExp("([\\w.]*)\\s*\\" + op + "\\s*(-?[\\w.]*)", "g");
       } else {
-        regex = new RegExp("([\\w.]*)\\s*" + op + "\\s*([\\w.]*)", "g");
+        regex = new RegExp("([\\w.]*)\\s*" + op + "\\s*(-?[\\w.]*)", "g");
       }
       while (str.indexOf(joker) > -1) {
         str = str.replace(new RegExp(joker + "(\\w+)", "g"), function (m, d) {
