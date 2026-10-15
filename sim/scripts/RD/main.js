@@ -651,6 +651,7 @@ async function VisualPDE(url) {
     try {
       const { device, adapterInfo } = await createWebGPUDevice();
       gpuBackend = new WebGPUBackend(device);
+      gpuBackend.onBuildError = onGpuBuildError;
       gpuAdapterInfo = adapterInfo;
       device.lost.then((info) => {
         if (info.reason == "destroyed") return;
@@ -4079,17 +4080,20 @@ async function VisualPDE(url) {
     return replaceMINXMINY(body);
   }
 
-  // Waits for a WebGPU pipeline build, reporting any failure like a WebGL compile error.
-  function gpuBuild(what, promise) {
-    promise.catch((error) => {
-      console.error(error.message);
-      if (error.source) console.error(error.source);
-      throwError(
-        "WebGPU couldn't build the " +
-          what +
-          ". Please check for syntax errors, or switch to WebGL in the Developer tools.",
-      );
-    });
+  // Reports a failed WebGPU pipeline build like a WebGL compile error.
+  function onGpuBuildError(kind, error) {
+    console.error(error.message);
+    if (error.source) console.error(error.source);
+    const what = {
+      simulation: "simulation",
+      clear: "initial conditions",
+      enforce: "Dirichlet boundary conditions",
+    }[kind];
+    throwError(
+      "WebGPU couldn't build the " +
+        what +
+        ". Please check for syntax errors, or switch to WebGL in the Developer tools.",
+    );
   }
 
   // The uniforms a WebGPU pass needs, from the ones WebGL's materials use.
@@ -4187,10 +4191,22 @@ async function VisualPDE(url) {
         if (gpuBackend) await gpuBackend.whenReady();
         resetSim();
       },
+      // Loads a preset as the app does from a ?preset= link, applying any overrides as
+      // further URL options would be, then pauses and resets to t = 0.
+      async loadPreset(name, overrides) {
+        loadPreset(name);
+        if (overrides) loadPreset(overrides, true, true);
+        pauseSim();
+        if (gpuBackend) await gpuBackend.whenReady();
+        resetSim();
+      },
       async reset() {
+        if (gpuBackend) await gpuBackend.whenReady();
         resetSim();
       },
       async step(numSteps) {
+        // On WebGPU, advance() skips steps while pipelines are being built.
+        if (gpuBackend) await gpuBackend.whenReady();
         advance(numSteps);
       },
       // Returns the current state as RGBA float32 texels, row by row from the bottom, with
@@ -4206,9 +4222,20 @@ async function VisualPDE(url) {
         return {
           nX: nXDisc,
           nY: nYDisc,
+          numSpecies: Number(options.numSpecies),
           data: toBase64(groups[0]),
           dataGroup1: groups[1] ? toBase64(groups[1]) : null,
         };
+      },
+      // Sets the whole state, in readState()'s format (WebGPU only for now).
+      async writeState(state) {
+        if (!gpuBackend) throw new Error("writeState is only implemented for WebGPU.");
+        const decode = (base64) => {
+          if (!base64) return null;
+          const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+          return new Float32Array(bytes.buffer);
+        };
+        gpuBackend.writeState([decode(state.data), decode(state.dataGroup1)]);
       },
       async time() {
         return uniforms.t.value;
@@ -4224,6 +4251,15 @@ async function VisualPDE(url) {
           Ly: uniforms.L_y.value,
           minX: evaluateWithParams(options.minX),
           minY: evaluateWithParams(options.minY),
+        };
+      },
+      // The current shaders, for debugging: WebGL's Forward Euler fragment shader and
+      // WebGPU's WGSL, by pipeline.
+      async shaderSources() {
+        await gpuBackend?.whenReady();
+        return {
+          webgl: simMaterials.FE.fragmentShader,
+          webgpu: gpuBackend?.sources ?? null,
         };
       },
       async errorMessage() {
@@ -6293,7 +6329,7 @@ async function VisualPDE(url) {
       );
       parts.timescales = insertRates("TIMESCALES");
       parts.timescalesGroup1 = insertRates("TIMESCALESGROUP1");
-      gpuBuild("simulation", gpuBackend.setSimulation(parts));
+      gpuBackend.setSimulation(parts);
     }
 
     // We will use a shader to enforce Dirichlet BCs before each timestep, but only if some Dirichlet
@@ -6414,13 +6450,10 @@ async function VisualPDE(url) {
       dirichletMaterial.needsUpdate = true;
     }
     if (gpuBackend) {
-      gpuBuild(
-        "Dirichlet enforcement",
-        gpuBackend.setEnforceDirichlet(
-          anyDirichletBCs
-            ? { ...gpuShaderParts(), enforceBody: gpuDirichletEnforceBody() }
-            : null,
-        ),
+      gpuBackend.setEnforceDirichlet(
+        anyDirichletBCs
+          ? { ...gpuShaderParts(), enforceBody: gpuDirichletEnforceBody() }
+          : null,
       );
     }
 
@@ -7068,13 +7101,10 @@ async function VisualPDE(url) {
     }
     clearMaterial.needsUpdate = true;
     if (gpuBackend) {
-      gpuBuild(
-        "initial conditions",
-        gpuBackend.setClear({
-          ...gpuShaderParts(),
-          body: replaceMINXMINY(clearBody),
-        }),
-      );
+      gpuBackend.setClear({
+        ...gpuShaderParts(),
+        body: replaceMINXMINY(clearBody),
+      });
     }
     if (badInitConds.length > 0) {
       throwError(
@@ -7376,10 +7406,10 @@ async function VisualPDE(url) {
     image.onload = function () {
       texture.needsUpdate = true;
       uniforms.imageSourceOne.value = texture;
-      gpuBackend?.setImage(0, image);
-      if (options.resetOnImageLoad) {
-        resetSim();
-      }
+      // WebGPU uploads asynchronously, so reset once it has.
+      Promise.resolve(gpuBackend?.setImage(0, image)).then(() => {
+        if (options.resetOnImageLoad) resetSim();
+      });
     };
     texture.dispose();
   }
@@ -7394,10 +7424,10 @@ async function VisualPDE(url) {
     image.onload = function () {
       texture.needsUpdate = true;
       uniforms.imageSourceTwo.value = texture;
-      gpuBackend?.setImage(1, image);
-      if (options.resetOnImageLoad) {
-        resetSim();
-      }
+      // WebGPU uploads asynchronously, so reset once it has.
+      Promise.resolve(gpuBackend?.setImage(1, image)).then(() => {
+        if (options.resetOnImageLoad) resetSim();
+      });
     };
     texture.dispose();
   }

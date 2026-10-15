@@ -44,9 +44,14 @@ export class WebGPUBackend {
     this.pipelines = {};
     this.encoder = null;
     this.compiling = 0;
-    // Per kind of pipeline, the latest build requested, so that a slow, superseded build
-    // can't overwrite a newer one.
+    // Per kind of pipeline, the number of the latest build requested and its request, if
+    // it hasn't started (see requestBuild).
     this.generations = {};
+    this.requests = {};
+    this.buildScheduled = false;
+    // Called with (kind, error) when the latest build of a kind fails.
+    this.onBuildError = null;
+    this.sources = {};
     this.pending = Promise.resolve();
     this.uniformCapacity = 0;
     this.uniformCount = 0;
@@ -132,31 +137,38 @@ export class WebGPUBackend {
   /**
    * Uploads an image as one of the two image inputs (0 for I_S, 1 for I_T).
    * @param {number} index
-   * @param {ImageBitmap|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement} source
+   * @param {ImageBitmapSource} source
    */
-  setImage(index, source) {
-    const width = source.width || source.videoWidth;
-    const height = source.height || source.videoHeight;
-    if (!width || !height) return;
+  async setImage(index, source) {
+    // Decode the raw pixel values, without colour-space conversion or premultiplied alpha,
+    // as three.js does for WebGL. Flipped to match three.js's default for textures (flipY),
+    // so v = 0 is the image's bottom.
+    const bitmap = await createImageBitmap(source, {
+      premultiplyAlpha: "none",
+      colorSpaceConversion: "none",
+      imageOrientation: "flipY",
+    });
     const texture = this.device.createTexture({
-      size: [width, height],
+      size: [bitmap.width, bitmap.height],
       format: "rgba8unorm",
       usage:
         GPUTextureUsage.TEXTURE_BINDING |
         GPUTextureUsage.COPY_DST |
         GPUTextureUsage.RENDER_ATTACHMENT,
     });
-    // Flipped to match three.js's default for textures (flipY), so v = 0 is the image's bottom.
     this.device.queue.copyExternalImageToTexture(
-      { source, flipY: true },
-      { texture },
-      [width, height],
+      { source: bitmap },
+      { texture, premultipliedAlpha: false },
+      [bitmap.width, bitmap.height],
     );
+    bitmap.close();
     this.images[index].destroy();
     this.images[index] = texture;
   }
 
   async compile(label, code) {
+    // Kept for debugging (see the test hooks' shaderSources()).
+    this.sources[label] = code;
     const module = this.device.createShaderModule({ label, code });
     const info = await module.getCompilationInfo();
     const errors = info.messages.filter((m) => m.type == "error");
@@ -178,20 +190,38 @@ export class WebGPUBackend {
     return pipeline;
   }
 
-  // Starts a build of the given kind of pipeline, returning a function that says whether it's
-  // still the latest one.
-  newGeneration(kind) {
+  // Requests a build of the given kind of pipeline(s). Builds are deferred to the end of the
+  // current task, so that a burst of requests (e.g. while a preset loads) only builds the
+  // last one, and the backend counts as not ready from the moment one is requested. build is
+  // an async function returning a function that installs its result; it's only installed,
+  // and its errors only reported (to onBuildError), if it's still the latest of its kind.
+  requestBuild(kind, build) {
     const generation = (this.generations[kind] ?? 0) + 1;
     this.generations[kind] = generation;
-    return () => this.generations[kind] == generation;
-  }
-
-  // Tracks a pipeline build, so that isReady() and whenReady() know about it.
-  track(promise) {
+    this.requests[kind] = { generation, build };
+    if (this.buildScheduled) return;
+    this.buildScheduled = true;
     this.compiling++;
-    const tracked = promise.finally(() => this.compiling--);
-    this.pending = Promise.allSettled([this.pending, tracked]);
-    return tracked;
+    this.pending = (async () => {
+      await Promise.resolve();
+      this.buildScheduled = false;
+      const requests = this.requests;
+      this.requests = {};
+      try {
+        await Promise.all(
+          Object.entries(requests).map(async ([kind, { generation, build }]) => {
+            try {
+              const install = await build();
+              if (this.generations[kind] == generation) install();
+            } catch (error) {
+              if (this.generations[kind] == generation) this.onBuildError?.(kind, error);
+            }
+          }),
+        );
+      } finally {
+        this.compiling--;
+      }
+    })();
   }
 
   /** Whether every pipeline needed to run a simulation is built and none are being rebuilt. */
@@ -213,33 +243,34 @@ export class WebGPUBackend {
    * Builds the timestepping pipelines.
    * @param {import("./sim_wgsl.js").SimShaderParts} parts
    */
-  async setSimulation(parts) {
-    const isLatest = this.newGeneration("simulation");
-    const pipelines = {};
-    await this.track(
-      Promise.all(
+  setSimulation(parts) {
+    this.requestBuild("simulation", async () => {
+      const pipelines = {};
+      await Promise.all(
         PASS_TYPES.map(async (type) => {
           pipelines[type] = await this.compile(`timestep ${type}`, timestepShader(type, parts));
         }),
-      ),
-    );
-    if (isLatest()) Object.assign(this.pipelines, pipelines);
+      );
+      return () => Object.assign(this.pipelines, pipelines);
+    });
   }
 
   /** Builds the initial-condition pipeline. */
-  async setClear(parts) {
-    const isLatest = this.newGeneration("clear");
-    const pipeline = await this.track(this.compile("clear", clearShader(parts)));
-    if (isLatest()) this.pipelines.clear = pipeline;
+  setClear(parts) {
+    this.requestBuild("clear", async () => {
+      const pipeline = await this.compile("clear", clearShader(parts));
+      return () => (this.pipelines.clear = pipeline);
+    });
   }
 
   /** Builds the Dirichlet enforcement pipeline, or removes it if parts is null. */
-  async setEnforceDirichlet(parts) {
-    const isLatest = this.newGeneration("enforce");
-    const pipeline = parts
-      ? await this.track(this.compile("enforce Dirichlet", enforceDirichletShader(parts)))
-      : null;
-    if (isLatest()) this.pipelines.enforce = pipeline;
+  setEnforceDirichlet(parts) {
+    this.requestBuild("enforce", async () => {
+      const pipeline = parts
+        ? await this.compile("enforce Dirichlet", enforceDirichletShader(parts))
+        : null;
+      return () => (this.pipelines.enforce = pipeline);
+    });
   }
 
   ensureUniformCapacity(count) {
@@ -368,6 +399,25 @@ export class WebGPUBackend {
     for (let k = 1; k < NUM_SLOTS; k++) {
       encoder.copyBufferToBuffer(this.slots[0], 0, this.slots[k], 0, this.slots[0].size);
     }
+  }
+
+  /**
+   * Sets every slot to the given state, in readState()'s layout (one RGBA float32 array per
+   * species group, row by row from the bottom).
+   * @param {Float32Array[]} groups
+   */
+  writeState(groups) {
+    this.flush();
+    const N = this.nX * this.nY;
+    const G = this.numGroups;
+    const interleaved = new Float32Array(4 * N * G);
+    for (let g = 0; g < G; g++) {
+      if (!groups[g]) continue;
+      for (let n = 0; n < N; n++) {
+        interleaved.set(groups[g].subarray(4 * n, 4 * n + 4), 4 * (n * G + g));
+      }
+    }
+    this.slots.forEach((slot) => this.device.queue.writeBuffer(slot, 0, interleaved));
   }
 
   /** Submits everything recorded since the last flush. */

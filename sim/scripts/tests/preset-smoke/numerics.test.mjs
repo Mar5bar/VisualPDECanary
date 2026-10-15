@@ -106,10 +106,12 @@ async function runCase(c, scheme) {
   // Start the reference from exactly the GPU's initial state, so that the comparison measures
   // the timestepping rather than how accurately the GPU evaluates initial conditions (its
   // sin/cos are only good to about 1e-4).
-  const start = decode(initial.data);
+  // Species s lives in channel s % 4 of group floor(s / 4).
+  const valueOf = (state, s, n) =>
+    decode(s < 4 ? state.data : state.dataGroup1)[4 * n + (s % 4)];
   const problem = c.reference(grid);
   const initialState = Array.from({ length: problem.numSpecies }, (_, s) =>
-    Float64Array.from({ length: grid.nX * grid.nY }, (_, n) => start[4 * n + s]),
+    Float64Array.from({ length: grid.nX * grid.nY }, (_, n) => valueOf(initial, s, n)),
   );
   const reference = createSolver({
     ...grid,
@@ -120,14 +122,13 @@ async function runCase(c, scheme) {
   });
   reference.step(c.numSteps);
 
-  const gpu = decode(state.data);
   let worst = 0,
     scale = 0,
     where = "";
   reference.u.forEach((us, s) => {
     us.forEach((v, n) => {
       scale = Math.max(scale, Math.abs(v));
-      const error = Math.abs(gpu[4 * n + s] - v);
+      const error = Math.abs(valueOf(state, s, n) - v);
       if (error > worst) {
         worst = error;
         where = `species ${s + 1} at node (${n % grid.nX}, ${Math.floor(n / grid.nX)}) of ${grid.nX}x${grid.nY}`;
@@ -294,6 +295,56 @@ const cases = [
       ],
       bcs: [sides(periodic), sides(periodic)],
     }),
+  },
+  {
+    name: "five species coupled across both species groups",
+    numSteps: 100,
+    options: {
+      numSpecies: 5,
+      dt: 0.005,
+      speciesNames: "a b c d e",
+      whatToPlot: "a",
+      crossDiffusion: true,
+      ...Object.fromEntries(
+        [1, 2, 3, 4, 5].flatMap((i) => [
+          [`boundaryConditions_${i}`, i == 5 ? "neumann" : "periodic"],
+          [`neumannStr_${i}`, "0"],
+          ...[1, 2, 3, 4, 5].map((j) => [
+            `diffusionStr_${i}_${j}`,
+            i == j ? "1" : i == 1 && j == 5 ? "0.2" : "0",
+          ]),
+        ]),
+      ),
+      reactionStr_1: "-e",
+      reactionStr_2: "a - b",
+      reactionStr_3: "0",
+      reactionStr_4: "0",
+      reactionStr_5: "a*(1-e)",
+      initCond_1: "cos(2*pi*x/10)",
+      initCond_2: "0",
+      initCond_3: "0",
+      initCond_4: "0",
+      initCond_5: "0.5+0.25*sin(2*pi*x/10)",
+    },
+    reference: () => {
+      const one = constant(1);
+      const D = [0, 1, 2, 3, 4].map((i) =>
+        [0, 1, 2, 3, 4].map((j) => (i == j ? one : i == 0 && j == 4 ? constant(0.2) : null)),
+      );
+      const neumann = { type: "neumann" };
+      return {
+        numSpecies: 5,
+        D,
+        f: [
+          ({ u }) => -u[4],
+          ({ u }) => u[0] - u[1],
+          constant(0),
+          constant(0),
+          ({ u }) => u[0] * (1 - u[4]),
+        ],
+        bcs: [0, 1, 2, 3, 4].map((i) => (i == 4 ? sides(neumann) : sides(periodic))),
+      };
+    },
   },
   {
     name: "2D periodic diffusion",
