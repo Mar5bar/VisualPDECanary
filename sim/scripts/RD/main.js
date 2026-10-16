@@ -174,6 +174,9 @@ async function VisualPDE(url) {
     // Whether a reset's clearing of the WebGPU state is waiting for pipelines to be built
     // (see clearTextures), until when the state is the one being replaced.
     gpuClearPending = false,
+    // Whether the colour range is to be snapped to the next range found (see
+    // setColourRangeSnap).
+    gpuSnapPending = false,
     // Every error raised since the test hooks last loaded something (see initTestHooks).
     testErrors = [],
     // Whether the post-processed values are being read back for a line plot on WebGPU.
@@ -5352,13 +5355,13 @@ async function VisualPDE(url) {
         gpuArrowReadPending = false;
         // Null if the grid has changed since the values were post-processed.
         if (!data || !arrowGroup) return;
-        const changed =
-          !postBuffer ||
-          postBuffer.length != data.length ||
-          data.some((v, k) => !Object.is(v, postBuffer[k]));
+        const before = arrowsSnapshot();
         postBuffer = data;
         updateArrows();
-        if (changed && !isRunning) render();
+        // A paused simulation only draws on demand, so draw the arrows if they've changed
+        // (with the values, or with options such as their scaling), but not otherwise,
+        // which would just read the same values back again.
+        if (!isRunning && !sameValues(arrowsSnapshot(), before)) render();
       },
       // E.g. if the device was lost.
       () => (gpuArrowReadPending = false),
@@ -5395,17 +5398,41 @@ async function VisualPDE(url) {
         gpuLineReadPending = false;
         // Null if the grid has changed since the values were post-processed.
         if (!data || data.length != buffer.length) return;
-        const changed = data.some((v, k) => !Object.is(v, buffer[k]));
+        const before = lineSnapshot();
         buffer.set(data);
         bufferFilled = true;
         updateLinePlot();
-        // A paused simulation only draws on demand, so draw the new line, unless nothing's
-        // changed (which would just read the same values back again).
-        if (changed && !isRunning) render();
+        // A paused simulation only draws on demand, so draw the line if it's changed (with
+        // the values, or with options such as the colour range), but not otherwise, which
+        // would just read the same values back again.
+        if (!isRunning && !sameValues(lineSnapshot(), before)) render();
       },
       // E.g. if the device was lost.
       () => (gpuLineReadPending = false),
     );
+  }
+
+  // Copies of the line plot's (and any overlay line's) points and colours, as drawn.
+  function lineSnapshot() {
+    const attributes = ["instanceStart", "instanceEnd", "instanceColorStart", "instanceColorEnd"];
+    return [line, options.overlay ? overlayLine : null]
+      .filter(Boolean)
+      .flatMap((lineObj) => attributes.map((name) => lineObj.geometry.attributes[name]))
+      .flatMap((attribute) => (attribute ? Array.from(attribute.data.array) : []));
+  }
+
+  // The arrows' directions, sizes and visibility, as drawn.
+  function arrowsSnapshot() {
+    return arrowGroup.children.flatMap((arrow) => [
+      ...arrow.quaternion.toArray(),
+      ...arrow.scale.toArray(),
+      arrow.visible ? 1 : 0,
+    ]);
+  }
+
+  // Whether two arrays of numbers are the same, NaNs included.
+  function sameValues(a, b) {
+    return a.length == b.length && a.every((v, k) => Object.is(v, b[k]));
   }
 
   // Sets the line plot's (and any overlay line's) points and colours from buffer, which
@@ -10629,11 +10656,14 @@ async function VisualPDE(url) {
   function setMinMaxValGPU() {
     if (gpuDisplay) {
       // The reduction is read back asynchronously, so this returns the latest result and,
-      // when a new one arrives, applies it if the colour range is being set automatically.
+      // when a new one arrives, applies it if the colour range is being set automatically
+      // or a snap is waiting for it (see setColourRangeSnap).
       return gpuDisplay.requestMinMax((minMax) => {
-        if (!options.autoSetColourRange) return;
+        const wanted = options.autoSetColourRange || gpuSnapPending;
+        gpuSnapPending = false;
+        if (!wanted) return;
         if (minMax[0] == cLims[0] && minMax[1] == cLims[1]) return;
-        setColourRangeSnap();
+        applyColourRange(minMax);
         renderIfNotRunning();
       });
     }
@@ -11272,7 +11302,15 @@ async function VisualPDE(url) {
    * @returns {void}
    */
   function setColourRangeSnap() {
-    cLims = setMinMaxValGPU();
+    applyColourRange(setMinMaxValGPU());
+    // On WebGPU, that's the latest range found, which may be of an earlier state, so the
+    // range being found now is applied too when it arrives.
+    if (gpuDisplay) gpuSnapPending = true;
+  }
+
+  // Sets the colour range to [min, max].
+  function applyColourRange([min, max]) {
+    cLims = [min, max];
     options.minColourValue = String(cLims[0]);
     options.maxColourValue = String(cLims[1]);
     updateView("minColourValue");

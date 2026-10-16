@@ -950,3 +950,71 @@ test("the probe's chart agrees between backends after changing the probe or rese
   }, base);
   assert.deepEqual(r.webgpu, r.webgl);
 });
+
+test("snapping the colour range uses the current state's range", async () => {
+  const r = await inBoth(async (T, setControl, sleep) => {
+    await T.load({
+      numSpecies: 1,
+      dimension: 2,
+      reactionStr_1: "1",
+      diffusionStr_1_1: "0",
+      initCond_1: "x/100",
+      whatToPlot: "u",
+      dt: 0.01,
+      autoSetColourRange: false,
+      minColourValue: "0",
+      maxColourValue: "1",
+    });
+    await T.step(300);
+    await T.render();
+    const button = [...document.querySelectorAll("button")].find(
+      (b) => /Snap range/.test(b.textContent) && !b.closest("#probeFolder"),
+    );
+    button.click();
+    await sleep(500);
+    return T.colourRange();
+  });
+  for (const [backend, [min, max]] of Object.entries(r)) {
+    // u = x/100 + 3, at nodes from x = 0.25 to 99.75.
+    assert.ok(Math.abs(min - 3.0025) < 1e-4 && Math.abs(max - 3.9975) < 1e-4, `${backend}: [${min}, ${max}]`);
+  }
+});
+
+// Changes an option while paused, as a user would, and returns whether the canvas changed.
+async function canvasChanges(page, opts, label, value) {
+  await page.evaluate(async (opts) => {
+    const T = window.VisualPDETest;
+    await T.load(opts);
+    await T.render();
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }, opts);
+  const before = await page.locator("#simCanvas").screenshot();
+  await page.evaluate(([setControl, label, value]) => eval(`(${setControl})`)(label, value), [
+    setControl.toString(),
+    label,
+    value,
+  ]);
+  await page.waitForTimeout(1000);
+  const after = await page.locator("#simCanvas").screenshot();
+  return !before.equals(after);
+}
+
+test("a paused line plot or vector field is redrawn when its options change", async () => {
+  const flat = { numSpecies: 1, reactionStr_1: "0", diffusionStr_1_1: "0", initCond_1: "x/100", whatToPlot: "u" };
+  for (const [backend, page] of Object.entries(pages)) {
+    const line = await canvasChanges(
+      page,
+      { ...flat, dimension: 1, plotType: "line", autoSetColourRange: false, minColourValue: "0", maxColourValue: "1" },
+      "Max value",
+      "4",
+    );
+    assert.ok(line, `${backend}: the line wasn't redrawn for a new colour range`);
+    const arrows = await canvasChanges(
+      page,
+      { ...flat, dimension: 2, vectorField: true, arrowX: "x-50", arrowY: "y-30", arrowScale: "auto", arrowDensity: 0.3 },
+      "Scaling",
+      "none",
+    );
+    assert.ok(arrows, `${backend}: the arrows weren't redrawn for a new scaling`);
+  }
+});
