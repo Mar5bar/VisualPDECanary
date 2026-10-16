@@ -171,6 +171,24 @@ const cases = [
     }),
   },
   {
+    name: "kinetics chosen with the ?: operator",
+    numSteps: 100,
+    options: {
+      numSpecies: 1,
+      dt: 0.01,
+      diffusionStr_1_1: "0.5",
+      reactionStr_1: "u > 0 ? -u : (u < -0.5 ? 1 : -2*u)",
+      initCond_1: "sin(2*pi*x/10)",
+      boundaryConditions_1: "periodic",
+    },
+    reference: () => ({
+      numSpecies: 1,
+      D: [[constant(0.5)]],
+      f: [({ u }) => (u[0] > 0 ? -u[0] : u[0] < -0.5 ? 1 : -2 * u[0])],
+      bcs: [sides(periodic)],
+    }),
+  },
+  {
     name: "logistic reaction-diffusion with a nonzero Neumann flux",
     numSteps: 200,
     options: {

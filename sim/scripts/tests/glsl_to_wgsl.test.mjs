@@ -55,8 +55,44 @@ test("translateExpression: integer literals lose leading zeros, which WGSL forbi
 });
 
 test("translateExpression: unsupported operators are rejected rather than mistranslated", () => {
-  assert.throws(() => translateExpression("u > 0. ? 1. : 0."), TranslationError);
   assert.throws(() => translateExpression("i++"), TranslationError);
+  assert.throws(() => translateExpression("u > 0. ? 1."), TranslationError);
+  assert.throws(() => translateExpression("u : 1."), TranslationError);
+});
+
+test("translateExpression: ?: becomes select, at any depth and nested either way", () => {
+  assert.equal(translateExpression("u > 0.5 ? 1. : 0."), "select(0., 1., u>0.5)");
+  // Lower precedence than every other operator.
+  assert.equal(translateExpression("a + b > 0. ? c * 2. : d - 1."), "select(d-1., c*2., a+b>0.)");
+  // Right-associative, and nested in the middle operand.
+  assert.equal(
+    translateExpression("a ? b : c ? d : e"),
+    "select(select(e, d, c), b, a)",
+  );
+  assert.equal(
+    translateExpression("a ? b ? c : d : e"),
+    "select(e, select(d, c, b), a)",
+  );
+  // Inside brackets and function arguments.
+  assert.equal(translateExpression("2. * (u < 0. ? -u : u)"), "2.*(select(u, -u, u<0.))");
+  assert.equal(translateExpression("max(a ? b : c, d)"), "max(select(c, b, a), d)");
+  // Mixed logic in the condition is still parenthesised.
+  assert.equal(
+    translateExpression("a && b || c ? 1. : 0."),
+    "select(0., 1., (a&&b)||c)",
+  );
+  // select is never renamed, even if a parameter has its name.
+  assert.equal(
+    translateExpression("u > select ? select : 0.", { renames: { select: "P_select" } }),
+    "select(0., P_select, u>P_select)",
+  );
+});
+
+test("translateStatements: ?: in assignments and declarations", () => {
+  assert.equal(
+    translateStatements("float du = u > 0.5 ? 1. : 0.; dv += v < 0. ? -v : v;"),
+    "var du: f32 = select(0., 1., u>0.5);\ndv += select(v, -v, v<0.);",
+  );
 });
 
 test("translateStatements: declarations become typed vars", () => {

@@ -143,6 +143,81 @@ export function parenthesiseLogic(tokens) {
   return level(0, tokens.length);
 }
 
+// Tokens that end the operand of a ?: operator, which binds more loosely than every operator
+// but assignment and the comma.
+const TERNARY_BOUNDARIES = new Set([",", ";", "{", "}", "=", "+=", "-=", "*=", "/="]);
+
+/**
+ * Rewrites every "c ? a : b" as "select(b, a, c)", at every level of nesting. Both a and b
+ * are then evaluated, which is equivalent for the side-effect-free expressions VisualPDE
+ * builds.
+ * @param {{type: string, value: string}[]} tokens
+ * @returns {{type: string, value: string}[]}
+ */
+export function rewriteTernaries(tokens) {
+  const punct = (value) => ({ type: "punct", value });
+  // Processes tokens[start, end), which contains no unmatched brackets, returning items:
+  // single tokens, or bracketed groups (as arrays of tokens).
+  function level(start, end) {
+    const items = [];
+    for (let i = start; i < end; i++) {
+      const v = tokens[i].value;
+      if (v == "(" || v == "[") {
+        const close = matchingBracket(tokens, i);
+        items.push([tokens[i], ...flatten(level(i + 1, close)), tokens[close]]);
+        i = close;
+      } else {
+        items.push(tokens[i]);
+      }
+    }
+    const out = [];
+    let segment = [];
+    for (const item of items) {
+      if (!Array.isArray(item) && TERNARY_BOUNDARIES.has(item.value)) {
+        out.push(...convert(segment), item);
+        segment = [];
+      } else {
+        segment.push(item);
+      }
+    }
+    out.push(...convert(segment));
+    return out;
+  }
+  const flatten = (items) => items.flatMap((item) => (Array.isArray(item) ? item : [item]));
+  const is = (item, value) => !Array.isArray(item) && item.value == value;
+  // Converts a sequence of items holding at most one (possibly nested) ?: expression.
+  function convert(items) {
+    const q = items.findIndex((item) => is(item, "?"));
+    if (q < 0) {
+      if (items.some((item) => is(item, ":"))) throw new TranslationError("Unmatched ':'.");
+      return flatten(items);
+    }
+    // The ':' matching the '?', skipping those of ?: expressions nested in the middle operand.
+    let depth = 0,
+      colon = -1;
+    for (let i = q + 1; i < items.length && colon < 0; i++) {
+      if (is(items[i], "?")) depth++;
+      else if (is(items[i], ":")) {
+        if (depth == 0) colon = i;
+        else depth--;
+      }
+    }
+    if (colon < 0 || q == 0) throw new TranslationError("Malformed ?: expression.");
+    return [
+      // Marked so that it's never renamed (e.g. to a parameter called select).
+      { type: "ident", value: "select", builtin: true },
+      punct("("),
+      ...convert(items.slice(colon + 1)),
+      punct(","),
+      ...convert(items.slice(q + 1, colon)),
+      punct(","),
+      ...flatten(items.slice(0, q)),
+      punct(")"),
+    ];
+  }
+  return flatten(level(0, tokens.length));
+}
+
 /**
  * @typedef {Object} TranslateOptions
  * @property {Object<string, string>} [renames] - Identifiers to rename (e.g. parameters,
@@ -160,7 +235,7 @@ export function parenthesiseLogic(tokens) {
  * @returns {string}
  */
 export function translateExpression(src, options = {}) {
-  const tokens = parenthesiseLogic(tokenize(src));
+  const tokens = rewriteTernaries(parenthesiseLogic(tokenize(src)));
   const out = translateTokens(tokens, 0, tokens.length, options);
   return out;
 }
@@ -209,9 +284,6 @@ function translateTokens(tokens, start, end, options) {
   };
   for (let i = start; i < end; i++) {
     const tok = tokens[i];
-    if (tok.type == "punct" && tok.value == "?") {
-      throw new TranslationError("The ?: operator isn't supported.");
-    }
     if (tok.type == "punct" && (tok.value == "++" || tok.value == "--")) {
       throw new TranslationError(`The ${tok.value} operator isn't supported.`);
     }
@@ -247,7 +319,9 @@ function translateTokens(tokens, start, end, options) {
     );
     const name = tok.value;
     let call;
-    if (calls[name]) {
+    if (tok.builtin) {
+      call = `${name}(${args.join(", ")})`;
+    } else if (calls[name]) {
       call = calls[name](args);
     } else if (RELATIONAL_FUNCTIONS[name]) {
       if (args.length != 2) throw new TranslationError(`${name} takes 2 arguments.`);
@@ -281,7 +355,7 @@ function normaliseNumber(value) {
  * @returns {string}
  */
 export function translateStatements(src, options = {}) {
-  const tokens = parenthesiseLogic(tokenize(src));
+  const tokens = rewriteTernaries(parenthesiseLogic(tokenize(src)));
   const lines = [];
   let i = 0;
   let swizzleCounter = 0;
