@@ -10,3 +10,45 @@ test("WebGPUBackend.whenReady waits for every batch of builds, without spinning"
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(JSON.parse(result.stdout), { slowDone: true, compiling: 0 });
 });
+
+test("WebGPUBackend: if only the blocked timestep kernel fails to build, steps are unblocked", async () => {
+  globalThis.GPUBufferUsage ??= new Proxy({}, { get: () => 1 });
+  globalThis.GPUTextureUsage ??= new Proxy({}, { get: () => 1 });
+  globalThis.GPUShaderStage ??= new Proxy({}, { get: () => 1 });
+  const { WebGPUBackend } = await import("../RD/webgpu/webgpu_backend.js");
+  const stub = () => ({ destroy() {}, createView() { return {}; } });
+  const device = new Proxy(
+    {
+      queue: { writeBuffer() {}, writeTexture() {}, submit() {} },
+      limits: { maxComputeWorkgroupStorageSize: 32768 },
+    },
+    { get: (target, key) => (key in target ? target[key] : () => stub()) },
+  );
+  const backend = new WebGPUBackend(device);
+  const compiled = [];
+  backend.compile = async (label, code, formats) => {
+    if (label.includes("blocked")) throw new Error("too many registers");
+    compiled.push(label);
+    return { pipeline: { label }, formats, G: formats.length };
+  };
+  const errors = [];
+  backend.onBuildError = (kind, error) => errors.push(kind);
+  backend.setSimulation({
+    numGroups: 1,
+    formats: ["r32float"],
+    clamp: [[true, false]],
+    paramNames: [],
+    minX: "0.0",
+    minY: "0.0",
+    twoD: false,
+    timescales: "vec4(1.0, 1.0, 1.0, 1.0)",
+    timescalesGroup1: "vec4(1.0, 1.0, 1.0, 1.0)",
+    bot: Object.fromEntries(["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"].map((t) => [t, ""])),
+    middle: "float LDuuU = (uvwqR.r+uvwqL.r-2.0*uvwq.r)/(dx*dx); result = vec4(LDuuU, 0.0, 0.0, 0.0); }",
+  });
+  await backend.whenReady();
+  assert.deepEqual(errors, []);
+  assert.ok(!backend.failedBuilds.has("simulation"));
+  assert.ok(backend.pipelines.FE);
+  assert.equal(backend.pipelines.FEBlocked, null);
+});

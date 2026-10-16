@@ -479,14 +479,22 @@ export class WebGPUBackend {
           );
         }),
         (async () => {
-          pipelines.FEBlocked = plan && {
-            ...(await this.compile(
-              "timestep FE (blocked)",
-              blockedTimestepShader(parts, plan),
-              parts.formats,
-            )),
-            plan,
-          };
+          // Optional: if the blocked kernel fails (e.g. it needs more of the GPU than a
+          // driver can give one workgroup), steps are taken unblocked. Any error in the
+          // equations themselves fails the kernels above too.
+          try {
+            pipelines.FEBlocked = plan && {
+              ...(await this.compile(
+                "timestep FE (blocked)",
+                blockedTimestepShader(parts, plan),
+                parts.formats,
+              )),
+              plan,
+            };
+          } catch (error) {
+            console.log("Not blocking timesteps, as the blocked kernel failed:", error.message);
+            pipelines.FEBlocked = null;
+          }
         })(),
       ]);
       return () => {
