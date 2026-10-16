@@ -112,9 +112,19 @@ fn H2(VALUE: f32, EDGE: f32) -> f32 { return smoothstep(-0.01, 0.01, VALUE - EDG
 
 fn safetanh(VALUE: f32) -> f32 { return 1.0 - 2.0 / (1.0 + exp(2.0 * VALUE)); }
 
+// GLSL's round(), which users' expressions may call, as WebGL computes it on Apple GPUs:
+// halves round away from zero (WGSL's round() rounds them to even).
+fn vpde_round(x: f32) -> f32 {
+  let t = trunc(x);
+  if (abs(x - t) >= 0.5) { return t + sign(x); }
+  return t;
+}
+
+// As the GLSL safepow: x^y, extended to x < 0 as even or odd in x by the parity of y
+// rounded with halves away from zero.
 fn safepow(x: f32, y: f32) -> f32 {
   if (x >= 0.0) { return pow(x, y); }
-  if (vpde_mod(round(y), 2.0) == 0.0) { return pow(-x, y); }
+  if (vpde_mod(vpde_round(y), 2.0) == 0.0) { return pow(-x, y); }
   return -pow(-x, y);
 }
 

@@ -482,6 +482,27 @@ test("the space step is used exactly, and the domain is the nodes' extent", asyn
   }
 });
 
+test("round() and fractional powers of negative numbers round halves away from zero", async () => {
+  // safepow gives (-4)^y the sign of (-1)^round(y). (Constants rather than x, which WebGL
+  // interpolates to within an ulp, so isn't exactly a half-integer at any node.)
+  const { state, message } = await page.evaluate(async (opts) => {
+    const T = window.VisualPDETest;
+    await T.load(opts);
+    return { state: await T.readState(), message: await T.errorMessage() };
+  }, {
+    dimension: 1,
+    numSpecies: 4,
+    initCond_1: "round(0.5) + 10*round(-0.5) + 100*round(1.5) + 1000*round(2.5)",
+    initCond_2: "(-4)^0.5",
+    initCond_3: "(-4)^2.5",
+    initCond_4: "(-4)^1.5 + (-4)^(-0.5)",
+  });
+  assert.equal(message, "");
+  const values = decode(state.data);
+  // Rounding halves to even would give 2200, 2, 32 and 8.5.
+  assert.deepEqual([...values.slice(0, 4)], [3191, -2, -32, 7.5]);
+});
+
 test("a species clamped at the edges evolves the same whatever the other species' conditions", async () => {
   // Second-order one-sided differences reach two nodes beyond the edge, so they test that
   // every neighbour is clamped, whether that's done by the texture's wrap mode (when every

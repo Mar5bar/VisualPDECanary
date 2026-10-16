@@ -32,6 +32,7 @@ const TYPE_MAP = {
 // GLSL functions whose WGSL counterparts have different names.
 const RENAMED_FUNCTIONS = {
   mod: "vpde_mod",
+  round: "vpde_round",
   inversesqrt: "inverseSqrt",
   isnan: "vpde_isnan",
   isinf: "vpde_isinf",

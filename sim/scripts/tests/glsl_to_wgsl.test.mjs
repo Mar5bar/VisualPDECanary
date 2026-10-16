@@ -12,6 +12,8 @@ test("translateExpression: maps GLSL types, casts and renamed functions to WGSL"
   assert.equal(translateExpression("mod(x, 2.)"), "vpde_mod(x, 2.)");
   assert.equal(translateExpression("inversesqrt(x)"), "inverseSqrt(x)");
   assert.equal(translateExpression("isnan(x)"), "vpde_isnan(x)");
+  // WGSL's round() rounds halves to even, unlike WebGL's on Apple GPUs.
+  assert.equal(translateExpression("round(x)"), "vpde_round(x)");
 });
 
 test("translateExpression: two-argument atan becomes atan2, one-argument atan stays", () => {
