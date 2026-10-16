@@ -79,7 +79,8 @@ export class WebGPUBackend {
     // Called with (kind, error) when the latest build of a kind fails.
     this.onBuildError = null;
     this.sources = {};
-    this.pending = Promise.resolve();
+    // The batches of builds under way (see requestBuild).
+    this.batches = new Set();
     this.uniformCapacity = 0;
     this.uniformCount = 0;
     this.uniformData = null;
@@ -393,7 +394,7 @@ export class WebGPUBackend {
     if (this.buildScheduled) return;
     this.buildScheduled = true;
     this.compiling++;
-    this.pending = (async () => {
+    const batch = (async () => {
       await Promise.resolve();
       this.buildScheduled = false;
       const requests = this.requests;
@@ -419,6 +420,9 @@ export class WebGPUBackend {
         this.compiling--;
       }
     })();
+    this.batches.add(batch);
+    const done = () => this.batches.delete(batch);
+    batch.then(done, done);
   }
 
   /** Whether every pipeline needed to run a simulation is built and none are being rebuilt. */
@@ -439,7 +443,8 @@ export class WebGPUBackend {
 
   /** Resolves once no pipelines are being built. */
   async whenReady() {
-    while (this.compiling > 0) await this.pending;
+    // Every batch, as an older one may still be building after a newer one has finished.
+    while (this.compiling > 0) await Promise.allSettled(this.batches);
   }
 
   /**
