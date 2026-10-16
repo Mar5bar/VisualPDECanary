@@ -6,7 +6,7 @@
 // placement, and everything else about the scene still come from three.js objects in main.js,
 // which are only used for their maths.
 
-import { UNIFORM_STRIDE, writeUniforms } from "./sim_wgsl.js";
+import { UNIFORM_STRIDE, WORKGROUP_SIZE, writeUniforms } from "./sim_wgsl.js";
 import { ValueLayout } from "./values.js";
 
 const NO_VALUES = new ValueLayout([]);
@@ -510,7 +510,12 @@ export class WebGPUDisplay {
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
     if (point) pass.dispatchWorkgroups(1, 1);
-    else pass.dispatchWorkgroups(Math.ceil(backend.nX / 8), Math.ceil(backend.nY / 8));
+    else {
+      pass.dispatchWorkgroups(
+        Math.ceil(backend.nX / WORKGROUP_SIZE[0]),
+        Math.ceil(backend.nY / WORKGROUP_SIZE[1]),
+      );
+    }
     pass.end();
   }
 
