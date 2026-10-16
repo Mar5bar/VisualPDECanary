@@ -177,6 +177,8 @@ async function VisualPDE(url) {
     // Whether the colour range is to be snapped to the next range found (see
     // setColourRangeSnap).
     gpuSnapPending = false,
+    // The size, in pixels, at which WebGPU draws (see setDefaultRenderSize).
+    gpuRenderSize = new THREE.Vector2(1, 1),
     // Every error raised since the test hooks last loaded something (see initTestHooks).
     testErrors = [],
     // Whether the post-processed values are being read back for a line plot on WebGPU.
@@ -1240,11 +1242,13 @@ async function VisualPDE(url) {
     // three.js renders off screen: it then only provides the scene's maths and the rarely
     // used WebGL code paths that WebGPU doesn't replace.
     if (gpuBackend) gpuDisplay = new WebGPUDisplay(gpuBackend, canvas, antialias);
+    // On WebGPU, its canvas is never shown, so it's kept small (see setDefaultRenderSize),
+    // without the memory antialiasing and a preserved drawing buffer need.
     renderer = new THREE.WebGLRenderer({
       canvas: gpuBackend ? document.createElement("canvas") : canvas,
-      preserveDrawingBuffer: true,
+      preserveDrawingBuffer: !gpuBackend,
       powerPreference: "high-performance",
-      antialias: antialias,
+      antialias: antialias && !gpuBackend,
       alpha: true,
       premultipliedAlpha: false,
       stencilBuffer: false,
@@ -5186,7 +5190,7 @@ async function VisualPDE(url) {
       camera.matrixWorldInverse,
       domain.matrixWorld,
     );
-    const size = renderer.getDrawingBufferSize(new THREE.Vector2());
+    const size = gpuRenderSize.clone();
     const background = scene.background ?? new THREE.Color(0, 0, 0);
     gpuDisplay.draw({
       simValues,
@@ -12007,11 +12011,11 @@ async function VisualPDE(url) {
    */
   function setDefaultRenderSize() {
     let scaleFactor = options.performanceMode ? 0.6 : devicePixelRatio;
-    renderer.setSize(
-      Math.round(scaleFactor * canvasWidth),
-      Math.round(scaleFactor * canvasHeight),
-      false,
-    );
+    const width = Math.round(scaleFactor * canvasWidth);
+    const height = Math.round(scaleFactor * canvasHeight);
+    // WebGPU draws at this size, which the unseen WebGL canvas needn't take up memory for.
+    if (gpuDisplay) gpuRenderSize.set(width, height);
+    else renderer.setSize(width, height, false);
   }
 
   /**
