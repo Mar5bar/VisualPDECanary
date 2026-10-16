@@ -27,3 +27,37 @@ test("auxiliary_GLSL_funs: declares no new lowercase names that would be reserve
   const lowercase = declared.filter((name) => /[a-z]/.test(name) && !/^[A-Z]/.test(name) && !allowed.includes(name));
   assert.deepEqual(lowercase, []);
 });
+
+test("auxiliary_GLSL_funs: safepow takes its sign for x < 0 from y rounded with halves away from zero", () => {
+  // Run safepow's GLSL body as JS.
+  const src = auxiliary_GLSL_funs();
+  const start = src.indexOf("{", src.indexOf("float safepow(float x, float y)"));
+  let depth = 0,
+    end = start;
+  for (; end < src.length; end++) {
+    if (src[end] == "{") depth++;
+    if (src[end] == "}" && --depth == 0) break;
+  }
+  const body = src.slice(start + 1, end).replaceAll(/\bfloat\b/g, "let");
+  const safepow = (x, y) =>
+    new Function("x", "y", "trunc", "abs", "sign", "mod", "pow", body)(
+      x,
+      y,
+      Math.trunc,
+      Math.abs,
+      Math.sign,
+      (a, b) => a - b * Math.floor(a / b),
+      Math.pow,
+    );
+  assert.equal(safepow(4, 0.5), 2);
+  assert.equal(safepow(-2, 2), 4);
+  assert.equal(safepow(-2, 3), -8);
+  // Halves round away from zero: 0.5 -> 1, 2.5 -> 3, -0.5 -> -1, 1.5 -> 2.
+  assert.equal(safepow(-4, 0.5), -2);
+  assert.equal(safepow(-4, 2.5), -32);
+  assert.equal(safepow(-4, -0.5), -0.5);
+  assert.equal(safepow(-4, 1.5), 8);
+  // Otherwise to the nearest integer.
+  assert.equal(safepow(-4, 2.4), Math.pow(4, 2.4));
+  assert.equal(safepow(-4, 2.6), -Math.pow(4, 2.6));
+});
