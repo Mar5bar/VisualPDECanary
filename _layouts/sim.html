@@ -70,10 +70,16 @@
   <script async type="text/javascript">
     // If the search string specifies a minified link, query the endpoint for the full link.
     if (searchParams.has("mini")) {
-      if (!linkParsed) {
+      // Only allow a strict whitelist of characters in the short key, to prevent
+      // the value from being used to manipulate the target of the fetch requests below.
+      const miniKey = searchParams.get("mini");
+      if (!/^[A-Za-z0-9_-]+$/.test(miniKey)) {
+        badLink = true;
+        linkParsed = true;
+      } else if (!linkParsed) {
         // Try the local static endpoint.
         fetch(
-          window.location.origin + "/m/" + searchParams.get("mini") + ".txt",
+          window.location.origin + "/m/" + encodeURIComponent(miniKey) + ".txt",
         )
           .then((response) => {
             if (response.ok) {
@@ -91,7 +97,7 @@
             // Fetch the full link from the endpoint.
             const endpoint =
               "https://link-shortener.8dsf27772t.workers.dev?shortKey=";
-            fetch(endpoint + searchParams.get("mini"), {
+            fetch(endpoint + encodeURIComponent(miniKey), {
               signal: AbortSignal.timeout(5000),
             })
               .then((response) => {
