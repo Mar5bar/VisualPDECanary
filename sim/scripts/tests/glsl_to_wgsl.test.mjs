@@ -209,3 +209,16 @@ test("translateExpression: runtimeLiterals passes float literals through vpde_rt
   assert.equal(translateExpression("a[2] * 1e-3", opts), "a[2]*vpde_rt(1e-3)");
   assert.equal(translateExpression("1.0/0.0"), "1.0/0.0");
 });
+
+test("translateExpression: adjacent minus signs stay apart, as WGSL reads -- as one token", () => {
+  assert.equal(translateExpression("u - -v"), "u- -v");
+  assert.equal(translateExpression("u - - -v"), "u- - -v");
+  assert.equal(translateExpression("u - -1.0", { runtimeLiterals: true }), "u- -vpde_rt(1.0)");
+});
+
+test("translateExpression: literals beyond f32's range become inf, as in GLSL", () => {
+  const opts = { runtimeLiterals: true };
+  assert.equal(translateExpression("min(1e40, u)", opts), "min((vpde_rt(1.0)/vpde_rt(0.0)), u)");
+  assert.equal(translateExpression("-1e40", opts), "-(vpde_rt(1.0)/vpde_rt(0.0))");
+  assert.equal(translateExpression("3e38", opts), "vpde_rt(3e38)");
+});

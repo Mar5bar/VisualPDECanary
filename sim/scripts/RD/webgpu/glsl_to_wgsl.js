@@ -13,6 +13,9 @@
 
 export class TranslationError extends Error {}
 
+// The largest finite f32.
+const F32_MAX = 3.4028234663852886e38;
+
 const TYPE_MAP = {
   float: "f32",
   int: "i32",
@@ -284,8 +287,11 @@ function translateTokens(tokens, start, end, options) {
   const calls = options.calls ?? {};
   let out = "";
   const emit = (s) => {
-    // Keep identifiers and numbers apart.
-    if (/\w$/.test(out) && /^\w/.test(s)) out += " ";
+    // Keep identifiers and numbers apart, and minus signs, which WGSL would read as its --
+    // operator (e.g. "u - -v").
+    if ((/\w$/.test(out) && /^\w/.test(s)) || (out.endsWith("-") && s.startsWith("-"))) {
+      out += " ";
+    }
     out += s;
   };
   for (let i = start; i < end; i++) {
@@ -295,7 +301,10 @@ function translateTokens(tokens, start, end, options) {
     }
     if (tok.type == "number") {
       const number = normaliseNumber(tok.value);
-      emit(options.runtimeLiterals && /[.eE]/.test(number) ? `vpde_rt(${number})` : number);
+      if (!options.runtimeLiterals || !/[.eE]/.test(number)) emit(number);
+      // A literal too large for an f32 is infinite in GLSL, but an error in WGSL.
+      else if (Number(number) > F32_MAX) emit("(vpde_rt(1.0)/vpde_rt(0.0))");
+      else emit(`vpde_rt(${number})`);
       continue;
     }
     if (tok.type != "ident") {

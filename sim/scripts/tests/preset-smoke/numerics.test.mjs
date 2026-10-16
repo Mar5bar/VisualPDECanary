@@ -519,14 +519,16 @@ test("constant subexpressions that are infinite give inf at run time, as in GLSL
     initCond_1: "min(1/0, 2)",
     initCond_2: "max(-1/0, -3)",
     initCond_3: "min(exp(1000), 5)",
-    initCond_4: "0",
+    // Also a literal too large for an f32 (inf in GLSL), and minus signs WGSL mustn't read as
+    // its -- operator.
+    initCond_4: "min(1e40, 4) - -1",
     reactionStr_1: "0",
     reactionStr_2: "0",
     reactionStr_3: "0",
     reactionStr_4: "min(1/0, 1) + max(-1/0, -1) + min(exp(1000), 1)",
   });
   assert.equal(message, "");
-  assert.deepEqual([...decode(state.data).slice(0, 4)].map((v) => Math.fround(v)), [2, -3, 5, Math.fround(0.1)]);
+  assert.deepEqual([...decode(state.data).slice(0, 4)].map((v) => Math.fround(v)), [2, -3, 5, Math.fround(5.1)]);
 });
 
 test("the state read back on a large grid is exactly the state stepped, with 5-8 species too", async () => {
