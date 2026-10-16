@@ -72,6 +72,10 @@ export class WebGPUDisplay {
     this.geometry = null;
     this.minMax = [0, 1];
     this.minMaxPending = false;
+    // Whether minMax is of the current state, rather than of one since replaced (see
+    // discardMinMax), and the count of such replacements, to tell stale results apart.
+    this.minMaxCurrent = false;
+    this.minMaxGeneration = 0;
     const device = this.device;
     this.simUniforms = device.createBuffer({
       size: UNIFORM_STRIDE,
@@ -901,6 +905,16 @@ export class WebGPUDisplay {
   }
 
   /**
+   * Marks the minimum and maximum found so far, and any being found, as of a state that's
+   * been replaced (e.g. by a reset), so that nothing (such as the check for NaNs) takes them
+   * for the current state's.
+   */
+  discardMinMax() {
+    this.minMaxGeneration++;
+    this.minMaxCurrent = false;
+  }
+
+  /**
    * Starts finding the minimum and maximum post-processed values, unless a search is already
    * under way, and returns the most recent result. Readback is asynchronous, so the result
    * lags by a frame or so; onResult is called when a new one arrives.
@@ -909,6 +923,7 @@ export class WebGPUDisplay {
    */
   requestMinMax(onResult) {
     if (this.minMaxPending || !this.postFits()) return this.minMax;
+    const generation = this.minMaxGeneration;
     const backend = this.backend;
     const count = backend.nX * backend.nY;
     this.minMaxPending = true;
@@ -948,8 +963,11 @@ export class WebGPUDisplay {
       () => {
         const [low, high] = new Float32Array(staging.getMappedRange().slice(0));
         staging.destroy();
-        this.minMax = [low, high];
         this.minMaxPending = false;
+        // Of a state since replaced, so of no use.
+        if (generation != this.minMaxGeneration) return;
+        this.minMax = [low, high];
+        this.minMaxCurrent = true;
         onResult?.(this.minMax);
       },
       () => {

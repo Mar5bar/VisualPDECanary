@@ -654,3 +654,35 @@ test("grids and images too large for the WebGPU device are capped, and still run
     await page.close();
   }
 });
+
+test("in clean mode, every blow-up to NaN resets the simulation, on both backends", async () => {
+  // Without error messages to show (as when embedded), hitting NaN resets the simulation,
+  // which on WebGPU mustn't act on the range found from the state it's just replaced.
+  for (const backend of ["webgl", "webgpu"]) {
+    const page = await pages[backend].context().newPage();
+    const errors = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+    try {
+      await page.goto(BASE_URL + `/sim/?testHooks&noop&clean&backend=${backend}`, { waitUntil: "load" });
+      await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
+      const values = await page.evaluate(async () => {
+        const T = window.VisualPDETest;
+        await T.load({ reactionStr_1: "u*u", reactionStr_2: "0", initCond_1: "1", dt: 0.1, whatToPlot: "u" });
+        const values = [];
+        for (let round = 0; round < 3; round++) {
+          await T.step(100);
+          await T.render();
+          // The check runs every second.
+          await new Promise((resolve) => setTimeout(resolve, 2500));
+          const state = await T.readState();
+          values.push(new Float32Array(Uint8Array.from(atob(state.data), (c) => c.charCodeAt(0)).buffer)[0]);
+        }
+        return values;
+      });
+      assert.deepEqual(values, [1, 1, 1], `${backend}: the simulation wasn't reset each time`);
+      assert.deepEqual(errors, [], backend);
+    } finally {
+      await page.close();
+    }
+  }
+});

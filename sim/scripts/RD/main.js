@@ -5707,6 +5707,8 @@ async function VisualPDE(url) {
       } else {
         gpuBackend.clear(gpuUniformValues());
       }
+      // A deferred clear replaces whatever state values were found from since the reset.
+      gpuDisplay?.discardMinMax();
       // As resetSim() does, but here too in case this clear was deferred until after it.
       if (shaderContainsGlobalIntegral) updateGlobalIntegral();
       gpuBackend.flush();
@@ -5799,6 +5801,8 @@ async function VisualPDE(url) {
     frameCount = 0;
     canAutoPause = true;
     updateTimeDisplay();
+    // The values found from the state being replaced no longer apply.
+    gpuDisplay?.discardMinMax();
     clearTextures();
     clearProbe();
     if (shaderContainsGlobalIntegral) {
@@ -10479,6 +10483,12 @@ async function VisualPDE(url) {
   function checkForNaN() {
     // Check to see if a NaN value is in the first entry of the simulation array, which would mean that we've hit overflow or instability.
     const valueRange = setMinMaxValGPU();
+    // On WebGPU, the range is read back asynchronously: until one of the current state has
+    // arrived (e.g. just after a reset), check again later rather than act on an old one.
+    if (gpuDisplay && !gpuDisplay.minMaxCurrent) {
+      NaNTimer = setTimeout(checkForNaN, 1000);
+      return;
+    }
     if (
       (shouldCheckNaN &&
         (!isFinite(valueRange[0]) ||
