@@ -34,7 +34,7 @@ import {
   computeDisplayFunShaderMidMRT,
   probeShaderMRT,
 } from "./post_shaders.js";
-import { copyShader, copyShaderMRT } from "../copy_shader.js";
+import { copyShader, copyShaderMRT, exactCopyShader } from "../copy_shader.js";
 import {
   RDShaderTop,
   RDShaderBot,
@@ -11639,7 +11639,7 @@ async function VisualPDE(url) {
       const prevMaterial = simDomain.material;
       const prevTarget = renderer.getRenderTarget();
       const scratch = postTexture.clone();
-      assignFragmentShader(copyMaterial, copyShader());
+      assignFragmentShader(copyMaterial, exactCopyShader());
       copyMaterial.glslVersion = null;
       copyMaterial.needsUpdate = true;
       simDomain.material = copyMaterial;

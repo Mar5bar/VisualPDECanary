@@ -12,6 +12,19 @@ export function copyShader() {
     }`;
 }
 
+// Copies a texture exactly, texel for texel, into a target of the same size (e.g. to read
+// one attachment of a multiple render target back). Unlike copyShader(), whose interpolation
+// at the rasterised texture coordinates can blend in a sliver of a neighbouring texel on
+// large textures, it fetches the texel under each fragment.
+export function exactCopyShader() {
+    return `uniform sampler2D textureSource;
+
+    void main()
+    {
+        gl_FragColor = texelFetch(textureSource, ivec2(gl_FragCoord.xy), 0);
+    }`;
+}
+
 // MRT counterpart of copyShader(), used only once numGroups(numSpecies)>1 (e.g. by
 // resizeTextures() to resample mrtSimTextures onto a new discretisation). Needs true
 // dual-output (unlike a plain copy) since GLSL ES 300 doesn't guarantee an unwritten MRT
