@@ -179,6 +179,8 @@ async function VisualPDE(url) {
     gpuArrowReadPending = false,
     gpuAdapterInfo = null,
     gpuParamNames = [];
+  // The edge clamping the WebGPU display kernels were last built with (see setRDEquations).
+  let gpuDisplayClamp = null;
   let simTextures = [],
     // Only allocated once numGroups(options.numSpecies)>1 (i.e. numSpecies>4). Each entry is
     // a THREE.WebGLMultipleRenderTargets holding one colour attachment per texture group, so
@@ -4134,8 +4136,9 @@ async function VisualPDE(url) {
       formats: stateFormats(Number(options.numSpecies)),
       twoD: options.dimension == 2,
       // Per species group, whether the state is clamped at the edges in x and y, mirroring
-      // the wrap modes setRDEquations() gives the WebGL textures (species 5-8 always wrap,
-      // and clamp in the shader where needed).
+      // the wrap modes setRDEquations() gives the WebGL textures (species 1-4 clamp in a
+      // direction if they all do; species 5-8 always wrap, and clamp in the shader where
+      // needed).
       clamp: [
         [
           simTextures[0].texture.wrapS == THREE.ClampToEdgeWrapping,
@@ -6935,6 +6938,17 @@ async function VisualPDE(url) {
       parts.timescales = insertRates("TIMESCALES");
       parts.timescalesGroup1 = insertRates("TIMESCALESGROUP1");
       gpuBackend.setSimulation(parts);
+      // The display's kernels look beyond the edges as the simulation does, so are rebuilt
+      // if that's changed (e.g. a boundary condition changed in the GUI), as WebGL's display
+      // sees the textures' new wrapping.
+      const clamp = JSON.stringify(parts.clamp);
+      if (gpuDisplayClamp != null && clamp != gpuDisplayClamp) {
+        setPostFunFragShader();
+        setDrawAndDisplayShaders();
+        setProbeShader();
+        setGlobalIntegralShader();
+      }
+      gpuDisplayClamp = clamp;
     }
 
     // We will use a shader to enforce Dirichlet BCs before each timestep, but only if some Dirichlet

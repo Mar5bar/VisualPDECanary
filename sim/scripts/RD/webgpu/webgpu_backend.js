@@ -200,12 +200,10 @@ export class WebGPUBackend {
     this.slots = Array.from({ length: NUM_SLOTS }, (_, k) => this.createSlot(`slot ${k}`));
     // As resizeTextures() does on WebGL, interpolate the state onto the new grid, unless the
     // number of species groups has changed (which starts the state afresh on WebGL too).
-    // Interpolation near the edges wraps or clamps as the WebGL textures do: with one species
-    // group, as the simulation clamps it, and with two, always wrapping (as WebGL's
-    // multiple-render-target textures always wrap, clamping in the shader instead).
+    // Interpolation near the edges wraps or clamps as the WebGL textures do, as the
+    // simulation clamps each group (see setClamping).
     if (keep) {
-      const clamp =
-        this.numGroups == 1 ? [this.clamp?.[0] ?? [false, false]] : [[false, false], [false, false]];
+      const clamp = Array.from({ length: this.numGroups }, (_, g) => this.clamp?.[g] ?? [false, false]);
       old.slots.forEach((source, k) =>
         this.resample(source.textures, old.nX, old.nY, this.slots[k], {
           repeat: [1, 1],

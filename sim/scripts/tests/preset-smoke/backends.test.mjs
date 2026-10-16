@@ -791,3 +791,63 @@ test("toggling interpolation doesn't change the state", async () => {
     assert.ok(!changed, `${backend}: the state changed`);
   }
 });
+
+test("changing boundary conditions in the GUI acts as loading them would", async () => {
+  // The state's lookups beyond the edges switch between wrapping and clamping with the
+  // conditions: for the timestep (here, second-order one-sided differences) and for the
+  // display (here, plotting u_xx). The display is also the same with 5 species as with 4.
+  const base = {
+    numSpecies: 4,
+    dimension: 1,
+    timesteppingScheme: "Euler",
+    dt: 0.01,
+    spatialStep: 0.25,
+    domainScale: 10,
+    minX: "0",
+    whatToPlot: "u_xx",
+    reactionStr_1: "-0.5*u_xb2",
+    initCond_1: "x^2/100",
+    ...Object.fromEntries(
+      [1, 2, 3, 4, 5].flatMap((i) => [
+        [`diffusionStr_${i}_${i}`, "0"],
+        ...(i > 1 ? [[`reactionStr_${i}`, "0"]] : []),
+        [`neumannStr_${i}`, "0"],
+      ]),
+    ),
+  };
+  const neumann = Object.fromEntries([1, 2, 3, 4, 5].map((i) => [`boundaryConditions_${i}`, "neumann"]));
+  for (const [backend, page] of Object.entries(pages)) {
+    const r = await page.evaluate(
+      async ([base, neumann]) => {
+        const T = window.VisualPDETest;
+        const run = async () => {
+          await T.step(20);
+          await T.render();
+          return { state: (await T.readState()).data, post: (await T.readPost()).data };
+        };
+        await T.load({ ...base, ...neumann });
+        const loaded = await run();
+        await T.load({ ...base, ...neumann, numSpecies: 5 });
+        const five = await run();
+        await T.load(base);
+        // The boundary condition menus offering periodic, for species 1-4.
+        const menus = [...document.querySelectorAll("select")].filter((s) =>
+          ["neumann", "periodic"].every((v) => [...s.options].some((o) => o.value == v)),
+        );
+        for (const menu of menus.slice(0, 4)) {
+          menu.value = "neumann";
+          menu.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        await T.reset();
+        const changed = await run();
+        return { loaded, five, changed };
+      },
+      [base, neumann],
+    );
+    assert.equal(r.changed.state, r.loaded.state, `${backend}: the solution differs`);
+    assert.equal(r.changed.post, r.loaded.post, `${backend}: the display differs`);
+    // Species 1 only: the post-processed values are its u_xx, at each node.
+    const u = (post) => decode(post).filter((_, k) => k % 4 == 0);
+    assert.deepEqual(u(r.five.post), u(r.loaded.post), `${backend}: 5 species display differently`);
+  }
+});
