@@ -1063,3 +1063,36 @@ test("picking the probe's location moves the probe there", async () => {
     assert.ok(Math.abs(value - 25) < 1e-3, `${backend}: probed ${value}, not 25`);
   }
 });
+
+test("an integral probe doesn't change the plotted values that the colour range is set from", async () => {
+  const r = await inBoth(async (T, setControl, sleep) => {
+    await T.load({
+      dimension: 2,
+      numSpecies: 1,
+      reactionStr_1: "0",
+      diffusionStr_1_1: "0",
+      initCond_1: "x/100",
+      whatToPlot: "u",
+      probing: true,
+      probeType: "integral",
+      probeFun: "100*u",
+      dt: 0.01,
+      probeLength: 1,
+      autoSetColourRange: false,
+    });
+    for (let k = 0; k < 3; k++) {
+      await T.step(10);
+      await T.render();
+      await sleep(50);
+    }
+    const button = [...document.querySelectorAll("button")].find(
+      (b) => /Snap range/.test(b.textContent) && !b.closest("#probeFolder"),
+    );
+    button.click();
+    await sleep(300);
+    return T.colourRange();
+  });
+  for (const [backend, [min, max]] of Object.entries(r)) {
+    assert.ok(Math.abs(min - 0.0025) < 1e-6 && Math.abs(max - 0.9975) < 1e-6, `${backend}: [${min}, ${max}]`);
+  }
+});
