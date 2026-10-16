@@ -543,3 +543,64 @@ test("overlapping image loads leave the latest image in place", async () => {
   });
   assert.equal(value, 1);
 });
+
+test("grids and images too large for the WebGPU device are capped, and still run", async () => {
+  // A page with only WebGPU's default limits (8192 texels per side, 128 MiB storage buffer
+  // bindings), as a low-powered device may offer. Each simulation is u_t = 1 from u = x, and
+  // the automatic colour range (the true extremes of u, from the GPU) checks that every node
+  // stepped, without reading back the large state.
+  const context = pages.webgpu.context();
+  const page = await context.newPage();
+  try {
+    await page.goto(BASE_URL + "/sim/?testHooks&noop&backend=webgpu&webgpuLimits=default", {
+      waitUntil: "load",
+    });
+    await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
+    const results = await page.evaluate(async () => {
+      const T = window.VisualPDETest;
+      const run = async (opts, image) => {
+        await T.load({
+          numSpecies: 1,
+          reactionStr_1: "1",
+          diffusionStr_1_1: "0",
+          initCond_1: "x",
+          minX: "0",
+          dt: 0.5,
+          autoSetColourRange: true,
+          ...opts,
+        });
+        if (image) await T.setImage(0, image);
+        await T.step(2);
+        await T.render();
+        return { grid: await T.grid(), range: await T.colourRange(), message: await T.errorMessage() };
+      };
+      const image = new OffscreenCanvas(9000, 40);
+      image.getContext("2d").fillRect(0, 0, 9000, 40);
+      return {
+        // 10000 nodes along x, more than a texture's side.
+        wide: await run({ dimension: 1, domainScale: 1000, spatialStep: 0.1 }),
+        // 5000 x 2600 or so nodes, whose post-processed values need more than 128 MiB.
+        many: await run({ dimension: 2, domainScale: 100, spatialStep: 0.02 }),
+        // An image wider than a texture's side, which every simulation kernel binds.
+        image: await run({ dimension: 1, domainScale: 100, spatialStep: 1 }, image),
+      };
+    });
+    const { wide, many, image } = results;
+    const label = (r) => JSON.stringify(r);
+    assert.ok(wide.grid.nX <= 8192 && wide.grid.dx == 0.1, label(wide));
+    assert.match(wide.message, /does not support a discretisation this fine/);
+    assert.ok(16 * many.grid.nX * many.grid.nY <= 128 * 2 ** 20 && many.grid.dx == 0.02, label(many));
+    assert.match(many.message, /does not support a discretisation this fine/);
+    assert.equal(image.message, "");
+    for (const r of [wide, many, image]) {
+      const dx = r.grid.dx;
+      const expected = [1 + dx / 2, 1 + r.grid.Lx - dx / 2];
+      assert.ok(
+        r.range.every((v, k) => Math.abs(v - expected[k]) < 1e-3 * expected[1]),
+        `colour range ${r.range}, not ${expected}: ${label(r)}`,
+      );
+    }
+  } finally {
+    await page.close();
+  }
+});

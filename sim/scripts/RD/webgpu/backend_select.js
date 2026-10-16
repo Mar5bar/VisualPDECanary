@@ -75,8 +75,8 @@ export function shouldTryWebGPU(params) {
 
 /**
  * Requests a WebGPU device with the limits the simulator needs, or throws explaining why
- * WebGPU can't be used. Buffer sizes are requested at the adapter's maximum, since they cap
- * the grid size.
+ * WebGPU can't be used. Buffer and texture sizes are requested at the adapter's maximum,
+ * since they cap the grid size.
  * @param {Object} [options]
  * @param {boolean} [options.minimalLimits] - For testing: request only WebGPU's default
  *   limits, which every device supports, as a low-powered device might offer.
@@ -96,6 +96,8 @@ export async function createWebGPUDevice({ minimalLimits = false } = {}) {
     requiredLimits: minimalLimits ? {} : {
       maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize,
       maxBufferSize: adapter.limits.maxBufferSize,
+      // Caps the grid size and images, as WebGL's MAX_TEXTURE_SIZE does.
+      maxTextureDimension2D: adapter.limits.maxTextureDimension2D,
       maxStorageBuffersPerShaderStage: STORAGE_BUFFERS_NEEDED,
       // As much workgroup memory as there is, for the tiles of temporally blocked timesteps
       // (see sim_wgsl.js's blockingPlan).

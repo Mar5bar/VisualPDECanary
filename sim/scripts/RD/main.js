@@ -326,6 +326,8 @@ async function VisualPDE(url) {
     domainHeight,
     maxDim,
     maxTexSize,
+    // On WebGPU, the most nodes a grid can have (see init).
+    maxGpuNodes = Infinity,
     canvasWidth,
     canvasHeight,
     usingLowResDomain = true,
@@ -1227,6 +1229,15 @@ async function VisualPDE(url) {
     renderer.autoClear = false;
     gl = renderer.getContext();
     maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    // On WebGPU, the state's textures must fit the device's limits too, as must the buffers
+    // holding a vec4f per node (post-processed values, fields being summed).
+    if (gpuBackend) {
+      const limits = gpuBackend.device.limits;
+      maxTexSize = Math.min(maxTexSize, limits.maxTextureDimension2D);
+      maxGpuNodes = Math.floor(
+        Math.min(limits.maxStorageBufferBindingSize, limits.maxBufferSize) / 16,
+      );
+    }
 
     // Configure textures with placeholder sizes. We'll need two textures for simulation (A,B), one for
     // post processing, and another for (optional) manual interpolation.
@@ -1842,6 +1853,18 @@ async function VisualPDE(url) {
     // If the user has specified that this is a 1D problem, set nYDisc = 1.
     if (options.dimension == 1) {
       nYDisc = 1;
+    }
+    // On WebGPU, the device may also limit the number of nodes. As above, the space step is
+    // kept, and the domain shrunk.
+    if (nXDisc * nYDisc > maxGpuNodes) {
+      const scale = Math.sqrt(maxGpuNodes / (nXDisc * nYDisc));
+      nXDisc = Math.max(1, Math.floor(nXDisc * scale));
+      if (options.dimension != 1) nYDisc = Math.max(1, Math.floor(nYDisc * scale));
+      throwError(
+        "Your device does not support a discretisation this fine with WebGPU (at most " +
+          maxGpuNodes +
+          " points). Please increase the space step, reduce the domain size, or switch to WebGL in the Developer tools.",
+      );
     }
     // Update these values in the uniforms.
     uniforms.nXDisc.value = nXDisc;

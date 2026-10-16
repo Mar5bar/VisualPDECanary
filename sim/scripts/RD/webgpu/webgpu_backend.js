@@ -267,11 +267,25 @@ export class WebGPUBackend {
     // Decode the raw pixel values, without colour-space conversion or premultiplied alpha,
     // as three.js does for WebGL. Flipped to match three.js's default for textures (flipY),
     // so v = 0 is the image's bottom.
-    const bitmap = await createImageBitmap(source, {
+    let bitmap = await createImageBitmap(source, {
       premultiplyAlpha: "none",
       colorSpaceConversion: "none",
       imageOrientation: "flipY",
     });
+    // As three.js does, scale an image too large for a texture down to fit.
+    const max = this.device.limits.maxTextureDimension2D;
+    if (Math.max(bitmap.width, bitmap.height) > max) {
+      const scale = max / Math.max(bitmap.width, bitmap.height);
+      const large = bitmap;
+      bitmap = await createImageBitmap(large, {
+        premultiplyAlpha: "none",
+        colorSpaceConversion: "none",
+        resizeWidth: Math.max(1, Math.floor(large.width * scale)),
+        resizeHeight: Math.max(1, Math.floor(large.height * scale)),
+        resizeQuality: "high",
+      });
+      large.close();
+    }
     if (this.imageRequests[index] != request) {
       bitmap.close();
       return;
