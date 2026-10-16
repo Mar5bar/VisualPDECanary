@@ -770,3 +770,24 @@ test("WebGPU doesn't allocate WebGL textures for the state", async () => {
   });
   assert.deepEqual(allocations, []);
 });
+
+test("toggling interpolation doesn't change the state", async () => {
+  for (const [backend, page] of Object.entries(pages)) {
+    const changed = await page.evaluate(async () => {
+      const T = window.VisualPDETest;
+      await T.load({
+        numSpecies: 1,
+        dimension: 2,
+        spatialStep: 4,
+        reactionStr_1: "0",
+        diffusionStr_1_1: "0",
+        initCond_1: "sin(x/3)*cos(y/5)",
+      });
+      await T.step(1);
+      const before = (await T.readState()).data;
+      for (let k = 0; k < 2; k++) document.getElementById("interpController").click();
+      return (await T.readState()).data != before;
+    });
+    assert.ok(!changed, `${backend}: the state changed`);
+  }
+});
