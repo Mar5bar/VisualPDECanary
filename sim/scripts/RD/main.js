@@ -4521,8 +4521,8 @@ async function VisualPDE(url) {
           dy: uniforms.dy.value,
           Lx: uniforms.L_x.value,
           Ly: uniforms.L_y.value,
-          minX: evaluateWithParams(options.minX),
-          minY: evaluateWithParams(options.minY),
+          minX: evaluateDomainExpression(options.minX),
+          minY: evaluateDomainExpression(options.minY),
         };
       },
       // The current shaders, for debugging: WebGL's Forward Euler fragment shader and
@@ -5302,21 +5302,6 @@ async function VisualPDE(url) {
       });
   }
 
-  // Sets the probe's position from where it was clicked, which the probe shader converts to
-  // the domain's coordinates (see addProbeTargetButton).
-  function gpuUpdateProbeXY() {
-    gpuDisplay
-      .probe(gpuUniformValues(), gpuProbeValues(), areaElement())
-      .then((result) => {
-        if (!result) return;
-        options.probeX = result[2];
-        options.probeY = result[3];
-        refreshGUI(viewsGUI);
-        updateView("probeX");
-        updateView("probeY");
-      });
-  }
-
   // Updates the integral display from the GPU, as updateIntegralDisplay() does on WebGL.
   function gpuUpdateIntegralDisplay() {
     if (gpuClearPending) return;
@@ -5495,12 +5480,9 @@ async function VisualPDE(url) {
   }
 
   function postprocess(updateProbeXY = false) {
-    if (gpuDisplay) {
-      // WebGPU post-processes while rendering (see renderWebGPU), so only the probe's
-      // position needs handling here.
-      if (updateProbeXY) gpuUpdateProbeXY();
-      return;
-    }
+    // WebGPU post-processes while rendering (see renderWebGPU), and sets the probe's position
+    // where it's picked (see addProbeTargetButton).
+    if (gpuDisplay) return;
     simDomain.material = postMaterial;
     // The real 8-species state lives in mrtSimTextures once numGroups>1. textureSourceGroup1
     // is bound here (used by both postMaterial's computeDisplayFunShaderMidMRT and, via the
@@ -13951,8 +13933,18 @@ async function VisualPDE(url) {
           uniforms.probeU.value = x;
           uniforms.probeV.value = y;
           uniforms.probeUVs.value = true;
-          // Update the stored XY location of the probe, performed during postprocessing.
-          postprocess(true);
+          if (gpuDisplay) {
+            // As the probe shader converts the clicked point to the domain's coordinates,
+            // but now, rather than once a probe has been read back asynchronously.
+            options.probeX = x * uniforms.L_x.value + evaluateDomainExpression(options.minX);
+            options.probeY = y * uniforms.L_y.value + evaluateDomainExpression(options.minY);
+            refreshGUI(viewsGUI);
+            updateView("probeX");
+            updateView("probeY");
+          } else {
+            // Update the stored XY location of the probe, performed during postprocessing.
+            postprocess(true);
+          }
           setProbeShader();
           uniforms.probeUVs.value = false;
           document.getElementById("clickDetector").classList.add("hidden");
@@ -15049,6 +15041,16 @@ async function VisualPDE(url) {
 
   // Evaluate a string with kinetic parameter substitutions.
   // Errors should be caught by the caller.
+  // Evaluates an expression for part of the domain (such as its minimum x), which may refer
+  // to the domain's size (L, L_x, L_y and L_min) as well as the parameters.
+  function evaluateDomainExpression(str) {
+    let expr = String(str);
+    for (const name of ["L_x", "L_y", "L_min", "L"]) {
+      expr = expr.replaceAll(new RegExp("\\b" + name + "\\b", "g"), "(" + uniforms[name].value + ")");
+    }
+    return evaluateWithParams(expr);
+  }
+
   function evaluateWithParams(str) {
     let regex;
     str = String(str);

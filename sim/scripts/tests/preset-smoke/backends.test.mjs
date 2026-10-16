@@ -1018,3 +1018,48 @@ test("a paused line plot or vector field is redrawn when its options change", as
     assert.ok(arrows, `${backend}: the arrows weren't redrawn for a new scaling`);
   }
 });
+
+test("picking the probe's location moves the probe there", async () => {
+  // With an offset domain (x from -50 to 50), probing u = x at three quarters across.
+  const r = await inBoth(async (T, setControl, sleep) => {
+    await T.load({
+      dimension: 2,
+      numSpecies: 1,
+      reactionStr_1: "0",
+      diffusionStr_1_1: "0",
+      initCond_1: "x",
+      minX: "-L_x/2",
+      whatToPlot: "u",
+      probing: true,
+      probeType: "sample",
+      probeFun: "u",
+      probeX: "-40",
+      probeY: "10",
+      dt: 0.01,
+      probeLength: 1,
+    });
+    await T.step(5);
+    await T.render();
+    document.getElementById("probeTargetButton").click();
+    await sleep(100);
+    const rect = document.getElementById("simCanvas").getBoundingClientRect();
+    document.getElementById("clickDetector").dispatchEvent(
+      new MouseEvent("click", {
+        bubbles: true,
+        clientX: rect.left + 0.75 * rect.width,
+        clientY: rect.top + 0.5 * rect.height,
+      }),
+    );
+    await sleep(300);
+    for (let k = 0; k < 5; k++) {
+      await T.step(20);
+      await T.render();
+      await sleep(50);
+    }
+    await sleep(200);
+    return (await T.probeData()).slice(-1)[0][1];
+  });
+  for (const [backend, value] of Object.entries(r)) {
+    assert.ok(Math.abs(value - 25) < 1e-3, `${backend}: probed ${value}, not 25`);
+  }
+});
