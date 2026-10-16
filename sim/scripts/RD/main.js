@@ -1678,15 +1678,22 @@ async function VisualPDE(url) {
   }
 
   function updateSizeUniforms() {
-    uniforms.L.value = domainScaleValue;
-    uniforms.L_y.value = domainHeight;
-    uniforms.L_x.value = domainWidth;
-    uniforms.L_min.value = Math.min(domainHeight, domainWidth);
-    // The actual spacing of the nodes, which setSizes() makes at least the requested spatial
-    // step (so as close to it as fits the domain a whole number of times), so that the
-    // finite differences and the nodes' positions agree.
-    uniforms.dx.value = domainWidth / nXDisc;
-    uniforms.dy.value = domainHeight / nYDisc;
+    // The nodes are exactly the requested spatial step apart, as the step governs stability.
+    // So the simulated domain is the nodes' extent, nXDisc * dx by nYDisc * dy, which can be
+    // a little smaller than the requested domain, and L_x, L_y (and L, along the side the
+    // domain scale sets) are its actual size, so that positions agree with the finite
+    // differences everywhere.
+    uniforms.dx.value = spatialStepValue;
+    uniforms.dy.value = spatialStepValue;
+    uniforms.L_x.value = nXDisc * spatialStepValue;
+    // In 1D there's a single row of nodes, and y keeps the displayed height.
+    uniforms.L_y.value =
+      options.dimension == 1 ? domainHeight : nYDisc * spatialStepValue;
+    uniforms.L.value =
+      options.dimension != 1 && aspectRatio >= 1
+        ? uniforms.L_y.value
+        : uniforms.L_x.value;
+    uniforms.L_min.value = Math.min(uniforms.L_x.value, uniforms.L_y.value);
   }
 
   function computeCanvasSizesAndAspect() {
@@ -1715,8 +1722,6 @@ async function VisualPDE(url) {
     if (options.dimension == 1) {
       domainWidth = domainScaleValue;
     }
-    uniforms.L_x.value = domainWidth;
-    uniforms.L_y.value = domainHeight;
     maxDim = Math.max(domainWidth, domainHeight);
   }
 
@@ -1791,6 +1796,8 @@ async function VisualPDE(url) {
     setDefaultRenderSize();
     buffer = new Float32Array(nXDisc * nYDisc * 4);
     bufferFilled = false;
+    // The domain's size and spacing follow from the discretisation.
+    updateSizeUniforms();
   }
 
   function createDisplayDomains() {
