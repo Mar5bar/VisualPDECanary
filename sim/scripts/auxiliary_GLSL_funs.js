@@ -42,11 +42,18 @@ export function auxiliary_GLSL_funs() {
         return 1.0 - 2.0/(1.0+exp(2.0*VALUE));
     }
 
+    // x^y, extended to x < 0 as even or odd in x by the parity of y rounded to
+    // the nearest integer. Halves round away from zero, explicitly, as GLSL's round() may
+    // round them either way.
     float safepow(float x, float y) {
       if (x >= 0.0) {
           return pow(x,y);
       }
-      if (mod(round(y),2.0) == 0.0) {
+      float ROUNDEDY = trunc(y);
+      if (abs(y - ROUNDEDY) >= 0.5) {
+          ROUNDEDY += sign(y);
+      }
+      if (mod(ROUNDEDY,2.0) == 0.0) {
           return pow(-x,y);
       }
       return -pow(-x,y);
