@@ -50,7 +50,9 @@ before(async () => {
     });
   });
   page = await context.newPage();
-  await page.goto(BASE_URL + `/sim/?testHooks&noop&backend=${BACKEND}`, {
+  // LIMITS=default runs WebGPU with only the limits every device supports.
+  const limits = process.env.LIMITS == "default" ? "&webgpuLimits=default" : "";
+  await page.goto(BASE_URL + `/sim/?testHooks&noop&backend=${BACKEND}${limits}`, {
     waitUntil: "load",
   });
   await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });

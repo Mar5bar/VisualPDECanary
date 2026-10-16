@@ -669,7 +669,10 @@ async function VisualPDE(url) {
   // Set up WebGPU if it's been asked for and is available, otherwise stay on WebGL.
   if (shouldTryWebGPU(params)) {
     try {
-      const { device, adapterInfo } = await createWebGPUDevice();
+      const { device, adapterInfo } = await createWebGPUDevice({
+        // For testing: only the limits every device supports.
+        minimalLimits: params.get("webgpuLimits") == "default",
+      });
       gpuBackend = new WebGPUBackend(device);
       gpuBackend.onBuildError = onGpuBuildError;
       // For testing: take every Forward Euler step in its own pass.

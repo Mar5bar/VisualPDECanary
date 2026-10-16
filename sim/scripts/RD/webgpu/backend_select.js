@@ -77,9 +77,12 @@ export function shouldTryWebGPU(params) {
  * Requests a WebGPU device with the limits the simulator needs, or throws explaining why
  * WebGPU can't be used. Buffer sizes are requested at the adapter's maximum, since they cap
  * the grid size.
+ * @param {Object} [options]
+ * @param {boolean} [options.minimalLimits] - For testing: request only WebGPU's default
+ *   limits, which every device supports, as a low-powered device might offer.
  * @returns {Promise<{device: GPUDevice, adapterInfo: Object}>}
  */
-export async function createWebGPUDevice() {
+export async function createWebGPUDevice({ minimalLimits = false } = {}) {
   if (!navigator.gpu) throw new Error("This browser doesn't support WebGPU.");
   const adapter = await navigator.gpu.requestAdapter({
     powerPreference: "high-performance",
@@ -90,7 +93,7 @@ export async function createWebGPUDevice() {
     throw new Error("The WebGPU adapter supports too few storage buffers.");
   }
   const device = await adapter.requestDevice({
-    requiredLimits: {
+    requiredLimits: minimalLimits ? {} : {
       maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize,
       maxBufferSize: adapter.limits.maxBufferSize,
       maxStorageBuffersPerShaderStage: STORAGE_BUFFERS_NEEDED,

@@ -13,6 +13,7 @@
  * webgpu/sim_wgsl.js); the report's "webgl" fields are then that reference.
  *
  * Usage: node parity.mjs [--names=a,b] [--steps=N] [--json=out.json] [--against=unblocked]
+ *   [--limits=default]
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -145,7 +146,8 @@ const webgl =
   args.against == "unblocked"
     ? await openPage("webgpu", "&webgpuBlocking=off")
     : await openPage("webgl");
-const webgpu = await openPage("webgpu");
+// --limits=default runs WebGPU with only the limits every device supports.
+const webgpu = await openPage("webgpu", args.limits == "default" ? "&webgpuLimits=default" : "");
 const results = [];
 for (const [index, name] of names.entries()) {
   let result;
