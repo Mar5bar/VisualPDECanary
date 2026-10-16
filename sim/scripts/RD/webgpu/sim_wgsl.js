@@ -72,7 +72,15 @@ export function writeUniforms(view, offset, u) {
     1 / u.nY,
   ];
   floats.forEach((v, k) => view.setFloat32(offset + 16 + 4 * k, v, true));
+  // The time and seed of each step of a temporally blocked pass (see blockedTimestepShader).
+  for (let k = 0; k < MAX_BLOCK_STEPS; k++) {
+    view.setFloat32(offset + 80 + 4 * k, u.stepT?.[k] ?? u.t, true);
+    view.setFloat32(offset + 112 + 4 * k, u.stepSeed?.[k] ?? u.seed, true);
+  }
 }
+
+// The most timesteps a temporally blocked pass can take.
+export const MAX_BLOCK_STEPS = 8;
 
 export const UNIFORMS_STRUCT = `
 struct Uniforms {
@@ -83,6 +91,9 @@ struct Uniforms {
   gi4: f32, inf: f32,
   // 1/nX and 1/nY, for turning node indices into texture coordinates.
   inverseSize: vec2f,
+  // Per step of a temporally blocked pass, its time and random seed.
+  stepT: array<vec4f, 2>,
+  stepSeed: array<vec4f, 2>,
 }`;
 
 // The helper functions that auxiliary_GLSL_funs.js (and the erfinv defined alongside it in
@@ -197,7 +208,11 @@ function translationOptions(parts, extraCalls = {}) {
 
 // Declarations shared by every entry point and helper: the uniforms, parameters and the
 // node-relative quantities the GLSL templates expect (x, y, textureCoords, step_x, ...).
-function commonLets(parts, opts, { withT = true, clearCoords = false, withXY = true } = {}) {
+function commonLets(
+  parts,
+  opts,
+  { withT = true, withSeed = true, clearCoords = false, withXY = true } = {},
+) {
   const params = parts.paramNames
     .map((name, k) => `  let P_${name} = params[${k >> 2}][${k & 3}];`)
     .join("\n");
@@ -220,7 +235,7 @@ function commonLets(parts, opts, { withT = true, clearCoords = false, withXY = t
   let L_x = U.L_x;
   let L_y = U.L_y;
   let L_min = U.L_min;
-  let seed = U.seed;
+${withSeed ? "  let seed = U.seed;" : ""}
   let globalIntegralValue1 = globals.x;
   let globalIntegralValue2 = globals.y;
   let globalIntegralValue3 = globals.z;
@@ -419,8 +434,8 @@ struct RHSOut { r0: vec4f, r1: vec4f }
 
 // srcSlot is the slot computeRHS's GLSL textureSource argument refers to, which u[x,y]
 // lookups in its body read from.
-fn computeRHS(srcSlot: u32, t: f32, i: i32, j: i32, ${params.join(", ")}) -> RHSOut {
-${commonLets(parts, opts, { withT: false })}
+fn computeRHS(srcSlot: u32, t: f32, seed: f32, i: i32, j: i32, ${params.join(", ")}) -> RHSOut {
+${commonLets(parts, opts, { withT: false, withSeed: false })}
 ${copies.join("\n")}
   let dSquared = 1.0/vec2f(dx*dx, dy*dy);
   ${results}
@@ -444,7 +459,7 @@ ${translateStatements(body, {
 // depend on the state (e.g. on an algebraic species), so on the stencil's latest values.
 function schemeBody(type, G, timescales) {
   const call = (srcSlot, time, out) =>
-    `  let ${out} = computeRHS(${srcSlot}u, ${time}, i, j, ${stencilArgs(G)});\n` +
+    `  let ${out} = computeRHS(${srcSlot}u, ${time}, seed, i, j, ${stencilArgs(G)});\n` +
     (out == "outPrev" || out == "outCur" ? "" : timescales);
   const centre = (slot, g) => `fetch${slot}_${g}(i, j)`;
   const lines = [];
@@ -537,6 +552,231 @@ ${outputs.join("\n")}`;
   return `${prelude(parts)}
 ${computeRHSFunction(parts, opts)}
 ${entryPoint(G, body)}`;
+}
+
+// --- Temporal blocking (1D) ------------------------------------------------------------
+// In 1D, grids are small enough that a timestep's cost is mostly that of a pass, not of the
+// work in it. So a temporally blocked pass has each workgroup copy a tile of the state into
+// workgroup memory and take K Forward Euler steps there before writing the tile's interior
+// back, taking K steps for the cost of one pass. Each step, the tile's ends (one stencil
+// radius) lack neighbours, so the region of correct values shrinks, and the tile carries a
+// halo K radii wide at each end that neighbouring workgroups also compute.
+//
+// Each node gets the same arithmetic of the same values as in an unblocked pass, though the
+// compiler may round some of it differently in a differently shaped kernel (by about one
+// float32 ulp at a few nodes per step, as measured on an Apple M2 Max).
+//
+// Tile cell a stands for the node at its wrapped position, which gives it its x, boundary
+// tests and so on. Its neighbour d is the cell a + d, unless the species group is clamped in
+// x, when it's the cell holding the clamped node (clamp(c + d) - c away), exactly as the
+// sampler would clamp it. With one row, every y-neighbour is the node itself.
+//
+// In 2D, blocking was slower than one step per pass in every configuration tried (by 25-50%
+// on an M2 Max): the per-node work is large, and the redundant halo and barriers cost more
+// than the memory traffic they save.
+
+const BLOCK_THREADS = 256;
+const BLOCK_CELLS = 2;
+const BLOCK_TILE = BLOCK_THREADS * BLOCK_CELLS;
+// Steps per blocked pass.
+const BLOCK_STEPS = 8;
+const FORMAT_TYPES = { r32float: "f32", rg32float: "vec2f", rgba32float: "vec4f" };
+const FORMAT_BYTES = { r32float: 4, rg32float: 8, rgba32float: 16 };
+
+// Identifiers in WGSL code.
+const identifiers = (code) => code.match(/[A-Za-z_]\w*/g) ?? [];
+
+/**
+ * The identifiers whose values can reach the roots in WGSL code, found by following
+ * assignments backwards. Any statement that isn't a plain assignment (a condition, a loop, a
+ * return) counts all its identifiers as roots, so this only ever overestimates.
+ */
+function liveIdentifiers(code, roots) {
+  const live = new Set(roots);
+  const assignments = [];
+  for (const statement of code.split(/[;{}]/).map((st) => st.trim()).filter(Boolean)) {
+    const m = statement.match(
+      /^(?:(?:var|let)\s+)?([A-Za-z_]\w*)(?:\s*:\s*[\w<>]+)?(?:\.[a-z]+)?\s*([-+*/]?)=(?!=)([\s\S]*)$/,
+    );
+    if (m) {
+      // A compound assignment (+= etc.) also reads its target.
+      assignments.push({ target: m[1], reads: identifiers(m[3] + (m[2] ? " " + m[1] : "")) });
+    } else {
+      identifiers(statement).forEach((id) => live.add(id));
+    }
+  }
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const { target, reads } of assignments) {
+      if (!live.has(target)) continue;
+      for (const id of reads) {
+        if (!live.has(id)) {
+          live.add(id);
+          changed = true;
+        }
+      }
+    }
+  }
+  return live;
+}
+
+// The WGSL pieces of a Forward Euler step that read the stencil: computeRHS, the timescales
+// and the code after the update.
+function forwardEulerPieces(parts) {
+  const opts = translationOptions(parts);
+  return {
+    opts,
+    rhs: computeRHSFunction(parts, opts),
+    timescales:
+      `  timescales = ${translateExpression(parts.timescales, opts)};\n` +
+      (parts.numGroups > 1
+        ? `  timescalesGroup1 = ${translateExpression(parts.timescalesGroup1, opts)};\n`
+        : ""),
+    bot: translateStatements(parts.bot.FE, opts),
+  };
+}
+
+/**
+ * How to temporally block a simulation's Forward Euler steps, or null if they can't be: in
+ * 2D (where it doesn't pay), if the simulation looks up the state away from the stencil (as
+ * u[x,y] does), or if the tile wouldn't fit in workgroup memory.
+ * @param {SimShaderParts & {twoD: boolean}} parts
+ * @param {number} storageLimit - The device's maxComputeWorkgroupStorageSize.
+ * @returns {{steps: number, radius: number, output: number} | null} The steps per pass, the
+ *   stencil's radius in x, and the nodes each workgroup writes.
+ */
+export function blockingPlan(parts, storageLimit) {
+  if (parts.twoD) return null;
+  const { rhs, timescales, bot } = forwardEulerPieces(parts);
+  // computeRHS's body (its signature names every stencil value), the timescales and the rest.
+  const body = rhs.slice(rhs.indexOf("-> RHSOut {") + "-> RHSOut {".length);
+  const code = body + "\n" + timescales + "\n" + bot;
+  if (/\bfetch(Nearest|Bilinear)?\s*\(/.test(code)) return null;
+  // The stencil's radius: 2 if any second neighbour in x can affect the result.
+  const live = liveIdentifiers(code, [
+    "result",
+    "result0",
+    "result1",
+    ...identifiers(timescales),
+    ...identifiers(bot),
+  ]);
+  const radius = [...live].some((id) => /^uvwq2?(LL|RR)(In)?$/.test(id)) ? 2 : 1;
+  const bytes = BLOCK_TILE * parts.formats.reduce((sum, f) => sum + FORMAT_BYTES[f], 0);
+  if (bytes > storageLimit) return null;
+  return { steps: BLOCK_STEPS, radius, output: BLOCK_TILE - 2 * BLOCK_STEPS * radius };
+}
+
+/**
+ * Generates the WGSL for a temporally blocked pass of plan.steps Forward Euler steps on a 1D
+ * grid, which reads slot 0 and writes the final state. Step s uses U.stepT[s] and
+ * U.stepSeed[s].
+ * @param {SimShaderParts} parts
+ * @param {NonNullable<ReturnType<typeof blockingPlan>>} plan
+ * @returns {string}
+ */
+export function blockedTimestepShader(parts, plan) {
+  const G = parts.numGroups;
+  const { opts, rhs, timescales, bot } = forwardEulerPieces(parts);
+  const T = BLOCK_TILE;
+  const C = BLOCK_CELLS;
+  const R = plan.radius;
+  const K = plan.steps;
+  const groups = Array.from({ length: G }, (_, g) => g);
+  const types = parts.formats.map((f) => FORMAT_TYPES[f]);
+  const tiles = groups.map((g) => `var<workgroup> tile${g}: array<${types[g]}, ${T}>;`).join("\n");
+  // Tile values as the sampler would return them (missing channels 0, alpha 1), and back.
+  const readers = groups
+    .map((g) => {
+      const value =
+        types[g] == "f32"
+          ? `vec4f(tile${g}[k], 0.0, 0.0, 1.0)`
+          : types[g] == "vec2f"
+          ? `vec4f(tile${g}[k], 0.0, 1.0)`
+          : `tile${g}[k]`;
+      const stored = types[g] == "f32" ? "v.x" : types[g] == "vec2f" ? "v.xy" : "v";
+      return `fn tileRead${g}(k: i32) -> vec4f { return ${value}; }
+fn tileWrite${g}(k: i32, v: vec4f) { tile${g}[k] = ${stored}; }`;
+    })
+    .join("\n");
+  // The tile index of node ci's neighbour di, from its cell k.
+  const neighbour = (g, di) =>
+    di == 0 ? "k" : parts.clamp[g][0] ? `k + clamp(ci + ${di}, 0, nX - 1) - ci` : `k + ${di}`;
+  const stencilArgsFromTile = groups
+    .flatMap((g) =>
+      // y-neighbours are the node itself; neighbours beyond the radius are never used (see
+      // blockingPlan).
+      STENCIL.map(([, di]) => `tileRead${g}(${Math.abs(di) > R ? "k" : neighbour(g, di)})`),
+    )
+    .join(",\n        ");
+  const params = [];
+  const copies = [];
+  for (let g = 0; g < G; g++) {
+    const prefix = g == 0 ? "uvwq" : "uvwq2";
+    for (const [suffix] of STENCIL) {
+      params.push(`${prefix}${suffix}In: vec4f`);
+      copies.push(`  var ${prefix}${suffix} = ${prefix}${suffix}In;`);
+    }
+  }
+  const each = (f) =>
+    groups.map((g) => f(g, g == 0 ? "" : "2", g == 0 ? "" : "Group1")).join("\n");
+  const forCells = (body) => `  for (var c = 0; c < ${C}; c++) {
+    let a = i32(l.x) * ${C} + c;
+${body}
+  }`;
+  return `${prelude(parts)}
+${rhs}
+
+// One Forward Euler step of node (i, j), as the unblocked pass's main() takes it.
+fn advanceNode(i: i32, j: i32, t: f32, seed: f32, ${params.join(", ")}) -> RHSOut {
+${commonLets(parts, opts, { withT: false, withSeed: false })}
+${copies.join("\n")}
+  var timescales: vec4f;
+  var RHS: vec4f;
+  var updated: vec4f;
+${G > 1 ? "  var timescalesGroup1: vec4f;\n  var RHS2: vec4f;\n  var updated2: vec4f;" : ""}
+  let rhs1 = computeRHS(0u, t, seed, i, j, ${stencilArgs(G)});
+${timescales}
+${each((g, n) => `  RHS${n} = rhs1.r${g};`)}
+${each((g, n, s) => `  updated${n} = dt * RHS${n} / timescales${s} + uvwq${n};`)}
+${bot}
+  return RHSOut(updated, ${G > 1 ? "updated2" : "vec4f(0.0)"});
+}
+
+${tiles}
+${readers}
+
+@compute @workgroup_size(${BLOCK_THREADS})
+fn main(@builtin(workgroup_id) wg: vec3u, @builtin(local_invocation_id) l: vec3u) {
+  let nX = i32(U.nX);
+  let origin = i32(wg.x) * ${plan.output} - ${K * R};
+${forCells(`    let ci = wrapIndex(origin + a, nX, false);
+${groups.map((g) => `    tileWrite${g}(a, fetch0_${g}(ci, 0));`).join("\n")}`)}
+  workgroupBarrier();
+${groups.map((g) => `  var next${g}: array<vec4f, ${C}>;`).join("\n")}
+  for (var s = 0; s < ${K}; s++) {
+    let t = U.stepT[s / 4][s % 4];
+    let seed = U.stepSeed[s / 4][s % 4];
+    // The cells whose neighbours are all still correct.
+    let lo = ${R} * (s + 1);
+    let hi = ${T} - lo;
+${forCells(`    let k = a;
+${groups.map((g) => `    next${g}[c] = tileRead${g}(k);`).join("\n")}
+    if (a >= lo && a < hi) {
+      let ci = wrapIndex(origin + a, nX, false);
+      let r = advanceNode(ci, 0, t, seed,
+        ${stencilArgsFromTile});
+${groups.map((g) => `      next${g}[c] = r.r${g};`).join("\n")}
+    }`)}
+    workgroupBarrier();
+${forCells(groups.map((g) => `    tileWrite${g}(a, next${g}[c]);`).join("\n"))}
+    workgroupBarrier();
+  }
+${forCells(`    let p = origin + a;
+    if (a >= ${K * R} && a < ${T - K * R} && p < nX) {
+${groups.map((g) => `      textureStore(dst${g}, vec2i(p, 0), tileRead${g}(a));`).join("\n")}
+    }`)}
+}`;
 }
 
 /**

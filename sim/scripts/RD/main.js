@@ -672,6 +672,8 @@ async function VisualPDE(url) {
       const { device, adapterInfo } = await createWebGPUDevice();
       gpuBackend = new WebGPUBackend(device);
       gpuBackend.onBuildError = onGpuBuildError;
+      // For testing: take every Forward Euler step in its own pass.
+      if (params.get("webgpuBlocking") == "off") gpuBackend.blocking = false;
       gpuAdapterInfo = adapterInfo;
       device.lost.then((info) => {
         if (info.reason == "destroyed") return;
@@ -4080,6 +4082,7 @@ async function VisualPDE(url) {
     return {
       numGroups: numGroups(Number(options.numSpecies)),
       formats: stateFormats(Number(options.numSpecies)),
+      twoD: options.dimension == 2,
       // Per species group, whether the state is clamped at the edges in x and y, mirroring
       // the wrap modes setRDEquations() gives the WebGL textures (species 5-8 always wrap,
       // and clamp in the shader where needed).
@@ -4448,6 +4451,12 @@ async function VisualPDE(url) {
           webgl: simMaterials.FE.fragmentShader,
           webgpu: gpuBackend?.sources ?? null,
         };
+      },
+      // How WebGPU is temporally blocking Forward Euler steps (see webgpu/sim_wgsl.js's
+      // blockingPlan), or null if it isn't.
+      async blocking() {
+        await gpuBackend?.whenReady();
+        return gpuBackend?.canBlock() ? gpuBackend.pipelines.FEBlocked.plan : null;
       },
       // Every error raised since the last load (or page load), whether or not it was shown.
       async errorMessage() {

@@ -6,7 +6,7 @@
  * the GPU to finish before stopping the clock, so it measures the simulation alone, without
  * drawing or reading the state back.
  *
- * Usage: node bench.mjs [--names=a,b] [--scales=1,2,4] [--seconds=2]
+ * Usage: node bench.mjs [--names=a,b] [--scales=1,2,4] [--seconds=2] [--blocking=off]
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -27,6 +27,8 @@ const scales = (args.scales ?? "1,2,4").split(",").map(Number);
 const SECONDS = Number(args.seconds ?? 2);
 // Steps between waits for the GPU to finish; large, to amortise their cost.
 const BATCH = Number(args.batch ?? 500);
+// --blocking=off takes every WebGPU Forward Euler step in its own pass.
+const BLOCKING = args.blocking == "off" ? "&webgpuBlocking=off" : "";
 
 const stopServer = await ensureServerRunning();
 // ANGLE's Metal backend, so that WebGL and WebGPU both run on the real GPU.
@@ -52,7 +54,7 @@ async function newPage() {
 async function measure(page, backend, name, scale) {
   await page.goto(
     BASE_URL +
-      `/sim/?preset=${encodeURIComponent(name)}&testHooks&noop&backend=${backend}&runningOnLoad=false&no_ui`,
+      `/sim/?preset=${encodeURIComponent(name)}&testHooks&noop&backend=${backend}&runningOnLoad=false&no_ui${backend == "webgpu" ? BLOCKING : ""}`,
     { waitUntil: "load" },
   );
   await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
@@ -79,7 +81,7 @@ async function measure(page, backend, name, scale) {
         steps += batch;
       }
       const elapsed = (performance.now() - start) / 1000;
-      return { nX, nY, stepsPerSecond: steps / elapsed };
+      return { nX, nY, stepsPerSecond: steps / elapsed, blocking: await T.blocking?.() };
     },
     [scale, SECONDS, BATCH],
   );
@@ -97,6 +99,7 @@ for (const name of names) {
       r.webgl.stepsPerSecond.toFixed(0).padStart(14),
       r.webgpu.stepsPerSecond.toFixed(0).padStart(15),
       (r.webgpu.stepsPerSecond / r.webgl.stepsPerSecond).toFixed(2).padStart(7) + "x",
+      r.webgpu.blocking ? ` (blocked, ${r.webgpu.blocking.steps} steps per pass)` : "",
     );
   }
 }

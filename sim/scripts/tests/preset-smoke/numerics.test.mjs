@@ -424,6 +424,17 @@ const cases = [
   },
 ];
 
+test("WebGPU takes 1D Forward Euler steps in temporally blocked passes", { skip: BACKEND != "webgpu" }, async () => {
+  // So that the 1D Forward Euler cases above test the blocked kernel (see sim_wgsl.js).
+  const plan = await page.evaluate(async () => {
+    const T = window.VisualPDETest;
+    await T.load({ dimension: 1, numSpecies: 1, timesteppingScheme: "Euler" });
+    return T.blocking();
+  });
+  assert.ok(plan, "1D Forward Euler steps aren't blocked");
+  assert.ok(plan.steps > 1);
+});
+
 test("the space step is used exactly, and the domain is the nodes' extent", async () => {
   for (const [dimension, domainScale, spatialStep] of [
     [1, 10, 0.3],

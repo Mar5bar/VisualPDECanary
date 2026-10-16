@@ -24,6 +24,8 @@ import {
   SAMPLER_BINDING,
   OUTPUT_BINDING,
   stateFormats,
+  blockingPlan,
+  blockedTimestepShader,
 } from "./sim_wgsl.js";
 
 const NUM_SLOTS = 5;
@@ -52,6 +54,11 @@ export class WebGPUBackend {
     this.nY = 0;
     this.numGroups = 1;
     this.formats = stateFormats(1);
+    // Forward Euler steps requested but not yet recorded, which settle() records, blocked
+    // where possible (see sim_wgsl.js's blockedTimestepShader).
+    this.pendingSteps = [];
+    // Whether to block Forward Euler steps when the simulation allows it.
+    this.blocking = true;
     this.slots = [];
     this.pipelines = {};
     this.encoder = null;
@@ -105,10 +112,66 @@ export class WebGPUBackend {
     return texture;
   }
 
+  // The history slots. Reading them first records any pending steps, so that nothing sees
+  // the state from before steps that have been requested.
+  get slots() {
+    this.settle();
+    return this.slotList;
+  }
+
+  set slots(slots) {
+    this.slotList = slots;
+  }
+
+  /**
+   * Records the pending Forward Euler steps: as many as possible in temporally blocked
+   * passes, and the rest, always including the last, one per pass. Taking the last step on
+   * its own leaves slot 2 holding the state one step before the end, exactly as unblocked
+   * steps do, which AB2 reads if the scheme is changed.
+   */
+  settle() {
+    if (!this.pendingSteps?.length) return;
+    const steps = this.pendingSteps;
+    this.pendingSteps = [];
+    const blocked = this.pipelines.FEBlocked;
+    const K = blocked?.plan.steps ?? Infinity;
+    // Steps can share a pass only if just their time and seed differ.
+    const key = ({ t, seed, ...rest }) => JSON.stringify(rest);
+    let k = 0;
+    while (k < steps.length) {
+      const group = steps.slice(k, k + K);
+      if (
+        group.length == K &&
+        k + K < steps.length &&
+        this.canBlock() &&
+        group.every((u) => key(u) == key(group[0]))
+      ) {
+        this.dispatch(
+          blocked,
+          { ...group[0], stepT: group.map((u) => u.t), stepSeed: group.map((u) => u.seed) },
+          [1],
+          0,
+        );
+        k += K;
+      } else {
+        this.dispatch(this.pipelines.FE, steps[k], [1, 2], 0);
+        k++;
+      }
+      this.rotate();
+    }
+  }
+
+  // Whether Forward Euler steps can currently be blocked.
+  canBlock() {
+    const kernel = this.pipelines.FEBlocked;
+    return this.blocking && this.fitsState(kernel) && this.nY == 1;
+  }
+
   /**
    * Allocates the history slots for an nX by nY grid with the given number of species.
    */
   resize(nX, nY, numSpecies) {
+    this.settle();
     const formats = stateFormats(numSpecies);
     if (
       nX == this.nX &&
@@ -161,6 +224,7 @@ export class WebGPUBackend {
 
   /** Sets the kinetic parameters' values, in the order of SimShaderParts.paramNames. */
   setParams(values) {
+    this.settle();
     const data = new Float32Array(Math.max(4, Math.ceil(values.length / 4) * 4));
     data.set(values);
     if (!this.paramsBuffer || this.paramsBuffer.size < data.byteLength) {
@@ -181,6 +245,7 @@ export class WebGPUBackend {
    * @param {ImageBitmapSource} source
    */
   async setImage(index, source) {
+    this.settle();
     // Decode the raw pixel values, without colour-space conversion or premultiplied alpha,
     // as three.js does for WebGL. Flipped to match three.js's default for textures (flipY),
     // so v = 0 is the image's bottom.
@@ -349,16 +414,31 @@ export class WebGPUBackend {
     this.setClamping(parts.clamp);
     this.requestBuild("simulation", async () => {
       const pipelines = {};
-      await Promise.all(
-        PASS_TYPES.map(async (type) => {
+      const plan = blockingPlan(parts, this.device.limits.maxComputeWorkgroupStorageSize);
+      await Promise.all([
+        ...PASS_TYPES.map(async (type) => {
           pipelines[type] = await this.compile(
             `timestep ${type}`,
             timestepShader(type, parts),
             parts.formats,
           );
         }),
-      );
-      return () => Object.assign(this.pipelines, pipelines);
+        (async () => {
+          pipelines.FEBlocked = plan && {
+            ...(await this.compile(
+              "timestep FE (blocked)",
+              blockedTimestepShader(parts, plan),
+              parts.formats,
+            )),
+            plan,
+          };
+        })(),
+      ]);
+      return () => {
+        // Steps already requested are taken with the pipelines they were requested with.
+        this.settle();
+        Object.assign(this.pipelines, pipelines);
+      };
     });
   }
 
@@ -426,6 +506,7 @@ export class WebGPUBackend {
   }
 
   getEncoder() {
+    this.settle();
     if (!this.encoder) this.encoder = this.device.createCommandEncoder();
     return this.encoder;
   }
@@ -460,10 +541,9 @@ export class WebGPUBackend {
     const pass = encoder.beginComputePass();
     pass.setPipeline(kernel.pipeline);
     pass.setBindGroup(0, bindGroup, [offset]);
-    pass.dispatchWorkgroups(
-      Math.ceil(this.nX / WORKGROUP_SIZE[0]),
-      Math.ceil(this.nY / WORKGROUP_SIZE[1]),
-    );
+    // Each workgroup of a blocked kernel writes its tile's interior.
+    const perGroup = kernel.plan ? [kernel.plan.output, 1] : WORKGROUP_SIZE;
+    pass.dispatchWorkgroups(Math.ceil(this.nX / perGroup[0]), Math.ceil(this.nY / perGroup[1]));
     pass.end();
   }
 
@@ -495,6 +575,7 @@ export class WebGPUBackend {
    * x and y, as sim_wgsl.js's SimShaderParts.clamp describes.
    */
   setClamping(clamp) {
+    this.settle();
     const key = JSON.stringify(clamp);
     if (key == this.clampKey) return;
     this.clampKey = key;
@@ -531,6 +612,11 @@ export class WebGPUBackend {
     const at = (time) => ({ ...uniforms, t: time });
     switch (scheme) {
       case "Euler":
+        // Requested now and recorded by settle(), which blocks consecutive steps.
+        if (this.canBlock()) {
+          this.pendingSteps.push(at(t));
+          return t + dt;
+        }
         this.dispatch(p.FE, at(t), [1, 2], 0);
         t += dt;
         break;
@@ -716,6 +802,7 @@ export class WebGPUBackend {
 
   /** Submits everything recorded since the last flush. */
   flush() {
+    this.settle();
     if (!this.encoder && !this.uniformCount) return;
     if (this.uniformCount) {
       this.device.queue.writeBuffer(

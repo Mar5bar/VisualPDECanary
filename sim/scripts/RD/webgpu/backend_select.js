@@ -94,6 +94,9 @@ export async function createWebGPUDevice() {
       maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize,
       maxBufferSize: adapter.limits.maxBufferSize,
       maxStorageBuffersPerShaderStage: STORAGE_BUFFERS_NEEDED,
+      // As much workgroup memory as there is, for the tiles of temporally blocked timesteps
+      // (see sim_wgsl.js's blockingPlan).
+      maxComputeWorkgroupStorageSize: adapter.limits.maxComputeWorkgroupStorageSize,
     },
   });
   const info = adapter.info ?? {};

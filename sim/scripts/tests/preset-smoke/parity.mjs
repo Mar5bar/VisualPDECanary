@@ -8,7 +8,11 @@
  * sin(), which the noise uses), so a large difference isn't necessarily a bug; the report
  * also lists each preset's difference after a single step, which should always be small.
  *
- * Usage: node parity.mjs [--names=a,b] [--steps=N] [--json=out.json]
+ * With --against=unblocked, compares WebGPU with WebGPU taking every Forward Euler step in
+ * its own pass instead of WebGL, to check its temporally blocked passes (see
+ * webgpu/sim_wgsl.js); the report's "webgl" fields are then that reference.
+ *
+ * Usage: node parity.mjs [--names=a,b] [--steps=N] [--json=out.json] [--against=unblocked]
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -37,7 +41,7 @@ const stopServer = await ensureServerRunning();
 // Chromium otherwise gives WebGPU a software adapter that loses its device alongside WebGL).
 const browser = await chromium.launch({ args: ["--enable-unsafe-webgpu", "--use-angle=metal"] });
 
-async function openPage(backend) {
+async function openPage(backend, extraQuery = "") {
   const context = await browser.newContext({
     serviceWorkers: "block",
     viewport: { width: 1200, height: 800 },
@@ -55,7 +59,7 @@ async function openPage(backend) {
   const errors = [];
   page.on("console", (m) => m.type() == "error" && errors.push(m.text()));
   page.on("pageerror", (e) => errors.push(String(e)));
-  return { page, errors, backend };
+  return { page, errors, backend, extraQuery };
 }
 
 function decode(base64) {
@@ -66,9 +70,9 @@ function decode(base64) {
 
 // Loads a preset in a fresh page, as following a ?preset= link does, with a fixed seed. If
 // initialState is given, the run starts from it instead of the preset's initial conditions.
-async function run({ page, errors, backend }, name, initialState) {
+async function run({ page, errors, backend, extraQuery }, name, initialState) {
   errors.length = 0;
-  const query = `preset=${encodeURIComponent(name)}&testHooks&noop&backend=${backend}&setSeed=true&randSeed=1&runningOnLoad=false`;
+  const query = `preset=${encodeURIComponent(name)}&testHooks&noop&backend=${backend}&setSeed=true&randSeed=1&runningOnLoad=false${extraQuery}`;
   await page.goto(BASE_URL + "/sim/?" + query, { waitUntil: "load" });
   await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
   const actual = await page.evaluate(() => window.VisualPDETest.backend);
@@ -136,7 +140,11 @@ function compare(a, b, numSpecies) {
   };
 }
 
-const webgl = await openPage("webgl");
+// The reference: WebGL, or WebGPU without temporal blocking.
+const webgl =
+  args.against == "unblocked"
+    ? await openPage("webgpu", "&webgpuBlocking=off")
+    : await openPage("webgl");
 const webgpu = await openPage("webgpu");
 const results = [];
 for (const [index, name] of names.entries()) {
@@ -154,6 +162,7 @@ for (const [index, name] of names.entries()) {
       firstStep: firstStep.difference,
       lastStep: lastStep.difference,
       firstStepWhere: firstStep.where,
+      lastStepWhere: lastStep.where,
       nonFinite: lastStep.nonFinite,
       webglError: a.message,
       webgpuError: b.message,
@@ -174,7 +183,10 @@ for (const [index, name] of names.entries()) {
       ? "ERROR " + result.webgpuError
       : `initial ${result.initial.toExponential(1)}, ${result.firstStep.toExponential(1)} after 1 step, ${result.lastStep.toExponential(1)} after ${NUM_STEPS}`;
   console.log(`[${index + 1}/${names.length}] ${name.padEnd(36)} ${status}`);
-  if (args.verbose && result.firstStepWhere) console.log("    worst after 1 step: " + result.firstStepWhere);
+  if (args.verbose && result.firstStepWhere) {
+    console.log("    worst after 1 step: " + result.firstStepWhere);
+    console.log(`    worst after ${NUM_STEPS}: ` + result.lastStepWhere);
+  }
 }
 
 if (args.json) fs.writeFileSync(args.json, JSON.stringify(results, null, 2));
