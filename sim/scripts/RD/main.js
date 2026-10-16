@@ -2067,9 +2067,14 @@ async function VisualPDE(url) {
   }
 
   function nudgeTextureSizeUpDown() {
-    // Force a texture reupload by modifying the size of the textures and then resetting it.
-    resizeTextures(1);
-    resizeTextures(0);
+    // Make three.js set the display textures up again, so that a change to their filtering
+    // takes effect, by changing their size and back. The simulation's textures are left
+    // alone, as resizing them would resample (and so change) the state.
+    [postTexture, interpolationTexture].forEach((tex) => {
+      const { width, height } = tex;
+      tex.setSize(width + 1, height + 1);
+      tex.setSize(width, height);
+    });
   }
 
   function initUniforms() {
