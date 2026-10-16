@@ -4870,12 +4870,40 @@ async function VisualPDE(url) {
         groups,
       ),
     );
-    // Match simTextures' periodic wrapping (set on every attachment of every slot).
+    // Species 1-4 wrap as simTextures do (see setStateTextureWrapping); species 5-8 always
+    // wrap, and are clamped in the shader where needed.
     mrtSimTextures.forEach((mrtTex) => {
-      mrtTex.texture.forEach((tex) => {
-        tex.wrapS = THREE.RepeatWrapping;
-        tex.wrapT = THREE.RepeatWrapping;
+      mrtTex.texture.forEach((tex, group) => {
+        tex.wrapS = group == 0 ? simTextures[0].texture.wrapS : THREE.RepeatWrapping;
+        tex.wrapT = group == 0 ? simTextures[0].texture.wrapT : THREE.RepeatWrapping;
       });
+    });
+  }
+
+  /**
+   * Sets how the textures holding species 1-4 wrap at the edges (in every history slot, and
+   * whether they hold 4 species or are the first of several groups), so that lookups beyond
+   * the edges are periodic or clamped. three.js only applies a render target's wrapping when
+   * it first allocates it, so the change is also made to any already allocated.
+   * @param {number} wrapS - THREE.RepeatWrapping or THREE.ClampToEdgeWrapping, in x.
+   * @param {number} wrapT - Likewise in y.
+   */
+  function setStateTextureWrapping(wrapS, wrapT) {
+    const textures = [
+      ...simTextures.map((target) => target.texture),
+      ...mrtSimTextures.map((target) => target.texture[0]),
+    ];
+    const glWrap = (wrap) => (wrap == THREE.ClampToEdgeWrapping ? gl.CLAMP_TO_EDGE : gl.REPEAT);
+    textures.forEach((texture) => {
+      if (texture.wrapS == wrapS && texture.wrapT == wrapT) return;
+      texture.wrapS = wrapS;
+      texture.wrapT = wrapT;
+      const webglTexture = renderer.properties.get(texture).__webglTexture;
+      if (!webglTexture) return;
+      renderer.state.bindTexture(gl.TEXTURE_2D, webglTexture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, glWrap(wrapS));
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, glWrap(wrapT));
+      renderer.state.unbindTexture();
     });
   }
 
@@ -5540,12 +5568,6 @@ async function VisualPDE(url) {
     let edgeClampSpeciesH = [false, false, false, false];
     let edgeClampSpeciesV = [false, false, false, false];
 
-    // Initially set all simulation textures to repeat wrapping for periodicity.
-    simTextures.forEach((simTex) => {
-      simTex.texture.wrapS = THREE.RepeatWrapping;
-      simTex.texture.wrapT = THREE.RepeatWrapping;
-    });
-
     const BCStrs = [
       options.boundaryConditions_1,
       options.boundaryConditions_2,
@@ -5834,22 +5856,17 @@ async function VisualPDE(url) {
       ? clampSpeciesToEdgeShader("V").replaceAll(/\bSPECIES\b/g, clampChannelsV)
       : "";
 
-    // Edge clamp all the simulation textures if every species needs clamping. If only some
-    // species need clamping, we'll do it in the shader.
-    if (edgeClampSpeciesH.every((x) => x)) {
-      simTextures.forEach((simTex) => {
-        simTex.texture.wrapS = THREE.ClampToEdgeWrapping;
-      });
-    } else {
-      clampShader += clampShaderH;
-    }
-    if (edgeClampSpeciesV.every((x) => x)) {
-      simTextures.forEach((simTex) => {
-        simTex.texture.wrapT = THREE.ClampToEdgeWrapping;
-      });
-    } else {
-      clampShader += clampShaderV;
-    }
+    // Edge clamp the simulation textures in a direction if every species needs clamping in
+    // it, and otherwise let them wrap, for periodicity. If only some species need clamping,
+    // we'll do it in the shader.
+    const clampH = edgeClampSpeciesH.every((x) => x);
+    const clampV = edgeClampSpeciesV.every((x) => x);
+    setStateTextureWrapping(
+      clampH ? THREE.ClampToEdgeWrapping : THREE.RepeatWrapping,
+      clampV ? THREE.ClampToEdgeWrapping : THREE.RepeatWrapping,
+    );
+    if (!clampH) clampShader += clampShaderH;
+    if (!clampV) clampShader += clampShaderV;
 
     // Using the constructed shader parts, we'll form fragment shaders for every possible timestepping scheme.
     let middle = [
