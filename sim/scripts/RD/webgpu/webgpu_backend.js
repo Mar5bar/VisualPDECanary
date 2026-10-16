@@ -237,7 +237,10 @@ export class WebGPUBackend {
 
   /** Sets the kinetic parameters' values, in the order of SimShaderParts.paramNames. */
   setParams(values) {
-    this.settle();
+    // Work already recorded is submitted first, so it uses the values it was recorded with,
+    // as on WebGL (writeBuffer would otherwise land before it, and growing the buffer would
+    // destroy one it binds).
+    this.flush();
     const data = new Float32Array(Math.max(4, Math.ceil(values.length / 4) * 4));
     data.set(values);
     if (!this.paramsBuffer || this.paramsBuffer.size < data.byteLength) {
@@ -586,9 +589,11 @@ export class WebGPUBackend {
       console.error(`WebGPU kernel ${kernel?.pipeline.label} doesn't fit the state's formats`);
       return;
     }
-    const offset = this.pushUniforms(uniforms);
+    // The slots first: reading them records any pending steps, which may flush and replace
+    // the uniform buffer that pushUniforms writes into.
     const sources = [0, 1, 2, 3].map((k) => this.slots[inputs[k] ?? inputs[0]]);
     const target = this.slots[dst];
+    const offset = this.pushUniforms(uniforms);
     // Bind groups are cached by kernel and the slots bound, as creating one per pass is a
     // large part of the CPU's cost per timestep on small grids.
     if (!this.bindGroups) this.invalidateBindGroups();

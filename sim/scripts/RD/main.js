@@ -5314,19 +5314,23 @@ async function VisualPDE(url) {
     }
     gpuIntegralPending = true;
     const generation = gpuReadbackGeneration;
-    gpuDisplay.integral(areaElement()).then((total) => {
-      gpuIntegralPending = false;
-      // Null if the grid has changed since the values were post-processed, and dropped if
-      // the state has been reset since.
-      if (total != null && generation == gpuReadbackGeneration) {
-        $("#integralValue").html(formatLabelNum(total, 4));
-        checkColourbarPosition();
-      }
-      if (gpuIntegralAgain) {
-        gpuIntegralAgain = false;
-        if (options.integrate) gpuUpdateIntegralDisplay();
-      }
-    });
+    gpuDisplay.integral(areaElement()).then(
+      (total) => {
+        gpuIntegralPending = false;
+        // Null if the grid has changed since the values were post-processed, and dropped if
+        // the state has been reset since.
+        if (total != null && generation == gpuReadbackGeneration) {
+          $("#integralValue").html(formatLabelNum(total, 4));
+          checkColourbarPosition();
+        }
+        if (gpuIntegralAgain) {
+          gpuIntegralAgain = false;
+          if (options.integrate) gpuUpdateIntegralDisplay();
+        }
+      },
+      // E.g. if the device was lost.
+      () => (gpuIntegralPending = false),
+    );
   }
 
   // Reads the post-processed values back for the vector field on WebGPU, then points the
@@ -5334,18 +5338,22 @@ async function VisualPDE(url) {
   function gpuUpdateArrows() {
     if (gpuArrowReadPending) return;
     gpuArrowReadPending = true;
-    gpuDisplay.readPost().then((data) => {
-      gpuArrowReadPending = false;
-      // Null if the grid has changed since the values were post-processed.
-      if (!data || !arrowGroup) return;
-      const changed =
-        !postBuffer ||
-        postBuffer.length != data.length ||
-        data.some((v, k) => !Object.is(v, postBuffer[k]));
-      postBuffer = data;
-      updateArrows();
-      if (changed && !isRunning) render();
-    });
+    gpuDisplay.readPost().then(
+      (data) => {
+        gpuArrowReadPending = false;
+        // Null if the grid has changed since the values were post-processed.
+        if (!data || !arrowGroup) return;
+        const changed =
+          !postBuffer ||
+          postBuffer.length != data.length ||
+          data.some((v, k) => !Object.is(v, postBuffer[k]));
+        postBuffer = data;
+        updateArrows();
+        if (changed && !isRunning) render();
+      },
+      // E.g. if the device was lost.
+      () => (gpuArrowReadPending = false),
+    );
   }
 
   // The vector field's arrows, as instanced meshes for WebGPU's display: one for the tails
@@ -5373,18 +5381,22 @@ async function VisualPDE(url) {
   function gpuUpdateLinePlot() {
     if (gpuLineReadPending) return;
     gpuLineReadPending = true;
-    gpuDisplay.readPost().then((data) => {
-      gpuLineReadPending = false;
-      // Null if the grid has changed since the values were post-processed.
-      if (!data || data.length != buffer.length) return;
-      const changed = data.some((v, k) => !Object.is(v, buffer[k]));
-      buffer.set(data);
-      bufferFilled = true;
-      updateLinePlot();
-      // A paused simulation only draws on demand, so draw the new line, unless nothing's
-      // changed (which would just read the same values back again).
-      if (changed && !isRunning) render();
-    });
+    gpuDisplay.readPost().then(
+      (data) => {
+        gpuLineReadPending = false;
+        // Null if the grid has changed since the values were post-processed.
+        if (!data || data.length != buffer.length) return;
+        const changed = data.some((v, k) => !Object.is(v, buffer[k]));
+        buffer.set(data);
+        bufferFilled = true;
+        updateLinePlot();
+        // A paused simulation only draws on demand, so draw the new line, unless nothing's
+        // changed (which would just read the same values back again).
+        if (changed && !isRunning) render();
+      },
+      // E.g. if the device was lost.
+      () => (gpuLineReadPending = false),
+    );
   }
 
   // Sets the line plot's (and any overlay line's) points and colours from buffer, which

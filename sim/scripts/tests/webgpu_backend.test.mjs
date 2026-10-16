@@ -52,3 +52,30 @@ test("WebGPUBackend: if only the blocked timestep kernel fails to build, steps a
   assert.ok(backend.pipelines.FE);
   assert.equal(backend.pipelines.FEBlocked, null);
 });
+
+test("WebGPUBackend.setParams submits work already recorded before writing new values", async () => {
+  globalThis.GPUBufferUsage ??= new Proxy({}, { get: () => 1 });
+  globalThis.GPUTextureUsage ??= new Proxy({}, { get: () => 1 });
+  globalThis.GPUShaderStage ??= new Proxy({}, { get: () => 1 });
+  const { WebGPUBackend } = await import("../RD/webgpu/webgpu_backend.js");
+  const log = [];
+  const stub = (label) => ({ label, destroy() {}, createView() { return {}; }, size: 16 });
+  const device = new Proxy(
+    {
+      queue: {
+        writeBuffer: (buffer) => log.push(`write ${buffer.label}`),
+        writeTexture() {},
+        submit: () => log.push("submit"),
+      },
+      limits: {},
+      createBuffer: ({ label }) => stub(label),
+      createCommandEncoder: () => ({ finish: () => ({}) }),
+    },
+    { get: (target, key) => (key in target ? target[key] : () => stub()) },
+  );
+  const backend = new WebGPUBackend(device);
+  backend.getEncoder(); // Stands for passes recorded with the current parameters.
+  log.length = 0;
+  backend.setParams([1, 2]);
+  assert.deepEqual(log, ["submit", "write params"]);
+});
