@@ -34,6 +34,10 @@ const CHECKPOINT_FORMAT = "rgba32float";
 // Bytes per node of each state format.
 const FORMAT_BYTES = { r32float: 4, rg32float: 8, rgba32float: 16 };
 const PASS_TYPES = ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"];
+// The builds the simulation can't run without, as they'd leave it running old code: a
+// simulation whose timestepping, initial conditions or Dirichlet conditions failed to build
+// doesn't run, as on WebGL.
+const SIMULATION_BUILDS = ["simulation", "clear", "enforce"];
 
 /** Raised for WGSL that fails to compile, with the compiler's messages. */
 export class ShaderCompileError extends Error {
@@ -68,6 +72,8 @@ export class WebGPUBackend {
     this.generations = {};
     this.requests = {};
     this.buildScheduled = false;
+    // The kinds whose latest build failed.
+    this.failedBuilds = new Set();
     // Called with (kind, error) when the latest build of a kind fails.
     this.onBuildError = null;
     this.sources = {};
@@ -357,10 +363,12 @@ export class WebGPUBackend {
   // last one, and the backend counts as not ready from the moment one is requested. build is
   // an async function returning a function that installs its result; it's only installed,
   // and its errors only reported (to onBuildError), if it's still the latest of its kind.
-  requestBuild(kind, build) {
+  // If the latest build fails, discard() removes what the previous one installed, so that,
+  // as on WebGL, nothing runs code that no longer matches the options.
+  requestBuild(kind, build, discard) {
     const generation = (this.generations[kind] ?? 0) + 1;
     this.generations[kind] = generation;
-    this.requests[kind] = { generation, build };
+    this.requests[kind] = { generation, build, discard };
     if (this.buildScheduled) return;
     this.buildScheduled = true;
     this.compiling++;
@@ -371,12 +379,18 @@ export class WebGPUBackend {
       this.requests = {};
       try {
         await Promise.all(
-          Object.entries(requests).map(async ([kind, { generation, build }]) => {
+          Object.entries(requests).map(async ([kind, { generation, build, discard }]) => {
             try {
               const install = await build();
-              if (this.generations[kind] == generation) install();
+              if (this.generations[kind] != generation) return;
+              this.failedBuilds.delete(kind);
+              install();
             } catch (error) {
-              if (this.generations[kind] == generation) this.onBuildError?.(kind, error);
+              if (this.generations[kind] != generation) return;
+              this.failedBuilds.add(kind);
+              this.settle();
+              discard?.();
+              this.onBuildError?.(kind, error);
             }
           }),
         );
@@ -390,6 +404,7 @@ export class WebGPUBackend {
   isReady() {
     return (
       this.compiling == 0 &&
+      !SIMULATION_BUILDS.some((kind) => this.failedBuilds.has(kind)) &&
       this.slots.length > 0 &&
       PASS_TYPES.every((type) => this.fitsState(this.pipelines[type])) &&
       this.fitsState(this.pipelines.clear)
@@ -439,6 +454,8 @@ export class WebGPUBackend {
         this.settle();
         Object.assign(this.pipelines, pipelines);
       };
+    }, () => {
+      for (const type of [...PASS_TYPES, "FEBlocked"]) delete this.pipelines[type];
     });
   }
 
@@ -447,7 +464,7 @@ export class WebGPUBackend {
     this.requestBuild("clear", async () => {
       const pipeline = await this.compile("clear", clearShader(parts), parts.formats);
       return () => (this.pipelines.clear = pipeline);
-    });
+    }, () => delete this.pipelines.clear);
   }
 
   /** Builds the brush pipeline. */
@@ -455,7 +472,7 @@ export class WebGPUBackend {
     this.requestBuild("draw", async () => {
       const pipeline = await this.compile("draw", drawShader(parts), parts.formats);
       return () => (this.pipelines.draw = pipeline);
-    });
+    }, () => delete this.pipelines.draw);
   }
 
   /** Builds the Dirichlet enforcement pipeline, or removes it if parts is null. */
@@ -469,7 +486,7 @@ export class WebGPUBackend {
           )
         : null;
       return () => (this.pipelines.enforce = pipeline);
-    });
+    }, () => delete this.pipelines.enforce);
   }
 
   ensureUniformCapacity(count) {

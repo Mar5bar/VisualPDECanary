@@ -310,7 +310,7 @@ export class WebGPUDisplay {
         compute: { module, entryPoint: "main" },
       });
       return () => (this.pipelines[kind] = pipeline);
-    });
+    }, () => delete this.pipelines[kind]);
   }
 
   /** Builds the post-processing pipeline from the WebGL post shader's body. */
@@ -391,6 +391,9 @@ export class WebGPUDisplay {
         this.pipelines.display = pipeline;
         this.pipelines.pick = pick;
       };
+    }, () => {
+      delete this.pipelines.display;
+      delete this.pipelines.pick;
     });
   }
 

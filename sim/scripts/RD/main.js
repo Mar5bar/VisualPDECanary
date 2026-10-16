@@ -573,20 +573,24 @@ async function VisualPDE(url) {
       );
     } else if (/undeclared identifier/.test(errorStr)) {
       // If an identifier is undeclared, extract it and offer to add it as a parameter.
-      let undeclaredVar = errorStr.match(/'([^']+)'/)[1];
-      throwError(
-        "Unknown symbol: '" +
-          undeclaredVar +
-          "'. Click <a href='/user-guide/FAQ#undeclared' target='blank'>here</a> for more information.",
-        "Add " + undeclaredVar + " as parameter",
-        () => {
-          addKineticParameterAfterError(undeclaredVar);
-        },
-      );
+      throwUnknownSymbolError(errorStr.match(/'([^']+)'/)[1]);
     } else {
       throwError(errorStr + ".");
     }
   };
+
+  // Reports a symbol in an expression that isn't defined, offering to add it as a parameter.
+  function throwUnknownSymbolError(name) {
+    throwError(
+      "Unknown symbol: '" +
+        name +
+        "'. Click <a href='/user-guide/FAQ#undeclared' target='blank'>here</a> for more information.",
+      "Add " + name + " as parameter",
+      () => {
+        addKineticParameterAfterError(name);
+      },
+    );
+  }
 
   // Check URL for any specified options.
   // Take the URL stored as a string in url (if it exists) and get the search parameters
@@ -4189,8 +4193,17 @@ async function VisualPDE(url) {
 
   // Reports a failed WebGPU pipeline build like a WebGL compile error.
   function onGpuBuildError(kind, error) {
-    console.error(error.message);
-    if (error.source) console.error(error.source);
+    // As console.error does for WebGL's errors (see above), so that adding a parameter
+    // rebuilds the shaders.
+    compileErrorOccurred = true;
+    console.log(error.message);
+    if (error.source) console.log(error.source);
+    // An undefined name in an expression, as WebGL reports an undeclared identifier.
+    const unresolved = error.message.match(/unresolved value '([^']+)'/);
+    if (unresolved) {
+      throwUnknownSymbolError(unresolved[1]);
+      return;
+    }
     const what = {
       simulation: "simulation",
       clear: "initial conditions",

@@ -336,3 +336,55 @@ test("the automatic colour range is the plotted values' true min and max", async
     assert.deepEqual(range, [min, max], backend);
   }
 });
+
+test("a simulation that fails to build doesn't run on either backend", async () => {
+  // A working simulation, then one whose kinetics don't compile: nothing should step it, on
+  // WebGPU as on WebGL, rather than the previous simulation's code carrying on.
+  const base = {
+    numSpecies: 1,
+    dimension: 1,
+    domainScale: 10,
+    spatialStep: 0.5,
+    dt: 0.01,
+    diffusionStr_1_1: "1",
+    reactionStr_1: "-u",
+    initCond_1: "sin(x)",
+    boundaryConditions_1: "periodic",
+  };
+  for (const [backend, page] of Object.entries(pages)) {
+    const result = await page.evaluate(async (base) => {
+      const T = window.VisualPDETest;
+      await T.load(base);
+      await T.step(10);
+      await T.load({ ...base, reactionStr_1: "-undefinedFunction(u)" });
+      const before = await T.readState();
+      await T.step(10);
+      const after = await T.readState();
+      const message = await T.errorMessage();
+      // Fixing the kinetics makes it run again.
+      await T.load(base);
+      const fixed = await T.readState();
+      await T.step(10);
+      const recovered = (await T.readState()).data != fixed.data;
+      return { message, changed: before.data != after.data, recovered };
+    }, base);
+    assert.notEqual(result.message, "", `${backend}: no error was reported`);
+    assert.ok(!result.changed, `${backend}: the simulation stepped`);
+    assert.ok(result.recovered, `${backend}: the fixed simulation didn't run`);
+  }
+});
+
+test("an undefined symbol is reported the same way on both backends", async () => {
+  const messages = {};
+  for (const [backend, page] of Object.entries(pages)) {
+    messages[backend] = await page.evaluate(async () => {
+      const T = window.VisualPDETest;
+      await T.load({ numSpecies: 1, dimension: 1, reactionStr_1: "-undefinedRate*u" });
+      // WebGL compiles a shader when it's first used.
+      await T.step(1);
+      return T.errorMessage();
+    });
+  }
+  assert.match(messages.webgl, /^Unknown symbol: 'undefinedRate'/);
+  assert.equal(messages.webgpu, messages.webgl);
+});
