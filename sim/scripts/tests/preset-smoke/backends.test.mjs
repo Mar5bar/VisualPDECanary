@@ -264,6 +264,56 @@ test("checkpoints restore the saved state exactly, on both backends", async () =
   }
 });
 
+test("checkpoints restored onto another grid agree, whatever the number of species", async () => {
+  // Shrunk (nearest) and enlarged (linear), stretched and cropped. Species 1 is the same
+  // with 2 species and with 6 (so species groups restored together), and must restore the
+  // same way in each case on each backend. Across backends, WebGL's hardware filtering
+  // weights are only accurate to about 1e-4.
+  for (const spatialStep of ["0.7", "0.35"]) {
+    for (const resizeCheckpoints of ["stretch", "crop"]) {
+      const results = {};
+      for (const numSpecies of [2, 6]) {
+        const states = await onBoth(
+          {
+            dimension: 2,
+            // An odd number of nodes across, so that cropping doesn't sample the checkpoint
+            // exactly between nodes, where which is taken is down to rounding.
+            domainScale: 40.5,
+            spatialStep: 0.5,
+            numSpecies,
+            speciesNames: "u v w q a b",
+            resizeCheckpoints,
+            ...Object.fromEntries(
+              [1, 2, 3, 4, 5, 6].flatMap((i) => [
+                [`reactionStr_${i}`, "0"],
+                [`diffusionStr_${i}_${i}`, "0"],
+                [`initCond_${i}`, i == 1 ? "sin(x/7)+cos(y/5)+x/40" : `${i}*x*y/1000`],
+              ]),
+            ),
+          },
+          [["saveCheckpoint"], ["setSpatialStep", spatialStep], ["resetFromCheckpoint"]],
+        );
+        for (const backend of ["webgl", "webgpu"]) {
+          results[`${backend}, ${numSpecies} species`] = decode(states[backend].data).filter(
+            (_, k) => k % 4 == 0,
+          );
+        }
+      }
+      const label = `dx 0.5 -> ${spatialStep}, ${resizeCheckpoints}`;
+      const compare = (a, b, tolerance) => {
+        const [x, y] = [results[a], results[b]];
+        assert.equal(x.length, y.length, `${label}: ${a} vs ${b}`);
+        let worst = 0;
+        for (let n = 0; n < x.length; n++) worst = Math.max(worst, Math.abs(x[n] - y[n]));
+        assert.ok(worst <= tolerance, `${label}: ${a} vs ${b} differ by ${worst}`);
+      };
+      compare("webgl, 2 species", "webgl, 6 species", 1e-6);
+      compare("webgpu, 2 species", "webgpu, 6 species", 1e-6);
+      compare("webgl, 6 species", "webgpu, 6 species", 2e-3);
+    }
+  }
+});
+
 test("changing the grid mid-run resamples the state identically on both backends", async () => {
   const states = await onBoth({ ...probeBase, probing: false, integrate: false }, [
     ["step", 20],
