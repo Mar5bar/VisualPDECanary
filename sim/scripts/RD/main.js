@@ -166,9 +166,11 @@ async function VisualPDE(url) {
     isReloading = false,
     // Whether a probe value or the integral display is being read back on WebGPU.
     gpuIntegralPending = false,
-    // Whether an integral readback was requested while one was under way, so is to be made
-    // once that's done.
+    // Whether an integral, line plot or arrow readback was requested while one was under
+    // way, so is to be made once that's done (as the state may have changed since).
     gpuIntegralAgain = false,
+    gpuLineAgain = false,
+    gpuArrowsAgain = false,
     // Counts resets of the state and the probe, so that readbacks under way then are dropped.
     gpuReadbackGeneration = 0,
     // Whether a reset's clearing of the WebGPU state is waiting for pipelines to be built
@@ -705,7 +707,12 @@ async function VisualPDE(url) {
       gpuBackend.onBuildError = onGpuBuildError;
       // Pipelines build asynchronously, so a change made while paused (e.g. to the plotted
       // expression) is drawn once its pipeline is ready, as WebGL draws it straight away.
-      gpuBackend.onInstalled = () => renderIfNotRunning();
+      gpuBackend.onInstalled = () => {
+        // A reset waiting for pipelines that failed to build (e.g. a typo, since fixed) has
+        // its clear made now they've built, which draws.
+        if (gpuClearPending && gpuBackend.canClear()) clearTextures();
+        else renderIfNotRunning();
+      };
       // For testing: take every Forward Euler step in its own pass.
       if (params.get("webgpuBlocking") == "off") gpuBackend.blocking = false;
       gpuAdapterInfo = adapterInfo;
@@ -5353,13 +5360,22 @@ async function VisualPDE(url) {
   // Reads the post-processed values back for the vector field on WebGPU, then points the
   // arrows. As for line plots, the arrows lag the simulation by a frame or so.
   function gpuUpdateArrows() {
-    if (gpuArrowReadPending) return;
+    if (gpuArrowReadPending) {
+      gpuArrowsAgain = true;
+      return;
+    }
     gpuArrowReadPending = true;
     gpuDisplay.readPost().then(
       (data) => {
         gpuArrowReadPending = false;
+        // Read again if asked to meanwhile, unless drawing (which reads again itself).
+        const again = gpuArrowsAgain;
+        gpuArrowsAgain = false;
         // Null if the grid has changed since the values were post-processed.
-        if (!data || !arrowGroup) return;
+        if (!data || !arrowGroup) {
+          if (again) gpuUpdateArrows();
+          return;
+        }
         const before = arrowsSnapshot();
         postBuffer = data;
         updateArrows();
@@ -5367,6 +5383,7 @@ async function VisualPDE(url) {
         // (with the values, or with options such as their scaling), but not otherwise,
         // which would just read the same values back again.
         if (!isRunning && !sameValues(arrowsSnapshot(), before)) render();
+        else if (again) gpuUpdateArrows();
       },
       // E.g. if the device was lost.
       () => (gpuArrowReadPending = false),
@@ -5396,13 +5413,22 @@ async function VisualPDE(url) {
   // Reads the post-processed values back for a line plot on WebGPU, then updates the line
   // from them. Readback is asynchronous, so the line lags the simulation by a frame or so.
   function gpuUpdateLinePlot() {
-    if (gpuLineReadPending) return;
+    if (gpuLineReadPending) {
+      gpuLineAgain = true;
+      return;
+    }
     gpuLineReadPending = true;
     gpuDisplay.readPost().then(
       (data) => {
         gpuLineReadPending = false;
+        // Read again if asked to meanwhile, unless drawing (which reads again itself).
+        const again = gpuLineAgain;
+        gpuLineAgain = false;
         // Null if the grid has changed since the values were post-processed.
-        if (!data || data.length != buffer.length) return;
+        if (!data || data.length != buffer.length) {
+          if (again) gpuUpdateLinePlot();
+          return;
+        }
         const before = lineSnapshot();
         buffer.set(data);
         bufferFilled = true;
@@ -5411,6 +5437,7 @@ async function VisualPDE(url) {
         // the values, or with options such as the colour range), but not otherwise, which
         // would just read the same values back again.
         if (!isRunning && !sameValues(lineSnapshot(), before)) render();
+        else if (again) gpuUpdateLinePlot();
       },
       // E.g. if the device was lost.
       () => (gpuLineReadPending = false),
@@ -5792,13 +5819,16 @@ async function VisualPDE(url) {
     if (gpuBackend) {
       // The pipelines may still be building (e.g. just after loading a preset), in which
       // case clear once they're ready.
-      if (!gpuBackend.isReady()) {
+      // Only the initial conditions' pipeline is needed, so a simulation whose timestepping
+      // failed to build (e.g. a typo) is still reset, as on WebGL.
+      if (!gpuBackend.canClear()) {
         gpuClearPending = true;
         gpuBackend.whenReady().then(() => {
-          if (gpuBackend.isReady()) clearTextures();
+          if (gpuBackend.canClear()) clearTextures();
         });
         return;
       }
+      const deferred = gpuClearPending;
       gpuClearPending = false;
       syncGpuParams();
       if (checkpointExists && options.resetFromCheckpoints) {
@@ -5822,7 +5852,14 @@ async function VisualPDE(url) {
       // As resetSim() does, but here too in case this clear was deferred until after it.
       if (shaderContainsGlobalIntegral) updateGlobalIntegral();
       gpuBackend.flush();
-      render();
+      if (deferred) {
+        // Drawn as the reset's own drawing (made before this clear) would have been, updating
+        // everything that's only updated every few frames (arrows, the colour range, ...).
+        frameCount = 0;
+        render(true);
+      } else {
+        render();
+      }
       return;
     }
     setRenderSizeToDisc();
@@ -11853,9 +11890,11 @@ async function VisualPDE(url) {
   function saveSimState() {
     if (gpuBackend) {
       // Read back asynchronously, so return a promise that resolves once saved.
+      // The grid as it is now, which may change while the state is read back.
+      const dims = [nXDisc, nYDisc];
       return gpuBackend.readState().then((groups) => {
         [stateBuffer, stateBufferGroup1] = groups;
-        createCheckpointTexture(stateBuffer, undefined, stateBufferGroup1);
+        createCheckpointTexture(stateBuffer, dims, stateBufferGroup1);
         checkpointExists = true;
       });
     }

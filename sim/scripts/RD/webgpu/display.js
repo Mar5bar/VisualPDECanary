@@ -76,6 +76,8 @@ export class WebGPUDisplay {
     // discardMinMax), and the count of such replacements, to tell stale results apart.
     this.minMaxCurrent = false;
     this.minMaxGeneration = 0;
+    // The callback of a search requested while one was under way, to make once it's done.
+    this.minMaxAgain = null;
     const device = this.device;
     this.simUniforms = device.createBuffer({
       size: UNIFORM_STRIDE,
@@ -906,6 +908,13 @@ export class WebGPUDisplay {
     return a > 0 ? [u, v] : null;
   }
 
+  // Makes a search for the minimum and maximum requested while the last was under way.
+  requestMinMaxAgain() {
+    const onResult = this.minMaxAgain;
+    this.minMaxAgain = null;
+    if (onResult) this.requestMinMax(onResult);
+  }
+
   /**
    * Marks the minimum and maximum found so far, and any being found, as of a state that's
    * been replaced (e.g. by a reset), so that nothing (such as the check for NaNs) takes them
@@ -924,7 +933,12 @@ export class WebGPUDisplay {
    * @returns {number[]}
    */
   requestMinMax(onResult) {
-    if (this.minMaxPending || !this.postFits()) return this.minMax;
+    if (this.minMaxPending) {
+      // Found again once this search is done, as the values may have changed since it began.
+      this.minMaxAgain = onResult ?? (() => {});
+      return this.minMax;
+    }
+    if (!this.postFits()) return this.minMax;
     const generation = this.minMaxGeneration;
     const backend = this.backend;
     const count = backend.nX * backend.nY;
@@ -966,15 +980,18 @@ export class WebGPUDisplay {
         const [low, high] = new Float32Array(staging.getMappedRange().slice(0));
         staging.destroy();
         this.minMaxPending = false;
-        // Of a state since replaced, so of no use.
-        if (generation != this.minMaxGeneration) return;
-        this.minMax = [low, high];
-        this.minMaxCurrent = true;
-        onResult?.(this.minMax);
+        // Unless of a state since replaced, so of no use.
+        if (generation == this.minMaxGeneration) {
+          this.minMax = [low, high];
+          this.minMaxCurrent = true;
+          onResult?.(this.minMax);
+        }
+        this.requestMinMaxAgain();
       },
       () => {
         staging.destroy();
         this.minMaxPending = false;
+        this.requestMinMaxAgain();
       },
     );
     return this.minMax;

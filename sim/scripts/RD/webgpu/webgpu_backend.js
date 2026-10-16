@@ -465,6 +465,19 @@ export class WebGPUBackend {
     );
   }
 
+  /**
+   * Whether the state can be set to the initial conditions: no pipelines are being built and
+   * the initial-condition one is (whether or not the timestepping ones built).
+   */
+  canClear() {
+    return (
+      this.compiling == 0 &&
+      this.slots.length > 0 &&
+      !this.failedBuilds.has("clear") &&
+      this.fitsState(this.pipelines.clear)
+    );
+  }
+
   // Whether a kernel exists and writes state in the formats the slots have.
   fitsState(kernel) {
     return !!kernel && kernel.formats.join() == this.formats.join();
@@ -937,17 +950,19 @@ export class WebGPUBackend {
    */
   async readState() {
     this.flush();
+    // The grid as it is now, which may change while the copies are read back.
+    const { nX, nY } = this;
     const encoder = this.device.createCommandEncoder();
     const copies = this.slots[1].textures.map((texture) => {
       const channels = FORMAT_BYTES[texture.format] / 4;
       // Rows of a texture copy must be a multiple of 256 bytes apart.
-      const rowBytes = 4 * channels * this.nX;
+      const rowBytes = 4 * channels * nX;
       const bytesPerRow = Math.ceil(rowBytes / 256) * 256;
       const staging = this.device.createBuffer({
-        size: bytesPerRow * this.nY,
+        size: bytesPerRow * nY,
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
       });
-      encoder.copyTextureToBuffer({ texture }, { buffer: staging, bytesPerRow }, [this.nX, this.nY]);
+      encoder.copyTextureToBuffer({ texture }, { buffer: staging, bytesPerRow }, [nX, nY]);
       return { staging, channels, rowBytes, bytesPerRow };
     });
     this.device.queue.submit([encoder.finish()]);
@@ -955,9 +970,9 @@ export class WebGPUBackend {
       copies.map(async ({ staging, channels, rowBytes, bytesPerRow }) => {
         await staging.mapAsync(GPUMapMode.READ);
         const padded = new Uint8Array(staging.getMappedRange());
-        const packed = new Float32Array(channels * this.nX * this.nY);
+        const packed = new Float32Array(channels * nX * nY);
         const bytes = new Uint8Array(packed.buffer);
-        for (let j = 0; j < this.nY; j++) {
+        for (let j = 0; j < nY; j++) {
           bytes.set(padded.subarray(j * bytesPerRow, j * bytesPerRow + rowBytes), j * rowBytes);
         }
         staging.unmap();

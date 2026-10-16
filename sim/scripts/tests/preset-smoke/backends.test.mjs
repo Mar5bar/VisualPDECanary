@@ -1096,3 +1096,106 @@ test("an integral probe doesn't change the plotted values that the colour range 
     assert.ok(Math.abs(min - 0.0025) < 1e-6 && Math.abs(max - 0.9975) < 1e-6, `${backend}: [${min}, ${max}]`);
   }
 });
+
+test("a reset made while the equations have an error happens, and the probe recovers", async () => {
+  // Running, a typo in the kinetics, reset, then the typo fixed: as on WebGL, the reset
+  // takes effect and the probe and integral display carry on.
+  const r = await inBoth(async (T, setControl, sleep) => {
+    await T.load({
+      dimension: 1,
+      numSpecies: 1,
+      reactionStr_1: "1",
+      diffusionStr_1_1: "0",
+      initCond_1: "0",
+      integrate: true,
+      probing: true,
+      probeType: "sample",
+      probeFun: "u",
+    });
+    await T.step(50);
+    await T.render();
+    setControl("fu", "1+zzz");
+    await sleep(500);
+    document.getElementById("error_close_button")?.click();
+    document.getElementById("erase").click();
+    await sleep(300);
+    setControl("fu", "1");
+    await sleep(500);
+    for (let k = 0; k < 4; k++) {
+      await T.step(10);
+      await T.render();
+      await sleep(50);
+    }
+    await sleep(200);
+    const state = await T.readState();
+    return {
+      t: await T.time(),
+      u: new Float32Array(Uint8Array.from(atob(state.data), (c) => c.charCodeAt(0)).buffer)[0],
+      integral: await T.integralDisplay(),
+      probe: (await T.probeData()).map(([t]) => t.toFixed(6)),
+    };
+  });
+  assert.ok(Math.abs(r.webgl.u - 4) < 1e-5, JSON.stringify(r.webgl));
+  assert.ok(Math.abs(r.webgpu.u - r.webgl.u) < 1e-6, JSON.stringify(r));
+  assert.equal(r.webgpu.integral, r.webgl.integral);
+  assert.deepEqual(r.webgpu.probe, r.webgl.probe);
+});
+
+test("after a reset while paused, the line plot, arrows and colour range show the new state", async () => {
+  // Each changed in the GUI then reset (so the clear waits for the new initial conditions'
+  // pipeline), compared with loading the new state directly.
+  const line = { dimension: 1, plotType: "line", autoSetColourRange: false, minColourValue: "0", maxColourValue: "1" };
+  const arrows = {
+    dimension: 2,
+    vectorField: true,
+    arrowX: "u",
+    arrowY: "0",
+    arrowScale: "none",
+    autoSetColourRange: false,
+    minColourValue: "-2",
+    maxColourValue: "2",
+  };
+  const base = { numSpecies: 1, reactionStr_1: "0", diffusionStr_1_1: "0", whatToPlot: "u" };
+  for (const [backend, page] of Object.entries(pages)) {
+    for (const [name, opts, from, to] of [
+      ["line plot", line, "0.2", "0.8"],
+      ["arrows", arrows, "1+0.5*x/L_x", "-1-0.5*x/L_x"],
+    ]) {
+      const shot = () => page.locator("#simCanvas").screenshot();
+      await page.evaluate(async (opts) => {
+        const T = window.VisualPDETest;
+        await T.load(opts);
+        await T.render();
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }, { ...base, ...opts, initCond_1: to });
+      const expected = await shot();
+      await page.evaluate(
+        async ([opts, setControl, to]) => {
+          const T = window.VisualPDETest;
+          await T.load(opts);
+          await T.render();
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          eval(`(${setControl})`)("u|t=0", to);
+          document.getElementById("erase").click();
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+        },
+        [{ ...base, ...opts, initCond_1: from }, setControl.toString(), to],
+      );
+      assert.ok((await shot()).equals(expected), `${backend}: the ${name} wasn't redrawn`);
+    }
+  }
+  // The automatic colour range, after changing the plotted expression twice while paused.
+  const r = await inBoth(async (T, setControl, sleep) => {
+    await T.load({ dimension: 2, numSpecies: 1, reactionStr_1: "0", diffusionStr_1_1: "0", initCond_1: "x/L_x", whatToPlot: "u", autoSetColourRange: true });
+    await T.render();
+    await sleep(300);
+    setControl("Expression", "10*u+3");
+    await sleep(200);
+    setControl("Expression", "u*u");
+    await sleep(300);
+    return T.colourRange();
+  });
+  for (const [backend, [min, max]] of Object.entries(r)) {
+    assert.ok(min < 1e-4 && Math.abs(max - 0.995) < 1e-3, `${backend}: [${min}, ${max}]`);
+  }
+});
