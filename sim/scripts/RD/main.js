@@ -1761,9 +1761,9 @@ async function VisualPDE(url) {
     nYDisc = Math.floor(domainHeight / spatialStepValue);
     if (nXDisc > maxTexSize || nYDisc > maxTexSize) {
       throwError(
-        "Your device does not support a discretisation this fine (maximum " +
+        "Your device does not support a discretisation this fine (at most " +
           maxTexSize +
-          "MB). Please increase the space step to at least " +
+          " points in each direction). Please increase the space step to at least " +
           (Math.ceil((1e4 * domainScaleValue) / maxTexSize) / 1e4).toPrecision(
             4,
           ) +
