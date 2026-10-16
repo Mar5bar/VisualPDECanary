@@ -464,6 +464,73 @@ test("the space step is used exactly, and the domain is the nodes' extent", asyn
   }
 });
 
+test("a species clamped at the edges evolves the same whatever the other species' conditions", async () => {
+  // Second-order one-sided differences reach two nodes beyond the edge, so they test that
+  // every neighbour is clamped, whether that's done by the texture's wrap mode (when every
+  // species in a group is clamped) or in the shader (when only some are, and always for
+  // species 5-8). Species a is compared with a run where four species all clamp, so the
+  // texture clamps: run alone, beside a periodic species, and among five species (all
+  // clamped, then all but a periodic), with e solving a's equation in group 2.
+  const names = ["a", "b", "c", "d", "e"];
+  const equation = (s) => `-0.5*${s}_xb2 + 0.3*${s}_xf2 - 0.4*${s}_yb2 + 0.2*${s}_yf2`;
+  const init = "x/10 + 0.2*cos(2*pi*x/10) + y/20";
+  const run = (dimension, numSpecies, bc) =>
+    page.evaluate(
+      async (opts) => {
+        const T = window.VisualPDETest;
+        await T.load(opts);
+        await T.step(50);
+        return { state: await T.readState(), message: await T.errorMessage() };
+      },
+      {
+        dimension,
+        domainScale: 10,
+        spatialStep: 0.25,
+        minX: "0",
+        minY: "0",
+        numAlgebraicSpecies: 0,
+        crossDiffusion: false,
+        timesteppingScheme: "Euler",
+        dt: 0.005,
+        setSeed: true,
+        numSpecies,
+        speciesNames: names.slice(0, Math.max(numSpecies, 1)).join(" "),
+        whatToPlot: "a",
+        ...Object.fromEntries(
+          names.flatMap((s, i) => [
+            [`diffusionStr_${i + 1}_${i + 1}`, "1"],
+            [`reactionStr_${i + 1}`, i == 0 || i == 4 ? equation(s) : "0"],
+            [`initCond_${i + 1}`, i == 0 || i == 4 ? init : "0"],
+            [`boundaryConditions_${i + 1}`, i == 0 || i == 4 ? "neumann" : bc],
+            [`neumannStr_${i + 1}`, "0"],
+          ]),
+        ),
+      },
+    );
+  for (const dimension of [1, 2]) {
+    const { state: clamped } = await run(dimension, 4, "neumann");
+    const expected = decode(clamped.data).filter((_, k) => k % 4 == 0);
+    for (const [numSpecies, bc] of [
+      [1, "neumann"],
+      [2, "periodic"],
+      [5, "neumann"],
+      [5, "periodic"],
+    ]) {
+      const { state, message } = await run(dimension, numSpecies, bc);
+      assert.equal(message, "");
+      const label = `${dimension}D, ${numSpecies} species, the others ${bc}`;
+      const a = decode(state.data).filter((_, k) => k % 4 == 0);
+      const species = [["a", a]];
+      if (numSpecies == 5) species.push(["e", decode(state.dataGroup1).filter((_, k) => k % 4 == 0)]);
+      for (const [name, values] of species) {
+        let worst = 0;
+        values.forEach((v, n) => (worst = Math.max(worst, Math.abs(v - expected[n]))));
+        assert.ok(worst < 1e-6, `${label}: species ${name} differs by up to ${worst}`);
+      }
+    }
+  }
+});
+
 for (const c of cases) {
   for (const scheme of SCHEMES) {
     test(`${c.name} (${scheme})`, async () => {
