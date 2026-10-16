@@ -198,6 +198,9 @@ async function VisualPDE(url) {
     postTexture,
     interpolationTexture,
     probeTexture,
+    // The integral probe's integrand at each node, and its values read back (see render).
+    probeFieldTexture,
+    probeFieldBuffer,
     clickTexture,
     simTextureOpts,
     reductionTextures = [],
@@ -5086,13 +5089,16 @@ async function VisualPDE(url) {
       render();
     }
 
-    // If we're probing via an integral, we overwrite postTexture (now that we're done with it) to compute the integral.
+    // If we're probing via an integral, compute the integrand at each node, in a texture of
+    // its own (as the plotted values in postTexture are read after rendering, e.g. for the
+    // colour range and the check for NaNs).
     if (
       options.probing &&
       options.probeType == "integral" &&
       readyForProbeUpdate()
     ) {
-      bufferFilled = false;
+      if (!probeFieldTexture) probeFieldTexture = postTexture.clone();
+      probeFieldTexture.setSize(nXDisc, nYDisc);
       simDomain.material = probeMaterial;
       if (numGroups(Number(options.numSpecies)) > 1) {
         uniforms.textureSource.value = mrtSimTextures[1].texture[0];
@@ -5100,9 +5106,19 @@ async function VisualPDE(url) {
       } else {
         uniforms.textureSource.value = simTextures[1].texture;
       }
-      renderer.setRenderTarget(postTexture);
+      renderer.setRenderTarget(probeFieldTexture);
       renderer.render(simScene, simCamera);
-      fillBuffer();
+      if (probeFieldBuffer?.length != 4 * nXDisc * nYDisc) {
+        probeFieldBuffer = new Float32Array(4 * nXDisc * nYDisc);
+      }
+      renderer.readRenderTargetPixels(
+        probeFieldTexture,
+        0,
+        0,
+        nXDisc,
+        nYDisc,
+        probeFieldBuffer,
+      );
       let dA;
       if (options.dimension == 1) {
         dA = uniforms.dx.value;
@@ -5110,8 +5126,8 @@ async function VisualPDE(url) {
         dA = uniforms.dx.value * uniforms.dy.value;
       }
       let total = 0;
-      for (let i = 0; i < buffer.length; i += 4) {
-        total += buffer[i] * (1 - buffer[i + 1]);
+      for (let i = 0; i < probeFieldBuffer.length; i += 4) {
+        total += probeFieldBuffer[i] * (1 - probeFieldBuffer[i + 1]);
       }
       total *= dA;
       addProbeData(uniforms.t.value, total);
