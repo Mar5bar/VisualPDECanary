@@ -388,14 +388,18 @@ export class WebGPUBackend {
    */
   async compile(label, code, formats) {
     const module = await this.compileModule(label, code);
-    this.device.pushErrorScope("validation");
-    const pipeline = await this.device.createComputePipelineAsync({
-      label,
-      layout: this.layout(formats).pipelineLayout,
-      compute: { module, entryPoint: "main" },
-    });
-    const error = await this.device.popErrorScope();
-    if (error) throw new ShaderCompileError(label, [error.message], code);
+    // A pipeline that can't be created rejects with why. (Not an error scope, which builds
+    // under way at once would share.)
+    let pipeline;
+    try {
+      pipeline = await this.device.createComputePipelineAsync({
+        label,
+        layout: this.layout(formats).pipelineLayout,
+        compute: { module, entryPoint: "main" },
+      });
+    } catch (error) {
+      throw new ShaderCompileError(label, [error.message], code);
+    }
     return { pipeline, formats, G: formats.length };
   }
 

@@ -79,3 +79,28 @@ test("WebGPUBackend.setParams submits work already recorded before writing new v
   backend.setParams([1, 2]);
   assert.deepEqual(log, ["submit", "write params"]);
 });
+
+test("WebGPUBackend.compile reports a pipeline that can't be created, without error scopes", async () => {
+  globalThis.GPUBufferUsage ??= new Proxy({}, { get: () => 1 });
+  globalThis.GPUTextureUsage ??= new Proxy({}, { get: () => 1 });
+  globalThis.GPUShaderStage ??= new Proxy({}, { get: () => 1 });
+  const { WebGPUBackend } = await import("../RD/webgpu/webgpu_backend.js");
+  const stub = () => ({ destroy() {}, createView() { return {}; } });
+  let scopes = 0;
+  const device = new Proxy(
+    {
+      queue: { writeBuffer() {}, writeTexture() {}, submit() {} },
+      limits: {},
+      createShaderModule: () => ({ getCompilationInfo: async () => ({ messages: [] }) }),
+      createComputePipelineAsync: async () => {
+        throw new Error("workgroup storage exceeds the limit");
+      },
+      pushErrorScope: () => scopes++,
+      popErrorScope: async () => (scopes--, null),
+    },
+    { get: (target, key) => (key in target ? target[key] : () => stub()) },
+  );
+  const backend = new WebGPUBackend(device);
+  await assert.rejects(backend.compile("test", "", ["r32float"]), /workgroup storage exceeds the limit/);
+  assert.equal(scopes, 0);
+});
