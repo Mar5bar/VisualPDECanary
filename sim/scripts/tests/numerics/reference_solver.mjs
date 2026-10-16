@@ -38,8 +38,8 @@
  * @property {number} nY - Number of nodes in y (1 for 1D problems).
  * @property {number} Lx - Domain width; node i sits at x = minX + (i + 0.5) * Lx / nX.
  * @property {number} Ly - Domain height.
- * @property {number} dx - The spatial step used in the finite differences. As in VisualPDE,
- *   this need not equal Lx / nX.
+ * @property {number} dx - The spatial step used in the finite differences. In VisualPDE,
+ *   this is the requested step, and Lx = nX * dx.
  * @property {number} [dy] - Defaults to dx.
  * @property {number} [minX] - Defaults to 0.
  * @property {number} [minY] - Defaults to 0.

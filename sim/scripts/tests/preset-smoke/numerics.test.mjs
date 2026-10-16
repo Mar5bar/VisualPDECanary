@@ -396,7 +396,60 @@ const cases = [
       };
     },
   },
+  {
+    // A step that doesn't divide the requested domain (10 / 0.3 = 33.3), so the domain is
+    // nX * dx = 9.9 long, and an inhomogeneity in x, so positions must agree with dx too.
+    name: "a space step that doesn't divide the domain, with forcing in x",
+    numSteps: 100,
+    options: {
+      numSpecies: 1,
+      spatialStep: 0.3,
+      dt: 0.005,
+      diffusionStr_1_1: "1",
+      reactionStr_1: "sin(pi*x/L_x)",
+      initCond_1: "cos(pi*x/L)",
+      boundaryConditions_1: "neumann",
+      neumannStr_1: "0",
+    },
+    reference: ({ Lx }) => {
+      const neumann = { type: "neumann" };
+      return {
+        numSpecies: 1,
+        D: [[constant(1)]],
+        f: [({ x }) => Math.sin((Math.PI * x) / Lx)],
+        init: [({ x }) => Math.cos((Math.PI * x) / Lx)],
+        bcs: [sides(neumann)],
+      };
+    },
+  },
 ];
+
+test("the space step is used exactly, and the domain is the nodes' extent", async () => {
+  for (const [dimension, domainScale, spatialStep] of [
+    [1, 10, 0.3],
+    [2, 10, 0.3],
+    [2, 7, 0.11],
+  ]) {
+    const grid = await page.evaluate(
+      async (opts) => {
+        const T = window.VisualPDETest;
+        await T.load(opts);
+        return T.grid();
+      },
+      { dimension, domainScale, spatialStep, numSpecies: 1, minX: "0", minY: "0" },
+    );
+    const label = `${dimension}D, L = ${domainScale}, dx = ${spatialStep}`;
+    assert.equal(grid.dx, spatialStep, label);
+    assert.ok(Math.abs(grid.Lx - grid.nX * spatialStep) < 1e-12, label);
+    if (dimension == 2) {
+      assert.equal(grid.dy, spatialStep, label);
+      assert.ok(Math.abs(grid.Ly - grid.nY * spatialStep) < 1e-12, label);
+    }
+    // The largest side is the requested domain scale, less any remainder.
+    const largest = dimension == 1 ? grid.Lx : Math.max(grid.Lx, grid.Ly);
+    assert.ok(largest <= domainScale + 1e-12 && largest > domainScale - spatialStep, label);
+  }
+});
 
 for (const c of cases) {
   for (const scheme of SCHEMES) {
