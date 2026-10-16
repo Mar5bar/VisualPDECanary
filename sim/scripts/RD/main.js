@@ -34,7 +34,12 @@ import {
   computeDisplayFunShaderMidMRT,
   probeShaderMRT,
 } from "./post_shaders.js";
-import { copyShader, copyShaderMRT, exactCopyShader } from "../copy_shader.js";
+import {
+  copyShader,
+  copyShaderMRT,
+  exactCopyShader,
+  checkpointShaderMRT,
+} from "../copy_shader.js";
 import {
   RDShaderTop,
   RDShaderBot,
@@ -1440,9 +1445,8 @@ async function VisualPDE(url) {
     });
     // MRT counterpart of checkpointMaterial (Stage 11.5 of the 8-species upgrade) - a
     // MeshBasicMaterial can only sample one texture/write one output, so restoring a
-    // checkpoint once numGroups>1 needs a real ShaderMaterial instead. Reuses copyShaderMRT
-    // (already samples textureSource/textureSourceGroup1 and writes fragColor0/fragColor1)
-    // with its own dedicated uniforms object - NOT the shared `uniforms` - since that
+    // checkpoint once numGroups>1 needs a real ShaderMaterial instead, sampling as the
+    // MeshBasicMaterial does (see checkpointShaderMRT), with its own dedicated uniforms object - NOT the shared `uniforms` - since that
     // object's textureSource/textureSourceGroup1 are reassigned constantly by every other
     // MRT material and this one's inputs (the checkpoint textures) are set only when
     // restoring, not every frame.
@@ -1450,11 +1454,13 @@ async function VisualPDE(url) {
       uniforms: {
         textureSource: { type: "t", value: null },
         textureSourceGroup1: { type: "t", value: null },
+        checkpointRepeat: { value: new THREE.Vector2(1, 1) },
+        checkpointOffset: { value: new THREE.Vector2(0, 0) },
       },
       vertexShader: genericVertexShader(),
       glslVersion: THREE.GLSL3,
     });
-    assignFragmentShader(checkpointMaterialMRT, copyShaderMRT());
+    assignFragmentShader(checkpointMaterialMRT, checkpointShaderMRT());
     minMaxMaterial = new THREE.ShaderMaterial({
       uniforms: minMaxUniforms,
       vertexShader: genericVertexShader(),
@@ -1833,9 +1839,9 @@ async function VisualPDE(url) {
     nYDisc = Math.floor(domainHeight / spatialStepValue);
     if (nXDisc > maxTexSize || nYDisc > maxTexSize) {
       throwError(
-        "Your device does not support a discretisation this fine (maximum " +
+        "Your device does not support a discretisation this fine (at most " +
           maxTexSize +
-          "MB). Please increase the space step to at least " +
+          " points in each direction). Please increase the space step to at least " +
           (Math.ceil((1e4 * domainScaleValue) / maxTexSize) / 1e4).toPrecision(
             4,
           ) +
@@ -5737,6 +5743,9 @@ async function VisualPDE(url) {
         checkpointMaterialMRT.uniforms.textureSource.value = checkpointTexture;
         checkpointMaterialMRT.uniforms.textureSourceGroup1.value =
           checkpointTextureGroup1 ?? tempZeroGroup1Tex;
+        // As setStretchOrCropTexture() set them for checkpointMaterial's map.
+        checkpointMaterialMRT.uniforms.checkpointRepeat.value.copy(checkpointTexture.repeat);
+        checkpointMaterialMRT.uniforms.checkpointOffset.value.copy(checkpointTexture.offset);
         simDomain.material = checkpointMaterialMRT;
       } else {
         simDomain.material = checkpointMaterial;
