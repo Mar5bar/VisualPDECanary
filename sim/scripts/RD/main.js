@@ -4359,16 +4359,21 @@ async function VisualPDE(url) {
       // Draws the current state, setting the colour range first if that's automatic, and
       // resolves once the GPU has finished.
       async render() {
+        // Every draw updates what's otherwise only updated every guiUpdatePeriod frames
+        // (arrows, the colour range, ...), so that both backends draw the same state.
         if (gpuBackend) {
           await gpuBackend.whenReady();
           // The colour range is read back asynchronously on WebGPU: draw once to compute it,
           // wait for it, then draw again with it.
+          frameCount = 0;
           render(true);
           await gpuBackend.device.queue.onSubmittedWorkDone();
           await new Promise((resolve) => setTimeout(resolve, 50));
+          frameCount = 0;
           render(true);
           await gpuBackend.device.queue.onSubmittedWorkDone();
         } else {
+          frameCount = 0;
           render(true);
         }
       },
