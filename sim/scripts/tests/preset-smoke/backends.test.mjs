@@ -277,6 +277,45 @@ test("changing the grid mid-run resamples the state identically on both backends
   assert.ok(worst < 1e-5, `largest difference ${worst}`);
 });
 
+test("resampling onto a new grid wraps or clamps at the edges as WebGL's textures do", async () => {
+  // WebGL interpolates each texture as it wraps: clamped only if all four species slots of a
+  // single group are, and always wrapping with 5-8 species. The state varies across the
+  // edges, so wrapping and clamping give different values there.
+  for (const [numSpecies, bc] of [
+    [1, "neumann"],
+    [4, "neumann"],
+    [5, "neumann"],
+    [1, "periodic"],
+  ]) {
+    const opts = {
+      numSpecies,
+      dimension: 2,
+      domainScale: 20,
+      spatialStep: 1,
+      dt: 0.01,
+      ...Object.fromEntries(
+        [1, 2, 3, 4, 5].flatMap((i) => [
+          [`boundaryConditions_${i}`, bc],
+          [`neumannStr_${i}`, "0"],
+          [`initCond_${i}`, `${i}*x/20 + y*y/400`],
+          [`reactionStr_${i}`, "0"],
+          [`diffusionStr_${i}_${i}`, "0"],
+        ]),
+      ),
+    };
+    const states = await onBoth(opts, [["setSpatialStep", "0.7"]]);
+    const label = `${numSpecies} species, ${bc}`;
+    assert.equal(states.webgpu.nX, states.webgl.nX, label);
+    let worst = 0;
+    for (const key of ["data", "dataGroup1"]) {
+      if (!states.webgl[key]) continue;
+      const [a, b] = [decode(states.webgl[key]), decode(states.webgpu[key])];
+      for (let n = 0; n < a.length; n++) worst = Math.max(worst, Math.abs(a[n] - b[n]));
+    }
+    assert.ok(worst < 1e-5, `${label}: largest difference ${worst}`);
+  }
+});
+
 test("timescales depending on the state are evaluated from the current state", async () => {
   for (const timesteppingScheme of ["Euler", "AB2", "Mid", "RK4"]) {
     const states = await onBoth(
@@ -387,4 +426,120 @@ test("an undefined symbol is reported the same way on both backends", async () =
   }
   assert.match(messages.webgl, /^Unknown symbol: 'undefinedRate'/);
   assert.equal(messages.webgpu, messages.webgl);
+});
+
+test("WebGPU frees the buffers it makes for each frame's passes", async () => {
+  // Garbage collection doesn't see GPU memory, so buffers made for one frame's work (probes,
+  // the integral display, domain integrals, readbacks) must be destroyed explicitly. Counts
+  // the buffers made and not destroyed over a run, after warming up.
+  const live = await pages.webgpu.evaluate(async (opts) => {
+    const T = window.VisualPDETest;
+    await T.load(opts);
+    const frames = async (n) => {
+      for (let k = 0; k < n; k++) {
+        await T.step(10);
+        await T.render();
+        await new Promise((r) => setTimeout(r, 30));
+      }
+    };
+    await frames(5);
+    let count = 0;
+    const create = GPUDevice.prototype.createBuffer;
+    const destroy = GPUBuffer.prototype.destroy;
+    const made = new Set();
+    GPUDevice.prototype.createBuffer = function (...args) {
+      const buffer = create.apply(this, args);
+      made.add(buffer);
+      count++;
+      return buffer;
+    };
+    GPUBuffer.prototype.destroy = function () {
+      if (made.delete(this)) count--;
+      return destroy.call(this);
+    };
+    try {
+      await frames(20);
+      await T.finish();
+      await new Promise((r) => setTimeout(r, 200));
+    } finally {
+      GPUDevice.prototype.createBuffer = create;
+      GPUBuffer.prototype.destroy = destroy;
+    }
+    return count;
+  }, { ...probeBase, probeType: "integral", expressions: "", reactionStr_1: "-0.01*Int(u)*u" });
+  // A few may be awaiting their readback.
+  assert.ok(live <= 4, `${live} buffers made over 20 frames are still alive`);
+});
+
+test("post-processed values aren't read for the wrong grid after a resize", async () => {
+  // Until the next draw, they're for the old grid, so reading them must give nothing rather
+  // than reading the old values as if they were on the new grid.
+  const page = pages.webgpu;
+  const errors = [];
+  const onConsole = (m) => m.type() == "error" && errors.push(m.text());
+  page.on("console", onConsole);
+  try {
+    const r = await page.evaluate(async (opts) => {
+      const T = window.VisualPDETest;
+      await T.load(opts);
+      await T.render();
+      await T.setSpatialStep("0.4");
+      const stale = await T.readPost();
+      await T.render();
+      const fresh = await T.readPost();
+      const bytes = (post) => atob(post.data).length;
+      return { stale: bytes(stale), fresh: bytes(fresh), nX: fresh.nX, nY: fresh.nY };
+    }, { ...probeBase, probing: false });
+    assert.equal(r.stale, 0, "values for the old grid were read");
+    assert.equal(r.fresh, 16 * r.nX * r.nY);
+    assert.deepEqual(errors, []);
+  } finally {
+    page.off("console", onConsole);
+  }
+});
+
+test("brushing while the kernels are rebuilt for a new number of species does nothing", async () => {
+  // The brush kernel then writes the old state's formats, so it mustn't run (nor the slots
+  // rotate as if it had).
+  const message = await pages.webgpu.evaluate(async (base) => {
+    const T = window.VisualPDETest;
+    await T.load(base);
+    await T.step(5);
+    const loading = T.load({ ...base, numSpecies: 5 });
+    await T.brush(0.5, 0.5, false, false);
+    await loading;
+    return T.errorMessage();
+  }, brushBase);
+  assert.equal(message, "");
+});
+
+test("overlapping image loads leave the latest image in place", async () => {
+  // Decoding is asynchronous: make the first image decode last.
+  const value = await pages.webgpu.evaluate(async () => {
+    const T = window.VisualPDETest;
+    await T.load({ numSpecies: 1, dimension: 2, initCond_1: "I_SR", reactionStr_1: "0", diffusionStr_1_1: "0" });
+    const canvas = (red) => {
+      const c = document.createElement("canvas");
+      c.width = c.height = 4;
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = `rgb(${red}, 0, 0)`;
+      ctx.fillRect(0, 0, 4, 4);
+      return c;
+    };
+    const [first, second] = [canvas(0), canvas(255)];
+    const decode = window.createImageBitmap;
+    window.createImageBitmap = async (source, ...args) => {
+      if (source == first) await new Promise((r) => setTimeout(r, 200));
+      return decode(source, ...args);
+    };
+    try {
+      await Promise.all([T.setImage(0, first), T.setImage(0, second)]);
+    } finally {
+      window.createImageBitmap = decode;
+    }
+    await T.reset();
+    const state = await T.readState();
+    return new Float32Array(Uint8Array.from(atob(state.data), (c) => c.charCodeAt(0)).buffer)[0];
+  });
+  assert.equal(value, 1);
 });

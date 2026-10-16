@@ -74,6 +74,8 @@ export class WebGPUBackend {
     this.buildScheduled = false;
     // The kinds whose latest build failed.
     this.failedBuilds = new Set();
+    // Resources to destroy once the work recorded so far is submitted (see release).
+    this.releases = [];
     // Called with (kind, error) when the latest build of a kind fails.
     this.onBuildError = null;
     this.sources = {};
@@ -197,13 +199,19 @@ export class WebGPUBackend {
     this.slots = Array.from({ length: NUM_SLOTS }, (_, k) => this.createSlot(`slot ${k}`));
     // As resizeTextures() does on WebGL, interpolate the state onto the new grid, unless the
     // number of species groups has changed (which starts the state afresh on WebGL too).
+    // Interpolation near the edges wraps or clamps as the WebGL textures do: with one species
+    // group, as the simulation clamps it, and with two, always wrapping (as WebGL's
+    // multiple-render-target textures always wrap, clamping in the shader instead).
     if (keep) {
+      const clamp =
+        this.numGroups == 1 ? [this.clamp?.[0] ?? [false, false]] : [[false, false], [false, false]];
       old.slots.forEach((source, k) =>
         this.resample(source.textures, old.nX, old.nY, this.slots[k], {
           repeat: [1, 1],
           offset: [0, 0],
           linear: true,
           snap: true,
+          clamp,
         }),
       );
     }
@@ -251,7 +259,10 @@ export class WebGPUBackend {
    * @param {ImageBitmapSource} source
    */
   async setImage(index, source) {
-    this.settle();
+    // Decoding is asynchronous, so calls (e.g. a webcam's frames) can finish out of order:
+    // only the latest call for an image is installed.
+    this.imageRequests ??= [];
+    const request = (this.imageRequests[index] = (this.imageRequests[index] ?? 0) + 1);
     // Decode the raw pixel values, without colour-space conversion or premultiplied alpha,
     // as three.js does for WebGL. Flipped to match three.js's default for textures (flipY),
     // so v = 0 is the image's bottom.
@@ -260,23 +271,33 @@ export class WebGPUBackend {
       colorSpaceConversion: "none",
       imageOrientation: "flipY",
     });
-    const texture = this.device.createTexture({
-      size: [bitmap.width, bitmap.height],
-      format: "rgba8unorm",
-      usage:
-        GPUTextureUsage.TEXTURE_BINDING |
-        GPUTextureUsage.COPY_DST |
-        GPUTextureUsage.RENDER_ATTACHMENT,
-    });
+    if (this.imageRequests[index] != request) {
+      bitmap.close();
+      return;
+    }
+    // Work recorded before now uses the previous image.
+    this.flush();
+    let texture = this.images[index];
+    // An image of the same size (e.g. the webcam's next frame) reuses the texture.
+    if (texture.width != bitmap.width || texture.height != bitmap.height) {
+      texture = this.device.createTexture({
+        size: [bitmap.width, bitmap.height],
+        format: "rgba8unorm",
+        usage:
+          GPUTextureUsage.TEXTURE_BINDING |
+          GPUTextureUsage.COPY_DST |
+          GPUTextureUsage.RENDER_ATTACHMENT,
+      });
+      this.images[index].destroy();
+      this.images[index] = texture;
+      this.invalidateBindGroups();
+    }
     this.device.queue.copyExternalImageToTexture(
       { source: bitmap },
       { texture, premultipliedAlpha: false },
       [bitmap.width, bitmap.height],
     );
     bitmap.close();
-    this.images[index].destroy();
-    this.images[index] = texture;
-    this.invalidateBindGroups();
   }
 
   /** Compiles WGSL, throwing a ShaderCompileError with the compiler's messages if it fails. */
@@ -596,6 +617,7 @@ export class WebGPUBackend {
     const key = JSON.stringify(clamp);
     if (key == this.clampKey) return;
     this.clampKey = key;
+    this.clamp = clamp;
     this.stateSamplers = clamp.map(([cx, cy]) =>
       this.device.createSampler({
         magFilter: "nearest",
@@ -666,7 +688,9 @@ export class WebGPUBackend {
 
   /** Mirrors enforceDirichlet() in main.js: slot k+1 is enforced into slot k, then rotated. */
   enforceDirichlet(uniforms) {
-    if (!this.pipelines.enforce) return;
+    // Skipped whole, rather than rotating the slots without writing them, if the kernel was
+    // built for other state formats (e.g. while it's rebuilt after the species change).
+    if (!this.fitsState(this.pipelines.enforce)) return;
     for (let k = 1; k < NUM_SLOTS; k++) {
       this.dispatch(this.pipelines.enforce, uniforms, [k], k - 1);
     }
@@ -681,7 +705,8 @@ export class WebGPUBackend {
    *   brushValueModifier (1 to draw, -1 to erase).
    */
   draw(uniforms, brush) {
-    if (!this.pipelines.draw) return;
+    // As for enforceDirichlet.
+    if (!this.fitsState(this.pipelines.draw)) return;
     this.flush();
     this.device.queue.writeBuffer(this.valuesBuffer, 0, BRUSH_VALUES.pack(brush));
     for (let k = 1; k < NUM_SLOTS; k++) {
@@ -692,6 +717,7 @@ export class WebGPUBackend {
 
   /** Writes the initial conditions into every slot, as clearTextures() does. */
   clear(uniforms) {
+    if (!this.fitsState(this.pipelines.clear)) return;
     this.dispatch(this.pipelines.clear, uniforms, [1], 0);
     this.copySlotToOthers(0);
   }
@@ -764,22 +790,29 @@ export class WebGPUBackend {
     // Enlarged in either direction counts as enlarged, as for a texture's LOD.
     const enlarged = linear && (this.nX * repeat[0] > width || this.nY * repeat[1] > height);
     this.resample(sources, width, height, this.slots[0], { repeat, offset, linear: enlarged });
+    this.release(...sources);
     this.copySlotToOthers(0);
   }
 
   /**
    * Records resampling state textures (one per species group) of width by height nodes onto
    * the grid, into the target slot: at each node's texture coordinates times repeat plus
-   * offset, clamped at the edges, bilinearly if linear is set (snapping weights near texel
-   * centres if snap is set, as textureBilinear does), otherwise nearest.
+   * offset, bilinearly if linear is set (snapping weights near texel centres if snap is set,
+   * as textureBilinear does), otherwise nearest. Beyond the edges, each group's nodes are
+   * clamped in x and y where clamp (per group, [x, y]) says so, as by default, and wrapped
+   * otherwise.
    */
-  resample(sources, width, height, target, { repeat, offset, linear, snap = false }) {
+  resample(sources, width, height, target, { repeat, offset, linear, snap = false, clamp }) {
     const device = this.device;
     const G = this.numGroups;
+    const clampBits = Array.from({ length: G }, (_, g) => clamp?.[g] ?? [true, true]).reduce(
+      (bits, [cx, cy], g) => bits | (cx ? 1 << (2 * g) : 0) | (cy ? 2 << (2 * g) : 0),
+      0,
+    );
     const params = new ArrayBuffer(48);
     new Uint32Array(params, 0, 4).set([width, height, linear ? 1 : 0, snap ? 1 : 0]);
     new Float32Array(params, 16, 4).set([...repeat, ...offset]);
-    new Uint32Array(params, 32, 2).set([this.nX, this.nY]);
+    new Uint32Array(params, 32, 3).set([this.nX, this.nY, clampBits]);
     const paramsBuffer = device.createBuffer({
       size: 48,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -815,11 +848,29 @@ export class WebGPUBackend {
       Math.ceil(this.nY / WORKGROUP_SIZE[1]),
     );
     pass.end();
+    this.release(paramsBuffer);
+  }
+
+  /**
+   * Destroys GPU resources (buffers or textures) once everything recorded so far has been
+   * submitted, which is safe however long the GPU then takes to run it. Call this after
+   * recording the last use of a resource made for that work alone, rather than leaving it
+   * to garbage collection, which doesn't see GPU memory (and so may let it run short, e.g.
+   * on phones).
+   */
+  release(...resources) {
+    this.releases.push(...resources);
   }
 
   /** Submits everything recorded since the last flush. */
   flush() {
     this.settle();
+    this.flushRecorded();
+    this.releases.forEach((resource) => resource.destroy());
+    this.releases = [];
+  }
+
+  flushRecorded() {
     if (!this.encoder && !this.uniformCount) return;
     if (this.uniformCount) {
       this.device.queue.writeBuffer(
@@ -893,14 +944,23 @@ function restoreShader(formats) {
 struct Params {
   width: u32, height: u32, linear: u32, snap: u32,
   repeat: vec2f, offset: vec2f,
-  nX: u32, nY: u32,
+  // Bit 2g (2g + 1) set if group g is clamped in x (y), and wrapped otherwise.
+  nX: u32, nY: u32, clampBits: u32,
 }
 @group(0) @binding(0) var<uniform> P: Params;
 ${groups.map((g) => `@group(0) @binding(${1 + g}) var source${g}: texture_2d<f32>;`).join("\n")}
 ${groups.map((g) => `@group(0) @binding(${3 + g}) var dst${g}: texture_storage_2d<${formats[g]}, write>;`).join("\n")}
 
+fn wrapOrClamp(k: i32, n: i32, clampIt: bool) -> i32 {
+  if (clampIt) { return clamp(k, 0, n - 1); }
+  return ((k % n) + n) % n;
+}
+
 fn at(g: u32, i: i32, j: i32) -> vec4f {
-  let ij = vec2i(clamp(i, 0, i32(P.width) - 1), clamp(j, 0, i32(P.height) - 1));
+  let ij = vec2i(
+    wrapOrClamp(i, i32(P.width), ((P.clampBits >> (2u * g)) & 1u) != 0u),
+    wrapOrClamp(j, i32(P.height), ((P.clampBits >> (2u * g + 1u)) & 1u) != 0u),
+  );
 ${groups.map((g) => `  if (g == ${g}u) { return textureLoad(source${g}, ij, 0); }`).join("\n")}
   return vec4f(0.0);
 }

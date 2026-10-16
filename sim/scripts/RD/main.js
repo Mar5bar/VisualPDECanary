@@ -4391,9 +4391,10 @@ async function VisualPDE(url) {
         }
       },
       // Applies the brush once at (x, y), in texture coordinates, as a click does; erases if
-      // erase is set, as a right click does.
-      async brush(x, y, erase = false) {
-        if (gpuBackend) await gpuBackend.whenReady();
+      // erase is set, as a right click does. Unless wait is false, first waits for any
+      // pipelines being built (as a click needn't).
+      async brush(x, y, erase = false, wait = true) {
+        if (gpuBackend && wait) await gpuBackend.whenReady();
         uniforms.brushCoords.value = new THREE.Vector2(x, y);
         uniforms.brushValueModifier.value = erase ? -1 : 1;
         draw();
@@ -4402,9 +4403,14 @@ async function VisualPDE(url) {
       // component) per node, as computed for the last frame drawn.
       async readPost() {
         const data = gpuDisplay
-          ? await gpuDisplay.readPost()
+          ? ((await gpuDisplay.readPost()) ?? new Float32Array(0))
           : (getPostState(), postBuffer);
         return { nX: nXDisc, nY: nYDisc, data: toBase64(data) };
+      },
+      // Sets image index (0 for I_S, 1 for I_T) on WebGPU, as loading an image does.
+      async setImage(index, source) {
+        if (!gpuBackend) throw new Error("setImage is only implemented for WebGPU.");
+        await gpuBackend.setImage(index, source);
       },
       // Changes the spatial step without resetting, as editing it in the GUI does, so the
       // state is resampled onto the new grid.
@@ -5257,6 +5263,8 @@ async function VisualPDE(url) {
     gpuIntegralPending = true;
     gpuDisplay.integral(areaElement()).then((total) => {
       gpuIntegralPending = false;
+      // Null if the grid has changed since the values were post-processed.
+      if (total == null) return;
       $("#integralValue").html(formatLabelNum(total, 4));
       checkColourbarPosition();
     });
@@ -5269,7 +5277,8 @@ async function VisualPDE(url) {
     gpuArrowReadPending = true;
     gpuDisplay.readPost().then((data) => {
       gpuArrowReadPending = false;
-      if (!arrowGroup) return;
+      // Null if the grid has changed since the values were post-processed.
+      if (!data || !arrowGroup) return;
       const changed =
         !postBuffer ||
         postBuffer.length != data.length ||
@@ -5307,7 +5316,8 @@ async function VisualPDE(url) {
     gpuLineReadPending = true;
     gpuDisplay.readPost().then((data) => {
       gpuLineReadPending = false;
-      if (data.length != buffer.length) return;
+      // Null if the grid has changed since the values were post-processed.
+      if (!data || data.length != buffer.length) return;
       const changed = data.some((v, k) => !Object.is(v, buffer[k]));
       buffer.set(data);
       bufferFilled = true;

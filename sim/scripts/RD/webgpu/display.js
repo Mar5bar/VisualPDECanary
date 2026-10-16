@@ -424,6 +424,12 @@ export class WebGPUDisplay {
     this.geometry = { buffers, count: index.length };
   }
 
+  // Whether the post-processed values are for the current grid: after a resize, they aren't
+  // until the next post-processing pass.
+  postFits() {
+    return this.postBuffer?.size == Math.max(16, this.backend.nX * this.backend.nY * 16);
+  }
+
   ensurePostBuffer() {
     const size = Math.max(16, this.backend.nX * this.backend.nY * 16);
     if (this.postBuffer?.size == size) return;
@@ -520,6 +526,7 @@ export class WebGPUDisplay {
       );
     }
     pass.end();
+    backend.release(uniformBuffer, valuesBuffer);
   }
 
   // A scratch buffer of nX * nY vec4fs, for field passes whose results are reduced.
@@ -560,6 +567,7 @@ export class WebGPUDisplay {
       );
       pass.dispatchWorkgroups(groups);
       pass.end();
+      this.backend.release(uniforms);
     };
     run(
       masked ? this.pipelines.sumMasked : this.pipelines.sum,
@@ -571,13 +579,15 @@ export class WebGPUDisplay {
     run(this.pipelines.sumSecond, params(this.reduceGroups, scale), this.partials, output, 1);
   }
 
-  // Copies `bytes` bytes of a buffer to the CPU, after everything recorded so far.
+  // Copies `bytes` bytes of a buffer from smallBuffer() to the CPU, after everything
+  // recorded so far, then destroys the buffer.
   async readBack(buffer, bytes) {
     const staging = this.device.createBuffer({
       size: bytes,
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
     });
     this.backend.getEncoder().copyBufferToBuffer(buffer, 0, staging, 0, bytes);
+    this.backend.release(buffer);
     this.backend.flush();
     await staging.mapAsync(GPUMapMode.READ);
     const data = new Float32Array(staging.getMappedRange().slice(0));
@@ -609,14 +619,14 @@ export class WebGPUDisplay {
   async probe(simValues, probeValues, dA) {
     if (probeValues.pointProbe) {
       if (!this.pipelines.probePoint) return null;
-      const out = this.ensureSmallBuffer();
+      const out = this.smallBuffer();
       this.runField(this.pipelines.probePoint, simValues, PROBE_VALUES, probeValues, out, true);
       return this.readBack(out, 16);
     }
     if (!this.pipelines.probeField) return null;
     const field = this.ensureFieldBuffer();
     this.runField(this.pipelines.probeField, simValues, PROBE_VALUES, probeValues, field);
-    const out = this.ensureSmallBuffer();
+    const out = this.smallBuffer();
     this.recordSum(field, this.backend.nX * this.backend.nY, { masked: true, scale: dA, output: out });
     return this.readBack(out, 16);
   }
@@ -627,8 +637,8 @@ export class WebGPUDisplay {
    * @returns {Promise<number>}
    */
   async integral(dA) {
-    if (!this.postBuffer) return 0;
-    const out = this.ensureSmallBuffer();
+    if (!this.postFits()) return null;
+    const out = this.smallBuffer();
     this.recordSum(this.postBuffer, this.backend.nX * this.backend.nY, {
       masked: true,
       scale: dA,
@@ -637,9 +647,9 @@ export class WebGPUDisplay {
     return (await this.readBack(out, 16))[0];
   }
 
-  // A buffer for a single vec4f result. Each call returns a fresh one, as several results may
-  // be pending at once.
-  ensureSmallBuffer() {
+  // A buffer for a single vec4f result, for readBack(), which destroys it. Each call returns
+  // a fresh one, as several results may be pending at once.
+  smallBuffer() {
     return this.device.createBuffer({
       size: 16,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
@@ -652,7 +662,7 @@ export class WebGPUDisplay {
    * @returns {Promise<Float32Array>}
    */
   async readPost() {
-    if (!this.postBuffer) return new Float32Array(0);
+    if (!this.postFits()) return null;
     const size = this.backend.nX * this.backend.nY * 16;
     const staging = this.device.createBuffer({
       size,
@@ -898,7 +908,7 @@ export class WebGPUDisplay {
    * @returns {number[]}
    */
   requestMinMax(onResult) {
-    if (this.minMaxPending || !this.postBuffer) return this.minMax;
+    if (this.minMaxPending || !this.postFits()) return this.minMax;
     const backend = this.backend;
     const count = backend.nX * backend.nY;
     this.minMaxPending = true;
