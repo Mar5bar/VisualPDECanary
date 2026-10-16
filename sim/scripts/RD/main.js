@@ -171,6 +171,9 @@ async function VisualPDE(url) {
     gpuIntegralAgain = false,
     // Counts resets of the state and the probe, so that readbacks under way then are dropped.
     gpuReadbackGeneration = 0,
+    // Whether a reset's clearing of the WebGPU state is waiting for pipelines to be built
+    // (see clearTextures), until when the state is the one being replaced.
+    gpuClearPending = false,
     // Every error raised since the test hooks last loaded something (see initTestHooks).
     testErrors = [],
     // Whether the post-processed values are being read back for a line plot on WebGPU.
@@ -692,6 +695,9 @@ async function VisualPDE(url) {
       });
       gpuBackend = new WebGPUBackend(device);
       gpuBackend.onBuildError = onGpuBuildError;
+      // Pipelines build asynchronously, so a change made while paused (e.g. to the plotted
+      // expression) is drawn once its pipeline is ready, as WebGL draws it straight away.
+      gpuBackend.onInstalled = () => renderIfNotRunning();
       // For testing: take every Forward Euler step in its own pass.
       if (params.get("webgpuBlocking") == "off") gpuBackend.blocking = false;
       gpuAdapterInfo = adapterInfo;
@@ -5279,6 +5285,8 @@ async function VisualPDE(url) {
   // at the right times, e.g. t = 0 just after a reset); addProbeData drops any that come too
   // soon after the last point.
   function gpuUpdateProbe() {
+    // Not of a state about to be cleared (the clear probes the new one).
+    if (gpuClearPending) return;
     const time = uniforms.t.value;
     const generation = gpuReadbackGeneration;
     gpuDisplay
@@ -5308,6 +5316,7 @@ async function VisualPDE(url) {
 
   // Updates the integral display from the GPU, as updateIntegralDisplay() does on WebGL.
   function gpuUpdateIntegralDisplay() {
+    if (gpuClearPending) return;
     if (gpuIntegralPending) {
       gpuIntegralAgain = true;
       return;
@@ -5755,11 +5764,13 @@ async function VisualPDE(url) {
       // The pipelines may still be building (e.g. just after loading a preset), in which
       // case clear once they're ready.
       if (!gpuBackend.isReady()) {
+        gpuClearPending = true;
         gpuBackend.whenReady().then(() => {
           if (gpuBackend.isReady()) clearTextures();
         });
         return;
       }
+      gpuClearPending = false;
       syncGpuParams();
       if (checkpointExists && options.resetFromCheckpoints) {
         // As WebGL draws checkpointTexture (with setStretchOrCropTexture's fit).

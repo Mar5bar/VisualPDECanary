@@ -621,6 +621,8 @@ export class WebGPUDisplay {
    * @returns {Promise<Float32Array>}
    */
   async probe(simValues, probeValues, dA) {
+    // Not with a pipeline that's being replaced (e.g. for a new probe expression).
+    if (["probePoint", "probeField"].some((kind) => this.backend.building.has(kind))) return null;
     if (probeValues.pointProbe) {
       if (!this.pipelines.probePoint) return null;
       const out = this.smallBuffer();

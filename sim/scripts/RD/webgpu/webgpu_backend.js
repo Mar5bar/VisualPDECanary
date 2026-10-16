@@ -74,6 +74,10 @@ export class WebGPUBackend {
     this.buildScheduled = false;
     // The kinds whose latest build failed.
     this.failedBuilds = new Set();
+    // The kinds whose latest build hasn't finished.
+    this.building = new Set();
+    // Called after a batch of builds has installed something (e.g. to draw with it).
+    this.onInstalled = null;
     // Resources to destroy once the work recorded so far is submitted (see release).
     this.releases = [];
     // Called with (kind, error) when the latest build of a kind fails.
@@ -406,6 +410,7 @@ export class WebGPUBackend {
     const generation = (this.generations[kind] ?? 0) + 1;
     this.generations[kind] = generation;
     this.requests[kind] = { generation, build, discard };
+    this.building.add(kind);
     if (this.buildScheduled) return;
     this.buildScheduled = true;
     this.compiling++;
@@ -414,16 +419,20 @@ export class WebGPUBackend {
       this.buildScheduled = false;
       const requests = this.requests;
       this.requests = {};
+      let installed = false;
       try {
         await Promise.all(
           Object.entries(requests).map(async ([kind, { generation, build, discard }]) => {
             try {
               const install = await build();
               if (this.generations[kind] != generation) return;
+              this.building.delete(kind);
               this.failedBuilds.delete(kind);
               install();
+              installed = true;
             } catch (error) {
               if (this.generations[kind] != generation) return;
+              this.building.delete(kind);
               this.failedBuilds.add(kind);
               this.settle();
               discard?.();
@@ -434,6 +443,7 @@ export class WebGPUBackend {
       } finally {
         this.compiling--;
       }
+      if (installed) this.onInstalled?.();
     })();
     this.batches.add(batch);
     const done = () => this.batches.delete(batch);

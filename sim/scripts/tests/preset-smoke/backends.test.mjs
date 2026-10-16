@@ -851,3 +851,102 @@ test("changing boundary conditions in the GUI acts as loading them would", async
     assert.deepEqual(u(r.five.post), u(r.loaded.post), `${backend}: 5 species display differently`);
   }
 });
+
+// Sets a dat.GUI controller in the page, by its label, as a user would.
+function setControl(label, value) {
+  const item = [...document.querySelectorAll("li.cr")].find(
+    (li) => li.querySelector(".property-name")?.textContent.trim() == label,
+  );
+  if (!item) throw new Error(`No controller labelled ${label}`);
+  const select = item.querySelector("select");
+  if (select) {
+    select.value = String(value);
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    return;
+  }
+  const input = item.querySelector("input");
+  input.focus();
+  input.value = String(value);
+  for (const type of ["input", "keyup", "change"]) input.dispatchEvent(new Event(type, { bubbles: true }));
+  input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", keyCode: 13, which: 13, bubbles: true }));
+  input.dispatchEvent(new Event("blur", { bubbles: true }));
+  input.blur();
+}
+
+// Runs fn(T, setControl, ...args) in each backend's page, returning the results by backend.
+async function inBoth(fn, ...args) {
+  const results = {};
+  for (const [backend, page] of Object.entries(pages)) {
+    results[backend] = await page.evaluate(
+      async ([fn, setControl, args]) => {
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        return eval(`(${fn})`)(window.VisualPDETest, eval(`(${setControl})`), sleep, ...args);
+      },
+      [fn.toString(), setControl.toString(), args],
+    );
+  }
+  return results;
+}
+
+test("a change made while paused is drawn, once WebGPU has built its pipeline", async () => {
+  const r = await inBoth(async (T, setControl, sleep) => {
+    await T.load({
+      numSpecies: 1,
+      dimension: 2,
+      reactionStr_1: "0",
+      diffusionStr_1_1: "0",
+      initCond_1: "x/100",
+      whatToPlot: "u",
+    });
+    await T.render();
+    setControl("Expression", "1-u");
+    // No render requested: the app redraws once the change can be drawn.
+    await sleep(1500);
+    const post = await T.readPost();
+    const state = await T.readState();
+    const value = (data) => new Float32Array(Uint8Array.from(atob(data), (c) => c.charCodeAt(0)).buffer)[400];
+    return { plotted: value(post.data), u: value(state.data) };
+  });
+  for (const [backend, { plotted, u }] of Object.entries(r)) {
+    assert.ok(Math.abs(plotted - (1 - u)) < 1e-6, `${backend}: plotted ${plotted}, not 1 - ${u}`);
+  }
+});
+
+test("the probe's chart agrees between backends after changing the probe or resetting", async () => {
+  const base = {
+    dimension: 2,
+    numSpecies: 1,
+    reactionStr_1: "0",
+    diffusionStr_1_1: "0",
+    initCond_1: "0.5",
+    whatToPlot: "u",
+    dt: 0.01,
+    probeLength: 1,
+    probeType: "sample",
+    probeX: "10",
+    probeY: "10",
+  };
+  const r = await inBoth(async (T, setControl, sleep, base) => {
+    // Probing switched on for a probe changed while it was off.
+    await T.load({ ...base, probing: true, probeFun: "u" });
+    await T.step(5);
+    await T.render();
+    await sleep(200);
+    await T.load({ ...base, probing: false, probeFun: "1000+u" });
+    await T.render();
+    await sleep(200);
+    document.getElementById("probeButton").click();
+    await sleep(800);
+    const switchedOn = await T.probeData();
+    // A reset made just after a change that rebuilds the simulation's pipelines.
+    await T.load({ ...base, reactionStr_1: "1", probing: true, probeFun: "u" });
+    await T.step(50);
+    await T.render();
+    await sleep(300);
+    setControl("Du", "0.001");
+    document.getElementById("erase").click();
+    await sleep(1000);
+    return { switchedOn, reset: await T.probeData() };
+  }, base);
+  assert.deepEqual(r.webgpu, r.webgl);
+});
