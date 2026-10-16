@@ -227,6 +227,11 @@ export function rewriteTernaries(tokens) {
  *   caller translates itself, given their already-translated arguments (e.g. texture lookups).
  * @property {string} [returnValue] - When translating the body of a void GLSL function into
  *   that of a WGSL function returning a value, what a bare "return;" returns.
+ * @property {boolean} [runtimeLiterals] - Whether to pass float literals through vpde_rt(),
+ *   an identity function. WGSL evaluates expressions built only from literals when the
+ *   shader is created, and rejects the shader if one isn't finite (e.g. 1.0/0.0), where
+ *   GLSL gives inf or NaN at run time; a call to a user-defined function is never evaluated
+ *   then. Compilers inline vpde_rt, and then fold constants in f32, as GLSL does.
  */
 
 /**
@@ -289,7 +294,8 @@ function translateTokens(tokens, start, end, options) {
       throw new TranslationError(`The ${tok.value} operator isn't supported.`);
     }
     if (tok.type == "number") {
-      emit(normaliseNumber(tok.value));
+      const number = normaliseNumber(tok.value);
+      emit(options.runtimeLiterals && /[.eE]/.test(number) ? `vpde_rt(${number})` : number);
       continue;
     }
     if (tok.type != "ident") {

@@ -102,6 +102,8 @@ export const AUXILIARY_WGSL = `
 const pi = 3.141592653589793;
 
 fn vpde_mod(x: f32, y: f32) -> f32 { return x - y * floor(x / y); }
+// Keeps literals out of WGSL's shader-creation-time evaluation (see glsl_to_wgsl.js).
+fn vpde_rt(x: f32) -> f32 { return x; }
 // By bit pattern, since WGSL implementations may assume NaNs and infinities don't occur and
 // fold comparisons such as x != x away.
 fn vpde_isnan(x: f32) -> bool { return (bitcast<u32>(x) & 0x7fffffffu) > 0x7f800000u; }
@@ -202,6 +204,7 @@ function translationOptions(parts, extraCalls = {}) {
   renames.gl_FragColor = "fragColour";
   return {
     renames,
+    runtimeLiterals: true,
     calls: {
       texture2D: image,
       textureSize: () => "vec2i(i32(U.nX), i32(U.nY))",

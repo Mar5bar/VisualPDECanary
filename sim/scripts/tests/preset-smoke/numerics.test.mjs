@@ -503,6 +503,71 @@ test("round() and fractional powers of negative numbers round halves away from z
   assert.deepEqual([...values.slice(0, 4)], [3191, -2, -32, 7.5]);
 });
 
+test("constant subexpressions that are infinite give inf at run time, as in GLSL", async () => {
+  // WGSL rejects shaders in which an expression of literals alone isn't finite.
+  const { state, message } = await page.evaluate(async (opts) => {
+    const T = window.VisualPDETest;
+    await T.load(opts);
+    await T.step(1);
+    return { state: await T.readState(), message: await T.errorMessage() };
+  }, {
+    dimension: 1,
+    numSpecies: 4,
+    dt: 0.1,
+    timesteppingScheme: "Euler",
+    ...Object.fromEntries([1, 2, 3, 4].map((i) => [`diffusionStr_${i}_${i}`, "0"])),
+    initCond_1: "min(1/0, 2)",
+    initCond_2: "max(-1/0, -3)",
+    initCond_3: "min(exp(1000), 5)",
+    initCond_4: "0",
+    reactionStr_1: "0",
+    reactionStr_2: "0",
+    reactionStr_3: "0",
+    reactionStr_4: "min(1/0, 1) + max(-1/0, -1) + min(exp(1000), 1)",
+  });
+  assert.equal(message, "");
+  assert.deepEqual([...decode(state.data).slice(0, 4)].map((v) => Math.fround(v)), [2, -3, 5, Math.fround(0.1)]);
+});
+
+test("the state read back on a large grid is exactly the state stepped, with 5-8 species too", async () => {
+  // One Forward Euler step of u_t = -u_xb, checked against float64 from the state read back
+  // beforehand: any error in reading the state back (e.g. interpolating between nodes) shows
+  // up as a mismatch far larger than rounding. The grid is large, as the texture coordinates
+  // of such errors are least accurate there.
+  for (const numSpecies of [1, 5]) {
+    const opts = {
+      dimension: 1,
+      domainScale: 100,
+      spatialStep: 0.1,
+      minX: "0",
+      numSpecies,
+      speciesNames: ["a", "b", "c", "d", "e"].slice(0, numSpecies).join(" "),
+      whatToPlot: "a",
+      timesteppingScheme: "Euler",
+      dt: 0.01,
+      reactionStr_1: "-a_xb",
+      diffusionStr_1_1: "0",
+      initCond_1: "sin(x/4)",
+      boundaryConditions_1: "periodic",
+    };
+    const { initial, state, grid } = await page.evaluate(async (opts) => {
+      const T = window.VisualPDETest;
+      await T.load(opts);
+      const initial = await T.readState();
+      await T.step(1);
+      return { initial, state: await T.readState(), grid: await T.grid() };
+    }, opts);
+    const [u0, u1] = [decode(initial.data), decode(state.data)];
+    const n = grid.nX;
+    let worst = 0;
+    for (let i = 0; i < n; i++) {
+      const expected = u0[4 * i] - (opts.dt * (u0[4 * i] - u0[4 * ((i + n - 1) % n)])) / grid.dx;
+      worst = Math.max(worst, Math.abs(u1[4 * i] - expected));
+    }
+    assert.ok(worst < 1e-7, `${numSpecies} species: error ${worst.toExponential(2)}`);
+  }
+});
+
 test("a species clamped at the edges evolves the same whatever the other species' conditions", async () => {
   // Second-order one-sided differences reach two nodes beyond the edge, so they test that
   // every neighbour is clamped, whether that's done by the texture's wrap mode (when every

@@ -201,3 +201,11 @@ test("translateStatements: parenthesises mixed logic inside if conditions", () =
     "if ((a<1.&&b>0.)||c>2.)\n{\n  x = 1.;\n}",
   );
 });
+
+test("translateExpression: runtimeLiterals passes float literals through vpde_rt", () => {
+  const opts = { runtimeLiterals: true };
+  assert.equal(translateExpression("min(1.0/0.0, u)", opts), "min(vpde_rt(1.0)/vpde_rt(0.0), u)");
+  // Integers (e.g. indices) are left alone.
+  assert.equal(translateExpression("a[2] * 1e-3", opts), "a[2]*vpde_rt(1e-3)");
+  assert.equal(translateExpression("1.0/0.0"), "1.0/0.0");
+});

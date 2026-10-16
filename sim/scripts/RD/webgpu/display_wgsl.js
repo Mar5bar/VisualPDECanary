@@ -188,7 +188,7 @@ export function fieldShader(parts, values, point = false) {
   // Drop the brace closing main(), if the body includes it.
   const count = (c) => body.split(c).length - 1;
   if (count("}") > count("{")) body = body.replace(/\}\s*$/, "");
-  const opts = { renames: renamesFor(parts), calls: translationCalls() };
+  const opts = { renames: renamesFor(parts), runtimeLiterals: true, calls: translationCalls() };
   const coords = point
     ? "vec2f(0.5)"
     : "(vec2f(f32(i), f32(j)) + 0.5) / vec2f(f32(U.nX), f32(U.nY))";
@@ -247,6 +247,7 @@ export function displayShader(parts) {
   const linearIndex = DISPLAY_VALUES.entries.findIndex(([name]) => name == "linearDisplay");
   const opts = {
     renames: renamesFor(parts),
+    runtimeLiterals: true,
     returnValue: "fragColour",
     calls: translationCalls({
       texture2D: ([tex, uv]) => {
