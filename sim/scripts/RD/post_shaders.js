@@ -238,29 +238,32 @@ export function interpolationShader() {
 }
 
 export function minMaxShader() {
-  return `varying vec2 textureCoords; 
+  return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
     uniform vec2 srcResolution;
     uniform bool firstFlag;
-    
+
     void main()
     {
-      // Get the min and max of the nearby pixels in the texture source.
-      // Step of one pixel in the source texture.
-      vec2 onePixel = vec2(1) / srcResolution;
-      vec2 uv = textureCoords - 0.5*onePixel;
-        
+      // The min and max of the 2x2 block of source texels that this texel reduces. The
+      // texels are found by index, as each reduction texture is half the size of its
+      // source rounded up, so normalised coordinates don't line up with the blocks when a
+      // size is odd (and texels would be skipped).
+      ivec2 outTexel = ivec2(gl_FragCoord.xy);
       float minVal = 1e38;
       float maxVal = -1e38;
       vec2 vals;
       for (int y = 0; y < 2; ++y) {
         for (int x = 0; x < 2; ++x) {
-          vals = texture2D(textureSource, uv + vec2(x, y) * onePixel).rg;
-          if (firstFlag) { 
-            vals.g = vals.r;
+          ivec2 srcTexel = outTexel * 2 + ivec2(x, y);
+          if (srcTexel.x < int(srcResolution.x) && srcTexel.y < int(srcResolution.y)) {
+            vals = texture2D(textureSource, (vec2(srcTexel) + 0.5) / srcResolution).rg;
+            if (firstFlag) {
+              vals.g = vals.r;
+            }
+            minVal = min(minVal, vals.r);
+            maxVal = max(maxVal, vals.g);
           }
-          minVal = min(minVal, vals.r);
-          maxVal = max(maxVal, vals.g);
         }
       }
       gl_FragColor = vec4(minVal, maxVal, 0.0, 0.0);
