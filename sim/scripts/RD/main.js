@@ -4460,6 +4460,10 @@ async function VisualPDE(url) {
           webgpu: gpuBackend?.sources ?? null,
         };
       },
+      // The colour range in use, as [min, max].
+      async colourRange() {
+        return [uniforms.minColourValue.value, uniforms.maxColourValue.value];
+      },
       // How WebGPU is temporally blocking Forward Euler steps (see webgpu/sim_wgsl.js's
       // blockingPlan), or null if it isn't.
       async blocking() {

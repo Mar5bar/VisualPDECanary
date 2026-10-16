@@ -311,3 +311,28 @@ test("timescales depending on the state are evaluated from the current state", a
     );
   }
 });
+
+test("the automatic colour range is the plotted values' true min and max", async () => {
+  // This preset's grid gives odd-sized reduction textures, in which WebGL's min/max
+  // reduction used to skip texels, and with them the maximum (4.32, found as 3.94).
+  for (const [backend, page] of Object.entries(pages)) {
+    // As following a link to the preset does.
+    const query = `preset=swiftHohenbergLocalisedDirectedAdvection&setSeed=true&randSeed=1&runningOnLoad=false`;
+    await page.goto(BASE_URL + `/sim/?testHooks&noop&backend=${backend}&${query}`);
+    await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
+    const { range, post } = await page.evaluate(async () => {
+      const T = window.VisualPDETest;
+      await T.reset();
+      await T.step(20);
+      await T.render();
+      return { range: await T.colourRange(), post: await T.readPost() };
+    });
+    // Back to the page the other tests use.
+    await page.goto(BASE_URL + `/sim/?testHooks&noop&backend=${backend}`);
+    await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
+    const values = decode(post.data).filter((_, k) => k % 4 == 0);
+    const min = values.reduce((a, b) => Math.min(a, b));
+    const max = values.reduce((a, b) => Math.max(a, b));
+    assert.deepEqual(range, [min, max], backend);
+  }
+});
