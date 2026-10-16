@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { copyShader, copyShaderMRT, exactCopyShader } from "../copy_shader.js";
+import { copyShader, copyShaderMRT, exactCopyShader, checkpointShaderMRT } from "../copy_shader.js";
 
 test("copyShader: samples textureSource straight through to gl_FragColor", () => {
   assert.match(copyShader(), /gl_FragColor = textureBilinear\(textureSource, textureCoords\);/);
@@ -19,4 +19,11 @@ test("exactCopyShader: fetches the texel under each fragment, without interpolat
   const exact = exactCopyShader();
   assert.match(exact, /gl_FragColor = texelFetch\(textureSource, ivec2\(gl_FragCoord\.xy\), 0\);/);
   assert.doesNotMatch(exact, /textureBilinear|textureCoords/);
+});
+
+test("checkpointShaderMRT: samples both checkpoint textures at the cropped coordinates", () => {
+  const shader = checkpointShaderMRT();
+  assert.match(shader, /vec2 uv = textureCoords \* checkpointRepeat \+ checkpointOffset;/);
+  assert.match(shader, /fragColor0 = texture\(textureSource, uv\);/);
+  assert.match(shader, /fragColor1 = texture\(textureSourceGroup1, uv\);/);
 });
