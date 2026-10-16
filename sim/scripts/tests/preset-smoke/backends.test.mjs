@@ -735,3 +735,38 @@ test("the probe's chart has the same points on both backends, across a reset", a
     });
   }
 });
+
+test("WebGPU doesn't allocate WebGL textures for the state", async () => {
+  // The WebGL renderer kept for the rest of the app mustn't hold copies of the state, which
+  // would multiply the memory a simulation needs (e.g. on phones).
+  const allocations = await pages.webgpu.evaluate(async () => {
+    const T = window.VisualPDETest;
+    const sizes = [];
+    const proto = WebGL2RenderingContext.prototype;
+    const texImage2D = proto.texImage2D;
+    const texStorage2D = proto.texStorage2D;
+    proto.texImage2D = function (...args) {
+      if (typeof args[3] == "number") sizes.push(args[3] * args[4]);
+      return texImage2D.apply(this, args);
+    };
+    proto.texStorage2D = function (...args) {
+      sizes.push(args[3] * args[4]);
+      return texStorage2D.apply(this, args);
+    };
+    try {
+      for (const numSpecies of [2, 6]) {
+        await T.load({ numSpecies, dimension: 2, spatialStep: 0.5, domainScale: 100 });
+        await T.step(5);
+        await T.render();
+        await T.setSpatialStep("0.4");
+        await T.render();
+      }
+    } finally {
+      proto.texImage2D = texImage2D;
+      proto.texStorage2D = texStorage2D;
+    }
+    const grid = await T.grid();
+    return sizes.filter((size) => size >= (grid.nX * grid.nY) / 4);
+  });
+  assert.deepEqual(allocations, []);
+});

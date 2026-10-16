@@ -1983,7 +1983,12 @@ async function VisualPDE(url) {
   }
 
   function resizeTextures(shift = 0) {
-    gpuBackend?.resize(nXDisc + shift, nYDisc + shift, Number(options.numSpecies));
+    if (gpuBackend) {
+      // WebGPU holds the state itself. The WebGL render targets are left unused (three.js
+      // only allocates them when first drawn to), which matters on memory-limited devices.
+      gpuBackend.resize(nXDisc + shift, nYDisc + shift, Number(options.numSpecies));
+      return;
+    }
     // Resize the computational domain by interpolating the existing domain onto the new discretisation.
     // mrtSimTextures (the real 8-species state once numGroups>1) is allocated once at
     // options.maxDisc size (Stage 3) and, unlike simTextures, was never being resized down
