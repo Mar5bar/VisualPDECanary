@@ -165,8 +165,12 @@ async function VisualPDE(url) {
     // start in the meantime.
     isReloading = false,
     // Whether a probe value or the integral display is being read back on WebGPU.
-    gpuProbePending = false,
     gpuIntegralPending = false,
+    // Whether an integral readback was requested while one was under way, so is to be made
+    // once that's done.
+    gpuIntegralAgain = false,
+    // Counts resets of the state and the probe, so that readbacks under way then are dropped.
+    gpuReadbackGeneration = 0,
     // Every error raised since the test hooks last loaded something (see initTestHooks).
     testErrors = [],
     // Whether the post-processed values are being read back for a line plot on WebGPU.
@@ -5257,15 +5261,18 @@ async function VisualPDE(url) {
   // Evaluates the probe on WebGPU and adds its value to the chart, as postprocess() and
   // render() do on WebGL. The value is read back asynchronously, labelled with the time it
   // was evaluated at.
+  // Probes the current state, adding the value to the probe's chart once it's read back.
+  // Probes may overlap, each capturing the state when it was made (so the chart's points are
+  // at the right times, e.g. t = 0 just after a reset); addProbeData drops any that come too
+  // soon after the last point.
   function gpuUpdateProbe() {
-    if (gpuProbePending) return;
-    gpuProbePending = true;
     const time = uniforms.t.value;
+    const generation = gpuReadbackGeneration;
     gpuDisplay
       .probe(gpuUniformValues(), gpuProbeValues(), areaElement())
       .then((result) => {
-        gpuProbePending = false;
-        if (!result) return;
+        // Dropped if the state or probe has been reset since.
+        if (!result || generation != gpuReadbackGeneration) return;
         addProbeData(time, result[0]);
         updateProbeDisplay();
       });
@@ -5288,14 +5295,24 @@ async function VisualPDE(url) {
 
   // Updates the integral display from the GPU, as updateIntegralDisplay() does on WebGL.
   function gpuUpdateIntegralDisplay() {
-    if (gpuIntegralPending) return;
+    if (gpuIntegralPending) {
+      gpuIntegralAgain = true;
+      return;
+    }
     gpuIntegralPending = true;
+    const generation = gpuReadbackGeneration;
     gpuDisplay.integral(areaElement()).then((total) => {
       gpuIntegralPending = false;
-      // Null if the grid has changed since the values were post-processed.
-      if (total == null) return;
-      $("#integralValue").html(formatLabelNum(total, 4));
-      checkColourbarPosition();
+      // Null if the grid has changed since the values were post-processed, and dropped if
+      // the state has been reset since.
+      if (total != null && generation == gpuReadbackGeneration) {
+        $("#integralValue").html(formatLabelNum(total, 4));
+        checkColourbarPosition();
+      }
+      if (gpuIntegralAgain) {
+        gpuIntegralAgain = false;
+        if (options.integrate) gpuUpdateIntegralDisplay();
+      }
     });
   }
 
@@ -5803,6 +5820,7 @@ async function VisualPDE(url) {
     updateTimeDisplay();
     // The values found from the state being replaced no longer apply.
     gpuDisplay?.discardMinMax();
+    gpuReadbackGeneration++;
     clearTextures();
     clearProbe();
     if (shaderContainsGlobalIntegral) {
@@ -14555,13 +14573,15 @@ async function VisualPDE(url) {
     configureProbe();
   }
 
+  // Adds the probe's value y at time x (which, on WebGPU, can be a little before the current
+  // time, as the probe is read back asynchronously).
   function addProbeData(x, y) {
     if (!probeChart) return;
-    if (!readyForProbeUpdate()) return;
+    if (x < probeChart.nextUpdateTime) return;
     // We try to target a certain number of data points in order to make the chart display nicely
     // in a small area.
     probeChart.nextUpdateTime =
-      uniforms.t.value + options.probeLength / probeChart.targetDataLength;
+      x + options.probeLength / probeChart.targetDataLength;
     addChartData(probeChart, x, y);
   }
 
@@ -14638,6 +14658,7 @@ async function VisualPDE(url) {
   }
 
   function clearProbe() {
+    gpuReadbackGeneration++;
     if (!probeChart) return;
     probeChart.dataStore = [];
     probeChart.nextUpdateTime = 0;

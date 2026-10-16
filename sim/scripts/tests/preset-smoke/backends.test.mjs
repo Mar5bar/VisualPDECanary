@@ -686,3 +686,52 @@ test("in clean mode, every blow-up to NaN resets the simulation, on both backend
     }
   }
 });
+
+test("the probe's chart has the same points on both backends, across a reset", async () => {
+  // Including the point at t = 0 and none from before a reset made while a probe (read back
+  // asynchronously on WebGPU) was under way.
+  const charts = {};
+  for (const [backend, page] of Object.entries(pages)) {
+    charts[backend] = await page.evaluate(async () => {
+      const T = window.VisualPDETest;
+      await T.load({
+        numSpecies: 1,
+        dimension: 2,
+        reactionStr_1: "1",
+        diffusionStr_1_1: "0",
+        initCond_1: "0",
+        dt: 0.1,
+        probing: true,
+        probeType: "integral",
+        probeFun: "u",
+        probeLength: 20,
+      });
+      const before = [];
+      for (let k = 0; k < 5; k++) {
+        await T.step(10);
+        await T.render();
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      before.push(...(await T.probeData()));
+      await T.step(10);
+      const rendering = T.render();
+      await T.reset();
+      await rendering;
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      for (let k = 0; k < 3; k++) {
+        await T.step(10);
+        await T.render();
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      return { before, after: await T.probeData() };
+    });
+  }
+  for (const part of ["before", "after"]) {
+    const times = (backend) => charts[backend][part].map(([t]) => t.toFixed(6));
+    assert.deepEqual(times("webgpu"), times("webgl"), part);
+    charts.webgl[part].forEach(([, v], k) => {
+      const w = charts.webgpu[part][k][1];
+      assert.ok(Math.abs(v - w) <= 1e-5 * Math.max(1, Math.abs(v)), `${part}: ${w} vs ${v}`);
+    });
+  }
+});
