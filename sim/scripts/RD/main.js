@@ -5806,33 +5806,35 @@ async function VisualPDE(url) {
       return;
     }
 
-    // Edge clamp all the simulation textures if every species needs clamping.
+    // The shader code clamping species 1-4 at the edges, in each direction.
+    const clampChannelsH = edgeClampSpeciesH
+      .map((x, ind) => (x ? speciesToChannelChar(listOfSpecies[ind]) : ""))
+      .join("");
+    const clampChannelsV = edgeClampSpeciesV
+      .map((x, ind) => (x ? speciesToChannelChar(listOfSpecies[ind]) : ""))
+      .join("");
+    const clampShaderH = clampChannelsH
+      ? clampSpeciesToEdgeShader("H").replaceAll(/\bSPECIES\b/g, clampChannelsH)
+      : "";
+    const clampShaderV = clampChannelsV
+      ? clampSpeciesToEdgeShader("V").replaceAll(/\bSPECIES\b/g, clampChannelsV)
+      : "";
+
+    // Edge clamp all the simulation textures if every species needs clamping. If only some
+    // species need clamping, we'll do it in the shader.
     if (edgeClampSpeciesH.every((x) => x)) {
       simTextures.forEach((simTex) => {
         simTex.texture.wrapS = THREE.ClampToEdgeWrapping;
       });
     } else {
-      // If only some species need clamping, we'll do it in the shader.
-      let channels = "";
-      edgeClampSpeciesH.forEach((x, ind) => {
-        if (x) channels += speciesToChannelChar(listOfSpecies[ind]);
-      });
-      clampShader += channels
-        ? clampSpeciesToEdgeShader("H").replaceAll(/\bSPECIES\b/g, channels)
-        : "";
+      clampShader += clampShaderH;
     }
     if (edgeClampSpeciesV.every((x) => x)) {
       simTextures.forEach((simTex) => {
         simTex.texture.wrapT = THREE.ClampToEdgeWrapping;
       });
     } else {
-      let channels = "";
-      edgeClampSpeciesV.forEach((x, ind) => {
-        if (x) channels += speciesToChannelChar(listOfSpecies[ind]);
-      });
-      clampShader += channels
-        ? clampSpeciesToEdgeShader("V").replaceAll(/\bSPECIES\b/g, channels)
-        : "";
+      clampShader += clampShaderV;
     }
 
     // Using the constructed shader parts, we'll form fragment shaders for every possible timestepping scheme.
@@ -5947,7 +5949,8 @@ async function VisualPDE(url) {
       }
 
       middleMRT = [
-        clampShader,
+        // mrtSimTextures always wrap, so species 1-4 are always clamped in the shader.
+        clampShaderH + clampShaderV,
         clampShaderGroup1,
         RDShaderAdvectionPreBC(),
         RDShaderDiffusionPreBC(),

@@ -1337,6 +1337,9 @@ export function RDShaderEnforceDirichletBotMRT() {
  * @returns {string} The generated GLSL code.
  */
 export function clampSpeciesToEdgeShader(direction) {
+  // Each neighbour becomes the value a clamped texture would give: the edge node. The second
+  // neighbours (LL etc.) are clamped after the first, as within two nodes of the edge their
+  // clamped value is the (now clamped) first neighbour.
   let out = "";
   if (direction.includes("H")) {
     out += `
@@ -1345,6 +1348,12 @@ export function clampSpeciesToEdgeShader(direction) {
     }
     if (textureCoords.x + step_x > 1.0) {
       uvwqR.SPECIES = uvwq.SPECIES;
+    }
+    if (textureCoords.x - 2.0*step_x < 0.0) {
+      uvwqLL.SPECIES = uvwqL.SPECIES;
+    }
+    if (textureCoords.x + 2.0*step_x > 1.0) {
+      uvwqRR.SPECIES = uvwqR.SPECIES;
     }`;
   }
   if (direction.includes("V")) {
@@ -1354,6 +1363,12 @@ export function clampSpeciesToEdgeShader(direction) {
     }
     if (textureCoords.y - step_y < 0.0) {
       uvwqB.SPECIES = uvwq.SPECIES;
+    }
+    if (textureCoords.y + 2.0*step_y > 1.0) {
+      uvwqTT.SPECIES = uvwqT.SPECIES;
+    }
+    if (textureCoords.y - 2.0*step_y < 0.0) {
+      uvwqBB.SPECIES = uvwqB.SPECIES;
     }`;
   }
   return out;

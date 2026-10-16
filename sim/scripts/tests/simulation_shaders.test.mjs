@@ -129,6 +129,48 @@ test("clampSpeciesToEdgeShader: 'H' includes x-direction clamps, 'V' includes y-
   assert.equal(clampSpeciesToEdgeShader(""), "");
 });
 
+test("clampSpeciesToEdgeShader: every neighbour, including LL/RR/TT/BB, gets its clamped value", () => {
+  // Run the shader as JS on each node of an n x m grid whose neighbours were fetched with
+  // wrapping, and check it leaves every neighbour as the node at the clamped index.
+  const n = 6;
+  const m = 5;
+  const code = clampSpeciesToEdgeShader("HV").replaceAll(".SPECIES", "");
+  const run = new Function(
+    "textureCoords",
+    "step_x",
+    "step_y",
+    "uvwq",
+    "uvwqL",
+    "uvwqR",
+    "uvwqT",
+    "uvwqB",
+    "uvwqLL",
+    "uvwqRR",
+    "uvwqTT",
+    "uvwqBB",
+    `${code}; return {uvwqL, uvwqR, uvwqT, uvwqB, uvwqLL, uvwqRR, uvwqTT, uvwqBB};`,
+  );
+  const value = (i, j) => 100 * j + i;
+  const wrap = (k, len) => ((k % len) + len) % len;
+  const clamp = (k, len) => Math.min(Math.max(k, 0), len - 1);
+  const offsets = { L: [-1, 0], R: [1, 0], T: [0, 1], B: [0, -1], LL: [-2, 0], RR: [2, 0], TT: [0, 2], BB: [0, -2] };
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < m; j++) {
+      const at = (f, [di, dj]) => value(f(i + di, n), f(j + dj, m));
+      const out = run(
+        { x: (i + 0.5) / n, y: (j + 0.5) / m },
+        1 / n,
+        1 / m,
+        value(i, j),
+        ...["L", "R", "T", "B", "LL", "RR", "TT", "BB"].map((d) => at(wrap, offsets[d])),
+      );
+      for (const d of Object.keys(offsets)) {
+        assert.equal(out["uvwq" + d], at(clamp, offsets[d]), `node (${i}, ${j}), neighbour ${d}`);
+      }
+    }
+  }
+});
+
 test("RDShaderAlgebraicSpecies/RDShaderDirichletX/Y/RDShaderBot/RDShaderPeriodic: non-empty (or intentionally empty) fixed snippets", () => {
   assert.match(RDShaderAlgebraicSpecies(), /RHS\.SPECIES/);
   assert.notEqual(RDShaderDirichletX(), "");
