@@ -104,3 +104,15 @@ test("WebGPUBackend.compile reports a pipeline that can't be created, without er
   await assert.rejects(backend.compile("test", "", ["r32float"]), /workgroup storage exceeds the limit/);
   assert.equal(scopes, 0);
 });
+
+test("undefinedName: finds the undefined name in each browser's WGSL compiler messages", async () => {
+  globalThis.GPUBufferUsage ??= new Proxy({}, { get: () => 1 });
+  globalThis.GPUTextureUsage ??= new Proxy({}, { get: () => 1 });
+  globalThis.GPUShaderStage ??= new Proxy({}, { get: () => 1 });
+  const { undefinedName } = await import("../RD/webgpu/webgpu_backend.js");
+  assert.equal(undefinedName("WGSL compilation failed for timestep FE:\n223:29 unresolved value 'zzz'"), "zzz");
+  assert.equal(undefinedName("12:5 unresolved identifier 'k'"), "k");
+  assert.equal(undefinedName("no definition in scope for identifier: `alpha`"), "alpha");
+  assert.equal(undefinedName("unresolved call target 'foo'"), null);
+  assert.equal(undefinedName("type mismatch"), null);
+});

@@ -129,7 +129,7 @@ import {
 import { closestMatch } from "../../../assets/js/closest-match.js";
 import { Stats } from "../stats.min.js";
 import { createWelcomeTour } from "./tours.js";
-import { WebGPUBackend } from "./webgpu/webgpu_backend.js";
+import { WebGPUBackend, undefinedName } from "./webgpu/webgpu_backend.js";
 import { WebGPUDisplay } from "./webgpu/display.js";
 import { stateFormats } from "./webgpu/sim_wgsl.js";
 import { POST_VALUES, DISPLAY_VALUES } from "./webgpu/display_wgsl.js";
@@ -4268,9 +4268,9 @@ async function VisualPDE(url) {
     console.log(error.message);
     if (error.source) console.log(error.source);
     // An undefined name in an expression, as WebGL reports an undeclared identifier.
-    const unresolved = error.message.match(/unresolved value '([^']+)'/);
-    if (unresolved) {
-      throwUnknownSymbolError(unresolved[1]);
+    const name = undefinedName(error.message);
+    if (name) {
+      throwUnknownSymbolError(name);
       return;
     }
     const what = {

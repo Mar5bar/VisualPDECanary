@@ -48,6 +48,21 @@ export class ShaderCompileError extends Error {
   }
 }
 
+/**
+ * The name a WGSL compiler's message says isn't defined, if it says so, in the words of
+ * Chrome's (Tint: "unresolved value 'x'"), Safari's (WebKit: "unresolved identifier 'x'")
+ * or Firefox's (naga: "no definition in scope for identifier: `x`") compiler. (Not an
+ * undefined function, which can't be added as a parameter.)
+ * @param {string} message
+ * @returns {string | null}
+ */
+export function undefinedName(message) {
+  const match = message.match(
+    /(?:unresolved (?:value|identifier)|no definition in scope for identifier:?) ['`]([^'`]+)['`]/,
+  );
+  return match ? match[1] : null;
+}
+
 export class WebGPUBackend {
   /**
    * @param {GPUDevice} device
