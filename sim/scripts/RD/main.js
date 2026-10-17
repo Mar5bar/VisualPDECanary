@@ -10887,8 +10887,11 @@ async function VisualPDE(url) {
     // [header + group-0 buffer] signals its presence on load (see loadSimState), so this
     // stays backward compatible with files exported before the 8-species upgrade without a
     // format version bump.
-    const parts = [new Float32Array([nXDisc, nYDisc]), stateBuffer];
-    if (stateBufferGroup1 != undefined) parts.push(stateBufferGroup1);
+    // The checkpoint's own data and size (whether set here or imported), which needn't be
+    // the grid's now.
+    const { width, height, data } = checkpointTexture.image;
+    const parts = [new Float32Array([width, height]), data];
+    if (checkpointTextureGroup1 != null) parts.push(checkpointTextureGroup1.image.data);
     var link = document.createElement("a");
     link.download = "VisualPDEState";
     link.href = URL.createObjectURL(new Blob(parts));
