@@ -35,9 +35,9 @@ const CHECKPOINT_FORMAT = "rgba32float";
 const FORMAT_BYTES = { r32float: 4, rg32float: 8, rgba32float: 16 };
 const PASS_TYPES = ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"];
 // The builds the simulation can't run without, as they'd leave it running old code: a
-// simulation whose timestepping, initial conditions or Dirichlet conditions failed to build
-// doesn't run, as on WebGL.
-const SIMULATION_BUILDS = ["simulation", "clear", "enforce"];
+// simulation whose timestepping or Dirichlet conditions failed to build doesn't run, as on
+// WebGL. (Initial conditions that failed to build only stop it being reset; see canClear.)
+const SIMULATION_BUILDS = ["simulation", "enforce"];
 
 /** Raised for WGSL that fails to compile, with the compiler's messages. */
 export class ShaderCompileError extends Error {
@@ -475,8 +475,7 @@ export class WebGPUBackend {
       this.compiling == 0 &&
       !SIMULATION_BUILDS.some((kind) => this.failedBuilds.has(kind)) &&
       this.slots.length > 0 &&
-      PASS_TYPES.every((type) => this.fitsState(this.pipelines[type])) &&
-      this.fitsState(this.pipelines.clear)
+      PASS_TYPES.every((type) => this.fitsState(this.pipelines[type]))
     );
   }
 

@@ -1245,3 +1245,35 @@ test("exported checkpoints hold the checkpoint, set or imported, with its own si
     assert.deepEqual(reexported, imported, `${backend}: the imported checkpoint wasn't exported`);
   }
 });
+
+test("an error in the initial conditions is reported when resetting, as on WebGL", async () => {
+  // It doesn't stop the simulation running, but a reset reports it (and doesn't reset), and
+  // once fixed, a reset uses the new initial conditions.
+  const r = await inBoth(async (T, setControl, sleep) => {
+    await T.load({ dimension: 1, numSpecies: 1, reactionStr_1: "1", diffusionStr_1_1: "0", initCond_1: "0" });
+    await T.step(10);
+    setControl("u|t=0", "1+zzz");
+    await sleep(500);
+    const whileRunning = await T.errorMessage();
+    await T.step(10);
+    const t = await T.time();
+    document.getElementById("erase").click();
+    await sleep(500);
+    const onReset = await T.errorMessage();
+    document.getElementById("error_close_button")?.click();
+    setControl("u|t=0", "2");
+    await sleep(500);
+    document.getElementById("erase").click();
+    await sleep(500);
+    const state = await T.readState();
+    return {
+      whileRunning,
+      t,
+      onReset: /Unknown symbol: 'zzz'/.test(onReset),
+      u: new Float32Array(Uint8Array.from(atob(state.data), (c) => c.charCodeAt(0)).buffer)[0],
+      time: await T.time(),
+    };
+  });
+  assert.deepEqual(r.webgpu, r.webgl);
+  assert.deepEqual(r.webgl, { whileRunning: "", t: r.webgl.t, onReset: true, u: 2, time: 0 });
+});

@@ -176,6 +176,8 @@ async function VisualPDE(url) {
     // Whether a reset's clearing of the WebGPU state is waiting for pipelines to be built
     // (see clearTextures), until when the state is the one being replaced.
     gpuClearPending = false,
+    // Why the initial conditions last failed to build, until a reset reports it.
+    gpuClearError = null,
     // Whether the colour range is to be snapped to the next range found (see
     // setColourRangeSnap).
     gpuSnapPending = false,
@@ -4262,6 +4264,13 @@ async function VisualPDE(url) {
 
   // Reports a failed WebGPU pipeline build like a WebGL compile error.
   function onGpuBuildError(kind, error) {
+    // WebGL compiles the initial conditions only when resetting, so only reports errors in
+    // them then (without pausing a running simulation): likewise, those are reported when a
+    // reset needs them (see clearTextures).
+    if (kind == "clear" && !gpuClearPending) {
+      gpuClearError = error;
+      return;
+    }
     // As console.error does for WebGL's errors (see above), so that adding a parameter
     // rebuilds the shaders.
     compileErrorOccurred = true;
@@ -5823,11 +5832,20 @@ async function VisualPDE(url) {
       // failed to build (e.g. a typo) is still reset, as on WebGL.
       if (!gpuBackend.canClear()) {
         gpuClearPending = true;
+        // If the initial conditions failed to build, say why, and clear once they've been
+        // fixed (see onInstalled).
+        if (gpuBackend.compiling == 0 && gpuBackend.failedBuilds.has("clear")) {
+          if (gpuClearError) onGpuBuildError("clear", gpuClearError);
+          gpuClearError = null;
+          return;
+        }
         gpuBackend.whenReady().then(() => {
-          if (gpuBackend.canClear()) clearTextures();
+          // Unless already made (when the pipelines were installed).
+          if (gpuClearPending) clearTextures();
         });
         return;
       }
+      gpuClearError = null;
       const deferred = gpuClearPending;
       gpuClearPending = false;
       syncGpuParams();
