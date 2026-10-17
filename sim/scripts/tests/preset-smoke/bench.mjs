@@ -65,6 +65,11 @@ async function measure(page, backend, name, scale) {
       if (scale != 1) await T.setSpatialStep(String(grid.dx / scale));
       const { nX, nY } = await T.grid();
       await T.reset();
+      // Let the reset's drawing settle first. Paused, WebGPU redraws whenever a readback
+      // (e.g. of a line plot) finds the state changed, so redraws begun while stepping would
+      // carry on with it, and be timed with the steps, as WebGL's are not.
+      await T.finish();
+      await new Promise((resolve) => setTimeout(resolve, 500));
       // Batches of steps, as one animation frame's worth.
       const batch = Number(BATCH);
       // Warm up.
