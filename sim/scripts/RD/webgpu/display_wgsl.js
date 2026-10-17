@@ -208,7 +208,7 @@ export function fieldShader(parts, values, point = false) {
 ${lookupHelpers(parts)}
 ${AUXILIARY_WGSL}
 
-@compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
+@compute @workgroup_size(${(parts.workgroupSize ?? WORKGROUP_SIZE).join(", ")})
 fn main(@builtin(global_invocation_id) gid: vec3u) {
   if (${point ? "gid.x > 0u || gid.y > 0u" : "gid.x >= U.nX || gid.y >= U.nY"}) { return; }
   let i = i32(gid.x);

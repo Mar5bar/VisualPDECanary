@@ -66,9 +66,13 @@ export function undefinedName(message) {
 export class WebGPUBackend {
   /**
    * @param {GPUDevice} device
+   * @param {Object} [options]
+   * @param {[number, number]} [options.workgroupSize] - Of 2D kernels (see sim_wgsl.js's
+   *   workgroupSizeFor), WORKGROUP_SIZE by default.
    */
-  constructor(device) {
+  constructor(device, { workgroupSize = WORKGROUP_SIZE } = {}) {
     this.device = device;
+    this.workgroupSize = workgroupSize;
     this.nX = 0;
     this.nY = 0;
     this.numGroups = 1;
@@ -508,6 +512,7 @@ export class WebGPUBackend {
    * @param {import("./sim_wgsl.js").SimShaderParts} parts
    */
   setSimulation(parts) {
+    parts = this.sized(parts);
     this.setClamping(parts.clamp);
     this.requestBuild("simulation", async () => {
       const pipelines = {};
@@ -549,8 +554,14 @@ export class WebGPUBackend {
     });
   }
 
+  // Shader parts with the workgroup size that dispatch() dispatches with.
+  sized(parts) {
+    return { ...parts, workgroupSize: this.workgroupSize };
+  }
+
   /** Builds the initial-condition pipeline. */
   setClear(parts) {
+    parts = this.sized(parts);
     this.requestBuild("clear", async () => {
       const pipeline = await this.compile("clear", clearShader(parts), parts.formats);
       return () => (this.pipelines.clear = pipeline);
@@ -559,6 +570,7 @@ export class WebGPUBackend {
 
   /** Builds the brush pipeline. */
   setDraw(parts) {
+    parts = this.sized(parts);
     this.requestBuild("draw", async () => {
       const pipeline = await this.compile("draw", drawShader(parts), parts.formats);
       return () => (this.pipelines.draw = pipeline);
@@ -567,6 +579,7 @@ export class WebGPUBackend {
 
   /** Builds the Dirichlet enforcement pipeline, or removes it if parts is null. */
   setEnforceDirichlet(parts) {
+    if (parts) parts = this.sized(parts);
     this.requestBuild("enforce", async () => {
       const pipeline = parts
         ? await this.compile(
@@ -651,7 +664,7 @@ export class WebGPUBackend {
     pass.setPipeline(kernel.pipeline);
     pass.setBindGroup(0, bindGroup, [offset]);
     // Each workgroup of a blocked kernel writes its tile's interior.
-    const perGroup = kernel.plan ? [kernel.plan.output, 1] : WORKGROUP_SIZE;
+    const perGroup = kernel.plan ? [kernel.plan.output, 1] : this.workgroupSize;
     pass.dispatchWorkgroups(Math.ceil(this.nX / perGroup[0]), Math.ceil(this.nY / perGroup[1]));
     pass.end();
   }
@@ -895,7 +908,7 @@ export class WebGPUBackend {
       this.restorePipelines[formats] = device.createComputePipeline({
         layout: "auto",
         compute: {
-          module: device.createShaderModule({ code: restoreShader(formats) }),
+          module: device.createShaderModule({ code: restoreShader(formats, this.workgroupSize) }),
           entryPoint: "main",
         },
       });
@@ -915,8 +928,8 @@ export class WebGPUBackend {
       }),
     );
     pass.dispatchWorkgroups(
-      Math.ceil(this.nX / WORKGROUP_SIZE[0]),
-      Math.ceil(this.nY / WORKGROUP_SIZE[1]),
+      Math.ceil(this.nX / this.workgroupSize[0]),
+      Math.ceil(this.nY / this.workgroupSize[1]),
     );
     pass.end();
     this.release(paramsBuffer);
@@ -1011,7 +1024,7 @@ function selectChannels(data, from, to) {
 }
 
 // Resamples state textures onto the grid (see WebGPUBackend.resample).
-function restoreShader(formats) {
+function restoreShader(formats, workgroupSize) {
   const groups = formats.map((_, g) => g);
   return `
 struct Params {
@@ -1060,7 +1073,7 @@ fn sample(g: u32, uv: vec2f) -> vec4f {
   return at(g, ij.x, ij.y);
 }
 
-@compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
+@compute @workgroup_size(${workgroupSize.join(", ")})
 fn main(@builtin(global_invocation_id) gid: vec3u) {
   if (gid.x >= P.nX || gid.y >= P.nY) { return; }
   let uv = (vec2f(gid.xy) + 0.5) / vec2f(f32(P.nX), f32(P.nY)) * P.repeat + P.offset;

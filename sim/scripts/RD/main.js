@@ -131,7 +131,7 @@ import { Stats } from "../stats.min.js";
 import { createWelcomeTour } from "./tours.js";
 import { WebGPUBackend, undefinedName } from "./webgpu/webgpu_backend.js";
 import { WebGPUDisplay } from "./webgpu/display.js";
-import { stateFormats } from "./webgpu/sim_wgsl.js";
+import { stateFormats, workgroupSizeFor, parseWorkgroupSize } from "./webgpu/sim_wgsl.js";
 import { POST_VALUES, DISPLAY_VALUES } from "./webgpu/display_wgsl.js";
 import {
   shouldTryWebGPU,
@@ -705,7 +705,12 @@ async function VisualPDE(url) {
         // For testing: only the limits every device supports.
         minimalLimits: params.get("webgpuLimits") == "default",
       });
-      gpuBackend = new WebGPUBackend(device);
+      gpuBackend = new WebGPUBackend(device, {
+        // By the GPU's vendor, unless given (e.g. ?webgpuWorkgroup=8x8, to measure another).
+        workgroupSize:
+          parseWorkgroupSize(params.get("webgpuWorkgroup"), device.limits) ??
+          workgroupSizeFor(adapterInfo.vendor),
+      });
       gpuBackend.onBuildError = onGpuBuildError;
       // Pipelines build asynchronously, so a change made while paused (e.g. to the plotted
       // expression) is drawn once its pipeline is ready, as WebGL draws it straight away.
@@ -4388,6 +4393,7 @@ async function VisualPDE(url) {
     window.VisualPDETest = {
       backend: gpuBackend ? "webgpu" : "webgl",
       adapterInfo: gpuAdapterInfo,
+      workgroupSize: gpuBackend?.workgroupSize ?? null,
       // Why this session is on WebGL rather than WebGPU, if it fell back.
       fallbackReason: webGPUFailureReason(),
       // Loads the given options on top of the default preset, paused and reset to t = 0.
@@ -12782,6 +12788,7 @@ async function VisualPDE(url) {
       canvas: canvas.getBoundingClientRect(),
       backend: gpuBackend ? "webgpu" : "webgl",
       webGPUAdapter: gpuAdapterInfo,
+      webGPUWorkgroupSize: gpuBackend?.workgroupSize,
       webGPUFallback: webGPUFailureReason(),
     });
     copyToClipboard(str);

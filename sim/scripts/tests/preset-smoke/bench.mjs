@@ -29,6 +29,8 @@ const SECONDS = Number(args.seconds ?? 2);
 const BATCH = Number(args.batch ?? 500);
 // --blocking=off takes every WebGPU Forward Euler step in its own pass.
 const BLOCKING = args.blocking == "off" ? "&webgpuBlocking=off" : "";
+// --workgroup=WxH runs WebGPU's 2D kernels in workgroups of that size.
+const WORKGROUP = args.workgroup ? `&webgpuWorkgroup=${args.workgroup}` : "";
 
 const stopServer = await ensureServerRunning();
 // ANGLE's Metal backend, so that WebGL and WebGPU both run on the real GPU.
@@ -54,7 +56,7 @@ async function newPage() {
 async function measure(page, backend, name, scale) {
   await page.goto(
     BASE_URL +
-      `/sim/?preset=${encodeURIComponent(name)}&testHooks&noop&backend=${backend}&runningOnLoad=false&no_ui${backend == "webgpu" ? BLOCKING : ""}`,
+      `/sim/?preset=${encodeURIComponent(name)}&testHooks&noop&backend=${backend}&runningOnLoad=false&no_ui${backend == "webgpu" ? BLOCKING + WORKGROUP : ""}`,
     { waitUntil: "load" },
   );
   await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });

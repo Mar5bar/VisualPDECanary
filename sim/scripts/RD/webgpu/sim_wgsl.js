@@ -19,8 +19,47 @@ export const BRUSH_VALUES = new ValueLayout([
   ["brushValueModifier", "f32"],
 ]);
 
-// 16 x 8 measured fastest on an Apple M2 Max: about 30% faster than 8 x 8 on large 2D grids.
+// The workgroup size of 2D kernels, unless the GPU's vendor has its own (see
+// workgroupSizeFor): 16 x 8 measured fastest on an Apple M2 Max, about 30% faster than 8 x 8
+// on large 2D grids.
 export const WORKGROUP_SIZE = [16, 8];
+
+// Workgroup sizes by GPU vendor (as WebGPU's adapter.info.vendor names them), where they
+// differ from WORKGROUP_SIZE. Arm recommends 64 invocations as the baseline for Mali GPUs
+// (Arm GPU Best Practices Developer Guide).
+const VENDOR_WORKGROUP_SIZES = {
+  arm: [8, 8],
+};
+
+/**
+ * The workgroup size of 2D kernels for a GPU vendor, if it fits the device's limits, which
+ * guarantee 256 invocations of up to 256 x 256.
+ * @param {string | undefined} vendor - adapter.info.vendor, which may be empty.
+ * @returns {[number, number]}
+ */
+export function workgroupSizeFor(vendor) {
+  return VENDOR_WORKGROUP_SIZES[(vendor ?? "").toLowerCase()] ?? WORKGROUP_SIZE;
+}
+
+/**
+ * Parses a workgroup size written as "WxH" (e.g. from a URL, to measure another on a
+ * device), or returns null if it isn't one or doesn't fit the device's limits.
+ * @param {string | null} text
+ * @param {GPUSupportedLimits} limits
+ * @returns {[number, number] | null}
+ */
+export function parseWorkgroupSize(text, limits) {
+  const match = /^(\d+)x(\d+)$/.exec(text ?? "");
+  if (!match) return null;
+  const [x, y] = [Number(match[1]), Number(match[2])];
+  const fits =
+    x >= 1 &&
+    y >= 1 &&
+    x <= limits.maxComputeWorkgroupSizeX &&
+    y <= limits.maxComputeWorkgroupSizeY &&
+    x * y <= limits.maxComputeInvocationsPerWorkgroup;
+  return fits ? [x, y] : null;
+}
 
 // Binding numbers shared by the simulation kernels' bind group layouts (see
 // WebGPUBackend.layout). Input slot s of group g is a texture at SOURCE_BINDING + 4g + s,
@@ -186,6 +225,7 @@ const SAMPLERS = {
  * @property {string} timescalesGroup1 - Likewise for group 1.
  * @property {string} minX - GLSL for the domain's minimum x.
  * @property {string} minY - GLSL for the domain's minimum y.
+ * @property {[number, number]} [workgroupSize] - Of the kernels, WORKGROUP_SIZE by default.
  */
 
 function translationOptions(parts, extraCalls = {}) {
@@ -375,10 +415,10 @@ ${AUXILIARY_WGSL}`;
  * Wraps a kernel's body, which computes the node (i, j)'s new value of each group into out0
  * (and out1), as a compute shader writing them to storage textures.
  */
-function entryPoint(G, body) {
+function entryPoint(G, body, workgroupSize = WORKGROUP_SIZE) {
   const outs = Array.from({ length: G }, (_, g) => `out${g}`);
   return `
-@compute @workgroup_size(${WORKGROUP_SIZE.join(", ")})
+@compute @workgroup_size(${workgroupSize.join(", ")})
 fn main(@builtin(global_invocation_id) gid: vec3u) {
   if (gid.x >= U.nX || gid.y >= U.nY) { return; }
   let i = i32(gid.x);
@@ -564,7 +604,7 @@ ${translateStatements(parts.bot[type], opts)}
 ${outputs.join("\n")}`;
   return `${prelude(parts)}
 ${computeRHSFunction(parts, opts)}
-${entryPoint(G, body)}`;
+${entryPoint(G, body, parts.workgroupSize)}`;
 }
 
 // --- Temporal blocking (1D) ------------------------------------------------------------
@@ -818,6 +858,7 @@ ${entryPoint(
   `${commonLets(parts, opts, { clearCoords: true })}
 ${translateStatements(parts.body, opts)}
 ${outputs.join("\n")}`,
+  parts.workgroupSize,
 )}`;
 }
 
@@ -842,6 +883,7 @@ ${entryPoint(
 ${G > 1 ? "  var uvwq2 = fetch(0u, 1u, i, j);\n  var updated2 = uvwq2;" : ""}
 ${translateStatements(parts.enforceBody, opts)}
 ${outputs.join("\n")}`,
+  parts.workgroupSize,
 )}`;
 }
 
@@ -867,5 +909,6 @@ ${BRUSH_VALUES.lets("V")}
 ${declarations}
 ${translateStatements(body, opts)}
 ${outputs}`,
+  parts.workgroupSize,
 )}`;
 }

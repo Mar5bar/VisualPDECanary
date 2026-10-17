@@ -6,7 +6,7 @@
 // placement, and everything else about the scene still come from three.js objects in main.js,
 // which are only used for their maths.
 
-import { UNIFORM_STRIDE, WORKGROUP_SIZE, writeUniforms } from "./sim_wgsl.js";
+import { UNIFORM_STRIDE, writeUniforms } from "./sim_wgsl.js";
 import { ValueLayout } from "./values.js";
 
 const NO_VALUES = new ValueLayout([]);
@@ -319,9 +319,14 @@ export class WebGPUDisplay {
     }, () => delete this.pipelines[kind]);
   }
 
+  // Shader parts with the backend's workgroup size, which runField dispatches with.
+  sized(parts) {
+    return { ...parts, workgroupSize: this.backend.workgroupSize };
+  }
+
   /** Builds the post-processing pipeline from the WebGL post shader's body. */
   setPost(parts) {
-    this.buildField("post", postShader(parts));
+    this.buildField("post", postShader(this.sized(parts)));
   }
 
   /**
@@ -329,13 +334,13 @@ export class WebGPUDisplay {
    * the probe's position, for point probes, and one at every node, for integral probes.
    */
   setProbe(parts) {
-    this.buildField("probePoint", fieldShader(parts, PROBE_VALUES, true));
-    this.buildField("probeField", fieldShader(parts, PROBE_VALUES));
+    this.buildField("probePoint", fieldShader(this.sized(parts), PROBE_VALUES, true));
+    this.buildField("probeField", fieldShader(this.sized(parts), PROBE_VALUES));
   }
 
   /** Builds the domain integrals' integrand pipeline from the WebGL shader's body. */
   setIntegrands(parts) {
-    this.buildField("integrands", fieldShader(parts, NO_VALUES));
+    this.buildField("integrands", fieldShader(this.sized(parts), NO_VALUES));
   }
 
   /** Builds the display pipeline from the WebGL display shader's body. */
@@ -527,8 +532,8 @@ export class WebGPUDisplay {
     if (point) pass.dispatchWorkgroups(1, 1);
     else {
       pass.dispatchWorkgroups(
-        Math.ceil(backend.nX / WORKGROUP_SIZE[0]),
-        Math.ceil(backend.nY / WORKGROUP_SIZE[1]),
+        Math.ceil(backend.nX / backend.workgroupSize[0]),
+        Math.ceil(backend.nY / backend.workgroupSize[1]),
       );
     }
     pass.end();

@@ -52,12 +52,18 @@ before(async () => {
   page = await context.newPage();
   // LIMITS=default runs WebGPU with only the limits every device supports.
   const limits = process.env.LIMITS == "default" ? "&webgpuLimits=default" : "";
-  await page.goto(BASE_URL + `/sim/?testHooks&noop&backend=${BACKEND}${limits}`, {
+  // WORKGROUP=WxH runs WebGPU's 2D kernels in workgroups of that size (e.g. a vendor's).
+  const workgroup = process.env.WORKGROUP ? `&webgpuWorkgroup=${process.env.WORKGROUP}` : "";
+  await page.goto(BASE_URL + `/sim/?testHooks&noop&backend=${BACKEND}${limits}${workgroup}`, {
     waitUntil: "load",
   });
   await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
   const backend = await page.evaluate(() => window.VisualPDETest.backend);
   assert.equal(backend, BACKEND, `expected the ${BACKEND} backend, but the page is using ${backend}`);
+  if (process.env.WORKGROUP) {
+    const size = await page.evaluate(() => window.VisualPDETest.workgroupSize);
+    assert.equal(size?.join("x"), process.env.WORKGROUP, "the workgroup size wasn't applied");
+  }
 });
 
 after(async () => {
