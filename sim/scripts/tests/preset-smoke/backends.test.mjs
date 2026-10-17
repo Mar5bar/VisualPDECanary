@@ -1199,3 +1199,49 @@ test("after a reset while paused, the line plot, arrows and colour range show th
     assert.ok(min < 1e-4 && Math.abs(max - 0.995) < 1e-3, `${backend}: [${min}, ${max}]`);
   }
 });
+
+test("exported checkpoints hold the checkpoint, set or imported, with its own size", async () => {
+  const r = await inBoth(async (T, setControl, sleep) => {
+    // The files exported, as arrays of floats, rather than downloaded.
+    const files = [];
+    const createObjectURL = URL.createObjectURL;
+    const click = HTMLAnchorElement.prototype.click;
+    URL.createObjectURL = (blob) => {
+      files.push(blob.arrayBuffer().then((buffer) => Array.from(new Float32Array(buffer))));
+      return createObjectURL(blob);
+    };
+    HTMLAnchorElement.prototype.click = function () {};
+    const exportButton = () =>
+      [...document.querySelectorAll("button, .button, a")].find((b) => /Export/.test(b.textContent));
+    try {
+      // Set on one grid, exported after changing to another.
+      await T.load({ dimension: 2, numSpecies: 1, reactionStr_1: "0", diffusionStr_1_1: "0", initCond_1: "x", spatialStep: 0.5 });
+      const grid = await T.grid();
+      await T.saveCheckpoint();
+      await T.setSpatialStep("1");
+      exportButton().click();
+      await sleep(500);
+      // Imported, then exported.
+      const imported = new Float32Array(2 + 4 * 10 * 8).fill(7);
+      imported.set([10, 8]);
+      const input = document.getElementById("checkpointInput");
+      const transfer = new DataTransfer();
+      transfer.items.add(new File([imported], "state"));
+      input.files = transfer.files;
+      $(input).trigger("change");
+      await sleep(1000);
+      exportButton().click();
+      await sleep(500);
+      const [set, reexported] = await Promise.all(files);
+      return { grid: [grid.nX, grid.nY], set: { header: set.slice(0, 2), length: set.length }, reexported, imported: Array.from(imported) };
+    } finally {
+      URL.createObjectURL = createObjectURL;
+      HTMLAnchorElement.prototype.click = click;
+    }
+  });
+  for (const [backend, { grid, set, reexported, imported }] of Object.entries(r)) {
+    assert.deepEqual(set.header, grid, `${backend}: the header isn't the checkpoint's size`);
+    assert.equal(set.length, 2 + 4 * grid[0] * grid[1], backend);
+    assert.deepEqual(reexported, imported, `${backend}: the imported checkpoint wasn't exported`);
+  }
+});
