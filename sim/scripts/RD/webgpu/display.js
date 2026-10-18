@@ -306,10 +306,12 @@ export class WebGPUDisplay {
     this.fieldBuffer = null;
   }
 
-  // Requests a build of a field shader pipeline (see fieldShader), named kind.
-  buildField(kind, code) {
+  // Requests a build of a field shader pipeline (see fieldShader), named kind, from the WGSL
+  // that shader() returns. It's generated in the build, so that an expression that can't be
+  // translated is reported as a build error, as one that doesn't compile is.
+  buildField(kind, shader) {
     this.backend.requestBuild(kind, async () => {
-      const module = await this.backend.compileModule(kind, code);
+      const module = await this.backend.compileModule(kind, shader());
       const pipeline = await this.device.createComputePipelineAsync({
         label: kind,
         layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.postLayout] }),
@@ -326,7 +328,8 @@ export class WebGPUDisplay {
 
   /** Builds the post-processing pipeline from the WebGL post shader's body. */
   setPost(parts) {
-    this.buildField("post", postShader(this.sized(parts)));
+    const sized = this.sized(parts);
+    this.buildField("post", () => postShader(sized));
   }
 
   /**
@@ -334,13 +337,15 @@ export class WebGPUDisplay {
    * the probe's position, for point probes, and one at every node, for integral probes.
    */
   setProbe(parts) {
-    this.buildField("probePoint", fieldShader(this.sized(parts), PROBE_VALUES, true));
-    this.buildField("probeField", fieldShader(this.sized(parts), PROBE_VALUES));
+    const sized = this.sized(parts);
+    this.buildField("probePoint", () => fieldShader(sized, PROBE_VALUES, true));
+    this.buildField("probeField", () => fieldShader(sized, PROBE_VALUES));
   }
 
   /** Builds the domain integrals' integrand pipeline from the WebGL shader's body. */
   setIntegrands(parts) {
-    this.buildField("integrands", fieldShader(this.sized(parts), NO_VALUES));
+    const sized = this.sized(parts);
+    this.buildField("integrands", () => fieldShader(sized, NO_VALUES));
   }
 
   /** Builds the display pipeline from the WebGL display shader's body. */
@@ -550,7 +555,8 @@ export class WebGPUDisplay {
   }
 
   // Records a sum of `input`'s first `count` vec4fs (or, if masked, of r * (1 - g)), times
-  // `scale`, into the first element of `output`.
+  // `scale`, into the first element of `output`. Masked terms are scaled as they're summed
+  // (see sumShader), others once summed.
   recordSum(input, count, { masked = false, scale = 1, output }) {
     const device = this.device;
     const params = (n, s) => {
@@ -582,12 +588,12 @@ export class WebGPUDisplay {
     };
     run(
       masked ? this.pipelines.sumMasked : this.pipelines.sum,
-      params(count, 1),
+      params(count, masked ? scale : 1),
       input,
       this.partials,
       this.reduceGroups,
     );
-    run(this.pipelines.sumSecond, params(this.reduceGroups, scale), this.partials, output, 1);
+    run(this.pipelines.sumSecond, params(this.reduceGroups, masked ? 1 : scale), this.partials, output, 1);
   }
 
   // Copies `bytes` bytes of a buffer from smallBuffer() to the CPU, after everything

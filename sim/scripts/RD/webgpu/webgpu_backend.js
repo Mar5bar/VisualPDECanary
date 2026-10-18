@@ -871,9 +871,14 @@ export class WebGPUBackend {
       );
       return texture;
     });
-    // Enlarged in either direction counts as enlarged, as for a texture's LOD.
-    const enlarged = linear && (this.nX * repeat[0] > width || this.nY * repeat[1] > height);
-    this.resample(sources, width, height, this.slots[0], { repeat, offset, linear: enlarged });
+    // WebGL filters linearly only where the texture is magnified: where it has at most one
+    // texel per node in both directions, as its LOD is set by the larger of the two scales.
+    // Elsewhere it uses the min filter, which is nearest. (A small tolerance, as a scale of 1,
+    // when cropping, can come out a rounding error either side of it.) Snapped, so that, as
+    // with WebGL's hardware filtering, nodes at the checkpoint's own nodes are restored exactly.
+    const texelsPerNode = Math.max((width * repeat[0]) / this.nX, (height * repeat[1]) / this.nY);
+    const magnified = linear && texelsPerNode <= 1 + 1e-6;
+    this.resample(sources, width, height, this.slots[0], { repeat, offset, linear: magnified, snap: true });
     this.release(...sources);
     this.copySlotToOthers(0);
   }

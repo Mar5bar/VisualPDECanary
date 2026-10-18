@@ -1277,3 +1277,124 @@ test("an error in the initial conditions is reported when resetting, as on WebGL
   assert.deepEqual(r.webgpu, r.webgl);
   assert.deepEqual(r.webgl, { whileRunning: "", t: r.webgl.t, onReset: true, u: 2, time: 0 });
 });
+
+test("display expressions WebGPU can't translate are reported as errors, as WebGL's are", async () => {
+  // They used to throw out of WebGPU's option handling, so that a link holding one never
+  // started. Here "·" isn't valid in either backend's shading language.
+  const fields = {
+    whatToPlot: { whatToPlot: "u·2" },
+    probe: { probing: true, probeType: "integral", probeFun: "u·2" },
+    integrand: { reactionStr_1: "Int(u·2)" },
+  };
+  const r = await inBoth(async (T, setControl, sleep, fields) => {
+    const base = { dimension: 2, numSpecies: 1, reactionStr_1: "0", diffusionStr_1_1: "0", initCond_1: "1" };
+    const results = {};
+    for (const [name, opts] of Object.entries(fields)) {
+      let threw = false;
+      try {
+        await T.load({ ...base, ...opts });
+        await T.step(1);
+        await T.render();
+        await sleep(300);
+      } catch {
+        threw = true;
+      }
+      const reported = (await T.errorMessage()) != "";
+      document.getElementById("error_close_button")?.click();
+      // And the page still works.
+      await T.load({ ...base, reactionStr_1: "1" });
+      await T.step(10);
+      const state = await T.readState();
+      const u = new Float32Array(Uint8Array.from(atob(state.data), (c) => c.charCodeAt(0)).buffer)[0];
+      results[name] = { threw, reported, u: +u.toFixed(4) };
+    }
+    return results;
+  }, fields);
+  for (const name of Object.keys(fields)) {
+    assert.deepEqual(r.webgl[name], { threw: false, reported: true, u: r.webgl[name].u }, `WebGL, ${name}`);
+    assert.deepEqual(r.webgpu[name], r.webgl[name], `WebGPU, ${name}`);
+  }
+});
+
+test("checkpoints shrunk along one axis and enlarged along the other are sampled as on WebGL", async () => {
+  // WebGL filters a checkpoint linearly only where it's enlarged in both directions (its
+  // texture's LOD is set by the larger scale), and otherwise takes the nearest node. The
+  // checkpoint's node (i, j) holds i + 100 j, so nearest sampling gives integers.
+  const cases = [
+    ["2D, stretched, shrunk in x", 2, "stretch", 70, 10],
+    ["1D, stretched from 2D", 1, "stretch", 13, 7],
+    ["1D, cropped", 1, "crop", 64, 1],
+  ];
+  const r = await inBoth(async (T, setControl, sleep, cases) => {
+    const results = {};
+    for (const [name, dimension, resizeCheckpoints, W, H] of cases) {
+      await T.load({
+        dimension,
+        numSpecies: 1,
+        reactionStr_1: "0",
+        diffusionStr_1_1: "0",
+        spatialStep: "0.5",
+        domainScale: "20",
+        resizeCheckpoints,
+        resetFromCheckpoints: true,
+      });
+      const data = new Float32Array(2 + 4 * W * H);
+      data.set([W, H]);
+      for (let j = 0; j < H; j++)
+        for (let i = 0; i < W; i++) data.fill(i + 100 * j, 2 + 4 * (j * W + i), 6 + 4 * (j * W + i));
+      const input = document.getElementById("checkpointInput");
+      const transfer = new DataTransfer();
+      transfer.items.add(new File([data], "state"));
+      input.files = transfer.files;
+      $(input).trigger("change");
+      await sleep(1000);
+      const state = await T.readState();
+      const u = new Float32Array(Uint8Array.from(atob(state.data), (c) => c.charCodeAt(0)).buffer);
+      results[name] = Array.from({ length: 8 }, (_, k) => u[4 * k]);
+    }
+    return results;
+  }, cases);
+  for (const [name] of cases) {
+    const [a, b] = [r.webgl[name], r.webgpu[name]];
+    // To within WebGL's hardware filtering weights.
+    const worst = Math.max(...a.map((x, k) => Math.abs(x - b[k])));
+    assert.ok(worst < 2e-3, `${name}: WebGL ${a} vs WebGPU ${b}`);
+  }
+  // Nearest, where shrunk in either direction.
+  assert.ok(r.webgl["2D, stretched, shrunk in x"].every(Number.isInteger));
+  assert.ok(r.webgl["1D, stretched from 2D"].every(Number.isInteger));
+  assert.ok(!r.webgl["1D, cropped"].every(Number.isInteger));
+});
+
+test("the integral display and probe don't overflow before multiplying by the area element", async () => {
+  // About 1000 nodes of 1e36, times dA = 0.25: about 2.5e38, which fits in a float32, while
+  // the sum before scaling doesn't. WebGL sums these in float64.
+  const r = await inBoth(async (T, setControl, sleep) => {
+    await T.load({
+      dimension: 2,
+      numSpecies: 1,
+      reactionStr_1: "0",
+      diffusionStr_1_1: "0",
+      initCond_1: "1",
+      spatialStep: "0.5",
+      domainScale: "20",
+      whatToPlot: "1e36",
+      integrate: true,
+      probing: true,
+      probeType: "integral",
+      probeFun: "1e36",
+    });
+    for (let round = 0; round < 2; round++) {
+      await T.step(1);
+      await T.render();
+      await sleep(300);
+    }
+    const probe = await T.probeData();
+    return { grid: await T.grid(), integral: await T.integralDisplay(), probe: probe.at(-1)?.[1] };
+  });
+  const total = r.webgl.grid.nX * r.webgl.grid.nY * 1e36 * 0.25;
+  assert.ok(total < 3.4e38 && total * 4 > 3.4e38, `${total}`);
+  assert.equal(Number(r.webgl.integral), Number(total.toPrecision(4)));
+  assert.equal(r.webgpu.integral, r.webgl.integral);
+  assert.ok(Math.abs(r.webgpu.probe / r.webgl.probe - 1) < 1e-6, `${r.webgpu.probe} vs ${r.webgl.probe}`);
+});

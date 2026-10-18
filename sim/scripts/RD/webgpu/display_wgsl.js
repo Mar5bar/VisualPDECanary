@@ -531,10 +531,13 @@ fn fragmentMain() -> @location(0) vec4f {
  * Each invocation of "main" sums R.count vec4fs into one per workgroup, multiplying the
  * total by R.scale. In the first stage, if masked is set, only the masked value r * (1 - g)
  * is summed (into x), as main.js does for the integral display and probe: r is the value and
- * g flags nodes outside the domain.
+ * g flags nodes outside the domain. Those are summed in float64 on WebGL, so each term is
+ * multiplied by R.scale instead, so that a total that fits in an f32 can't overflow on
+ * the way to it.
  */
 export function sumShader(first, masked) {
-  const term = first && masked ? "vec4f(v.x * (1.0 - v.y), 0.0, 0.0, 0.0)" : "v";
+  const scaleTerms = first && masked;
+  const term = scaleTerms ? "vec4f(v.x * (1.0 - v.y) * R.scale, 0.0, 0.0, 0.0)" : "v";
   return `
 struct Reduce { count: u32, scale: f32 }
 @group(0) @binding(0) var<uniform> R: Reduce;
@@ -561,7 +564,7 @@ fn main(@builtin(local_invocation_index) local: u32, @builtin(workgroup_id) wg: 
     workgroupBarrier();
   }
   if (local == 0u) {
-    output[wg.x] = sums[0] * R.scale;
+    output[wg.x] = sums[0]${scaleTerms ? "" : " * R.scale"};
   }
 }`;
 }
