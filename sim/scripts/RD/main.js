@@ -329,7 +329,9 @@ async function VisualPDE(url) {
     expandedExpressionDefs = {},
     // The options.expressions string that expandedExpressionDefs was last built from - see
     // ensureExpressionExpansionsCurrent().
-    expandedExpressionDefsSource = null;
+    expandedExpressionDefsSource = null,
+    // The names a parameter can't take - see getShaderReservedNames().
+    shaderReservedNames;
   const llmURL =
     "https://gemini.google.com/gem/1mJ4572e1TJwEHcaYDst0_9keZkx78-zn";
   const defaultPreset = "GrayScott";
@@ -9894,6 +9896,7 @@ async function VisualPDE(url) {
     let str = RDShaderTop() + RDShaderUpdateCross() + auxiliary_GLSL_funs();
     let reserved = [...str.matchAll(regex)]
       .map((x) => x[1])
+      .concat(getShaderReservedNames())
       .concat(exclusions)
       .concat([
         "I_T",
@@ -9910,8 +9913,115 @@ async function VisualPDE(url) {
     return reserved;
   }
 
+  // The names a parameter's uniform would collide with in the shaders it's declared in (see
+  // kineticUniformsForShader): GLSL's reserved words, everything declared at the shaders'
+  // global scope or in their main(), where the user's expressions are evaluated (a
+  // parameter would be shadowed there), and the placeholders main.js substitutes into them.
+  // Names local to the shaders' other functions are left free. Computed once, as the
+  // templates are fixed, in shaderReservedNames.
+  function getShaderReservedNames() {
+    if (shaderReservedNames) return shaderReservedNames;
+    // GLSL ES 3.00's keywords, reserved words and built-in functions, which can't be redeclared
+    // as a parameter's uniform.
+    const glslReservedWords = (
+      "attribute const uniform varying layout centroid flat smooth noperspective break " +
+      "continue do for while switch case default if else in out inout float int void bool " +
+      "true false invariant discard return mat2 mat3 mat4 mat2x2 mat2x3 mat2x4 mat3x2 mat3x3 " +
+      "mat3x4 mat4x2 mat4x3 mat4x4 vec2 vec3 vec4 ivec2 ivec3 ivec4 bvec2 bvec3 bvec4 uint " +
+      "uvec2 uvec3 uvec4 lowp mediump highp precision sampler2D sampler3D samplerCube " +
+      "sampler2DShadow samplerCubeShadow sampler2DArray sampler2DArrayShadow isampler2D " +
+      "isampler3D isamplerCube isampler2DArray usampler2D usampler3D usamplerCube " +
+      "usampler2DArray struct coherent volatile restrict readonly writeonly resource " +
+      "atomic_uint patch sample subroutine common partition active asm class union enum " +
+      "typedef template this goto inline noinline public static extern external interface " +
+      "long short double half fixed unsigned superp input output hvec2 hvec3 hvec4 dvec2 " +
+      "dvec3 dvec4 fvec2 fvec3 fvec4 sampler3DRect filter image1D image2D image3D imageCube " +
+      "iimage1D iimage2D iimage3D iimageCube uimage1D uimage2D uimage3D uimageCube " +
+      "image1DArray image2DArray iimage1DArray iimage2DArray uimage1DArray uimage2DArray " +
+      "imageBuffer iimageBuffer uimageBuffer sampler1D sampler1DShadow sampler1DArray " +
+      "sampler1DArrayShadow isampler1D isampler1DArray usampler1D usampler1DArray " +
+      "sampler2DRect sampler2DRectShadow isampler2DRect usampler2DRect samplerBuffer " +
+      "isamplerBuffer usamplerBuffer sampler2DMS isampler2DMS usampler2DMS sampler2DMSArray " +
+      "isampler2DMSArray usampler2DMSArray sizeof cast namespace using " +
+      "radians degrees sin cos tan asin acos atan sinh cosh tanh asinh acosh atanh pow exp " +
+      "log exp2 log2 sqrt inversesqrt abs sign floor trunc round roundEven ceil fract mod " +
+      "modf min max clamp mix step smoothstep isnan isinf floatBitsToInt floatBitsToUint " +
+      "intBitsToFloat uintBitsToFloat packSnorm2x16 unpackSnorm2x16 packUnorm2x16 " +
+      "unpackUnorm2x16 packHalf2x16 unpackHalf2x16 length distance dot cross normalize " +
+      "faceforward reflect refract matrixCompMult outerProduct transpose determinant " +
+      "inverse lessThan lessThanEqual greaterThan greaterThanEqual equal notEqual any all " +
+      "not textureSize texture textureProj textureLod textureOffset texelFetch " +
+      "texelFetchOffset textureProjOffset textureLodOffset textureProjLod " +
+      "textureProjLodOffset textureGrad textureGradOffset textureProjGrad " +
+      "textureProjGradOffset texture2D dFdx dFdy fwidth"
+    ).split(" ");
+    const declaration =
+      /\b(?:float|int|bool|vec\d|ivec\d|bvec\d|mat\d|sampler2D|void)\s+(\w+)\b/g;
+    const schemeStages = ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"];
+    // RDShaderTop(MRT) ends inside computeRHS, where the reaction terms are evaluated, so
+    // all of it counts.
+    const names = new Set(glslReservedWords.concat(["main", "MINX", "MINY", "ind"]));
+    for (const stage of schemeStages) {
+      for (const top of [RDShaderTop(stage), RDShaderTopMRT(stage)]) {
+        for (const match of top.matchAll(declaration)) names.add(match[1]);
+      }
+    }
+    const shaders = [
+      ...schemeStages.map(RDShaderMain),
+      ...schemeStages.map(RDShaderMainMRT),
+      RDShaderUpdateCross(),
+      RDShaderBot(),
+      RDShaderEnforceDirichletTop(),
+      auxiliary_GLSL_funs(),
+      clearShaderTop(),
+      clearShaderTopMRT(),
+      drawShaderTop(),
+      drawShaderTopMRT(),
+      fiveColourDisplayTop(),
+      fiveColourDisplayTopMRT(),
+      // Spliced into the display shader's main().
+      embossShader(),
+      contourShader(),
+      overlayShader(),
+      overlayShaderMRT(),
+      computeDisplayFunShaderTop() + computeDisplayFunShaderMid(),
+      computeDisplayFunShaderTopMRT() + computeDisplayFunShaderMidMRT(),
+      probeShader(),
+      probeShaderMRT(),
+      globalIntegralShader(),
+      globalIntegralShaderMRT(),
+    ];
+    for (const shader of shaders) {
+      for (const match of shaderOutsideHelperFunctions(shader).matchAll(declaration)) {
+        names.add(match[1]);
+      }
+    }
+    shaderReservedNames = [...names];
+    return shaderReservedNames;
+  }
+
+  // The text of a shader that's at global scope or in main(), without comments or functions'
+  // parameters (which are local to them).
+  function shaderOutsideHelperFunctions(shader) {
+    const code = shader.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
+    let depth = 0;
+    let inMain = false;
+    let header = "";
+    let out = "";
+    for (const c of code) {
+      if (depth == 0 && c == "{") inMain = /\bmain\s*\(\s*\)\s*$/.test(header);
+      if (depth == 0 || inMain) out += c;
+      if (depth == 0) header = c == ";" || c == "{" ? "" : header + c;
+      if (c == "{") depth++;
+      if (c == "}" && --depth == 0) inMain = false;
+    }
+    return out.replace(/\([^()]*\)\s*\{/g, "() {");
+  }
+
   function isReservedName(name, exclusions) {
     if (exclusions == undefined) exclusions = [];
+    // GLSL reserves names beginning gl_ or containing two underscores in a row.
+    if (/^gl_|__/.test(name)) return true;
     return getReservedStrs(exclusions).some(function (badName) {
       let regex = new RegExp("\\b" + badName + "\\b", "g");
       return regex.test(name);

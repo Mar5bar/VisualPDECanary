@@ -651,6 +651,28 @@ test("isReservedName: true for GLSL built-ins/reserved image tokens, false for a
   assert.equal(m.isReservedName("myOwnParamName"), false);
 });
 
+test("isReservedName: true for the names a parameter's uniform would collide with in the shaders", () => {
+  stubThrowError();
+  // GLSL keywords, reserved words and built-ins; names GLSL reserves.
+  for (const name of ["sample", "struct", "mat2", "filter", "length", "texture", "gl_x", "a__b"]) {
+    assert.equal(m.isReservedName(name), true, name);
+  }
+  // Uniforms and functions declared at the shaders' global scope, names in the main()s that
+  // evaluate the user's expressions (e.g. "value", the plotted expression's own variable),
+  // and placeholders substituted into the shaders.
+  for (const name of ["nXDisc", "isTwoD", "imageSourceOne", "main", "uvwqLast", "value", "MINX", "MINY", "ind"]) {
+    assert.equal(m.isReservedName(name), true, name);
+  }
+  // Names local to helper functions, or their parameters, are free.
+  for (const name of ["a", "k", "alpha", "val", "theta"]) assert.equal(m.isReservedName(name), false, name);
+});
+
+test("shaderOutsideHelperFunctions: keeps global scope and main(), dropping other functions' bodies and parameters", () => {
+  const shader = "uniform float g; // float commented\nfloat helper(float p) { float h = p; return h; }\nvoid main() { float m = 1.0; if (m > 0.0) { float n = m; } }";
+  const declared = [...m.shaderOutsideHelperFunctions(shader).matchAll(/float\s+(\w+)/g)].map((x) => x[1]);
+  assert.deepEqual(declared, ["g", "helper", "m", "n"]);
+});
+
 test("validateParamName/validateExpressionName: reject species/reaction/reserved names and names already used by the other feature", () => {
   m.__setState({
     listOfSpecies: ["u", "v"],
