@@ -345,6 +345,9 @@ async function VisualPDE(url) {
     rate,
     lastT,
     lastTime,
+    // The timesteps taken, and how many there had been when the rate was last measured.
+    stepsTaken = 0,
+    lastStepsTaken = 0,
     seed = performance.now(),
     updatingAlgebraicSpecies = false,
     optimisationDelay = 4000,
@@ -1235,14 +1238,20 @@ async function VisualPDE(url) {
     });
   }
 
-  // Monitor the rate at which time is being increased in the simulation.
+  // Monitor the rate at which time is being increased in the simulation, and the timesteps
+  // taken to do so, which say how hard the device is working whatever the timestep.
   setInterval(function () {
-    rate = (1e3 * (uniforms.t.value - lastT)) / (performance.now() - lastTime);
+    const elapsed = performance.now() - lastTime;
+    rate = (1e3 * (uniforms.t.value - lastT)) / elapsed;
+    const stepRate = (1e3 * (stepsTaken - lastStepsTaken)) / elapsed;
     lastT = uniforms.t.value;
+    lastStepsTaken = stepsTaken;
     lastTime = performance.now();
     if (options.showStats) {
       document.getElementById("rateOfProgressValue").innerHTML =
         rate.toPrecision(2) + "/s";
+      document.getElementById("stepRateValue").innerHTML =
+        formatStepRate(stepRate) + " steps/s";
     }
   }, 1000);
 
@@ -4570,6 +4579,7 @@ async function VisualPDE(url) {
       }
       // Each step after the first differs from the last only in its time and seed.
       timestep(i > 0);
+      stepsTaken++;
       // Leave the loop after one timestep if we're in automata mode.
       if (options.automataMode) {
         canTimeStep = false;
@@ -6193,6 +6203,7 @@ async function VisualPDE(url) {
     render(true);
     // Reset time-tracking stats.
     lastT = uniforms.t.value;
+    lastStepsTaken = stepsTaken;
     lastTime = performance.now();
     // Start a timer that checks for NaNs every second.
     shouldCheckNaN = true;
@@ -13110,6 +13121,13 @@ async function VisualPDE(url) {
       webGPUFallback: webGPUFailureReason(),
     });
     copyToClipboard(str);
+  }
+
+  // A number of timesteps per second for the stats display, e.g. 950, 86k or 1.2M.
+  function formatStepRate(stepRate) {
+    if (stepRate < 1e3) return Math.round(stepRate).toString();
+    const [value, unit] = stepRate < 1e6 ? [stepRate / 1e3, "k"] : [stepRate / 1e6, "M"];
+    return (value < 10 ? value.toFixed(1) : Math.round(value)) + unit;
   }
 
   /**

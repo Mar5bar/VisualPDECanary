@@ -1922,6 +1922,11 @@ p,
   right: unset;
 }
 
+.stepRateLabel {
+  margin-left: 0.5em;
+  opacity: 0.7;
+}
+
 sup {
   line-height: 0;
 }
