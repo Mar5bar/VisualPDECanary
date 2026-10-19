@@ -87,8 +87,10 @@ export class WebGPUBackend {
     this.numGroups = 1;
     this.formats = stateFormats(1);
     // Forward Euler steps requested but not yet recorded, which settle() records, blocked
-    // where possible (see sim_wgsl.js's blockedTimestepShader).
+    // where possible (see sim_wgsl.js's blockedTimestepShader), each with the number of the
+    // run of steps it's in, whose uniforms differ only in their time and seed.
     this.pendingSteps = [];
+    this.stepRun = 0;
     // Whether to block Forward Euler steps when the simulation allows it.
     this.blocking = true;
     this.slots = [];
@@ -193,30 +195,29 @@ export class WebGPUBackend {
     this.pendingSteps = [];
     const blocked = this.pipelines.FEBlocked;
     const K = blocked?.plan.steps ?? Infinity;
-    // Steps can share a pass only if just their time and seed differ.
-    const key = ({ t, seed, ...rest }) => JSON.stringify(rest);
+    const canBlock = this.canBlock();
     let k = 0;
     while (k < steps.length) {
-      const group = steps.slice(k, k + K);
+      // Steps can share a pass only if just their time and seed differ, as in one run.
       if (
-        group.length == K &&
         k + K < steps.length &&
-        this.canBlock() &&
-        group.every((u) => key(u) == key(group[0]))
+        canBlock &&
+        steps[k].run == steps[k + K - 1].run
       ) {
+        const group = steps.slice(k, k + K);
         this.dispatch(
           blocked,
           {
-            ...group[0],
-            stepT: group.map((u) => u.t),
-            stepSeed: group.map((u) => u.seed),
+            ...group[0].uniforms,
+            stepT: group.map((step) => step.uniforms.t),
+            stepSeed: group.map((step) => step.uniforms.seed),
           },
           [1],
           0,
         );
         k += K;
       } else {
-        this.dispatch(this.pipelines.FE, steps[k], [1, 2], 0);
+        this.dispatch(this.pipelines.FE, steps[k].uniforms, [1, 2], 0);
         k++;
       }
       this.rotate();
@@ -909,8 +910,10 @@ export class WebGPUBackend {
    * Records one timestep, mirroring timestep() in main.js, and returns the new time.
    * @param {string} scheme - "Euler", "AB2", "Mid" or "RK4".
    * @param {Object} uniforms - The uniforms at the start of the step (t, dt, seed, ...).
+   * @param {boolean} [continuing] - Whether the step continues the last one recorded, with
+   *   only its time and seed different, so that their Forward Euler steps can be blocked.
    */
-  timestep(scheme, uniforms) {
+  timestep(scheme, uniforms, continuing = false) {
     const p = this.pipelines;
     const { dt } = uniforms;
     let t = uniforms.t;
@@ -919,7 +922,8 @@ export class WebGPUBackend {
       case "Euler":
         // Requested now and recorded by settle(), which blocks consecutive steps.
         if (this.canBlock()) {
-          this.pendingSteps.push(at(t));
+          if (!continuing) this.stepRun++;
+          this.pendingSteps.push({ uniforms: at(t), run: this.stepRun });
           return t + dt;
         }
         this.dispatch(p.FE, at(t), [1, 2], 0);

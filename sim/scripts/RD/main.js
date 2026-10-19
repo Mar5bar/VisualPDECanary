@@ -205,9 +205,14 @@ async function VisualPDE(url) {
     gpuFrameCpuTime = 0,
     gpuFrameTime = 0,
     // The timesteps per frame WebGPU takes for a smooth display, at most numTimestepsPerFrame
-    // (see gpuStepsPerFrame), and the costs of recent frames that took them.
+    // (see gpuStepsPerFrame), the costs of recent frames that took them, the frames held
+    // back since as two were in flight, and the fewest steps per frame seen to hold frames
+    // back, with when.
     gpuSmoothSteps = null,
-    gpuStepCosts = [];
+    gpuStepCosts = [],
+    gpuFramesHeld = 0,
+    gpuHeldSteps = Infinity,
+    gpuHeldTime = 0;
   // The edge clamping the WebGPU display kernels were last built with (see setRDEquations).
   let gpuDisplayClamp = null;
   let simTextures = [],
@@ -4225,7 +4230,10 @@ async function VisualPDE(url) {
     gpuLastAnimationFrame = now;
     gpuRefreshesWaited++;
     if (gpuRefreshGaps.length) gpuRefreshPeriod = median(gpuRefreshGaps);
-    if (gpuFramesInFlight >= 2) return false;
+    if (gpuFramesInFlight >= 2) {
+      gpuFramesHeld++;
+      return false;
+    }
     if (isRunning && gpuSmoothDisplay() && gpuRefreshPeriod) {
       const refresh = gpuRefreshPeriod;
       // The CPU and GPU work on different frames at once, so whichever is slower sets the
@@ -4293,6 +4301,9 @@ async function VisualPDE(url) {
    * that take the GPU 80% of a refresh, leaving room for the odd slower one (e.g. while
    * drawing or reading back), and the CPU 70%, as the browser needs time on the same thread
    * to show the frame. Adjusts once a few frames are in, or at once if one takes far too long.
+   * Frames held back as the last two haven't finished say they cost more than that, as
+   * happens when the browser takes a long time to hand work to the GPU, which isn't timed,
+   * so take fewer steps then, and don't go back to as many for a while.
    */
   function tuneGpuSteps(numSteps, cpuTime, gpuTime) {
     // The cost of the frame relative to the GPU's target.
@@ -4300,15 +4311,33 @@ async function VisualPDE(url) {
     // Ignore frames from before the last change.
     if (!gpuSmoothDisplay() || numSteps != gpuSmoothSteps || !gpuRefreshPeriod) {
       gpuStepCosts = [];
+      gpuFramesHeld = 0;
       return;
     }
     const refresh = gpuRefreshPeriod;
     gpuStepCosts.push(cost);
     if (gpuStepCosts.length < 8 && cost < 2 * refresh) return;
-    const typical = cost < 2 * refresh ? median(gpuStepCosts) : cost;
+    let typical = cost < 2 * refresh ? median(gpuStepCosts) : cost;
     gpuStepCosts = [];
-    const max = options.numTimestepsPerFrame;
-    if (typical < 0.9 * refresh && (typical > 0.7 * refresh || numSteps >= max)) return;
+    const now = performance.now();
+    if (gpuFramesHeld > 1) {
+      typical = Math.max(typical, refresh);
+      gpuHeldSteps = Math.min(gpuHeldSteps, numSteps);
+      gpuHeldTime = now;
+    } else if (now - gpuHeldTime > 5000) {
+      gpuHeldSteps = Infinity;
+    }
+    gpuFramesHeld = 0;
+    const max = Math.min(
+      options.numTimestepsPerFrame,
+      Math.ceil(0.9 * gpuHeldSteps),
+    );
+    if (
+      numSteps <= max &&
+      typical < 0.9 * refresh &&
+      (typical > 0.7 * refresh || numSteps == max)
+    )
+      return;
     // Frames cost about the same per step, so scale the steps to the target, but grow them
     // gradually, as a frame's fixed costs make that an overestimate.
     gpuSmoothSteps = Math.max(
@@ -4528,7 +4557,8 @@ async function VisualPDE(url) {
           updateGlobalIntegral();
         }
       }
-      timestep();
+      // Each step after the first differs from the last only in its time and seed.
+      timestep(i > 0);
       // Leave the loop after one timestep if we're in automata mode.
       if (options.automataMode) {
         canTimeStep = false;
@@ -5001,7 +5031,7 @@ async function VisualPDE(url) {
     }
   }
 
-  function timestep() {
+  function timestep(continuing = false) {
     // We timestep by updating a texture that stores the solutions. We can't overwrite
     // the texture in the loop, so we'll cycle between textures. These
     // textures are already defined above, and their resolution defines the resolution
@@ -5012,6 +5042,7 @@ async function VisualPDE(url) {
       uniforms.t.value = gpuBackend.timestep(
         options.timesteppingScheme,
         gpuUniformValues(),
+        continuing,
       );
       return;
     }
