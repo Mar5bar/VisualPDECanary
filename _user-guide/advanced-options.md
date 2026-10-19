@@ -409,9 +409,11 @@ VisualPDE allows you to interact directly with simulations via a brush by simply
 
 ### Timestepping <a class="anchor" id='timestepping'>
 
-- #### Steps/frame
+- #### Steps/frame <a class="anchor" id='steps-frame'>
 
-  Set how many timesteps will be performed every time your browser requests a frame from VisualPDE. This setting effectively allows you to speed up/slow down the simulation without altering the timestep, though large values may cause some stuttering on some devices. Must be a numerical value.
+  Set how many timesteps will be performed every time your browser requests a frame from VisualPDE. This setting effectively allows you to speed up/slow down the simulation without altering the timestep. Must be a numerical value. The slider goes up to 1000, and you can type values of up to 4000.
+
+  On WebGL, large values may cause some stuttering on some devices. On WebGPU, this sets the most timesteps per frame: if your device can't take that many and keep the display smooth, VisualPDE takes as many as it can, and shows that number here in muted italics (hover over it to see the number you set). Turn on [performance mode](#performance-mode) to always take the number you set.
 
 - #### Timestep
 
@@ -429,8 +431,8 @@ VisualPDE allows you to interact directly with simulations via a brush by simply
 
   Set the simulation to be automatically paused when the time ($t$) passes a custom threshold (which can depend on user-defined parameters), which can be configured when this option is enabled. You can resume an auto-paused simulation by pressing {{ layout.play }}
 
-- #### Performance mode
-  Reduces the quality of the display in order to boost simulation performance. Different simulations and devices will benefit differently from this setting. On average, we see an increase of around 6fps on a Mac Mini M1 on the 'BenchmarkingFast' preset in 4K resolution.
+- #### Performance mode <a class="anchor" id='performance-mode'>
+  Reduces the quality of the display in order to boost simulation performance. Different simulations and devices will benefit differently from this setting. On average, we see an increase of around 6fps on a Mac Mini M1 on the 'BenchmarkingFast' preset in 4K resolution. On WebGPU, performance mode also always takes the number of [timesteps per frame](#steps-frame) you set, even if the display then stutters, rather than taking fewer to keep it smooth.
 
 ### Images <a class="anchor" id='images'>
 
@@ -510,7 +512,7 @@ VisualPDE supports checkpoints, which allow you to save the state of a simulatio
 
     ***Copy debug*** will copy a selection of configuration information to your clipboard (handy when reporting bugs).
 
-    ***Show stats*** will toggle the display of performance statistics in the lower left corner of the display. We use this to benchmark performance impacts of new features and optimisations.
+    ***Show stats*** will toggle the display of performance statistics in the lower left corner of the display: the frame rate, the rate at which simulated time passes ($\frac{\d t}{\d t}$), and the number of timesteps taken per second, which says how hard your device is working whatever the timestep. We use this to benchmark performance impacts of new features and optimisations.
 
     ***Antialias*** will toggle the use of antialiasing when displaying the simulation. Antialiasing in VisualPDE smooths out the jagged edges of displayed vector fields, though always causes a slight device-dependent performance loss. This is off by default for mobile devices, but can be overridden. Toggle requires a page reload.
 
