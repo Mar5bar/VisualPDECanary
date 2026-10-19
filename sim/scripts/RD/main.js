@@ -5642,14 +5642,15 @@ async function VisualPDE(url) {
           if (again) gpuUpdateLinePlot();
           return;
         }
-        const before = lineSnapshot();
+        // Only needed when paused (below), and costly to take each frame while running.
+        const before = isRunning ? null : lineSnapshot();
         buffer.set(data);
         bufferFilled = true;
         updateLinePlot();
         // A paused simulation only draws on demand, so draw the line if it's changed (with
         // the values, or with options such as the colour range), but not otherwise, which
         // would just read the same values back again.
-        if (!isRunning && !sameValues(lineSnapshot(), before)) render();
+        if (before && !sameValues(lineSnapshot(), before)) render();
         else if (again) gpuUpdateLinePlot();
       },
       // E.g. if the device was lost.
