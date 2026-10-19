@@ -190,7 +190,9 @@ async function VisualPDE(url) {
     // Likewise, for a vector field's arrows.
     gpuArrowReadPending = false,
     gpuAdapterInfo = null,
-    gpuParamNames = [];
+    gpuParamNames = [],
+    // The number of animation frames whose WebGPU work the GPU hasn't finished (see animate).
+    gpuFramesInFlight = 0;
   // The edge clamping the WebGPU display kernels were last built with (see setRDEquations).
   let gpuDisplayClamp = null;
   let simTextures = [],
@@ -4134,6 +4136,15 @@ async function VisualPDE(url) {
       requestAnimationFrame(animate);
       return;
     }
+    // WebGPU submits work without waiting for the GPU, so on a busy device frames would be
+    // recorded faster than they're finished, and presented unevenly. Skip frames while the
+    // GPU is behind, as WebGL's implicit throttling does, so that each frame shown is one
+    // frame on and the stats (and so optimiseFPS) see the rate the GPU actually manages.
+    // Two frames may be in flight, so the GPU has the next frame's work as it finishes one.
+    if (gpuBackend && gpuFramesInFlight >= 2) {
+      requestAnimationFrame(animate);
+      return;
+    }
     if (options.showStats || isOptimising) stats.begin();
 
     hasDrawn = isDrawing;
@@ -4147,6 +4158,13 @@ async function VisualPDE(url) {
 
     // Render if something has happened.
     if (hasDrawn || isRunning) render();
+
+    if (gpuBackend && (hasDrawn || isRunning)) {
+      gpuFramesInFlight++;
+      gpuBackend.device.queue
+        .onSubmittedWorkDone()
+        .finally(() => gpuFramesInFlight--);
+    }
 
     // Update stats.
     if (options.showStats || isOptimising) stats.end();
