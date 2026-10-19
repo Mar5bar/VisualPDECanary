@@ -2541,7 +2541,7 @@ async function VisualPDE(url) {
     addInfoButton(root, "/user-guide/advanced-options#timestepping");
 
     controllers["numTimestepsPerFrame"] = root
-      .add(options, "numTimestepsPerFrame", 1, 1000, 1)
+      .add(options, "numTimestepsPerFrame", 1, 4000, 1)
       .name("Steps/frame");
     createOptionSlider(controllers["numTimestepsPerFrame"], 1, 400, 1);
 
