@@ -96,6 +96,10 @@ export class WebGPUBackend {
     this.slots = [];
     this.pipelines = {};
     this.encoder = null;
+    // The compute pass dispatch() records into while nothing else is recorded, and the
+    // pipeline last set on it.
+    this.pass = null;
+    this.passPipeline = null;
     // Frame timers not in use (see beginFrameTimer), the one timing the current frame and
     // the GPU time at which the last frame timed ended.
     this.frameTimers = [];
@@ -705,8 +709,30 @@ export class WebGPUBackend {
 
   getEncoder() {
     this.settle();
+    this.endPass();
     if (!this.encoder) this.encoder = this.device.createCommandEncoder();
     return this.encoder;
+  }
+
+  /**
+   * The compute pass for dispatch() to record into: one for as many dispatches as come in a
+   * row, as a pass of its own each costs the browser more to hand to the GPU than the
+   * dispatch (and each dispatch still sees what the ones before it wrote).
+   */
+  computePass() {
+    if (!this.pass) {
+      const encoder = this.getEncoder();
+      this.pass = encoder.beginComputePass({
+        timestampWrites: this.timestampWrites(),
+      });
+      this.passPipeline = null;
+    }
+    return this.pass;
+  }
+
+  endPass() {
+    this.pass?.end();
+    this.pass = null;
   }
 
   /**
@@ -824,11 +850,11 @@ export class WebGPUBackend {
       bindGroup = this.createDispatchBindGroup(kernel, sources, target);
       cache.set(key, bindGroup);
     }
-    const encoder = this.getEncoder();
-    const pass = encoder.beginComputePass({
-      timestampWrites: this.timestampWrites(),
-    });
-    pass.setPipeline(kernel.pipeline);
+    const pass = this.computePass();
+    if (this.passPipeline != kernel.pipeline) {
+      pass.setPipeline(kernel.pipeline);
+      this.passPipeline = kernel.pipeline;
+    }
     pass.setBindGroup(0, bindGroup, [offset]);
     // Each workgroup of a blocked kernel writes its tile's interior.
     const perGroup = kernel.plan ? [kernel.plan.output, 1] : this.workgroupSize;
@@ -836,7 +862,6 @@ export class WebGPUBackend {
       Math.ceil(this.nX / perGroup[0]),
       Math.ceil(this.nY / perGroup[1]),
     );
-    pass.end();
   }
 
   createDispatchBindGroup(kernel, sources, target) {
@@ -1183,6 +1208,7 @@ export class WebGPUBackend {
   }
 
   flushRecorded() {
+    this.endPass();
     if (!this.encoder && !this.uniformCount) return;
     if (this.uniformCount) {
       this.device.queue.writeBuffer(
