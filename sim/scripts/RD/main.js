@@ -3177,7 +3177,8 @@ async function VisualPDE(url) {
     );
 
     // Which GPU API runs the simulation. Changing it reloads the page, keeping the simulation.
-    localOpts.webgpu = storedBackendChoice() != "webgl";
+    // Shown on if WebGPU is running, whether the URL or the stored choice asked for it.
+    localOpts.webgpu = !!gpuBackend || storedBackendChoice() != "webgl";
     const fallbackReason = webGPUFailureReason();
     addToggle(
       devButtons,
