@@ -88,7 +88,10 @@ function renamesFor(parts) {
 // buffers, and their nearest and bilinear lookups.
 function lookupHelpers(parts) {
   const clampConsts = parts.clamp
-    .map(([cx, cy], g) => `const CLAMP_X_${g} = ${cx};\nconst CLAMP_Y_${g} = ${cy};`)
+    .map(
+      ([cx, cy], g) =>
+        `const CLAMP_X_${g} = ${cx};\nconst CLAMP_Y_${g} = ${cy};`,
+    )
     .join("\n");
   return `
 const G = ${parts.numGroups}u;
@@ -143,8 +146,10 @@ function translationCalls(extra = {}) {
       throw new Error("Unknown sampler " + tex);
     },
     texture: ([tex, uv]) => {
-      if (tex == "imageSourceOne") return `textureSampleLevel(imageOne, imageSampler, ${uv}, 0.0)`;
-      if (tex == "imageSourceTwo") return `textureSampleLevel(imageTwo, imageSampler, ${uv}, 0.0)`;
+      if (tex == "imageSourceOne")
+        return `textureSampleLevel(imageOne, imageSampler, ${uv}, 0.0)`;
+      if (tex == "imageSourceTwo")
+        return `textureSampleLevel(imageTwo, imageSampler, ${uv}, 0.0)`;
       if (tex == "textureSource") return `stateNearest(0u, ${uv})`;
       if (tex == "textureSourceGroup1") return `stateNearest(1u, ${uv})`;
       throw new Error("Unknown sampler " + tex);
@@ -188,7 +193,11 @@ export function fieldShader(parts, values, point = false) {
   // Drop the brace closing main(), if the body includes it.
   const count = (c) => body.split(c).length - 1;
   if (count("}") > count("{")) body = body.replace(/\}\s*$/, "");
-  const opts = { renames: renamesFor(parts), runtimeLiterals: true, calls: translationCalls() };
+  const opts = {
+    renames: renamesFor(parts),
+    runtimeLiterals: true,
+    calls: translationCalls(),
+  };
   const coords = point
     ? "vec2f(0.5)"
     : "(vec2f(f32(i), f32(j)) + 0.5) / vec2f(f32(U.nX), f32(U.nY))";
@@ -244,7 +253,9 @@ export function postShader(parts) {
  */
 export function displayShader(parts) {
   const body = parts.body.replace(/\}\s*$/, "");
-  const linearIndex = DISPLAY_VALUES.entries.findIndex(([name]) => name == "linearDisplay");
+  const linearIndex = DISPLAY_VALUES.entries.findIndex(
+    ([name]) => name == "linearDisplay",
+  );
   const opts = {
     renames: renamesFor(parts),
     runtimeLiterals: true,
@@ -429,7 +440,10 @@ fn main(@builtin(local_invocation_index) local: u32, @builtin(workgroup_id) wg: 
 
 /** WGSL for a GLSL expression, using the post shader's conventions (for testing). */
 export function translateDisplayExpression(expr, parts) {
-  return translateExpression(expr, { renames: renamesFor(parts), calls: translationCalls() });
+  return translateExpression(expr, {
+    renames: renamesFor(parts),
+    calls: translationCalls(),
+  });
 }
 
 /**
@@ -537,7 +551,9 @@ fn fragmentMain() -> @location(0) vec4f {
  */
 export function sumShader(first, masked) {
   const scaleTerms = first && masked;
-  const term = scaleTerms ? "vec4f(v.x * (1.0 - v.y) * R.scale, 0.0, 0.0, 0.0)" : "v";
+  const term = scaleTerms
+    ? "vec4f(v.x * (1.0 - v.y) * R.scale, 0.0, 0.0, 0.0)"
+    : "v";
   return `
 struct Reduce { count: u32, scale: f32 }
 @group(0) @binding(0) var<uniform> R: Reduce;

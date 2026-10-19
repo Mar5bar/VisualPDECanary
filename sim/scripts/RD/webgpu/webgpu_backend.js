@@ -33,7 +33,16 @@ const NUM_SLOTS = 5;
 const CHECKPOINT_FORMAT = "rgba32float";
 // Bytes per node of each state format.
 const FORMAT_BYTES = { r32float: 4, rg32float: 8, rgba32float: 16 };
-const PASS_TYPES = ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"];
+const PASS_TYPES = [
+  "FE",
+  "AB2",
+  "Mid1",
+  "Mid2",
+  "RK41",
+  "RK42",
+  "RK43",
+  "RK44",
+];
 // The builds the simulation can't run without, as they'd leave it running old code: a
 // simulation whose timestepping or Dirichlet conditions failed to build doesn't run, as on
 // WebGL. (Initial conditions that failed to build only stop it being reset; see canClear.)
@@ -110,7 +119,11 @@ export class WebGPUBackend {
     this.paramsBuffer = null;
     this.setParams([]);
     // I_S, I_T, and the image the display can be blended with.
-    this.images = [this.placeholderImage(), this.placeholderImage(), this.placeholderImage()];
+    this.images = [
+      this.placeholderImage(),
+      this.placeholderImage(),
+      this.placeholderImage(),
+    ];
     this.sampler = device.createSampler({
       magFilter: "nearest",
       minFilter: "nearest",
@@ -124,7 +137,10 @@ export class WebGPUBackend {
     this.globalsBuffer = device.createBuffer({
       label: "globals",
       size: 16,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+      usage:
+        GPUBufferUsage.STORAGE |
+        GPUBufferUsage.COPY_DST |
+        GPUBufferUsage.COPY_SRC,
     });
     // Named values some kernels read (see values.js), such as the brush's position.
     this.valuesBuffer = device.createBuffer({
@@ -140,7 +156,12 @@ export class WebGPUBackend {
       format: "rgba8unorm",
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST,
     });
-    this.device.queue.writeTexture({ texture }, new Uint8Array([0, 0, 0, 255]), {}, [1, 1]);
+    this.device.queue.writeTexture(
+      { texture },
+      new Uint8Array([0, 0, 0, 255]),
+      {},
+      [1, 1],
+    );
     return texture;
   }
 
@@ -180,7 +201,11 @@ export class WebGPUBackend {
       ) {
         this.dispatch(
           blocked,
-          { ...group[0], stepT: group.map((u) => u.t), stepSeed: group.map((u) => u.seed) },
+          {
+            ...group[0],
+            stepT: group.map((u) => u.t),
+            stepSeed: group.map((u) => u.seed),
+          },
           [1],
           0,
         );
@@ -220,13 +245,18 @@ export class WebGPUBackend {
     this.formats = formats;
     this.numGroups = formats.length;
     this.invalidateBindGroups();
-    this.slots = Array.from({ length: NUM_SLOTS }, (_, k) => this.createSlot(`slot ${k}`));
+    this.slots = Array.from({ length: NUM_SLOTS }, (_, k) =>
+      this.createSlot(`slot ${k}`),
+    );
     // As resizeTextures() does on WebGL, interpolate the state onto the new grid, unless the
     // number of species groups has changed (which starts the state afresh on WebGL too).
     // Interpolation near the edges wraps or clamps as the WebGL textures do, as the
     // simulation clamps each group (see setClamping).
     if (keep) {
-      const clamp = Array.from({ length: this.numGroups }, (_, g) => this.clamp?.[g] ?? [false, false]);
+      const clamp = Array.from(
+        { length: this.numGroups },
+        (_, g) => this.clamp?.[g] ?? [false, false],
+      );
       old.slots.forEach((source, k) =>
         this.resample(source.textures, old.nX, old.nY, this.slots[k], {
           repeat: [1, 1],
@@ -264,7 +294,9 @@ export class WebGPUBackend {
     // as on WebGL (writeBuffer would otherwise land before it, and growing the buffer would
     // destroy one it binds).
     this.flush();
-    const data = new Float32Array(Math.max(4, Math.ceil(values.length / 4) * 4));
+    const data = new Float32Array(
+      Math.max(4, Math.ceil(values.length / 4) * 4),
+    );
     data.set(values);
     if (!this.paramsBuffer || this.paramsBuffer.size < data.byteLength) {
       this.paramsBuffer?.destroy();
@@ -287,7 +319,8 @@ export class WebGPUBackend {
     // Decoding is asynchronous, so calls (e.g. a webcam's frames) can finish out of order:
     // only the latest call for an image is installed.
     this.imageRequests ??= [];
-    const request = (this.imageRequests[index] = (this.imageRequests[index] ?? 0) + 1);
+    const request = (this.imageRequests[index] =
+      (this.imageRequests[index] ?? 0) + 1);
     // Decode the raw pixel values, without colour-space conversion or premultiplied alpha,
     // as three.js does for WebGL. Flipped to match three.js's default for textures (flipY),
     // so v = 0 is the image's bottom.
@@ -366,7 +399,11 @@ export class WebGPUBackend {
     const G = formats.length;
     const visibility = GPUShaderStage.COMPUTE;
     const entries = [
-      { binding: 0, visibility, buffer: { type: "uniform", hasDynamicOffset: true } },
+      {
+        binding: 0,
+        visibility,
+        buffer: { type: "uniform", hasDynamicOffset: true },
+      },
       { binding: 1, visibility, buffer: { type: "read-only-storage" } },
       { binding: 2, visibility, texture: { sampleType: "float" } },
       { binding: 3, visibility, texture: { sampleType: "float" } },
@@ -396,7 +433,9 @@ export class WebGPUBackend {
     const bindGroupLayout = this.device.createBindGroupLayout({ entries });
     this.layouts[key] = {
       bindGroupLayout,
-      pipelineLayout: this.device.createPipelineLayout({ bindGroupLayouts: [bindGroupLayout] }),
+      pipelineLayout: this.device.createPipelineLayout({
+        bindGroupLayouts: [bindGroupLayout],
+      }),
     };
     return this.layouts[key];
   }
@@ -445,23 +484,25 @@ export class WebGPUBackend {
       let installed = false;
       try {
         await Promise.all(
-          Object.entries(requests).map(async ([kind, { generation, build, discard }]) => {
-            try {
-              const install = await build();
-              if (this.generations[kind] != generation) return;
-              this.building.delete(kind);
-              this.failedBuilds.delete(kind);
-              install();
-              installed = true;
-            } catch (error) {
-              if (this.generations[kind] != generation) return;
-              this.building.delete(kind);
-              this.failedBuilds.add(kind);
-              this.settle();
-              discard?.();
-              this.onBuildError?.(kind, error);
-            }
-          }),
+          Object.entries(requests).map(
+            async ([kind, { generation, build, discard }]) => {
+              try {
+                const install = await build();
+                if (this.generations[kind] != generation) return;
+                this.building.delete(kind);
+                this.failedBuilds.delete(kind);
+                install();
+                installed = true;
+              } catch (error) {
+                if (this.generations[kind] != generation) return;
+                this.building.delete(kind);
+                this.failedBuilds.add(kind);
+                this.settle();
+                discard?.();
+                this.onBuildError?.(kind, error);
+              }
+            },
+          ),
         );
       } finally {
         this.compiling--;
@@ -514,44 +555,55 @@ export class WebGPUBackend {
   setSimulation(parts) {
     parts = this.sized(parts);
     this.setClamping(parts.clamp);
-    this.requestBuild("simulation", async () => {
-      const pipelines = {};
-      const plan = blockingPlan(parts, this.device.limits.maxComputeWorkgroupStorageSize);
-      await Promise.all([
-        ...PASS_TYPES.map(async (type) => {
-          pipelines[type] = await this.compile(
-            `timestep ${type}`,
-            timestepShader(type, parts),
-            parts.formats,
-          );
-        }),
-        (async () => {
-          // Optional: if the blocked kernel fails (e.g. it needs more of the GPU than a
-          // driver can give one workgroup), steps are taken unblocked. Any error in the
-          // equations themselves fails the kernels above too.
-          try {
-            pipelines.FEBlocked = plan && {
-              ...(await this.compile(
-                "timestep FE (blocked)",
-                blockedTimestepShader(parts, plan),
-                parts.formats,
-              )),
-              plan,
-            };
-          } catch (error) {
-            console.log("Not blocking timesteps, as the blocked kernel failed:", error.message);
-            pipelines.FEBlocked = null;
-          }
-        })(),
-      ]);
-      return () => {
-        // Steps already requested are taken with the pipelines they were requested with.
-        this.settle();
-        Object.assign(this.pipelines, pipelines);
-      };
-    }, () => {
-      for (const type of [...PASS_TYPES, "FEBlocked"]) delete this.pipelines[type];
-    });
+    this.requestBuild(
+      "simulation",
+      async () => {
+        const pipelines = {};
+        const plan = blockingPlan(
+          parts,
+          this.device.limits.maxComputeWorkgroupStorageSize,
+        );
+        await Promise.all([
+          ...PASS_TYPES.map(async (type) => {
+            pipelines[type] = await this.compile(
+              `timestep ${type}`,
+              timestepShader(type, parts),
+              parts.formats,
+            );
+          }),
+          (async () => {
+            // Optional: if the blocked kernel fails (e.g. it needs more of the GPU than a
+            // driver can give one workgroup), steps are taken unblocked. Any error in the
+            // equations themselves fails the kernels above too.
+            try {
+              pipelines.FEBlocked = plan && {
+                ...(await this.compile(
+                  "timestep FE (blocked)",
+                  blockedTimestepShader(parts, plan),
+                  parts.formats,
+                )),
+                plan,
+              };
+            } catch (error) {
+              console.log(
+                "Not blocking timesteps, as the blocked kernel failed:",
+                error.message,
+              );
+              pipelines.FEBlocked = null;
+            }
+          })(),
+        ]);
+        return () => {
+          // Steps already requested are taken with the pipelines they were requested with.
+          this.settle();
+          Object.assign(this.pipelines, pipelines);
+        };
+      },
+      () => {
+        for (const type of [...PASS_TYPES, "FEBlocked"])
+          delete this.pipelines[type];
+      },
+    );
   }
 
   // Shader parts with the workgroup size that dispatch() dispatches with.
@@ -562,34 +614,54 @@ export class WebGPUBackend {
   /** Builds the initial-condition pipeline. */
   setClear(parts) {
     parts = this.sized(parts);
-    this.requestBuild("clear", async () => {
-      const pipeline = await this.compile("clear", clearShader(parts), parts.formats);
-      return () => (this.pipelines.clear = pipeline);
-    }, () => delete this.pipelines.clear);
+    this.requestBuild(
+      "clear",
+      async () => {
+        const pipeline = await this.compile(
+          "clear",
+          clearShader(parts),
+          parts.formats,
+        );
+        return () => (this.pipelines.clear = pipeline);
+      },
+      () => delete this.pipelines.clear,
+    );
   }
 
   /** Builds the brush pipeline. */
   setDraw(parts) {
     parts = this.sized(parts);
-    this.requestBuild("draw", async () => {
-      const pipeline = await this.compile("draw", drawShader(parts), parts.formats);
-      return () => (this.pipelines.draw = pipeline);
-    }, () => delete this.pipelines.draw);
+    this.requestBuild(
+      "draw",
+      async () => {
+        const pipeline = await this.compile(
+          "draw",
+          drawShader(parts),
+          parts.formats,
+        );
+        return () => (this.pipelines.draw = pipeline);
+      },
+      () => delete this.pipelines.draw,
+    );
   }
 
   /** Builds the Dirichlet enforcement pipeline, or removes it if parts is null. */
   setEnforceDirichlet(parts) {
     if (parts) parts = this.sized(parts);
-    this.requestBuild("enforce", async () => {
-      const pipeline = parts
-        ? await this.compile(
-            "enforce Dirichlet",
-            enforceDirichletShader(parts),
-            parts.formats,
-          )
-        : null;
-      return () => (this.pipelines.enforce = pipeline);
-    }, () => delete this.pipelines.enforce);
+    this.requestBuild(
+      "enforce",
+      async () => {
+        const pipeline = parts
+          ? await this.compile(
+              "enforce Dirichlet",
+              enforceDirichletShader(parts),
+              parts.formats,
+            )
+          : null;
+        return () => (this.pipelines.enforce = pipeline);
+      },
+      () => delete this.pipelines.enforce,
+    );
   }
 
   ensureUniformCapacity(count) {
@@ -640,7 +712,9 @@ export class WebGPUBackend {
   // slots.
   dispatch(kernel, uniforms, inputs, dst) {
     if (!this.fitsState(kernel)) {
-      console.error(`WebGPU kernel ${kernel?.pipeline.label} doesn't fit the state's formats`);
+      console.error(
+        `WebGPU kernel ${kernel?.pipeline.label} doesn't fit the state's formats`,
+      );
       return;
     }
     // The slots first: reading them records any pending steps, which may flush and replace
@@ -665,13 +739,19 @@ export class WebGPUBackend {
     pass.setBindGroup(0, bindGroup, [offset]);
     // Each workgroup of a blocked kernel writes its tile's interior.
     const perGroup = kernel.plan ? [kernel.plan.output, 1] : this.workgroupSize;
-    pass.dispatchWorkgroups(Math.ceil(this.nX / perGroup[0]), Math.ceil(this.nY / perGroup[1]));
+    pass.dispatchWorkgroups(
+      Math.ceil(this.nX / perGroup[0]),
+      Math.ceil(this.nY / perGroup[1]),
+    );
     pass.end();
   }
 
   createDispatchBindGroup(kernel, sources, target) {
     const entries = [
-      { binding: 0, resource: { buffer: this.uniformBuffer, size: UNIFORM_STRIDE } },
+      {
+        binding: 0,
+        resource: { buffer: this.uniformBuffer, size: UNIFORM_STRIDE },
+      },
       { binding: 1, resource: { buffer: this.paramsBuffer } },
       { binding: 2, resource: this.images[0].createView() },
       { binding: 3, resource: this.images[1].createView() },
@@ -680,9 +760,15 @@ export class WebGPUBackend {
       { binding: 6, resource: { buffer: this.globalsBuffer } },
     ];
     for (let g = 0; g < kernel.G; g++) {
-      entries.push({ binding: SAMPLER_BINDING + g, resource: this.stateSampler(g) });
+      entries.push({
+        binding: SAMPLER_BINDING + g,
+        resource: this.stateSampler(g),
+      });
       sources.forEach((slot, k) =>
-        entries.push({ binding: SOURCE_BINDING + 4 * g + k, resource: slot.views[g] }),
+        entries.push({
+          binding: SOURCE_BINDING + 4 * g + k,
+          resource: slot.views[g],
+        }),
       );
       entries.push({ binding: OUTPUT_BINDING + g, resource: target.views[g] });
     }
@@ -714,7 +800,11 @@ export class WebGPUBackend {
   }
 
   stateSampler(g) {
-    if (!this.stateSamplers) this.setClamping([[false, false], [false, false]]);
+    if (!this.stateSamplers)
+      this.setClamping([
+        [false, false],
+        [false, false],
+      ]);
     return this.stateSamplers[g];
   }
 
@@ -792,7 +882,11 @@ export class WebGPUBackend {
     // As for enforceDirichlet.
     if (!this.fitsState(this.pipelines.draw)) return;
     this.flush();
-    this.device.queue.writeBuffer(this.valuesBuffer, 0, BRUSH_VALUES.pack(brush));
+    this.device.queue.writeBuffer(
+      this.valuesBuffer,
+      0,
+      BRUSH_VALUES.pack(brush),
+    );
     for (let k = 1; k < NUM_SLOTS; k++) {
       this.dispatch(this.pipelines.draw, uniforms, [k], k - 1);
     }
@@ -876,9 +970,17 @@ export class WebGPUBackend {
     // Elsewhere it uses the min filter, which is nearest. (A small tolerance, as a scale of 1,
     // when cropping, can come out a rounding error either side of it.) Snapped, so that, as
     // with WebGL's hardware filtering, nodes at the checkpoint's own nodes are restored exactly.
-    const texelsPerNode = Math.max((width * repeat[0]) / this.nX, (height * repeat[1]) / this.nY);
+    const texelsPerNode = Math.max(
+      (width * repeat[0]) / this.nX,
+      (height * repeat[1]) / this.nY,
+    );
     const magnified = linear && texelsPerNode <= 1 + 1e-6;
-    this.resample(sources, width, height, this.slots[0], { repeat, offset, linear: magnified, snap: true });
+    this.resample(sources, width, height, this.slots[0], {
+      repeat,
+      offset,
+      linear: magnified,
+      snap: true,
+    });
     this.release(...sources);
     this.copySlotToOthers(0);
   }
@@ -891,15 +993,30 @@ export class WebGPUBackend {
    * clamped in x and y where clamp (per group, [x, y]) says so, as by default, and wrapped
    * otherwise.
    */
-  resample(sources, width, height, target, { repeat, offset, linear, snap = false, clamp }) {
+  resample(
+    sources,
+    width,
+    height,
+    target,
+    { repeat, offset, linear, snap = false, clamp },
+  ) {
     const device = this.device;
     const G = this.numGroups;
-    const clampBits = Array.from({ length: G }, (_, g) => clamp?.[g] ?? [true, true]).reduce(
-      (bits, [cx, cy], g) => bits | (cx ? 1 << (2 * g) : 0) | (cy ? 2 << (2 * g) : 0),
+    const clampBits = Array.from(
+      { length: G },
+      (_, g) => clamp?.[g] ?? [true, true],
+    ).reduce(
+      (bits, [cx, cy], g) =>
+        bits | (cx ? 1 << (2 * g) : 0) | (cy ? 2 << (2 * g) : 0),
       0,
     );
     const params = new ArrayBuffer(48);
-    new Uint32Array(params, 0, 4).set([width, height, linear ? 1 : 0, snap ? 1 : 0]);
+    new Uint32Array(params, 0, 4).set([
+      width,
+      height,
+      linear ? 1 : 0,
+      snap ? 1 : 0,
+    ]);
     new Float32Array(params, 16, 4).set([...repeat, ...offset]);
     new Uint32Array(params, 32, 3).set([this.nX, this.nY, clampBits]);
     const paramsBuffer = device.createBuffer({
@@ -913,7 +1030,9 @@ export class WebGPUBackend {
       this.restorePipelines[formats] = device.createComputePipeline({
         layout: "auto",
         compute: {
-          module: device.createShaderModule({ code: restoreShader(formats, this.workgroupSize) }),
+          module: device.createShaderModule({
+            code: restoreShader(formats, this.workgroupSize),
+          }),
           entryPoint: "main",
         },
       });
@@ -927,8 +1046,14 @@ export class WebGPUBackend {
         layout: pipeline.getBindGroupLayout(0),
         entries: [
           { binding: 0, resource: { buffer: paramsBuffer } },
-          ...sources.map((texture, g) => ({ binding: 1 + g, resource: texture.createView() })),
-          ...target.views.map((view, g) => ({ binding: 3 + g, resource: view })),
+          ...sources.map((texture, g) => ({
+            binding: 1 + g,
+            resource: texture.createView(),
+          })),
+          ...target.views.map((view, g) => ({
+            binding: 3 + g,
+            resource: view,
+          })),
         ],
       }),
     );
@@ -994,7 +1119,11 @@ export class WebGPUBackend {
         size: bytesPerRow * nY,
         usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
       });
-      encoder.copyTextureToBuffer({ texture }, { buffer: staging, bytesPerRow }, [nX, nY]);
+      encoder.copyTextureToBuffer(
+        { texture },
+        { buffer: staging, bytesPerRow },
+        [nX, nY],
+      );
       return { staging, channels, rowBytes, bytesPerRow };
     });
     this.device.queue.submit([encoder.finish()]);
@@ -1005,7 +1134,10 @@ export class WebGPUBackend {
         const packed = new Float32Array(channels * nX * nY);
         const bytes = new Uint8Array(packed.buffer);
         for (let j = 0; j < nY; j++) {
-          bytes.set(padded.subarray(j * bytesPerRow, j * bytesPerRow + rowBytes), j * rowBytes);
+          bytes.set(
+            padded.subarray(j * bytesPerRow, j * bytesPerRow + rowBytes),
+            j * rowBytes,
+          );
         }
         staging.unmap();
         staging.destroy();

@@ -28,7 +28,9 @@ function safeStorage(storage, action) {
 
 /** Returns the user's stored choice: "webgl", "webgpu" or "auto". */
 export function storedBackendChoice() {
-  const stored = safeStorage("localStorage", (s) => s.getItem(BACKEND_STORAGE_KEY));
+  const stored = safeStorage("localStorage", (s) =>
+    s.getItem(BACKEND_STORAGE_KEY),
+  );
   return ["webgl", "webgpu", "auto"].includes(stored) ? stored : DEFAULT_CHOICE;
 }
 
@@ -40,18 +42,23 @@ export function storeBackendChoice(choice) {
 
 /** Records that WebGPU failed, so that this session sticks to WebGL. */
 export function recordWebGPUFailure(reason) {
-  safeStorage("sessionStorage", (s) => s.setItem(FALLBACK_SESSION_KEY, String(reason)));
+  safeStorage("sessionStorage", (s) =>
+    s.setItem(FALLBACK_SESSION_KEY, String(reason)),
+  );
 }
 
 /** Asks for the next page load to use WebGL, e.g. for a feature WebGPU lacks. */
 export function requestWebGLOnce(reason) {
-  safeStorage("sessionStorage", (s) => s.setItem(ONCE_SESSION_KEY, String(reason)));
+  safeStorage("sessionStorage", (s) =>
+    s.setItem(ONCE_SESSION_KEY, String(reason)),
+  );
 }
 
 /** Why this page is on WebGL rather than WebGPU, if it fell back. */
 export function webGPUFailureReason() {
   return (
-    webGLOnceReason ?? safeStorage("sessionStorage", (s) => s.getItem(FALLBACK_SESSION_KEY))
+    webGLOnceReason ??
+    safeStorage("sessionStorage", (s) => s.getItem(FALLBACK_SESSION_KEY))
   );
 }
 
@@ -93,16 +100,20 @@ export async function createWebGPUDevice({ minimalLimits = false } = {}) {
     throw new Error("The WebGPU adapter supports too few storage buffers.");
   }
   const device = await adapter.requestDevice({
-    requiredLimits: minimalLimits ? {} : {
-      maxStorageBufferBindingSize: adapter.limits.maxStorageBufferBindingSize,
-      maxBufferSize: adapter.limits.maxBufferSize,
-      // Caps the grid size and images, as WebGL's MAX_TEXTURE_SIZE does.
-      maxTextureDimension2D: adapter.limits.maxTextureDimension2D,
-      maxStorageBuffersPerShaderStage: STORAGE_BUFFERS_NEEDED,
-      // As much workgroup memory as there is, for the tiles of temporally blocked timesteps
-      // (see sim_wgsl.js's blockingPlan).
-      maxComputeWorkgroupStorageSize: adapter.limits.maxComputeWorkgroupStorageSize,
-    },
+    requiredLimits: minimalLimits
+      ? {}
+      : {
+          maxStorageBufferBindingSize:
+            adapter.limits.maxStorageBufferBindingSize,
+          maxBufferSize: adapter.limits.maxBufferSize,
+          // Caps the grid size and images, as WebGL's MAX_TEXTURE_SIZE does.
+          maxTextureDimension2D: adapter.limits.maxTextureDimension2D,
+          maxStorageBuffersPerShaderStage: STORAGE_BUFFERS_NEEDED,
+          // As much workgroup memory as there is, for the tiles of temporally blocked timesteps
+          // (see sim_wgsl.js's blockingPlan).
+          maxComputeWorkgroupStorageSize:
+            adapter.limits.maxComputeWorkgroupStorageSize,
+        },
   });
   const info = adapter.info ?? {};
   return {

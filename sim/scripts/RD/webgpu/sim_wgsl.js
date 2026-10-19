@@ -81,7 +81,9 @@ export function stateFormats(numSpecies) {
   const formats = [];
   for (let first = 0; first == 0 || first < numSpecies; first += 4) {
     const count = Math.min(4, numSpecies - first);
-    formats.push(count == 1 ? "r32float" : count == 2 ? "rg32float" : "rgba32float");
+    formats.push(
+      count == 1 ? "r32float" : count == 2 ? "rg32float" : "rgba32float",
+    );
   }
   return formats;
 }
@@ -103,9 +105,16 @@ export function writeUniforms(view, offset, u) {
   view.setUint32(offset + 8, u.isTwoD ? 1 : 0, true);
   view.setUint32(offset + 12, 0, true);
   const floats = [
-    u.dt, u.dx, u.dy, u.t,
-    u.L, u.L_x, u.L_y, u.L_min,
-    u.seed, ...(u.globalIntegralValues ?? [0, 0, 0, 0]),
+    u.dt,
+    u.dx,
+    u.dy,
+    u.t,
+    u.L,
+    u.L_x,
+    u.L_y,
+    u.L_min,
+    u.seed,
+    ...(u.globalIntegralValues ?? [0, 0, 0, 0]),
     u.inf ?? Infinity,
     1 / u.nX,
     1 / u.nY,
@@ -237,8 +246,10 @@ function translationOptions(parts, extraCalls = {}) {
     return `fetchNearest(${sampler[0]}u, ${sampler[1]}u, ${uv})`;
   };
   const image = ([tex, uv]) => {
-    if (tex == "imageSourceOne") return `textureSampleLevel(imageOne, imageSampler, ${uv}, 0.0)`;
-    if (tex == "imageSourceTwo") return `textureSampleLevel(imageTwo, imageSampler, ${uv}, 0.0)`;
+    if (tex == "imageSourceOne")
+      return `textureSampleLevel(imageOne, imageSampler, ${uv}, 0.0)`;
+    if (tex == "imageSourceTwo")
+      return `textureSampleLevel(imageTwo, imageSampler, ${uv}, 0.0)`;
     return nearest([tex, uv]);
   };
   renames.gl_FragColor = "fragColour";
@@ -276,9 +287,9 @@ function commonLets(
   const xy = !withXY
     ? ""
     : clearCoords
-    ? `  let x = ${minX} + textureCoords.x * f32(U.nX) * dx;
+      ? `  let x = ${minX} + textureCoords.x * f32(U.nX) * dx;
   let y = ${minY} + textureCoords.y * f32(U.nY) * dy;`
-    : `  let x = textureCoords.x * L_x + ${minX};
+      : `  let x = textureCoords.x * L_x + ${minX};
   let y = textureCoords.y * L_y + ${minY};`;
   return `
   let dt = U.dt;
@@ -310,7 +321,10 @@ ${xy}
 function prelude(parts) {
   const G = parts.numGroups;
   const clampConsts = parts.clamp
-    .map(([cx, cy], g) => `const CLAMP_X_${g} = ${cx};\nconst CLAMP_Y_${g} = ${cy};`)
+    .map(
+      ([cx, cy], g) =>
+        `const CLAMP_X_${g} = ${cx};\nconst CLAMP_Y_${g} = ${cy};`,
+    )
     .join("\n");
   const sources = [];
   const loads = [];
@@ -326,13 +340,16 @@ function prelude(parts) {
   }
   const samplers = Array.from(
     { length: G },
-    (_, g) => `@group(0) @binding(${SAMPLER_BINDING + g}) var stateSampler${g}: sampler;`,
+    (_, g) =>
+      `@group(0) @binding(${SAMPLER_BINDING + g}) var stateSampler${g}: sampler;`,
   ).join("\n");
   const samples = [];
   const fetchers = [];
   for (let g = 0; g < G; g++) {
     for (let slot = 0; slot < 4; slot++) {
-      samples.push(`  if (g == ${g}u && slot == ${slot}u) { return fetch${slot}_${g}(i, j); }`);
+      samples.push(
+        `  if (g == ${g}u && slot == ${slot}u) { return fetch${slot}_${g}(i, j); }`,
+      );
       fetchers.push(
         `fn fetch${slot}_${g}(i: i32, j: i32) -> vec4f {
   return textureSampleLevel(src${slot}_${g}, stateSampler${g}, (vec2f(f32(i), f32(j)) + 0.5) * U.inverseSize, 0.0);
@@ -480,8 +497,12 @@ function computeRHSFunction(parts, opts) {
   }
   // The GLSL body ends by closing computeRHS, which the WGSL wrapper does instead.
   const body = parts.middle.replace(/\}\s*$/, "");
-  const results = G == 1 ? "var result: vec4f;" : "var result0: vec4f;\n  var result1: vec4f;";
-  const ret = G == 1 ? "RHSOut(result, vec4f(0.0))" : "RHSOut(result0, result1)";
+  const results =
+    G == 1
+      ? "var result: vec4f;"
+      : "var result0: vec4f;\n  var result1: vec4f;";
+  const ret =
+    G == 1 ? "RHSOut(result, vec4f(0.0))" : "RHSOut(result0, result1)";
   return `
 struct RHSOut { r0: vec4f, r1: vec4f }
 
@@ -493,16 +514,16 @@ ${copies.join("\n")}
   let dSquared = 1.0/vec2f(dx*dx, dy*dy);
   ${results}
 ${translateStatements(body, {
-    ...opts,
-    calls: {
-      ...opts.calls,
-      // Inside computeRHS, "textureSource" is its argument rather than the pass's input.
-      textureBilinear: ([tex, uv]) =>
-        tex == "textureSource"
-          ? `fetchBilinear(srcSlot, 0u, ${uv})`
-          : opts.calls.textureBilinear([tex, uv]),
-    },
-  })}
+  ...opts,
+  calls: {
+    ...opts.calls,
+    // Inside computeRHS, "textureSource" is its argument rather than the pass's input.
+    textureBilinear: ([tex, uv]) =>
+      tex == "textureSource"
+        ? `fetchBilinear(srcSlot, 0u, ${uv})`
+        : opts.calls.textureBilinear([tex, uv]),
+  },
+})}
   return ${ret};
 }`;
 }
@@ -517,19 +538,26 @@ function schemeBody(type, G, timescales) {
   const centre = (slot, g) => `fetch${slot}_${g}(i, j)`;
   const lines = [];
   const each = (f) => {
-    for (let g = 0; g < G; g++) lines.push(f(g, g == 0 ? "" : "2", g == 0 ? "" : "Group1"));
+    for (let g = 0; g < G; g++)
+      lines.push(f(g, g == 0 ? "" : "2", g == 0 ? "" : "Group1"));
   };
   switch (type) {
     case "FE":
       lines.push(stencilFetch(G, 0), call(0, "t", "rhs1"));
       each((g, n) => `  RHS${n} = rhs1.r${g};`);
-      each((g, n, s) => `  updated${n} = dt * RHS${n} / timescales${s} + uvwq${n};`);
+      each(
+        (g, n, s) =>
+          `  updated${n} = dt * RHS${n} / timescales${s} + uvwq${n};`,
+      );
       break;
     case "AB2":
       lines.push(stencilFetch(G, 0), call(0, "t", "outCur"));
       lines.push(stencilFetch(G, 1), call(1, "t - dt", "outPrev"), timescales);
       each((g, n) => `  RHS${n} = 1.5 * outCur.r${g} - 0.5 * outPrev.r${g};`);
-      each((g, n, s) => `  updated${n} = dt * RHS${n} / timescales${s} + ${centre(0, g)};`);
+      each(
+        (g, n, s) =>
+          `  updated${n} = dt * RHS${n} / timescales${s} + ${centre(0, g)};`,
+      );
       break;
     case "Mid1":
     case "RK41":
@@ -539,7 +567,10 @@ function schemeBody(type, G, timescales) {
       break;
     case "RK42":
     case "RK43":
-      lines.push(stencilFetch(G, 0, type == "RK42" ? 1 : 2, "0.5*dt"), call(0, "t", "rhs1"));
+      lines.push(
+        stencilFetch(G, 0, type == "RK42" ? 1 : 2, "0.5*dt"),
+        call(0, "t", "rhs1"),
+      );
       each((g, n) => `  RHS${n} = rhs1.r${g};`);
       each((g, n, s) => `  updated${n} = RHS${n} / timescales${s};`);
       break;
@@ -547,7 +578,10 @@ function schemeBody(type, G, timescales) {
       each((g, n) => `  let uvwq${n}Last = ${centre(0, g)};`);
       lines.push(stencilFetch(G, 0, 1, "0.5*dt"), call(0, "t", "rhs1"));
       each((g, n) => `  RHS${n} = rhs1.r${g};`);
-      each((g, n, s) => `  updated${n} = dt * RHS${n} / timescales${s} + uvwq${n}Last;`);
+      each(
+        (g, n, s) =>
+          `  updated${n} = dt * RHS${n} / timescales${s} + uvwq${n}Last;`,
+      );
       break;
     case "RK44":
       each((g, n) => `  let uvwq${n}Last = ${centre(0, g)};`);
@@ -556,7 +590,10 @@ function schemeBody(type, G, timescales) {
         (g, n, s) =>
           `  RHS${n} = (timescales${s} * (${centre(1, g)} + 2.0*(${centre(2, g)} + ${centre(3, g)})) + rhs1.r${g}) / 6.0;`,
       );
-      each((g, n, s) => `  updated${n} = dt * RHS${n} / timescales${s} + uvwq${n}Last;`);
+      each(
+        (g, n, s) =>
+          `  updated${n} = dt * RHS${n} / timescales${s} + uvwq${n}Last;`,
+      );
       break;
     default:
       throw new Error("Unknown pass " + type);
@@ -576,7 +613,8 @@ export function timestepShader(type, parts) {
   const declarations = [];
   for (let g = 0; g < G; g++) {
     const prefix = g == 0 ? "uvwq" : "uvwq2";
-    for (const [suffix] of STENCIL) declarations.push(`  var ${prefix}${suffix}: vec4f;`);
+    for (const [suffix] of STENCIL)
+      declarations.push(`  var ${prefix}${suffix}: vec4f;`);
   }
   const outputs = ["  let out0 = updated;"];
   if (G > 1) outputs.push("  let out1 = updated2;");
@@ -633,7 +671,11 @@ const BLOCK_CELLS = 2;
 const BLOCK_TILE = BLOCK_THREADS * BLOCK_CELLS;
 // Steps per blocked pass.
 const BLOCK_STEPS = 8;
-const FORMAT_TYPES = { r32float: "f32", rg32float: "vec2f", rgba32float: "vec4f" };
+const FORMAT_TYPES = {
+  r32float: "f32",
+  rg32float: "vec2f",
+  rgba32float: "vec4f",
+};
 const FORMAT_BYTES = { r32float: 4, rg32float: 8, rgba32float: 16 };
 
 // Identifiers in WGSL code.
@@ -647,13 +689,19 @@ const identifiers = (code) => code.match(/[A-Za-z_]\w*/g) ?? [];
 function liveIdentifiers(code, roots) {
   const live = new Set(roots);
   const assignments = [];
-  for (const statement of code.split(/[;{}]/).map((st) => st.trim()).filter(Boolean)) {
+  for (const statement of code
+    .split(/[;{}]/)
+    .map((st) => st.trim())
+    .filter(Boolean)) {
     const m = statement.match(
       /^(?:(?:var|let)\s+)?([A-Za-z_]\w*)(?:\s*:\s*[\w<>]+)?(?:\.[a-z]+)?\s*([-+*/]?)=(?!=)([\s\S]*)$/,
     );
     if (m) {
       // A compound assignment (+= etc.) also reads its target.
-      assignments.push({ target: m[1], reads: identifiers(m[3] + (m[2] ? " " + m[1] : "")) });
+      assignments.push({
+        target: m[1],
+        reads: identifiers(m[3] + (m[2] ? " " + m[1] : "")),
+      });
     } else {
       identifiers(statement).forEach((id) => live.add(id));
     }
@@ -714,10 +762,17 @@ export function blockingPlan(parts, storageLimit) {
     ...identifiers(timescales),
     ...identifiers(bot),
   ]);
-  const radius = [...live].some((id) => /^uvwq2?(LL|RR)(In)?$/.test(id)) ? 2 : 1;
-  const bytes = BLOCK_TILE * parts.formats.reduce((sum, f) => sum + FORMAT_BYTES[f], 0);
+  const radius = [...live].some((id) => /^uvwq2?(LL|RR)(In)?$/.test(id))
+    ? 2
+    : 1;
+  const bytes =
+    BLOCK_TILE * parts.formats.reduce((sum, f) => sum + FORMAT_BYTES[f], 0);
   if (bytes > storageLimit) return null;
-  return { steps: BLOCK_STEPS, radius, output: BLOCK_TILE - 2 * BLOCK_STEPS * radius };
+  return {
+    steps: BLOCK_STEPS,
+    radius,
+    output: BLOCK_TILE - 2 * BLOCK_STEPS * radius,
+  };
 }
 
 /**
@@ -737,7 +792,9 @@ export function blockedTimestepShader(parts, plan) {
   const K = plan.steps;
   const groups = Array.from({ length: G }, (_, g) => g);
   const types = parts.formats.map((f) => FORMAT_TYPES[f]);
-  const tiles = groups.map((g) => `var<workgroup> tile${g}: array<${types[g]}, ${T}>;`).join("\n");
+  const tiles = groups
+    .map((g) => `var<workgroup> tile${g}: array<${types[g]}, ${T}>;`)
+    .join("\n");
   // Tile values as the sampler would return them (missing channels 0, alpha 1), and back.
   const readers = groups
     .map((g) => {
@@ -745,21 +802,29 @@ export function blockedTimestepShader(parts, plan) {
         types[g] == "f32"
           ? `vec4f(tile${g}[k], 0.0, 0.0, 1.0)`
           : types[g] == "vec2f"
-          ? `vec4f(tile${g}[k], 0.0, 1.0)`
-          : `tile${g}[k]`;
-      const stored = types[g] == "f32" ? "v.x" : types[g] == "vec2f" ? "v.xy" : "v";
+            ? `vec4f(tile${g}[k], 0.0, 1.0)`
+            : `tile${g}[k]`;
+      const stored =
+        types[g] == "f32" ? "v.x" : types[g] == "vec2f" ? "v.xy" : "v";
       return `fn tileRead${g}(k: i32) -> vec4f { return ${value}; }
 fn tileWrite${g}(k: i32, v: vec4f) { tile${g}[k] = ${stored}; }`;
     })
     .join("\n");
   // The tile index of node ci's neighbour di, from its cell k.
   const neighbour = (g, di) =>
-    di == 0 ? "k" : parts.clamp[g][0] ? `k + clamp(ci + ${di}, 0, nX - 1) - ci` : `k + ${di}`;
+    di == 0
+      ? "k"
+      : parts.clamp[g][0]
+        ? `k + clamp(ci + ${di}, 0, nX - 1) - ci`
+        : `k + ${di}`;
   const stencilArgsFromTile = groups
     .flatMap((g) =>
       // y-neighbours are the node itself; neighbours beyond the radius are never used (see
       // blockingPlan).
-      STENCIL.map(([, di]) => `tileRead${g}(${Math.abs(di) > R ? "k" : neighbour(g, di)})`),
+      STENCIL.map(
+        ([, di]) =>
+          `tileRead${g}(${Math.abs(di) > R ? "k" : neighbour(g, di)})`,
+      ),
     )
     .join(",\n        ");
   const params = [];
@@ -772,7 +837,9 @@ fn tileWrite${g}(k: i32, v: vec4f) { tile${g}[k] = ${stored}; }`;
     }
   }
   const each = (f) =>
-    groups.map((g) => f(g, g == 0 ? "" : "2", g == 0 ? "" : "Group1")).join("\n");
+    groups
+      .map((g) => f(g, g == 0 ? "" : "2", g == 0 ? "" : "Group1"))
+      .join("\n");
   const forCells = (body) => `  for (var c = 0; c < ${C}; c++) {
     let a = i32(l.x) * ${C} + c;
 ${body}
@@ -898,9 +965,13 @@ export function drawShader(parts) {
   const opts = translationOptions(parts);
   const body = parts.body.replace(/\}\s*$/, "");
   const declarations =
-    G == 1 ? "  var fragColour: vec4f;" : "  var fragColor0: vec4f;\n  var fragColor1: vec4f;";
+    G == 1
+      ? "  var fragColour: vec4f;"
+      : "  var fragColor0: vec4f;\n  var fragColor1: vec4f;";
   const outputs =
-    G == 1 ? "  let out0 = fragColour;" : "  let out0 = fragColor0;\n  let out1 = fragColor1;";
+    G == 1
+      ? "  let out0 = fragColour;"
+      : "  let out0 = fragColor0;\n  let out1 = fragColor1;";
   return `${prelude(parts)}
 ${entryPoint(
   G,

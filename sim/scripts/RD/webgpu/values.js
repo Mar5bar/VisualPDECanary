@@ -46,4 +46,3 @@ export class ValueLayout {
     return data;
   }
 }
-

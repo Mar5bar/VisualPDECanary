@@ -28,8 +28,12 @@ import {
 const LINE_QUAD_POSITIONS = new Float32Array([
   -1, 2, 0, 1, 2, 0, -1, 1, 0, 1, 1, 0, -1, 0, 0, 1, 0, 0, -1, -1, 0, 1, -1, 0,
 ]);
-const LINE_QUAD_UVS = new Float32Array([-1, 2, 1, 2, -1, 1, 1, 1, -1, -1, 1, -1, -1, -2, 1, -2]);
-const LINE_QUAD_INDICES = new Uint32Array([0, 2, 1, 2, 3, 1, 2, 4, 3, 4, 5, 3, 4, 6, 5, 6, 7, 5]);
+const LINE_QUAD_UVS = new Float32Array([
+  -1, 2, 1, 2, -1, 1, 1, 1, -1, -1, 1, -1, -1, -2, 1, -2,
+]);
+const LINE_QUAD_INDICES = new Uint32Array([
+  0, 2, 1, 2, 3, 1, 2, 4, 3, 4, 5, 3, 4, 6, 5, 6, 7, 5,
+]);
 
 // three.js's projection matrices map depth to [-1, 1], as WebGL does; WebGPU's clip space
 // uses [0, 1].
@@ -115,7 +119,10 @@ export class WebGPUDisplay {
 
   buildLines() {
     const device = this.device;
-    const module = device.createShaderModule({ label: "line", code: LINE_SHADER });
+    const module = device.createShaderModule({
+      label: "line",
+      code: LINE_SHADER,
+    });
     const instance = (location, offset) => ({
       shaderLocation: location,
       offset,
@@ -128,19 +135,44 @@ export class WebGPUDisplay {
         module,
         entryPoint: "vertexMain",
         buffers: [
-          { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }] },
-          { arrayStride: 8, attributes: [{ shaderLocation: 1, offset: 0, format: "float32x2" }] },
-          { arrayStride: 24, stepMode: "instance", attributes: [instance(2, 0), instance(3, 12)] },
-          { arrayStride: 24, stepMode: "instance", attributes: [instance(4, 0), instance(5, 12)] },
+          {
+            arrayStride: 12,
+            attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
+          },
+          {
+            arrayStride: 8,
+            attributes: [{ shaderLocation: 1, offset: 0, format: "float32x2" }],
+          },
+          {
+            arrayStride: 24,
+            stepMode: "instance",
+            attributes: [instance(2, 0), instance(3, 12)],
+          },
+          {
+            arrayStride: 24,
+            stepMode: "instance",
+            attributes: [instance(4, 0), instance(5, 12)],
+          },
         ],
       },
-      fragment: { module, entryPoint: "fragmentMain", targets: [{ format: this.format }] },
+      fragment: {
+        module,
+        entryPoint: "fragmentMain",
+        targets: [{ format: this.format }],
+      },
       primitive: { topology: "triangle-list", cullMode: "none" },
-      depthStencil: { format: "depth24plus", depthWriteEnabled: true, depthCompare: "less-equal" },
+      depthStencil: {
+        format: "depth24plus",
+        depthWriteEnabled: true,
+        depthCompare: "less-equal",
+      },
       multisample: { count: this.sampleCount },
     });
     const upload = (data, usage) => {
-      const buffer = device.createBuffer({ size: data.byteLength, usage: usage | GPUBufferUsage.COPY_DST });
+      const buffer = device.createBuffer({
+        size: data.byteLength,
+        usage: usage | GPUBufferUsage.COPY_DST,
+      });
       device.queue.writeBuffer(buffer, 0, data);
       return buffer;
     };
@@ -152,7 +184,10 @@ export class WebGPUDisplay {
     // Per line drawn in a frame, its uniforms and instance buffers, reused across frames.
     this.lineResources = [];
 
-    const meshModule = device.createShaderModule({ label: "mesh", code: MESH_SHADER });
+    const meshModule = device.createShaderModule({
+      label: "mesh",
+      code: MESH_SHADER,
+    });
     this.pipelines.mesh = device.createRenderPipeline({
       label: "mesh",
       layout: "auto",
@@ -160,7 +195,10 @@ export class WebGPUDisplay {
         module: meshModule,
         entryPoint: "vertexMain",
         buffers: [
-          { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }] },
+          {
+            arrayStride: 12,
+            attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
+          },
           {
             arrayStride: 64,
             stepMode: "instance",
@@ -172,9 +210,17 @@ export class WebGPUDisplay {
           },
         ],
       },
-      fragment: { module: meshModule, entryPoint: "fragmentMain", targets: [{ format: this.format }] },
+      fragment: {
+        module: meshModule,
+        entryPoint: "fragmentMain",
+        targets: [{ format: this.format }],
+      },
       primitive: { topology: "triangle-list", cullMode: "none" },
-      depthStencil: { format: "depth24plus", depthWriteEnabled: true, depthCompare: "less-equal" },
+      depthStencil: {
+        format: "depth24plus",
+        depthWriteEnabled: true,
+        depthCompare: "less-equal",
+      },
       multisample: { count: this.sampleCount },
     });
     // Uploaded geometries, by the three.js BufferGeometry they came from.
@@ -192,7 +238,10 @@ export class WebGPUDisplay {
       ? Uint32Array.from(geometry.index.array)
       : Uint32Array.from({ length: positions.length / 3 }, (_, k) => k);
     const upload = (data, usage) => {
-      const buffer = device.createBuffer({ size: data.byteLength, usage: usage | GPUBufferUsage.COPY_DST });
+      const buffer = device.createBuffer({
+        size: data.byteLength,
+        usage: usage | GPUBufferUsage.COPY_DST,
+      });
       device.queue.writeBuffer(buffer, 0, data);
       return buffer;
     };
@@ -211,7 +260,10 @@ export class WebGPUDisplay {
     let r = this.meshResources[k];
     if (!r) {
       r = {
-        uniforms: device.createBuffer({ size: 80, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }),
+        uniforms: device.createBuffer({
+          size: 80,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        }),
       };
       r.bindGroup = device.createBindGroup({
         layout: this.pipelines.mesh.getBindGroupLayout(0),
@@ -221,7 +273,10 @@ export class WebGPUDisplay {
     }
     if (!r.instances || r.instances.size < bytes) {
       r.instances?.destroy();
-      r.instances = device.createBuffer({ size: bytes, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+      r.instances = device.createBuffer({
+        size: bytes,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      });
     }
     return r;
   }
@@ -232,7 +287,10 @@ export class WebGPUDisplay {
     let r = this.lineResources[k];
     if (!r) {
       r = {
-        uniforms: device.createBuffer({ size: 96, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }),
+        uniforms: device.createBuffer({
+          size: 96,
+          usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        }),
       };
       r.bindGroup = device.createBindGroup({
         layout: this.pipelines.line.getBindGroupLayout(0),
@@ -244,7 +302,10 @@ export class WebGPUDisplay {
       r.positions?.destroy();
       r.colours?.destroy();
       const make = () =>
-        device.createBuffer({ size: bytes, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+        device.createBuffer({
+          size: bytes,
+          usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        });
       r.positions = make();
       r.colours = make();
     }
@@ -259,7 +320,8 @@ export class WebGPUDisplay {
       else if (kind == "read") e.buffer = { type: "read-only-storage" };
       else if (kind == "write") e.buffer = { type: "storage" };
       else if (kind == "texture") e.texture = { sampleType: "float" };
-      else if (kind == "state") e.texture = { sampleType: "unfilterable-float" };
+      else if (kind == "state")
+        e.texture = { sampleType: "unfilterable-float" };
       else if (kind == "sampler") e.sampler = { type: "filtering" };
       return e;
     };
@@ -267,13 +329,27 @@ export class WebGPUDisplay {
     const VF = GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT;
     // Binding 2 and 12 are the state's two species groups.
     const kinds = (write) => [
-      "uniform", "read", "state", write ? "write" : "read", "read", "texture", "texture", "sampler",
+      "uniform",
+      "read",
+      "state",
+      write ? "write" : "read",
+      "read",
+      "texture",
+      "texture",
+      "sampler",
     ];
-    const withState1 = (entries) => [...entries, entry(12, entries[0].visibility, "state")];
+    const withState1 = (entries) => [
+      ...entries,
+      entry(12, entries[0].visibility, "state"),
+    ];
     // Field shaders (post-processing, probes, domain integrands): binding 8 is the domain
     // integrals.
     this.postLayout = this.device.createBindGroupLayout({
-      entries: withState1([...kinds(true), "read"].map((kind, binding) => entry(binding, C, kind))),
+      entries: withState1(
+        [...kinds(true), "read"].map((kind, binding) =>
+          entry(binding, C, kind),
+        ),
+      ),
     });
     // The display: binding 8 is the camera, 9 the domain integrals, 10 the blend image.
     this.displayLayout = this.device.createBindGroupLayout({
@@ -296,7 +372,10 @@ export class WebGPUDisplay {
     const build = (code) =>
       this.device.createComputePipeline({
         layout: "auto",
-        compute: { module: this.device.createShaderModule({ code }), entryPoint: "main" },
+        compute: {
+          module: this.device.createShaderModule({ code }),
+          entryPoint: "main",
+        },
       });
     this.pipelines.minMaxFirst = build(minMaxShader(true));
     this.pipelines.minMaxSecond = build(minMaxShader(false));
@@ -310,15 +389,21 @@ export class WebGPUDisplay {
   // that shader() returns. It's generated in the build, so that an expression that can't be
   // translated is reported as a build error, as one that doesn't compile is.
   buildField(kind, shader) {
-    this.backend.requestBuild(kind, async () => {
-      const module = await this.backend.compileModule(kind, shader());
-      const pipeline = await this.device.createComputePipelineAsync({
-        label: kind,
-        layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.postLayout] }),
-        compute: { module, entryPoint: "main" },
-      });
-      return () => (this.pipelines[kind] = pipeline);
-    }, () => delete this.pipelines[kind]);
+    this.backend.requestBuild(
+      kind,
+      async () => {
+        const module = await this.backend.compileModule(kind, shader());
+        const pipeline = await this.device.createComputePipelineAsync({
+          label: kind,
+          layout: this.device.createPipelineLayout({
+            bindGroupLayouts: [this.postLayout],
+          }),
+          compute: { module, entryPoint: "main" },
+        });
+        return () => (this.pipelines[kind] = pipeline);
+      },
+      () => delete this.pipelines[kind],
+    );
   }
 
   // Shader parts with the backend's workgroup size, which runField dispatches with.
@@ -350,67 +435,114 @@ export class WebGPUDisplay {
 
   /** Builds the display pipeline from the WebGL display shader's body. */
   setDisplay(parts) {
-    this.backend.requestBuild("display", async () => {
-      const module = await this.backend.compileModule("display", displayShader(parts));
-      const pipeline = await this.device.createRenderPipelineAsync({
-        label: "display",
-        layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.displayLayout] }),
-        vertex: {
-          module,
-          entryPoint: "vertexMain",
-          buffers: [
-            { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }] },
-            { arrayStride: 8, attributes: [{ shaderLocation: 1, offset: 0, format: "float32x2" }] },
-          ],
-        },
-        fragment: {
-          module,
-          entryPoint: "fragmentMain",
-          // Blended as three.js blends the WebGL display material (transparent, so
-          // NormalBlending with non-premultiplied alpha): outside the domain, where the shader
-          // outputs transparent black, the background shows.
-          targets: [
-            {
-              format: this.format,
-              blend: {
-                color: { srcFactor: "src-alpha", dstFactor: "one-minus-src-alpha", operation: "add" },
-                alpha: { srcFactor: "one", dstFactor: "one-minus-src-alpha", operation: "add" },
+    this.backend.requestBuild(
+      "display",
+      async () => {
+        const module = await this.backend.compileModule(
+          "display",
+          displayShader(parts),
+        );
+        const pipeline = await this.device.createRenderPipelineAsync({
+          label: "display",
+          layout: this.device.createPipelineLayout({
+            bindGroupLayouts: [this.displayLayout],
+          }),
+          vertex: {
+            module,
+            entryPoint: "vertexMain",
+            buffers: [
+              {
+                arrayStride: 12,
+                attributes: [
+                  { shaderLocation: 0, offset: 0, format: "float32x3" },
+                ],
               },
-            },
-          ],
-        },
-        primitive: { topology: "triangle-list", cullMode: "none" },
-        depthStencil: {
-          format: "depth24plus",
-          depthWriteEnabled: true,
-          depthCompare: "less-equal",
-        },
-        multisample: { count: this.sampleCount },
-      });
-      // The same mesh, outputting texture coordinates into a 1x1 target, for picking.
-      const pick = await this.device.createRenderPipelineAsync({
-        label: "pick",
-        layout: this.device.createPipelineLayout({ bindGroupLayouts: [this.displayLayout] }),
-        vertex: {
-          module,
-          entryPoint: "vertexMain",
-          buffers: [
-            { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }] },
-            { arrayStride: 8, attributes: [{ shaderLocation: 1, offset: 0, format: "float32x2" }] },
-          ],
-        },
-        fragment: { module, entryPoint: "pickMain", targets: [{ format: "rgba32float" }] },
-        primitive: { topology: "triangle-list", cullMode: "none" },
-        depthStencil: { format: "depth24plus", depthWriteEnabled: true, depthCompare: "less-equal" },
-      });
-      return () => {
-        this.pipelines.display = pipeline;
-        this.pipelines.pick = pick;
-      };
-    }, () => {
-      delete this.pipelines.display;
-      delete this.pipelines.pick;
-    });
+              {
+                arrayStride: 8,
+                attributes: [
+                  { shaderLocation: 1, offset: 0, format: "float32x2" },
+                ],
+              },
+            ],
+          },
+          fragment: {
+            module,
+            entryPoint: "fragmentMain",
+            // Blended as three.js blends the WebGL display material (transparent, so
+            // NormalBlending with non-premultiplied alpha): outside the domain, where the shader
+            // outputs transparent black, the background shows.
+            targets: [
+              {
+                format: this.format,
+                blend: {
+                  color: {
+                    srcFactor: "src-alpha",
+                    dstFactor: "one-minus-src-alpha",
+                    operation: "add",
+                  },
+                  alpha: {
+                    srcFactor: "one",
+                    dstFactor: "one-minus-src-alpha",
+                    operation: "add",
+                  },
+                },
+              },
+            ],
+          },
+          primitive: { topology: "triangle-list", cullMode: "none" },
+          depthStencil: {
+            format: "depth24plus",
+            depthWriteEnabled: true,
+            depthCompare: "less-equal",
+          },
+          multisample: { count: this.sampleCount },
+        });
+        // The same mesh, outputting texture coordinates into a 1x1 target, for picking.
+        const pick = await this.device.createRenderPipelineAsync({
+          label: "pick",
+          layout: this.device.createPipelineLayout({
+            bindGroupLayouts: [this.displayLayout],
+          }),
+          vertex: {
+            module,
+            entryPoint: "vertexMain",
+            buffers: [
+              {
+                arrayStride: 12,
+                attributes: [
+                  { shaderLocation: 0, offset: 0, format: "float32x3" },
+                ],
+              },
+              {
+                arrayStride: 8,
+                attributes: [
+                  { shaderLocation: 1, offset: 0, format: "float32x2" },
+                ],
+              },
+            ],
+          },
+          fragment: {
+            module,
+            entryPoint: "pickMain",
+            targets: [{ format: "rgba32float" }],
+          },
+          primitive: { topology: "triangle-list", cullMode: "none" },
+          depthStencil: {
+            format: "depth24plus",
+            depthWriteEnabled: true,
+            depthCompare: "less-equal",
+          },
+        });
+        return () => {
+          this.pipelines.display = pipeline;
+          this.pipelines.pick = pick;
+        };
+      },
+      () => {
+        delete this.pipelines.display;
+        delete this.pipelines.pick;
+      },
+    );
   }
 
   /**
@@ -431,7 +563,8 @@ export class WebGPUDisplay {
       return buffer;
     };
     this.geometry?.buffers.forEach((b) => b.destroy());
-    const index = indices instanceof Uint32Array ? indices : Uint32Array.from(indices);
+    const index =
+      indices instanceof Uint32Array ? indices : Uint32Array.from(indices);
     const buffers = [
       make(positions, GPUBufferUsage.VERTEX),
       make(uvs, GPUBufferUsage.VERTEX),
@@ -443,7 +576,10 @@ export class WebGPUDisplay {
   // Whether the post-processed values are for the current grid: after a resize, they aren't
   // until the next post-processing pass.
   postFits() {
-    return this.postBuffer?.size == Math.max(16, this.backend.nX * this.backend.nY * 16);
+    return (
+      this.postBuffer?.size ==
+      Math.max(16, this.backend.nX * this.backend.nY * 16)
+    );
   }
 
   ensurePostBuffer() {
@@ -493,7 +629,13 @@ export class WebGPUDisplay {
   postprocess(simValues, postValues) {
     if (!this.pipelines.post || !this.backend.slots.length) return false;
     this.ensurePostBuffer();
-    this.runField(this.pipelines.post, simValues, POST_VALUES, postValues, this.postBuffer);
+    this.runField(
+      this.pipelines.post,
+      simValues,
+      POST_VALUES,
+      postValues,
+      this.postBuffer,
+    );
     return true;
   }
 
@@ -550,7 +692,11 @@ export class WebGPUDisplay {
     const size = Math.max(16, this.backend.nX * this.backend.nY * 16);
     if (this.fieldBuffer?.size == size) return this.fieldBuffer;
     this.fieldBuffer?.destroy();
-    this.fieldBuffer = this.device.createBuffer({ label: "field", size, usage: GPUBufferUsage.STORAGE });
+    this.fieldBuffer = this.device.createBuffer({
+      label: "field",
+      size,
+      usage: GPUBufferUsage.STORAGE,
+    });
     return this.fieldBuffer;
   }
 
@@ -560,7 +706,10 @@ export class WebGPUDisplay {
   recordSum(input, count, { masked = false, scale = 1, output }) {
     const device = this.device;
     const params = (n, s) => {
-      const buffer = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+      const buffer = device.createBuffer({
+        size: 16,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+      });
       const data = new ArrayBuffer(16);
       new Uint32Array(data, 0, 1)[0] = n;
       new Float32Array(data, 4, 1)[0] = s;
@@ -593,7 +742,13 @@ export class WebGPUDisplay {
       this.partials,
       this.reduceGroups,
     );
-    run(this.pipelines.sumSecond, params(this.reduceGroups, masked ? 1 : scale), this.partials, output, 1);
+    run(
+      this.pipelines.sumSecond,
+      params(this.reduceGroups, masked ? 1 : scale),
+      this.partials,
+      output,
+      1,
+    );
   }
 
   // Copies `bytes` bytes of a buffer from smallBuffer() to the CPU, after everything
@@ -635,18 +790,40 @@ export class WebGPUDisplay {
    */
   async probe(simValues, probeValues, dA) {
     // Not with a pipeline that's being replaced (e.g. for a new probe expression).
-    if (["probePoint", "probeField"].some((kind) => this.backend.building.has(kind))) return null;
+    if (
+      ["probePoint", "probeField"].some((kind) =>
+        this.backend.building.has(kind),
+      )
+    )
+      return null;
     if (probeValues.pointProbe) {
       if (!this.pipelines.probePoint) return null;
       const out = this.smallBuffer();
-      this.runField(this.pipelines.probePoint, simValues, PROBE_VALUES, probeValues, out, true);
+      this.runField(
+        this.pipelines.probePoint,
+        simValues,
+        PROBE_VALUES,
+        probeValues,
+        out,
+        true,
+      );
       return this.readBack(out, 16);
     }
     if (!this.pipelines.probeField) return null;
     const field = this.ensureFieldBuffer();
-    this.runField(this.pipelines.probeField, simValues, PROBE_VALUES, probeValues, field);
+    this.runField(
+      this.pipelines.probeField,
+      simValues,
+      PROBE_VALUES,
+      probeValues,
+      field,
+    );
     const out = this.smallBuffer();
-    this.recordSum(field, this.backend.nX * this.backend.nY, { masked: true, scale: dA, output: out });
+    this.recordSum(field, this.backend.nX * this.backend.nY, {
+      masked: true,
+      scale: dA,
+      output: out,
+    });
     return this.readBack(out, 16);
   }
 
@@ -687,7 +864,9 @@ export class WebGPUDisplay {
       size,
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
     });
-    this.backend.getEncoder().copyBufferToBuffer(this.postBuffer, 0, staging, 0, size);
+    this.backend
+      .getEncoder()
+      .copyBufferToBuffer(this.postBuffer, 0, staging, 0, size);
     this.backend.flush();
     await staging.mapAsync(GPUMapMode.READ);
     const data = new Float32Array(staging.getMappedRange().slice(0));
@@ -737,7 +916,11 @@ export class WebGPUDisplay {
       this.canvas.width = width;
       this.canvas.height = height;
     }
-    if (!this.depthTexture || this.depthTexture.width != width || this.depthTexture.height != height) {
+    if (
+      !this.depthTexture ||
+      this.depthTexture.width != width ||
+      this.depthTexture.height != height
+    ) {
       this.depthTexture?.destroy();
       this.msaaTexture?.destroy();
       this.depthTexture = this.device.createTexture({
@@ -767,7 +950,12 @@ export class WebGPUDisplay {
           resolveTarget: this.msaaTexture
             ? this.context.getCurrentTexture().createView()
             : undefined,
-          clearValue: { r: background[0], g: background[1], b: background[2], a: background[3] },
+          clearValue: {
+            r: background[0],
+            g: background[1],
+            b: background[2],
+            a: background[3],
+          },
           loadOp: "clear",
           storeOp: "store",
         },
@@ -790,7 +978,8 @@ export class WebGPUDisplay {
       new Uint32Array(uniforms, 84, 1)[0] = line.colours ? 1 : 0;
       this.device.queue.writeBuffer(r.uniforms, 0, uniforms);
       this.device.queue.writeBuffer(r.positions, 0, line.segments);
-      if (line.colours) this.device.queue.writeBuffer(r.colours, 0, line.colours);
+      if (line.colours)
+        this.device.queue.writeBuffer(r.colours, 0, line.colours);
       pass.setPipeline(this.pipelines.line);
       pass.setBindGroup(0, r.bindGroup);
       pass.setVertexBuffer(0, this.lineQuad[0]);
@@ -825,7 +1014,11 @@ export class WebGPUDisplay {
       backend.slots.length
     ) {
       this.writeSimUniforms(simValues);
-      this.device.queue.writeBuffer(this.displayValues, 0, DISPLAY_VALUES.pack(displayValues));
+      this.device.queue.writeBuffer(
+        this.displayValues,
+        0,
+        DISPLAY_VALUES.pack(displayValues),
+      );
       const camera = new ArrayBuffer(80);
       new Float32Array(camera, 0, 16).set(
         multiply(DEPTH_TO_WEBGPU, multiply(projection, modelView)),
@@ -881,7 +1074,10 @@ export class WebGPUDisplay {
       format: "depth24plus",
       usage: GPUTextureUsage.RENDER_ATTACHMENT,
     });
-    const camera = device.createBuffer({ size: 80, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    const camera = device.createBuffer({
+      size: 80,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
     const cameraData = new ArrayBuffer(80);
     new Float32Array(cameraData, 0, 16).set(
       multiply(DEPTH_TO_WEBGPU, multiply(projection, modelView)),
@@ -891,7 +1087,12 @@ export class WebGPUDisplay {
     const encoder = this.backend.getEncoder();
     const pass = encoder.beginRenderPass({
       colorAttachments: [
-        { view: target.createView(), clearValue: { r: -1, g: -1, b: 0, a: 0 }, loadOp: "clear", storeOp: "store" },
+        {
+          view: target.createView(),
+          clearValue: { r: -1, g: -1, b: 0, a: 0 },
+          loadOp: "clear",
+          storeOp: "store",
+        },
       ],
       depthStencilAttachment: {
         view: depth.createView(),
@@ -907,8 +1108,15 @@ export class WebGPUDisplay {
     pass.setIndexBuffer(this.geometry.buffers[2], "uint32");
     pass.drawIndexed(this.geometry.count);
     pass.end();
-    const staging = device.createBuffer({ size: 16, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
-    encoder.copyTextureToBuffer({ texture: target }, { buffer: staging, bytesPerRow: 256 }, [1, 1]);
+    const staging = device.createBuffer({
+      size: 16,
+      usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+    });
+    encoder.copyTextureToBuffer(
+      { texture: target },
+      { buffer: staging, bytesPerRow: 256 },
+      [1, 1],
+    );
     this.backend.flush();
     await staging.mapAsync(GPUMapMode.READ);
     const [u, v, , a] = new Float32Array(staging.getMappedRange().slice(0));
@@ -954,7 +1162,11 @@ export class WebGPUDisplay {
     const backend = this.backend;
     const count = backend.nX * backend.nY;
     this.minMaxPending = true;
-    this.device.queue.writeBuffer(this.reduceParams, 0, new Uint32Array([count, 0, 0, 0]));
+    this.device.queue.writeBuffer(
+      this.reduceParams,
+      0,
+      new Uint32Array([count, 0, 0, 0]),
+    );
     this.device.queue.writeBuffer(
       this.reduceParamsSecond,
       0,
@@ -978,8 +1190,20 @@ export class WebGPUDisplay {
       pass.dispatchWorkgroups(groups);
       pass.end();
     };
-    run(this.pipelines.minMaxFirst, this.reduceParams, this.postBuffer, this.partials, this.reduceGroups);
-    run(this.pipelines.minMaxSecond, this.reduceParamsSecond, this.partials, this.reduced, 1);
+    run(
+      this.pipelines.minMaxFirst,
+      this.reduceParams,
+      this.postBuffer,
+      this.partials,
+      this.reduceGroups,
+    );
+    run(
+      this.pipelines.minMaxSecond,
+      this.reduceParamsSecond,
+      this.partials,
+      this.reduced,
+      1,
+    );
     const staging = this.device.createBuffer({
       size: 16,
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,

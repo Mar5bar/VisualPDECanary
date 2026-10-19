@@ -73,14 +73,28 @@ export function tokenize(src) {
       );
     }
     if (match[1] != undefined) tokens.push({ type: "number", value: match[1] });
-    else if (match[2] != undefined) tokens.push({ type: "ident", value: match[2] });
-    else if (match[3] != undefined) tokens.push({ type: "punct", value: match[3] });
+    else if (match[2] != undefined)
+      tokens.push({ type: "ident", value: match[2] });
+    else if (match[3] != undefined)
+      tokens.push({ type: "punct", value: match[3] });
   }
   return tokens;
 }
 
 // Tokens that separate expressions, at the level of nesting where they occur.
-const SEPARATORS = new Set([",", ";", "{", "}", "=", "+=", "-=", "*=", "/=", "?", ":"]);
+const SEPARATORS = new Set([
+  ",",
+  ";",
+  "{",
+  "}",
+  "=",
+  "+=",
+  "-=",
+  "*=",
+  "/=",
+  "?",
+  ":",
+]);
 
 /**
  * Makes the precedence of && over || explicit, which WGSL requires: wherever both occur in
@@ -109,11 +123,14 @@ export function parenthesiseLogic(tokens) {
     const out = [];
     let sequence = [];
     const flush = () => {
-      const has = (op) => sequence.some((item) => item.length == 1 && item[0].value == op);
+      const has = (op) =>
+        sequence.some((item) => item.length == 1 && item[0].value == op);
       if (has("||") && has("&&")) {
         let operand = [];
         const emitOperand = () => {
-          const needsBrackets = operand.some((item) => item.length == 1 && item[0].value == "&&");
+          const needsBrackets = operand.some(
+            (item) => item.length == 1 && item[0].value == "&&",
+          );
           if (needsBrackets) out.push(open("("));
           operand.forEach((item) => out.push(...item));
           if (needsBrackets) out.push(open(")"));
@@ -149,7 +166,17 @@ export function parenthesiseLogic(tokens) {
 
 // Tokens that end the operand of a ?: operator, which binds more loosely than every operator
 // but assignment and the comma.
-const TERNARY_BOUNDARIES = new Set([",", ";", "{", "}", "=", "+=", "-=", "*=", "/="]);
+const TERNARY_BOUNDARIES = new Set([
+  ",",
+  ";",
+  "{",
+  "}",
+  "=",
+  "+=",
+  "-=",
+  "*=",
+  "/=",
+]);
 
 /**
  * Rewrites every "c ? a : b" as "select(b, a, c)", at every level of nesting. Both a and b
@@ -187,13 +214,15 @@ export function rewriteTernaries(tokens) {
     out.push(...convert(segment));
     return out;
   }
-  const flatten = (items) => items.flatMap((item) => (Array.isArray(item) ? item : [item]));
+  const flatten = (items) =>
+    items.flatMap((item) => (Array.isArray(item) ? item : [item]));
   const is = (item, value) => !Array.isArray(item) && item.value == value;
   // Converts a sequence of items holding at most one (possibly nested) ?: expression.
   function convert(items) {
     const q = items.findIndex((item) => is(item, "?"));
     if (q < 0) {
-      if (items.some((item) => is(item, ":"))) throw new TranslationError("Unmatched ':'.");
+      if (items.some((item) => is(item, ":")))
+        throw new TranslationError("Unmatched ':'.");
       return flatten(items);
     }
     // The ':' matching the '?', skipping those of ?: expressions nested in the middle operand.
@@ -206,7 +235,8 @@ export function rewriteTernaries(tokens) {
         else depth--;
       }
     }
-    if (colon < 0 || q == 0) throw new TranslationError("Malformed ?: expression.");
+    if (colon < 0 || q == 0)
+      throw new TranslationError("Malformed ?: expression.");
     return [
       // Marked so that it's never renamed (e.g. to a parameter called select).
       { type: "ident", value: "select", builtin: true },
@@ -289,7 +319,10 @@ function translateTokens(tokens, start, end, options) {
   const emit = (s) => {
     // Keep identifiers and numbers apart, and minus signs, which WGSL would read as its --
     // operator (e.g. "u - -v").
-    if ((/\w$/.test(out) && /^\w/.test(s)) || (out.endsWith("-") && s.startsWith("-"))) {
+    if (
+      (/\w$/.test(out) && /^\w/.test(s)) ||
+      (out.endsWith("-") && s.startsWith("-"))
+    ) {
       out += " ";
     }
     out += s;
@@ -312,7 +345,8 @@ function translateTokens(tokens, start, end, options) {
       const previous = i > start ? tokens[i - 1] : null;
       const isUnary =
         !previous ||
-        (previous.type == "punct" && !["(", "[", ")", "]"].includes(previous.value)
+        (previous.type == "punct" &&
+        !["(", "[", ")", "]"].includes(previous.value)
           ? true
           : previous.value == "(" || previous.value == "[");
       if (tok.value == "+" && isUnary) continue;
@@ -340,7 +374,8 @@ function translateTokens(tokens, start, end, options) {
     } else if (calls[name]) {
       call = calls[name](args);
     } else if (RELATIONAL_FUNCTIONS[name]) {
-      if (args.length != 2) throw new TranslationError(`${name} takes 2 arguments.`);
+      if (args.length != 2)
+        throw new TranslationError(`${name} takes 2 arguments.`);
       call = `(${args[0]} ${RELATIONAL_FUNCTIONS[name]} ${args[1]})`;
     } else if (name == "atan" && args.length == 2) {
       call = `atan2(${args.join(", ")})`;
@@ -348,7 +383,8 @@ function translateTokens(tokens, start, end, options) {
       // WGSL has no overloading, so the two forms of H get their own names.
       call = `H${args.length}(${args.join(", ")})`;
     } else {
-      const mapped = TYPE_MAP[name] ?? RENAMED_FUNCTIONS[name] ?? renames[name] ?? name;
+      const mapped =
+        TYPE_MAP[name] ?? RENAMED_FUNCTIONS[name] ?? renames[name] ?? name;
       call = `${mapped}(${args.join(", ")})`;
     }
     emit(call);
@@ -386,10 +422,14 @@ export function translateStatements(src, options = {}) {
       i++;
       continue;
     }
-    if (tok.value == "if" || (tok.value == "else" && tokens[i + 1]?.value == "if")) {
+    if (
+      tok.value == "if" ||
+      (tok.value == "else" && tokens[i + 1]?.value == "if")
+    ) {
       const offset = tok.value == "else" ? 1 : 0;
       const open = i + 1 + offset;
-      if (tokens[open]?.value != "(") throw new TranslationError("Expected ( after if.");
+      if (tokens[open]?.value != "(")
+        throw new TranslationError("Expected ( after if.");
       const close = matchingBracket(tokens, open);
       const cond = translateTokens(tokens, open + 1, close, options);
       lines.push(`${offset ? "else if" : "if"} (${cond})`);
@@ -406,7 +446,9 @@ export function translateStatements(src, options = {}) {
     }
     if (tok.value == "return" && tokens[i + 1]?.value == ";") {
       if (options.returnValue == undefined) {
-        throw new TranslationError("'return' statements aren't supported here.");
+        throw new TranslationError(
+          "'return' statements aren't supported here.",
+        );
       }
       lines.push(`return ${options.returnValue};`);
       i += 2;
@@ -414,7 +456,8 @@ export function translateStatements(src, options = {}) {
     }
     if (tok.value == "for") {
       // for (init; condition; update), each translated as the statement or expression it is.
-      if (tokens[i + 1]?.value != "(") throw new TranslationError("Expected ( after for.");
+      if (tokens[i + 1]?.value != "(")
+        throw new TranslationError("Expected ( after for.");
       const close = matchingBracket(tokens, i + 1);
       const semicolons = [];
       let depth = 0;
@@ -424,18 +467,32 @@ export function translateStatements(src, options = {}) {
         else if (v == ")" || v == "]") depth--;
         else if (v == ";" && depth == 0) semicolons.push(k);
       }
-      if (semicolons.length != 2) throw new TranslationError("Malformed for loop.");
+      if (semicolons.length != 2)
+        throw new TranslationError("Malformed for loop.");
       const [first, second] = semicolons;
-      const init = translateSimpleStatement(tokens, i + 2, first, options, () => 0);
+      const init = translateSimpleStatement(
+        tokens,
+        i + 2,
+        first,
+        options,
+        () => 0,
+      );
       if (init.length != 1) throw new TranslationError("Malformed for loop.");
       const condition = translateTokens(tokens, first + 1, second, options);
-      const update = translateSimpleStatement(tokens, second + 1, close, options, () => 0);
+      const update = translateSimpleStatement(
+        tokens,
+        second + 1,
+        close,
+        options,
+        () => 0,
+      );
       if (update.length != 1) throw new TranslationError("Malformed for loop.");
       lines.push(
         `for (${init[0].replace(/;$/, "")}; ${condition}; ${update[0].replace(/;$/, "")})`,
       );
       i = close + 1;
-      if (tokens[i]?.value != "{") throw new TranslationError("for loops must use braces.");
+      if (tokens[i]?.value != "{")
+        throw new TranslationError("for loops must use braces.");
       continue;
     }
     if (["while", "do", "return", "switch", "discard"].includes(tok.value)) {
@@ -454,7 +511,15 @@ export function translateStatements(src, options = {}) {
     if (tokens[end]?.value != ";") {
       throw new TranslationError("Expected ; at the end of a statement.");
     }
-    lines.push(...translateSimpleStatement(tokens, i, end, options, () => swizzleCounter++));
+    lines.push(
+      ...translateSimpleStatement(
+        tokens,
+        i,
+        end,
+        options,
+        () => swizzleCounter++,
+      ),
+    );
     i = end + 1;
   }
   return indent(lines);
@@ -463,7 +528,10 @@ export function translateStatements(src, options = {}) {
 function translateSimpleStatement(tokens, start, end, options, nextId) {
   let i = start;
   // Uniform, varying and precision declarations are provided by the WGSL wrapper instead.
-  if (["uniform", "varying", "precision", "attribute"].includes(tokens[i].value)) return [];
+  if (
+    ["uniform", "varying", "precision", "attribute"].includes(tokens[i].value)
+  )
+    return [];
   while (i < end && QUALIFIERS.has(tokens[i].value)) i++;
   const type = TYPE_MAP[tokens[i].value];
   if (type && tokens[i + 1]?.type == "ident" && tokens[i + 2]?.value != "(") {
@@ -471,10 +539,14 @@ function translateSimpleStatement(tokens, start, end, options, nextId) {
     const lines = [];
     for (const [s, e] of splitTopLevel(tokens, i + 1, end)) {
       const name = tokens[s].value;
-      if (tokens[s].type != "ident") throw new TranslationError("Bad declaration.");
+      if (tokens[s].type != "ident")
+        throw new TranslationError("Bad declaration.");
       if (e > s + 1) {
-        if (tokens[s + 1].value != "=") throw new TranslationError("Bad declaration.");
-        lines.push(`var ${name}: ${type} = ${translateTokens(tokens, s + 2, e, options)};`);
+        if (tokens[s + 1].value != "=")
+          throw new TranslationError("Bad declaration.");
+        lines.push(
+          `var ${name}: ${type} = ${translateTokens(tokens, s + 2, e, options)};`,
+        );
       } else {
         lines.push(`var ${name}: ${type};`);
       }
@@ -505,14 +577,17 @@ function translateSimpleStatement(tokens, start, end, options, nextId) {
     lhsTokens[lhsTokens.length - 2].value == "." &&
     /^[rgba]{2,4}$|^[xyzw]{2,4}$/.test(last.value);
   if (!isSwizzle) {
-    return [`${translateTokens(tokens, start, op, options)} ${tokens[op].value} ${rhs};`];
+    return [
+      `${translateTokens(tokens, start, op, options)} ${tokens[op].value} ${rhs};`,
+    ];
   }
   const base = translateTokens(tokens, start, op - 2, options);
   const temp = `vpde_swizzle${nextId()}`;
   return [
     `let ${temp} = ${rhs};`,
     ...[...last.value].map(
-      (component, k) => `${base}.${component} ${tokens[op].value} ${temp}[${k}];`,
+      (component, k) =>
+        `${base}.${component} ${tokens[op].value} ${temp}[${k}];`,
     ),
   ];
 }
