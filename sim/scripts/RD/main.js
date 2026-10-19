@@ -2565,7 +2565,7 @@ async function VisualPDE(url) {
     controllers["numTimestepsPerFrame"] = root
       .add(options, "numTimestepsPerFrame", 1, 4000, 1)
       .name("Steps/frame");
-    createOptionSlider(controllers["numTimestepsPerFrame"], 1, 400, 1);
+    createOptionSlider(controllers["numTimestepsPerFrame"], 1, 1000, 1);
 
     controllers["dt"] = root
       .add(options, "dt")
@@ -4283,12 +4283,23 @@ async function VisualPDE(url) {
   /**
    * Shows the given timesteps per frame in the "Steps/frame" box and slider, in place of
    * numTimestepsPerFrame, which stays the most to take (see gpuStepsPerFrame): setting
-   * either sets that. Leaves them alone while the user is typing or dragging.
+   * either sets that. Marks the box when it shows fewer, saying why. Leaves them alone
+   * while the user is typing or dragging.
    */
   function showStepsPerFrame(steps) {
     const controller = controllers["numTimestepsPerFrame"];
     const input = controller?.domElement.querySelector("input[type=text]");
-    if (!input || input.value == String(steps)) return;
+    if (!input) return;
+    const max = options.numTimestepsPerFrame;
+    const title =
+      steps < max
+        ? `Reduced from ${max} so that the display stays smooth. Turn on performance mode to take them all.`
+        : "";
+    if (input.title != title) {
+      input.title = title;
+      input.classList.toggle("reduced", steps < max);
+    }
+    if (input.value == String(steps)) return;
     if (document.activeElement == input || controller.slider.matches(":active")) return;
     input.value = steps;
     controller.slider.value = steps;
@@ -8829,7 +8840,7 @@ async function VisualPDE(url) {
       controllers["timesteppingScheme"].hide();
     } else {
       setGUIControllerName(controllers["numTimestepsPerFrame"], "Steps/frame");
-      controller.slider.max = 400;
+      controller.slider.max = 1000;
       controller.slider.style.setProperty("--max", controller.slider.max);
       controllers["dt"].show();
       controllers["timesteppingScheme"].show();

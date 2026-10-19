@@ -654,6 +654,12 @@ div.container select {
   padding-left: 4px !important;
 }
 
+/* Steps/frame, while WebGPU takes fewer than set to keep the display smooth. */
+.dg .c input[type="text"].reduced:not(:focus) {
+  font-style: italic;
+  opacity: 0.7;
+}
+
 .dg .c .slider {
   display: none;
 }
