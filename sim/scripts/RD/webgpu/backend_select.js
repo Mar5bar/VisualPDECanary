@@ -100,6 +100,10 @@ export async function createWebGPUDevice({ minimalLimits = false } = {}) {
     throw new Error("The WebGPU adapter supports too few storage buffers.");
   }
   const device = await adapter.requestDevice({
+    // To time each frame on the GPU, for pacing (see WebGPUBackend.beginFrameTimer).
+    requiredFeatures: adapter.features.has("timestamp-query")
+      ? ["timestamp-query"]
+      : [],
     requiredLimits: minimalLimits
       ? {}
       : {

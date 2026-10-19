@@ -673,7 +673,9 @@ export class WebGPUDisplay {
         { binding: 8, resource: { buffer: backend.globalsBuffer } },
       ],
     });
-    const pass = backend.getEncoder().beginComputePass();
+    const pass = backend
+      .getEncoder()
+      .beginComputePass({ timestampWrites: backend.timestampWrites() });
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
     if (point) pass.dispatchWorkgroups(1, 1);
@@ -718,7 +720,9 @@ export class WebGPUDisplay {
     };
     const encoder = this.backend.getEncoder();
     const run = (pipeline, uniforms, from, to, groups) => {
-      const pass = encoder.beginComputePass();
+      const pass = encoder.beginComputePass({
+        timestampWrites: this.backend.timestampWrites(),
+      });
       pass.setPipeline(pipeline);
       pass.setBindGroup(
         0,
@@ -942,6 +946,8 @@ export class WebGPUDisplay {
     }
     const encoder = backend.getEncoder();
     const pass = encoder.beginRenderPass({
+      // This pass ends the frame's work, as far as its timing goes.
+      timestampWrites: backend.timestampWrites(true),
       colorAttachments: [
         {
           view: this.msaaTexture
@@ -1086,6 +1092,7 @@ export class WebGPUDisplay {
     device.queue.writeBuffer(camera, 0, cameraData);
     const encoder = this.backend.getEncoder();
     const pass = encoder.beginRenderPass({
+      timestampWrites: this.backend.timestampWrites(),
       colorAttachments: [
         {
           view: target.createView(),
@@ -1174,7 +1181,9 @@ export class WebGPUDisplay {
     );
     const encoder = backend.getEncoder();
     const run = (pipeline, params, input, output, groups) => {
-      const pass = encoder.beginComputePass();
+      const pass = encoder.beginComputePass({
+        timestampWrites: backend.timestampWrites(),
+      });
       pass.setPipeline(pipeline);
       pass.setBindGroup(
         0,

@@ -94,6 +94,11 @@ export class WebGPUBackend {
     this.slots = [];
     this.pipelines = {};
     this.encoder = null;
+    // Frame timers not in use (see beginFrameTimer), the one timing the current frame and
+    // the GPU time at which the last frame timed ended.
+    this.frameTimers = [];
+    this.frameTimer = null;
+    this.lastFrameEnd = 0n;
     this.compiling = 0;
     // Per kind of pipeline, the number of the latest build requested and its request, if
     // it hasn't started (see requestBuild).
@@ -703,6 +708,91 @@ export class WebGPUBackend {
     return this.encoder;
   }
 
+  /**
+   * Starts timing, on the GPU, the passes recorded until endFrameTimer(), which give their
+   * descriptors timestampWrites() (the last, timestampWrites(true)). Does nothing if the
+   * device can't write timestamps, or if all the timers are in use.
+   */
+  beginFrameTimer() {
+    if (!this.device.features.has("timestamp-query")) return;
+    if (!this.frameTimersMade) {
+      this.frameTimersMade = true;
+      // Enough for the frames that can be in flight at once (see main.js's paceGpuFrame).
+      for (let i = 0; i < 3; i++) {
+        this.frameTimers.push({
+          querySet: this.device.createQuerySet({ type: "timestamp", count: 2 }),
+          resolve: this.device.createBuffer({
+            size: 16,
+            usage: GPUBufferUsage.QUERY_RESOLVE | GPUBufferUsage.COPY_SRC,
+          }),
+          staging: this.device.createBuffer({
+            size: 16,
+            usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
+          }),
+        });
+      }
+    }
+    this.frameTimer = this.frameTimers.pop() ?? null;
+    if (this.frameTimer) this.frameTimer.begun = this.frameTimer.ended = false;
+  }
+
+  /**
+   * The timestampWrites for a pass's descriptor, while a frame is being timed: the first pass
+   * writes when it begins, and the given last one when it ends. Every pass recorded while
+   * timing should ask, so that the first is known; timing only those two keeps the cost
+   * down, as writing timestamps can stop the GPU running passes back to back. (Timing passes
+   * of their own instead would time nothing, as the GPU may run them whenever it likes, not
+   * depending on anything else.)
+   * @param {boolean} [last] - Whether this is the frame's last pass.
+   * @returns {GPUComputePassTimestampWrites | undefined}
+   */
+  timestampWrites(last = false) {
+    const timer = this.frameTimer;
+    if (!timer || (timer.begun && !last)) return undefined;
+    const writes = { querySet: timer.querySet };
+    if (!timer.begun) writes.beginningOfPassWriteIndex = 0;
+    if (last) writes.endOfPassWriteIndex = 1;
+    timer.begun = true;
+    timer.ended = last;
+    return writes;
+  }
+
+  /**
+   * Submits everything recorded so far, and resolves once the GPU has finished it, with the
+   * time in milliseconds the GPU spent on the passes timed since beginFrameTimer(), not
+   * counting any overlap with the last frame timed, if they were timed up to a last pass (or
+   * else null).
+   * @returns {Promise<number | null>}
+   */
+  async endFrameTimer() {
+    const timer = this.frameTimer;
+    this.frameTimer = null;
+    if (timer && !timer.ended) this.frameTimers.push(timer);
+    if (!timer?.ended) {
+      this.flush();
+      await this.device.queue.onSubmittedWorkDone();
+      return null;
+    }
+    const encoder = this.getEncoder();
+    encoder.resolveQuerySet(timer.querySet, 0, 2, timer.resolve, 0);
+    encoder.copyBufferToBuffer(timer.resolve, 0, timer.staging, 0, 16);
+    this.flush();
+    try {
+      await timer.staging.mapAsync(GPUMapMode.READ);
+    } catch {
+      // The device was lost, so the timer can't be used again.
+      return null;
+    }
+    let [begin, end] = new BigInt64Array(timer.staging.getMappedRange());
+    timer.staging.unmap();
+    this.frameTimers.push(timer);
+    const lastEnd = this.lastFrameEnd;
+    this.lastFrameEnd = end;
+    if (lastEnd > begin) begin = lastEnd;
+    // Timestamps can go backwards, e.g. when the GPU changes clock speed.
+    return end > begin ? Number(end - begin) / 1e6 : null;
+  }
+
   // Forgets cached bind groups, after a resource they bind has been replaced.
   invalidateBindGroups() {
     this.bindGroups = new WeakMap();
@@ -734,7 +824,9 @@ export class WebGPUBackend {
       cache.set(key, bindGroup);
     }
     const encoder = this.getEncoder();
-    const pass = encoder.beginComputePass();
+    const pass = encoder.beginComputePass({
+      timestampWrites: this.timestampWrites(),
+    });
     pass.setPipeline(kernel.pipeline);
     pass.setBindGroup(0, bindGroup, [offset]);
     // Each workgroup of a blocked kernel writes its tile's interior.
@@ -1038,7 +1130,9 @@ export class WebGPUBackend {
       });
     }
     const pipeline = this.restorePipelines[formats];
-    const pass = this.getEncoder().beginComputePass();
+    const pass = this.getEncoder().beginComputePass({
+      timestampWrites: this.timestampWrites(),
+    });
     pass.setPipeline(pipeline);
     pass.setBindGroup(
       0,

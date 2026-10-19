@@ -192,7 +192,22 @@ async function VisualPDE(url) {
     gpuAdapterInfo = null,
     gpuParamNames = [],
     // The number of animation frames whose WebGPU work the GPU hasn't finished (see animate).
-    gpuFramesInFlight = 0;
+    gpuFramesInFlight = 0,
+    // WebGPU frame pacing (see paceGpuFrame): the display refreshes per frame, the refreshes
+    // since the last frame, recent gaps between animation frames, the last animation frame's
+    // time, the refresh period they give, and the time per frame (smoothed) on the CPU,
+    // recording it, and on the GPU, if it can time it.
+    gpuFrameInterval = 1,
+    gpuRefreshesWaited = 0,
+    gpuRefreshGaps = [],
+    gpuLastAnimationFrame = null,
+    gpuRefreshPeriod = 0,
+    gpuFrameCpuTime = 0,
+    gpuFrameTime = 0,
+    // The timesteps per frame WebGPU takes for a smooth display, at most numTimestepsPerFrame
+    // (see gpuStepsPerFrame), and the costs of recent frames that took them.
+    gpuSmoothSteps = null,
+    gpuStepCosts = [];
   // The edge clamping the WebGPU display kernels were last built with (see setRDEquations).
   let gpuDisplayClamp = null;
   let simTextures = [],
@@ -4131,21 +4146,21 @@ async function VisualPDE(url) {
     });
   }
 
-  function animate() {
+  function animate(now = performance.now()) {
     if (isSuspended) {
       requestAnimationFrame(animate);
       return;
     }
-    // WebGPU submits work without waiting for the GPU, so on a busy device frames would be
-    // recorded faster than they're finished, and presented unevenly. Skip frames while the
-    // GPU is behind, as WebGL's implicit throttling does, so that each frame shown is one
-    // frame on and the stats (and so optimiseFPS) see the rate the GPU actually manages.
-    // Two frames may be in flight, so the GPU has the next frame's work as it finishes one.
-    if (gpuBackend && gpuFramesInFlight >= 2) {
+    if (gpuBackend && !paceGpuFrame(now)) {
       requestAnimationFrame(animate);
       return;
     }
     if (options.showStats || isOptimising) stats.begin();
+
+    // Whether this frame gives the GPU any work, which is timed for paceGpuFrame.
+    const gpuFrame = gpuBackend && (isDrawing || isRunning);
+    const frameStart = performance.now();
+    if (gpuFrame) gpuBackend.beginFrameTimer();
 
     hasDrawn = isDrawing;
     // Draw on any input from the user, which can happen even if timestepping is not running.
@@ -4154,15 +4169,30 @@ async function VisualPDE(url) {
     }
 
     // Only timestep if the simulation is running.
-    if (isRunning && canTimeStep) advance(options.numTimestepsPerFrame);
+    const numSteps =
+      isRunning && canTimeStep
+        ? gpuBackend
+          ? gpuStepsPerFrame()
+          : options.numTimestepsPerFrame
+        : 0;
+    if (numSteps) advance(numSteps);
 
     // Render if something has happened.
     if (hasDrawn || isRunning) render();
 
-    if (gpuBackend && (hasDrawn || isRunning)) {
+    if (gpuFrame) {
+      const cpuTime = performance.now() - frameStart;
+      gpuFrameCpuTime = gpuFrameCpuTime
+        ? 0.9 * gpuFrameCpuTime + 0.1 * cpuTime
+        : cpuTime;
       gpuFramesInFlight++;
-      gpuBackend.device.queue
-        .onSubmittedWorkDone()
+      gpuBackend
+        .endFrameTimer()
+        .then((time) => {
+          if (time != null)
+            gpuFrameTime = gpuFrameTime ? 0.9 * gpuFrameTime + 0.1 * time : time;
+          if (numSteps) tuneGpuSteps(numSteps, cpuTime, time ?? 0);
+        })
         .finally(() => gpuFramesInFlight--);
     }
 
@@ -4173,6 +4203,122 @@ async function VisualPDE(url) {
     if (isRunning && isOptimising) optimiseFPS();
 
     requestAnimationFrame(animate);
+  }
+
+  /**
+   * Whether the animation frame at time now should record a WebGPU frame. WebGPU submits work
+   * without waiting for the GPU, so on a busy device frames would be recorded faster than
+   * they're finished. Frames are skipped while two are in flight, as WebGL's implicit
+   * throttling does, so that the stats (and so optimiseFPS) see the rate the GPU manages.
+   * And once a frame takes the CPU or GPU more than a display refresh, frames are recorded
+   * every gpuFrameInterval refreshes, enough for both to keep up: otherwise each would be
+   * shown for one refresh or two, as it happened to finish in time, and the simulation, which
+   * moves on the same number of steps each frame, would be seen to move in jumps. (Usually
+   * gpuStepsPerFrame keeps frames within a refresh anyway; neither applies in performance
+   * mode.)
+   */
+  function paceGpuFrame(now) {
+    if (gpuLastAnimationFrame != null) {
+      gpuRefreshGaps.push(now - gpuLastAnimationFrame);
+      if (gpuRefreshGaps.length > 15) gpuRefreshGaps.shift();
+    }
+    gpuLastAnimationFrame = now;
+    gpuRefreshesWaited++;
+    if (gpuRefreshGaps.length) gpuRefreshPeriod = median(gpuRefreshGaps);
+    if (gpuFramesInFlight >= 2) return false;
+    if (isRunning && gpuSmoothDisplay() && gpuRefreshPeriod) {
+      const refresh = gpuRefreshPeriod;
+      // The CPU and GPU work on different frames at once, so whichever is slower sets the
+      // pace. Leave a margin either way, so that the interval doesn't flip back and forth
+      // (but not so wide as to keep it up once gpuStepsPerFrame has brought frames under a
+      // refresh).
+      const frameTime = Math.max(gpuFrameCpuTime, gpuFrameTime);
+      if (frameTime > 0.9 * gpuFrameInterval * refresh) {
+        gpuFrameInterval = Math.min(gpuFrameInterval + 1, 8);
+      } else if (frameTime < 0.85 * (gpuFrameInterval - 1) * refresh) {
+        gpuFrameInterval--;
+      }
+      if (gpuRefreshesWaited < gpuFrameInterval) return false;
+    } else {
+      gpuFrameInterval = 1;
+    }
+    gpuRefreshesWaited = 0;
+    return true;
+  }
+
+  function median(values) {
+    return [...values].sort((a, b) => a - b)[values.length >> 1];
+  }
+
+  // Whether WebGPU keeps the display smooth (see paceGpuFrame and gpuStepsPerFrame), which
+  // performance mode gives up for as much simulation as possible.
+  function gpuSmoothDisplay() {
+    return !options.performanceMode && !options.automataMode;
+  }
+
+  /**
+   * The timesteps for WebGPU to take this frame: numTimestepsPerFrame, or for a smooth
+   * display as many as fit in a display refresh, if fewer (see tuneGpuSteps). Pacing
+   * frames over several refreshes would keep them even too, but at a cost of up to half
+   * the simulation's speed, where taking fewer steps costs little, as steps cost about the
+   * same each.
+   */
+  function gpuStepsPerFrame() {
+    const max = options.numTimestepsPerFrame;
+    const steps = gpuSmoothDisplay()
+      ? (gpuSmoothSteps = Math.min(gpuSmoothSteps ?? max, max))
+      : max;
+    showStepsPerFrame(steps);
+    return steps;
+  }
+
+  /**
+   * Shows the given timesteps per frame in the "Steps/frame" box and slider, in place of
+   * numTimestepsPerFrame, which stays the most to take (see gpuStepsPerFrame): setting
+   * either sets that. Leaves them alone while the user is typing or dragging.
+   */
+  function showStepsPerFrame(steps) {
+    const controller = controllers["numTimestepsPerFrame"];
+    const input = controller?.domElement.querySelector("input[type=text]");
+    if (!input || input.value == String(steps)) return;
+    if (document.activeElement == input || controller.slider.matches(":active")) return;
+    input.value = steps;
+    controller.slider.value = steps;
+    controller.slider.style.setProperty("--value", controller.slider.value);
+  }
+
+  /**
+   * Adjusts the timesteps WebGPU takes per frame for a smooth display, given that a frame
+   * taking numSteps took cpuTime and gpuTime milliseconds to record and run. Aims for frames
+   * that take the GPU 80% of a refresh, leaving room for the odd slower one (e.g. while
+   * drawing or reading back), and the CPU 70%, as the browser needs time on the same thread
+   * to show the frame. Adjusts once a few frames are in, or at once if one takes far too long.
+   */
+  function tuneGpuSteps(numSteps, cpuTime, gpuTime) {
+    // The cost of the frame relative to the GPU's target.
+    const cost = Math.max(cpuTime / 0.875, gpuTime);
+    // Ignore frames from before the last change.
+    if (!gpuSmoothDisplay() || numSteps != gpuSmoothSteps || !gpuRefreshPeriod) {
+      gpuStepCosts = [];
+      return;
+    }
+    const refresh = gpuRefreshPeriod;
+    gpuStepCosts.push(cost);
+    if (gpuStepCosts.length < 8 && cost < 2 * refresh) return;
+    const typical = cost < 2 * refresh ? median(gpuStepCosts) : cost;
+    gpuStepCosts = [];
+    const max = options.numTimestepsPerFrame;
+    if (typical < 0.9 * refresh && (typical > 0.7 * refresh || numSteps >= max)) return;
+    // Frames cost about the same per step, so scale the steps to the target, but grow them
+    // gradually, as a frame's fixed costs make that an overestimate.
+    gpuSmoothSteps = Math.max(
+      1,
+      Math.min(
+        Math.floor((numSteps * 0.8 * refresh) / typical),
+        Math.ceil(numSteps * 1.5),
+        max,
+      ),
+    );
   }
 
   // --- WebGPU ------------------------------------------------------------------------
