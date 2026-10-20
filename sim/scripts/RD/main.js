@@ -4196,13 +4196,23 @@ async function VisualPDE(url) {
 
     if (gpuFrame) {
       const cpuTime = performance.now() - frameStart;
-      gpuFrameCpuTime = gpuFrameCpuTime
-        ? 0.9 * gpuFrameCpuTime + 0.1 * cpuTime
-        : cpuTime;
+      // Drawing slows frames only while it lasts, so leave the pacing and the steps per
+      // frame as they were rather than taking fewer steps until it stops, at the cost of
+      // the odd uneven frame while drawing.
+      const drawn = hasDrawn;
+      if (!drawn)
+        gpuFrameCpuTime = gpuFrameCpuTime
+          ? 0.9 * gpuFrameCpuTime + 0.1 * cpuTime
+          : cpuTime;
       gpuFramesInFlight++;
       gpuBackend
         .endFrameTimer()
         .then((time) => {
+          if (drawn) {
+            gpuStepCosts = [];
+            gpuFramesHeld = 0;
+            return;
+          }
           if (time != null)
             gpuFrameTime = gpuFrameTime ? 0.9 * gpuFrameTime + 0.1 * time : time;
           if (numSteps) tuneGpuSteps(numSteps, cpuTime, time ?? 0);
