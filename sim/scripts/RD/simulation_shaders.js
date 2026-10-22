@@ -1200,7 +1200,11 @@ const DIRICHLET_STAGE_TIMING = {
  * @param {boolean} [isMRT] - Whether the pass also produces species 5-8 in updated2.
  * @returns {string} The shader code, or "" if there are no Dirichlet conditions.
  */
-export function RDShaderDirichletForStage(type, dirichletShader, isMRT = false) {
+export function RDShaderDirichletForStage(
+  type,
+  dirichletShader,
+  isMRT = false,
+) {
   if (!dirichletShader.trim()) return "";
   const { offset, c } = DIRICHLET_STAGE_TIMING[type];
   const block = `

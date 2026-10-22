@@ -4464,7 +4464,8 @@ async function VisualPDE(url) {
     // loadOptions()) before updateProblem() has created the MRT render targets that hold its
     // state. There's nothing to draw yet, and loadPreset() always finishes with resetSim(),
     // which renders again, so skip it.
-    if (numGroups(Number(options.numSpecies)) > 1 && !mrtSimTextures.length) return;
+    if (numGroups(Number(options.numSpecies)) > 1 && !mrtSimTextures.length)
+      return;
 
     // Perform any postprocessing on the last computed values.
     postprocess();
@@ -4892,8 +4893,10 @@ async function VisualPDE(url) {
     // wrap, and are clamped in the shader where needed.
     mrtSimTextures.forEach((mrtTex) => {
       mrtTex.texture.forEach((tex, group) => {
-        tex.wrapS = group == 0 ? simTextures[0].texture.wrapS : THREE.RepeatWrapping;
-        tex.wrapT = group == 0 ? simTextures[0].texture.wrapT : THREE.RepeatWrapping;
+        tex.wrapS =
+          group == 0 ? simTextures[0].texture.wrapS : THREE.RepeatWrapping;
+        tex.wrapT =
+          group == 0 ? simTextures[0].texture.wrapT : THREE.RepeatWrapping;
       });
     });
   }
@@ -4911,7 +4914,8 @@ async function VisualPDE(url) {
       ...simTextures.map((target) => target.texture),
       ...mrtSimTextures.map((target) => target.texture[0]),
     ];
-    const glWrap = (wrap) => (wrap == THREE.ClampToEdgeWrapping ? gl.CLAMP_TO_EDGE : gl.REPEAT);
+    const glWrap = (wrap) =>
+      wrap == THREE.ClampToEdgeWrapping ? gl.CLAMP_TO_EDGE : gl.REPEAT;
     textures.forEach((texture) => {
       if (texture.wrapS == wrapS && texture.wrapT == wrapT) return;
       texture.wrapS = wrapS;
@@ -4966,8 +4970,12 @@ async function VisualPDE(url) {
         checkpointMaterialMRT.uniforms.textureSourceGroup1.value =
           checkpointTextureGroup1 ?? tempZeroGroup1Tex;
         // As setStretchOrCropTexture() set them for checkpointMaterial's map.
-        checkpointMaterialMRT.uniforms.checkpointRepeat.value.copy(checkpointTexture.repeat);
-        checkpointMaterialMRT.uniforms.checkpointOffset.value.copy(checkpointTexture.offset);
+        checkpointMaterialMRT.uniforms.checkpointRepeat.value.copy(
+          checkpointTexture.repeat,
+        );
+        checkpointMaterialMRT.uniforms.checkpointOffset.value.copy(
+          checkpointTexture.offset,
+        );
         simDomain.material = checkpointMaterialMRT;
       } else {
         simDomain.material = checkpointMaterial;
@@ -6023,16 +6031,17 @@ async function VisualPDE(url) {
       // come from) is identical whether it ends up embedded in `middle` or `middleMRT`.
       if (containsRAND) middleMRT = randShader() + middleMRT;
       if (containsRANDN) middleMRT = randNShader() + middleMRT;
-      botMRT = (type) => [
-        RDShaderDirichletForStage(
-          type,
-          dirichletShader + bcGroup1.dirichletShader,
-          true,
-        ),
-        algebraicShader,
-        algebraicShaderGroup1,
-        RDShaderBotMRT(),
-      ].join(" ");
+      botMRT = (type) =>
+        [
+          RDShaderDirichletForStage(
+            type,
+            dirichletShader + bcGroup1.dirichletShader,
+            true,
+          ),
+          algebraicShader,
+          algebraicShaderGroup1,
+          RDShaderBotMRT(),
+        ].join(" ");
     }
 
     // Build every timestepping scheme's material (AB2/Mid/RK4's MRT support added when the
@@ -9957,10 +9966,21 @@ async function VisualPDE(url) {
     ).split(" ");
     const declaration =
       /\b(?:float|int|bool|vec\d|ivec\d|bvec\d|mat\d|sampler2D|void)\s+(\w+)\b/g;
-    const schemeStages = ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"];
+    const schemeStages = [
+      "FE",
+      "AB2",
+      "Mid1",
+      "Mid2",
+      "RK41",
+      "RK42",
+      "RK43",
+      "RK44",
+    ];
     // RDShaderTop(MRT) ends inside computeRHS, where the reaction terms are evaluated, so
     // all of it counts.
-    const names = new Set(glslReservedWords.concat(["main", "MINX", "MINY", "ind"]));
+    const names = new Set(
+      glslReservedWords.concat(["main", "MINX", "MINY", "ind"]),
+    );
     for (const stage of schemeStages) {
       for (const top of [RDShaderTop(stage), RDShaderTopMRT(stage)]) {
         for (const match of top.matchAll(declaration)) names.add(match[1]);
@@ -9992,7 +10012,9 @@ async function VisualPDE(url) {
       globalIntegralShaderMRT(),
     ];
     for (const shader of shaders) {
-      for (const match of shaderOutsideHelperFunctions(shader).matchAll(declaration)) {
+      for (const match of shaderOutsideHelperFunctions(shader).matchAll(
+        declaration,
+      )) {
         names.add(match[1]);
       }
     }
@@ -10003,7 +10025,9 @@ async function VisualPDE(url) {
   // The text of a shader that's at global scope or in main(), without comments or functions'
   // parameters (which are local to them).
   function shaderOutsideHelperFunctions(shader) {
-    const code = shader.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
+    const code = shader
+      .replace(/\/\/.*$/gm, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "");
     let depth = 0;
     let inMain = false;
     let header = "";
@@ -11047,7 +11071,8 @@ async function VisualPDE(url) {
     // the grid's now.
     const { width, height, data } = checkpointTexture.image;
     const parts = [new Float32Array([width, height]), data];
-    if (checkpointTextureGroup1 != null) parts.push(checkpointTextureGroup1.image.data);
+    if (checkpointTextureGroup1 != null)
+      parts.push(checkpointTextureGroup1.image.data);
     var link = document.createElement("a");
     link.download = "VisualPDEState";
     link.href = URL.createObjectURL(new Blob(parts));
