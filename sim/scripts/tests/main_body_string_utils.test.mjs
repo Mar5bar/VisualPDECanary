@@ -170,6 +170,22 @@ test("replaceSymbolsInStr: substitutes every whole-word original with its replac
   );
 });
 
+test("replaceSymbolsInStr: ignores empty originals rather than matching at every word boundary", () => {
+  const optional = "_(?:[xy][xybf]?)";
+  assert.equal(m.replaceSymbolsInStr("0", ["", "v"], ["u", "v"], optional), "0");
+  assert.equal(
+    m.replaceSymbolsInStr("L_x/2 - x", ["", "v"], ["u", "v"], optional),
+    "L_x/2 - x",
+  );
+  assert.equal(m.replaceSymbolsInStr("v_x + 1", ["", "v"], ["u", "w"], optional), "w_x + 1");
+});
+
+test("replaceSymbolsInStr: swaps names round, and leaves text resembling a placeholder alone", () => {
+  assert.equal(m.replaceSymbolsInStr("u - v", ["u", "v"], ["v", "u"]), "v - u");
+  assert.equal(m.replaceSymbolsInStr("PLACE0 + u", ["u"], ["a"]), "PLACE0 + a");
+  assert.equal(m.replaceSymbolsInStr("u1 + u10", ["u1", "u10"], ["a", "b"]), "a + b");
+});
+
 test("timescaleTag: species 1-4 use a letter suffix (matching timescaleTags), species 5-8 use a numeric suffix", () => {
   m.__setState({ defaultSpecies: ["u", "v", "w", "q", "u5", "u6", "u7", "u8"] });
   assert.equal(m.timescaleTag(1), "TU");
