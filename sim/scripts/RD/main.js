@@ -11761,7 +11761,59 @@ async function VisualPDE(url) {
       .replaceAll(/\W+/g, " ")
       .trim()
       .split(" ")
+      .filter((name) => name.length)
       .slice(0, defaultSpecies.length);
+  }
+
+  /**
+   * Checks a list of species names, returning a message describing the first problem found.
+   * @param {string[]} newSpecies - The names supplied by the user.
+   * @param {string[]} allSpecies - The full list of names, including placeholders for unnamed species.
+   * @returns {string|null} The error message, or null if the names are valid.
+   */
+  function getSpeciesNamesError(newSpecies, allSpecies) {
+    if (newSpecies.length == 0) {
+      return "Please give at least one species name, with names separated by spaces (e.g. 'u v').";
+    }
+    // Names are swapped as whole words in every expression and used in the shaders, so must be identifiers.
+    const badName = newSpecies.find((name) => !/^[a-zA-Z]\w*$/.test(name));
+    if (badName != undefined) {
+      return (
+        "The name '" +
+        badName +
+        "' can't be used as a species name. Names must start with a letter and contain only letters, numbers and underscores."
+      );
+    }
+    const duplicate = allSpecies.find(
+      (name, ind) => allSpecies.indexOf(name) != ind,
+    );
+    if (duplicate != undefined) {
+      return (
+        "The name '" +
+        duplicate +
+        "' has been given to more than one species. Please give each species a different name."
+      );
+    }
+    // Check if any reserved names have been used.
+    const kinParamNames = getKineticParamNames();
+    const reservedName = allSpecies.find((name) =>
+      isReservedName(name, kinParamNames),
+    );
+    if (reservedName != undefined) {
+      const message = kinParamNames.includes(reservedName)
+        ? "as a parameter"
+        : "under the hood";
+      return (
+        "The name '" +
+        reservedName +
+        "' is used " +
+        message +
+        ", so can't be used as a species name. Please use a different name for " +
+        reservedName +
+        "."
+      );
+    }
+    return null;
   }
 
   function speciesNamesToString() {
@@ -11781,31 +11833,26 @@ async function VisualPDE(url) {
     const newSpecies = parseSpeciesNamesFromOptions();
 
     // If not enough species have been provided, add placeholders for those remaining.
-    const tempListOfSpecies = newSpecies.concat(
+    let tempListOfSpecies = newSpecies.concat(
       placeholderSp.slice(newSpecies.length),
     );
 
-    // Check if any reserved names have been used, and stop if so.
-    const kinParamNames = getKineticParamNames();
-    let message;
-    for (var ind = 0; ind < tempListOfSpecies.length; ind++) {
-      if (isReservedName(tempListOfSpecies[ind], kinParamNames)) {
-        if (kinParamNames.includes(tempListOfSpecies[ind])) {
-          message = "as a parameter";
-        } else {
-          message = "under the hood";
-        }
-        throwError(
-          "The name '" +
-            tempListOfSpecies[ind] +
-            "' is used " +
-            message +
-            ", so can't be used as a species name. Please use a different name for " +
-            tempListOfSpecies[ind] +
-            ".",
-        );
+    // Check that the names are usable, and stop if not.
+    const errorMessage = getSpeciesNamesError(newSpecies, tempListOfSpecies);
+    if (errorMessage) {
+      throwError(errorMessage);
+      if (oldListOfSpecies != undefined && !isLoading) {
+        // Put the last valid names back in the GUI, leaving every other option untouched.
+        options.speciesNames = speciesNamesToString();
+        if (controllers["speciesNames"])
+          controllers["speciesNames"].updateDisplay();
         return;
       }
+      // When loading, the previous names have nothing to do with the new options, so use the defaults.
+      options.speciesNames = defaultSpecies
+        .slice(0, options.numSpecies)
+        .join(" ");
+      tempListOfSpecies = defaultSpecies.slice();
     }
 
     // Now that we know all the names are valid, assign the names to the global variables.
@@ -11946,12 +11993,15 @@ async function VisualPDE(url) {
    */
   function replaceSymbolsInStr(str, originals, replacements, optional) {
     if (optional == undefined) optional = "";
+    // Delimit the placeholders with private-use characters so that they can't clash with user text.
     const placeholders = new Array(originals.length)
       .fill(0)
-      .map((x, i) => "PLACE" + i.toString());
+      .map((x, i) => "\uE000" + i.toString() + "\uE001");
     let regex;
     // Substitute in placeholders first.
     for (var ind = 0; ind < originals.length; ind++) {
+      // An empty original would match at every word boundary.
+      if (!originals[ind]) continue;
       regex = new RegExp(
         "\\b(" + originals[ind] + ")(" + optional + ")?\\b",
         "g",
@@ -11960,11 +12010,7 @@ async function VisualPDE(url) {
     }
     // Now swap the placeholders for the new reactions.
     for (var ind = 0; ind < placeholders.length; ind++) {
-      regex = new RegExp(
-        "\\b(" + placeholders[ind] + ")(" + optional + ")?\\b",
-        "g",
-      );
-      str = str.replaceAll(regex, replacements[ind] + "$2");
+      str = str.replaceAll(placeholders[ind], replacements[ind]);
     }
     return str;
   }
