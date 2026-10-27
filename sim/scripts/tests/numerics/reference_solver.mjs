@@ -30,6 +30,13 @@
  * @property {number} y
  * @property {number} t
  * @property {number[]} u - The species values at the point.
+ * @property {(s: number, di: number, dj: number) => number} [node] - In reaction terms only:
+ *   species s's value at the node (di, dj) away, for derivatives of expressions. Beyond the
+ *   domain's edges, this is filled in from the boundary conditions as the method of lines
+ *   would extend the ghost-node treatment: even reflection in the edge node plus the flux
+ *   (2*m*h*flux, m nodes beyond) for Neumann and Robin conditions, odd reflection for
+ *   Dirichlet ones, and the ghost value for ghost ones. Points beyond two edges are filled in
+ *   x and then y. Fluxes and ghost values are evaluated at the node the term is evaluated at.
  */
 
 /**
@@ -52,6 +59,11 @@
  *   instead of init (e.g. to start from exactly the state a GPU solver starts from).
  * @property {Array<{L: BoundaryCondition, R: BoundaryCondition, T: BoundaryCondition, B: BoundaryCondition}>} bcs
  * @property {number[]} [timescales] - Defaults to all 1.
+ * @property {(p: Point) => number} [indicator] - For a domain given by an indicator function
+ *   (VisualPDE's domainIndicatorFun): the domain is where this is positive, less the
+ *   rectangle's edge nodes. After every stage, nodes outside it take each Dirichlet species'
+ *   value and 0 for the rest. Each species' condition is then that of bcs[s].L, Neumann or
+ *   Dirichlet, applied at the staircase edge: see customFirstRing and customExtendedValue.
  * @property {"Euler"|"AB2"|"Mid"|"RK4"} scheme
  * @property {number} dt
  */
@@ -112,6 +124,120 @@ export function createSolver(problem) {
     return bc.value ? bc.value(pt) : 0;
   }
 
+  // --- Domains given by an indicator function ---
+  const clampIndex = (n, N) => Math.min(Math.max(n, 0), N - 1);
+  const pointAt = (u, i, j, x, y, t) => ({
+    x,
+    y,
+    t,
+    u: Array.from({ length: nS }, (_, r) => u[r][clampIndex(j, nY) * nX + clampIndex(i, nX)]),
+  });
+
+  // Whether node (i, j) is outside the domain: where its value is overwritten.
+  function outsideNode(u, i, j, t) {
+    const edge = i <= 0 || i >= nX - 1 || (is2D && (j <= 0 || j >= nY - 1));
+    return edge || p.indicator(pointAt(u, i, j, xs[0] + i * p.dx, ys[0] + j * p.dy, t)) <= 0;
+  }
+
+  // Whether the node at offset q from node (i, j) is outside the domain, as tested along axis
+  // from (i, j): the indicator a quarter of a node further out along the axis, with the
+  // species at the node, or the node on or beyond the rectangle's edge along the axis.
+  // withEdges false gives the indicator's test alone.
+  function outsideFrom(u, i, j, q, axis, t, withEdges = true) {
+    const shift = q.map((c, a) => (a == axis ? c + Math.sign(c) * 0.25 : c));
+    const n = axis == 0 ? i + q[0] : j + q[1];
+    const N = axis == 0 ? nX : nY;
+    const pt = pointAt(u, i + q[0], j + q[1], xs[i] + shift[0] * p.dx, ys[j] + shift[1] * p.dy, t);
+    return (withEdges && (n <= 0 || n >= N - 1)) || p.indicator(pt) <= 0;
+  }
+
+  // The first ring around node (i, j) for a Neumann species s, as RDShaderRobinCustomDomainX/Y
+  // fill it: a neighbour outside becomes a reflected ghost, or one-sided where the opposite
+  // neighbour is outside too (by the indicator alone).
+  function customFirstRing(u, s, i, j, stencil, centre) {
+    for (const [side, q, opposite, axis] of [
+      ["L", [-1, 0], "R", 0],
+      ["R", [1, 0], "L", 0],
+      ["T", [0, 1], "B", 1],
+      ["B", [0, -1], "T", 1],
+    ]) {
+      if (axis == 1 && !is2D) continue;
+      if (!outsideFrom(u, i, j, q, axis, centre.t)) continue;
+      const h = axis == 0 ? p.dx : p.dy;
+      const g = valueOf(p.bcs[s][side], centre);
+      const oppositeOutside = outsideFrom(u, i, j, q.map((c) => -c), axis, centre.t, false);
+      stencil[side][s] = oppositeOutside ? h * g + stencil.C[s] : 2 * h * g + stencil[opposite][s];
+    }
+  }
+
+  // Species s at offset (di, dj) from node (i, j) beyond the first ring, for a Neumann species
+  // in a domain given by an indicator function. Along each axis, the edge is the last node
+  // before the first one outside, going out from (i, j) along the axis through it, and a point
+  // m nodes beyond it on its own row or column is the mirror image there plus 2*m*h*flux, or,
+  // if the mirror image is outside, the edge node plus m*h*flux. Points are filled in x and
+  // then in y, from points filled in x.
+  function customExtendedValue(u, s, i, j, di, dj, ring, centre) {
+    const reflect = (d, axis, inside, value) => {
+      const sign = Math.sign(d);
+      const h = axis == 0 ? p.dx : p.dy;
+      const side = axis == 0 ? (sign < 0 ? "L" : "R") : sign < 0 ? "B" : "T";
+      const g = valueOf(p.bcs[s][side], centre);
+      const onAxis = (k) => (axis == 0 ? [sign * k, 0] : [0, sign * k]);
+      for (let k = 1; k <= Math.abs(d); k++) {
+        if (!outsideFrom(u, i, j, onAxis(k), axis, centre.t)) continue;
+        const e = k - 1;
+        const m = Math.abs(d) - e;
+        const mirrorOutside = e - m != 0 && outsideFrom(u, i, j, onAxis(e - m), axis, centre.t);
+        return mirrorOutside ? value(sign * e) + m * h * g : value(sign * (e - m)) + 2 * m * h * g;
+      }
+      return inside();
+    };
+    // Before filling in: the first ring as its conditions fill it, and the rest as stored.
+    const stored = (a, b) => {
+      const key = { "-1,0": "L", "1,0": "R", "0,1": "T", "0,-1": "B" }[a + "," + b];
+      if (key) return ring[key][s];
+      return u[s][clampIndex(j + b, nY) * nX + clampIndex(i + a, nX)];
+    };
+    const isRing = (a, b) => Math.abs(a) + Math.abs(b) <= 1;
+    const inX = (a, b) =>
+      isRing(a, b) || a == 0
+        ? stored(a, b)
+        : reflect(a, 0, () => stored(a, b), (c) => stored(c, b));
+    if (is2D && dj != 0 && !isRing(di, dj)) {
+      return reflect(dj, 1, () => inX(di, dj), (r) => inX(di, r));
+    }
+    return inX(di, dj);
+  }
+
+  // Species s at node (ii, jj) of state u, which may lie beyond the domain (see Point.node),
+  // for a term evaluated at the point centre.
+  function extendedValue(u, s, ii, jj, centre) {
+    if (!is2D) jj = 0;
+    const beyond = (side, n, N, h, along) => {
+      const bc = p.bcs[s][side];
+      if (bc.type == "periodic") return along(((n % N) + N) % N);
+      const edge = side == "L" || side == "B" ? 0 : N - 1;
+      const m = Math.abs(n - edge);
+      const mirror = edge + (edge == 0 ? m : -m);
+      if (bc.type == "neumann" || bc.type == "robin") {
+        return along(mirror) + 2 * m * h * valueOf(bc, centre);
+      }
+      if (bc.type == "dirichlet") return 2 * along(edge) - along(mirror);
+      return valueOf(bc, centre);
+    };
+    if (jj < 0 || jj >= nY) {
+      return beyond(jj < 0 ? "B" : "T", jj, nY, p.dy, (k) =>
+        extendedValue(u, s, ii, k, centre),
+      );
+    }
+    if (ii < 0 || ii >= nX) {
+      return beyond(ii < 0 ? "L" : "R", ii, nX, p.dx, (k) =>
+        extendedValue(u, s, k, jj, centre),
+      );
+    }
+    return u[s][jj * nX + ii];
+  }
+
   /**
    * Evaluates du/dt (before dividing by the timescales) at every node of state u at time t.
    * Dirichlet nodes are left to the caller.
@@ -133,9 +259,16 @@ export function createSolver(problem) {
         const y = ys[j];
         const centre = { x, y, t, u: stencil.C.slice() };
 
+        // In a domain given by an indicator function, Neumann species' ghosts are found from
+        // it, and Dirichlet species' neighbours outside already hold their values.
+        if (p.indicator) {
+          for (let s = 0; s < nS; s++) {
+            if (p.bcs[s].L.type == "neumann") customFirstRing(u, s, i, j, stencil, centre);
+          }
+        }
         // Ghost-node boundary conditions overwrite the off-grid neighbour, with flux values
         // evaluated at the boundary node. Neumann is Robin with a given flux.
-        for (let s = 0; s < nS; s++) {
+        for (let s = 0; s < nS && !p.indicator; s++) {
           for (const side of activeSides()) {
             const bc = p.bcs[s][side];
             if (!isBoundary(side, i, j)) continue;
@@ -159,7 +292,20 @@ export function createSolver(problem) {
         const ptR = at(p.dx, 0, "R");
         const ptT = at(0, p.dy, "T");
         const ptB = at(0, -p.dy, "B");
-        const bcPt = { x, y, t, u: stencil.C.slice() };
+        const bcPt = {
+          x,
+          y,
+          t,
+          u: stencil.C.slice(),
+          node: (s, di, dj) =>
+            p.indicator
+              ? p.bcs[s].L.type == "neumann" && Math.abs(di) + Math.abs(dj) > 1
+                ? customExtendedValue(u, s, i, j, di, dj, stencil, centre)
+                : Math.abs(di) + Math.abs(dj) == 1
+                  ? stencil[{ "-1,0": "L", "1,0": "R", "0,1": "T", "0,-1": "B" }[di + "," + dj]][s]
+                  : u[s][clampIndex(j + dj, nY) * nX + clampIndex(i + di, nX)]
+              : extendedValue(u, s, i + di, j + dj, centre),
+        };
 
         for (let s = 0; s < nS; s++) {
           let total = p.f[s] ? p.f[s](bcPt) : 0;
@@ -193,6 +339,22 @@ export function createSolver(problem) {
 
   // Overwrites Dirichlet nodes with their prescribed values at time t.
   function applyDirichlet(u, t) {
+    if (p.indicator) {
+      const outside = [];
+      for (let j = 0; j < nY; j++) {
+        for (let i = 0; i < nX; i++) {
+          if (outsideNode(u, i, j, t)) outside.push([i, j]);
+        }
+      }
+      for (const [i, j] of outside) {
+        const k = j * nX + i;
+        const pt = pointAt(u, i, j, xs[i], ys[j], t);
+        for (let s = 0; s < nS; s++) {
+          u[s][k] = p.bcs[s].L.type == "dirichlet" ? valueOf(p.bcs[s].L, pt) : 0;
+        }
+      }
+      return u;
+    }
     for (let s = 0; s < nS; s++) {
       for (const side of activeSides()) {
         const bc = p.bcs[s][side];

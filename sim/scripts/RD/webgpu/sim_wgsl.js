@@ -12,6 +12,7 @@
 
 import { translateExpression, translateStatements } from "./glsl_to_wgsl.js";
 import { ValueLayout } from "./values.js";
+import { BASE_STENCIL, stencilName } from "../derivatives.js";
 
 // The values the brush shader reads besides the simulation uniforms.
 export const BRUSH_VALUES = new ValueLayout([
@@ -445,25 +446,23 @@ ${outs.map((o, g) => `  textureStore(dst${g}, vec2i(i, j), ${o});`).join("\n")}
 }`;
 }
 
-const STENCIL = [
-  ["", 0, 0],
-  ["L", -1, 0],
-  ["R", 1, 0],
-  ["T", 0, 1],
-  ["B", 0, -1],
-  ["LL", -2, 0],
-  ["RR", 2, 0],
-  ["TT", 0, 2],
-  ["BB", 0, -2],
-];
+// The stencil points, as [suffix, di, dj]: the 9 that every simulation fetches, then any that
+// its derivatives of expressions need (see addStencilPoints in simulation_shaders.js).
+function stencilOf(parts) {
+  return [...BASE_STENCIL, ...(parts.extraStencil ?? [])].map(([di, dj]) => [
+    stencilName(di, dj),
+    di,
+    dj,
+  ]);
+}
 
 // Assigns the stencil locals (uvwq, uvwqL, ..., and uvwq2... for group 1) from a slot,
 // optionally plus a coefficient times another slot, matching RDShaderMain's arithmetic.
-function stencilFetch(G, slot, combineSlot, coefficient) {
+function stencilFetchOf(S, G, slot, combineSlot, coefficient) {
   const lines = [];
   for (let g = 0; g < G; g++) {
     const prefix = g == 0 ? "uvwq" : "uvwq2";
-    for (const [suffix, di, dj] of STENCIL) {
+    for (const [suffix, di, dj] of S) {
       const base = `fetch${slot}_${g}(i + ${di}, j + ${dj})`;
       const value =
         combineSlot == undefined
@@ -475,11 +474,11 @@ function stencilFetch(G, slot, combineSlot, coefficient) {
   return lines.join("\n");
 }
 
-function stencilArgs(G) {
+function stencilArgs(S, G) {
   const names = [];
   for (let g = 0; g < G; g++) {
     const prefix = g == 0 ? "uvwq" : "uvwq2";
-    for (const [suffix] of STENCIL) names.push(prefix + suffix);
+    for (const [suffix] of S) names.push(prefix + suffix);
   }
   return names.join(", ");
 }
@@ -490,7 +489,7 @@ function computeRHSFunction(parts, opts) {
   const copies = [];
   for (let g = 0; g < G; g++) {
     const prefix = g == 0 ? "uvwq" : "uvwq2";
-    for (const [suffix] of STENCIL) {
+    for (const [suffix] of stencilOf(parts)) {
       params.push(`${prefix}${suffix}In: vec4f`);
       copies.push(`  var ${prefix}${suffix} = ${prefix}${suffix}In;`);
     }
@@ -531,9 +530,10 @@ ${translateStatements(body, {
 // The body of each pass, after the stencils' declarations, mirroring RDShaderMain(MRT).
 // The timescales are evaluated where RDShaderMain evaluates them, after the RHS, as they can
 // depend on the state (e.g. on an algebraic species), so on the stencil's latest values.
-function schemeBody(type, G, timescales) {
+function schemeBody(type, S, G, timescales) {
+  const stencilFetch = (...args) => stencilFetchOf(S, ...args);
   const call = (srcSlot, time, out) =>
-    `  let ${out} = computeRHS(${srcSlot}u, ${time}, seed, i, j, ${stencilArgs(G)});\n` +
+    `  let ${out} = computeRHS(${srcSlot}u, ${time}, seed, i, j, ${stencilArgs(S, G)});\n` +
     (out == "outPrev" || out == "outCur" ? "" : timescales);
   const centre = (slot, g) => `fetch${slot}_${g}(i, j)`;
   const lines = [];
@@ -613,7 +613,7 @@ export function timestepShader(type, parts) {
   const declarations = [];
   for (let g = 0; g < G; g++) {
     const prefix = g == 0 ? "uvwq" : "uvwq2";
-    for (const [suffix] of STENCIL)
+    for (const [suffix] of stencilOf(parts))
       declarations.push(`  var ${prefix}${suffix}: vec4f;`);
   }
   const outputs = ["  let out0 = updated;"];
@@ -632,6 +632,7 @@ ${
 }
 ${schemeBody(
   type,
+  stencilOf(parts),
   G,
   `  timescales = ${translateExpression(parts.timescales, opts)};\n` +
     (G > 1
@@ -748,7 +749,8 @@ function forwardEulerPieces(parts) {
  *   stencil's radius in x, and the nodes each workgroup writes.
  */
 export function blockingPlan(parts, storageLimit) {
-  if (parts.twoD) return null;
+  // Extra stencil points could reach beyond the radius worked out below.
+  if (parts.twoD || parts.extraStencil?.length) return null;
   const { rhs, timescales, bot } = forwardEulerPieces(parts);
   // computeRHS's body (its signature names every stencil value), the timescales and the rest.
   const body = rhs.slice(rhs.indexOf("-> RHSOut {") + "-> RHSOut {".length);
@@ -821,7 +823,7 @@ fn tileWrite${g}(k: i32, v: vec4f) { tile${g}[k] = ${stored}; }`;
     .flatMap((g) =>
       // y-neighbours are the node itself; neighbours beyond the radius are never used (see
       // blockingPlan).
-      STENCIL.map(
+      stencilOf(parts).map(
         ([, di]) =>
           `tileRead${g}(${Math.abs(di) > R ? "k" : neighbour(g, di)})`,
       ),
@@ -831,7 +833,7 @@ fn tileWrite${g}(k: i32, v: vec4f) { tile${g}[k] = ${stored}; }`;
   const copies = [];
   for (let g = 0; g < G; g++) {
     const prefix = g == 0 ? "uvwq" : "uvwq2";
-    for (const [suffix] of STENCIL) {
+    for (const [suffix] of stencilOf(parts)) {
       params.push(`${prefix}${suffix}In: vec4f`);
       copies.push(`  var ${prefix}${suffix} = ${prefix}${suffix}In;`);
     }
@@ -855,7 +857,7 @@ ${copies.join("\n")}
   var RHS: vec4f;
   var updated: vec4f;
 ${G > 1 ? "  var timescalesGroup1: vec4f;\n  var RHS2: vec4f;\n  var updated2: vec4f;" : ""}
-  let rhs1 = computeRHS(0u, t, seed, i, j, ${stencilArgs(G)});
+  let rhs1 = computeRHS(0u, t, seed, i, j, ${stencilArgs(stencilOf(parts), G)});
 ${timescales}
 ${each((g, n) => `  RHS${n} = rhs1.r${g};`)}
 ${each((g, n, s) => `  updated${n} = dt * RHS${n} / timescales${s} + uvwq${n};`)}

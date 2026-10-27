@@ -6,6 +6,239 @@ import {
   diffusionLabel,
   reactionTokenOfSpecies,
 } from "./species_config.js";
+import { BASE_STENCIL, stencilName, outsideTests } from "./derivatives.js";
+
+const glslFloat = (n) => (Number.isInteger(n) ? n.toFixed(1) : String(n));
+
+/**
+ * Adds stencil points beyond the 9 that the simulation's templates hard-code (needed by
+ * derivatives of expressions, see derivatives.js) to RDShaderTop/RDShaderMain or their MRT
+ * counterparts. Each point (i, j) is fetched, passed to computeRHS and declared exactly as the
+ * BB point is, alongside it, so the templates are unchanged when there are none.
+ * @param {string} shader - The template's code.
+ * @param {number[][]} extra - The points to add, as [i, j] offsets in nodes.
+ * @param {string[]} [prefixes] - The stencil prefixes, one per species group.
+ * @returns {string} The shader code.
+ */
+export function addStencilPoints(shader, extra, prefixes = ["uvwq"]) {
+  if (!extra.length) return shader;
+  const names = extra.map(([i, j]) => stencilName(i, j));
+  const each = (indent, f) => names.map((n, k) => "\n" + indent + f(n, k)).join("");
+  shader = shader.replace(/^([ \t]*)vec2 textureCoordsBB = .*$/gm, (m, indent) =>
+    m +
+    each(
+      indent,
+      (n, k) =>
+        `vec2 textureCoords${n} = textureCoords + vec2(${glslFloat(extra[k][0])}*step_x, ${glslFloat(extra[k][1])}*step_y);`,
+    ),
+  );
+  for (const P of prefixes) {
+    shader = shader
+      .replace(new RegExp(`\\bvec4 ${P}BBIn\\b`, "g"), (m) =>
+        names.reduce((s, n) => s + `, vec4 ${P}${n}In`, m),
+      )
+      .replace(new RegExp(`^([ \\t]*)vec4 ${P}BB = ${P}BBIn;$`, "gm"), (m, indent) =>
+        m + each(indent, (n) => `vec4 ${P}${n} = ${P}${n}In;`),
+      )
+      .replace(new RegExp(`^([ \\t]*)vec4 ${P}BB;$`, "gm"), (m, indent) =>
+        m + each(indent, (n) => `vec4 ${P}${n};`),
+      )
+      .replace(
+        new RegExp(`^([ \\t]*)${P}BB = (.*\\btextureCoordsBB\\b.*);$`, "gm"),
+        (m, indent, value) =>
+          m +
+          each(
+            indent,
+            (n) => `${P}${n} = ${value.replaceAll(/\btextureCoordsBB\b/g, "textureCoords" + n)};`,
+          ),
+      )
+      // computeRHS calls.
+      .replace(new RegExp(`\\b${P}BB(?=, )`, "g"), (m) =>
+        names.reduce((s, n) => s + `, ${P}${n}`, m),
+      );
+  }
+  return shader;
+}
+
+const isFirstRing = ([i, j]) => Math.abs(i) + Math.abs(j) <= 1;
+
+// For a point (i, j) beyond an edge of the domain, from a node c nodes in from that edge
+// along the given axis (0 for x, 1 for y): how many nodes beyond the edge it is, its mirror
+// image in the edge node, and the edge node itself, all as offsets from the current node.
+// Only defined for the c that put the point beyond the edge, i.e. c < |offset along axis|.
+function beyondEdge([i, j], axis, c) {
+  const d = axis == 0 ? i : j;
+  const s = Math.sign(d);
+  const m = Math.abs(d) - c;
+  const along = (k) => (axis == 0 ? [k, j] : [i, k]);
+  return { m, mirror: along(s * (2 * c - Math.abs(d))), edge: along(s * c) };
+}
+
+/**
+ * The stencil points needed to fill in the given points wherever they lie beyond the domain's
+ * edges (see extendedGhostShader): the points themselves, plus the mirror images and edge
+ * nodes those are filled from, repeatedly. In a domain given by an indicator function, any
+ * node on the line through a point along each axis, as far from the node on either side, can
+ * be its mirror image or edge node, or be tested to find the edge.
+ * @param {number[][]} offsets - [i, j] offsets in nodes.
+ * @param {boolean} twoD - Whether there are edges in y.
+ * @param {Object} [opts]
+ * @param {boolean} [opts.customDomain] - Whether the domain is given by an indicator function.
+ * @param {boolean} [opts.firstRing] - Whether the first ring's points need filling in too,
+ *   as where no boundary condition shaders have filled them (see stateStencilShader).
+ * @param {number} [opts.below] - How many nodes on the near side of the edge are used.
+ * @returns {number[][]} Every point needed, sorted so that the order is stable.
+ */
+export function stencilClosure(
+  offsets,
+  twoD,
+  { customDomain = false, firstRing = false, below = 0 } = {},
+) {
+  const points = new Map(offsets.map((p) => [p.join(","), p]));
+  const queue = [...offsets];
+  while (queue.length) {
+    const p = queue.pop();
+    if (isFirstRing(p) && !(firstRing && p.some((c) => c != 0))) continue;
+    for (const axis of twoD ? [0, 1] : [0]) {
+      const d = Math.abs(p[axis]);
+      if (d == 0) continue;
+      const sources = [];
+      if (customDomain) {
+        // The edge is found along the axis through the node, and applies to the point's line.
+        for (let t = -d - below; t <= d; t++) {
+          sources.push(axis == 0 ? [t, p[1]] : [p[0], t], axis == 0 ? [t, 0] : [0, t]);
+        }
+      } else {
+        for (let c = 0; c < d; c++) {
+          const { mirror, edge } = beyondEdge(p, axis, c);
+          sources.push(mirror, edge);
+        }
+      }
+      for (const q of sources) {
+        {
+          if (!points.has(q.join(","))) {
+            points.set(q.join(","), q);
+            queue.push(q);
+          }
+        }
+      }
+    }
+  }
+  return [...points.values()].sort((a, b) => a[1] - b[1] || a[0] - b[0]);
+}
+
+/**
+ * The stencil points of `points` that the templates don't already fetch.
+ * @param {number[][]} points
+ * @returns {number[][]}
+ */
+export function extraStencilPoints(points) {
+  const base = new Set(BASE_STENCIL.map((p) => p.join(",")));
+  return points.filter((p) => !base.has(p.join(",")));
+}
+
+/**
+ * Fills in the stencil points beyond the first ring (LL, RT and so on) wherever they lie
+ * beyond the domain's edges, consistently with each species' boundary conditions, as the
+ * Neumann, Robin and ghost shaders do for L, R, T and B:
+ *   - Neumann and Robin: even reflection in the edge node, plus the flux, so the point m
+ *     nodes beyond the edge is its mirror image plus 2*m*dx*robinRHS.
+ *   - Dirichlet: odd reflection in the edge node (2*edge - mirror).
+ *   - Ghost: the ghost value.
+ *   - Periodic: unchanged, as the textures wrap.
+ * Points beyond an edge in x are filled first, then those beyond an edge in y, from points
+ * that have already been filled in x, which handles the corners.
+ *
+ * In a domain given by an indicator function (customDomain), the edge along each axis is
+ * instead the last node before the first one, going out from the node along that axis, that
+ * customDomain.outside says is outside, as RDShaderRobinCustomDomainX/Y find it for L, R, T
+ * and B. The edges are found along the axes through the node, and points are reflected in
+ * them along their own row or column, so a point outside the domain only because of an edge
+ * in x isn't reflected in y as well. There, Neumann conditions reflect as above, except where the mirror image is itself
+ * outside (a part of the domain too thin to reflect in), when the point m nodes beyond the
+ * edge is the edge node plus m*dx*robinRHS, as those shaders' one-sided fallback. Dirichlet
+ * conditions need nothing, as every node outside the domain holds the boundary value.
+ * @param {number[][]} points - Every stencil point, from stencilClosure.
+ * @param {Object[]} species - Per species: its stencil prefix ("uvwq" or "uvwq2"), channel
+ *   ("r" etc.) and name, and its rule at each edge, {L, R, T, B}, each one of
+ *   {type: "periodic"}, {type: "reflect"}, {type: "dirichlet"} or {type: "ghost", value}.
+ * @param {boolean} twoD - Whether there are edges in y.
+ * @param {{outside: (q: number[], axis: number) => string}} [customDomain] - outside gives a
+ *   GLSL bool for whether the node at offset q is outside the domain, tested along axis.
+ * @returns {string} The shader code.
+ */
+export function extendedGhostShader(points, species, twoD, customDomain) {
+  if (customDomain) return customDomainGhostShader(points, species, twoD, customDomain);
+  const conditions = {
+    L: (c) => `textureCoords.x < ${glslFloat(c + 1)}*step_x`,
+    R: (c) => `textureCoords.x > 1.0 - ${glslFloat(c + 1)}*step_x`,
+    B: (c) => `textureCoords.y < ${glslFloat(c + 1)}*step_y`,
+    T: (c) => `textureCoords.y > 1.0 - ${glslFloat(c + 1)}*step_y`,
+  };
+  let out = "";
+  for (const axis of twoD ? [0, 1] : [0]) {
+    for (const p of points) {
+      if (isFirstRing(p) || p[axis] == 0) continue;
+      const side = axis == 0 ? (p[0] < 0 ? "L" : "R") : p[1] < 0 ? "B" : "T";
+      const h = axis == 0 ? "dx" : "dy";
+      for (const { prefix, channel, name, rules } of species) {
+        const rule = rules[side];
+        if (rule.type == "periodic") continue;
+        const at = (q) => prefix + stencilName(...q) + "." + channel;
+        const branches = [];
+        for (let c = 0; c < Math.abs(p[axis]); c++) {
+          const { m, mirror, edge } = beyondEdge(p, axis, c);
+          let value;
+          if (rule.type == "reflect") {
+            value = `${at(mirror)} + ${glslFloat(2 * m)}*(${h} * robinRHS${name}${side})`;
+          } else if (rule.type == "dirichlet") {
+            value = `2.0*${at(edge)} - ${at(mirror)}`;
+          } else {
+            value = `(${rule.value})`;
+          }
+          branches.push(`if (${conditions[side](c)}) {\n        ${at(p)} = ${value};\n    }`);
+        }
+        out += "\n    " + branches.join(" else ") + "\n";
+      }
+    }
+  }
+  return out;
+}
+
+function customDomainGhostShader(points, species, twoD, { outside }) {
+  const tests = outsideTests(outside);
+  let out = "";
+  for (const axis of twoD ? [0, 1] : [0]) {
+    for (const p of points) {
+      if (isFirstRing(p) || p[axis] == 0) continue;
+      const s = Math.sign(p[axis]);
+      const d = Math.abs(p[axis]);
+      // Points on the point's line, and nodes on the axis through the node.
+      const along = (t) => (axis == 0 ? [s * t, p[1]] : [p[0], s * t]);
+      const onAxis = (t) => (axis == 0 ? [s * t, 0] : [0, s * t]);
+      const side = axis == 0 ? (s < 0 ? "L" : "R") : s < 0 ? "B" : "T";
+      const h = axis == 0 ? "dx" : "dy";
+      for (const { prefix, channel, name, rules } of species) {
+        if (rules[side].type != "reflect") continue;
+        const at = (q) => prefix + stencilName(...q) + "." + channel;
+        const flux = `(${h} * robinRHS${name}${side})`;
+        const branches = [];
+        for (let k = 1; k <= d; k++) {
+          // The edge node is the last before the first node outside, k nodes along.
+          const edge = k - 1;
+          const m = d - edge;
+          const mirror = along(edge - m);
+          const value =
+            `${tests.test(onAxis(edge - m), axis)} ? ${at(along(edge))} + ${glslFloat(m)}*${flux}` +
+            ` : ${at(mirror)} + ${glslFloat(2 * m)}*${flux}`;
+          branches.push(`if (${tests.test(onAxis(k), axis)}) {\n        ${at(p)} = ${value};\n    }`);
+        }
+        out += "\n    " + branches.join(" else ") + "\n";
+      }
+    }
+  }
+  return out ? tests.declarations() + out : "";
+}
 
 /**
  * Generates the top part of a shader for reaction-diffusion simulation based on the given timestepping scheme.
@@ -1418,45 +1651,8 @@ export function globalIntegralShader() {
       float x = MINX + textureCoords.x * L_x;
       float y = MINY + textureCoords.y * L_y;
 
-      vec4 uvwq = texture2D(textureSource, textureCoords);
-      vec4 uvwqL = texture2D(textureSource, textureCoords + vec2(-step_x, 0.0));
-      vec4 uvwqR = texture2D(textureSource, textureCoords + vec2(+step_x, 0.0));
-      vec4 uvwqT = texture2D(textureSource, textureCoords + vec2(0.0, +step_y));
-      vec4 uvwqB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y));
-
-      vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
-      vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
-      vec4 uvwqXF = (uvwqR - uvwq) / dx;
-      vec4 uvwqYF = (uvwqT - uvwq) / dy;
-      vec4 uvwqXB = (uvwq - uvwqL) / dx;
-      vec4 uvwqYB = (uvwq - uvwqB) / dy;
-      vec4 uvwqXX = (uvwqR - 2.0*uvwq + uvwqL) / (dx * dx);
-      vec4 uvwqYY = (uvwqT - 2.0*uvwq + uvwqB) / (dy * dy);
-
-      // At boundaries, compute gradients using one-sided differences.
-      if (textureCoords.x - step_x < 0.0) {
-        uvwqX = (uvwqR - uvwq) / dx;
-        uvwqXF = uvwqX;
-        uvwqXB = uvwqX;
-      }
-
-      if (textureCoords.x + step_x > 1.0) {
-        uvwqX = (uvwq - uvwqL) / dx;
-        uvwqXF = uvwqX;
-        uvwqXB = uvwqX;
-      }
-
-      if (textureCoords.y - step_y < 0.0) {
-        uvwqY = (uvwqT - uvwq) / dy;
-        uvwqYF = uvwqY;
-        uvwqYB = uvwqY;
-      }
-
-      if (textureCoords.y + step_y > 1.0) {
-        uvwqY = (uvwq - uvwqB) / dy;
-        uvwqYF = uvwqY;
-        uvwqYB = uvwqY;
-      }
+      // The stencil locals (see stateStencilShader in derivatives.js).
+      STATE_STENCIL
 
       float value1 = GLOBAL_INTEGRAL_FUN1;
       float value2 = GLOBAL_INTEGRAL_FUN2;
@@ -1484,48 +1680,5 @@ export function globalIntegralShaderMRT() {
       "uniform sampler2D textureSource;",
       "uniform sampler2D textureSource;\n    uniform sampler2D textureSourceGroup1;",
     )
-    .replace(
-      "float value1 = GLOBAL_INTEGRAL_FUN1;",
-      `vec4 uvwq2 = texture2D(textureSourceGroup1, textureCoords);
-      vec4 uvwq2L = texture2D(textureSourceGroup1, textureCoords + vec2(-step_x, 0.0));
-      vec4 uvwq2R = texture2D(textureSourceGroup1, textureCoords + vec2(+step_x, 0.0));
-      vec4 uvwq2T = texture2D(textureSourceGroup1, textureCoords + vec2(0.0, +step_y));
-      vec4 uvwq2B = texture2D(textureSourceGroup1, textureCoords + vec2(0.0, -step_y));
-
-      vec4 uvwq2X = (uvwq2R - uvwq2L) / (2.0*dx);
-      vec4 uvwq2Y = (uvwq2T - uvwq2B) / (2.0*dy);
-      vec4 uvwq2XF = (uvwq2R - uvwq2) / dx;
-      vec4 uvwq2YF = (uvwq2T - uvwq2) / dy;
-      vec4 uvwq2XB = (uvwq2 - uvwq2L) / dx;
-      vec4 uvwq2YB = (uvwq2 - uvwq2B) / dy;
-      vec4 uvwq2XX = (uvwq2R - 2.0*uvwq2 + uvwq2L) / (dx * dx);
-      vec4 uvwq2YY = (uvwq2T - 2.0*uvwq2 + uvwq2B) / (dy * dy);
-
-      // At boundaries, compute gradients using one-sided differences (group 1).
-      if (textureCoords.x - step_x < 0.0) {
-        uvwq2X = (uvwq2R - uvwq2) / dx;
-        uvwq2XF = uvwq2X;
-        uvwq2XB = uvwq2X;
-      }
-
-      if (textureCoords.x + step_x > 1.0) {
-        uvwq2X = (uvwq2 - uvwq2L) / dx;
-        uvwq2XF = uvwq2X;
-        uvwq2XB = uvwq2X;
-      }
-
-      if (textureCoords.y - step_y < 0.0) {
-        uvwq2Y = (uvwq2T - uvwq2) / dy;
-        uvwq2YF = uvwq2Y;
-        uvwq2YB = uvwq2Y;
-      }
-
-      if (textureCoords.y + step_y > 1.0) {
-        uvwq2Y = (uvwq2 - uvwq2B) / dy;
-        uvwq2YF = uvwq2Y;
-        uvwq2YB = uvwq2Y;
-      }
-
-      float value1 = GLOBAL_INTEGRAL_FUN1;`,
-    );
+    .replace("STATE_STENCIL", "STATE_STENCIL\n      STATE_STENCIL_GROUP1");
 }

@@ -65,6 +65,10 @@ import {
   RDShaderGhostY,
   RDShaderMain,
   clampSpeciesToEdgeShader,
+  addStencilPoints,
+  stencilClosure,
+  extraStencilPoints,
+  extendedGhostShader,
   globalIntegralShader,
   globalIntegralShaderMRT,
   RDShaderTopMRT,
@@ -111,6 +115,18 @@ import {
   MAX_SPECIES_SUPPORTED,
 } from "./species_config.js";
 import { auxiliary_GLSL_funs } from "../auxiliary_GLSL_funs.js";
+import {
+  containsDerivatives,
+  expandDerivatives,
+  DerivativeError,
+  hasStencilTokens,
+  nodeTokenOffsets,
+  resolveStencilTokens,
+  stencilName,
+  stateStencilShader,
+  findDerivativeGroups,
+  outsideTests,
+} from "./derivatives.js";
 import * as THREE from "../three.module.min.js";
 import { OrbitControls } from "../OrbitControls.js";
 import { Line2 } from "../lines/Line2.js";
@@ -215,6 +231,9 @@ async function VisualPDE(url) {
     gpuHeldTime = 0;
   // The edge clamping the WebGPU display kernels were last built with (see setRDEquations).
   let gpuDisplayClamp = null;
+  // Which edges were periodic for each species when the shaders reading the state directly
+  // were last built (see setRDEquations).
+  let stateStencilEdges = null;
   let simTextures = [],
     // Only allocated once numGroups(options.numSpecies)>1 (i.e. numSpecies>4). Each entry is
     // a THREE.WebGLMultipleRenderTargets holding one colour attachment per texture group, so
@@ -4489,8 +4508,17 @@ async function VisualPDE(url) {
 
   // The body of a GLSL shader's main(), from just after its opening brace.
   function gpuMainBody(shader) {
+    shader = resolveRemainingStencilTokens(shader);
     const start = shader.indexOf("{", shader.search(/\bvoid\s+main\s*\(\s*\)/));
     return shader.slice(start + 1);
+  }
+
+  // Every shader passes through here (WebGL's via assignFragmentShader, WebGPU's via
+  // gpuMainBody), so that a derivative of an expression in a shader that hasn't read its node
+  // tokens from a stencil is reported, rather than reaching the compiler.
+  function resolveRemainingStencilTokens(shader) {
+    if (!hasStencilTokens(shader)) return shader;
+    return speciesFreeDerivativesOnly(shader, "this field");
   }
 
   // Reports a failed WebGPU pipeline build like a WebGL compile error.
@@ -4998,6 +5026,13 @@ async function VisualPDE(url) {
     }
     overlayLine.visible = options.overlay && options.plotType == "line";
     shader += fiveColourDisplayBot();
+    // The overlay reads the state at the display's resolution.
+    shader = insertStateStencil(shader, {
+      textures: ["textureSource1", "textureSourceGroup1"],
+      fetch: "textureBilinear",
+      texel: "1.0/vec2(textureSize(textureSource1, 0))",
+      h: ["(dx/dxUpscaledScale)", "(dy/dyUpscaledScale)"],
+    });
     assignFragmentShader(displayMaterial, shader);
     displayMaterial.needsUpdate = true;
     gpuDisplay?.setDisplay({ ...gpuShaderParts(), body: gpuMainBody(shader) });
@@ -6473,6 +6508,23 @@ async function VisualPDE(url) {
     str = replaceBump(str);
     str = replaceWhiteNoise(str);
 
+    // Expand derivatives of expressions, (E)_x etc., into differences of E at neighbouring
+    // nodes (see derivatives.js). This comes after the replacements above, which make
+    // dependence on x, y and RANDN explicit, and before anything below turns species into
+    // GLSL. Images' implicit (x,y) are made explicit for the same reason, but only here, so
+    // that other expressions are unchanged. The node tokens that this leaves are resolved by
+    // each shader (see resolveSimStencil and stencilFetchShader).
+    if (containsDerivatives(str, { species: listOfSpecies })) {
+      str = str.replaceAll(/\b(I_[ST][RBGA]?\b)\s*(?!\()/g, "$1(x,y) ");
+      try {
+        str = expandDerivatives(str, { species: listOfSpecies });
+      } catch (error) {
+        if (!(error instanceof DerivativeError)) throw error;
+        throwError(error.message);
+        return " 0.0 ";
+      }
+    }
+
     // Replace species[x,y] with a texture lookup. Note that this regex doesn't handle
     // x being an expression containing a comma.
     str = str.replaceAll(
@@ -6756,6 +6808,201 @@ async function VisualPDE(url) {
     };
   }
 
+  // Resolves the tokens left by derivatives of expressions (see expandDerivatives) in str,
+  // for code that has no stencil to read neighbours from: derivatives that only shift x and
+  // y are fine, but any that involve the species are reported as unsupported in `where`.
+  function speciesFreeDerivativesOnly(str, where) {
+    if (nodeTokenOffsets(str).length) {
+      throwError(
+        "Derivatives of expressions that involve the species, such as (u^2)_x, can't be used in " +
+          where +
+          ".",
+      );
+    }
+    return resolveStencilTokens(str, { node: () => "0.0", hx: "dx", hy: "dy" });
+  }
+
+  // The type of boundary condition ("periodic", "neumann", "robin", "dirichlet" or "ghost")
+  // on each edge, {L, R, T, B}, of the species with 0-based index ind, with the value given
+  // for combinations of conditions. Edges that a combination doesn't mention are periodic.
+  function edgeConditionsOfSpecies(ind) {
+    const bc = options["boundaryConditions_" + (ind + 1)];
+    const all = (type) => ({ L: { type }, R: { type }, T: { type }, B: { type } });
+    if (bc != "combo") return all(bc ?? "periodic");
+    const conditions = all("periodic");
+    const matches = (options["comboStr_" + (ind + 1)] + ";").matchAll(
+      /(Left|Right|Top|Bottom)\s*:\s*(Neumann|Robin|Dirichlet|Ghost)\s*=([^;]*);/gi,
+    );
+    for (const m of matches) {
+      conditions[m[1][0].toUpperCase()] = { type: m[2].toLowerCase(), value: m[3] };
+    }
+    return conditions;
+  }
+
+  // The rule that extendedGhostShader fills in the stencil beyond each edge of the domain
+  // with, for the species with 0-based index ind, from its boundary conditions.
+  function edgeRulesOfSpecies(ind) {
+    const rules = {};
+    for (const [side, { type, value }] of Object.entries(edgeConditionsOfSpecies(ind))) {
+      if (type == "ghost") {
+        rules[side] = {
+          type,
+          value: speciesFreeDerivativesOnly(parseShaderString(value), "boundary conditions"),
+        };
+      } else if (type == "neumann" || type == "robin") {
+        rules[side] = { type: "reflect" };
+      } else {
+        rules[side] = { type };
+      }
+    }
+    return rules;
+  }
+
+  // Fills in STATE_STENCIL (and STATE_STENCIL_GROUP1) in a shader that reads the state
+  // directly, once its expressions have been substituted, with each species group's stencil
+  // locals (see stateStencilShader), including any points that the derivatives of
+  // expressions in it use, and reads their node tokens from those locals.
+  //   textures: the samplers holding each group's state.
+  //   fetch: the function reading them ("texture2D" or "textureBilinear").
+  //   texel: the state's texel size, as a vec2.
+  //   coords, h, aligned: as for stateStencilShader.
+  function insertStateStencil(
+    shader,
+    { textures, fetch, texel, coords, h = ["dx", "dy"], aligned = true },
+  ) {
+    const points = nodeTokenOffsets(shader);
+    const twoD = options.dimension > 1;
+    // In a domain given by an indicator function, only the Neumann species are extrapolated,
+    // as every node outside the domain holds the value of each Dirichlet species' condition.
+    const customDomain = options.domainViaIndicatorFun && aligned;
+    const step = ["step_x", "step_y"];
+    // In such a domain, the indicator can read any group's species, so every group's stencil
+    // is fetched before the tests of where the edges are, which all groups share, and those
+    // come before any group's stencil is extrapolated.
+    const tests = customDomain
+      ? outsideTests((q, axis) => indicatorOutsideTest(q, axis, { step, h }))
+      : undefined;
+    const stencils = [];
+    for (const [g, placeholder] of [
+      [0, /\bSTATE_STENCIL\b/],
+      [1, /\bSTATE_STENCIL_GROUP1\b/],
+    ]) {
+      if (!placeholder.test(shader)) continue;
+      const masks = {};
+      for (const side of ["L", "R", "T", "B"]) {
+        const channels = [0, 1, 2, 3].map((c) => {
+          const type = edgeConditionsOfSpecies(4 * g + c)[side].type;
+          if (customDomain) return type == "neumann" ? "1.0" : "0.0";
+          return type == "periodic" ? "0.0" : "1.0";
+        });
+        masks[side] = channels.includes("1.0")
+          ? "vec4(" + channels.join(", ") + ")"
+          : "vec4(0.0)";
+      }
+      const stencil = stateStencilShader({
+        prefix: g == 0 ? "uvwq" : "uvwq2",
+        fetch: (c) => `${fetch}(${textures[g]}, ${c})`,
+        coords,
+        texel,
+        h,
+        points,
+        masks,
+        twoD,
+        aligned,
+        outside: tests && ((q, axis) => indicatorOutsideTest(q, axis, { step, h })),
+        tests,
+        phases: customDomain,
+      });
+      stencils.push({ placeholder, stencil });
+    }
+    stencils.forEach(({ placeholder, stencil }, k) => {
+      let code = stencil;
+      if (customDomain) {
+        code =
+          k == 0
+            ? stencils.map(({ stencil }) => stencil.fetches).join("") +
+              tests.declarations() +
+              stencil.rest
+            : stencil.rest;
+      }
+      shader = shader.replace(placeholder, () => code);
+    });
+    const node = (s, i, j) =>
+      stencilPrefixForSpecies(listOfSpecies[s]) +
+      stencilName(i, j) +
+      "." +
+      speciesToChannelChar(listOfSpecies[s]);
+    return resolveStencilTokens(shader, { node, hx: h[0], hy: h[1] });
+  }
+
+  // GLSL for whether the node at offset q (in nodes, along the given axis) is outside a domain
+  // given by an indicator function, generalising the test that RDShaderRobinCustomDomainX/Y
+  // make for L, R, T and B: the indicator is evaluated |t| + 0.25 nodes along the axis (as
+  // at x - 1.25*dx for L), with the species at that node, and nodes on or beyond the edges
+  // of the rectangle are outside, as getModifiedDomainIndicatorFun makes them.
+  //   step: the offset between nodes in texture coordinates; h: their spacing.
+  function indicatorOutsideTest(q, axis, { step = ["step_x", "step_y"], h = ["dx", "dy"] } = {}) {
+    const indicator = speciesFreeDerivativesOnly(
+      parseShaderString(options.domainIndicatorFun),
+      "the domain's indicator function",
+    );
+    const shift = q.map((c, a) => (a == axis ? c + Math.sign(c) * 0.25 : c));
+    const name = stencilName(...q);
+    const shifted = (c, k) =>
+      k == 0 ? c : `(${c}${k < 0 ? "-" : "+"}${Math.abs(k)}*${h["xy".indexOf(c)]})`;
+    const at = indicator
+      .replaceAll(/\bx\b/g, () => shifted("x", shift[0]))
+      .replaceAll(/\by\b/g, () => shifted("y", shift[1]))
+      .replaceAll(/\buvwq\./g, `uvwq${name}.`)
+      .replaceAll(/\buvwq2\./g, `uvwq2${name}.`);
+    const c = "xy"[axis];
+    const position = `(textureCoords.${c} + ${q[axis].toFixed(1)}*${step[axis]})`;
+    return (
+      `(float(${at}) <= 0.0 || ${position} - ${step[axis]} < 0.0 || ` +
+      `${position} + ${step[axis]} > 1.0)`
+    );
+  }
+
+  // Reads the node tokens left by derivatives of expressions in the simulation's reaction
+  // terms (see expandDerivatives) from computeRHS's stencil locals, which hold the neighbours
+  // once the boundary conditions have been applied. Returns that code, preceded by the code
+  // that fills in any points beyond the first ring wherever they lie beyond the edges, and the
+  // points that the templates need to add to the 9 they fetch (see addStencilPoints).
+  function simReactionStencil(reactionShader) {
+    const twoD = options.dimension > 1;
+    const customDomain = options.domainViaIndicatorFun;
+    const points = stencilClosure(nodeTokenOffsets(reactionShader), twoD, { customDomain });
+    const used = new Set(
+      [...reactionShader.matchAll(/\bvpdeN_(\d+)_/g)].map((m) => Number(m[1])),
+    );
+    const numSpeciesInGroups = 4 * numGroups(Number(options.numSpecies));
+    const species = [...used]
+      .filter((ind) => ind < numSpeciesInGroups)
+      .sort((a, b) => a - b)
+      .map((ind) => ({
+        prefix: stencilPrefixForSpecies(listOfSpecies[ind]),
+        channel: speciesToChannelChar(listOfSpecies[ind]),
+        name: listOfSpecies[ind],
+        rules: edgeRulesOfSpecies(ind),
+      }));
+    const node = (s, i, j) =>
+      stencilPrefixForSpecies(listOfSpecies[s]) +
+      stencilName(i, j) +
+      "." +
+      speciesToChannelChar(listOfSpecies[s]);
+    return {
+      shader:
+        extendedGhostShader(
+          points,
+          species,
+          twoD,
+          customDomain ? { outside: (q, axis) => indicatorOutsideTest(q, axis) } : undefined,
+        ) +
+        resolveStencilTokens(reactionShader, { node, hx: "dx", hy: "dy" }),
+      extra: extraStencilPoints(points),
+    };
+  }
+
   function setRDEquations() {
     // Must run before anything below that could reference an Int(...) expression - see
     // reconcileGlobalIntegrals().
@@ -6964,7 +7211,7 @@ async function VisualPDE(url) {
           let regex = new RegExp(
             "\\b" +
               listOfSpecies[specInd] +
-              "(_(x|xb|xf|xb2|xf2|xx|y|yb|yf|yb2|yf2|yy))?\\b",
+              "(_[xy][xyfb2]*)?\\b",
           );
           if (
             regex.test(strToTest) ||
@@ -7037,13 +7284,30 @@ async function VisualPDE(url) {
     // the update shader as uvwq[XY].[rgba] (group 0) or uvwq2[XY].[rgba] (group 1, species
     // 5-8).
     // If they've done this, warn them and don't update the shader.
-    let match = diffusionShader.match(/\buvwq2?[XY]\.[rgba]\b/);
+    // Likewise for derivatives of expressions that involve the species, as
+    // nonConstantDiffusionEvaluateInSpaceStr evaluates each coefficient at the neighbours
+    // by shifting its GLSL, which can't shift their node tokens.
+    let match =
+      diffusionShader.match(/\buvwq2?[XY]\.[rgba]\b/) ||
+      nodeTokenOffsets(diffusionShader).length;
     if (match) {
       throwError(
         "Including derivatives in the diffusion coefficients is not supported. Try casting your PDE in another form.",
       );
       return;
     }
+
+    // The boundary conditions are what fill in the neighbours that derivatives involving the
+    // species read, so derivatives in the conditions themselves can only shift x and y.
+    [neumannShader, ghostShader, robinShader, dirichletShader] = [
+      neumannShader,
+      ghostShader,
+      robinShader,
+      dirichletShader,
+    ].map((str) => speciesFreeDerivativesOnly(str, "boundary conditions"));
+
+    // The reaction terms, with any derivatives of expressions read from the stencil.
+    const reactions = simReactionStencil(parseReactionStrings());
 
     // The shader code clamping species 1-4 at the edges, in each direction.
     const clampChannelsH = edgeClampSpeciesH
@@ -7081,7 +7345,7 @@ async function VisualPDE(url) {
       robinShader,
       RDShaderAdvectionPostBC(),
       RDShaderDiffusionPostBC(),
-      parseReactionStrings(),
+      reactions.shader,
       diffusionShader,
     ].join(" ");
     let containsRAND = /\bRAND\b/.test(middle) || /\bRANDVAL\b/.test(middle);
@@ -7136,6 +7400,17 @@ async function VisualPDE(url) {
       // All 4 slots are always processed regardless of exact numSpecies (5-8), matching the
       // group-0 pattern of always processing all 4 slots regardless of numSpecies<=4.
       const bcGroup1 = buildBCShadersForIndices([4, 5, 6, 7]);
+      for (const key of [
+        "neumannShader",
+        "ghostShader",
+        "robinShader",
+        "dirichletShader",
+      ]) {
+        bcGroup1[key] = speciesFreeDerivativesOnly(
+          bcGroup1[key],
+          "boundary conditions",
+        );
+      }
 
       // Group 1 edge-clamping: always via the shader (clampSpeciesToEdgeShader,
       // groupified to route to uvwq2), never via mutating mrtSimTextures' wrapping mode -
@@ -7199,7 +7474,7 @@ async function VisualPDE(url) {
         RDShaderDiffusionPostBC(),
         groupifyShaderStr(RDShaderAdvectionPostBC(), 1),
         groupifyShaderStr(RDShaderDiffusionPostBC(), 1),
-        parseReactionStrings(),
+        reactions.shader,
         diffusionShaderMRT,
       ].join(" ");
       // Reuse the RAND/RANDN detection already done for `middle` above, rather than
@@ -7235,9 +7510,17 @@ async function VisualPDE(url) {
             replaceMINXMINY(
               [
                 kineticStr,
-                RDShaderTopMRT(type),
+                addStencilPoints(RDShaderTopMRT(type), reactions.extra, [
+                  "uvwq",
+                  "uvwq2",
+                ]),
                 middleMRT,
-                insertRates(RDShaderMainMRT(type)),
+                insertRates(
+                  addStencilPoints(RDShaderMainMRT(type), reactions.extra, [
+                    "uvwq",
+                    "uvwq2",
+                  ]),
+                ),
                 botMRT(type),
               ].join(" "),
             ),
@@ -7249,9 +7532,9 @@ async function VisualPDE(url) {
             replaceMINXMINY(
               [
                 kineticStr,
-                RDShaderTop(type),
+                addStencilPoints(RDShaderTop(type), reactions.extra),
                 middle,
-                insertRates(RDShaderMain(type)),
+                insertRates(addStencilPoints(RDShaderMain(type), reactions.extra)),
                 bot(type),
               ].join(" "),
             ),
@@ -7266,12 +7549,14 @@ async function VisualPDE(url) {
     );
 
     // Give WebGPU the same pieces, which it translates to WGSL (see webgpu/sim_wgsl.js).
+    let rebuildDisplay = false;
     if (gpuBackend) {
       // The number of species groups may have changed (as on WebGL, where switching between
       // single and multiple render targets starts the state afresh).
       gpuBackend.resize(nXDisc, nYDisc, Number(options.numSpecies));
       const parts = gpuShaderParts();
       parts.middle = replaceMINXMINY(isMRT ? middleMRT : middle);
+      parts.extraStencil = reactions.extra;
       parts.bot = {};
       ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"].forEach(
         (type) =>
@@ -7286,13 +7571,23 @@ async function VisualPDE(url) {
       // if that's changed (e.g. a boundary condition changed in the GUI), as WebGL's display
       // sees the textures' new wrapping.
       const clamp = JSON.stringify(parts.clamp);
-      if (gpuDisplayClamp != null && clamp != gpuDisplayClamp) {
-        setPostFunFragShader();
-        setDrawAndDisplayShaders();
-        setProbeShader();
-        setGlobalIntegralShader();
-      }
+      if (gpuDisplayClamp != null && clamp != gpuDisplayClamp) rebuildDisplay = true;
       gpuDisplayClamp = clamp;
+    }
+    // On both backends, the shaders that read the state directly extrapolate it beyond the
+    // edges that aren't periodic (see insertStateStencil), so are rebuilt if those change.
+    const edges = JSON.stringify(
+      listOfSpecies.map((_, ind) =>
+        Object.values(edgeConditionsOfSpecies(ind)).map((c) => c.type == "periodic"),
+      ),
+    );
+    if (stateStencilEdges != null && edges != stateStencilEdges) rebuildDisplay = true;
+    stateStencilEdges = edges;
+    if (rebuildDisplay) {
+      setPostFunFragShader();
+      setDrawAndDisplayShaders();
+      setProbeShader();
+      setGlobalIntegralShader();
     }
 
     // We will use a shader to enforce Dirichlet BCs before each timestep, but only if some Dirichlet
@@ -7415,7 +7710,12 @@ async function VisualPDE(url) {
     if (gpuBackend) {
       gpuBackend.setEnforceDirichlet(
         anyDirichletBCs
-          ? { ...gpuShaderParts(), enforceBody: gpuDirichletEnforceBody() }
+          ? {
+              ...gpuShaderParts(),
+              enforceBody: resolveRemainingStencilTokens(
+                gpuDirichletEnforceBody(),
+              ),
+            }
           : null,
       );
     }
@@ -8066,7 +8366,7 @@ async function VisualPDE(url) {
     if (gpuBackend) {
       gpuBackend.setClear({
         ...gpuShaderParts(),
-        body: replaceMINXMINY(clearBody),
+        body: resolveRemainingStencilTokens(replaceMINXMINY(clearBody)),
       });
     }
     if (badInitConds.length > 0) {
@@ -8124,6 +8424,13 @@ async function VisualPDE(url) {
       replacement = parseShaderString(getModifiedDomainIndicatorFun());
     }
     shaderStr = shaderStr.replace(/indicatorFun/g, replacement);
+    shaderStr = insertStateStencil(shaderStr, {
+      textures: ["textureSource", "textureSourceGroup1"],
+      fetch: "textureBilinear",
+      texel: "1.0/vec2(texSize)",
+      coords: "probeTexCoords",
+      aligned: false,
+    });
     assignFragmentShader(probeMaterial, shaderStr);
     probeMaterial.needsUpdate = true;
     // Only built while probing, as WebGL only compiles it when it's used (and it can refer to
@@ -8312,6 +8619,11 @@ async function VisualPDE(url) {
       replacement = parseShaderString(getModifiedDomainIndicatorFun());
     }
     shaderStr = shaderStr.replace(/indicatorFun/g, replacement);
+    shaderStr = insertStateStencil(shaderStr, {
+      textures: ["textureSource", "textureSourceGroup1"],
+      fetch: "texture2D",
+      texel: "1.0/vec2(texSize)",
+    });
     assignFragmentShader(globalIntegralMaterial, shaderStr);
     globalIntegralMaterial.needsUpdate = true;
     // Likewise, only built while some Int(...) is in use.
@@ -8563,6 +8875,11 @@ async function VisualPDE(url) {
       parseShaderString(options.overlay ? options.overlayExpr : "1.0"),
     );
     shaderStr = replaceMINXMINY(shaderStr);
+    shaderStr = insertStateStencil(shaderStr, {
+      textures: ["textureSource", "textureSourceGroup1"],
+      fetch: "texture2D",
+      texel: "1.0/vec2(texSize)",
+    });
     setOverlayUniforms();
     assignFragmentShader(postMaterial, shaderStr + postGenericShaderBot());
     postMaterial.needsUpdate = true;
@@ -9359,7 +9676,7 @@ async function VisualPDE(url) {
           s,
           listOfSpecies,
           defaultSpecies,
-          "_(?:[xy][xybf]?)",
+          "_(?:[xy][xybf2]*)",
         );
       }
 
@@ -9614,7 +9931,7 @@ async function VisualPDE(url) {
       str,
       defaultSpecies.concat(defaultReactions),
       listOfSpecies.concat(listOfReactions),
-      "_(?:[xy][xybf]?)",
+      "_(?:[xy][xybf2]*)",
     );
 
     // Remove parameter placeholders with parameter names.
@@ -9653,6 +9970,19 @@ async function VisualPDE(url) {
     );
   }
 
+  // The TeX of the partial derivative operator that a derivative suffix (e.g. "xxy") stands
+  // for: \pd{}{x}, \pdd{}{x}, or a \frac with powers for higher and mixed orders.
+  function partialDerivativeTEX(suffix) {
+    const nx = suffix.split("x").length - 1;
+    const ny = suffix.split("y").length - 1;
+    if (nx + ny == 1) return "\\pd{}{" + (nx ? "x" : "y") + "}";
+    if (nx + ny == 2 && (nx == 0 || ny == 0)) return "\\pdd{}{" + (nx ? "x" : "y") + "}";
+    const part = (c, n) =>
+      n == 0 ? "" : "\\partial " + c + (n > 1 ? "^{" + n + "}" : "");
+    const denominator = [part("x", nx), part("y", ny)].filter(Boolean).join(" ");
+    return "\\frac{\\partial^{" + (nx + ny) + "}}{" + denominator + "}";
+  }
+
   function parseStringToTEX(str) {
     // Parse a string into valid TEX by replacing * and ^.
 
@@ -9670,6 +10000,16 @@ async function VisualPDE(url) {
       intCallPlaceholders.push([placeholder, expr]);
       return placeholder;
     });
+    // Likewise for derivatives of expressions, (E)_x etc., which become partial derivative
+    // operators applied to E, swapped in alongside the Int(...) placeholders.
+    const derivativePlaceholders = [];
+    const groups = findDerivativeGroups(str);
+    for (let k = groups.length - 1; k >= 0; k--) {
+      const { start, end, operand, suffix } = groups[k];
+      const placeholder = "DerivativePlaceholder" + derivativePlaceholders.length;
+      derivativePlaceholders.push([placeholder, operand, suffix]);
+      str = str.slice(0, start) + placeholder + str.slice(end);
+    }
 
     // If the string is surrounded by [] but doesn't contain +, -, or /, remove the brackets.
     str = str.replaceAll(/\[([^\+\/\[\]-]*)\]/g, "$1");
@@ -9753,6 +10093,17 @@ async function VisualPDE(url) {
       // split/join rather than replaceAll, so a "$"-containing expression (e.g. a species
       // name never actually looks like this, but a user-defined parameter safely could)
       // can't be misread as a replaceAll() special replacement pattern.
+      str = str.split(placeholder).join(replacement);
+    });
+    derivativePlaceholders.forEach(([placeholder, operand, suffix]) => {
+      // A bracketed operand loses its brackets, as \left(...\right) replaces them.
+      const inner = /^\(.*\)$/s.test(operand) ? operand.slice(1, -1) : operand;
+      const replacement =
+        "\\textstyle " +
+        partialDerivativeTEX(suffix) +
+        "\\left(" +
+        parseStringToTEX(inner) +
+        "\\right)";
       str = str.split(placeholder).join(replacement);
     });
 
@@ -11261,6 +11612,17 @@ async function VisualPDE(url) {
       probeShaderMRT(),
       globalIntegralShader(),
       globalIntegralShaderMRT(),
+      // What these shaders' STATE_STENCIL placeholders are filled in with.
+      ...["uvwq", "uvwq2"].map((prefix) =>
+        stateStencilShader({
+          prefix,
+          fetch: (c) => `texture2D(textureSource, ${c})`,
+          texel: "vec2(1.0)",
+          h: ["dx", "dy"],
+          masks: { L: "vec4(1.0)", R: "vec4(1.0)", T: "vec4(1.0)", B: "vec4(1.0)" },
+          twoD: true,
+        }),
+      ),
     ];
     for (const shader of shaders) {
       for (const match of shaderOutsideHelperFunctions(shader).matchAll(declaration)) {
@@ -11874,7 +12236,7 @@ async function VisualPDE(url) {
           defaultStrings[key],
           defaultSpecies,
           listOfSpecies,
-          "_(?:[xy][xybf]?)",
+          "_(?:[xy][xybf2]*)",
         ),
       );
     });
@@ -11910,7 +12272,7 @@ async function VisualPDE(url) {
             options[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf]?)",
+            "_(?:[xy][xybf2]*)",
           );
         }
       }
@@ -11923,7 +12285,7 @@ async function VisualPDE(url) {
             view[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf]?)",
+            "_(?:[xy][xybf2]*)",
           );
         }
       });
@@ -11937,7 +12299,7 @@ async function VisualPDE(url) {
             savedOptions[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf]?)",
+            "_(?:[xy][xybf2]*)",
           );
         }
       }
@@ -11950,7 +12312,7 @@ async function VisualPDE(url) {
             view[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf]?)",
+            "_(?:[xy][xybf2]*)",
           );
         }
       });
@@ -14217,7 +14579,9 @@ async function VisualPDE(url) {
           options.timescale_4,
         ]
       : [1, 1, 1, 1];
-    const toSub = "vec4(" + scales.map(parseShaderString).join(",") + ")";
+    const parseScale = (str) =>
+      speciesFreeDerivativesOnly(parseShaderString(str), "timescales");
+    const toSub = "vec4(" + scales.map(parseScale).join(",") + ")";
     // Used only by the MRT (>4-species) Forward Euler shader (RDShaderMainMRT). Replaced
     // before TIMESCALES since "TIMESCALESGROUP1" contains "TIMESCALES" as a prefix and the
     // TIMESCALES regex below has no word-boundary anchoring - doing this one first avoids it
@@ -14232,7 +14596,7 @@ async function VisualPDE(url) {
         ]
       : [1, 1, 1, 1];
     const toSubGroup1 =
-      "vec4(" + scalesGroup1.map(parseShaderString).join(",") + ")";
+      "vec4(" + scalesGroup1.map(parseScale).join(",") + ")";
     str = str.replaceAll(/TIMESCALESGROUP1/g, toSubGroup1);
     return str.replaceAll(/TIMESCALES/g, toSub);
   }
@@ -14697,7 +15061,7 @@ async function VisualPDE(url) {
   }
 
   function assignFragmentShader(material, shader) {
-    material.fragmentShader = shader.replaceAll(
+    material.fragmentShader = resolveRemainingStencilTokens(shader).replaceAll(
       /\bAUXILIARY_GLSL_FUNS\b/g,
       auxiliary_GLSL_funs(),
     );

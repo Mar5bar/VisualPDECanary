@@ -153,6 +153,36 @@ const periodic = { type: "periodic" };
 const sides = (bc) => ({ L: bc, R: bc, T: periodic, B: periodic });
 const constant = (value) => () => value;
 
+// Derivatives of expressions for the reference, written out from their definition rather than
+// from what the parser generates: species s at an offset q in nodes (a multiple of 1/2 in each
+// direction) is the node there, or the mean of the nodes either side of each half-integer
+// component, and each derivative is a half-step difference, (E)_x = (E|+1/2 - E|-1/2)/dx.
+function speciesAt(pt, s, [qx, qy]) {
+  const around = (c) => (Number.isInteger(c) ? [c] : [c - 0.5, c + 0.5]);
+  let sum = 0,
+    n = 0;
+  for (const i of around(qx)) {
+    for (const j of around(qy)) {
+      sum += pt.node(s, i, j);
+      n++;
+    }
+  }
+  return sum / n;
+}
+// The half-step difference of F (a function of an offset) along axis 0 (x) or 1 (y).
+const halfStep = (F, axis, h) => (q) => {
+  const e = axis == 0 ? [0.5, 0] : [0, 0.5];
+  return (F([q[0] + e[0], q[1] + e[1]]) - F([q[0] - e[0], q[1] - e[1]])) / h;
+};
+// (u)_x, (u)_y etc. of species s, at offset q.
+const speciesDerivative = (pt, s, axes, h) =>
+  axes.reduce((F, axis) => halfStep(F, axis, h[axis]), (q) => speciesAt(pt, s, q));
+const origin = [0, 0];
+const neumannSides = (value) => {
+  const bc = { type: "neumann", value: constant(value) };
+  return { L: bc, R: bc, T: bc, B: bc };
+};
+
 const cases = [
   {
     name: "periodic diffusion with a timescale",
@@ -448,6 +478,316 @@ const cases = [
       };
     },
   },
+
+  // --- derivatives of expressions ---------------------------------------------------------
+  {
+    name: "Burgers' equation in conservative form, -(u^2/2)_x",
+    numSteps: 100,
+    options: {
+      numSpecies: 1,
+      dt: 0.01,
+      diffusionStr_1_1: "0.1",
+      reactionStr_1: "-(u^2/2)_x",
+      initCond_1: "1+0.5*sin(2*pi*x/10)",
+      boundaryConditions_1: "periodic",
+    },
+    reference: ({ dx }) => ({
+      numSpecies: 1,
+      D: [[constant(0.1)]],
+      f: [(pt) => -halfStep((q) => speciesAt(pt, 0, q) ** 2 / 2, 0, dx)(origin)],
+      bcs: [sides(periodic)],
+    }),
+  },
+  {
+    name: "a porous-medium flux, (u^2*u_x)_x, with a Neumann flux",
+    numSteps: 100,
+    options: {
+      numSpecies: 1,
+      dt: 0.004,
+      diffusionStr_1_1: "0",
+      reactionStr_1: "(u^2*u_x)_x",
+      initCond_1: "1+0.5*cos(2*pi*x/10)",
+      boundaryConditions_1: "neumann",
+      neumannStr_1: "0.1",
+    },
+    reference: ({ dx }) => ({
+      numSpecies: 1,
+      D: [[null]],
+      f: [
+        (pt) =>
+          halfStep(
+            (q) =>
+              speciesAt(pt, 0, q) ** 2 *
+              halfStep((r) => speciesAt(pt, 0, r), 0, dx)(q),
+            0,
+            dx,
+          )(origin),
+      ],
+      bcs: [sides({ type: "neumann", value: constant(0.1) })],
+    }),
+  },
+  {
+    name: "dispersion and sixth-order damping, (u)_xxx and (u)_xxxxxx, with Neumann conditions",
+    numSteps: 100,
+    options: {
+      numSpecies: 1,
+      dt: 0.004,
+      diffusionStr_1_1: "0.5",
+      reactionStr_1: "-0.05*(u)_xxx + 0.00001*(u)_xxxxxx",
+      initCond_1: "exp(-(x-3)^2)",
+      boundaryConditions_1: "neumann",
+      neumannStr_1: "0.05",
+    },
+    reference: ({ dx }) => ({
+      numSpecies: 1,
+      D: [[constant(0.5)]],
+      f: [
+        (pt) =>
+          -0.05 * speciesDerivative(pt, 0, [0, 0, 0], [dx])(origin) +
+          0.00001 * speciesDerivative(pt, 0, [0, 0, 0, 0, 0, 0], [dx])(origin),
+      ],
+      bcs: [sides({ type: "neumann", value: constant(0.05) })],
+    }),
+  },
+  {
+    name: "hyperdiffusion, ((u)_xx)_xx, with Dirichlet conditions",
+    numSteps: 100,
+    options: {
+      numSpecies: 1,
+      dt: 0.004,
+      diffusionStr_1_1: "0.5",
+      reactionStr_1: "-0.01*((u)_xx)_xx + 0.1*(u*(u)_x)_x",
+      initCond_1: "0.2+exp(-(x-4)^2)",
+      boundaryConditions_1: "dirichlet",
+      dirichletStr_1: "0.2",
+    },
+    reference: ({ dx }) => ({
+      numSpecies: 1,
+      D: [[constant(0.5)]],
+      f: [
+        (pt) =>
+          -0.01 * speciesDerivative(pt, 0, [0, 0, 0, 0], [dx])(origin) +
+          0.1 *
+            halfStep(
+              (q) => speciesAt(pt, 0, q) * halfStep((r) => speciesAt(pt, 0, r), 0, dx)(q),
+              0,
+              dx,
+            )(origin),
+      ],
+      bcs: [sides({ type: "dirichlet", value: constant(0.2) })],
+    }),
+  },
+  {
+    name: "derivatives of a user-defined expression of two species",
+    numSteps: 100,
+    options: {
+      numSpecies: 2,
+      dt: 0.01,
+      expressions: "F = u*v;",
+      diffusionStr_1_1: "0.1",
+      diffusionStr_2_2: "0.1",
+      reactionStr_1: "-0.5*(F)_x",
+      reactionStr_2: "0.1*((F)_x)_x - 0.2*(sin(x)*v)_x",
+      initCond_1: "1+0.3*sin(2*pi*x/10)",
+      initCond_2: "1+0.3*cos(2*pi*2*x/10)",
+      boundaryConditions_1: "periodic",
+      boundaryConditions_2: "periodic",
+    },
+    reference: ({ dx }) => {
+      const F = (pt) => (q) => speciesAt(pt, 0, q) * speciesAt(pt, 1, q);
+      const xAt = (pt, q) => pt.x + q[0] * dx;
+      return {
+        numSpecies: 2,
+        D: [
+          [constant(0.1), null],
+          [null, constant(0.1)],
+        ],
+        f: [
+          (pt) => -0.5 * halfStep(F(pt), 0, dx)(origin),
+          (pt) =>
+            0.1 * halfStep(halfStep(F(pt), 0, dx), 0, dx)(origin) -
+            0.2 * halfStep((q) => Math.sin(xAt(pt, q)) * speciesAt(pt, 1, q), 0, dx)(origin),
+        ],
+        bcs: [sides(periodic), sides(periodic)],
+      };
+    },
+  },
+  {
+    name: "a derivative of an expression of species 1 and 5",
+    numSteps: 100,
+    options: {
+      numSpecies: 5,
+      speciesNames: "a b c d e",
+      dt: 0.01,
+      diffusionStr_1_1: "0.2",
+      diffusionStr_2_2: "0.2",
+      diffusionStr_3_3: "0.2",
+      diffusionStr_4_4: "0.2",
+      diffusionStr_5_5: "0.2",
+      reactionStr_1: "-0.3*(e)_x",
+      reactionStr_5: "-0.3*(a*e)_x",
+      initCond_1: "1+0.3*sin(2*pi*x/10)",
+      initCond_5: "1+0.3*cos(2*pi*x/10)",
+      ...Object.fromEntries([1, 2, 3, 4, 5].map((i) => ["boundaryConditions_" + i, "periodic"])),
+    },
+    reference: ({ dx }) => ({
+      numSpecies: 5,
+      D: [0, 1, 2, 3, 4].map((i) => [0, 1, 2, 3, 4].map((j) => (i == j ? constant(0.2) : null))),
+      f: [
+        (pt) => -0.3 * speciesDerivative(pt, 4, [0], [dx])(origin),
+        constant(0),
+        constant(0),
+        constant(0),
+        (pt) =>
+          -0.3 * halfStep((q) => speciesAt(pt, 0, q) * speciesAt(pt, 4, q), 0, dx)(origin),
+      ],
+      bcs: Array(5).fill(sides(periodic)),
+    }),
+  },
+  ...[
+    ["periodic", periodic, {}],
+    ["Neumann", { type: "neumann", value: constant(0.05) }, { neumannStr_1: "0.05" }],
+    ["Dirichlet", { type: "dirichlet", value: constant(0.1) }, { dirichletStr_1: "0.1" }],
+  ].map(([label, bc, bcOptions]) => ({
+    name: `2D anisotropic diffusion with mixed derivatives, (u)_xy and u_xy, with ${label} conditions`,
+    numSteps: 100,
+    options: {
+      dimension: 2,
+      numSpecies: 1,
+      dt: 0.004,
+      diffusionStr_1_1: "1",
+      reactionStr_1: "0.4*(u)_xy + 0.2*u_xy + 0.3*(u*(u)_x)_y",
+      initCond_1: "0.1+exp(-((x-4)^2+(y-3)^2))",
+      boundaryConditions_1: label.toLowerCase(),
+      ...bcOptions,
+    },
+    reference: ({ dx, dy }) => ({
+      numSpecies: 1,
+      D: [[constant(1)]],
+      f: [
+        (pt) =>
+          0.6 * speciesDerivative(pt, 0, [0, 1], [dx, dy])(origin) +
+          0.3 *
+            halfStep(
+              (q) => speciesAt(pt, 0, q) * halfStep((r) => speciesAt(pt, 0, r), 0, dx)(q),
+              1,
+              dy,
+            )(origin),
+      ],
+      bcs: [{ L: bc, R: bc, T: bc, B: bc }],
+    }),
+  })),
+  // Domains given by an indicator function, where conditions apply at the staircase edge.
+  ...[
+    ["a disc, with zero Neumann flux", { type: "neumann", value: constant(0) }, { boundaryConditions_1: "neumann", neumannStr_1: "0" }],
+    ["a disc, with a Neumann flux", { type: "neumann", value: constant(0.1) }, { boundaryConditions_1: "neumann", neumannStr_1: "0.1" }],
+    ["a disc, with a Dirichlet condition", { type: "dirichlet", value: constant(0.2) }, { boundaryConditions_1: "dirichlet", dirichletStr_1: "0.2" }],
+    [
+      "a strip about two nodes wide, with a Neumann flux",
+      { type: "neumann", value: constant(0.05) },
+      { boundaryConditions_1: "neumann", neumannStr_1: "0.05" },
+      "0.3-abs(y-5)",
+      ({ y }) => 0.3 - Math.abs(y - 5),
+    ],
+  ].map(([label, bc, bcOptions, indicatorStr, indicator]) => ({
+    name: `2D derivatives of expressions in ${label}`,
+    numSteps: 100,
+    options: {
+      dimension: 2,
+      numSpecies: 1,
+      dt: 0.004,
+      diffusionStr_1_1: "1",
+      reactionStr_1: "0.4*(u)_xy + 0.3*(u*(u)_x)_y - 0.2*(u^2)_x + 0.05*(u)_yyy",
+      initCond_1: "0.2+exp(-((x-4)^2+(y-5)^2))",
+      domainViaIndicatorFun: true,
+      domainIndicatorFun: indicatorStr ?? "16-(x-5)^2-(y-5)^2",
+      ...bcOptions,
+    },
+    reference: ({ dx, dy }) => ({
+      numSpecies: 1,
+      D: [[constant(1)]],
+      f: [
+        (pt) =>
+          0.4 * speciesDerivative(pt, 0, [0, 1], [dx, dy])(origin) +
+          0.3 *
+            halfStep(
+              (q) => speciesAt(pt, 0, q) * halfStep((r) => speciesAt(pt, 0, r), 0, dx)(q),
+              1,
+              dy,
+            )(origin) -
+          0.2 * halfStep((q) => speciesAt(pt, 0, q) ** 2, 0, dx)(origin) +
+          0.05 * speciesDerivative(pt, 0, [1, 1, 1], [dx, dy])(origin),
+      ],
+      bcs: [{ L: bc, R: bc, T: bc, B: bc }],
+      indicator: indicator ?? (({ x, y }) => 16 - (x - 5) ** 2 - (y - 5) ** 2),
+    }),
+  })),
+  {
+    name: "1D dispersion and a porous-medium flux in an interval given by an indicator function",
+    numSteps: 100,
+    options: {
+      numSpecies: 1,
+      dt: 0.004,
+      diffusionStr_1_1: "0.5",
+      reactionStr_1: "-0.05*(u)_xxx + 0.2*(u^2*u_x)_x",
+      initCond_1: "0.5+exp(-(x-4)^2)",
+      boundaryConditions_1: "neumann",
+      neumannStr_1: "0.05",
+      domainViaIndicatorFun: true,
+      domainIndicatorFun: "min(x-2.3, 7.6-x)",
+    },
+    reference: ({ dx }) => {
+      const bc = { type: "neumann", value: constant(0.05) };
+      return {
+        numSpecies: 1,
+        D: [[constant(0.5)]],
+        f: [
+          (pt) =>
+            -0.05 * speciesDerivative(pt, 0, [0, 0, 0], [dx])(origin) +
+            0.2 *
+              halfStep(
+                (q) => speciesAt(pt, 0, q) ** 2 * halfStep((r) => speciesAt(pt, 0, r), 0, dx)(q),
+                0,
+                dx,
+              )(origin),
+        ],
+        bcs: [sides(bc)],
+        indicator: ({ x }) => Math.min(x - 2.3, 7.6 - x),
+      };
+    },
+  },
+  {
+    name: "2D derivatives of expressions with a different condition on each side",
+    numSteps: 100,
+    options: {
+      dimension: 2,
+      numSpecies: 1,
+      dt: 0.004,
+      diffusionStr_1_1: "1",
+      reactionStr_1: "0.4*(u)_xy - 0.2*(u^2)_x + 0.1*(u)_yyy",
+      initCond_1: "0.3+exp(-((x-4)^2+(y-3)^2))",
+      boundaryConditions_1: "combo",
+      comboStr_1: "Left: Ghost = 0.3; Right: Robin = -u; Top: Neumann = 0.1; Bottom: Dirichlet = 0.3;",
+    },
+    reference: ({ dx, dy }) => ({
+      numSpecies: 1,
+      D: [[constant(1)]],
+      f: [
+        (pt) =>
+          0.4 * speciesDerivative(pt, 0, [0, 1], [dx, dy])(origin) -
+          0.2 * halfStep((q) => speciesAt(pt, 0, q) ** 2, 0, dx)(origin) +
+          0.1 * speciesDerivative(pt, 0, [1, 1, 1], [dx, dy])(origin),
+      ],
+      bcs: [
+        {
+          L: { type: "ghost", value: constant(0.3) },
+          R: { type: "robin", value: ({ u }) => -u[0] },
+          T: { type: "neumann", value: constant(0.1) },
+          B: { type: "dirichlet", value: constant(0.3) },
+        },
+      ],
+    }),
+  },
 ];
 
 test("WebGPU takes 1D Forward Euler steps in temporally blocked passes", { skip: BACKEND != "webgpu" }, async () => {
@@ -485,6 +825,63 @@ test("the space step is used exactly, and the domain is the nodes' extent", asyn
     // The largest side is the requested domain scale, less any remainder.
     const largest = dimension == 1 ? grid.Lx : Math.max(grid.Lx, grid.Ly);
     assert.ok(largest <= domainScale + 1e-12 && largest > domainScale - spatialStep, label);
+  }
+});
+
+test("derivatives of expressions of x and y can be used in initial conditions", async () => {
+  const { initial, grid, message } = await page.evaluate(async (opts) => {
+    const T = window.VisualPDETest;
+    await T.load(opts);
+    return { initial: await T.readState(), grid: await T.grid(), message: await T.errorMessage() };
+  }, {
+    dimension: 2,
+    domainScale: 10,
+    spatialStep: 0.25,
+    numSpecies: 1,
+    minX: "0",
+    minY: "0",
+    expressions: "",
+    initCond_1: "(sin(2*pi*x/10))_x + (x^2*y^2)_xy",
+    boundaryConditions_1: "periodic",
+  });
+  assert.equal(message, "");
+  const { nX, nY, dx, dy, Lx, Ly } = grid;
+  const g = (x) => Math.sin((2 * Math.PI * x) / 10);
+  const values = decode(initial.data);
+  let worst = 0;
+  for (let j = 0; j < nY; j++) {
+    for (let i = 0; i < nX; i++) {
+      const x = ((i + 0.5) * Lx) / nX,
+        y = ((j + 0.5) * Ly) / nY;
+      // (x^2*y^2)_xy is exactly 4xy, as the half-step difference of a quadratic is exact.
+      const expected = (g(x + dx / 2) - g(x - dx / 2)) / dx + 4 * x * y;
+      worst = Math.max(worst, Math.abs(values[4 * (j * nX + i)] - expected));
+    }
+  }
+  // The GPU's sin is only good to about 1e-4, which the difference divides by dx.
+  assert.ok(worst < 2e-3, `differs by up to ${worst}`);
+});
+
+test("derivatives of expressions of the species are reported where they can't be used", async () => {
+  for (const [field, value] of [
+    ["diffusionStr_1_1", "1+(u^2)_x"],
+    ["neumannStr_1", "(u^2)_x"],
+  ]) {
+    const message = await page.evaluate(async (opts) => {
+      const T = window.VisualPDETest;
+      await T.load(opts);
+      return T.errorMessage();
+    }, {
+      dimension: 1,
+      numSpecies: 1,
+      expressions: "",
+      diffusionStr_1_1: "1",
+      reactionStr_1: "0",
+      boundaryConditions_1: "neumann",
+      neumannStr_1: "0",
+      [field]: value,
+    });
+    assert.match(message, /derivatives/i, field);
   }
 });
 

@@ -49,45 +49,8 @@ export function computeDisplayFunShaderMid() {
         float x = MINX + textureCoords.x * L_x;
         float y = MINY + textureCoords.y * L_y;
 
-        vec4 uvwq = texture2D(textureSource, textureCoords);
-        vec4 uvwqL = texture2D(textureSource, textureCoords + vec2(-step_x, 0.0));
-        vec4 uvwqR = texture2D(textureSource, textureCoords + vec2(+step_x, 0.0));
-        vec4 uvwqT = texture2D(textureSource, textureCoords + vec2(0.0, +step_y));
-        vec4 uvwqB = texture2D(textureSource, textureCoords + vec2(0.0, -step_y));
-
-        vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
-        vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
-        vec4 uvwqXF = (uvwqR - uvwq) / dx;
-        vec4 uvwqYF = (uvwqT - uvwq) / dy;
-        vec4 uvwqXB = (uvwq - uvwqL) / dx;
-        vec4 uvwqYB = (uvwq - uvwqB) / dy;
-        vec4 uvwqXX = (uvwqR - 2.0*uvwq + uvwqL) / (dx * dx);
-        vec4 uvwqYY = (uvwqT - 2.0*uvwq + uvwqB) / (dy * dy);
-
-        // At boundaries, compute gradients using one-sided differences.
-        if (textureCoords.x - step_x < 0.0) {
-          uvwqX = (uvwqR - uvwq) / dx;
-          uvwqXF = uvwqX;
-          uvwqXB = uvwqX;
-        }
-
-        if (textureCoords.x + step_x > 1.0) {
-          uvwqX = (uvwq - uvwqL) / dx;
-          uvwqXF = uvwqX;
-          uvwqXB = uvwqX;
-        }
-
-        if (textureCoords.y - step_y < 0.0) {
-          uvwqY = (uvwqT - uvwq) / dy;
-          uvwqYF = uvwqY;
-          uvwqYB = uvwqY;
-        }
-
-        if (textureCoords.y + step_y > 1.0) {
-          uvwqY = (uvwq - uvwqB) / dy;
-          uvwqYF = uvwqY;
-          uvwqYB = uvwqY;
-        }
+        // The stencil locals (see stateStencilShader in derivatives.js).
+        STATE_STENCIL
 
         float value = FUN;
 				float height = value;
@@ -130,48 +93,8 @@ export function computeDisplayFunShaderTopMRT() {
 // parseShaderString) resolve correctly for group-1 species references.
 export function computeDisplayFunShaderMidMRT() {
   return computeDisplayFunShaderMid().replace(
-    "float value = FUN;",
-    `vec4 uvwq2 = texture2D(textureSourceGroup1, textureCoords);
-        vec4 uvwq2L = texture2D(textureSourceGroup1, textureCoords + vec2(-step_x, 0.0));
-        vec4 uvwq2R = texture2D(textureSourceGroup1, textureCoords + vec2(+step_x, 0.0));
-        vec4 uvwq2T = texture2D(textureSourceGroup1, textureCoords + vec2(0.0, +step_y));
-        vec4 uvwq2B = texture2D(textureSourceGroup1, textureCoords + vec2(0.0, -step_y));
-
-        vec4 uvwq2X = (uvwq2R - uvwq2L) / (2.0*dx);
-        vec4 uvwq2Y = (uvwq2T - uvwq2B) / (2.0*dy);
-        vec4 uvwq2XF = (uvwq2R - uvwq2) / dx;
-        vec4 uvwq2YF = (uvwq2T - uvwq2) / dy;
-        vec4 uvwq2XB = (uvwq2 - uvwq2L) / dx;
-        vec4 uvwq2YB = (uvwq2 - uvwq2B) / dy;
-        vec4 uvwq2XX = (uvwq2R - 2.0*uvwq2 + uvwq2L) / (dx * dx);
-        vec4 uvwq2YY = (uvwq2T - 2.0*uvwq2 + uvwq2B) / (dy * dy);
-
-        // At boundaries, compute gradients using one-sided differences (group 1).
-        if (textureCoords.x - step_x < 0.0) {
-          uvwq2X = (uvwq2R - uvwq2) / dx;
-          uvwq2XF = uvwq2X;
-          uvwq2XB = uvwq2X;
-        }
-
-        if (textureCoords.x + step_x > 1.0) {
-          uvwq2X = (uvwq2 - uvwq2L) / dx;
-          uvwq2XF = uvwq2X;
-          uvwq2XB = uvwq2X;
-        }
-
-        if (textureCoords.y - step_y < 0.0) {
-          uvwq2Y = (uvwq2T - uvwq2) / dy;
-          uvwq2YF = uvwq2Y;
-          uvwq2YB = uvwq2Y;
-        }
-
-        if (textureCoords.y + step_y > 1.0) {
-          uvwq2Y = (uvwq2 - uvwq2B) / dy;
-          uvwq2YF = uvwq2Y;
-          uvwq2YB = uvwq2Y;
-        }
-
-        float value = FUN;`,
+    "STATE_STENCIL",
+    "STATE_STENCIL\n        STATE_STENCIL_GROUP1",
   );
 }
 
@@ -342,39 +265,8 @@ export function probeShader() {
       ivec2 texSize = textureSize(textureSource,0);
       float step_x = 1.0 / float(texSize.x);
       float step_y = 1.0 / float(texSize.y);
-      vec2 probeTexCoordsL = probeTexCoords + vec2(-step_x, 0.0);
-      vec2 probeTexCoordsLL = probeTexCoordsL + vec2(-step_x, 0.0);
-      vec2 probeTexCoordsR = probeTexCoords + vec2(+step_x, 0.0);
-      vec2 probeTexCoordsRR = probeTexCoordsR + vec2(+step_x, 0.0);
-      vec2 probeTexCoordsT = probeTexCoords + vec2(0.0, +step_y);
-      vec2 probeTexCoordsTT = probeTexCoordsT + vec2(0.0, +step_y);
-      vec2 probeTexCoordsB = probeTexCoords + vec2(0.0, -step_y);
-      vec2 probeTexCoordsBB = probeTexCoordsB + vec2(0.0, -step_y);
-
-      // Sample.
-      vec4 uvwq = textureBilinear(textureSource, probeTexCoords);
-      vec4 uvwqL = textureBilinear(textureSource, probeTexCoordsL);
-      vec4 uvwqR = textureBilinear(textureSource, probeTexCoordsR);
-      vec4 uvwqT = textureBilinear(textureSource, probeTexCoordsT);
-      vec4 uvwqB = textureBilinear(textureSource, probeTexCoordsB);
-      vec4 uvwqLL = textureBilinear(textureSource, probeTexCoordsLL);
-      vec4 uvwqRR = textureBilinear(textureSource, probeTexCoordsRR);
-      vec4 uvwqTT = textureBilinear(textureSource, probeTexCoordsTT);
-      vec4 uvwqBB = textureBilinear(textureSource, probeTexCoordsBB);
-
-      // Compute derivatives.
-      vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx);
-      vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy);
-      vec4 uvwqXF = (uvwqR - uvwq) / dx;
-      vec4 uvwqYF = (uvwqT - uvwq) / dy;
-      vec4 uvwqXB = (uvwq - uvwqL) / dx;
-      vec4 uvwqYB = (uvwq - uvwqB) / dy;
-      vec4 uvwqXFXF = (4.0*uvwqR - 3.0*uvwq - uvwqRR) / (2.0*dx);
-      vec4 uvwqYFYF = (4.0*uvwqT - 3.0*uvwq - uvwqTT) / (2.0*dy);
-      vec4 uvwqXBXB = (3.0*uvwq - 4.0*uvwqL + uvwqLL) / (2.0*dx);
-      vec4 uvwqYBYB = (3.0*uvwq - 4.0*uvwqB + uvwqBB) / (2.0*dy);
-      vec4 uvwqXX = (uvwqR - 2.0*uvwq + uvwqL) / (dx*dx);
-      vec4 uvwqYY = (uvwqT - 2.0*uvwq + uvwqB) / (dy*dy);
+      // The stencil locals at the probe (see stateStencilShader in derivatives.js).
+      STATE_STENCIL
 
       // Compute the probe value.
       gl_FragColor = vec4(PROBE_FUN, 0.0, x, y);
@@ -391,33 +283,5 @@ export function probeShaderMRT() {
       "uniform sampler2D textureSource;",
       "uniform sampler2D textureSource;\n    uniform sampler2D textureSourceGroup1;",
     )
-    .replace(
-      "      // Compute derivatives.",
-      `      // Sample (group 1).
-      vec4 uvwq2 = textureBilinear(textureSourceGroup1, probeTexCoords);
-      vec4 uvwq2L = textureBilinear(textureSourceGroup1, probeTexCoordsL);
-      vec4 uvwq2R = textureBilinear(textureSourceGroup1, probeTexCoordsR);
-      vec4 uvwq2T = textureBilinear(textureSourceGroup1, probeTexCoordsT);
-      vec4 uvwq2B = textureBilinear(textureSourceGroup1, probeTexCoordsB);
-      vec4 uvwq2LL = textureBilinear(textureSourceGroup1, probeTexCoordsLL);
-      vec4 uvwq2RR = textureBilinear(textureSourceGroup1, probeTexCoordsRR);
-      vec4 uvwq2TT = textureBilinear(textureSourceGroup1, probeTexCoordsTT);
-      vec4 uvwq2BB = textureBilinear(textureSourceGroup1, probeTexCoordsBB);
-
-      // Compute derivatives (group 1).
-      vec4 uvwq2X = (uvwq2R - uvwq2L) / (2.0*dx);
-      vec4 uvwq2Y = (uvwq2T - uvwq2B) / (2.0*dy);
-      vec4 uvwq2XF = (uvwq2R - uvwq2) / dx;
-      vec4 uvwq2YF = (uvwq2T - uvwq2) / dy;
-      vec4 uvwq2XB = (uvwq2 - uvwq2L) / dx;
-      vec4 uvwq2YB = (uvwq2 - uvwq2B) / dy;
-      vec4 uvwq2XFXF = (4.0*uvwq2R - 3.0*uvwq2 - uvwq2RR) / (2.0*dx);
-      vec4 uvwq2YFYF = (4.0*uvwq2T - 3.0*uvwq2 - uvwq2TT) / (2.0*dy);
-      vec4 uvwq2XBXB = (3.0*uvwq2 - 4.0*uvwq2L + uvwq2LL) / (2.0*dx);
-      vec4 uvwq2YBYB = (3.0*uvwq2 - 4.0*uvwq2B + uvwq2BB) / (2.0*dy);
-      vec4 uvwq2XX = (uvwq2R - 2.0*uvwq2 + uvwq2L) / (dx*dx);
-      vec4 uvwq2YY = (uvwq2T - 2.0*uvwq2 + uvwq2B) / (dy*dy);
-
-      // Compute derivatives.`,
-    );
+    .replace("STATE_STENCIL", "STATE_STENCIL\n      STATE_STENCIL_GROUP1");
 }

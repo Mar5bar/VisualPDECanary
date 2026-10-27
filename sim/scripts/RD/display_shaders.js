@@ -138,17 +138,8 @@ export function contourShader() {
 export function overlayShader() {
   return `float x = MINX + textureCoords.x * L_x;
   float y = MINY + textureCoords.y * L_y;
-  vec4 uvwq = textureBilinear(textureSource1, textureCoords);
-  vec4 uvwqL = textureBilinear(textureSource1, textureCoords + vec2(-step_x, 0.0));
-  vec4 uvwqR = textureBilinear(textureSource1, textureCoords + vec2(+step_x, 0.0));
-  vec4 uvwqT = textureBilinear(textureSource1, textureCoords + vec2(0.0, +step_y));
-  vec4 uvwqB = textureBilinear(textureSource1, textureCoords + vec2(0.0, -step_y));
-  vec4 uvwqX = (uvwqR - uvwqL) / (2.0*dx) * dxUpscaledScale;
-  vec4 uvwqY = (uvwqT - uvwqB) / (2.0*dy) * dyUpscaledScale;
-  vec4 uvwqXF = (uvwqR - uvwq) / dx * dxUpscaledScale;
-  vec4 uvwqYF = (uvwqT - uvwq) / dy * dyUpscaledScale;
-  vec4 uvwqXB = (uvwq - uvwqL) / dx * dxUpscaledScale;
-  vec4 uvwqYB = (uvwq - uvwqB) / dy * dyUpscaledScale;
+  // The stencil locals (see stateStencilShader in derivatives.js).
+  STATE_STENCIL
   float overlayExpr = OVERLAYEXPR;
   col = mix(col, overlayColour, float(abs(overlayExpr) < overlayEpsilon));`;
 }
@@ -171,21 +162,7 @@ export function fiveColourDisplayTopMRT() {
 // OVERLAYEXPR;" (not simply appended after overlayShader()'s text), since OVERLAYEXPR gets
 // substituted with an expression that may reference them.
 export function overlayShaderMRT() {
-  return overlayShader().replace(
-    "float overlayExpr = OVERLAYEXPR;",
-    `vec4 uvwq2 = textureBilinear(textureSourceGroup1, textureCoords);
-  vec4 uvwq2L = textureBilinear(textureSourceGroup1, textureCoords + vec2(-step_x, 0.0));
-  vec4 uvwq2R = textureBilinear(textureSourceGroup1, textureCoords + vec2(+step_x, 0.0));
-  vec4 uvwq2T = textureBilinear(textureSourceGroup1, textureCoords + vec2(0.0, +step_y));
-  vec4 uvwq2B = textureBilinear(textureSourceGroup1, textureCoords + vec2(0.0, -step_y));
-  vec4 uvwq2X = (uvwq2R - uvwq2L) / (2.0*dx) * dxUpscaledScale;
-  vec4 uvwq2Y = (uvwq2T - uvwq2B) / (2.0*dy) * dyUpscaledScale;
-  vec4 uvwq2XF = (uvwq2R - uvwq2) / dx * dxUpscaledScale;
-  vec4 uvwq2YF = (uvwq2T - uvwq2) / dy * dyUpscaledScale;
-  vec4 uvwq2XB = (uvwq2 - uvwq2L) / dx * dxUpscaledScale;
-  vec4 uvwq2YB = (uvwq2 - uvwq2B) / dy * dyUpscaledScale;
-  float overlayExpr = OVERLAYEXPR;`,
-  );
+  return overlayShader().replace("STATE_STENCIL", "STATE_STENCIL\n  STATE_STENCIL_GROUP1");
 }
 
 export function largestSpeciesShader() {
