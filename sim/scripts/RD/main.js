@@ -12549,20 +12549,18 @@ async function VisualPDE(url) {
     setOverlayLineStyle();
   }
 
-  // The dash patterns of the overlay's line styles: the length of each dash (round ends
-  // included) and of each gap, in units of half the line's thickness. Others are solid.
-  const overlayDashPatterns = {
-    dotted: [2, 3],
-    dashed: [10, 6],
-    looselyDashed: [10, 14],
-  };
-
   /**
    * Sets the overlay line material's dashes from options.overlayLineStyle, scaled with the
    * line's thickness.
    */
   function setOverlayLineStyle() {
-    const pattern = overlayDashPatterns[options.overlayLineStyle];
+    // The length of each dash (round ends included) and of each gap, in units of half the
+    // line's thickness. Other styles are solid.
+    const pattern = {
+      dotted: [2, 3],
+      dashed: [10, 6],
+      looselyDashed: [10, 14],
+    }[options.overlayLineStyle];
     overlayLineMaterial.dashed = pattern != undefined;
     if (pattern) {
       [overlayLineMaterial.dashSize, overlayLineMaterial.gapSize] = pattern;
