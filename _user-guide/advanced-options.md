@@ -263,7 +263,7 @@ Toggle lighting effects, which adds reflections and shadows to the solution. Thi
 
 ### Overlay <a class="anchor" id='overlay'>
 
-Toggle the display of an overlay. The expression, colour, and threshold used in displaying the overlay can be specified in the **Overlay** menu that appears when the overlay is enabled.
+Toggle the display of an overlay. The expression, colour, and threshold used in displaying the overlay (or, for line plots, its thickness and line style) can be specified in the **Overlay** menu that appears when the overlay is enabled.
 
 - #### Colour
 
@@ -275,6 +275,12 @@ Toggle the display of an overlay. The expression, colour, and threshold used in 
 
 - #### Threshold
   Set the relative numerical threshold, between 0 and 1, within which the zero set will be detected. Smaller values result in more precise, thinner curves. Larger values may be needed to detect curves in large spatial domains or for expressions that vary rapidly in space. Under the hood, VisualPDE checks if a given pixel is in the zero set to within this threshold.
+
+- #### Thickness
+  For line plots, the thickness of the overlaid line relative to the default. Must be a numerical value.
+
+- #### Line style
+  For line plots, the style of the overlaid line: solid, dotted, dashed, or loosely dashed (dashed, with more space between the dashes). Dots and dashes scale with the **Thickness** of the line.
 
 ### 3D options <a class="anchor" id='3d-options'>
 

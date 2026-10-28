@@ -214,6 +214,7 @@ function presetMap() {
     overlayColour: "oC",
     overlayEpsilon: "ovE",
     overlayExpr: "oF",
+    overlayLineStyle: "oLS",
     parent: "pa",
     plotType: "pT",
     preset: "p",

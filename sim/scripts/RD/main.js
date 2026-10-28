@@ -1522,6 +1522,22 @@ async function VisualPDE(url) {
       color: 0x000000,
       linewidth: 0.01,
     });
+    // Give the overlay's dashes round ends, as the solid line has, in place of LineMaterial's
+    // square ones, and keep the segments' round end caps (dashed along with the rest), which
+    // fill the gaps between segments where the line bends. vLineDistance is measured in units
+    // of half the line's thickness (see setOverlayLineStyle), as vUv is.
+    overlayLineMaterial.fragmentShader = overlayLineMaterial.fragmentShader
+      .replace(
+        "if ( vUv.y < - 1.0 || vUv.y > 1.0 ) discard; // discard endcaps",
+        "",
+      )
+      .replace(
+        "if ( mod( vLineDistance + dashOffset, dashSize + gapSize ) > dashSize ) discard; // todo - FIX",
+        `float pastEnd = sign( vUv.y ) * max( abs( vUv.y ) - 1.0, 0.0 );
+				float dashPos = mod( vLineDistance + pastEnd + dashOffset, dashSize + gapSize );
+				float fromDashCore = max( abs( dashPos - 0.5 * dashSize ) - ( 0.5 * dashSize - 1.0 ), 0.0 );
+				if ( fromDashCore * fromDashCore + vUv.x * vUv.x > 1.0 ) discard;`,
+      );
     arrowMaterial = new THREE.MeshBasicMaterial({
       color: options.arrowColour,
       side: THREE.DoubleSide,
@@ -2027,6 +2043,8 @@ async function VisualPDE(url) {
     overlayLine = new Line2(overlayLineGeom, overlayLineMaterial);
     overlayLine.scale.set(1, 1, 1);
     overlayLine.visible = options.plotType == "line" && options.overlay;
+    // Allocate the lengths along the line that its dashes are measured by.
+    overlayLine.computeLineDistances();
     scene.add(overlayLine);
   }
 
@@ -3758,6 +3776,20 @@ async function VisualPDE(url) {
       .name("Thickness")
       .onChange(function () {
         setLineWidth();
+        renderIfNotRunning();
+        updateView(this.property);
+      });
+
+    controllers["overlayLineStyle"] = root
+      .add(options, "overlayLineStyle", {
+        Solid: "solid",
+        Dotted: "dotted",
+        Dashed: "dashed",
+        "Loosely dashed": "looselyDashed",
+      })
+      .name("Line style")
+      .onChange(function () {
+        setOverlayLineStyle();
         renderIfNotRunning();
         updateView(this.property);
       });
@@ -5509,6 +5541,14 @@ async function VisualPDE(url) {
             : null,
           colour: [...l.material.color.toArray(), l.material.opacity],
           linewidth: l.material.linewidth,
+          // Dashes, as LineMaterial draws them (with the round ends given to the overlay's).
+          dashes: l.material.dashed
+            ? {
+                distances: l.geometry.attributes.instanceDistanceStart.data.array,
+                size: l.material.dashSize,
+                gap: l.material.gapSize,
+              }
+            : null,
         })),
       meshes: gpuArrowMeshes(),
     });
@@ -9280,9 +9320,11 @@ async function VisualPDE(url) {
     if (options.plotType == "line") {
       controllers["overlayEpsilon"].hide();
       controllers["overlayLineWidthMul"].show();
+      controllers["overlayLineStyle"].show();
     } else {
       controllers["overlayEpsilon"].show();
       controllers["overlayLineWidthMul"].hide();
+      controllers["overlayLineStyle"].hide();
     }
     if (options.setSeed) {
       controllers["randSeed"].show();
@@ -12394,6 +12436,34 @@ async function VisualPDE(url) {
     }
     start.needsUpdate = true;
     end.needsUpdate = true;
+    if (lineObj.material.dashed) setLineDistances(lineObj);
+  }
+
+  /**
+   * Sets the distance along a dashed line at the start and end of each of its segments, in
+   * units of half the canvas's height. These are the units of LineMaterial's linewidth (as
+   * the line is widened in clip space, with its resolution left at (1, 1)), so that dashes
+   * are measured on the screen in proportion to the thickness of a horizontal line.
+   * @param {Object} lineObj - The line object, with instanceDistanceStart/End attributes.
+   */
+  function setLineDistances(lineObj) {
+    const start = lineObj.geometry.attributes.instanceStart;
+    const end = lineObj.geometry.attributes.instanceEnd;
+    const distances = lineObj.geometry.attributes.instanceDistanceStart;
+    // Scale from world coordinates to these units.
+    const scaleX = 2 / (camera.right - camera.left) / aspectRatio;
+    const scaleY = 2 / (camera.top - camera.bottom);
+    const array = distances.data.array;
+    let total = 0;
+    for (let i = 0; i < start.count; i++) {
+      array[2 * i] = total;
+      total += Math.hypot(
+        scaleX * (end.getX(i) - start.getX(i)),
+        scaleY * (end.getY(i) - start.getY(i)),
+      );
+      array[2 * i + 1] = total;
+    }
+    distances.data.needsUpdate = true;
   }
 
   /**
@@ -12476,6 +12546,30 @@ async function VisualPDE(url) {
     overlayLineMaterial.linewidth = 0.01 * options.overlayLineWidthMul;
     lineMaterial.needsUpdate = true;
     overlayLineMaterial.needsUpdate = true;
+    setOverlayLineStyle();
+  }
+
+  // The dash patterns of the overlay's line styles: the length of each dash (round ends
+  // included) and of each gap, in units of half the line's thickness. Others are solid.
+  const overlayDashPatterns = {
+    dotted: [2, 3],
+    dashed: [10, 6],
+    looselyDashed: [10, 14],
+  };
+
+  /**
+   * Sets the overlay line material's dashes from options.overlayLineStyle, scaled with the
+   * line's thickness.
+   */
+  function setOverlayLineStyle() {
+    const pattern = overlayDashPatterns[options.overlayLineStyle];
+    overlayLineMaterial.dashed = pattern != undefined;
+    if (pattern) {
+      [overlayLineMaterial.dashSize, overlayLineMaterial.gapSize] = pattern;
+      // Measure the distances along the line (see setLineDistances) in half-thicknesses.
+      overlayLineMaterial.dashScale = 1 / overlayLineMaterial.linewidth;
+      if (overlayLine) setLineDistances(overlayLine);
+    }
   }
 
   /**

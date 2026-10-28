@@ -15,12 +15,30 @@
 //    and filled back in when decoding, as these make up the bulk of most configurations.
 //
 // The data behind a format must never change once links using it exist. To change the
-// dictionary or base, add a new version ("_2", ...) alongside the old ones.
+// dictionary or base, add a new version ("_2", ...) alongside the old ones. The exception is
+// options added since: these extend v1's base and view fields (see ADDED_SINCE_V1), with the
+// values that links from before them imply, so that they are left out of links that keep them.
 
 import { deflateSync, inflateSync } from "../fflate.min.js";
 import { LZString } from "../lz-string.min.js";
 import { minifyPreset, maxifyPreset } from "./minify_preset.js";
 import { BASE_V1, VIEW_FIELDS_V1, DICT_V1 } from "./url_codec_v1_data.js";
+
+// Options added since v1 was frozen, with the values that older links imply, and whether
+// each is a field of a view. Only ever add to this.
+const ADDED_SINCE_V1 = {
+  overlayLineStyle: { value: "solid", inView: true },
+};
+const BASE = Object.assign(
+  {},
+  BASE_V1,
+  Object.fromEntries(
+    Object.entries(ADDED_SINCE_V1).map(([key, { value }]) => [key, value]),
+  ),
+);
+const VIEW_FIELDS = VIEW_FIELDS_V1.concat(
+  Object.keys(ADDED_SINCE_V1).filter((key) => ADDED_SINCE_V1[key].inView),
+);
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -29,7 +47,7 @@ const json = JSON.stringify;
 
 /**
  * Returns the JSON that format v1 compresses: the minified fields of options that differ from
- * BASE_V1, with each view stripped of the fields that it shares with the top level.
+ * BASE, with each view stripped of the fields that it shares with the top level.
  * @param {Object} options - The full options of the simulation.
  * @returns {string} The JSON payload.
  */
@@ -37,17 +55,17 @@ export function payloadV1(options) {
   const delta = {};
   for (const [key, value] of Object.entries(options)) {
     if (key == "preset" || key == "parent") continue;
-    if (json(BASE_V1[key]) !== json(value)) delta[key] = value;
+    if (json(BASE[key]) !== json(value)) delta[key] = value;
   }
   if (Array.isArray(delta.views)) {
     // The top level as the decoder will reconstruct it.
-    const top = Object.assign({}, BASE_V1, delta);
+    const top = Object.assign({}, BASE, delta);
     delta.views = delta.views.map((view) =>
       Object.fromEntries(
         Object.entries(view).filter(
           ([key, value]) =>
             !(
-              VIEW_FIELDS_V1.includes(key) &&
+              VIEW_FIELDS.includes(key) &&
               key in top &&
               json(top[key]) === json(value)
             ),
@@ -65,10 +83,10 @@ export function payloadV1(options) {
  */
 function optionsFromPayloadV1(payload) {
   const delta = maxifyPreset(JSON.parse(payload));
-  const options = Object.assign(JSON.parse(json(BASE_V1)), delta);
+  const options = Object.assign(JSON.parse(json(BASE)), delta);
   options.views = options.views.map(function (view) {
     const fullView = {};
-    VIEW_FIELDS_V1.forEach(function (key) {
+    VIEW_FIELDS.forEach(function (key) {
       if (key in options) fullView[key] = JSON.parse(json(options[key]));
     });
     return Object.assign(fullView, view);

@@ -449,7 +449,10 @@ export function translateDisplayExpression(expr, parts) {
 /**
  * WGSL drawing three.js Line2 lines (as used for 1D plots) as LineMaterial does with
  * worldUnits off and its resolution left at (1, 1), as main.js leaves it: each segment is an
- * instance of a quad with round end caps, widened in clip space.
+ * instance of a quad with round end caps, widened in clip space. If dashSize is positive,
+ * the line is dashed as main.js has LineMaterial dash the overlay, end caps included, with
+ * round ends to the dashes, and distances along the line (and dashSize and gapSize) measured
+ * in units of linewidth.
  */
 export const LINE_SHADER = `
 struct Line {
@@ -457,6 +460,8 @@ struct Line {
   colour: vec4f,
   linewidth: f32,
   useVertexColours: u32,
+  dashSize: f32,
+  gapSize: f32,
 }
 @group(0) @binding(0) var<uniform> line: Line;
 
@@ -464,6 +469,7 @@ struct VertexOut {
   @builtin(position) position: vec4f,
   @location(0) colour: vec3f,
   @location(1) uv: vec2f,
+  @location(2) distance: f32,
 }
 
 @vertex
@@ -474,10 +480,13 @@ fn vertexMain(
   @location(3) instanceEnd: vec3f,
   @location(4) colourStart: vec3f,
   @location(5) colourEnd: vec3f,
+  @location(6) distanceStart: f32,
+  @location(7) distanceEnd: f32,
 ) -> VertexOut {
   var out: VertexOut;
   out.colour = select(colourEnd, colourStart, position.y < 0.5);
   out.uv = uv;
+  out.distance = select(distanceEnd, distanceStart, position.y < 0.5) / line.linewidth;
   let clipStart = line.mvp * vec4f(instanceStart, 1.0);
   let clipEnd = line.mvp * vec4f(instanceEnd, 1.0);
   let ndcStart = clipStart.xyz / clipStart.w;
@@ -505,6 +514,14 @@ fn fragmentMain(in: VertexOut) -> @location(0) vec4f {
     let a = in.uv.x;
     let b = select(in.uv.y + 1.0, in.uv.y - 1.0, in.uv.y > 0.0);
     if (a * a + b * b > 1.0) { discard; }
+  }
+  if (line.dashSize > 0.0) {
+    let pastEnd = sign(in.uv.y) * max(abs(in.uv.y) - 1.0, 0.0);
+    let period = line.dashSize + line.gapSize;
+    let distance = in.distance + pastEnd;
+    let dashPos = distance - floor(distance / period) * period;
+    let fromCore = max(abs(dashPos - 0.5 * line.dashSize) - (0.5 * line.dashSize - 1.0), 0.0);
+    if (fromCore * fromCore + in.uv.x * in.uv.x > 1.0) { discard; }
   }
   var colour = line.colour.rgb;
   if (line.useVertexColours != 0u) { colour *= in.colour; }

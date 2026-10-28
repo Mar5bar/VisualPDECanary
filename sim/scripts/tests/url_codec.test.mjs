@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { encodeOptions, decodeOptions } from "../RD/url_codec.js";
+import { encodeOptions, decodeOptions, payloadV1 } from "../RD/url_codec.js";
 import { minifyPreset } from "../RD/minify_preset.js";
 import {
   getResolvedPreset,
@@ -115,4 +115,26 @@ test("decodeOptions: throws on damaged or unknown links", () => {
   assert.throws(() => decodeOptions(encoded.slice(0, encoded.length / 2)));
   assert.throws(() => decodeOptions("_9abc"));
   assert.throws(() => decodeOptions("not a link"));
+});
+
+test("decodeOptions: gives links from before overlayLineStyle a solid overlay", () => {
+  // NoisyFHN (with an overlay in some of its views), as encoded before overlayLineStyle.
+  const decoded = decodeOptions(
+    "_1jZ2xEYAwDANnIhRswQqMQEPL7ihyzo5yDlBjOKBIYll-NxycDPNK0Y7d0C4ul_r3O7P5PFNeOPj8IjEqdV7DvYvEz4LgYkbQr3mU8tzvYS3OgWVUd6_AXOIYloDMafp12MG6BTYDbeDOymB7vYMcwvOLvX1EUk74rczKckBlFexrmoYajon29RXg2zuK1V2o6NNRtJ9oWlH6trG6WxnE2uQUrt7LS4jwUQsutzX4rfQFW6BuBPyCoLoB0D1cj_W_BJ7UhKw3gex-AA",
+  );
+  assert.equal(decoded.overlayLineStyle, "solid");
+  assert.ok(decoded.views.length > 1);
+  for (const view of decoded.views) assert.equal(view.overlayLineStyle, "solid");
+});
+
+test("encodeOptions: leaves a solid overlay out of links, and keeps any other", () => {
+  const options = loadedOptions("NoisyFHN");
+  assert.doesNotMatch(payloadV1(options), /oLS|overlayLineStyle/);
+  // As choosing styles in the first and second views would leave them.
+  options.overlayLineStyle = options.views[0].overlayLineStyle = "dotted";
+  options.views[1].overlayLineStyle = "looselyDashed";
+  const decoded = decodeOptions(encodeOptions(options));
+  assert.equal(decoded.overlayLineStyle, "dotted");
+  assert.equal(decoded.views[0].overlayLineStyle, "dotted");
+  assert.equal(decoded.views[1].overlayLineStyle, "looselyDashed");
 });

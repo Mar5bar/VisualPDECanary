@@ -153,6 +153,14 @@ export class WebGPUDisplay {
             stepMode: "instance",
             attributes: [instance(4, 0), instance(5, 12)],
           },
+          {
+            arrayStride: 8,
+            stepMode: "instance",
+            attributes: [
+              { shaderLocation: 6, offset: 0, format: "float32" },
+              { shaderLocation: 7, offset: 4, format: "float32" },
+            ],
+          },
         ],
       },
       fragment: {
@@ -301,13 +309,16 @@ export class WebGPUDisplay {
     if (!r.positions || r.positions.size < bytes) {
       r.positions?.destroy();
       r.colours?.destroy();
-      const make = () =>
+      r.distances?.destroy();
+      const make = (size) =>
         device.createBuffer({
-          size: bytes,
+          size,
           usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         });
-      r.positions = make();
-      r.colours = make();
+      r.positions = make(bytes);
+      r.colours = make(bytes);
+      // Two distances per segment, to the positions' six coordinates.
+      r.distances = make(bytes / 3);
     }
     return r;
   }
@@ -894,8 +905,10 @@ export class WebGPUDisplay {
    *   plots).
    * @param {Object[]} [options.lines] - Lines to draw, as three.js Line2 objects describe
    *   them: modelView (matrix), segments (start and end of each, as LineSegmentsGeometry's
-   *   instanceStart buffer holds them), colours (likewise, or null), colour (RGBA) and
-   *   linewidth.
+   *   instanceStart buffer holds them), colours (likewise, or null), colour (RGBA),
+   *   linewidth and dashes: null for a solid line, or the distances along it at the start
+   *   and end of each segment (as instanceDistanceStart's buffer holds them), size and gap,
+   *   the last two in units of linewidth (see LINE_SHADER).
    * @param {Object[]} [options.meshes] - Instanced meshes to draw in a flat colour: geometry
    *   (a three.js BufferGeometry), matrices (each instance's world matrix, 16 floats apiece),
    *   viewMatrix (the camera's inverse world matrix) and colour (RGBA).
@@ -982,16 +995,24 @@ export class WebGPUDisplay {
       new Float32Array(uniforms, 0, 16).set(toClip(line.modelView));
       new Float32Array(uniforms, 64, 5).set([...line.colour, line.linewidth]);
       new Uint32Array(uniforms, 84, 1)[0] = line.colours ? 1 : 0;
+      if (line.dashes)
+        new Float32Array(uniforms, 88, 2).set([
+          line.dashes.size,
+          line.dashes.gap,
+        ]);
       this.device.queue.writeBuffer(r.uniforms, 0, uniforms);
       this.device.queue.writeBuffer(r.positions, 0, line.segments);
       if (line.colours)
         this.device.queue.writeBuffer(r.colours, 0, line.colours);
+      if (line.dashes)
+        this.device.queue.writeBuffer(r.distances, 0, line.dashes.distances);
       pass.setPipeline(this.pipelines.line);
       pass.setBindGroup(0, r.bindGroup);
       pass.setVertexBuffer(0, this.lineQuad[0]);
       pass.setVertexBuffer(1, this.lineQuad[1]);
       pass.setVertexBuffer(2, r.positions);
       pass.setVertexBuffer(3, r.colours);
+      pass.setVertexBuffer(4, r.distances);
       pass.setIndexBuffer(this.lineQuad[2], "uint32");
       pass.drawIndexed(LINE_QUAD_INDICES.length, count);
     });
