@@ -174,6 +174,13 @@ const halfStep = (F, axis, h) => (q) => {
   const e = axis == 0 ? [0.5, 0] : [0, 0.5];
   return (F([q[0] + e[0], q[1] + e[1]]) - F([q[0] - e[0], q[1] - e[1]])) / h;
 };
+// The one-sided differences of F along axis 0 (x) or 1 (y): forward, (F|+1 - F|0)/dx, and
+// backward, (F|0 - F|-1)/dx.
+const oneSided = (F, axis, h, side) => (q) => {
+  const e = axis == 0 ? [1, 0] : [0, 1];
+  const shifted = (k) => F([q[0] + k * e[0], q[1] + k * e[1]]);
+  return side == "f" ? (shifted(1) - shifted(0)) / h : (shifted(0) - shifted(-1)) / h;
+};
 // (u)_x, (u)_y etc. of species s, at offset q.
 const speciesDerivative = (pt, s, axes, h) =>
   axes.reduce((F, axis) => halfStep(F, axis, h[axis]), (q) => speciesAt(pt, s, q));
@@ -496,6 +503,47 @@ const cases = [
       D: [[constant(0.1)]],
       f: [(pt) => -halfStep((q) => speciesAt(pt, 0, q) ** 2 / 2, 0, dx)(origin)],
       bcs: [sides(periodic)],
+    }),
+  },
+  {
+    name: "Burgers' equation upwinded in conservative form, -(u^2/2)_xb",
+    numSteps: 100,
+    options: {
+      numSpecies: 1,
+      dt: 0.01,
+      diffusionStr_1_1: "0.02",
+      reactionStr_1: "-(u^2/2)_xb",
+      initCond_1: "1+0.5*sin(2*pi*x/10)",
+      boundaryConditions_1: "periodic",
+    },
+    reference: ({ dx }) => ({
+      numSpecies: 1,
+      D: [[constant(0.02)]],
+      f: [(pt) => -oneSided((q) => speciesAt(pt, 0, q) ** 2 / 2, 0, dx, "b")(origin)],
+      bcs: [sides(periodic)],
+    }),
+  },
+  {
+    name: "a flux-split Burgers' equation, with (E)_xb and (E)_xf, with a Neumann flux",
+    numSteps: 100,
+    options: {
+      numSpecies: 1,
+      dt: 0.01,
+      diffusionStr_1_1: "0.05",
+      reactionStr_1: "-(max(u,0)^2/2)_xb - (min(u,0)^2/2)_xf",
+      initCond_1: "sin(2*pi*x/10)",
+      boundaryConditions_1: "neumann",
+      neumannStr_1: "0.1",
+    },
+    reference: ({ dx }) => ({
+      numSpecies: 1,
+      D: [[constant(0.05)]],
+      f: [
+        (pt) =>
+          -oneSided((q) => Math.max(speciesAt(pt, 0, q), 0) ** 2 / 2, 0, dx, "b")(origin) -
+          oneSided((q) => Math.min(speciesAt(pt, 0, q), 0) ** 2 / 2, 0, dx, "f")(origin),
+      ],
+      bcs: [sides({ type: "neumann", value: constant(0.1) })],
     }),
   },
   {

@@ -118,7 +118,7 @@ test("expressions without derivatives of expressions are returned unchanged", ()
     "u^2 + v_x*u_xx - Gauss(0, 0, 1)",
     "u_xf + u_yb2 + v_y + q_yy + (u+v)*x",
     "sin(u)*(v - 1) + I_T(x, y) + u[x, y]",
-    "L_x + dx + (a)_z + (u)_xf",
+    "L_x + dx + (a)_z + (u)_xz + (u)_x2",
     "",
   ]) {
     assert.equal(expand(str), str);
@@ -137,10 +137,17 @@ test("findDerivativeGroups: finds outermost groups, including function calls", (
   ]);
 });
 
-test("a suffix must be made only of x and y, and end there", () => {
-  assert.deepEqual(findDerivativeGroups("(u)_xz + (u)_xf + (u)_x1"), []);
+test("a suffix must be made only of x and y, each optionally one-sided, and end there", () => {
+  assert.deepEqual(
+    findDerivativeGroups("(u)_xz + (u)_x1 + (u)_x2 + (u)_xfb + (u)_xf3 + (u)_f"),
+    [],
+  );
   assert.equal(findDerivativeGroups("(u)_x*x").length, 1);
   assert.equal(findDerivativeGroups("(u)_xx")[0].suffix, "xx");
+  assert.deepEqual(
+    findDerivativeGroups("(u)_xf + (u)_yb2 + (u)_xbyf + (u)_xfx").map((g) => g.suffix),
+    ["xf", "yb2", "xbyf", "xfx"],
+  );
 });
 
 test("text around a derivative is kept, so powers and products still apply to it", () => {
@@ -203,6 +210,46 @@ test("(u)_x, (u)_y, (u)_xx and (u)_yy are exactly u_x, u_y, u_xx and u_yy", () =
   }
 });
 
+test("one-sided derivatives of a species are exactly its one-sided shorthands", () => {
+  const opts = { fields: randomFields(13), x0: 0.2, y0: 0.4, h: 0.1, k: 0.15 };
+  const n = (i, j) => opts.fields.u(opts.x0 + i * opts.h, opts.y0 + j * opts.k);
+  const { h, k } = opts;
+  for (const [lhs, value] of [
+    ["(u)_xf", "u_xf"],
+    ["(u)_xb", "u_xb"],
+    ["(u)_xf2", "u_xf2"],
+    ["(u)_xb2", "u_xb2"],
+    ["(u)_xfxb", "u_xx"],
+    ["((u)_xb)_xf", "u_xx"],
+    ["(u)_yf", (n(0, 1) - n(0, 0)) / k],
+    ["(u)_yb", (n(0, 0) - n(0, -1)) / k],
+    ["(u)_yb2", (3 * n(0, 0) - 4 * n(0, -1) + n(0, -2)) / (2 * k)],
+    ["(u)_xfyb", (n(1, 0) - n(0, 0) - n(1, -1) + n(0, -1)) / (h * k)],
+  ]) {
+    const a = evaluate(expand(lhs), opts);
+    const b = typeof value == "string" ? evaluate(value, opts) : value;
+    assert.ok(Math.abs(a - b) < 1e-9, `${lhs} = ${a}, ${value} = ${b}`);
+  }
+});
+
+test("one-sided derivatives of expressions difference the expression at whole nodes", () => {
+  const opts = { fields: randomFields(17), x0: 0.2, y0: 0.4, h: 0.1 };
+  const F = (i) => {
+    const x = opts.x0 + i * opts.h;
+    return opts.fields.u(x, opts.y0) ** 2 * Math.sin(x);
+  };
+  const h = opts.h;
+  for (const [str, expected] of [
+    ["(u^2*sin(x))_xf", (F(1) - F(0)) / h],
+    ["(u^2*sin(x))_xb", (F(0) - F(-1)) / h],
+    ["(u^2*sin(x))_xf2", (4 * F(1) - 3 * F(0) - F(2)) / (2 * h)],
+    ["(u^2*sin(x))_xbxf", (F(1) - 2 * F(0) + F(-1)) / h ** 2],
+  ]) {
+    const value = evaluate(expand(str), opts);
+    assert.ok(Math.abs(value - expected) < 1e-9, `${str}: ${value} vs ${expected}`);
+  }
+});
+
 test("(u)_xy is the standard four-corner mixed difference", () => {
   const opts = { fields: randomFields(11), x0: 0, y0: 0, h: 0.1, k: 0.2 };
   const n = (i, j) => opts.fields.u(i * opts.h, j * opts.k);
@@ -248,6 +295,9 @@ test("stencil extent grows by half a node per derivative", () => {
   assert.equal(extent("(u^2*u_x)_x"), 1);
   assert.equal(extent("(u)_xxx"), 2);
   assert.equal(extent("(u)_xxxx"), 2);
+  assert.equal(extent("(u)_xf"), 1);
+  assert.equal(extent("(u)_xf2"), 2);
+  assert.equal(extent("(u)_xb2xb2"), 4);
   assert.deepEqual(
     nodeTokenOffsets(expand("(u)_xy"))
       .map(([i, j]) => stencilName(i, j))
@@ -258,7 +308,7 @@ test("stencil extent grows by half a node per derivative", () => {
 
 // --- convergence ------------------------------------------------------------------
 
-// [expression, continuous operand, nx, ny, expected order].
+// [expression, continuous operand, nx, ny, expected order (2 if omitted)].
 const CONVERGENCE_CASES = [
   ["(u)_x", u, 1, 0],
   ["(u^2)_x", (x, y) => u(x, y) ** 2, 1, 0],
@@ -288,10 +338,18 @@ const CONVERGENCE_CASES = [
   ["((u)_x^2)_x", (x, y) => ux(x, y) ** 2, 1, 0],
   ["(((u)_x)_x)_x", u, 3, 0],
   ["(v*(u)_y)_y", (x, y) => v(x, y) * uy(x, y), 0, 1],
+  ["(u^2)_xf", (x, y) => u(x, y) ** 2, 1, 0, 1],
+  ["(u^2)_xb", (x, y) => u(x, y) ** 2, 1, 0, 1],
+  ["(u*v)_yf", (x, y) => u(x, y) * v(x, y), 0, 1, 1],
+  ["(u*v)_yb", (x, y) => u(x, y) * v(x, y), 0, 1, 1],
+  ["(u^2*v)_xby", (x, y) => u(x, y) ** 2 * v(x, y), 1, 1, 1],
+  ["(u^2)_xf2", (x, y) => u(x, y) ** 2, 1, 0],
+  ["(u*v)_yb2", (x, y) => u(x, y) * v(x, y), 0, 1],
+  ["(u^2)_xfxb", (x, y) => u(x, y) ** 2, 2, 0],
 ];
 
-for (const [str, F, nx, ny] of CONVERGENCE_CASES) {
-  test(`${str} converges to the exact derivative at second order`, () => {
+for (const [str, F, nx, ny, order = 2] of CONVERGENCE_CASES) {
+  test(`${str} converges to the exact derivative at ${order == 2 ? "second" : "first"} order`, () => {
     const x0 = 0.37,
       y0 = -0.61;
     const exact = referenceDerivative(F, nx, ny, x0, y0);
@@ -301,7 +359,7 @@ for (const [str, F, nx, ny] of CONVERGENCE_CASES) {
     );
     const orders = [Math.log2(errors[0] / errors[1]), Math.log2(errors[1] / errors[2])];
     assert.ok(
-      orders[1] > 1.8 && orders[1] < 2.3,
+      orders[1] > order - 0.2 && orders[1] < order + 0.3,
       `observed orders ${orders.map((o) => o.toFixed(3))}, errors ${errors}`,
     );
   });

@@ -75,12 +75,15 @@ function reference(F, nx, ny, x, y) {
   return f(x, y);
 }
 
-for (const [str, F, nx, ny] of [
+for (const [str, F, nx, ny, expected = 2] of [
   ["(u^2*v)_x", (x, y) => u(x, y) ** 2 * v(x, y), 1, 0],
   ["(F)_y", (x, y) => u(x, y) * v(x, y), 0, 1],
   ["(sin(u)*x)_xy", (x, y) => Math.sin(u(x, y)) * x, 1, 1],
   ["(u)_xxx", u, 3, 0],
   ["(exp(-v)*y)_yy", (x, y) => Math.exp(-v(x, y)) * y, 0, 2],
+  ["(u^2/2)_xb", (x, y) => u(x, y) ** 2 / 2, 1, 0, 1],
+  ["(u*v)_yf", (x, y) => u(x, y) * v(x, y), 0, 1, 1],
+  ["(u^2*v)_xf2", (x, y) => u(x, y) ** 2 * v(x, y), 1, 0],
 ]) {
   test(`the simulation's GLSL for ${str} converges to the derivative`, () => {
     const errors = setup();
@@ -89,7 +92,10 @@ for (const [str, F, nx, ny] of [
     const e2 = Math.abs(simulateReaction(str, 0.02) - exact);
     assert.deepEqual(errors, []);
     const order = Math.log2(e1 / e2);
-    assert.ok(order > 1.8 && order < 2.3, `order ${order}, errors ${e1}, ${e2}`);
+    assert.ok(
+      order > expected - 0.2 && order < expected + 0.3,
+      `order ${order}, errors ${e1}, ${e2}`,
+    );
   });
 }
 
@@ -181,6 +187,10 @@ test("derivatives of expressions are typeset as partial derivative operators", (
   const tex = (str) => m.parseStringToTEX(str).replaceAll(/\s+/g, " ");
   assert.match(tex("(u^2)_x"), /\\pd\{\}\{x\}\\left\(\{u\}\^\{2\}\s*\\right\)/);
   assert.match(tex("(u*v)_yy"), /\\pdd\{\}\{y\}\\left\(/);
+  // One-sided derivatives are typeset like u_xf, as the derivative they approximate.
+  assert.match(tex("(u^2)_xb"), /\\pd\{\}\{x\}\\left\(/);
+  assert.match(tex("(u*v)_yf2"), /\\pd\{\}\{y\}\\left\(/);
+  assert.match(tex("(u*v)_xfxb"), /\\pdd\{\}\{x\}\\left\(/);
   assert.match(tex("(u)_xxy"), /\\frac\{\\partial\^\{3\}\}\{\\partial x\^\{2\} \\partial y\}/);
   // Nested derivatives, and functions as operands.
   const nested = tex("(v*(u)_x)_y + sin(u)_x");

@@ -10,8 +10,12 @@
 // y are shifted, and each species is read from the stencil node at p, or the mean of the 2 or 4
 // nodes either side of p when p lies on a cell face. So (u)_x = (uR - uL)/(2dx) and
 // (u)_xx = (uR - 2u + uL)/dx^2, exactly matching u_x and u_xx, and (D*u_x)_x is the compact
-// conservative flux form. Suffixes compose, so (E)_xy is ((E)_x)_y, and n derivatives in one
-// direction are applied at once as the binomial difference over offsets -n/2, ..., n/2.
+// conservative flux form. Appending f or b to a direction takes a one-sided difference instead,
+// as for species: (E)_xf = (E|x+dx - E|x)/dx and (E)_xb = (E|x - E|x-dx)/dx, or with f2 and b2
+// the second-order one-sided differences of u_xf2 and u_xb2. Suffixes compose, so (E)_xy is
+// ((E)_x)_y and (E)_xfxb is ((E)_xf)_xb, and all the derivatives in one direction are applied at
+// once as a single difference, e.g. the binomial difference over offsets -n/2, ..., n/2 for n
+// central derivatives.
 //
 // This works on users' expressions in VisualPDE's own syntax, before parseShaderString turns
 // them into GLSL, and is independent of which shader the result ends up in. Shifted species
@@ -108,6 +112,11 @@ const EXISTING_SUFFIXES = new Set(
   ["x", "y"].flatMap((d) => [d, d + "f", d + "b", d + "f2", d + "b2", d + d]),
 );
 
+// A derivative suffix: one or more directions, each optionally one-sided (f or b, then 2 for
+// second order).
+const SUFFIX = "(?:[xy](?:[fb]2?)?)+";
+const DERIVATIVE_SUFFIX_REGEX = new RegExp(`^_(${SUFFIX})(?!\\w)`);
+
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
@@ -166,7 +175,8 @@ function needsExpansion(str, ctx) {
 
 /**
  * Finds each outermost derivative of an expression: a balanced (...) group, together with any
- * function name directly before it, followed by _ and one or more of x and y.
+ * function name directly before it, followed by _ and one or more of x and y, each optionally
+ * followed by f or b and then 2.
  * @returns {{start: number, end: number, operand: string, suffix: string}[]}
  */
 export function findDerivativeGroups(str) {
@@ -178,7 +188,7 @@ export function findDerivativeGroups(str) {
     } else if (str[i] == ")") {
       const open = stack.pop();
       if (open == undefined) continue;
-      const m = /^_([xy]+)(?!\w)/.exec(str.slice(i + 1));
+      const m = DERIVATIVE_SUFFIX_REGEX.exec(str.slice(i + 1));
       if (!m) continue;
       const fun = /[A-Za-z_]\w*$/.exec(str.slice(0, open));
       const start = fun ? fun.index : open;
@@ -261,23 +271,37 @@ function node(s, p, ctx) {
   return "(" + 1 / tokens.length + "*(" + tokens.join("+") + "))";
 }
 
-const binomial = (n, k) => {
-  let c = 1;
-  for (let m = 1; m <= k; m++) c = (c * (n - m + 1)) / m;
-  return c;
+// The weights of each kind of difference, as [offset, weight] pairs, to be divided by the
+// spacing: central half-step, forward and backward, and second-order forward and backward (as
+// in uvwqXFXF and uvwqXBXB).
+const DIFFERENCE_WEIGHTS = {
+  "": [[-0.5, -1], [0.5, 1]],
+  f: [[0, -1], [1, 1]],
+  b: [[-1, -1], [0, 1]],
+  f2: [[0, -1.5], [1, 2], [2, -0.5]],
+  b2: [[-2, 0.5], [-1, -2], [0, 1.5]],
 };
 
-// The weights of n half-step differences in one direction, as [offset, weight] pairs.
-function differenceWeights(n) {
-  const out = [];
-  for (let m = 0; m <= n; m++) {
-    out.push([m - n / 2, (n - m) % 2 ? -binomial(n, m) : binomial(n, m)]);
+// The weights of the differences in suffix in one direction, applied one after another, as
+// [offset, weight] pairs in order of offset, and how many there are.
+function differenceWeights(suffix, dir) {
+  let weights = new Map([[0, 1]]);
+  let n = 0;
+  for (const [, d, kind] of suffix.matchAll(/([xy])((?:[fb]2?)?)/g)) {
+    if (d != dir) continue;
+    n++;
+    const next = new Map();
+    for (const [o, w] of weights) {
+      for (const [o2, w2] of DIFFERENCE_WEIGHTS[kind]) {
+        next.set(o + o2, (next.get(o + o2) ?? 0) + w * w2);
+      }
+    }
+    weights = next;
   }
-  return out;
-}
-
-function countDirections(suffix) {
-  return [suffix.split("x").length - 1, suffix.split("y").length - 1];
+  const out = [...weights]
+    .filter(([, w]) => Math.abs(w) > 1e-12)
+    .sort((a, b) => a[0] - b[0]);
+  return [out, n];
 }
 
 // (operand)_suffix at offset p.
@@ -290,10 +314,11 @@ function difference(operand, suffix, p, ctx) {
         suffix,
     );
   }
-  const [nx, ny] = countDirections(suffix);
+  const [weightsX, nx] = differenceWeights(suffix, "x");
+  const [weightsY, ny] = differenceWeights(suffix, "y");
   const shifts = [];
-  for (const [ox, wx] of differenceWeights(nx)) {
-    for (const [oy, wy] of differenceWeights(ny)) {
+  for (const [ox, wx] of weightsX) {
+    for (const [oy, wy] of weightsY) {
       shifts.push([wx * wy, [p[0] + ox, p[1] + oy]]);
     }
   }
