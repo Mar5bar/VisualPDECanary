@@ -1525,15 +1525,32 @@ async function VisualPDE(url) {
     // Give the overlay's dashes round ends, as the solid line has, in place of LineMaterial's
     // square ones, and keep the segments' round end caps (dashed along with the rest), which
     // fill the gaps between segments where the line bends. vLineDistance is measured in units
-    // of half the line's thickness (see setOverlayLineStyle), as vUv is.
+    // of half the line's thickness (see setOverlayLineStyle), as vUv.x is. vUv.y beyond 1 is
+    // measured in clip space instead, which vCapScale converts to the distance along the line,
+    // from the length of the segment in each.
+    const dashVaryings = "varying float vLineDistance;\n\t\tvarying float vCapScale;";
+    overlayLineMaterial.vertexShader = overlayLineMaterial.vertexShader
+      .replace("varying float vLineDistance;", dashVaryings)
+      .replace(
+        "vec2 dir = ndcEnd.xy - ndcStart.xy;",
+        `vec2 dir = ndcEnd.xy - ndcStart.xy;
+
+			#ifdef USE_DASH
+
+				float ndcLength = length( dir );
+				vCapScale = ndcLength > 0.0 ? ( instanceDistanceEnd - instanceDistanceStart ) / ndcLength : 0.0;
+
+			#endif`,
+      );
     overlayLineMaterial.fragmentShader = overlayLineMaterial.fragmentShader
+      .replace("varying float vLineDistance;", dashVaryings)
       .replace(
         "if ( vUv.y < - 1.0 || vUv.y > 1.0 ) discard; // discard endcaps",
         "",
       )
       .replace(
         "if ( mod( vLineDistance + dashOffset, dashSize + gapSize ) > dashSize ) discard; // todo - FIX",
-        `float pastEnd = sign( vUv.y ) * max( abs( vUv.y ) - 1.0, 0.0 );
+        `float pastEnd = sign( vUv.y ) * max( abs( vUv.y ) - 1.0, 0.0 ) * vCapScale;
 				float dashPos = mod( vLineDistance + pastEnd + dashOffset, dashSize + gapSize );
 				float fromDashCore = max( abs( dashPos - 0.5 * dashSize ) - ( 0.5 * dashSize - 1.0 ), 0.0 );
 				if ( fromDashCore * fromDashCore + vUv.x * vUv.x > 1.0 ) discard;`,

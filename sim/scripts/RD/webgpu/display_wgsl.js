@@ -452,7 +452,8 @@ export function translateDisplayExpression(expr, parts) {
  * instance of a quad with round end caps, widened in clip space. If dashSize is positive,
  * the line is dashed as main.js has LineMaterial dash the overlay, end caps included, with
  * round ends to the dashes, and distances along the line (and dashSize and gapSize) measured
- * in units of linewidth.
+ * in units of linewidth. capScale converts the length of the end caps, which is measured in
+ * clip space, into those units.
  */
 export const LINE_SHADER = `
 struct Line {
@@ -470,6 +471,7 @@ struct VertexOut {
   @location(0) colour: vec3f,
   @location(1) uv: vec2f,
   @location(2) distance: f32,
+  @location(3) capScale: f32,
 }
 
 @vertex
@@ -491,6 +493,8 @@ fn vertexMain(
   let clipEnd = line.mvp * vec4f(instanceEnd, 1.0);
   let ndcStart = clipStart.xyz / clipStart.w;
   let ndcEnd = clipEnd.xyz / clipEnd.w;
+  let ndcLength = length(ndcEnd.xy - ndcStart.xy);
+  out.capScale = select(0.0, (distanceEnd - distanceStart) / ndcLength, ndcLength > 0.0);
   var dir = normalize(ndcEnd.xy - ndcStart.xy);
   var offset = vec2f(dir.y, -dir.x);
   if (position.x < 0.0) { offset = -offset; }
@@ -516,7 +520,7 @@ fn fragmentMain(in: VertexOut) -> @location(0) vec4f {
     if (a * a + b * b > 1.0) { discard; }
   }
   if (line.dashSize > 0.0) {
-    let pastEnd = sign(in.uv.y) * max(abs(in.uv.y) - 1.0, 0.0);
+    let pastEnd = sign(in.uv.y) * max(abs(in.uv.y) - 1.0, 0.0) * in.capScale;
     let period = line.dashSize + line.gapSize;
     let distance = in.distance + pastEnd;
     let dashPos = distance - floor(distance / period) * period;
