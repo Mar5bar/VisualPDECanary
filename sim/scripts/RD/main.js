@@ -324,7 +324,9 @@ async function VisualPDE(url) {
     threeDFolderButton,
     vectorFieldFolder,
     devFolder,
-    selectedEntries = new Set();
+    selectedEntries = new Set(),
+    // Folders wired up by setOnFolderTapToggle - see syncFolderTapHighlights.
+    tapToggledFolders = [];
   let isRunning,
     isSuspended = false,
     isLoading = true,
@@ -2421,8 +2423,20 @@ async function VisualPDE(url) {
   }
 
   function initGUI(startOpen) {
+    // Drop the highlights of any folders tapped open in the GUI being replaced.
+    tapToggledFolders.forEach((entry) => {
+      if (entry.selected)
+        entry.args.forEach((id) => selectedEntries.delete(id));
+    });
+    tapToggledFolders = [];
+
     // Initialise the left GUI.
     leftGUI = new dat.GUI({ closeOnTop: true, autoPlace: false });
+    // Opening/closing any folder (once dat.GUI's own click handler on its title has run) can
+    // show or hide folders tapped open beneath it.
+    leftGUI.domElement.addEventListener("click", (e) => {
+      if (e.target.closest("li.title")) syncFolderTapHighlights();
+    });
     leftGUI.domElement.id = "leftGUI";
     document.getElementById("leftGUIContainer").appendChild(leftGUI.domElement);
 
@@ -9119,6 +9133,7 @@ async function VisualPDE(url) {
     // shared .hidden utility class on the folder's domElement directly, matching the existing
     // pattern for hiding other folders (e.g. editViewFolder above).
     timescalesFolder.domElement.classList.toggle("hidden", !options.timescales);
+    syncFolderTapHighlights();
 
     // Configure the controller names. We'll set the generic names then alter any algebraic
     // ones. Diffusion TeX keys: species 1-4 pairs use the legacy "D"+letter+letter form
@@ -12645,6 +12660,10 @@ async function VisualPDE(url) {
    * following synthetic click - lets us toggle the folder open/closed and select/deselect
    * its TeX highlight together, directly, on the very first tap.
    *
+   * The highlight lasts while the folder is open and visible: collapsing a folder around it
+   * (e.g. "Equations") clears it, and reopening that folder restores it. See
+   * syncFolderTapHighlights.
+   *
    * @param {dat.GUI} folder - The dat.GUI folder whose title bar should get the handler.
    * @param {Function} selectFun - Called (with args) to highlight, when the folder opens.
    * @param {Function} deselectFun - Called (with args) to un-highlight, when it closes.
@@ -12652,6 +12671,15 @@ async function VisualPDE(url) {
    */
   function setOnFolderTapToggle(folder, selectFun, deselectFun, args) {
     const title = folder.domElement.querySelector("li.title");
+    const entry = {
+      folder,
+      selectFun,
+      deselectFun,
+      args,
+      tapped: false,
+      selected: false,
+    };
+    tapToggledFolders.push(entry);
     // Track the touch's start position so a scroll gesture that happens to end (finger
     // lifted) over this title bar - e.g. scrolling a tall GUI panel on a small screen -
     // isn't misread as a tap; only a touchend close to where the touch started toggles.
@@ -12673,10 +12701,42 @@ async function VisualPDE(url) {
         if (Math.hypot(dx, dy) > TAP_MOVE_THRESHOLD_PX) return;
         e.preventDefault();
         folder.closed = !folder.closed;
-        (folder.closed ? deselectFun : selectFun)(args);
+        entry.tapped = !folder.closed;
+        syncFolderTapHighlights();
       },
       { passive: false },
     );
+  }
+
+  /**
+   * Highlights the TeX terms of each folder tapped open (see setOnFolderTapToggle) exactly
+   * while it is open and visible, so that closing or hiding a folder around it doesn't leave
+   * its terms highlighted with nothing visible in the menu to tap to clear them.
+   */
+  function syncFolderTapHighlights() {
+    tapToggledFolders.forEach((entry) => {
+      const shown =
+        entry.tapped && !entry.folder.closed && isFolderShown(entry.folder);
+      if (shown == entry.selected) return;
+      entry.selected = shown;
+      (shown ? entry.selectFun : entry.deselectFun)(entry.args);
+    });
+  }
+
+  /**
+   * Whether a dat.GUI folder's title bar is visible: not hidden, and inside no closed folder.
+   * (dat.GUI collapses a closed folder's rows to zero height, rather than hiding them.)
+   *
+   * @param {dat.GUI} folder
+   * @returns {boolean}
+   */
+  function isFolderShown(folder) {
+    const title = folder.domElement.querySelector("li.title");
+    if (title.getClientRects().length == 0) return false;
+    for (let f = folder.parent; f; f = f.parent) {
+      if (f.closed) return false;
+    }
+    return true;
   }
 
   /**

@@ -112,6 +112,41 @@ test("a scroll-like drag ending on a folder title doesn't toggle it", async () =
   );
 });
 
+// Counts the highlighted (\selectedLight/\selectedDark, i.e. MathJax \bbox) terms currently
+// shown in the TeX equation display.
+async function highlightedTermCount() {
+  await page.waitForTimeout(500);
+  return page.evaluate(
+    () =>
+      [...document.querySelectorAll("#equation_display *")].filter((el) =>
+        /background/.test(el.getAttribute("style") ?? ""),
+      ).length,
+  );
+}
+
+// Tapping one of these folders open highlights its TeX terms until it's closed again - but
+// collapsing "Equations" around it hides the folder too, so that should also clear them
+// (they used to stay highlighted, with nothing visible in the menu to tap to clear them).
+for (const name of ["Diffusion coefficients", "Forcing terms", "Timescales"]) {
+  test(`${name}: closing "Equations" clears the TeX highlight of a folder tapped open`, async () => {
+    assert.equal(await highlightedTermCount(), 0, "nothing should start highlighted");
+    await folderTitle(name).tap();
+    assert.ok((await highlightedTermCount()) > 0, `opening ${name} should highlight its terms`);
+
+    await folderTitle("Equations").tap();
+    assert.equal(await isFolderClosed("Equations"), true);
+    assert.equal(await highlightedTermCount(), 0, "closing Equations should clear the highlight");
+
+    // Reopening "Equations" shows the still-open folder again, so its terms highlight again.
+    await folderTitle("Equations").tap();
+    assert.equal(await isFolderClosed(name), false);
+    assert.ok((await highlightedTermCount()) > 0, `reopening should re-highlight ${name}`);
+
+    await folderTitle(name).tap();
+    assert.equal(await highlightedTermCount(), 0);
+  });
+}
+
 test("no console errors or uncaught exceptions occurred across the whole sequence", () => {
   assert.deepEqual(errors, []);
 });
