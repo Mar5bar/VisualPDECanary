@@ -658,7 +658,12 @@ export class WebGPUBackend {
 
   /** Builds the Dirichlet enforcement pipeline, or removes it if parts is null. */
   setEnforceDirichlet(parts) {
-    this.buildKernel("enforce", "enforce Dirichlet", enforceDirichletShader, parts);
+    this.buildKernel(
+      "enforce",
+      "enforce Dirichlet",
+      enforceDirichletShader,
+      parts,
+    );
   }
 
   ensureUniformCapacity(count) {
