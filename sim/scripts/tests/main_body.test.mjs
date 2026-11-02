@@ -8,6 +8,22 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as m from "./generated/main-body.mjs";
+import {
+  alternateBrackets,
+  buildDependencyGraph,
+  checkForCyclicDependencies,
+  expandDependentExpressions,
+  parseNamedDefinition,
+  resolveDependentDefinitions,
+} from "../RD/expressions.js";
+import { shaderOutsideHelperFunctions } from "../RD/shader_strings.js";
+import {
+  getDuplicates,
+  isEmptyString,
+  lerp,
+  lerpArrays,
+  sortObject,
+} from "../RD/utils.js";
 import exprEvalModule from "../expr-eval.js";
 
 function stubThrowError() {
@@ -29,26 +45,26 @@ function stubGlobalIntegralRebuild() {
 // --- parseNamedDefinition ---------------------------------------------------
 
 test("parseNamedDefinition: parses 'name = rhs', trims whitespace, handles multi-line rhs", () => {
-  assert.deepEqual(m.parseNamedDefinition("a = 1"), { name: "a", rhs: "1" });
-  assert.deepEqual(m.parseNamedDefinition("  a  =  1 + 2  "), { name: "a", rhs: "1 + 2" });
-  assert.deepEqual(m.parseNamedDefinition("f = x*y\n+ 1"), { name: "f", rhs: "x*y\n+ 1" });
+  assert.deepEqual(parseNamedDefinition("a = 1"), { name: "a", rhs: "1" });
+  assert.deepEqual(parseNamedDefinition("  a  =  1 + 2  "), { name: "a", rhs: "1 + 2" });
+  assert.deepEqual(parseNamedDefinition("f = x*y\n+ 1"), { name: "f", rhs: "x*y\n+ 1" });
 });
 
 test("parseNamedDefinition: returns null when unparseable", () => {
-  assert.equal(m.parseNamedDefinition("not an assignment"), null);
-  assert.equal(m.parseNamedDefinition("1a = 1"), null); // name can't start with a digit
-  assert.equal(m.parseNamedDefinition(""), null);
+  assert.equal(parseNamedDefinition("not an assignment"), null);
+  assert.equal(parseNamedDefinition("1a = 1"), null); // name can't start with a digit
+  assert.equal(parseNamedDefinition(""), null);
 });
 
 // --- buildDependencyGraph / checkForCyclicDependencies / resolveDependentDefinitions ---------
 
 test("buildDependencyGraph: finds whole-word references between definitions", () => {
-  const graph = m.buildDependencyGraph({ a: "b + 1", b: "2", c: "a * b" }, ["a", "b", "c"]);
+  const graph = buildDependencyGraph({ a: "b + 1", b: "2", c: "a * b" }, ["a", "b", "c"]);
   assert.deepEqual(graph, { a: ["b"], b: [], c: ["a", "b"] });
 });
 
 test("buildDependencyGraph: doesn't match partial-word substrings", () => {
-  const graph = m.buildDependencyGraph({ ab: "a + 1", a: "2" }, ["ab", "a"]);
+  const graph = buildDependencyGraph({ ab: "a + 1", a: "2" }, ["ab", "a"]);
   // "ab"'s definition "a + 1" does reference "a" as a whole word; "a"'s definition "2" doesn't
   // reference "ab" as a substring match, since \b won't match "ab" inside a definition of "2".
   assert.deepEqual(graph, { ab: ["a"], a: [] });
@@ -58,7 +74,7 @@ test("checkForCyclicDependencies: no cycle - every name ends up in doneDict, bad
   const dependencies = { a: ["b"], b: ["c"], c: [] };
   let doneDict = {};
   let badNames = [];
-  [doneDict, , badNames] = m.checkForCyclicDependencies("a", doneDict, ["a"], dependencies, badNames);
+  [doneDict, , badNames] = checkForCyclicDependencies("a", doneDict, ["a"], dependencies, badNames);
   assert.deepEqual(Object.keys(doneDict).sort(), ["a", "b", "c"]);
   assert.deepEqual(badNames, []);
 });
@@ -67,7 +83,7 @@ test("checkForCyclicDependencies: direct cycle (a -> b -> a) is recorded in badN
   const dependencies = { a: ["b"], b: ["a"] };
   let doneDict = {};
   let badNames = [];
-  [doneDict, , badNames] = m.checkForCyclicDependencies("a", doneDict, ["a"], dependencies, badNames);
+  [doneDict, , badNames] = checkForCyclicDependencies("a", doneDict, ["a"], dependencies, badNames);
   assert.equal(badNames.length, 1);
   assert.ok(badNames[0].includes("a") && badNames[0].includes("b"));
 });
@@ -76,14 +92,14 @@ test("checkForCyclicDependencies: self-reference (a -> a) is a cycle of length 1
   const dependencies = { a: ["a"] };
   let doneDict = {};
   let badNames = [];
-  [doneDict, , badNames] = m.checkForCyclicDependencies("a", doneDict, ["a"], dependencies, badNames);
+  [doneDict, , badNames] = checkForCyclicDependencies("a", doneDict, ["a"], dependencies, badNames);
   assert.deepEqual(badNames, [["a"]]);
 });
 
 test("resolveDependentDefinitions: resolves names in dependency order via the resolve callback", () => {
   const strDict = { a: "b", b: "1" };
   const order = [];
-  const [resultDict, badNames] = m.resolveDependentDefinitions(strDict, ["a", "b"], "0", (name, str, deps, result) => {
+  const [resultDict, badNames] = resolveDependentDefinitions(strDict, ["a", "b"], "0", (name, str, deps, result) => {
     order.push(name);
     result[name] = str;
   });
@@ -96,7 +112,7 @@ test("resolveDependentDefinitions: resolves names in dependency order via the re
 test("resolveDependentDefinitions: cyclic names are degraded to degradeValue before resolve is called", () => {
   const strDict = { a: "b", b: "a" };
   const seenStrs = {};
-  const [, badNames] = m.resolveDependentDefinitions(strDict, ["a", "b"], "DEGRADED", (name, str, deps, result) => {
+  const [, badNames] = resolveDependentDefinitions(strDict, ["a", "b"], "DEGRADED", (name, str, deps, result) => {
     seenStrs[name] = str;
     result[name] = str;
   });
@@ -137,14 +153,14 @@ test("evaluateDependentNumerics: unparseable definitions report via throwError a
 // --- expandDependentExpressions (Expressions) -------------------------------
 
 test("expandDependentExpressions: substitutes each dependency's own expanded, parenthesized definition", () => {
-  const [expanded, badNames] = m.expandDependentExpressions({ a: "b + 1", b: "x * 2" }, ["a", "b"]);
+  const [expanded, badNames] = expandDependentExpressions({ a: "b + 1", b: "x * 2" }, ["a", "b"]);
   assert.deepEqual(badNames, []);
   assert.equal(expanded.b, "x * 2");
   assert.equal(expanded.a, "(x * 2) + 1");
 });
 
 test("expandDependentExpressions: cyclic definitions degrade to '0.0'", () => {
-  const [expanded, badNames] = m.expandDependentExpressions({ a: "b", b: "a" }, ["a", "b"]);
+  const [expanded, badNames] = expandDependentExpressions({ a: "b", b: "a" }, ["a", "b"]);
   assert.ok(badNames.length > 0);
   assert.equal(expanded.a, "0.0");
   assert.equal(expanded.b, "0.0");
@@ -579,44 +595,44 @@ test("migrateGlobalIntSyntax: also rewrites GlobalInt tokens inside per-view fie
 // --- lerp / lerpArrays -------------------------------------------------------
 
 test("lerp: interpolates and clamps t to [0,1]", () => {
-  assert.equal(m.lerp(0, 10, 0.5), 5);
-  assert.equal(m.lerp(0, 10, 0), 0);
-  assert.equal(m.lerp(0, 10, 1), 10);
-  assert.equal(m.lerp(0, 10, 2), 10); // clamped
-  assert.equal(m.lerp(0, 10, -1), 0); // clamped
+  assert.equal(lerp(0, 10, 0.5), 5);
+  assert.equal(lerp(0, 10, 0), 0);
+  assert.equal(lerp(0, 10, 1), 10);
+  assert.equal(lerp(0, 10, 2), 10); // clamped
+  assert.equal(lerp(0, 10, -1), 0); // clamped
 });
 
 test("lerpArrays: interpolates element-wise", () => {
-  assert.deepEqual(m.lerpArrays([0, 10], [10, 20], 0.5), [5, 15]);
+  assert.deepEqual(lerpArrays([0, 10], [10, 20], 0.5), [5, 15]);
 });
 
 // --- alternateBrackets -------------------------------------------------------
 
 test("alternateBrackets: alternates nesting depth between ( and [ from the outside in (outermost bracket type depends on total nesting depth)", () => {
-  assert.equal(m.alternateBrackets("(a)"), "(a)");
-  assert.equal(m.alternateBrackets("((a))"), "[(a)]");
-  assert.equal(m.alternateBrackets("(((a)))"), "([(a)])");
+  assert.equal(alternateBrackets("(a)"), "(a)");
+  assert.equal(alternateBrackets("((a))"), "[(a)]");
+  assert.equal(alternateBrackets("(((a)))"), "([(a)])");
 });
 
 test("alternateBrackets: leaves text outside brackets untouched and handles multiple bracket groups", () => {
-  assert.equal(m.alternateBrackets("f((a)) + g((b))"), "f[(a)] + g[(b)]");
+  assert.equal(alternateBrackets("f((a)) + g((b))"), "f[(a)] + g[(b)]");
 });
 
 // --- isEmptyString / getDuplicates / sortObject -----------------------------
 
 test("isEmptyString: true for empty or whitespace-only strings, false otherwise", () => {
-  assert.equal(m.isEmptyString(""), true);
-  assert.equal(m.isEmptyString("   \n\t "), true);
-  assert.equal(m.isEmptyString("a"), false);
+  assert.equal(isEmptyString(""), true);
+  assert.equal(isEmptyString("   \n\t "), true);
+  assert.equal(isEmptyString("a"), false);
 });
 
 test("getDuplicates: returns each duplicated element once, preserving no particular order requirement", () => {
-  assert.deepEqual(m.getDuplicates(["a", "b", "a", "c", "b", "b"]).sort(), ["a", "b"]);
-  assert.deepEqual(m.getDuplicates(["a", "b", "c"]), []);
+  assert.deepEqual(getDuplicates(["a", "b", "a", "c", "b", "b"]).sort(), ["a", "b"]);
+  assert.deepEqual(getDuplicates(["a", "b", "c"]), []);
 });
 
 test("sortObject: sorts keys case-insensitively, preserving values", () => {
-  const sorted = m.sortObject({ Banana: 2, apple: 1, Cherry: 3 });
+  const sorted = sortObject({ Banana: 2, apple: 1, Cherry: 3 });
   assert.deepEqual(Object.keys(sorted), ["apple", "Banana", "Cherry"]);
   assert.deepEqual(sorted, { apple: 1, Banana: 2, Cherry: 3 });
 });
@@ -669,7 +685,7 @@ test("isReservedName: true for the names a parameter's uniform would collide wit
 
 test("shaderOutsideHelperFunctions: keeps global scope and main(), dropping other functions' bodies and parameters", () => {
   const shader = "uniform float g; // float commented\nfloat helper(float p) { float h = p; return h; }\nvoid main() { float m = 1.0; if (m > 0.0) { float n = m; } }";
-  const declared = [...m.shaderOutsideHelperFunctions(shader).matchAll(/float\s+(\w+)/g)].map((x) => x[1]);
+  const declared = [...shaderOutsideHelperFunctions(shader).matchAll(/float\s+(\w+)/g)].map((x) => x[1]);
   assert.deepEqual(declared, ["g", "helper", "m", "n"]);
 });
 

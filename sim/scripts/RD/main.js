@@ -147,6 +147,53 @@ import {
 import { closestMatch } from "../../../assets/js/closest-match.js";
 import { Stats } from "../stats.min.js";
 import { createWelcomeTour } from "./tours.js";
+import {
+  modulo,
+  replaceStrAtIndex,
+  removeWhitespace,
+  removeExtraWhitespace,
+  isEmptyString,
+  capitaliseFirstLetter,
+  getDuplicates,
+  sortObject,
+  diffObjects,
+  shortestStringNum,
+  lerp,
+  lerpArrays,
+  median,
+  sameValues,
+  formatLabelNum,
+  formatLabels,
+  formatStepRate,
+  computeColourBrightness,
+  highlightStringinString,
+} from "./utils.js";
+import {
+  alternateBrackets,
+  replaceBinOperator,
+  replaceGauss,
+  replaceBump,
+  replaceSymbolsInStr,
+  removeEvalAt,
+  canonicalizeIntExpr,
+  parseNamedDefinition,
+  serializeDefinitions,
+  checkForCyclicDependencies,
+  resolveDependentDefinitions,
+  expandDependentExpressions,
+  replaceFunctionInTeX,
+  partialDerivativeTEX,
+  replaceUserDefDiff,
+  replaceUserDefReac,
+  sortBCsString,
+} from "./expressions.js";
+import {
+  enableImageLookupInShader,
+  nonConstantDiffusionEvaluateInSpaceStr,
+  groupifyShaderStr,
+  shaderOutsideHelperFunctions,
+  setEqualYDiffusionCoefficientsShader,
+} from "./shader_strings.js";
 import { WebGPUBackend, undefinedName } from "./webgpu/webgpu_backend.js";
 import { WebGPUDisplay } from "./webgpu/display.js";
 import { Readback } from "./webgpu/readback.js";
@@ -4321,10 +4368,6 @@ async function VisualPDE(url) {
     return true;
   }
 
-  function median(values) {
-    return [...values].sort((a, b) => a - b)[values.length >> 1];
-  }
-
   // Whether WebGPU keeps the display smooth (see paceGpuFrame and gpuStepsPerFrame), which
   // performance mode gives up for as much simulation as possible.
   function gpuSmoothDisplay() {
@@ -5722,11 +5765,6 @@ async function VisualPDE(url) {
     ]);
   }
 
-  // Whether two arrays of numbers are the same, NaNs included.
-  function sameValues(a, b) {
-    return a.length == b.length && a.every((v, k) => Object.is(v, b[k]));
-  }
-
   // Sets the line plot's (and any overlay line's) points and colours from buffer, which
   // holds the post-processed values.
   function updateLinePlot() {
@@ -6363,47 +6401,6 @@ async function VisualPDE(url) {
     return out;
   }
 
-  function nonConstantDiffusionEvaluateInSpaceStr(str, label) {
-    let out = "";
-    let xRegex = /\bx\b/g;
-    let yRegex = /\by\b/g;
-    let uvwqRegex = /\buvwq\.\b/g;
-
-    out += "float D" + label + " = " + str;
-    out +=
-      "float D" +
-      label +
-      "L = " +
-      str.replaceAll(xRegex, "(x-dx)").replaceAll(uvwqRegex, "uvwqL.");
-    out +=
-      "float D" +
-      label +
-      "R = " +
-      str.replaceAll(xRegex, "(x+dx)").replaceAll(uvwqRegex, "uvwqR.");
-    out +=
-      "float D" +
-      label +
-      "T = " +
-      str.replaceAll(yRegex, "(y+dy)").replaceAll(uvwqRegex, "uvwqT.");
-    out +=
-      "float D" +
-      label +
-      "B = " +
-      str.replaceAll(yRegex, "(y-dy)").replaceAll(uvwqRegex, "uvwqB.");
-    return out;
-  }
-
-  // Set the y diffusion coefficients to be equal to the x counterparts.
-  function setEqualYDiffusionCoefficientsShader(label) {
-    let out = "";
-    out += "float D" + label + "y = D" + label + "x;\n";
-    out += "float D" + label + "yL = D" + label + "xL;\n";
-    out += "float D" + label + "yR = D" + label + "xR;\n";
-    out += "float D" + label + "yT = D" + label + "xT;\n";
-    out += "float D" + label + "yB = D" + label + "xB;\n";
-    return out;
-  }
-
   function parseShaderString(str, allowIntegrals = true) {
     // Parse a string into valid GLSL by replacing u,v,^, and integers.
     // Pad the string.
@@ -6563,37 +6560,6 @@ async function VisualPDE(url) {
     // Insert MINX and MINY.
     str = replaceMINXMINY(str);
 
-    return str;
-  }
-
-  function replaceBinOperator(str, op, form) {
-    // Take a string and replace all instances of op with form,
-    // matching balanced brackets.
-    const needsEscaping = "^*".includes(op);
-    if (str.indexOf(op) > -1) {
-      let tab = [];
-      let joker = "___joker___";
-      while (str.indexOf("(") > -1) {
-        str = str.replace(/(\([^\(\)]*\))/g, function (m, t) {
-          tab.push(t);
-          return joker + (tab.length - 1);
-        });
-      }
-
-      tab.push(str);
-      str = joker + (tab.length - 1);
-      let regex;
-      if (needsEscaping) {
-        regex = new RegExp("([\\w.]*)\\s*\\" + op + "\\s*(-?[\\w.]*)", "g");
-      } else {
-        regex = new RegExp("([\\w.]*)\\s*" + op + "\\s*(-?[\\w.]*)", "g");
-      }
-      while (str.indexOf(joker) > -1) {
-        str = str.replace(new RegExp(joker + "(\\w+)", "g"), function (m, d) {
-          return tab[d] ? tab[d].replace(regex, form) : "";
-        });
-      }
-    }
     return str;
   }
 
@@ -7803,23 +7769,6 @@ async function VisualPDE(url) {
     }
   }
 
-  // Rewrites group 0's stencil and output variable names (uvwq*, updated, RHS, timescales)
-  // to group 1's (uvwq2*, updated2, RHS2, timescalesGroup1). A no-op for group 0.
-  function groupifyShaderStr(shaderStr, group) {
-    if (group === 0) return shaderStr;
-    return shaderStr.replaceAll(
-      /\buvwqLL\b|\buvwqRR\b|\buvwqTT\b|\buvwqBB\b|\buvwqL\b|\buvwqR\b|\buvwqT\b|\buvwqB\b|\buvwq(?:[XY](?:[FB](?:[XY][FB])?)?|XX|YY)\b|\buvwq\b|\bupdated\b|\bRHS\b|\btimescales\b/g,
-      function (m) {
-        if (m === "uvwq") return "uvwq2";
-        if (m === "updated") return "updated2";
-        if (m === "RHS") return "RHS2";
-        if (m === "timescales") return "timescalesGroup1";
-        // uvwqL/R/T/B/LL/RR/TT/BB and derivatives: insert "2" right after "uvwq".
-        return "uvwq2" + m.slice(4);
-      },
-    );
-  }
-
   function selectSpeciesInShaderStr(shaderStr, species) {
     // If there are no species, then return an empty string.
     if (species.length == 0) {
@@ -8146,16 +8095,6 @@ async function VisualPDE(url) {
     return calls;
   }
 
-  // Canonicalizes an Int(...) argument for equality comparison, so that e.g. "u*v" and
-  // "u * v" (or any other incidental whitespace difference) are recognized as the same
-  // expression and share a slot. Used only as a comparison/lookup key (options.globalIntExprs
-  // entries, parseShaderString's slot lookup) - never shown to the user or spliced into
-  // shader/TeX output, so there's no readability cost to stripping whitespace entirely
-  // rather than just collapsing it.
-  function canonicalizeIntExpr(str) {
-    return str.replace(/\s+/g, "");
-  }
-
   /**
    * Replaces every top-level Int(expression) call in str with replacer(canonicalExpr),
    * using parseIntCalls() to correctly match balanced brackets around each argument (so
@@ -8421,15 +8360,6 @@ async function VisualPDE(url) {
     controllers["reaction_" + i].hide();
     controllers["initCond_" + i].hide();
     controllers[defaultSpecies[i - 1] + "BCs"].hide();
-  }
-
-  function diffObjects(o1, o2) {
-    const diff = Object.fromEntries(
-      Object.entries(o1).filter(
-        ([k, v]) => JSON.stringify(o2[k]) !== JSON.stringify(v),
-      ),
-    );
-    return JSON.parse(JSON.stringify(diff));
   }
 
   function setPostFunFragShader() {
@@ -9521,19 +9451,6 @@ async function VisualPDE(url) {
     );
   }
 
-  // The TeX of the partial derivative operator that a derivative suffix (e.g. "xxy") stands
-  // for: \pd{}{x}, \pdd{}{x}, or a \frac with powers for higher and mixed orders.
-  function partialDerivativeTEX(suffix) {
-    const nx = suffix.split("x").length - 1;
-    const ny = suffix.split("y").length - 1;
-    if (nx + ny == 1) return "\\pd{}{" + (nx ? "x" : "y") + "}";
-    if (nx + ny == 2 && (nx == 0 || ny == 0)) return "\\pdd{}{" + (nx ? "x" : "y") + "}";
-    const part = (c, n) =>
-      n == 0 ? "" : "\\partial " + c + (n > 1 ? "^{" + n + "}" : "");
-    const denominator = [part("x", nx), part("y", ny)].filter(Boolean).join(" ");
-    return "\\frac{\\partial^{" + (nx + ny) + "}}{" + denominator + "}";
-  }
-
   function parseStringToTEX(str) {
     // Parse a string into valid TEX by replacing * and ^.
 
@@ -9656,269 +9573,6 @@ async function VisualPDE(url) {
     return str;
   }
 
-  function replaceFunctionInTeX(str, func, withBrackets) {
-    // Replace a function, like sqrt(expression), with \sqrt{expression} in str.
-    // withBrackets specifies whether or not we should include brackets in between {}.
-    var newStr = str;
-    var addedChars = 0;
-    const matches = str.matchAll(new RegExp("\\b" + func + "\\b", "g"));
-    let funcInd,
-      startInd,
-      endInd,
-      subStr,
-      depth,
-      foundBracket,
-      ind,
-      offset = 0;
-    for (const match of matches) {
-      funcInd = match.index;
-      startInd = funcInd + func.length;
-      subStr = str.slice(startInd);
-      ind = 0;
-      depth = 0;
-      foundBracket = false;
-      // Try to find paired brackets.
-      while (
-        (ind <= subStr.length) &
-        (!foundBracket | !(foundBracket && depth == 0))
-      ) {
-        depth += ["(", "["].includes(subStr[ind]);
-        depth -= [")", "]"].includes(subStr[ind]);
-        foundBracket |= depth;
-        ind += 1;
-      }
-      // If we found correctly paired brackets, replace them. Otherwise, do nothing.
-      if (foundBracket && depth == 0) {
-        endInd = ind - 1 + startInd;
-        // Insert a backslash and record that we've added a character, which will shift all indices in newStr.
-        newStr = insertStrAtIndex(newStr, "\\", funcInd + offset);
-        offset += 1;
-        if (withBrackets) {
-          // Insert braces before and after brackets.
-          newStr = insertStrAtIndex(newStr, "{", startInd + offset);
-          offset += 1;
-          newStr = insertStrAtIndex(newStr, "}", endInd + 1 + offset);
-          offset += 1;
-        } else {
-          newStr = replaceStrAtIndex(newStr, "{", startInd + offset);
-          newStr = replaceStrAtIndex(newStr, "}", endInd + offset);
-        }
-      }
-    }
-    return newStr;
-  }
-
-  function enableImageLookupInShader(str) {
-    // Enable function evaluation in shaders.
-    var newStr = str;
-    const matches = str.matchAll(/\bI_([TS])([RGBA])?\b/g);
-    let funcInd,
-      startInd,
-      endInd,
-      subStr,
-      argStr,
-      args,
-      depth,
-      foundBracket,
-      ind,
-      toAddPart,
-      toAdd,
-      imNum,
-      component,
-      offset = 0;
-    const imageLookup = { S: "One", T: "Two" };
-    const componentLookup = { R: "r", G: "g", B: "b", A: "a" };
-    for (const match of matches) {
-      funcInd = match.index;
-      imNum = imageLookup[match[1]];
-      startInd = funcInd + match[0].length;
-      subStr = str.slice(startInd);
-      ind = 0;
-      depth = 0;
-      foundBracket = false;
-      // Try to find paired brackets.
-      while (
-        (ind <= subStr.length) &
-        (!foundBracket | !(foundBracket && depth == 0))
-      ) {
-        depth += ["("].includes(subStr[ind]);
-        depth -= [")"].includes(subStr[ind]);
-        foundBracket |= depth;
-        ind += 1;
-      }
-      // If we found correctly paired brackets, replace with the function. Otherwise, do nothing.
-      if (foundBracket && depth == 0) {
-        endInd = ind - 1 + startInd;
-        argStr = newStr.slice(startInd + offset + 1, endInd + offset);
-        // Detect at most two arguments separated by a comma.
-        args = argStr.split(",");
-        // If the second argument is empty, put a zero in its place.
-        if (args.length == 1 || args[1].trim().length == 0) args[1] = "0";
-        args[0] = "(" + args[0] + "-MINX)/L_x";
-        args[1] = "(" + args[1] + "-MINY)/L_y";
-        toAddPart =
-          "texture(imageSource" + imNum + ",vec2(" + args.join(",") + ")).";
-        if (match[2] != undefined) {
-          component = componentLookup[match[2]];
-          toAdd = toAddPart + component;
-        } else {
-          component = ["r", "g", "b"];
-          toAdd =
-            "(" + component.map((c) => toAddPart + c).join("+") + ")/3.0 ";
-        }
-
-        newStr = replaceStrAtIndex(
-          newStr,
-          toAdd,
-          funcInd + offset,
-          endInd + 1 + offset,
-        );
-        offset += toAdd.length - endInd + funcInd - 1;
-      }
-    }
-    return newStr;
-  }
-
-  function alternateBrackets(str) {
-    // Given a string with balanced bracketing, loop nested brackets through (, [.
-    const openBrackets = ["(", "["];
-    const closeBrackets = [")", "]"];
-    let bracketInd = 0;
-    let bracketDepth = 0;
-    let lastIndex = 0;
-    let chunk = "";
-    let strOut = "";
-    for (var ind = 0; ind < str.length; ind++) {
-      if (openBrackets.includes(str[ind])) {
-        bracketInd += 1;
-        bracketDepth += 1;
-      } else if (closeBrackets.includes(str[ind])) {
-        bracketInd -= 1;
-      }
-      if (bracketInd == 0 && bracketDepth > 0) {
-        chunk = str.slice(lastIndex, ind + 1);
-        strOut = strOut + alternateBracketsGivenDepth(chunk, bracketDepth);
-        bracketDepth = 0;
-        lastIndex = ind + 1;
-      }
-    }
-    strOut = strOut + str.slice(lastIndex);
-    return strOut;
-  }
-
-  function alternateBracketsGivenDepth(str, depth) {
-    // Given a string with balanced bracketing, loop nested brackets through (, [.
-    // Requires a depth so that it can select brackets from the outside in, i.e. 321123
-    const openBrackets = ["(", "["];
-    const closeBrackets = [")", "]"];
-    let bracketInd = modulo(-depth + 1, openBrackets.length);
-    for (var ind = 0; ind < str.length; ind++) {
-      if (openBrackets.includes(str[ind])) {
-        str = replaceStrAtIndex(str, openBrackets[bracketInd], ind);
-        bracketInd += 1;
-        // Ensure that bracketInd is a valid index that loops through listToSub.
-        bracketInd = modulo(bracketInd, openBrackets.length);
-      } else if (closeBrackets.includes(str[ind])) {
-        bracketInd -= 1;
-        // Ensure that bracketInd is a valid index that loops through listToSub.
-        bracketInd = modulo(bracketInd, openBrackets.length);
-        str = replaceStrAtIndex(str, closeBrackets[bracketInd], ind);
-      }
-    }
-    return str;
-  }
-
-  function modulo(num, quot) {
-    return ((num % quot) + quot) % quot;
-  }
-
-  function replaceStrAtIndex(str, toSub, ind, resumeInd) {
-    if (resumeInd == undefined) resumeInd = ind + 1;
-    return str.slice(0, ind) + toSub + str.slice(resumeInd, str.length);
-  }
-
-  function insertStrAtIndex(str, toAdd, ind) {
-    return str.slice(0, ind) + toAdd + str.slice(ind, str.length);
-  }
-
-  function removeWhitespace(str) {
-    str = str.replace(/\s+/g, "  ").trim();
-    return str;
-  }
-
-  /**
-   * Parses a whitespace-agnostic "name = definition" string (shared by Parameters and
-   * Expressions). Returns {name, rhs} or null if unparseable.
-   *
-   * @param {string} str - The definition string to parse.
-   * @returns {{name: string, rhs: string}|null}
-   */
-  function parseNamedDefinition(str) {
-    const match = str.match(/^\s*([a-zA-Z]\w*)\s*=\s*(.*)$/s);
-    if (!match) return null;
-    return { name: match[1], rhs: match[2].trim() };
-  }
-
-  /**
-   * Builds a dependency graph {name: [otherNamesReferenced]} from a name->definition-string
-   * dict, via word-boundary scan. Shared by Parameters' numeric evaluation and Expressions'
-   * substitution ordering.
-   */
-  function buildDependencyGraph(strDict, names) {
-    const dependencies = {};
-    names.forEach((name) => {
-      dependencies[name] = names.filter(
-        (other) =>
-          other != name &&
-          new RegExp("\\b" + other + "\\b").test(strDict[name] ?? ""),
-      );
-    });
-    return dependencies;
-  }
-
-  /**
-   * Shared by evaluateDependentNumerics (Parameters) and expandDependentExpressions
-   * (Expressions): builds a dependency graph over strDict/names, checks for cyclic
-   * dependencies (reusing the generic checkForCyclicDependencies()), degrades any name
-   * involved in a cycle to `degradeValue`, then resolves every name in dependency order
-   * (each name's dependencies are always resolved before it, since
-   * checkForCyclicDependencies's DFS only marks a name "done" once all its dependencies are)
-   * via the caller-supplied `resolve` callback.
-   *
-   * @param {Object} strDict - name -> raw definition string.
-   * @param {string[]} names - The full list of names to resolve.
-   * @param {string} degradeValue - What a cyclic name's definition is replaced with.
-   * @param {function(string, string, string[], Object): void} resolve - Called once per name,
-   *   in dependency order, as (name, degradedDefStr, dependencyNames, resultDict); should set
-   *   resultDict[name].
-   * @returns {[Object, Array]} [resultDict, badNames] - badNames is a list of cyclic paths.
-   */
-  function resolveDependentDefinitions(strDict, names, degradeValue, resolve) {
-    const dependencies = buildDependencyGraph(strDict, names);
-    let doneDict = {};
-    let badNames = [];
-    for (const name of names) {
-      if (!(name in doneDict)) {
-        [doneDict, , badNames] = checkForCyclicDependencies(
-          name,
-          doneDict,
-          [name],
-          dependencies,
-          badNames,
-        );
-      }
-    }
-    const degradedStrDict = { ...strDict };
-    badNames.forEach((path) =>
-      path.forEach((name) => (degradedStrDict[name] = degradeValue)),
-    );
-    const resultDict = {};
-    Object.keys(doneDict).forEach((name) => {
-      resolve(name, degradedStrDict[name], dependencies[name], resultDict);
-    });
-    return [resultDict, badNames];
-  }
-
   /**
    * Evaluates numeric values for a set of (possibly interdependent, but not cyclically so)
    * definitions - used for kinetic parameters.
@@ -9947,31 +9601,6 @@ async function VisualPDE(url) {
           );
           valDict[name] = 0;
         }
-      },
-    );
-  }
-
-  /**
-   * Fully expands a set of (possibly interdependent, but not cyclically so) text-macro
-   * definitions - used for expressions. Each name's definition has every expression name it
-   * references replaced by that name's own (already fully expanded) definition, parenthesized
-   * for precedence safety.
-   *
-   * @returns {[Object, Array]} [expandedDict, badNames].
-   */
-  function expandDependentExpressions(strDict, names) {
-    return resolveDependentDefinitions(
-      strDict,
-      names,
-      "0.0",
-      (name, str, deps, expandedDict) => {
-        deps.forEach((dep) => {
-          str = str.replaceAll(
-            new RegExp("\\b" + dep + "\\b", "g"),
-            "(" + (expandedDict[dep] ?? "0.0") + ")",
-          );
-        });
-        expandedDict[name] = str;
       },
     );
   }
@@ -10115,16 +9744,6 @@ async function VisualPDE(url) {
       true,
       hooks,
     );
-  }
-
-  /**
-   * Serializes a "definitions list"'s strs dict back into a single semicolon-joined string,
-   * for storage in the corresponding options field.
-   */
-  function serializeDefinitions(strs) {
-    return Object.values(strs)
-      .map((str) => str.replaceAll(/"\s+"/g, " "))
-      .join(";");
   }
 
   function getParamsContext() {
@@ -10661,27 +10280,6 @@ async function VisualPDE(url) {
     }
   }
 
-  function formatLabelNum(num, depth) {
-    return num.toPrecision(depth);
-  }
-
-  function shortestStringNum(num, depth) {
-    num = parseFloat(num);
-    const dec = num.toFixed(depth);
-    const sig = num.toPrecision(depth);
-    return dec.length < sig.length ? dec : sig;
-  }
-
-  function formatLabels(min, max) {
-    const depth = 3;
-    // Check if both numbers are close to zero, in which case use exponential notation.
-    if (Math.abs(min) < 0.001 && Math.abs(max) < 0.001) {
-      return [min.toExponential(depth - 1), max.toExponential(depth - 1)];
-    }
-    // Otherwise, use the shorter of dp or sig fig for each.
-    return [shortestStringNum(min, depth), shortestStringNum(max, depth)];
-  }
-
   function configureTimeDisplay() {
     if (options.timeDisplay) {
       $("#timeDisplay").show();
@@ -11125,24 +10723,6 @@ async function VisualPDE(url) {
     return shaderReservedNames;
   }
 
-  // The text of a shader that's at global scope or in main(), without comments or functions'
-  // parameters (which are local to them).
-  function shaderOutsideHelperFunctions(shader) {
-    const code = shader.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
-    let depth = 0;
-    let inMain = false;
-    let header = "";
-    let out = "";
-    for (const c of code) {
-      if (depth == 0 && c == "{") inMain = /\bmain\s*\(\s*\)\s*$/.test(header);
-      if (depth == 0 || inMain) out += c;
-      if (depth == 0) header = c == ";" || c == "{" ? "" : header + c;
-      if (c == "{") depth++;
-      if (c == "}" && --depth == 0) inMain = false;
-    }
-    return out.replace(/\([^()]*\)\s*\{/g, "() {");
-  }
-
   function isReservedName(name, exclusions) {
     if (exclusions == undefined) exclusions = [];
     // GLSL reserves names beginning gl_ or containing two underscores in a row.
@@ -11151,18 +10731,6 @@ async function VisualPDE(url) {
       let regex = new RegExp("\\b" + badName + "\\b", "g");
       return regex.test(name);
     });
-  }
-
-  function replaceUserDefReac(str, regex, input) {
-    // Insert user-defined input into str in place of original.
-    // E.g. str = some TeX, regex = /\bf\b/g; input = "2*a".
-    // If the input is 0, just remove the original from str.
-    if (input.replace(/\s+/g, "  ").trim() == "0")
-      return str.replaceAll(regex, "");
-    // If the input contains letters (like parameters), insert it with delimiters.
-    if (input.match(/[a-zA-Z]/)) return str.replaceAll(regex, input);
-    // If it's just a scalar, keep the original, but replace old species with new.
-    return str;
   }
 
   function replaceUserDefTimescale(str, regex, input) {
@@ -11174,22 +10742,6 @@ async function VisualPDE(url) {
     // If the input contains a + or -, add parentheses.
     if (input.match(/[\+\-]/)) input = "(" + input + ")";
     return str.replaceAll(regex, input);
-  }
-
-  function replaceUserDefDiff(str, regex, input, delimiters) {
-    // Insert user-defined input into str in place of original, surrounded by delimiters.
-    // E.g. str = some TeX, regex = /(D_{uu}) (\\vnabla u)/g; input = "2*a"; delimiters = " ";
-    // If the input is 0, just remove the original from str.
-    if (delimiters == undefined) delimiters = "  ";
-    // Special cases.
-    let trimmed = input.replace(/\s+/g, "  ").trim();
-    if (["0", "0.0", "-0", "-0.0", "+0", "+0.0"].includes(trimmed))
-      return str.replaceAll(regex, "");
-    if (trimmed == "1" || trimmed == "1.0") return str.replaceAll(regex, "$2");
-    if (trimmed == "-1" || trimmed == "-1.0")
-      return str.replaceAll(regex, delimiters[0] + "-" + delimiters[1] + "$2");
-    // Otherwise, just do the substitution.
-    return str.replaceAll(regex, delimiters[0] + input + delimiters[1] + "$2");
   }
 
   function configurePlotType() {
@@ -11545,15 +11097,6 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Computes the brightness of a given color represented as an array of RGB values.
-   * @param {number[]} col - An array of RGB values representing a color.
-   * @returns {number} The brightness of the color.
-   */
-  function computeColourBrightness(col) {
-    return col.reduce((a, b) => a + b, 0) / 3;
-  }
-
-  /**
    * Sets the range of the colour axis based on the extremes of the computed values.
    * @returns {void}
    */
@@ -11834,38 +11377,6 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Replaces all the symbols from originals, found as whole words, with those in replacements, allowing for an optional trailing regex.
-   * @param {string} str - The string to replace symbols in.
-   * @param {string[]} originals - The original symbols to replace.
-   * @param {string[]} replacements - The replacement symbols.
-   * @param {string} [optional] - An optional trailing regex.
-   * @returns {string} The string with replaced symbols.
-   */
-  function replaceSymbolsInStr(str, originals, replacements, optional) {
-    if (optional == undefined) optional = "";
-    // Delimit the placeholders with private-use characters so that they can't clash with user text.
-    const placeholders = new Array(originals.length)
-      .fill(0)
-      .map((x, i) => "\uE000" + i.toString() + "\uE001");
-    let regex;
-    // Substitute in placeholders first.
-    for (var ind = 0; ind < originals.length; ind++) {
-      // An empty original would match at every word boundary.
-      if (!originals[ind]) continue;
-      regex = new RegExp(
-        "\\b(" + originals[ind] + ")(" + optional + ")?\\b",
-        "g",
-      );
-      str = str.replaceAll(regex, placeholders[ind] + "$2");
-    }
-    // Now swap the placeholders for the new reactions.
-    for (var ind = 0; ind < placeholders.length; ind++) {
-      str = str.replaceAll(placeholders[ind], replacements[ind]);
-    }
-    return str;
-  }
-
-  /**
    * Sets the xy coordinates of the display line, scaling y by options.threeDHeightScale.
    * @param {Object} lineObj - The line object to set the coordinates for.
    * @param {Array<Array<number>>} xy - The xy coordinates to set.
@@ -11952,36 +11463,6 @@ async function VisualPDE(url) {
       (val - colourmapEndpoints[ind]) /
         (colourmapEndpoints[ind + 1] - colourmapEndpoints[ind]),
     ).map((x) => x.clamp(0, 1));
-  }
-
-  /**
-   * Linearly interpolates between two arrays v1 and v2, with t in [0,1].
-   *
-   * @param {Array} v1 - The first array to interpolate from.
-   * @param {Array} v2 - The second array to interpolate to.
-   * @param {number} t - The interpolation factor, in the range [0, 1].
-   * @returns {Array} The interpolated array.
-   */
-  function lerpArrays(v1, v2, t) {
-    // Linear interpolation of arrays v1 and v2, with t in [0,1].
-    let res = new Array(v1.length);
-    for (let i = 0; i < res.length; i++) {
-      res[i] = lerp(v1[i], v2[i], t);
-    }
-    return res;
-  }
-
-  /**
-   * Linear interpolation between two values.
-   * @param {number} a - The starting value.
-   * @param {number} b - The ending value.
-   * @param {number} t - The interpolation factor, between 0 and 1.
-   * @returns {number} The interpolated value.
-   */
-  function lerp(a, b, t) {
-    // Linear interpolation between a and b, with t in [0,1].
-    t = t.clamp(0, 1);
-    return (1 - t) * a + t * b;
   }
 
   /**
@@ -13105,13 +12586,6 @@ async function VisualPDE(url) {
     copyToClipboard(str);
   }
 
-  // A number of timesteps per second for the stats display, e.g. 950, 86k or 1.2M.
-  function formatStepRate(stepRate) {
-    if (stepRate < 1e3) return Math.round(stepRate).toString();
-    const [value, unit] = stepRate < 1e6 ? [stepRate / 1e3, "k"] : [stepRate / 1e6, "M"];
-    return (value < 10 ? value.toFixed(1) : Math.round(value)) + unit;
-  }
-
   /**
    * Configures the stats GUI based on the value of the `options.showStats` flag.
    */
@@ -13631,13 +13105,6 @@ async function VisualPDE(url) {
     }
   }
 
-  function getDuplicates(strarr) {
-    const seen = {};
-    let dups = [];
-    strarr.forEach((e) => (seen[e] ? dups.push(e) : (seen[e] = true)));
-    return Array.from(new Set(dups));
-  }
-
   /**
    * Creates arrows and adds them to the scene.
    */
@@ -13809,27 +13276,6 @@ async function VisualPDE(url) {
   }
 
   /**
-   * The `sortObject()` function is used to sort the keys of an object in case-insensitive alphabetical order and return a new object with the sorted keys.
-   *
-   * @param {Object} obj - The input object to be sorted.
-   *
-   * The function first gets the keys of the object and sorts them using the `sort()` method with a custom comparator function that compares the keys in a case-insensitive manner.
-   * It then uses the `reduce()` method to create a new object with the sorted keys and their corresponding values from the original object.
-   *
-   * @returns {Object} - The new object with keys sorted in case-insensitive alphabetical order.
-   */
-  function sortObject(obj) {
-    return Object.keys(obj)
-      .sort(function (a, b) {
-        return a.toLowerCase().localeCompare(b.toLowerCase());
-      })
-      .reduce(function (result, key) {
-        result[key] = obj[key];
-        return result;
-      }, {});
-  }
-
-  /**
    * The `replaceMINXMINY()` function is used to replace occurrences of 'MINX' and 'MINY' in a string with the respective minimum X and Y values from the options object.
    *
    * @param {string} str - The input string, typically a shader code, where the placeholders 'MINX' and 'MINY' will be replaced.
@@ -13842,51 +13288,6 @@ async function VisualPDE(url) {
     str = str.replaceAll(/\bMINX\b/g, () => parseShaderString(options.minX));
     str = str.replaceAll(/\bMINY\b/g, () => parseShaderString(options.minY));
     return str;
-  }
-
-  /**
-   * The `checkForCyclicDependencies()` function is used to check for cyclic dependencies in a directed graph of names
-   *
-   * @param {string} name - The name of the node to start the check from.
-   * @param {Object} doneDict - An object that keeps track of the nodes that have been checked.
-   * @param {Array} stack - An array that represents the current path of nodes being checked.
-   * @param {Object} dependencies - An object that maps each node to an array of its dependencies.
-   * @param {Array} badNames - An array that stores the paths that contain cyclic dependencies.
-   *
-   * The function uses a depth-first search algorithm to traverse the graph. If it encounters a node that is already in the current path, it has found a cycle, and it adds the cyclic path to `badNames`.
-   *
-   * @returns {Array} - Returns an array containing the updated `doneDict`, `stack`, and `badNames`.
-   */
-  function checkForCyclicDependencies(
-    name,
-    doneDict,
-    stack,
-    dependencies,
-    badNames,
-  ) {
-    // If we know the name is safe already, don't do anything.
-    if (name in doneDict) return [doneDict, stack.slice(0, -1), badNames];
-    // Find any names and check them.
-    for (const otherName of dependencies[name]) {
-      // Check if it's something we're already trying to evaluate.
-      if (stack.includes(otherName)) {
-        // We've hit a quantity that we're already trying to evaluate - cyclic!
-        // Record the name as bad so that we can throw an error.
-        badNames.push(stack.slice(stack.indexOf(otherName)));
-      } else {
-        // Otherwise, check for its dependencies.
-        [doneDict, , badNames] = checkForCyclicDependencies(
-          otherName,
-          doneDict,
-          [...stack, otherName],
-          dependencies,
-          badNames,
-        );
-      }
-    }
-    // Record that we've done this name.
-    doneDict[name] = true;
-    return [doneDict, stack.slice(0, -1), badNames];
   }
 
   // Shows the brush's shape as the cursor over a plane plot, if the brush is enabled.
@@ -13934,19 +13335,6 @@ async function VisualPDE(url) {
         );
         break;
     }
-  }
-
-  /**
-   * The `isEmptyString()` function checks if a given string is empty or contains only whitespace characters.
-   *
-   * @param {string} str - The string to check.
-   *
-   * The function uses a regular expression (`/^\s*$/`) to test the string. This regular expression matches strings that start and end with zero or more whitespace characters.
-   *
-   * @returns {boolean} - Returns true if the string is empty or contains only whitespace characters. Returns false otherwise.
-   */
-  function isEmptyString(str) {
-    return /^\s*$/.test(str);
   }
 
   // Records a video of the canvas, at most 30 frames per second and 60 seconds long, which
@@ -14163,23 +13551,6 @@ async function VisualPDE(url) {
         "*float(textureCoords.y - step_y >= 0.0)*float(textureCoords.y + step_y <= 1.0)";
     }
     return str;
-  }
-
-  /**
-   * Replaces all occurrences of a substring in a string with a highlighted version of the substring.
-   * @param {string} str - The string to search and replace in.
-   * @param {string} substr - The substring to search for and replace.
-   * @param {string} [highlightClass="highlight"] - The CSS class to apply to the highlighted substring.
-   * @returns {string} The modified string with highlighted substrings.
-   */
-  function highlightStringinString(str, substr, highlightClass) {
-    if (highlightClass == undefined) {
-      highlightClass = "highlight";
-    }
-    return str.replaceAll(
-      substr,
-      `<span class="${highlightClass}">${substr}</span>`,
-    );
   }
 
   /**
@@ -14508,81 +13879,6 @@ async function VisualPDE(url) {
     return str;
   }
 
-  /**
-   * Replaces occurrences of Gauss(blah) with correct shader syntax.
-   *
-   * @param {string} str - The input string to be modified.
-   * @returns {string} The modified string.
-   */
-  function replaceGauss(str) {
-    // Find all calls to Gauss in the string.
-    const calls = findAllFunCalls(str, "Gauss");
-
-    // If there are no calls to Gauss, return the string unchanged.
-    if (calls.length == 0) return str;
-
-    // Sort matches in reverse order (innermost to outermost).
-    calls.sort((a, b) => b.start - a.start);
-
-    let output = str;
-
-    for (const { start, end, args } of calls) {
-      // Default to no change.
-      let replacement = output.slice(start, end);
-      // Replace Gauss(meanx, meany, sx, sy, rho) with Gauss(x, y, meanx, meany, sx, sy, rho).
-      if (args.length == 5) {
-        replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]},${args[3]},${args[4]})`;
-      } else if (args.length == 4) {
-        // Replace Gauss(meanx, meany, sx, sy) with Gauss(x, y, meanx, meany, sx, sy, 0).
-        replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]},${args[3]},0)`;
-      } else if (args.length == 3) {
-        // Replace Gauss(meanx, meany, sd) with Gauss(x, y, meanx, meany, sd, sd, 0).
-        replacement = `Gauss(x,y,${args[0]},${args[1]},${args[2]},${args[2]},0)`;
-      } else if (args.length == 2) {
-        // Replace Gauss(mean, sd) with Gauss(x, y, mean, 0.5*L_y, sd, sd, 0).
-        replacement = `Gauss(x,y,${args[0]},0.5*L_y,${args[1]},${args[1]},0)`;
-      }
-      output = output.slice(0, start) + replacement + output.slice(end);
-    }
-
-    return output;
-  }
-
-  /**
-   * Replaces occurrences of Bump(blah) with correct shader syntax.
-   *
-   * @param {string} str - The input string to be modified.
-   * @returns {string} The modified string.
-   */
-  function replaceBump(str) {
-    // Find all calls to Bump in the string.
-    const calls = findAllFunCalls(str, "Bump");
-
-    // If there are no calls to Bump, return the string unchanged.
-    if (calls.length == 0) return str;
-
-    // Sort matches in reverse order (innermost to outermost).
-    calls.sort((a, b) => b.start - a.start);
-
-    let output = str;
-
-    for (const { start, end, args } of calls) {
-      // Default to no change.
-      let replacement = output.slice(start, end);
-      // If there are 2 arguments, replace with Bump(x, y, arg1, 0.5*L_y, arg2).
-      if (args.length == 2) {
-        replacement = `Bump(x,y,${args[0]},0.5*L_y,${args[1]})`;
-      }
-      // If there are 3 arguments, replace with Bump(x, y, arg1, arg2, arg3).
-      else if (args.length == 3) {
-        replacement = `Bump(x,y,${args[0]},${args[1]},${args[2]})`;
-      }
-      output = output.slice(0, start) + replacement + output.slice(end);
-    }
-
-    return output;
-  }
-
   function assignFragmentShader(material, shader) {
     material.fragmentShader = resolveRemainingStencilTokens(shader).replaceAll(
       /\bAUXILIARY_GLSL_FUNS\b/g,
@@ -14882,32 +14178,6 @@ async function VisualPDE(url) {
       comboBCsOptions.side = "left";
       configureComboBCsGUI();
     }
-  }
-
-  function sortBCsString(str) {
-    return (
-      str
-        .split(";")
-        .filter((s) => s.trim() != "")
-        .map((s) => s.trim())
-        .sort()
-        .join("; ") + ";"
-    );
-  }
-
-  function capitaliseFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  }
-
-  function removeExtraWhitespace(str) {
-    while (str != (str = str.replace(/\s\s/g, " ")));
-    return str;
-  }
-
-  function removeEvalAt(str) {
-    return str
-      .replace("\\left.", "")
-      .replace("\\right\\rvert_{\\boundary}", "");
   }
 
   function validateComboStr(indText) {
@@ -15304,63 +14574,6 @@ async function VisualPDE(url) {
         stream.getTracks().forEach((track) => track.stop());
       });
     }
-  }
-
-  function findAllFunCalls(input, fun) {
-    const calls = [];
-    const regex = new RegExp(`\\b${fun}\\s*\\(`, "g");
-    let match;
-
-    while ((match = regex.exec(input)) !== null) {
-      let start = match.index + match[0].length - 1;
-      let depth = 1;
-      let end = start;
-
-      while (end < input.length && depth > 0) {
-        end++;
-        const char = input[end];
-        if (char === "(") depth++;
-        else if (char === ")") depth--;
-      }
-
-      if (depth === 0) {
-        const fullCall = input.slice(match.index, end + 1);
-        const argsStr = input.slice(start + 1, end);
-        const args = splitArgs(argsStr);
-        calls.push({
-          start: match.index,
-          end: end + 1,
-          fullCall,
-          args,
-        });
-      }
-    }
-
-    return calls;
-  }
-
-  // Argument splitter with nesting support
-  function splitArgs(str) {
-    const args = [];
-    let current = "";
-    let depth = 0;
-
-    for (let i = 0; i < str.length; i++) {
-      const char = str[i];
-
-      if (char === "," && depth === 0) {
-        args.push(current.trim());
-        current = "";
-      } else {
-        if (char === "(") depth++;
-        else if (char === ")") depth--;
-        current += char;
-      }
-    }
-
-    if (current.trim()) args.push(current.trim());
-
-    return args;
   }
 
   function setAutoPauseStopValue() {

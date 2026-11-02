@@ -9,6 +9,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as m from "./generated/main-body.mjs";
 import {
+  groupifyShaderStr,
+  nonConstantDiffusionEvaluateInSpaceStr,
+  setEqualYDiffusionCoefficientsShader,
+} from "../RD/shader_strings.js";
+import {
   RDShaderAdvectionPreBC,
   RDShaderAdvectionPostBC,
   RDShaderDiffusionPreBC,
@@ -31,17 +36,17 @@ test("selectColourspecInShaderStr: substitutes COLOURSPEC with options.whatToDra
 
 test("groupifyShaderStr: a no-op for group 0, retargets the uvwq-family/updated/RHS/timescales tokens to their group-1 counterparts otherwise", () => {
   const str = "uvwqL.r + updated + RHS + timescales";
-  assert.equal(m.groupifyShaderStr(str, 0), str);
+  assert.equal(groupifyShaderStr(str, 0), str);
   assert.equal(
-    m.groupifyShaderStr(str, 1),
+    groupifyShaderStr(str, 1),
     "uvwq2L.r + updated2 + RHS2 + timescalesGroup1",
   );
 });
 
 test("groupifyShaderStr: retargets derivative locals (uvwqX/XF/XFXF/XX/...) to group 1, so the groupified derivative blocks declare every derivative a species 5-8 reaction term can reference (regression: e.g. C_x for species 5 compiled to an undeclared uvwq2X)", () => {
   const derivs = ["X", "Y", "XF", "YF", "XB", "YB", "XFXF", "YFYF", "XBXB", "YBYB", "XX", "YY"];
-  const pre = m.groupifyShaderStr(RDShaderAdvectionPreBC() + RDShaderDiffusionPreBC(), 1);
-  const post = m.groupifyShaderStr(RDShaderAdvectionPostBC() + RDShaderDiffusionPostBC(), 1);
+  const pre = groupifyShaderStr(RDShaderAdvectionPreBC() + RDShaderDiffusionPreBC(), 1);
+  const post = groupifyShaderStr(RDShaderAdvectionPostBC() + RDShaderDiffusionPostBC(), 1);
   for (const d of derivs) {
     assert.match(pre, new RegExp("\\bvec4 uvwq2" + d + " ="), d);
     assert.match(post, new RegExp("^\\s*uvwq2" + d + " =", "m"), d);
@@ -153,7 +158,7 @@ test("diffusionTupleToShader: a single value applies to both x and y; ';'-separa
 });
 
 test("nonConstantDiffusionEvaluateInSpaceStr: emits the coefficient plus its 4 one-sided-shifted (L/R/T/B) variants", () => {
-  const out = m.nonConstantDiffusionEvaluateInSpaceStr("1.0;\n", "uux");
+  const out = nonConstantDiffusionEvaluateInSpaceStr("1.0;\n", "uux");
   assert.match(out, /float Duux = 1\.0;/);
   assert.match(out, /float DuuxL = 1\.0;/);
   assert.match(out, /float DuuxR = 1\.0;/);
@@ -162,7 +167,7 @@ test("nonConstantDiffusionEvaluateInSpaceStr: emits the coefficient plus its 4 o
 });
 
 test("setEqualYDiffusionCoefficientsShader: mirrors the x-coefficient (and its L/R/T/B variants) onto y", () => {
-  const out = m.setEqualYDiffusionCoefficientsShader("uu");
+  const out = setEqualYDiffusionCoefficientsShader("uu");
   assert.match(out, /float Duuy = Duux;/);
   assert.match(out, /float DuuyB = DuuxB;/);
 });
