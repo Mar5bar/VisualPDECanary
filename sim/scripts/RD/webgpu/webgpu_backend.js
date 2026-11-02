@@ -224,6 +224,16 @@ export class WebGPUBackend {
     return this.blocking && this.fitsState(kernel) && this.nY == 1;
   }
 
+  // The plan of the blocked Forward Euler kernel, if steps can currently be blocked.
+  blockingPlan() {
+    return this.canBlock() ? this.pipelines.FEBlocked.plan : null;
+  }
+
+  // The device's limits.
+  get limits() {
+    return this.device.limits;
+  }
+
   /**
    * Allocates the history slots for an nX by nY grid with the given number of species.
    */
@@ -546,6 +556,16 @@ export class WebGPUBackend {
   async whenReady() {
     // Every batch, as an older one may still be building after a newer one has finished.
     while (this.compiling > 0) await Promise.allSettled(this.batches);
+  }
+
+  /** Whether the initial conditions' latest build failed, with no builds under way. */
+  clearFailed() {
+    return this.compiling == 0 && this.failedBuilds.has("clear");
+  }
+
+  /** Resolves once the GPU has finished the work submitted so far. */
+  async idle() {
+    await this.device.queue.onSubmittedWorkDone();
   }
 
   /**

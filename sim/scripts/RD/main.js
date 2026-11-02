@@ -179,6 +179,7 @@ async function VisualPDE(url) {
   // The WebGPU backend, if this page is running on WebGPU (see webgpu/backend_select.js);
   // null on WebGL. Functions that touch the GPU delegate to it when it's set.
   let gpuBackend = null,
+    // Its display, made alongside it in init(). Test gpuBackend to ask whether on WebGPU.
     gpuDisplay = null,
     // Set once the page is reloading (see reloadPreservingSimulation), as nothing should
     // start in the meantime.
@@ -1311,7 +1312,7 @@ async function VisualPDE(url) {
     // On WebGPU, the state's textures must fit the device's limits too, as must the buffers
     // holding a vec4f per node (post-processed values, fields being summed).
     if (gpuBackend) {
-      const limits = gpuBackend.device.limits;
+      const limits = gpuBackend.limits;
       maxTexSize = Math.min(maxTexSize, limits.maxTextureDimension2D);
       maxGpuNodes = Math.floor(
         Math.min(limits.maxStorageBufferBindingSize, limits.maxBufferSize) / 16,
@@ -4742,11 +4743,11 @@ async function VisualPDE(url) {
           // wait for it, then draw again with it.
           frameCount = 0;
           render(true);
-          await gpuBackend.device.queue.onSubmittedWorkDone();
+          await gpuBackend.idle();
           await new Promise((resolve) => setTimeout(resolve, 50));
           frameCount = 0;
           render(true);
-          await gpuBackend.device.queue.onSubmittedWorkDone();
+          await gpuBackend.idle();
         } else {
           frameCount = 0;
           render(true);
@@ -4796,7 +4797,7 @@ async function VisualPDE(url) {
       async finish() {
         if (gpuBackend) {
           gpuBackend.flush();
-          await gpuBackend.device.queue.onSubmittedWorkDone();
+          await gpuBackend.idle();
         } else {
           renderer.readRenderTargetPixels(
             numGroups(Number(options.numSpecies)) > 1 ? postTexture : simTextures[1],
@@ -4849,7 +4850,7 @@ async function VisualPDE(url) {
       // blockingPlan), or null if it isn't.
       async blocking() {
         await gpuBackend?.whenReady();
-        return gpuBackend?.canBlock() ? gpuBackend.pipelines.FEBlocked.plan : null;
+        return gpuBackend?.blockingPlan() ?? null;
       },
       // Every error raised since the last load (or page load), whether or not it was shown.
       async errorMessage() {
@@ -5788,7 +5789,7 @@ async function VisualPDE(url) {
   function postprocess(updateProbeXY = false) {
     // WebGPU post-processes while rendering (see renderWebGPU), and sets the probe's position
     // where it's picked (see addProbeTargetButton).
-    if (gpuDisplay) return;
+    if (gpuBackend) return;
     simDomain.material = postMaterial;
     // The real 8-species state lives in mrtSimTextures once numGroups>1. textureSourceGroup1
     // is bound here (used by both postMaterial's computeDisplayFunShaderMidMRT and, via the
@@ -5893,7 +5894,7 @@ async function VisualPDE(url) {
     var cRect = container.getBoundingClientRect();
     let x = (event.clientX - cRect.x) / cRect.width;
     let y = 1 - (event.clientY - cRect.y) / cRect.height;
-    if (options.plotType == "surface" && gpuDisplay) {
+    if (options.plotType == "surface" && gpuBackend) {
       // As below, but read back asynchronously, so until the result arrives the brush is
       // placed off the domain, where it does nothing.
       camera.setViewOffset(
@@ -6082,7 +6083,7 @@ async function VisualPDE(url) {
         gpuClearPending = true;
         // If the initial conditions failed to build, say why, and clear once they've been
         // fixed (see onInstalled).
-        if (gpuBackend.compiling == 0 && gpuBackend.failedBuilds.has("clear")) {
+        if (gpuBackend.clearFailed()) {
           if (gpuClearError) onGpuBuildError("clear", gpuClearError);
           gpuClearError = null;
           return;
@@ -11560,7 +11561,7 @@ async function VisualPDE(url) {
     applyColourRange(setMinMaxValGPU());
     // On WebGPU, that's the latest range found, which may be of an earlier state, so the
     // range being found now is applied too when it arrives.
-    if (gpuDisplay) gpuSnapPending = true;
+    if (gpuBackend) gpuSnapPending = true;
   }
 
   // Sets the colour range to [min, max].
@@ -12397,7 +12398,7 @@ async function VisualPDE(url) {
     const width = Math.round(scaleFactor * canvasWidth);
     const height = Math.round(scaleFactor * canvasHeight);
     // WebGPU draws at this size, which the unseen WebGL canvas needn't take up memory for.
-    if (gpuDisplay) gpuRenderSize.set(width, height);
+    if (gpuBackend) gpuRenderSize.set(width, height);
     else renderer.setSize(width, height, false);
   }
 
@@ -14298,7 +14299,7 @@ async function VisualPDE(url) {
           uniforms.probeU.value = x;
           uniforms.probeV.value = y;
           uniforms.probeUVs.value = true;
-          if (gpuDisplay) {
+          if (gpuBackend) {
             // As the probe shader converts the clicked point to the domain's coordinates,
             // but now, rather than once a probe has been read back asynchronously.
             options.probeX = x * uniforms.L_x.value + evaluateDomainExpression(options.minX);
