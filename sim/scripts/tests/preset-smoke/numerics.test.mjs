@@ -11,14 +11,11 @@
  */
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { ensureServerRunning, BASE_URL } from "./server.mjs";
+import { newSimContext, decodeFloats } from "./browser-helpers.mjs";
 import { createSolver } from "../numerics/reference_solver.mjs";
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const SCHEMES = ["Euler", "AB2", "Mid", "RK4"];
 // Which backend to test: BACKEND=webgpu node --test numerics.test.mjs
 const BACKEND = process.env.BACKEND ?? "webgl";
@@ -33,22 +30,7 @@ before(async () => {
     // WebGL).
     args: ["--use-angle=metal", ...(BACKEND == "webgpu" ? ["--enable-unsafe-webgpu"] : [])],
   });
-  const context = await browser.newContext({
-    serviceWorkers: "block",
-    viewport: { width: 1200, height: 800 },
-  });
-  await context.addInitScript(() => {
-    try {
-      localStorage.setItem("visited", "true");
-    } catch {}
-  });
-  await context.route("**/sim/scripts/**", (route) => {
-    const file = path.join(REPO_ROOT, new URL(route.request().url()).pathname);
-    route.fulfill({
-      body: fs.readFileSync(file),
-      contentType: "application/javascript",
-    });
-  });
+  const context = await newSimContext(browser, { width: 1200, height: 800 });
   page = await context.newPage();
   // LIMITS=default runs WebGPU with only the limits every device supports.
   const limits = process.env.LIMITS == "default" ? "&webgpuLimits=default" : "";
@@ -70,11 +52,6 @@ after(async () => {
   await browser?.close();
   stopServer?.();
 });
-
-function decode(base64) {
-  const bytes = Buffer.from(base64, "base64");
-  return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4);
-}
 
 /**
  * Runs a case on the GPU and in the reference, returning the largest error over every node and
@@ -119,7 +96,7 @@ async function runCase(c, scheme) {
   // sin/cos are only good to about 1e-4).
   // Species s lives in channel s % 4 of group floor(s / 4).
   const valueOf = (state, s, n) =>
-    decode(s < 4 ? state.data : state.dataGroup1)[4 * n + (s % 4)];
+    decodeFloats(s < 4 ? state.data : state.dataGroup1)[4 * n + (s % 4)];
   const problem = c.reference(grid);
   const initialState = Array.from({ length: problem.numSpecies }, (_, s) =>
     Float64Array.from({ length: grid.nX * grid.nY }, (_, n) => valueOf(initial, s, n)),
@@ -895,7 +872,7 @@ test("derivatives of expressions of x and y can be used in initial conditions", 
   assert.equal(message, "");
   const { nX, nY, dx, dy, Lx, Ly } = grid;
   const g = (x) => Math.sin((2 * Math.PI * x) / 10);
-  const values = decode(initial.data);
+  const values = decodeFloats(initial.data);
   let worst = 0;
   for (let j = 0; j < nY; j++) {
     for (let i = 0; i < nX; i++) {
@@ -949,7 +926,7 @@ test("round() and fractional powers of negative numbers round halves away from z
     initCond_4: "(-4)^1.5 + (-4)^(-0.5)",
   });
   assert.equal(message, "");
-  const values = decode(state.data);
+  const values = decodeFloats(state.data);
   // Rounding halves to even would give 2200, 2, 32 and 8.5.
   assert.deepEqual([...values.slice(0, 4)], [3191, -2, -32, 7.5]);
 });
@@ -979,7 +956,7 @@ test("constant subexpressions that are infinite give inf at run time, as in GLSL
     reactionStr_4: "min(1/0, 1) + max(-1/0, -1) + min(exp(1000), 1)",
   });
   assert.equal(message, "");
-  assert.deepEqual([...decode(state.data).slice(0, 4)].map((v) => Math.fround(v)), [2, -3, 5, Math.fround(5.1)]);
+  assert.deepEqual([...decodeFloats(state.data).slice(0, 4)].map((v) => Math.fround(v)), [2, -3, 5, Math.fround(5.1)]);
 });
 
 test("the state read back on a large grid is exactly the state stepped, with 5-8 species too", async () => {
@@ -1010,7 +987,7 @@ test("the state read back on a large grid is exactly the state stepped, with 5-8
       await T.step(1);
       return { initial, state: await T.readState(), grid: await T.grid() };
     }, opts);
-    const [u0, u1] = [decode(initial.data), decode(state.data)];
+    const [u0, u1] = [decodeFloats(initial.data), decodeFloats(state.data)];
     const n = grid.nX;
     let worst = 0;
     for (let i = 0; i < n; i++) {
@@ -1066,7 +1043,7 @@ test("a species clamped at the edges evolves the same whatever the other species
     );
   for (const dimension of [1, 2]) {
     const { state: clamped } = await run(dimension, 4, "neumann");
-    const expected = decode(clamped.data).filter((_, k) => k % 4 == 0);
+    const expected = decodeFloats(clamped.data).filter((_, k) => k % 4 == 0);
     for (const [numSpecies, bc] of [
       [1, "neumann"],
       [2, "periodic"],
@@ -1076,9 +1053,9 @@ test("a species clamped at the edges evolves the same whatever the other species
       const { state, message } = await run(dimension, numSpecies, bc);
       assert.equal(message, "");
       const label = `${dimension}D, ${numSpecies} species, the others ${bc}`;
-      const a = decode(state.data).filter((_, k) => k % 4 == 0);
+      const a = decodeFloats(state.data).filter((_, k) => k % 4 == 0);
       const species = [["a", a]];
-      if (numSpecies == 5) species.push(["e", decode(state.dataGroup1).filter((_, k) => k % 4 == 0)]);
+      if (numSpecies == 5) species.push(["e", decodeFloats(state.dataGroup1).filter((_, k) => k % 4 == 0)]);
       for (const [name, values] of species) {
         let worst = 0;
         values.forEach((v, n) => (worst = Math.max(worst, Math.abs(v - expected[n]))));

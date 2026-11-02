@@ -15,7 +15,12 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { ensureServerRunning } from "./server.mjs";
-import { launchAt, ensureOpen, collectErrors } from "./gui-helpers.mjs";
+import {
+  launchAt,
+  ensureOpen,
+  collectErrors,
+  dismissError,
+} from "./gui-helpers.mjs";
 
 let browser, page, stopServer, errors;
 
@@ -90,14 +95,6 @@ async function fillRowFromEnd(folderTitle, indexFromEnd, text) {
   await page.waitForTimeout(300);
 }
 
-async function dismissError() {
-  const err = page.locator("#error");
-  if (await err.isVisible().catch(() => false)) {
-    await page.locator("#error").getByText("Close").click();
-    await page.waitForTimeout(200);
-  }
-}
-
 test("Parameters: typing into the trailing empty field promotes it (new row keeps the value, a fresh empty trailing field with the placeholder appears below it)", async () => {
   await ensureOpen(page, "Parameters");
   const before = await folderRows("Parameters");
@@ -135,18 +132,18 @@ test("Parameters: a name already in use (an existing parameter) is rejected via 
   await fillTrailingField("Parameters", "c = 99");
   assert.ok(await page.locator("#error").isVisible(), "the error banner should appear for a duplicate parameter name");
   assert.match(await page.locator("#error").innerText(), /multiple definitions of 'c'/);
-  await dismissError();
+  await dismissError(page);
 });
 
 test("Parameters: names the shaders use (GLSL keywords, uniforms, main) are rejected via the #error banner, not left to fail to compile", async () => {
   // Without the previous test's duplicate, which would be reported instead.
   await fillRowFromEnd("Parameters", 1, "");
-  await dismissError();
+  await dismissError(page);
   for (const name of ["sample", "struct", "nXDisc", "isTwoD", "main", "MINX"]) {
     await fillTrailingField("Parameters", `${name} = 1`);
     assert.ok(await page.locator("#error").isVisible(), `the error banner should appear for '${name}'`);
     assert.match(await page.locator("#error").innerText(), new RegExp(`'${name}' is (already in use|used under the hood)`));
-    await dismissError();
+    await dismissError(page);
     await fillRowFromEnd("Parameters", 1, "");
   }
 });
@@ -167,7 +164,7 @@ test("Expressions: a name colliding with a species name is rejected via the #err
   await fillTrailingField("Substitutions", "u = 5");
   assert.ok(await page.locator("#error").isVisible(), "the error banner should appear for a species-name collision");
   assert.match(await page.locator("#error").innerText(), /'u' is already in use/);
-  await dismissError();
+  await dismissError(page);
 });
 
 test("no console errors or uncaught exceptions occurred across the whole sequence", () => {

@@ -8,13 +8,10 @@
  *
  * Usage: node bench.mjs [--names=a,b] [--scales=1,2,4] [--seconds=2] [--blocking=off]
  */
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { ensureServerRunning, BASE_URL } from "./server.mjs";
+import { GPU_ARGS, newSimContext } from "./browser-helpers.mjs";
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
     const [k, v] = a.replace(/^--/, "").split("=");
@@ -33,23 +30,10 @@ const BLOCKING = args.blocking == "off" ? "&webgpuBlocking=off" : "";
 const WORKGROUP = args.workgroup ? `&webgpuWorkgroup=${args.workgroup}` : "";
 
 const stopServer = await ensureServerRunning();
-// ANGLE's Metal backend, so that WebGL and WebGPU both run on the real GPU.
-const browser = await chromium.launch({ args: ["--enable-unsafe-webgpu", "--use-angle=metal"] });
+const browser = await chromium.launch({ args: GPU_ARGS });
 
 async function newPage() {
-  const context = await browser.newContext({
-    serviceWorkers: "block",
-    viewport: { width: 1000, height: 700 },
-  });
-  await context.addInitScript(() => {
-    try {
-      localStorage.setItem("visited", "true");
-    } catch {}
-  });
-  await context.route("**/sim/scripts/**", (route) => {
-    const file = path.join(REPO_ROOT, new URL(route.request().url()).pathname);
-    route.fulfill({ body: fs.readFileSync(file), contentType: "application/javascript" });
-  });
+  const context = await newSimContext(browser);
   return context.newPage();
 }
 

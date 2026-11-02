@@ -166,17 +166,9 @@ export function parenthesiseLogic(tokens) {
 
 // Tokens that end the operand of a ?: operator, which binds more loosely than every operator
 // but assignment and the comma.
-const TERNARY_BOUNDARIES = new Set([
-  ",",
-  ";",
-  "{",
-  "}",
-  "=",
-  "+=",
-  "-=",
-  "*=",
-  "/=",
-]);
+const TERNARY_BOUNDARIES = new Set(
+  [...SEPARATORS].filter((v) => v != "?" && v != ":"),
+);
 
 /**
  * Rewrites every "c ? a : b" as "select(b, a, c)", at every level of nesting. Both a and b
@@ -275,8 +267,7 @@ export function rewriteTernaries(tokens) {
  */
 export function translateExpression(src, options = {}) {
   const tokens = rewriteTernaries(parenthesiseLogic(tokenize(src)));
-  const out = translateTokens(tokens, 0, tokens.length, options);
-  return out;
+  return translateTokens(tokens, 0, tokens.length, options);
 }
 
 // Finds the index of the bracket closing the one at tokens[open].
@@ -294,16 +285,23 @@ function matchingBracket(tokens, open) {
   throw new TranslationError("Unbalanced brackets.");
 }
 
-// Splits tokens[start, end) at top-level commas.
-function splitTopLevel(tokens, start, end) {
-  const parts = [];
-  let depth = 0,
-    partStart = start;
+// The indices of the tokens in tokens[start, end) that aren't brackets or inside them.
+function* topLevel(tokens, start, end) {
+  let depth = 0;
   for (let i = start; i < end; i++) {
     const v = tokens[i].value;
     if (v == "(" || v == "[") depth++;
     else if (v == ")" || v == "]") depth--;
-    else if (v == "," && depth == 0) {
+    else if (depth == 0) yield i;
+  }
+}
+
+// Splits tokens[start, end) at top-level commas.
+function splitTopLevel(tokens, start, end) {
+  const parts = [];
+  let partStart = start;
+  for (const i of topLevel(tokens, start, end)) {
+    if (tokens[i].value == ",") {
       parts.push([partStart, i]);
       partStart = i + 1;
     }
@@ -346,9 +344,8 @@ function translateTokens(tokens, start, end, options) {
       const isUnary =
         !previous ||
         (previous.type == "punct" &&
-        !["(", "[", ")", "]"].includes(previous.value)
-          ? true
-          : previous.value == "(" || previous.value == "[");
+          previous.value != ")" &&
+          previous.value != "]");
       if (tok.value == "+" && isUnary) continue;
       emit(tok.value);
       continue;
@@ -459,14 +456,9 @@ export function translateStatements(src, options = {}) {
       if (tokens[i + 1]?.value != "(")
         throw new TranslationError("Expected ( after for.");
       const close = matchingBracket(tokens, i + 1);
-      const semicolons = [];
-      let depth = 0;
-      for (let k = i + 2; k < close; k++) {
-        const v = tokens[k].value;
-        if (v == "(" || v == "[") depth++;
-        else if (v == ")" || v == "]") depth--;
-        else if (v == ";" && depth == 0) semicolons.push(k);
-      }
+      const semicolons = [...topLevel(tokens, i + 2, close)].filter(
+        (k) => tokens[k].value == ";",
+      );
       if (semicolons.length != 2)
         throw new TranslationError("Malformed for loop.");
       const [first, second] = semicolons;
@@ -499,14 +491,12 @@ export function translateStatements(src, options = {}) {
       throw new TranslationError(`'${tok.value}' statements aren't supported.`);
     }
     // Find the end of this simple statement.
-    let end = i;
-    let depth = 0;
-    while (end < tokens.length) {
-      const v = tokens[end].value;
-      if (v == "(" || v == "[") depth++;
-      else if (v == ")" || v == "]") depth--;
-      else if (depth == 0 && (v == ";" || v == "{" || v == "}")) break;
-      end++;
+    let end = tokens.length;
+    for (const k of topLevel(tokens, i, tokens.length)) {
+      if ([";", "{", "}"].includes(tokens[k].value)) {
+        end = k;
+        break;
+      }
     }
     if (tokens[end]?.value != ";") {
       throw new TranslationError("Expected ; at the end of a statement.");
@@ -556,12 +546,8 @@ function translateSimpleStatement(tokens, start, end, options, nextId) {
   // An assignment. GLSL allows several vector components to be assigned at once (e.g.
   // v.rg = w.rg), which WGSL doesn't, so those are split into one assignment per component.
   let op = -1;
-  let depth = 0;
-  for (let k = start; k < end; k++) {
-    const v = tokens[k].value;
-    if (v == "(" || v == "[") depth++;
-    else if (v == ")" || v == "]") depth--;
-    else if (depth == 0 && ["=", "+=", "-=", "*=", "/="].includes(v)) {
+  for (const k of topLevel(tokens, start, end)) {
+    if (["=", "+=", "-=", "*=", "/="].includes(tokens[k].value)) {
       op = k;
       break;
     }

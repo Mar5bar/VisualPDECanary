@@ -8,7 +8,6 @@ import {
   overlayShader,
   fiveColourDisplayTopMRT,
   overlayShaderMRT,
-  largestSpeciesShader,
   surfaceVertexShaderColour,
   surfaceVertexShaderCustom,
 } from "../RD/display_shaders.js";
@@ -52,8 +51,7 @@ test("overlayShaderMRT: adds group 1's stencil placeholder before the OVERLAYEXP
   assert.ok(group1Index >= 0 && overlayIndex >= 0 && group1Index < overlayIndex);
 });
 
-test("largestSpeciesShader/surfaceVertexShaderColour/Custom: non-empty, minimal shaders", () => {
-  assert.match(largestSpeciesShader(), /gl_FragColor = texture2D\(textureSource, textureCoords\);/);
+test("surfaceVertexShaderColour/Custom: non-empty, minimal shaders", () => {
   assert.match(surfaceVertexShaderColour(), /heightScale/);
   assert.match(surfaceVertexShaderCustom(), /newPosition\.z \+= value;/);
 });

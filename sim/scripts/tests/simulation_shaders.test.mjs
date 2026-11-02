@@ -10,7 +10,6 @@ import {
   RDShaderUpdateNormalMRT,
   RDShaderUpdateCrossMRT,
   RDShaderBotMRT,
-  RDShaderPeriodic,
   RDShaderGhostX,
   RDShaderGhostY,
   RDShaderRobinX,
@@ -171,12 +170,11 @@ test("clampSpeciesToEdgeShader: every neighbour, including LL/RR/TT/BB, gets its
   }
 });
 
-test("RDShaderAlgebraicSpecies/RDShaderDirichletX/Y/RDShaderBot/RDShaderPeriodic: non-empty (or intentionally empty) fixed snippets", () => {
+test("RDShaderAlgebraicSpecies/RDShaderDirichletX/Y/RDShaderBot: non-empty fixed snippets", () => {
   assert.match(RDShaderAlgebraicSpecies(), /RHS\.SPECIES/);
   assert.notEqual(RDShaderDirichletX(), "");
   assert.notEqual(RDShaderDirichletY(), "");
   assert.notEqual(RDShaderBot(), "");
-  assert.equal(RDShaderPeriodic(), "");
 });
 
 test("RDShaderTop/RDShaderMain: return distinct, non-empty text for each timestepping scheme type", () => {

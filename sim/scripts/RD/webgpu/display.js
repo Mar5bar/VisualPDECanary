@@ -52,6 +52,36 @@ function multiply(a, b) {
   return out;
 }
 
+// What every render pipeline here shares: unculled triangles, depth-tested as three.js does.
+const TRIANGLES = { topology: "triangle-list", cullMode: "none" };
+const DEPTH = {
+  format: "depth24plus",
+  depthWriteEnabled: true,
+  depthCompare: "less-equal",
+};
+// Vertex buffers of a mesh's positions and texture coordinates.
+const POSITIONS = {
+  arrayStride: 12,
+  attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
+};
+const UVS = {
+  arrayStride: 8,
+  attributes: [{ shaderLocation: 1, offset: 0, format: "float32x2" }],
+};
+
+// Creates a buffer holding data, padded to a whole number of 4-byte words as writeBuffer
+// needs.
+function uploadBuffer(device, data, usage) {
+  const buffer = device.createBuffer({
+    size: Math.ceil(data.byteLength / 4) * 4,
+    usage: usage | GPUBufferUsage.COPY_DST,
+  });
+  const padded = new Uint8Array(buffer.size);
+  padded.set(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
+  device.queue.writeBuffer(buffer, 0, padded);
+  return buffer;
+}
+
 export class WebGPUDisplay {
   /**
    * @param {import("./webgpu_backend.js").WebGPUBackend} backend
@@ -114,10 +144,10 @@ export class WebGPUDisplay {
     });
     this.buildReductions();
     this.buildLayouts();
-    this.buildLines();
+    this.buildLinesAndMeshes();
   }
 
-  buildLines() {
+  buildLinesAndMeshes() {
     const device = this.device;
     const module = device.createShaderModule({
       label: "line",
@@ -135,14 +165,8 @@ export class WebGPUDisplay {
         module,
         entryPoint: "vertexMain",
         buffers: [
-          {
-            arrayStride: 12,
-            attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
-          },
-          {
-            arrayStride: 8,
-            attributes: [{ shaderLocation: 1, offset: 0, format: "float32x2" }],
-          },
+          POSITIONS,
+          UVS,
           {
             arrayStride: 24,
             stepMode: "instance",
@@ -168,26 +192,14 @@ export class WebGPUDisplay {
         entryPoint: "fragmentMain",
         targets: [{ format: this.format }],
       },
-      primitive: { topology: "triangle-list", cullMode: "none" },
-      depthStencil: {
-        format: "depth24plus",
-        depthWriteEnabled: true,
-        depthCompare: "less-equal",
-      },
+      primitive: TRIANGLES,
+      depthStencil: DEPTH,
       multisample: { count: this.sampleCount },
     });
-    const upload = (data, usage) => {
-      const buffer = device.createBuffer({
-        size: data.byteLength,
-        usage: usage | GPUBufferUsage.COPY_DST,
-      });
-      device.queue.writeBuffer(buffer, 0, data);
-      return buffer;
-    };
     this.lineQuad = [
-      upload(LINE_QUAD_POSITIONS, GPUBufferUsage.VERTEX),
-      upload(LINE_QUAD_UVS, GPUBufferUsage.VERTEX),
-      upload(LINE_QUAD_INDICES, GPUBufferUsage.INDEX),
+      uploadBuffer(device, LINE_QUAD_POSITIONS, GPUBufferUsage.VERTEX),
+      uploadBuffer(device, LINE_QUAD_UVS, GPUBufferUsage.VERTEX),
+      uploadBuffer(device, LINE_QUAD_INDICES, GPUBufferUsage.INDEX),
     ];
     // Per line drawn in a frame, its uniforms and instance buffers, reused across frames.
     this.lineResources = [];
@@ -203,10 +215,7 @@ export class WebGPUDisplay {
         module: meshModule,
         entryPoint: "vertexMain",
         buffers: [
-          {
-            arrayStride: 12,
-            attributes: [{ shaderLocation: 0, offset: 0, format: "float32x3" }],
-          },
+          POSITIONS,
           {
             arrayStride: 64,
             stepMode: "instance",
@@ -223,12 +232,8 @@ export class WebGPUDisplay {
         entryPoint: "fragmentMain",
         targets: [{ format: this.format }],
       },
-      primitive: { topology: "triangle-list", cullMode: "none" },
-      depthStencil: {
-        format: "depth24plus",
-        depthWriteEnabled: true,
-        depthCompare: "less-equal",
-      },
+      primitive: TRIANGLES,
+      depthStencil: DEPTH,
       multisample: { count: this.sampleCount },
     });
     // Uploaded geometries, by the three.js BufferGeometry they came from.
@@ -245,17 +250,13 @@ export class WebGPUDisplay {
     const index = geometry.index
       ? Uint32Array.from(geometry.index.array)
       : Uint32Array.from({ length: positions.length / 3 }, (_, k) => k);
-    const upload = (data, usage) => {
-      const buffer = device.createBuffer({
-        size: data.byteLength,
-        usage: usage | GPUBufferUsage.COPY_DST,
-      });
-      device.queue.writeBuffer(buffer, 0, data);
-      return buffer;
-    };
     g = {
-      positions: upload(Float32Array.from(positions), GPUBufferUsage.VERTEX),
-      index: upload(index, GPUBufferUsage.INDEX),
+      positions: uploadBuffer(
+        device,
+        Float32Array.from(positions),
+        GPUBufferUsage.VERTEX,
+      ),
+      index: uploadBuffer(device, index, GPUBufferUsage.INDEX),
       count: index.length,
     };
     this.meshGeometries.set(geometry, g);
@@ -461,20 +462,7 @@ export class WebGPUDisplay {
           vertex: {
             module,
             entryPoint: "vertexMain",
-            buffers: [
-              {
-                arrayStride: 12,
-                attributes: [
-                  { shaderLocation: 0, offset: 0, format: "float32x3" },
-                ],
-              },
-              {
-                arrayStride: 8,
-                attributes: [
-                  { shaderLocation: 1, offset: 0, format: "float32x2" },
-                ],
-              },
-            ],
+            buffers: [POSITIONS, UVS],
           },
           fragment: {
             module,
@@ -500,12 +488,8 @@ export class WebGPUDisplay {
               },
             ],
           },
-          primitive: { topology: "triangle-list", cullMode: "none" },
-          depthStencil: {
-            format: "depth24plus",
-            depthWriteEnabled: true,
-            depthCompare: "less-equal",
-          },
+          primitive: TRIANGLES,
+          depthStencil: DEPTH,
           multisample: { count: this.sampleCount },
         });
         // The same mesh, outputting texture coordinates into a 1x1 target, for picking.
@@ -517,32 +501,15 @@ export class WebGPUDisplay {
           vertex: {
             module,
             entryPoint: "vertexMain",
-            buffers: [
-              {
-                arrayStride: 12,
-                attributes: [
-                  { shaderLocation: 0, offset: 0, format: "float32x3" },
-                ],
-              },
-              {
-                arrayStride: 8,
-                attributes: [
-                  { shaderLocation: 1, offset: 0, format: "float32x2" },
-                ],
-              },
-            ],
+            buffers: [POSITIONS, UVS],
           },
           fragment: {
             module,
             entryPoint: "pickMain",
             targets: [{ format: "rgba32float" }],
           },
-          primitive: { topology: "triangle-list", cullMode: "none" },
-          depthStencil: {
-            format: "depth24plus",
-            depthWriteEnabled: true,
-            depthCompare: "less-equal",
-          },
+          primitive: TRIANGLES,
+          depthStencil: DEPTH,
         });
         return () => {
           this.pipelines.display = pipeline;
@@ -563,23 +530,13 @@ export class WebGPUDisplay {
    * @param {Uint16Array|Uint32Array} indices
    */
   setGeometry(positions, uvs, indices) {
-    const make = (data, usage) => {
-      const buffer = this.device.createBuffer({
-        size: Math.ceil(data.byteLength / 4) * 4,
-        usage: usage | GPUBufferUsage.COPY_DST,
-      });
-      const padded = new Uint8Array(buffer.size);
-      padded.set(new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
-      this.device.queue.writeBuffer(buffer, 0, padded);
-      return buffer;
-    };
     this.geometry?.buffers.forEach((b) => b.destroy());
     const index =
       indices instanceof Uint32Array ? indices : Uint32Array.from(indices);
     const buffers = [
-      make(positions, GPUBufferUsage.VERTEX),
-      make(uvs, GPUBufferUsage.VERTEX),
-      make(index, GPUBufferUsage.INDEX),
+      uploadBuffer(this.device, positions, GPUBufferUsage.VERTEX),
+      uploadBuffer(this.device, uvs, GPUBufferUsage.VERTEX),
+      uploadBuffer(this.device, index, GPUBufferUsage.INDEX),
     ];
     this.geometry = { buffers, count: index.length };
   }
@@ -731,23 +688,7 @@ export class WebGPUDisplay {
     };
     const encoder = this.backend.getEncoder();
     const run = (pipeline, uniforms, from, to, groups) => {
-      const pass = encoder.beginComputePass({
-        timestampWrites: this.backend.timestampWrites(),
-      });
-      pass.setPipeline(pipeline);
-      pass.setBindGroup(
-        0,
-        device.createBindGroup({
-          layout: pipeline.getBindGroupLayout(0),
-          entries: [
-            { binding: 0, resource: { buffer: uniforms } },
-            { binding: 1, resource: { buffer: from } },
-            { binding: 2, resource: { buffer: to } },
-          ],
-        }),
-      );
-      pass.dispatchWorkgroups(groups);
-      pass.end();
+      this.recordReduction(encoder, pipeline, uniforms, from, to, groups);
       this.backend.release(uniforms);
     };
     run(
@@ -766,15 +707,36 @@ export class WebGPUDisplay {
     );
   }
 
-  // Copies `bytes` bytes of a buffer from smallBuffer() to the CPU, after everything
-  // recorded so far, then destroys the buffer.
-  async readBack(buffer, bytes) {
+  // Records a pass of a reduction (see buildReductions), from `from` into `to`.
+  recordReduction(encoder, pipeline, uniforms, from, to, groups) {
+    const pass = encoder.beginComputePass({
+      timestampWrites: this.backend.timestampWrites(),
+    });
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(
+      0,
+      this.device.createBindGroup({
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+          { binding: 0, resource: { buffer: uniforms } },
+          { binding: 1, resource: { buffer: from } },
+          { binding: 2, resource: { buffer: to } },
+        ],
+      }),
+    );
+    pass.dispatchWorkgroups(groups);
+    pass.end();
+  }
+
+  // Copies `bytes` bytes of a buffer to the CPU, after everything recorded so far, then
+  // destroys the buffer (one from smallBuffer()) unless keep is set.
+  async readBack(buffer, bytes, keep = false) {
     const staging = this.device.createBuffer({
       size: bytes,
       usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
     });
     this.backend.getEncoder().copyBufferToBuffer(buffer, 0, staging, 0, bytes);
-    this.backend.release(buffer);
+    if (!keep) this.backend.release(buffer);
     this.backend.flush();
     await staging.mapAsync(GPUMapMode.READ);
     const data = new Float32Array(staging.getMappedRange().slice(0));
@@ -874,19 +836,11 @@ export class WebGPUDisplay {
    */
   async readPost() {
     if (!this.postFits()) return null;
-    const size = this.backend.nX * this.backend.nY * 16;
-    const staging = this.device.createBuffer({
-      size,
-      usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
-    });
-    this.backend
-      .getEncoder()
-      .copyBufferToBuffer(this.postBuffer, 0, staging, 0, size);
-    this.backend.flush();
-    await staging.mapAsync(GPUMapMode.READ);
-    const data = new Float32Array(staging.getMappedRange().slice(0));
-    staging.destroy();
-    return data;
+    return this.readBack(
+      this.postBuffer,
+      this.backend.nX * this.backend.nY * 16,
+      true,
+    );
   }
 
   /**
@@ -1201,25 +1155,7 @@ export class WebGPUDisplay {
       new Uint32Array([this.reduceGroups, 0, 0, 0]),
     );
     const encoder = backend.getEncoder();
-    const run = (pipeline, params, input, output, groups) => {
-      const pass = encoder.beginComputePass({
-        timestampWrites: backend.timestampWrites(),
-      });
-      pass.setPipeline(pipeline);
-      pass.setBindGroup(
-        0,
-        this.device.createBindGroup({
-          layout: pipeline.getBindGroupLayout(0),
-          entries: [
-            { binding: 0, resource: { buffer: params } },
-            { binding: 1, resource: { buffer: input } },
-            { binding: 2, resource: { buffer: output } },
-          ],
-        }),
-      );
-      pass.dispatchWorkgroups(groups);
-      pass.end();
-    };
+    const run = (...args) => this.recordReduction(encoder, ...args);
     run(
       this.pipelines.minMaxFirst,
       this.reduceParams,

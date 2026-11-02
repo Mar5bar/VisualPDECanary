@@ -3,9 +3,7 @@
  * Loads every preset in sim/scripts/RD/presets.js (via ?preset=<name> against a running
  * VisualPDE site) in a single reused browser tab and reports any JS console errors or
  * uncaught exceptions as failures. Complements the node:test unit harness in
- * sim/scripts/tests/ - this exercises the ~250+ DOM/THREE.js/dat.gui-touching functions that
- * harness explicitly can't cover (see the "out of scope" section of its plan), by actually
- * running the app in a real browser instead.
+ * sim/scripts/tests/, which can't reach code that touches the DOM, three.js or dat.gui.
  *
  * If nothing is already listening on BASE_URL, this spawns `bundle exec jekyll serve` itself
  * (from the repo root) and tears it down afterwards; if a server is already running there

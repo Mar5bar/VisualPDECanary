@@ -26,23 +26,13 @@ import {
   stateFormats,
   blockingPlan,
   blockedTimestepShader,
+  FORMAT_BYTES,
 } from "./sim_wgsl.js";
+import { SCHEME_STAGES } from "../simulation_shaders.js";
 
 const NUM_SLOTS = 5;
 // The format of checkpoints' textures, before they're resampled into the state's.
 const CHECKPOINT_FORMAT = "rgba32float";
-// Bytes per node of each state format.
-const FORMAT_BYTES = { r32float: 4, rg32float: 8, rgba32float: 16 };
-const PASS_TYPES = [
-  "FE",
-  "AB2",
-  "Mid1",
-  "Mid2",
-  "RK41",
-  "RK42",
-  "RK43",
-  "RK44",
-];
 // The builds the simulation can't run without, as they'd leave it running old code: a
 // simulation whose timestepping or Dirichlet conditions failed to build doesn't run, as on
 // WebGL. (Initial conditions that failed to build only stop it being reset; see canClear.)
@@ -530,7 +520,7 @@ export class WebGPUBackend {
       this.compiling == 0 &&
       !SIMULATION_BUILDS.some((kind) => this.failedBuilds.has(kind)) &&
       this.slots.length > 0 &&
-      PASS_TYPES.every((type) => this.fitsState(this.pipelines[type]))
+      SCHEME_STAGES.every((type) => this.fitsState(this.pipelines[type]))
     );
   }
 
@@ -574,7 +564,7 @@ export class WebGPUBackend {
           this.device.limits.maxComputeWorkgroupStorageSize,
         );
         await Promise.all([
-          ...PASS_TYPES.map(async (type) => {
+          ...SCHEME_STAGES.map(async (type) => {
             pipelines[type] = await this.compile(
               `timestep ${type}`,
               timestepShader(type, parts),
@@ -610,7 +600,7 @@ export class WebGPUBackend {
         };
       },
       () => {
-        for (const type of [...PASS_TYPES, "FEBlocked"])
+        for (const type of [...SCHEME_STAGES, "FEBlocked"])
           delete this.pipelines[type];
       },
     );
@@ -621,57 +611,34 @@ export class WebGPUBackend {
     return { ...parts, workgroupSize: this.workgroupSize };
   }
 
+  // Builds pipelines[kind] from the WGSL shader(parts), or sets it to null if parts is null.
+  buildKernel(kind, label, shader, parts) {
+    if (parts) parts = this.sized(parts);
+    this.requestBuild(
+      kind,
+      async () => {
+        const pipeline = parts
+          ? await this.compile(label, shader(parts), parts.formats)
+          : null;
+        return () => (this.pipelines[kind] = pipeline);
+      },
+      () => delete this.pipelines[kind],
+    );
+  }
+
   /** Builds the initial-condition pipeline. */
   setClear(parts) {
-    parts = this.sized(parts);
-    this.requestBuild(
-      "clear",
-      async () => {
-        const pipeline = await this.compile(
-          "clear",
-          clearShader(parts),
-          parts.formats,
-        );
-        return () => (this.pipelines.clear = pipeline);
-      },
-      () => delete this.pipelines.clear,
-    );
+    this.buildKernel("clear", "clear", clearShader, parts);
   }
 
   /** Builds the brush pipeline. */
   setDraw(parts) {
-    parts = this.sized(parts);
-    this.requestBuild(
-      "draw",
-      async () => {
-        const pipeline = await this.compile(
-          "draw",
-          drawShader(parts),
-          parts.formats,
-        );
-        return () => (this.pipelines.draw = pipeline);
-      },
-      () => delete this.pipelines.draw,
-    );
+    this.buildKernel("draw", "draw", drawShader, parts);
   }
 
   /** Builds the Dirichlet enforcement pipeline, or removes it if parts is null. */
   setEnforceDirichlet(parts) {
-    if (parts) parts = this.sized(parts);
-    this.requestBuild(
-      "enforce",
-      async () => {
-        const pipeline = parts
-          ? await this.compile(
-              "enforce Dirichlet",
-              enforceDirichletShader(parts),
-              parts.formats,
-            )
-          : null;
-        return () => (this.pipelines.enforce = pipeline);
-      },
-      () => delete this.pipelines.enforce,
-    );
+    this.buildKernel("enforce", "enforce Dirichlet", enforceDirichletShader, parts);
   }
 
   ensureUniformCapacity(count) {

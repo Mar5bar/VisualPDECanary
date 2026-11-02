@@ -8,7 +8,13 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { ensureServerRunning } from "./server.mjs";
-import { launchAt, ensureOpen, collectErrors } from "./gui-helpers.mjs";
+import {
+  launchAt,
+  ensureOpen,
+  collectErrors,
+  dismissError,
+  reactionTermInput,
+} from "./gui-helpers.mjs";
 
 let browser, page, stopServer, errors;
 
@@ -35,25 +41,10 @@ function namesInput() {
     .locator("input[type=text]");
 }
 
-function reactionTermInput(n) {
-  return page
-    .locator("li.title", { hasText: "Forcing terms" })
-    .locator(`xpath=following-sibling::li[${n}]//input`)
-    .first();
-}
-
 async function setNames(text) {
   await namesInput().fill(text);
   await namesInput().evaluate((el) => el.blur());
   await page.waitForTimeout(300);
-}
-
-async function dismissError() {
-  const err = page.locator("#error");
-  if (await err.isVisible().catch(() => false)) {
-    await page.locator("#error").getByText("Close").click();
-    await page.waitForTimeout(200);
-  }
 }
 
 /** Every text field in both GUIs, so that a stray placeholder anywhere is caught. */
@@ -65,22 +56,22 @@ function allTextFieldValues() {
 
 test("invalid species names are refused with an error, and the previous names are restored", async () => {
   await setNames("u v");
-  const reaction1 = await reactionTermInput(1).inputValue();
+  const reaction1 = await reactionTermInput(page, 1).inputValue();
   assert.match(reaction1, /\bu\b/, "expected the default reaction term to involve u");
 
   for (const bad of ["", "   ", "!?", "2 v", "u u"]) {
     await setNames(bad);
     assert.ok(await page.locator("#error").isVisible(), `expected an error for ${JSON.stringify(bad)}`);
     assert.equal(await namesInput().inputValue(), "u v", `names not restored after ${JSON.stringify(bad)}`);
-    assert.equal(await reactionTermInput(1).inputValue(), reaction1);
-    await dismissError();
+    assert.equal(await reactionTermInput(page, 1).inputValue(), reaction1);
+    await dismissError(page);
   }
 });
 
 test("renaming after a refused name swaps species cleanly, leaving no placeholders behind", async () => {
   const before = await allTextFieldValues();
   await setNames("");
-  await dismissError();
+  await dismissError(page);
   await setNames("p q");
 
   assert.equal(await namesInput().inputValue(), "p q");

@@ -9,15 +9,12 @@
  */
 import { test, before, after, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { ensureServerRunning, BASE_URL } from "./server.mjs";
+import { GPU_ARGS, newSimContext } from "./browser-helpers.mjs";
 import { encodeOptions } from "../../RD/url_codec.js";
 import { getResolvedPreset, getFieldsInView } from "../../RD/presets.js";
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const BACKENDS = ["webgl", "webgpu"];
 const STYLES = ["solid", "dotted", "dashed", "looselyDashed"];
 
@@ -36,8 +33,7 @@ const contexts = new Set();
 
 before(async () => {
   stopServer = await ensureServerRunning();
-  // ANGLE's Metal backend, so that WebGL and WebGPU both run on the real GPU.
-  browser = await chromium.launch({ args: ["--enable-unsafe-webgpu", "--use-angle=metal"] });
+  browser = await chromium.launch({ args: GPU_ARGS });
 });
 
 afterEach(async () => {
@@ -87,20 +83,8 @@ function linkTo(opts, views) {
 
 // Opens the simulator on a backend, at the given hash and query, recording any errors.
 async function open(backend, { hash = "", query = "", viewport } = {}) {
-  const context = await browser.newContext({
-    serviceWorkers: "block",
-    viewport: viewport ?? { width: 1000, height: 700 },
-  });
+  const context = await newSimContext(browser, viewport);
   contexts.add(context);
-  await context.addInitScript(() => {
-    try {
-      localStorage.setItem("visited", "true");
-    } catch {}
-  });
-  await context.route("**/sim/scripts/**", (route) => {
-    const file = path.join(REPO_ROOT, new URL(route.request().url()).pathname);
-    route.fulfill({ body: fs.readFileSync(file), contentType: "application/javascript" });
-  });
   const page = await context.newPage();
   page.errors = [];
   page.on("console", (m) => m.type() == "error" && page.errors.push(m.text()));

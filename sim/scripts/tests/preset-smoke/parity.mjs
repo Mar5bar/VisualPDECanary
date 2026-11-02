@@ -16,13 +16,11 @@
  *   [--limits=default]
  */
 import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { ensureServerRunning, BASE_URL } from "./server.mjs";
+import { GPU_ARGS, newSimContext, decodeFloats } from "./browser-helpers.mjs";
 import { getListOfPresetNames } from "../../RD/presets.js";
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
     const [k, v] = a.replace(/^--/, "").split("=");
@@ -38,35 +36,15 @@ const NUM_STEPS = Number(args.steps ?? 20);
 class Skip extends Error {}
 
 const stopServer = await ensureServerRunning();
-// ANGLE's Metal backend, so that WebGL and WebGPU both run on the real GPU (headless
-// Chromium otherwise gives WebGPU a software adapter that loses its device alongside WebGL).
-const browser = await chromium.launch({ args: ["--enable-unsafe-webgpu", "--use-angle=metal"] });
+const browser = await chromium.launch({ args: GPU_ARGS });
 
 async function openPage(backend, extraQuery = "") {
-  const context = await browser.newContext({
-    serviceWorkers: "block",
-    viewport: { width: 1200, height: 800 },
-  });
-  await context.addInitScript(() => {
-    try {
-      localStorage.setItem("visited", "true");
-    } catch {}
-  });
-  await context.route("**/sim/scripts/**", (route) => {
-    const file = path.join(REPO_ROOT, new URL(route.request().url()).pathname);
-    route.fulfill({ body: fs.readFileSync(file), contentType: "application/javascript" });
-  });
+  const context = await newSimContext(browser, { width: 1200, height: 800 });
   const page = await context.newPage();
   const errors = [];
   page.on("console", (m) => m.type() == "error" && errors.push(m.text()));
   page.on("pageerror", (e) => errors.push(String(e)));
   return { page, errors, backend, extraQuery };
-}
-
-function decode(base64) {
-  if (!base64) return null;
-  const bytes = Buffer.from(base64, "base64");
-  return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4);
 }
 
 // Loads a preset in a fresh page, as following a ?preset= link does, with a fixed seed. If
@@ -104,8 +82,8 @@ async function run({ page, errors, backend, extraQuery }, name, initialState) {
 // active species only.
 function compare(a, b, numSpecies) {
   const groups = [
-    [decode(a.data), decode(b.data)],
-    [decode(a.dataGroup1), decode(b.dataGroup1)],
+    [decodeFloats(a.data), decodeFloats(b.data)],
+    [decodeFloats(a.dataGroup1), decodeFloats(b.dataGroup1)],
   ];
   let worst = 0,
     min = Infinity,

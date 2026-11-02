@@ -165,16 +165,6 @@ export function overlayShaderMRT() {
   return overlayShader().replace("STATE_STENCIL", "STATE_STENCIL\n  STATE_STENCIL_GROUP1");
 }
 
-export function largestSpeciesShader() {
-  return `varying vec2 textureCoords;
-      uniform sampler2D textureSource;
-  
-      void main()
-      {   
-          gl_FragColor = texture2D(textureSource, textureCoords);
-      }`;
-}
-
 export function surfaceVertexShaderColour() {
   return `varying vec2 textureCoords;
     uniform sampler2D textureSource;

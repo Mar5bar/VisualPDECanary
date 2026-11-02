@@ -1,15 +1,19 @@
 /**
- * Formalizes manual verification of the Int(expression) inline domain-integral syntax (see
- * reconcileGlobalIntegrals/parseIntCalls/parseShaderString/parseStringToTEX in main.js), which
- * replaced the old "Integrals" folder/GlobalInt1-4-token feature this session - including the
- * TeX-formatting regression check (a raw "*" leaking into the rendered equation instead of being
- * removed) the original version of this file caught for the old syntax.
+ * Tests the Int(expression) domain-integral syntax (see reconcileGlobalIntegrals,
+ * parseShaderString and parseStringToTEX in main.js), including that no raw "*" leaks into
+ * the rendered equation.
  */
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
 import { ensureServerRunning } from "./server.mjs";
-import { launchAt, ensureOpen, collectErrors } from "./gui-helpers.mjs";
+import {
+  launchAt,
+  ensureOpen,
+  collectErrors,
+  dismissError,
+  reactionTermInput,
+} from "./gui-helpers.mjs";
 
 let browser, page, stopServer, errors;
 
@@ -33,21 +37,6 @@ after(async () => {
 });
 
 /** The Nth (1-based) reaction-term text input, in DOM order under the "Forcing terms" title. */
-function reactionTermInput(n) {
-  return page
-    .locator("li.title", { hasText: "Forcing terms" })
-    .locator(`xpath=following-sibling::li[${n}]//input`)
-    .first();
-}
-
-async function dismissError() {
-  const err = page.locator("#error");
-  if (await err.isVisible().catch(() => false)) {
-    await page.locator("#error").getByText("Close").click();
-    await page.waitForTimeout(200);
-  }
-}
-
 test("the old 'Integrals' folder and its 'Integrand N' fields no longer exist", async () => {
   assert.equal(await page.locator("li.title", { hasText: "Integrals" }).count(), 0);
   assert.equal(await page.locator("li.cr.string", { hasText: /Integrand/ }).count(), 0);
@@ -67,8 +56,8 @@ test("More...: 'Int. update' replaces the old 'Update period' control", async ()
 });
 
 test("Int(u) in a reaction term renders as \\iint_{\\Omega}(...) with no raw '*' left in the typeset equation", async () => {
-  await reactionTermInput(1).fill("u^2*v - (a+b)*u + 0.001*Int(u)");
-  await reactionTermInput(1).blur();
+  await reactionTermInput(page, 1).fill("u^2*v - (a+b)*u + 0.001*Int(u)");
+  await reactionTermInput(page, 1).blur();
   await page.waitForTimeout(500);
 
   const eqText = await page.locator("#equation_display").innerText();
@@ -83,8 +72,8 @@ test("Int(u) in a reaction term renders as \\iint_{\\Omega}(...) with no raw '*'
 });
 
 test("a second, distinct Int(v) elsewhere renders alongside the first without disturbing it (stable, independent slots)", async () => {
-  await reactionTermInput(2).fill("Int(v) - u*v");
-  await reactionTermInput(2).blur();
+  await reactionTermInput(page, 2).fill("Int(v) - u*v");
+  await reactionTermInput(page, 2).blur();
   await page.waitForTimeout(500);
 
   const eqText = await page.locator("#equation_display").innerText();
@@ -95,8 +84,8 @@ test("a second, distinct Int(v) elsewhere renders alongside the first without di
 test("a 5th distinct Int(...) expression across the simulation is rejected via the #error banner", async () => {
   // Int(u) (field 1) and Int(v) (field 2, below) are already in use - adding 3 more distinct
   // expressions here (w, a+b, a-b) pushes the total past the max of 4 on the last one.
-  await reactionTermInput(2).fill("Int(v) + Int(w) + Int(a+b) + Int(a-b)");
-  await reactionTermInput(2).blur();
+  await reactionTermInput(page, 2).fill("Int(v) + Int(w) + Int(a+b) + Int(a-b)");
+  await reactionTermInput(page, 2).blur();
   await page.waitForTimeout(500);
 
   assert.ok(
@@ -104,11 +93,11 @@ test("a 5th distinct Int(...) expression across the simulation is rejected via t
     "the error banner should appear for a 5th distinct Int(...) expression",
   );
   assert.match(await page.locator("#error").innerText(), /at most 4/);
-  await dismissError();
+  await dismissError(page);
 
   // Leave the fields in a valid (non-overflowing) state for the final no-console-errors check.
-  await reactionTermInput(2).fill("Int(v) - u*v");
-  await reactionTermInput(2).blur();
+  await reactionTermInput(page, 2).fill("Int(v) - u*v");
+  await reactionTermInput(page, 2).blur();
   await page.waitForTimeout(300);
 });
 

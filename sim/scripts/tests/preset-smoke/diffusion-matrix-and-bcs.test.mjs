@@ -1,8 +1,8 @@
 /**
  * Exercises two dat.gui-adjacent popups that the unit harness can't reach: the diffusion
- * matrix popup (configureDiffusionMatrixGUI/syncDiffusionMatrixGUI - the "keep the popup in
- * sync with the left-UI controllers" fix from earlier this session) and the combo/"Mixed..."
- * boundary-conditions per-side editor (configureComboBCsGUI/validateComboStr).
+ * matrix popup (configureDiffusionMatrixGUI/syncDiffusionMatrixGUI, including keeping it in
+ * sync with the left-UI controllers) and the combo/"Mixed..." boundary-conditions per-side
+ * editor (configureComboBCsGUI/validateComboStr).
  */
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";

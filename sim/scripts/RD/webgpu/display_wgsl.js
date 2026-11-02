@@ -94,7 +94,6 @@ function lookupHelpers(parts) {
     )
     .join("\n");
   return `
-const G = ${parts.numGroups}u;
 ${clampConsts}
 
 fn wrapIndex(k: i32, n: i32, clampIt: bool) -> i32 {
@@ -436,14 +435,6 @@ fn main(@builtin(local_invocation_index) local: u32, @builtin(workgroup_id) wg: 
     output[wg.x] = vec4f(lows[0], highs[0], 0.0, 0.0);
   }
 }`;
-}
-
-/** WGSL for a GLSL expression, using the post shader's conventions (for testing). */
-export function translateDisplayExpression(expr, parts) {
-  return translateExpression(expr, {
-    renames: renamesFor(parts),
-    calls: translationCalls(),
-  });
 }
 
 /**

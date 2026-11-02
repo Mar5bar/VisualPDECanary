@@ -76,6 +76,7 @@ import {
   RDShaderUpdateNormalMRT,
   RDShaderUpdateCrossMRT,
   RDShaderBotMRT,
+  SCHEME_STAGES,
 } from "./simulation_shaders.js";
 import { randShader, randNShader } from "../rand_shader.js";
 import {
@@ -126,6 +127,7 @@ import {
   stateStencilShader,
   findDerivativeGroups,
   outsideTests,
+  SPECIES_SUFFIX_PATTERN,
 } from "./derivatives.js";
 import * as THREE from "../three.module.min.js";
 import { OrbitControls } from "../OrbitControls.js";
@@ -147,6 +149,7 @@ import { Stats } from "../stats.min.js";
 import { createWelcomeTour } from "./tours.js";
 import { WebGPUBackend, undefinedName } from "./webgpu/webgpu_backend.js";
 import { WebGPUDisplay } from "./webgpu/display.js";
+import { Readback } from "./webgpu/readback.js";
 import { stateFormats, workgroupSizeFor, parseWorkgroupSize } from "./webgpu/sim_wgsl.js";
 import { POST_VALUES, DISPLAY_VALUES } from "./webgpu/display_wgsl.js";
 import {
@@ -180,13 +183,10 @@ async function VisualPDE(url) {
     // Set once the page is reloading (see reloadPreservingSimulation), as nothing should
     // start in the meantime.
     isReloading = false,
-    // Whether a probe value or the integral display is being read back on WebGPU.
-    gpuIntegralPending = false,
-    // Whether an integral, line plot or arrow readback was requested while one was under
-    // way, so is to be made once that's done (as the state may have changed since).
-    gpuIntegralAgain = false,
-    gpuLineAgain = false,
-    gpuArrowsAgain = false,
+    // The readbacks of the integral display, line plot and arrows on WebGPU.
+    gpuIntegralReadback = new Readback(),
+    gpuLineReadback = new Readback(),
+    gpuArrowReadback = new Readback(),
     // Counts resets of the state and the probe, so that readbacks under way then are dropped.
     gpuReadbackGeneration = 0,
     // Whether a reset's clearing of the WebGPU state is waiting for pipelines to be built
@@ -201,10 +201,6 @@ async function VisualPDE(url) {
     gpuRenderSize = new THREE.Vector2(1, 1),
     // Every error raised since the test hooks last loaded something (see initTestHooks).
     testErrors = [],
-    // Whether the post-processed values are being read back for a line plot on WebGPU.
-    gpuLineReadPending = false,
-    // Likewise, for a vector field's arrows.
-    gpuArrowReadPending = false,
     gpuAdapterInfo = null,
     gpuParamNames = [],
     // The number of animation frames whose WebGPU work the GPU hasn't finished (see animate).
@@ -235,12 +231,9 @@ async function VisualPDE(url) {
   // were last built (see setRDEquations).
   let stateStencilEdges = null;
   let simTextures = [],
-    // Only allocated once numGroups(options.numSpecies)>1 (i.e. numSpecies>4). Each entry is
-    // a THREE.WebGLMultipleRenderTargets holding one colour attachment per texture group, so
-    // that a single Forward-Euler MRT pass can write every group's species in one render call.
-    // simTextures (above) stays exactly as it is today and is what's used whenever
-    // numGroups===1, so the <=4-species code path/performance is completely unaffected by
-    // this array ever existing. See species_config.js and the Stage 3 upgrade notes.
+    // Used in place of simTextures once numGroups(options.numSpecies)>1 (i.e. numSpecies>4).
+    // Each entry is a THREE.WebGLMultipleRenderTargets with one attachment per texture group,
+    // so that one pass can update every species.
     mrtSimTextures = [],
     postTexture,
     interpolationTexture,
@@ -316,7 +309,6 @@ async function VisualPDE(url) {
     crossDiffusionToggle,
     boundaryConditionsFolder,
     initialConditionsFolder,
-    // variablesAndParamsFolder,
     editViewFolder,
     viewFeatureToggles,
     linesAnd3DFolder,
@@ -432,11 +424,7 @@ async function VisualPDE(url) {
   const llmURL =
     "https://gemini.google.com/gem/1mJ4572e1TJwEHcaYDst0_9keZkx78-zn";
   const defaultPreset = "GrayScott";
-  // Species 5-8 have no natural single-letter mnemonic like u/v/w/q, so they use numeric
-  // suffixes, consistent with the existing diffusionStr_i_j/reactionStr_i field-naming
-  // convention. These four arrays are extended by appending only (indices 0-3 are untouched)
-  // so that every existing index-based/sliced-by-numSpecies consumer keeps working
-  // identically for numSpecies<=4. See species_config.js and the Stage 1 upgrade plan.
+  // Species 5-8 have no natural single letter like u/v/w/q, so they use numeric suffixes.
   const defaultSpecies = ["u", "v", "w", "q", "u5", "u6", "u7", "u8"];
   const defaultReactions = [
     "UFUN",
@@ -448,9 +436,6 @@ async function VisualPDE(url) {
     "UFUN7",
     "UFUN8",
   ];
-  // NB: controllers/regexes for TU5-TU8 don't exist until the GUI/TeX stages of the upgrade
-  // land, so consumers that iterate this array and look up a controller/regex by tag must
-  // guard against a missing entry (see the timescaleTags.forEach call sites below).
   const timescaleTags = ["TU", "TV", "TW", "TQ", "TU5", "TU6", "TU7", "TU8"];
   const placeholderSp = [
     "VARIABLE1",
@@ -481,16 +466,15 @@ async function VisualPDE(url) {
     brushActionVals = ["replace", "add", "smoothreplace", "smoothadd"];
   let equationType, algebraicV, algebraicW, algebraicQ;
   // Algebraic-species flags for species 5-8 (0-based indices 4-7), computed in
-  // setAlgebraicVarsFromOptions(). Species 1-4 continue to use algebraicV/W/Q above,
-  // unchanged - this only covers indices not already handled by those.
+  // setAlgebraicVarsFromOptions(). Species 1-4 use algebraicV/W/Q.
   let algebraicSpeciesFlags = {};
   let takeAScreenshot = false,
     mediaRecorder,
     videoChunks;
   let buffer,
     stateBuffer,
-    // Group 1 (species 5-8) counterpart of stateBuffer, populated by getRawState() only
-    // once numGroups(numSpecies)>1 - see the 8-species upgrade's Stage 11.5 notes.
+    // Group 1 (species 5-8) counterpart of stateBuffer, populated by getRawState() once
+    // numGroups(numSpecies)>1.
     stateBufferGroup1,
     postBuffer,
     bufferFilled = false;
@@ -1566,13 +1550,9 @@ async function VisualPDE(url) {
       blending: THREE.NoBlending,
       toneMapped: false,
     });
-    // MRT counterpart of checkpointMaterial (Stage 11.5 of the 8-species upgrade) - a
-    // MeshBasicMaterial can only sample one texture/write one output, so restoring a
-    // checkpoint once numGroups>1 needs a real ShaderMaterial instead, sampling as the
-    // MeshBasicMaterial does (see checkpointShaderMRT), with its own dedicated uniforms object - NOT the shared `uniforms` - since that
-    // object's textureSource/textureSourceGroup1 are reassigned constantly by every other
-    // MRT material and this one's inputs (the checkpoint textures) are set only when
-    // restoring, not every frame.
+    // MRT counterpart of checkpointMaterial, as a MeshBasicMaterial can only write one
+    // output. It has its own uniforms, as its inputs (the checkpoint textures) are set only
+    // when restoring, whereas the shared textureSource uniforms change every frame.
     checkpointMaterialMRT = new THREE.ShaderMaterial({
       uniforms: {
         textureSource: { type: "t", value: null },
@@ -2111,13 +2091,8 @@ async function VisualPDE(url) {
       return;
     }
     // Resize the computational domain by interpolating the existing domain onto the new discretisation.
-    // mrtSimTextures (the real 8-species state once numGroups>1) is allocated once at
-    // options.maxDisc size (Stage 3) and, unlike simTextures, was never being resized down
-    // to the actual discretisation (nXDisc/nYDisc) here - found via live testing (an initial
-    // condition meant to occupy a small region instead filling the whole domain, since the
-    // render target was much larger than intended). copyMaterial's shader/glslVersion are
-    // toggled dynamically since, unlike drawMaterial/clearMaterial, it's built once at
-    // startup rather than rebuilt whenever relevant options change - this is its only use.
+    // copyMaterial is built once at startup, so its shader is switched here to match the
+    // number of texture groups.
     const isMRT = numGroups(Number(options.numSpecies)) > 1;
     if (isMRT) {
       assignFragmentShader(copyMaterial, copyShaderMRT());
@@ -2130,8 +2105,7 @@ async function VisualPDE(url) {
     simDomain.material = copyMaterial;
 
     if (isMRT) {
-      // simTextures is unused once numGroups>1 (the real state lives in mrtSimTextures,
-      // matching every other Stage 3-8 MRT code path), so it's deliberately left alone here.
+      // simTextures is unused once numGroups>1.
       for (let ind = 1; ind < mrtSimTextures.length; ind++) {
         uniforms.textureSource.value = mrtSimTextures[ind].texture[0];
         uniforms.textureSourceGroup1.value = mrtSimTextures[ind].texture[1];
@@ -2382,15 +2356,11 @@ async function VisualPDE(url) {
       textureSource3: {
         type: "t",
       },
-      // Group 1's (species 5-8) current-state texture, only bound to an actual value once
-      // numGroups(options.numSpecies)>1 - see species_config.js and the Stage 4-8 upgrade
-      // notes.
+      // Group 1's (species 5-8) current state, used once numGroups(options.numSpecies)>1.
       textureSourceGroup1: {
         type: "t",
       },
-      // Group 1 counterparts of textureSource1/2/3, needed once AB2/Midpoint/RK4 support
-      // numSpecies>4 (Stage 13 of the 8-species upgrade) - only bound to an actual value
-      // once numGroups(options.numSpecies)>1, same as textureSourceGroup1 above.
+      // Group 1 counterparts of textureSource1/2/3, used as textureSourceGroup1 is.
       textureSource1Group1: {
         type: "t",
       },
@@ -2787,14 +2757,9 @@ async function VisualPDE(url) {
     root = diffusionCoeffsFolder;
     addInfoButton(root, "/user-guide/advanced-options#diffusion-coefficients");
 
-    // Diffusion coefficient controllers for every (i,j) pair, all 8 species. Controller keys
-    // use diffCtrlKey(i,j) - species 1-4 keep their legacy letter-pair keys (Duu..Dqq),
-    // touching species 5-8 uses a numeric key (see species_config.js/diffusionLabel for the
-    // same convention). TeX select keys reuse defaultSpecies so the TeX display can hook into
-    // them; selectTeX/deselectTeX are no-ops for keys with no TeXStrings entry.
-    // allDiffusionTexKeys collects every key seen below, so hovering the folder's own title bar
-    // (rather than any individual controller) can highlight all of them at once - see the
-    // setOnFolderHoverEnter/Leave calls below the loop.
+    // Diffusion coefficient controllers for every (i,j) pair, keyed by diffCtrlKey(i,j).
+    // allDiffusionTexKeys collects their TeX keys, so that hovering over the folder's title
+    // highlights them all.
     const allDiffusionTexKeys = [];
     for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
@@ -3045,7 +3010,7 @@ async function VisualPDE(url) {
         setClearShader();
       });
 
-    // Species 5-8 initial conditions (Stage 9 of the 8-species upgrade).
+    // Species 5-8 initial conditions.
     for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
       controllers["initCond_" + i] = root
         .add(options, "initCond_" + i)
@@ -4490,17 +4455,19 @@ async function VisualPDE(url) {
     };
   }
 
-  // The GLSL enforcing Dirichlet conditions on "updated" (and "updated2" for species 5-8),
-  // as dirichletMaterial does on WebGL.
-  function gpuDirichletEnforceBody() {
-    const numSpeciesInGroups = 4 * numGroups(Number(options.numSpecies));
+  // The GLSL enforcing the Dirichlet conditions of the first numSpecies species, on "updated"
+  // (and "updated2" for species 5-8) if mrt is set, as dirichletMaterial's MRT shader and
+  // WebGPU do, and otherwise on gl_FragColor (for species 1-4).
+  function dirichletEnforceBody(numSpecies, mrt) {
+    const enforce = mrt ? dirichletEnforceShaderMRT : dirichletEnforceShader;
     let body = "";
     if (options.domainViaIndicatorFun) {
-      const str = RDShaderDirichletIndicatorFun().replace(
+      let str = RDShaderDirichletIndicatorFun().replace(
         /indicatorFun/,
         parseShaderString(getModifiedDomainIndicatorFun()),
       );
-      for (let ind = 0; ind < numSpeciesInGroups; ind++) {
+      if (!mrt) str = str.replace(/updated/, "gl_FragColor");
+      for (let ind = 0; ind < numSpecies; ind++) {
         const isDirichlet =
           options["boundaryConditions_" + (ind + 1)] == "dirichlet";
         body +=
@@ -4511,14 +4478,14 @@ async function VisualPDE(url) {
           ";\n}\n";
       }
     } else {
-      for (let ind = 0; ind < numSpeciesInGroups; ind++) {
+      for (let ind = 0; ind < numSpecies; ind++) {
         const bcStr = options["boundaryConditions_" + (ind + 1)];
         if (bcStr == "dirichlet") {
           body += parseDirichletRHS(
             options["dirichletStr_" + (ind + 1)],
             listOfSpecies[ind],
           );
-          body += dirichletEnforceShaderMRT(ind);
+          body += enforce(ind);
         } else if (bcStr == "combo") {
           [
             ...(options["comboStr_" + (ind + 1)] + ";").matchAll(
@@ -4527,20 +4494,12 @@ async function VisualPDE(url) {
           ].forEach(function (m) {
             const side = m[1][0].toUpperCase();
             body += parseDirichletRHS(m[2], listOfSpecies[ind], side);
-            body += dirichletEnforceShaderMRT(ind, side);
+            body += enforce(ind, side);
           });
         }
       }
     }
-    return replaceMINXMINY(body);
-  }
-
-  // The first feature in use that WebGPU doesn't support, as a description, or null if it
-  // supports everything in use. Simulations using anything it doesn't run on WebGL instead
-  // (see fallBackToWebGL). WebGPU currently supports everything WebGL does; this is where to
-  // exclude any feature added to WebGL before WebGPU.
-  function webGPUUnsupportedFeature() {
-    return null;
+    return body;
   }
 
   // Reloads the page, keeping the simulation's options, as for a refresh (see the
@@ -5139,10 +5098,8 @@ async function VisualPDE(url) {
     simDomain.material = drawMaterial;
     // We'll draw onto all history terms. We'll do 1->0 then 2->1 etc, then cycle.
     if (numGroups(Number(options.numSpecies)) > 1) {
-      // drawMaterial's MRT shader (drawShaderTopMRT, Stage 7) always passes both groups'
-      // current state through, overriding only the one drawn-on channel - so both
-      // textureSource (group 0) and textureSourceGroup1 (group 1) need to be bound from the
-      // same slot regardless of which group is actually being drawn on.
+      // drawMaterial's MRT shader writes both groups, so both need binding whichever group
+      // is drawn on.
       for (let ind = 1; ind < mrtSimTextures.length; ind++) {
         uniforms.textureSource.value = mrtSimTextures[ind].texture[0];
         uniforms.textureSourceGroup1.value = mrtSimTextures[ind].texture[1];
@@ -5181,9 +5138,7 @@ async function VisualPDE(url) {
       case "Euler":
         simDomain.material = simMaterials["FE"];
         if (numGroups(Number(options.numSpecies)) > 1) {
-          // The real 8-species state lives in mrtSimTextures (each slot's two
-          // attachments are group 0/group 1 respectively) - simTextures is untouched and
-          // unused once numGroups>1, matching every other Stage 3-7 MRT code path.
+          // The state lives in mrtSimTextures, whose two attachments are groups 0 and 1.
           uniforms.textureSource.value = mrtSimTextures[1].texture[0];
           uniforms.textureSourceGroup1.value = mrtSimTextures[1].texture[1];
           uniforms.textureSource1.value = mrtSimTextures[2].texture[0];
@@ -5334,12 +5289,8 @@ async function VisualPDE(url) {
     }
     // Enforce any Dirichlet boundary conditions.
     simDomain.material = dirichletMaterial;
-    // The real 8-species state lives in mrtSimTextures once numGroups>1 (matching every
-    // other Stage 3+ MRT code path) - dirichletMaterial's shader/glslVersion are already
-    // toggled to the MRT-capable variant in setRDEquations() when that's the case (Stage
-    // 11.5 of the 8-species upgrade; previously this always cascaded over the unused
-    // simTextures regardless, so Dirichlet BCs silently had no effect on any species once
-    // numSpecies>4).
+    // Once numGroups>1, the state lives in mrtSimTextures and setRDEquations() has given
+    // dirichletMaterial its MRT shader.
     if (numGroups(Number(options.numSpecies)) > 1) {
       // We'll do 1->0 then 2->1 etc, then cycle.
       for (let ind = 1; ind < mrtSimTextures.length; ind++) {
@@ -5428,16 +5379,8 @@ async function VisualPDE(url) {
     renderer.render(scene, camera);
     if (takeAScreenshot) {
       takeAScreenshot = false;
-      var link = document.createElement("a");
-      link.download = "VisualPDEScreenshot.png";
       renderer.render(scene, camera);
-      link.href = renderer.domElement
-        .toDataURL()
-        .replace(
-          /^data:image\/?[A-z]*;base64,/,
-          "data:application/octet-stream;base64,",
-        );
-      link.click();
+      downloadScreenshot(renderer.domElement);
       setSizes();
       render();
     }
@@ -5472,17 +5415,11 @@ async function VisualPDE(url) {
         nYDisc,
         probeFieldBuffer,
       );
-      let dA;
-      if (options.dimension == 1) {
-        dA = uniforms.dx.value;
-      } else if (options.dimension == 2) {
-        dA = uniforms.dx.value * uniforms.dy.value;
-      }
       let total = 0;
       for (let i = 0; i < probeFieldBuffer.length; i += 4) {
         total += probeFieldBuffer[i] * (1 - probeFieldBuffer[i + 1]);
       }
-      total *= dA;
+      total *= areaElement();
       addProbeData(uniforms.t.value, total);
       updateProbeDisplay();
     }
@@ -5490,14 +5427,8 @@ async function VisualPDE(url) {
     frameCount = (frameCount + 1) % options.guiUpdatePeriod;
   }
 
-  // The WebGPU counterpart of render(), for the features WebGPU supports so far (see
-  // webGPUUnsupportedFeature()).
+  // The WebGPU counterpart of render().
   function renderWebGPU(isResetting) {
-    const unsupported = webGPUUnsupportedFeature();
-    if (unsupported) {
-      fallBackToWebGL(unsupported + " aren't available on WebGPU yet");
-      return;
-    }
     // WebGPU interpolates the plotted values itself, at the display's resolution, so
     // gradients (for embossing and overlays) are taken at the simulation's resolution, as
     // WebGL does when it isn't interpolating manually.
@@ -5587,17 +5518,22 @@ async function VisualPDE(url) {
     if (takeAScreenshot) {
       // The canvas must be read in the same task as it was drawn to.
       takeAScreenshot = false;
-      const link = document.createElement("a");
-      link.download = "VisualPDEScreenshot.png";
-      link.href = canvas
-        .toDataURL()
-        .replace(
-          /^data:image\/?[A-z]*;base64,/,
-          "data:application/octet-stream;base64,",
-        );
-      link.click();
+      downloadScreenshot(canvas);
     }
     frameCount = (frameCount + 1) % options.guiUpdatePeriod;
+  }
+
+  // Downloads what's drawn on the canvas as a PNG.
+  function downloadScreenshot(canvasElement) {
+    const link = document.createElement("a");
+    link.download = "VisualPDEScreenshot.png";
+    link.href = canvasElement
+      .toDataURL()
+      .replace(
+        /^data:image\/?[A-z]*;base64,/,
+        "data:application/octet-stream;base64,",
+      );
+    link.click();
   }
 
   // Points and scales the vector field's arrows from postBuffer, which holds the
@@ -5682,45 +5618,28 @@ async function VisualPDE(url) {
   // Updates the integral display from the GPU, as updateIntegralDisplay() does on WebGL.
   function gpuUpdateIntegralDisplay() {
     if (gpuClearPending) return;
-    if (gpuIntegralPending) {
-      gpuIntegralAgain = true;
-      return;
-    }
-    gpuIntegralPending = true;
     const generation = gpuReadbackGeneration;
-    gpuDisplay.integral(areaElement()).then(
-      (total) => {
-        gpuIntegralPending = false;
+    gpuIntegralReadback.request(
+      () => gpuDisplay.integral(areaElement()),
+      (total, again) => {
         // Null if the grid has changed since the values were post-processed, and dropped if
         // the state has been reset since.
         if (total != null && generation == gpuReadbackGeneration) {
           $("#integralValue").html(formatLabelNum(total, 4));
           checkColourbarPosition();
         }
-        if (gpuIntegralAgain) {
-          gpuIntegralAgain = false;
-          if (options.integrate) gpuUpdateIntegralDisplay();
-        }
+        if (again && options.integrate) gpuUpdateIntegralDisplay();
       },
-      // E.g. if the device was lost.
-      () => (gpuIntegralPending = false),
     );
   }
 
   // Reads the post-processed values back for the vector field on WebGPU, then points the
   // arrows. As for line plots, the arrows lag the simulation by a frame or so.
   function gpuUpdateArrows() {
-    if (gpuArrowReadPending) {
-      gpuArrowsAgain = true;
-      return;
-    }
-    gpuArrowReadPending = true;
-    gpuDisplay.readPost().then(
-      (data) => {
-        gpuArrowReadPending = false;
+    gpuArrowReadback.request(
+      () => gpuDisplay.readPost(),
+      (data, again) => {
         // Read again if asked to meanwhile, unless drawing (which reads again itself).
-        const again = gpuArrowsAgain;
-        gpuArrowsAgain = false;
         // Null if the grid has changed since the values were post-processed.
         if (!data || !arrowGroup) {
           if (again) gpuUpdateArrows();
@@ -5735,8 +5654,6 @@ async function VisualPDE(url) {
         if (!isRunning && !sameValues(arrowsSnapshot(), before)) render();
         else if (again) gpuUpdateArrows();
       },
-      // E.g. if the device was lost.
-      () => (gpuArrowReadPending = false),
     );
   }
 
@@ -5763,17 +5680,10 @@ async function VisualPDE(url) {
   // Reads the post-processed values back for a line plot on WebGPU, then updates the line
   // from them. Readback is asynchronous, so the line lags the simulation by a frame or so.
   function gpuUpdateLinePlot() {
-    if (gpuLineReadPending) {
-      gpuLineAgain = true;
-      return;
-    }
-    gpuLineReadPending = true;
-    gpuDisplay.readPost().then(
-      (data) => {
-        gpuLineReadPending = false;
+    gpuLineReadback.request(
+      () => gpuDisplay.readPost(),
+      (data, again) => {
         // Read again if asked to meanwhile, unless drawing (which reads again itself).
-        const again = gpuLineAgain;
-        gpuLineAgain = false;
         // Null if the grid has changed since the values were post-processed.
         if (!data || data.length != buffer.length) {
           if (again) gpuUpdateLinePlot();
@@ -5790,8 +5700,6 @@ async function VisualPDE(url) {
         if (before && !sameValues(lineSnapshot(), before)) render();
         else if (again) gpuUpdateLinePlot();
       },
-      // E.g. if the device was lost.
-      () => (gpuLineReadPending = false),
     );
   }
 
@@ -6054,9 +5962,7 @@ async function VisualPDE(url) {
    * Creates the 5-slot ping-pong render target array used by a single texture group (one
    * texture holding up to CHANNELS_PER_GROUP species in its r,g,b,a channels): a "current"
    * target plus 4 history/stage-buffer clones, which between them cover every timestepping
-   * scheme's needs (Forward Euler needs 2, RK4 needs all 5). Factored out so the always-
-   * present group 0 (simTextures) and, once implemented, any future >8-species upgrade's
-   * additional groups can all share this logic.
+   * scheme's needs (Forward Euler needs 2, RK4 needs all 5).
    * @param {number} width
    * @param {number} height
    * @param {Object} opts - THREE.WebGLRenderTarget options (format/type/filtering).
@@ -6224,17 +6130,11 @@ async function VisualPDE(url) {
     }
     setRenderSizeToDisc();
     const isMRT = numGroups(Number(options.numSpecies)) > 1;
-    // If restoring a checkpoint captured/loaded while numGroups was 1 (no group-1 data) but
-    // numSpecies is now >4, species 5-8 restore to zero rather than being left with whatever
-    // a single-output material would otherwise leave in that attachment (undefined/stale
-    // data) - created fresh each time (a reset-to-checkpoint is an explicit, infrequent user
-    // action, not a per-frame one) and disposed right after use, below.
+    // A checkpoint without group 1 (saved with numSpecies<=4) restores species 5-8 to zero.
     let tempZeroGroup1Tex;
     if (checkpointExists && options.resetFromCheckpoints) {
       if (isMRT) {
-        // checkpointMaterial (plain MeshBasicMaterial) can only sample one texture/write
-        // one output - use checkpointMaterialMRT (Stage 11.5 of the 8-species upgrade)
-        // instead, which samples both checkpoint textures and writes both attachments.
+        // checkpointMaterial can only write one output, so use checkpointMaterialMRT.
         if (checkpointTextureGroup1 == null) {
           tempZeroGroup1Tex = new THREE.DataTexture(
             new Float32Array(
@@ -6262,9 +6162,8 @@ async function VisualPDE(url) {
     } else {
       simDomain.material = clearMaterial;
     }
-    // The real 8-species state lives in mrtSimTextures once numGroups>1 (see timestep()'s
-    // "Euler" case) - clearMaterial's MRT shader (Stage 7) writes both attachments in one
-    // render call per slot.
+    // Once numGroups>1, the state lives in mrtSimTextures, and clearMaterial writes both
+    // groups.
     (isMRT ? mrtSimTextures : simTextures).forEach((tex) => {
       renderer.setRenderTarget(tex);
       renderer.render(simScene, simCamera);
@@ -6339,10 +6238,7 @@ async function VisualPDE(url) {
     // Prepare the QFUN string.
     out += "float QFUN = " + parseShaderString(options.reactionStr_4) + ";\n";
 
-    // Species 5-8, only relevant once numGroups(numSpecies)>1 (numSpecies>4). Kept
-    // separate from the 4 hardcoded lines above (rather than folding everything into one
-    // generalized loop) so the numSpecies<=4 output is provably unchanged - this loop's
-    // range is empty whenever numSpecies<=4.
+    // Species 5-8, if numSpecies>4.
     const numSpecies = Number(options.numSpecies);
     for (let i = 4; i < numSpecies; i++) {
       out +=
@@ -6356,9 +6252,8 @@ async function VisualPDE(url) {
     return out;
   }
 
-  // Shared per-coefficient body extracted from parseNormalDiffusionStrings/
-  // parseCrossDiffusionStrings' tuple loops (unchanged logic, just factored out so the new
-  // species-5-8/cross-group loops below can reuse it without duplicating it).
+  // The shader defining one diffusion coefficient and its x and y components and
+  // derivatives, used by parseNormalDiffusionStrings and parseCrossDiffusionStrings.
   function diffusionTupleToShader(str, label) {
     let out = "";
     let stry;
@@ -6402,10 +6297,7 @@ async function VisualPDE(url) {
       out += diffusionTupleToShader(str, label);
     }
 
-    // Species 5-8 self-diffusion, only relevant once numGroups(numSpecies)>1 (numSpecies>4).
-    // Kept separate from the tuples array above (rather than folding into one generalized
-    // loop) so the numSpecies<=4 output is provably unchanged - this loop's range is empty
-    // whenever numSpecies<=4.
+    // Species 5-8 self-diffusion, if numSpecies>4.
     const numSpecies = Number(options.numSpecies);
     for (let i = 4; i < numSpecies; i++) {
       out += diffusionTupleToShader(
@@ -6531,30 +6423,14 @@ async function VisualPDE(url) {
       );
     });
 
-    // Replace each Int(expression) with the globalIntegralValueN uniform holding its
-    // current value, N being whichever of the (at most 4) slots reconcileGlobalIntegrals()
-    // has assigned that expression to. reconcileGlobalIntegrals() always runs earlier in
-    // the same shader-rebuild call than parseShaderString(), so the slot should always be
-    // found; fall back to "0.0" (mirroring expandDependentExpressions' degrade-to-"0.0" for
-    // cyclic expressions) if it somehow isn't, e.g. a slot that overflowed the max of 4. Must
-    // run after macro substitution above - reconcileGlobalIntegrals() scans every field's raw
-    // text (including a macro's own definition in options.expressions) for Int(...), so a
-    // macro like "myMacro = u + Int(u)" already gets "u" assigned a slot; if this ran before
-    // macro substitution, an Int(...) that only exists *inside* a macro's definition (only
-    // appearing here once "myMacro" gets expanded to "(u + Int(u))") would never be resolved,
-    // reaching the shader compiler as literal, invalid "Int(u)" text. Still runs before
-    // anything below that could otherwise mangle the raw text inside "Int(...)" (e.g. species
-    // substitution) - the lookup here needs to see the same canonical text
-    // reconcileGlobalIntegrals() saw. The result is a bare identifier, immune to every later
-    // substitution pass.
+    // Replace each Int(expression) with the globalIntegralValueN uniform that
+    // reconcileGlobalIntegrals() has assigned it, or 0.0 if it has none (e.g. there are more
+    // than 4). This comes after macro substitution, so that it sees any Int(...) in a macro,
+    // and before anything below alters the text inside Int(...), so that it sees what
+    // reconcileGlobalIntegrals() saw.
     //
-    // allowIntegrals is false only for initial conditions (setClearShader) - domain integrals
-    // aren't computed until the simulation is actually running (they're derived from the
-    // current state, which doesn't exist yet at t=0, before the very first timestep), so
-    // there's no meaningful value Int(...) could resolve to there. Rather than let that reach
-    // the shader compiler as a reference to a uniform initCond's shader never declares
-    // (a confusing "undefined identifier" GLSL compile error), degrade straight to "0.0" and
-    // explain why via throwError.
+    // Integrals aren't available in initial conditions (allowIntegrals is false), as there is
+    // no state to integrate yet, so are replaced by 0.0 with an error explaining why.
     str = replaceIntCalls(str, (expr) => {
       if (!allowIntegrals) {
         throwError(
@@ -6584,7 +6460,7 @@ async function VisualPDE(url) {
     // dependence on x, y and RANDN explicit, and before anything below turns species into
     // GLSL. Images' implicit (x,y) are made explicit for the same reason, but only here, so
     // that other expressions are unchanged. The node tokens that this leaves are resolved by
-    // each shader (see resolveSimStencil and stencilFetchShader).
+    // each shader (see insertStateStencil and simReactionStencil).
     if (containsDerivatives(str, { species: listOfSpecies })) {
       str = str.replaceAll(/\b(I_[ST][RBGA]?\b)\s*(?!\()/g, "$1(x,y) ");
       try {
@@ -6722,12 +6598,7 @@ async function VisualPDE(url) {
 
   /**
    * Builds the Neumann/Ghost/Dirichlet/Robin shader blocks and edge-clamp flags for a given
-   * list of (0-based) species indices, mirroring setRDEquations()'s own group-0 blocks
-   * (which remain untouched, literal code) exactly - same conditions, same order, same
-   * helper functions (robinUpdateShader/ghostUpdateShader/dirichletUpdateShader/
-   * parseRobinRHS/parseDirichletRHS, all already index-generic). Used for species 5-8
-   * (group 1) so group 0's already-correct, byte-for-byte-preserved blocks don't need to be
-   * touched or risk being altered by a shared/generalized loop.
+   * list of (0-based) species indices, as setRDEquations() does for species 1-4.
    * @param {number[]} indices - 0-based species indices to build BCs for (e.g. [4,5,6,7]).
    * @returns {{neumannShader: string, ghostShader: string, dirichletShader: string, robinShader: string, edgeClampSpeciesH: Object<number,boolean>, edgeClampSpeciesV: Object<number,boolean>}}
    */
@@ -7078,158 +6949,15 @@ async function VisualPDE(url) {
     // Must run before anything below that could reference an Int(...) expression - see
     // reconcileGlobalIntegrals().
     reconcileGlobalIntegrals();
-    let neumannShader = "";
-    let ghostShader = "";
-    let dirichletShader = "";
-    let robinShader = "";
     let diffusionShader = "";
     let algebraicShader = "";
     let clampShader = "";
 
-    let edgeClampSpeciesH = [false, false, false, false];
-    let edgeClampSpeciesV = [false, false, false, false];
-
-    const BCStrs = [
-      options.boundaryConditions_1,
-      options.boundaryConditions_2,
-      options.boundaryConditions_3,
-      options.boundaryConditions_4,
-    ];
-    const NStrs = [
-      options.neumannStr_1,
-      options.neumannStr_2,
-      options.neumannStr_3,
-      options.neumannStr_4,
-    ];
-    const MStrs = [
-      options.comboStr_1,
-      options.comboStr_2,
-      options.comboStr_3,
-      options.comboStr_4,
-    ].map((s) => s + ";");
-    const DStrs = [
-      options.dirichletStr_1,
-      options.dirichletStr_2,
-      options.dirichletStr_3,
-      options.dirichletStr_4,
-    ];
-    const RStrs = [
-      options.robinStr_1,
-      options.robinStr_2,
-      options.robinStr_3,
-      options.robinStr_4,
-    ];
-
-    // Create a Neumann shader block for each species separately, which is just a special case of Robin.
-    BCStrs.forEach(function (str, ind) {
-      if (str == "neumann") {
-        edgeClampSpeciesH[ind] = true;
-        edgeClampSpeciesV[ind] = true;
-        neumannShader += parseRobinRHS(NStrs[ind], listOfSpecies[ind]);
-        if (!options.domainViaIndicatorFun) {
-          neumannShader += robinUpdateShader(ind);
-        } else {
-          neumannShader += robinUpdateShaderCustomDomain(ind);
-        }
-      } else if (str == "combo") {
-        [
-          ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Neumann\s*=([^;]*);/gi,
-          ),
-        ].forEach(function (m) {
-          const side = m[1][0].toUpperCase();
-          neumannShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
-          neumannShader += robinUpdateShader(ind, side);
-          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
-          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
-        });
-      }
-    });
-
-    // Create a Ghost shader block for each species separately.
-    BCStrs.forEach(function (str, ind) {
-      if (str == "combo") {
-        [
-          ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Ghost\s*=([^;]*);/gi,
-          ),
-        ].forEach(function (m) {
-          const side = m[1][0].toUpperCase();
-          ghostShader += ghostUpdateShader(ind, side, parseShaderString(m[2]));
-          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
-          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
-        });
-      }
-    });
-
-    // Create Dirichlet shaders.
-    BCStrs.forEach(function (str, ind) {
-      if (str == "dirichlet") {
-        edgeClampSpeciesH[ind] = true;
-        edgeClampSpeciesV[ind] = true;
-        if (!options.domainViaIndicatorFun) {
-          dirichletShader += parseDirichletRHS(DStrs[ind], listOfSpecies[ind]);
-          dirichletShader += dirichletUpdateShader(ind);
-        } else {
-          let baseStr = RDShaderDirichletIndicatorFun().replace(
-            /indicatorFun/g,
-            parseShaderString(getModifiedDomainIndicatorFun()),
-          );
-          dirichletShader +=
-            selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
-            parseShaderString(DStrs[ind]) +
-            ";\n}\n";
-        }
-      } else if (str == "combo") {
-        [
-          ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/gi,
-          ),
-        ].forEach(function (m) {
-          const side = m[1][0].toUpperCase();
-          dirichletShader += parseDirichletRHS(m[2], listOfSpecies[ind], side);
-          dirichletShader += dirichletUpdateShader(ind, side);
-          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
-          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
-        });
-      } else if (options.domainViaIndicatorFun) {
-        // Zero-out anything outside of the domain if we're using an indicator function.
-        let baseStr = RDShaderDirichletIndicatorFun().replace(
-          /indicatorFun/g,
-          parseShaderString(getModifiedDomainIndicatorFun()),
-        );
-        dirichletShader +=
-          selectSpeciesInShaderStr(baseStr, listOfSpecies[ind]) +
-          "0.0" +
-          ";\n}\n";
-      }
-    });
-
-    // Create a Robin shader block for each species separately.
-    BCStrs.forEach(function (str, ind) {
-      if (str == "robin") {
-        edgeClampSpeciesH[ind] = true;
-        edgeClampSpeciesV[ind] = true;
-        robinShader += parseRobinRHS(RStrs[ind], listOfSpecies[ind]);
-        if (!options.domainViaIndicatorFun) {
-          robinShader += robinUpdateShader(ind);
-        } else {
-          robinShader += robinUpdateShaderCustomDomain(ind);
-        }
-      } else if (str == "combo") {
-        [
-          ...MStrs[ind].matchAll(
-            /(Left|Right|Top|Bottom)\s*:\s*Robin\s*=([^;]*);/gi,
-          ),
-        ].forEach(function (m) {
-          const side = m[1][0].toUpperCase();
-          robinShader += parseRobinRHS(m[2], listOfSpecies[ind], side);
-          robinShader += robinUpdateShader(ind, side);
-          if (["L", "R"].includes(side)) edgeClampSpeciesH[ind] = true;
-          if (["T", "B"].includes(side)) edgeClampSpeciesV[ind] = true;
-        });
-      }
-    });
+    // The boundary conditions of species 1-4.
+    const bc = buildBCShadersForIndices([0, 1, 2, 3]);
+    let { neumannShader, ghostShader, dirichletShader, robinShader } = bc;
+    const edgeClampSpeciesH = [0, 1, 2, 3].map((i) => bc.edgeClampSpeciesH[i]);
+    const edgeClampSpeciesV = [0, 1, 2, 3].map((i) => bc.edgeClampSpeciesV[i]);
 
     // Insert any user-defined kinetic parameters, given as a string that needs parsing.
     // Extract variable definitions, separated by semicolons or commas, ignoring whitespace.
@@ -7238,16 +6966,8 @@ async function VisualPDE(url) {
     let kineticStr = kineticUniformsForShader();
 
     // Choose what sort of update we are doing: normal, or cross-diffusion enabled?
-    // RDShaderUpdateNormal/RDShaderUpdateCross build group 0's (species 1-4 only) RHS -
-    // BCStrs/NStrs/DStrs/MStrs/edgeClampSpeciesH/V above are already hardcoded to species
-    // 1-4 for the same reason. Cap at 4 (found during the Stage 11 audit of the 8-species
-    // upgrade): passing the raw, uncapped numSpecies here left their trailing
-    // switch(numSpecies){case 1..4} unmatched for numSpecies 5-8, so `result` (an `out`
-    // parameter of computeRHS) was never assigned. This diffusionShader/middle/bot is only
-    // ever assigned to a material when numGroups===1 (see the isMRT branch below, which uses
-    // middleMRT/botMRT instead for every scheme once numGroups>1) - the cap keeps this
-    // branch's generated text well-formed regardless of numSpecies even though it's unused
-    // in that case.
+    // These shaders cover species 1-4, and are only used if numSpecies<=4; capping keeps
+    // them well-formed regardless.
     const numSpeciesGroup0 = Math.min(Number(options.numSpecies), 4);
     diffusionShader = parseNormalDiffusionStrings() + "\n";
     if (options.crossDiffusion) {
@@ -7322,12 +7042,7 @@ async function VisualPDE(url) {
       }
     }
 
-    // If v should be algebraic, append this to the normal update shader. Algebraic species no
-    // longer require cross diffusion (relaxed - previously this was gated on
-    // options.crossDiffusion purely to limit the equationTEX display's combinatorics, not for
-    // any numerical reason: RHS.SPECIES already includes whatever diffusion/reaction terms
-    // are actually defined regardless of cross diffusion, and configureOptions() always zeros
-    // an algebraic species' own self-diffusion anyway).
+    // If v should be algebraic, append this to the normal update shader.
     if (algebraicV) {
       algebraicShader += selectSpeciesInShaderStr(
         RDShaderAlgebraicSpecies(),
@@ -7439,19 +7154,8 @@ async function VisualPDE(url) {
       );
     const bot = (type) => botBody(type) + " " + RDShaderBot();
 
-    // MRT (>4-species) path, used by every timestepping scheme once numGroups>1 (Stage 13 of
-    // the 8-species upgrade extended this from Forward-Euler-only to all 8 scheme
-    // materials). Built as an entirely separate diffusionShader/middle/bot from the ones
-    // above: RDShaderUpdateNormalMRT/RDShaderUpdateCrossMRT close a computeRHS with a
-    // doubled signature (18 stencil args, result0/result1) that's incompatible with the
-    // legacy single-group signature `middle`/`bot` above are built around - and `middle`/
-    // `bot` above must stay exactly as they are, since every scheme still uses them
-    // unchanged whenever numGroups===1. middleMRT/botMRT below are scheme-agnostic (the
-    // scheme only affects RDShaderTopMRT(type)/RDShaderMainMRT(type), assembled below) -
-    // parseReactionStrings()/parseNormalDiffusionStrings()/parseCrossDiffusionStrings()
-    // already include species 5-8 and cross-group terms unconditionally (generalized
-    // earlier in this stage), so they're reused here as-is - only the final
-    // "close computeRHS"/shader-wrapper functions differ.
+    // The MRT (numSpecies>4) counterparts of middle and bot, whose computeRHS takes both
+    // groups' stencils and returns both groups' results.
     let middleMRT, botMRT, botBodyMRT;
     if (numGroups(Number(options.numSpecies)) > 1) {
       let diffusionShaderMRT = parseNormalDiffusionStrings() + "\n";
@@ -7466,10 +7170,7 @@ async function VisualPDE(url) {
         );
       }
 
-      // Group 1 (species 5-8) BCs: mirrors the group-0 blocks above exactly, via
-      // buildBCShadersForIndices (factored out so group 0's blocks don't need touching).
-      // All 4 slots are always processed regardless of exact numSpecies (5-8), matching the
-      // group-0 pattern of always processing all 4 slots regardless of numSpecies<=4.
+      // Group 1 (species 5-8) BCs, all 4 slots regardless of numSpecies, as for group 0.
       const bcGroup1 = buildBCShadersForIndices([4, 5, 6, 7]);
       for (const key of [
         "neumannShader",
@@ -7483,12 +7184,8 @@ async function VisualPDE(url) {
         );
       }
 
-      // Group 1 edge-clamping: always via the shader (clampSpeciesToEdgeShader,
-      // groupified to route to uvwq2), never via mutating mrtSimTextures' wrapping mode -
-      // unlike group 0's optimization of clamping the whole texture when every species
-      // needs it. This is a deliberate, documented simplification (correct, just not
-      // maximally optimized) rather than entangling this stage with Stage 3/8's
-      // render-target lifecycle further.
+      // Group 1 is always clamped to the edges in the shader, never by the textures'
+      // wrapping mode as group 0 can be.
       let clampShaderGroup1 = "";
       let channelsHGroup1 = "";
       [4, 5, 6, 7].forEach((ind) => {
@@ -7513,10 +7210,7 @@ async function VisualPDE(url) {
         ).replaceAll(/\bSPECIES\b/g, channelsVGroup1);
       }
 
-      // Group 1 algebraic species: mirrors the 3 hardcoded algebraicV/W/Q blocks above,
-      // generalized into a loop over algebraicSpeciesFlags (species 1-4 keep using the
-      // existing blocks/booleans, untouched). No longer gated on crossDiffusion - see the
-      // algebraicV block above for why.
+      // Group 1 algebraic species, as for algebraicV/W/Q above.
       let algebraicShaderGroup1 = "";
       for (let s = 4; s < 8; s++) {
         if (algebraicSpeciesFlags[s]) {
@@ -7566,14 +7260,9 @@ async function VisualPDE(url) {
       botMRT = (type) => botBodyMRT(type) + " " + RDShaderBotMRT();
     }
 
-    // Build every timestepping scheme's material (AB2/Mid/RK4's MRT support added when the
-    // 8-species upgrade's Stage 13 sketch was implemented - previously only "FE" had an MRT
-    // branch here, with the rest always built from the non-MRT middle/bot regardless of
-    // numGroups, and Stage 9's dropdown guard prevented them from ever being selected above
-    // 4 species). middleMRT/botMRT (built above) are already scheme-agnostic - only
-    // RDShaderTopMRT(type)/RDShaderMainMRT(type) vary per scheme.
+    // Build every timestepping scheme's material.
     const isMRT = numGroups(Number(options.numSpecies)) > 1;
-    ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"].forEach(
+    SCHEME_STAGES.forEach(
       (type) => {
         if (isMRT) {
           assignFragmentShader(
@@ -7629,7 +7318,7 @@ async function VisualPDE(url) {
       parts.middle = replaceMINXMINY(isMRT ? middleMRT : middle);
       parts.extraStencil = reactions.extra;
       parts.bot = {};
-      ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"].forEach(
+      SCHEME_STAGES.forEach(
         (type) =>
           (parts.bot[type] = replaceMINXMINY(
             isMRT ? botBodyMRT(type) : botBody(type),
@@ -7666,112 +7355,21 @@ async function VisualPDE(url) {
     checkForAnyDirichletBCs();
     if (anyDirichletBCs) {
       if (numGroups(Number(options.numSpecies)) > 1) {
-        // MRT (>4-species) path (Stage 11.5 of the 8-species upgrade): built as an entirely
-        // separate dirichletShader from the one below (rather than sharing partial state) so
-        // that branch stays provably byte-for-byte unchanged. Loops over all 8 species
-        // directly via options["...Str_" + i] (BCStrs/DStrs/MStrs above are species-1-4-only
-        // by design, matching RDShaderUpdateNormal/Cross's group-0 scope) - previously,
-        // Dirichlet BCs had no effect at all once numSpecies>4: enforceDirichlet() only ever
-        // touched the unused (once numGroups>1) simTextures, and this shader's content never
-        // even attempted to include species 5-8's terms.
-        dirichletShader = kineticStr + RDShaderEnforceDirichletTopMRT();
-        if (options.domainViaIndicatorFun) {
-          let str = RDShaderDirichletIndicatorFun().replace(
-            /indicatorFun/,
-            parseShaderString(getModifiedDomainIndicatorFun()),
-          );
-          for (let ind = 0; ind < MAX_SPECIES_SUPPORTED; ind++) {
-            const D = options["dirichletStr_" + (ind + 1)];
-            if (options["boundaryConditions_" + (ind + 1)] == "dirichlet") {
-              dirichletShader +=
-                selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
-                parseShaderString(D) +
-                ";\n}\n";
-            } else {
-              dirichletShader +=
-                selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
-                "0.0" +
-                ";\n}\n";
-            }
-          }
-        } else {
-          for (let ind = 0; ind < MAX_SPECIES_SUPPORTED; ind++) {
-            const bcStr = options["boundaryConditions_" + (ind + 1)];
-            if (bcStr == "dirichlet") {
-              dirichletShader += parseDirichletRHS(
-                options["dirichletStr_" + (ind + 1)],
-                listOfSpecies[ind],
-              );
-              dirichletShader += dirichletEnforceShaderMRT(ind);
-            } else if (bcStr == "combo") {
-              [
-                ...(options["comboStr_" + (ind + 1)] + ";").matchAll(
-                  /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/gi,
-                ),
-              ].forEach(function (m) {
-                const side = m[1][0].toUpperCase();
-                dirichletShader += parseDirichletRHS(
-                  m[2],
-                  listOfSpecies[ind],
-                  side,
-                );
-                dirichletShader += dirichletEnforceShaderMRT(ind, side);
-              });
-            }
-          }
-        }
-        dirichletShader += RDShaderEnforceDirichletBotMRT();
+        // MRT (numSpecies>4): every species' Dirichlet conditions.
+        dirichletShader =
+          kineticStr +
+          RDShaderEnforceDirichletTopMRT() +
+          dirichletEnforceBody(MAX_SPECIES_SUPPORTED, true) +
+          RDShaderEnforceDirichletBotMRT();
         dirichletShader = replaceMINXMINY(dirichletShader);
         assignFragmentShader(dirichletMaterial, dirichletShader);
         dirichletMaterial.glslVersion = THREE.GLSL3;
       } else {
-        dirichletShader = kineticStr + RDShaderEnforceDirichletTop();
-        if (options.domainViaIndicatorFun) {
-          let str = RDShaderDirichletIndicatorFun()
-            .replace(
-              /indicatorFun/,
-              parseShaderString(getModifiedDomainIndicatorFun()),
-            )
-            .replace(/updated/, "gl_FragColor");
-          DStrs.forEach(function (D, ind) {
-            if (BCStrs[ind] == "dirichlet") {
-              dirichletShader +=
-                selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
-                parseShaderString(D) +
-                ";\n}\n";
-            } else {
-              dirichletShader +=
-                selectSpeciesInShaderStr(str, listOfSpecies[ind]) +
-                "0.0" +
-                ";\n}\n";
-            }
-          });
-        } else {
-          BCStrs.forEach(function (str, ind) {
-            if (str == "dirichlet") {
-              dirichletShader += parseDirichletRHS(
-                DStrs[ind],
-                listOfSpecies[ind],
-              );
-              dirichletShader += dirichletEnforceShader(ind);
-            } else if (str == "combo") {
-              [
-                ...MStrs[ind].matchAll(
-                  /(Left|Right|Top|Bottom)\s*:\s*Dirichlet\s*=([^;]*);/gi,
-                ),
-              ].forEach(function (m) {
-                const side = m[1][0].toUpperCase();
-                dirichletShader += parseDirichletRHS(
-                  m[2],
-                  listOfSpecies[ind],
-                  side,
-                );
-                dirichletShader += dirichletEnforceShader(ind, side);
-              });
-            }
-          });
-        }
-        dirichletShader += "}";
+        dirichletShader =
+          kineticStr +
+          RDShaderEnforceDirichletTop() +
+          dirichletEnforceBody(4, false) +
+          "}";
         dirichletShader = replaceMINXMINY(dirichletShader);
         assignFragmentShader(dirichletMaterial, dirichletShader);
         dirichletMaterial.glslVersion = null;
@@ -7784,7 +7382,12 @@ async function VisualPDE(url) {
           ? {
               ...gpuShaderParts(),
               enforceBody: resolveRemainingStencilTokens(
-                gpuDirichletEnforceBody(),
+                replaceMINXMINY(
+                  dirichletEnforceBody(
+                    4 * numGroups(Number(options.numSpecies)),
+                    true,
+                  ),
+                ),
               ),
             }
           : null,
@@ -7799,12 +7402,7 @@ async function VisualPDE(url) {
   }
 
   function checkForAnyDirichletBCs() {
-    // Loops over all 8 species slots (not just numSpecies) to match the existing pattern
-    // elsewhere in this file of always checking all slots in a group regardless of how many
-    // are officially "active" - harmless since inactive species are always forced to
-    // "periodic" by configureOptions(). setRDEquations()/enforceDirichlet() are both now
-    // MRT-aware (Stage 11.5 of the 8-species upgrade), so a Dirichlet BC on species 5-8 is
-    // correctly enforced once numSpecies>4.
+    // Inactive species are always periodic (see configureOptions()), so needn't be excluded.
     anyDirichletBCs =
       options.domainViaIndicatorFun ||
       [1, 2, 3, 4, 5, 6, 7, 8].some(
@@ -7986,14 +7584,8 @@ async function VisualPDE(url) {
     kineticParamsStrs = {};
     kineticNameToCont = {};
 
-    // Reset the Expressions' "Show" checkbox states too: unlike options.expressions itself,
-    // most presets don't specify options.expressionsShow at all (it's fine for it to be
-    // absent - see getExpressionNameVals, which treats a short/missing string as "shown"),
-    // so without this reset a preset switch could otherwise leave a previous preset's
-    // checkbox states (for a different number of expressions) sitting in options past the
-    // point where they'd be meaningful. A preset/link that does specify its own
-    // expressionsShow (e.g. one generated from getShareableURL) overrides this via the
-    // Object.assign below, same as any other option.
+    // Reset the Expressions' "Show" checkbox states too, as most presets don't set them
+    // (all are then shown).
     options.expressionsShow = "";
 
     // Coerce the new options into the correct types.
@@ -8210,15 +7802,8 @@ async function VisualPDE(url) {
     }
   }
 
-  // Rewrites group-0's hardcoded stencil/output variable names (uvwq, uvwqL/R/T/B/LL/RR/
-  // TT/BB, uvwqX/Y/XF/.../XX/YY derivatives, updated, RHS, timescales) to their group-1
-  // counterparts (uvwq2, uvwq2L/R/T/B/LL/RR/TT/BB, uvwq2X/..., updated2, RHS2,
-  // timescalesGroup1 - see RDShaderTopMRT/RDShaderMainMRT in simulation_shaders.js, which
-  // declare the group-1 stencil locals; the derivative locals are declared by groupified
-  // copies of RDShaderAdvectionPreBC/RDShaderDiffusionPreBC in middleMRT). A no-op for group
-  // 0. Used by selectSpeciesInShaderStr (for BC/algebraic-species templates) and directly
-  // for clampSpeciesToEdgeShader's output (which doesn't go through selectSpeciesInShaderStr
-  // - it does its own SPECIES substitution).
+  // Rewrites group 0's stencil and output variable names (uvwq*, updated, RHS, timescales)
+  // to group 1's (uvwq2*, updated2, RHS2, timescalesGroup1). A no-op for group 0.
   function groupifyShaderStr(shaderStr, group) {
     if (group === 0) return shaderStr;
     return shaderStr.replaceAll(
@@ -8268,9 +7853,7 @@ async function VisualPDE(url) {
   }
 
   // dat.gui controllers["..."] key for the (i,j) diffusion coefficient (1-based species
-  // indices). Species 1-4 keep their legacy hand-declared letter-pair keys (Duu..Dqq); any
-  // pair touching species 5-8 (Stage 9 of the upgrade) uses a numeric key, matching
-  // diffusionLabel()'s GLSL-token naming convention in species_config.js.
+  // indices): letter pairs (Duu..Dqq) for species 1-4, numeric otherwise, as diffusionLabel().
   function diffCtrlKey(i, j) {
     if (i <= 4 && j <= 4) {
       return "D" + defaultSpecies[i - 1] + defaultSpecies[j - 1];
@@ -8278,9 +7861,8 @@ async function VisualPDE(url) {
     return "D_" + i + "_" + j;
   }
 
-  // The GLSL stencil-vec4 variable prefix for a species: "uvwq" (group 0, unchanged) or
-  // "uvwq2" (group 1, species 5-8) - see RDShaderTopMRT/RDShaderMainMRT in
-  // simulation_shaders.js, which declare the uvwq2-prefixed locals this references.
+  // The GLSL stencil-vec4 variable prefix for a species: "uvwq" (group 0) or "uvwq2"
+  // (group 1, species 5-8).
   function stencilPrefixForSpecies(speciesStr) {
     return speciesToGroupInd(speciesStr) === 0 ? "uvwq" : "uvwq2";
   }
@@ -8368,9 +7950,7 @@ async function VisualPDE(url) {
     // The declarations of u, v, ... between the shader's top and bottom templates.
     let clearBody;
     if (numGroups(Number(options.numSpecies)) > 1) {
-      // MRT (>4-species) path: separate top/bot (dual output, GLSL3) and species-5-8
-      // locals. Kept entirely separate from the numGroups===1 branch below (rather than
-      // sharing partial state) so that branch is provably byte-for-byte unchanged.
+      // MRT (numSpecies>4): writes both groups.
       let shaderStr = kineticStr + clearShaderTopMRT();
       const clearBodyStart = shaderStr.length;
       let allClearShaders = [
@@ -8597,24 +8177,11 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Scans every user-editable expression field for Int(expression) usages and keeps
-   * options.globalIntExprs - the stable expression -> globalIntegralValueN slot
-   * assignment consumed by parseShaderString/parseStringToTEX/setGlobalIntegralShader -
-   * in sync. This is the Int(...) analog of refreshExpressionExpansions() (which plays
-   * the same "resolve once per rebuild, report errors via throwError" role for the
-   * separate Expressions macro feature).
-   *
-   * Slot assignment is deliberately stable, not recomputed from scratch: an expression
-   * that's still referenced anywhere keeps its existing slot, a freed slot (its
-   * expression no longer appears anywhere) is left empty rather than compacting the
-   * others down, and a newly-appearing expression takes the lowest free slot. This means
-   * adding or removing an unrelated Int(...) elsewhere never renumbers - and hence never
-   * forces a shader rebuild for - an existing one.
-   *
-   * Only ever called from the various shader-rebuild entry points (setRDEquations,
-   * setClearShader, setProbeShader, setBrushType, setPostFunFragShader,
-   * setDisplayColourAndType, updateShaders) - never from setGlobalIntegralShader()
-   * itself, which is this function's own (conditional) output step.
+   * Scans every user-editable expression field for Int(expression) and keeps
+   * options.globalIntExprs, which assigns each expression a globalIntegralValueN slot, in
+   * sync. Slots are stable: an expression keeps its slot while it's used anywhere, and a new
+   * one takes the lowest free slot, so adding or removing an Int(...) never renumbers (and so
+   * never rebuilds the shaders of) another.
    *
    * @returns {boolean} Whether options.globalIntExprs actually changed - i.e. whether
    *   the integral shader/equation display needed rebuilding.
@@ -8754,55 +8321,26 @@ async function VisualPDE(url) {
     delete options.globalIntegralFun;
   }
 
-  function loadImageSourceOne() {
+  // Loads the image chosen with an image controller into the given uniform (and WebGPU's
+  // image of the given index), then calls onLoaded once WebGPU has it too, as it uploads
+  // asynchronously.
+  function loadImageSource(controller, uniformName, index, onLoaded) {
     let image = new Image();
-    image.src = imControllerOne.__image.src;
+    image.src = controller.__image.src;
     let texture = new THREE.Texture();
     texture.magFilter = THREE.NearestFilter;
     texture.minFilter = THREE.NearestFilter;
     texture.image = image;
     image.onload = function () {
       texture.needsUpdate = true;
-      uniforms.imageSourceOne.value = texture;
-      // WebGPU uploads asynchronously, so reset once it has.
-      Promise.resolve(gpuBackend?.setImage(0, image)).then(() => {
-        if (options.resetOnImageLoad) resetSim();
-      });
+      uniforms[uniformName].value = texture;
+      Promise.resolve(gpuBackend?.setImage(index, image)).then(onLoaded);
     };
     texture.dispose();
   }
 
-  function loadImageSourceTwo() {
-    let image = new Image();
-    image.src = imControllerTwo.__image.src;
-    let texture = new THREE.Texture();
-    texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.NearestFilter;
-    texture.image = image;
-    image.onload = function () {
-      texture.needsUpdate = true;
-      uniforms.imageSourceTwo.value = texture;
-      // WebGPU uploads asynchronously, so reset once it has.
-      Promise.resolve(gpuBackend?.setImage(1, image)).then(() => {
-        if (options.resetOnImageLoad) resetSim();
-      });
-    };
-    texture.dispose();
-  }
-
-  function loadImageSourceBlend() {
-    let image = new Image();
-    image.src = imControllerBlend.__image.src;
-    let texture = new THREE.Texture();
-    texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.NearestFilter;
-    texture.image = image;
-    image.onload = function () {
-      texture.needsUpdate = true;
-      uniforms.imageSourceBlend.value = texture;
-      Promise.resolve(gpuBackend?.setImage(2, image)).then(renderIfNotRunning);
-    };
-    texture.dispose();
+  function resetIfResettingOnImageLoad() {
+    if (options.resetOnImageLoad) resetSim();
   }
 
   function createImageControllers() {
@@ -8813,16 +8351,22 @@ async function VisualPDE(url) {
     imControllerOne = root
       .addImage(options, "imagePathOne")
       .name("$I_S(x,y)$")
-      .onChange(loadImageSourceOne);
+      .onChange(() =>
+        loadImageSource(imControllerOne, "imageSourceOne", 0, resetIfResettingOnImageLoad),
+      );
     imControllerTwo = root
       .addImage(options, "imagePathTwo")
       .name("$I_T(x,y)$")
-      .onChange(loadImageSourceTwo);
+      .onChange(() =>
+        loadImageSource(imControllerTwo, "imageSourceTwo", 1, resetIfResettingOnImageLoad),
+      );
     root = devFolder;
     imControllerBlend = root
       .addImage(options, "blendImagePath")
       .name("To blend")
-      .onChange(loadImageSourceBlend);
+      .onChange(() =>
+        loadImageSource(imControllerBlend, "imageSourceBlend", 2, renderIfNotRunning),
+      );
     runMathJax();
   }
 
@@ -8885,28 +8429,6 @@ async function VisualPDE(url) {
       ),
     );
     return JSON.parse(JSON.stringify(diff));
-  }
-
-  function getMinMaxVal() {
-    fillBuffer();
-    let minVal = Infinity;
-    let maxVal = -Infinity;
-    let v;
-    for (let i = 0; i < buffer.length; i += 4) {
-      v = buffer[i];
-      minVal = minVal < v ? minVal : v;
-      maxVal = maxVal > v ? maxVal : v;
-    }
-    return [minVal, maxVal];
-  }
-
-  function getMeanVal() {
-    fillBuffer();
-    let total = 0;
-    for (let i = 0; i < buffer.length; i += 4) {
-      total += buffer[i];
-    }
-    return total / (nXDisc * nYDisc);
   }
 
   function setPostFunFragShader() {
@@ -9054,16 +8576,17 @@ async function VisualPDE(url) {
 
   function configureGUI() {
     // Set up the GUI based on the the current options: numSpecies, crossDiffusion, and numAlgebraicSpecies.
-    let tooltip =
+    // The "function of ..." tooltip, leaving out the species with index omit, if given.
+    const tooltipOmitting = (omit) =>
       "function of " +
-      listOfSpecies.slice(0, options.numSpecies).join(", ") +
-      ", x, y, t";
-    let Vtooltip = tooltip.replace(" " + listOfSpecies[1] + ",", "");
-    let Qtooltip = tooltip.replace(" " + listOfSpecies[2] + ",", "");
-    let Wtooltip = tooltip.replace(" " + listOfSpecies[3] + ",", "");
+      listOfSpecies
+        .slice(0, options.numSpecies)
+        .filter((_, s) => s !== omit)
+        .concat(options.dimension == 1 ? ["x", "t"] : ["x", "y", "t"])
+        .join(", ");
+    const tooltip = tooltipOmitting();
 
     if (options.dimension == 1) {
-      tooltip = tooltip.replace(" y,", "");
       controllers["minY"].hide();
     } else {
       controllers["minY"].show();
@@ -9114,8 +8637,7 @@ async function VisualPDE(url) {
     // space to be usable.
     diffusionMatrixButton.classList.toggle("hidden", onSmallScreen());
 
-    // Show all timescale panels to begin with. Guarded with ?. because controllers for
-    // TU5-TU8 don't exist until the GUI is extended to 8 species (Stage 9 of the upgrade).
+    // Show all timescale panels to begin with.
     timescaleTags.forEach((tag) => controllers[tag]?.show());
 
     // Hide every species' panels (species 1/u is always shown), then show them back in for
@@ -9123,7 +8645,7 @@ async function VisualPDE(url) {
     for (let i = 2; i <= MAX_SPECIES_SUPPORTED; i++) hideSpeciesGUIPanels(i);
     for (let i = 2; i <= parseInt(options.numSpecies); i++)
       showSpeciesGUIPanels(i);
-    // Hide timescale panels if we don't need them. Guarded with ?. (see note above).
+    // Hide timescale panels if we don't need them.
     if (!options.timescales) {
       timescaleTags.forEach((tag) => controllers[tag]?.hide());
     }
@@ -9180,22 +8702,13 @@ async function VisualPDE(url) {
     }
 
     // Configure the names/visibility of algebraic species' controllers: retitle their
-    // diffusion row (against every other species) and reaction term with a tooltip that
-    // omits their own name from the "function of ..." list, and hide their self-diffusion
-    // controller entirely (an algebraic species has no diffusion term).
-    //
-    // NOTE (pre-existing behaviour, preserved as-is by this loop, not fixed here): the
-    // per-species tooltip lookup below reuses Vtooltip/Wtooltip/Qtooltip exactly as they were
-    // before this was a loop - but Wtooltip actually omits species 4 (q) rather than species 3
-    // (w), and Qtooltip omits species 3 (w) rather than species 4 (q) (see their definitions
-    // above) - so an algebraic w or q's tooltip currently omits the wrong species' name.
-    // Species 5-8 never got a name-omitting tooltip at all; they always use the plain
-    // `tooltip`. Flagging both as a separate, likely-wanted follow-up fix.
-    const algebraicTooltips = [tooltip, Vtooltip, Wtooltip, Qtooltip];
+    // diffusion row and reaction term with a tooltip that omits their own name from the
+    // "function of ..." list, and hide their self-diffusion controller (an algebraic species
+    // has no diffusion term).
     for (let s = 1; s < MAX_SPECIES_SUPPORTED; s++) {
       if (!isSpeciesAlgebraic(s)) continue;
       const i = s + 1; // 1-based species number.
-      const algTooltip = algebraicTooltips[s] ?? tooltip;
+      const algTooltip = tooltipOmitting(s);
       for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
         if (j === i) continue;
         const texKey =
@@ -9401,13 +8914,7 @@ async function VisualPDE(url) {
     // Set options that only depend on the number of species: any species with (1-based)
     // index > numSpecies is "inactive" - its diffusion (every direction, self and cross) is
     // zeroed, it's forced to periodic BCs with a zero IC/reaction, and any active species'
-    // reaction term referencing it is cleared. This loop is a direct generalisation of the
-    // pre-upgrade hand-written switch(numSpecies){case 1: ... case 4: break;} (see git
-    // history) - verified during the 8-species upgrade (Stage 9) to reproduce it exactly for
-    // numSpecies 1-4 (the whatToDraw/whatToPlot resets become unconditional-vs-conditional
-    // but land on the same final value; the diffusion/BC/IC/reaction zeroing matches the old
-    // per-case lists entry-for-entry). See
-    // /Users/ben/.claude/plans/8-species-upgrade-progress.md for the derivation.
+    // reaction term referencing it is cleared.
     const numSpeciesInt = parseInt(options.numSpecies);
     if (numSpeciesInt == 1) {
       // Cross-diffusion is meaningless with only one species.
@@ -9451,12 +8958,7 @@ async function VisualPDE(url) {
       }
     }
 
-    // Algebraic species have no self-diffusion (they're not PDEs) - true regardless of
-    // whether cross diffusion is on (algebraic species no longer require it - relaxed; see
-    // the algebraicV block in setRDEquations() for why). Generalised using algebraicV/W/Q
-    // directly (species 1-4) plus algebraicSpeciesFlags[4..7] (species 5-8, Stage 6) instead
-    // of re-deriving it from equationType, since equationType has no representation for
-    // numSpecies>4.
+    // Algebraic species have no self-diffusion (they're not PDEs).
     if (algebraicV) options.diffusionStr_2_2 = "0";
     if (algebraicW) options.diffusionStr_3_3 = "0";
     if (algebraicQ) options.diffusionStr_4_4 = "0";
@@ -9495,11 +8997,7 @@ async function VisualPDE(url) {
     setEquationDisplayType();
   }
 
-  // Whether species index `ind` (0-based) is currently algebraic. Species 1-4 use the
-  // algebraicV/W/Q booleans; species 5-8 use algebraicSpeciesFlags (Stage 6 of the
-  // 8-species upgrade). Shared by setEquationDisplayType()'s algebraicFlagsArr construction
-  // and the diffusion matrix popup (configureDiffusionMatrixGUI), both of which need to know
-  // which species have no self-diffusion term.
+  // Whether species index `ind` (0-based) is currently algebraic.
   function isSpeciesAlgebraic(ind) {
     if (ind === 1) return algebraicV;
     if (ind === 2) return algebraicW;
@@ -9513,17 +9011,8 @@ async function VisualPDE(url) {
     // equation in the UI element that displays the equations.
     const numSpeciesInt = parseInt(options.numSpecies);
     let str;
-    // The 13-entry hand-written equationTEX array only enumerates every
-    // numSpecies/crossDiffusion/algebraic combination up to 4 species that was reachable
-    // when algebraic species required cross-diffusion to be on (problemTypeFromOptions()
-    // never assigns an "algebraic" equationType when crossDiffusion is off). Now that
-    // algebraic species no longer require cross-diffusion (relaxed - see the algebraicV
-    // block in setRDEquations() for why), that combination has no hand-written entry either -
-    // build it generatively instead, exactly as already done for numSpecies>4 (8-species
-    // upgrade, Stage 10). Uses the same default-notation-placeholder convention as
-    // equationTEXFun()'s output, so everything below (custom-equation splicing, custom-name
-    // substitution, TeX post-processing) applies uniformly regardless of which path produced
-    // `str`.
+    // equationTEXFun() only covers numSpecies<=4 with algebraic species only alongside
+    // cross-diffusion, so build the TeX for any other case.
     const needsGenerativeTEX =
       numGroups(numSpeciesInt) > 1 ||
       (!options.crossDiffusion && options.numAlgebraicSpecies > 0);
@@ -9588,19 +9077,10 @@ async function VisualPDE(url) {
     regexes["TW"] = /\b(tau_{w})/g;
     regexes["TQ"] = /\b(tau_{q})/g;
 
-    // Species 5-8 diffusion/reaction/timescale regexes (8-species upgrade, Stage 10) -
-    // generalized since these species have no natural single letter for the hand-written
-    // entries above to be extended by hand. Keys match Stage 9's controller-naming
-    // convention exactly (diffCtrlKey's texKey, reactionTokenOfSpecies(), timescaleTags), so
-    // this list is also what buildEquationTEX()'s output (used when numSpecies>4, above) is
-    // built to be spliceable by. diffKeys5to8 is reused below by the diffusion-replacement
-    // loop.
-    //
-    // Self-diffusion (i===j) additionally gets a single-subscript key/regex (e.g. "U5",
-    // matching "D_{u5}"), mirroring the hand-written "U"/"UU" pair above: buildEquationTEX()
-    // emits the single form when cross-diffusion is off and the doubled form ("D_{u5 u5}")
-    // when it's on, so both regexes must exist for the substitution loop below to match
-    // whichever form actually appears in the generated string.
+    // Species 5-8 diffusion/reaction/timescale regexes, keyed as their controllers are
+    // (diffCtrlKey, reactionTokenOfSpecies(), timescaleTags). As for "U"/"UU" above,
+    // self-diffusion has both a single-subscript ("D_{u5}", without cross-diffusion) and a
+    // doubled ("D_{u5 u5}") form.
     const diffKeys5to8 = [];
     for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
       for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
@@ -9684,8 +9164,7 @@ async function VisualPDE(url) {
       associatedStrs["TW"] = options.timescale_3;
       associatedStrs["TQ"] = options.timescale_4;
 
-      // Species 5-8 (Stage 10 of the 8-species upgrade) - mirrors the hand-written entries
-      // above; keys match diffKeys5to8/reactionKeys5to8 (built alongside regexes, above).
+      // Species 5-8; keys match diffKeys5to8/reactionKeys5to8 above.
       for (let i = 1; i <= MAX_SPECIES_SUPPORTED; i++) {
         for (let j = 1; j <= MAX_SPECIES_SUPPORTED; j++) {
           if (i <= 4 && j <= 4) continue;
@@ -9750,7 +9229,7 @@ async function VisualPDE(url) {
           s,
           listOfSpecies,
           defaultSpecies,
-          "_(?:[xy][xybf2]*)",
+          SPECIES_SUFFIX_PATTERN,
         );
       }
 
@@ -9825,10 +9304,7 @@ async function VisualPDE(url) {
         },
       );
 
-      // Replace the timescale strings. Skip tags with no associatedStrs/regexes entry
-      // (shouldn't happen now that Stage 10 populates TU5-TU8 too, but kept as a defensive
-      // guard) rather than passing `undefined` as input, which replaceUserDefTimescale
-      // can't handle.
+      // Replace the timescale strings.
       timescaleTags.forEach(function (tag) {
         if (associatedStrs[tag] === undefined) return;
         str = replaceUserDefTimescale(str, regexes[tag], associatedStrs[tag]);
@@ -10005,7 +9481,7 @@ async function VisualPDE(url) {
       str,
       defaultSpecies.concat(defaultReactions),
       listOfSpecies.concat(listOfReactions),
-      "_(?:[xy][xybf2]*)",
+      SPECIES_SUFFIX_PATTERN,
     );
 
     // Remove parameter placeholders with parameter names.
@@ -10060,14 +9536,8 @@ async function VisualPDE(url) {
   function parseStringToTEX(str) {
     // Parse a string into valid TEX by replacing * and ^.
 
-    // Resolve each Int(...) call to an inert placeholder token immediately, before any of
-    // the transforms below get a chance to mangle the raw "Int(...)" syntax itself (in
-    // particular the \left/\right bracket-escaping pass a little further down, which would
-    // otherwise turn "Int(" into "Int\left(", making it unrecognizable). Each placeholder is
-    // swapped for its actual rendered TeX further down (see intCallPlaceholders below),
-    // after the passes that would mangle raw "Int(...)" syntax but before the ones that
-    // would mangle the placeholder token itself (e.g. the underscore/subscript passes at the
-    // end, which would otherwise treat a trailing digit as a subscript).
+    // Replace each Int(...) by a placeholder before the transforms below alter its brackets,
+    // and swap in its TeX further down (see intCallPlaceholders).
     const intCallPlaceholders = [];
     str = replaceIntCalls(str, (expr) => {
       const placeholder = "IntCallPlaceholder" + intCallPlaceholders.length;
@@ -10145,20 +9615,8 @@ async function VisualPDE(url) {
     // Replace Gauss with \mathcal{N}.
     str = str.replaceAll(/\bGauss\b/g, "\\mathcal{N}");
 
-    // Swap each Int(...) placeholder (see the top of this function) for its actual
-    // \int_{\Omega} expression \d x \d y rendering. This must happen here - after the
-    // bracket/left-right/function-name passes above (which would otherwise mangle the raw
-    // "Int(...)" syntax before we could find it, hence resolving it into an inert
-    // placeholder up front instead) but before the underscore/subscript passes below (which
-    // would otherwise mangle the placeholder token itself). Each captured expression is
-    // itself a raw expression string (e.g. "u*v"), so it needs its own trip through
-    // parseStringToTEX (recursing here is safe - each call is a fresh, independent
-    // conversion, and intCallPlaceholders only ever holds entries for Int(...) calls that
-    // actually existed in the original string, so there's no risk of unconditionally
-    // recursing on every parseStringToTEX() call regardless of whether "Int(" was ever
-    // actually present) to get the same TeX formatting (removing "*", species substitution,
-    // etc.) as the rest of the equation. No outer parens around the integrand - matches how
-    // the rest of the equation display renders bare terms.
+    // Swap each Int(...) placeholder for its integral, before the subscript passes below
+    // would alter the placeholder. The integrand is converted to TeX as any expression is.
     intCallPlaceholders.forEach(([placeholder, expr]) => {
       const replacement =
         (options.dimension == 1 ? "\\int_{\\Omega} " : "\\iint_{\\Omega} ") +
@@ -10901,13 +10359,9 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Creates the "Show" toggle button for a real (non-blank) Expression row, appended inside
-   * the controller's own domElement so - like Parameters' slider (see syncParamSlider) - it's
-   * a DOM descendant of the row and gets removed automatically when the row does (see
-   * createDefinitionController's onFinishChange). Styled like the toggle buttons elsewhere in
-   * the UI (see addToggle/.toggle_button), on by default. A no-op for the trailing always-
-   * empty "add new expression" row, and idempotent, since extraControllerSetup is invoked
-   * again on every edit of an already-set-up row, not just on creation.
+   * Adds a "Show" toggle button, on by default, to an Expression row, inside the row's
+   * element so that it's removed with the row. Does nothing for the blank row, or if the row
+   * already has one.
    */
   function setupExpressionShowToggle(controller) {
     if (controller === nextExpressionController || controller.showToggle)
@@ -10942,12 +10396,8 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Rebuilds options.expressionsShow (one "1"/"0" char per currently-defined expression, in
-   * display order) from the live toggle-button DOM state, which is the single source of truth
-   * for "should this expression be typeset". Called on every Expressions add/remove/edit (see
-   * getExpressionHooks' afterChange) and after restoring persisted state (see
-   * applyExpressionsShowString), so the option string is always exactly as long as the
-   * current number of expressions - never longer, per the Expressions design.
+   * Sets options.expressionsShow (a "1" or "0" per expression, in order) from the toggle
+   * buttons.
    */
   function setExpressionsShowStringFromControllers() {
     options.expressionsShow = getExpressionShowToggleControllers()
@@ -11001,12 +10451,8 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Returns [name, rhs, shown] triples, one per defined expression, in order. `shown` is this
-   * expression's "Show" checkbox state (see setExpressionsShowStringFromControllers), read
-   * positionally from options.expressionsShow by index into the same non-empty, semicolon-
-   * separated segments this parses - defaulting to true (shown) if that string is short (or
-   * absent), so a segment gets a sensible default even before options.expressionsShow has
-   * caught up with a just-added expression.
+   * Returns [name, rhs, shown] triples, one per defined expression, in order. `shown` comes
+   * from options.expressionsShow, and is true for any expression it doesn't cover.
    */
   function getExpressionNameVals() {
     const regex = /^\s*([a-zA-Z]\w*)\b\s*=\s*(.*)/;
@@ -11031,12 +10477,9 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Rebuilds expandedExpressionDefs (name -> fully dependency-resolved definition string),
-   * checking for duplicate/cyclic expression names first. Called once at the start of every
-   * updateShaders() - not from parseShaderString() itself, which is called many times per
-   * shader rebuild - so a cyclic/duplicate error is reported once per rebuild, not once per
-   * shader-string field. Cyclic names degrade to "0.0" (see expandDependentExpressions), so
-   * shader construction still produces valid (if temporarily wrong) GLSL.
+   * Rebuilds expandedExpressionDefs (name -> fully expanded definition), reporting any
+   * duplicate or cyclic names. Called once per updateShaders(), so that errors are reported
+   * once. Cyclic names become "0.0", so that the shaders still compile.
    */
   function refreshExpressionExpansions() {
     const nameVals = getExpressionNameVals();
@@ -11292,17 +10735,11 @@ async function VisualPDE(url) {
   function updateIntegralDisplay() {
     if (options.integrate) {
       fillBuffer();
-      let dA;
-      if (options.dimension == 1) {
-        dA = uniforms.dx.value;
-      } else if (options.dimension == 2) {
-        dA = uniforms.dx.value * uniforms.dy.value;
-      }
       let total = 0;
       for (let i = 0; i < buffer.length; i += 4) {
         total += buffer[i] * (1 - buffer[i + 1]);
       }
-      total *= dA;
+      total *= areaElement();
       $("#integralValue").html(formatLabelNum(total, 4));
       checkColourbarPosition();
     }
@@ -11364,30 +10801,23 @@ async function VisualPDE(url) {
           buffer,
         );
       } catch {
-        alert(
-          "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!",
-        );
+        alertUnsupportedConfiguration();
       }
       bufferFilled = true;
     }
   }
 
-  function setMinMaxValGPU() {
-    if (gpuDisplay) {
-      // The reduction is read back asynchronously, so this returns the latest result and,
-      // when a new one arrives, applies it if the colour range is being set automatically
-      // or a snap is waiting for it (see setColourRangeSnap).
-      return gpuDisplay.requestMinMax((minMax) => {
-        const wanted = options.autoSetColourRange || gpuSnapPending;
-        gpuSnapPending = false;
-        if (!wanted) return;
-        if (minMax[0] == cLims[0] && minMax[1] == cLims[1]) return;
-        applyColourRange(minMax);
-        renderIfNotRunning();
-      });
-    }
-    // Get the min and max vals in postTexture, using a shader to compute min and max on the GPU.
-    simDomain.material = minMaxMaterial;
+  // For when the browser can't read back what the simulation computes.
+  function alertUnsupportedConfiguration() {
+    alert(
+      "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!",
+    );
+  }
+
+  // Reduces postTexture to a single texel through reductionTextures, using material (whose
+  // uniforms are minMaxUniforms), and reads it back, or returns null if it can't be read.
+  function reducePostTexture(material) {
+    simDomain.material = material;
     minMaxUniforms.textureSource.value = postTexture.texture;
     minMaxUniforms.srcResolution.value = new THREE.Vector2(nXDisc, nYDisc);
     minMaxUniforms.firstFlag.value = true;
@@ -11411,48 +10841,36 @@ async function VisualPDE(url) {
         1,
         smallBuffer,
       );
-      return [smallBuffer[0], smallBuffer[1]];
+      return smallBuffer;
     } catch {
-      alert(
-        "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!",
-      );
-      return [0, 1];
+      alertUnsupportedConfiguration();
+      return null;
     }
   }
 
+  function setMinMaxValGPU() {
+    if (gpuDisplay) {
+      // The reduction is read back asynchronously, so this returns the latest result and,
+      // when a new one arrives, applies it if the colour range is being set automatically
+      // or a snap is waiting for it (see setColourRangeSnap).
+      return gpuDisplay.requestMinMax((minMax) => {
+        const wanted = options.autoSetColourRange || gpuSnapPending;
+        gpuSnapPending = false;
+        if (!wanted) return;
+        if (minMax[0] == cLims[0] && minMax[1] == cLims[1]) return;
+        applyColourRange(minMax);
+        renderIfNotRunning();
+      });
+    }
+    // Get the min and max vals in postTexture, using a shader to compute min and max on the GPU.
+    const reduced = reducePostTexture(minMaxMaterial);
+    return reduced ? [reduced[0], reduced[1]] : [0, 1];
+  }
+
+  // The sums of each of postTexture's channels (so of up to 4 global integrands at once),
+  // computed on the GPU.
   function computeTextureSumGPU() {
-    // Get the sum of vals in postTexture, using a shader to compute this on the GPU. Returns
-    // all 4 (r,g,b,a) channel sums at once - sumShader() sums each channel independently, so
-    // this doubles as the reduction for up to 4 simultaneous global integrals.
-    simDomain.material = sumMaterial;
-    minMaxUniforms.textureSource.value = postTexture.texture;
-    minMaxUniforms.srcResolution.value = new THREE.Vector2(nXDisc, nYDisc);
-    for (const curTex of reductionTextures) {
-      renderer.setRenderTarget(curTex);
-      renderer.render(simDomain, simCamera);
-      minMaxUniforms.textureSource.value = curTex.texture;
-      minMaxUniforms.srcResolution.value = new THREE.Vector2(
-        curTex.width,
-        curTex.height,
-      );
-    }
-    try {
-      const smallBuffer = new Float32Array(4);
-      renderer.readRenderTargetPixels(
-        reductionTextures.slice(-1)[0],
-        0,
-        0,
-        1,
-        1,
-        smallBuffer,
-      );
-      return smallBuffer;
-    } catch {
-      alert(
-        "Sadly, your configuration is not fully supported by VisualPDE. Some features may not work as expected, but we encourage you to try!",
-      );
-      return new Float32Array(4);
-    }
+    return reducePostTexture(sumMaterial) ?? new Float32Array(4);
   }
 
   function checkColourbarPosition() {
@@ -11653,18 +11071,17 @@ async function VisualPDE(url) {
     ).split(" ");
     const declaration =
       /\b(?:float|int|bool|vec\d|ivec\d|bvec\d|mat\d|sampler2D|void)\s+(\w+)\b/g;
-    const schemeStages = ["FE", "AB2", "Mid1", "Mid2", "RK41", "RK42", "RK43", "RK44"];
-    // RDShaderTop(MRT) ends inside computeRHS, where the reaction terms are evaluated, so
+        // RDShaderTop(MRT) ends inside computeRHS, where the reaction terms are evaluated, so
     // all of it counts.
     const names = new Set(glslReservedWords.concat(["main", "MINX", "MINY", "ind"]));
-    for (const stage of schemeStages) {
+    for (const stage of SCHEME_STAGES) {
       for (const top of [RDShaderTop(stage), RDShaderTopMRT(stage)]) {
         for (const match of top.matchAll(declaration)) names.add(match[1]);
       }
     }
     const shaders = [
-      ...schemeStages.map(RDShaderMain),
-      ...schemeStages.map(RDShaderMainMRT),
+      ...SCHEME_STAGES.map(RDShaderMain),
+      ...SCHEME_STAGES.map(RDShaderMainMRT),
       RDShaderUpdateCross(),
       RDShaderBot(),
       RDShaderEnforceDirichletTop(),
@@ -12188,10 +11605,6 @@ async function VisualPDE(url) {
    * Parses species names from options.
    * @returns {string[]} An array of parsed species names.
    */
-  // NB: slicing to defaultSpecies.length (now 8) means this will accept up to 8 custom
-  // names as soon as they're typed, even though the numSpecies dropdown (and everything
-  // downstream of it) is still capped at 4 until the GUI stage of the 8-species upgrade.
-  // Harmless only because nothing currently reachable from the UI can set numSpecies>4.
   function parseSpeciesNamesFromOptions() {
     return options.speciesNames
       .replaceAll(/\W+/g, " ")
@@ -12310,7 +11723,7 @@ async function VisualPDE(url) {
           defaultStrings[key],
           defaultSpecies,
           listOfSpecies,
-          "_(?:[xy][xybf2]*)",
+          SPECIES_SUFFIX_PATTERN,
         ),
       );
     });
@@ -12346,7 +11759,7 @@ async function VisualPDE(url) {
             options[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf2]*)",
+            SPECIES_SUFFIX_PATTERN,
           );
         }
       }
@@ -12359,7 +11772,7 @@ async function VisualPDE(url) {
             view[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf2]*)",
+            SPECIES_SUFFIX_PATTERN,
           );
         }
       });
@@ -12373,7 +11786,7 @@ async function VisualPDE(url) {
             savedOptions[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf2]*)",
+            SPECIES_SUFFIX_PATTERN,
           );
         }
       }
@@ -12386,7 +11799,7 @@ async function VisualPDE(url) {
             view[key],
             oldListOfSpecies,
             listOfSpecies,
-            "_(?:[xy][xybf2]*)",
+            SPECIES_SUFFIX_PATTERN,
           );
         }
       });
@@ -12768,14 +12181,8 @@ async function VisualPDE(url) {
   function getRawState() {
     stateBuffer = new Float32Array(nXDisc * nYDisc * 4);
     if (numGroups(Number(options.numSpecies)) > 1) {
-      // The real state lives in mrtSimTextures once numGroups>1 (simTextures is unused -
-      // see every other Stage 3+ MRT code path). readRenderTargetPixels can't read a
-      // specific attachment from a WebGLMultipleRenderTargets directly (it assumes a
-      // single-texture render target via renderTarget.texture.format/.type, which are
-      // undefined for the array `.texture` an MRT target exposes) - so copy each
-      // attachment out to a plain scratch target with the existing copy shader first, then
-      // read that. Found/fixed as part of the 8-species upgrade's Stage 11.5 (checkpoint
-      // save/restore was previously only capturing group 0, silently dropping species 5-8).
+      // readRenderTargetPixels can't read one attachment of a WebGLMultipleRenderTargets,
+      // so copy each attachment to a plain render target and read that.
       stateBufferGroup1 = new Float32Array(nXDisc * nYDisc * 4);
       const prevMaterial = simDomain.material;
       const prevTarget = renderer.getRenderTarget();
@@ -12859,10 +12266,7 @@ async function VisualPDE(url) {
     }
 
     // Download the buffer as a file, with the dimensions prepended. Group 1's (species 5-8)
-    // buffer, if present, is appended after group 0's - the file's total length beyond
-    // [header + group-0 buffer] signals its presence on load (see loadSimState), so this
-    // stays backward compatible with files exported before the 8-species upgrade without a
-    // format version bump.
+    // buffer, if present, is appended after group 0's (see loadSimState).
     // The checkpoint's own data and size (whether set here or imported), which needn't be
     // the grid's now.
     const { width, height, data } = checkpointTexture.image;
@@ -12886,10 +12290,7 @@ async function VisualPDE(url) {
     reader.onload = function () {
       const buff = new Float32Array(reader.result);
       // The first two elements are width and height; the next width*height*4 are group 0's
-      // (species 1-4) state. A file exported with species 5-8 active (Stage 11.5 of the
-      // 8-species upgrade) has a second, equally-sized block appended after that for group 1
-      // - detected by length here (rather than a format version field) so files exported
-      // before this upgrade still load identically.
+      // (species 1-4) state, and any after that are group 1's.
       const dims = buff.slice(0, 2);
       const group0Len = dims[0] * dims[1] * 4;
       const group0Buff = buff.slice(2, 2 + group0Len);
@@ -13245,9 +12646,6 @@ async function VisualPDE(url) {
       $("#deleteViewButton").addClass("hidden");
     }
     runMathJax();
-    if (options.views.length > 0) {
-      // fitty(".view_label", { maxSize: 32, minSize: 12, multiline: true });
-    }
   }
 
   /**
@@ -13472,12 +12870,8 @@ async function VisualPDE(url) {
     return str;
   }
 
-  // MRT counterpart of dirichletEnforceShader(), used only once numGroups(numSpecies)>1
-  // (Stage 11.5 of the 8-species upgrade). Deliberately skips the .replaceAll(/updated/g,
-  // "gl_FragColor") step the non-MRT version does: RDShaderDirichletX/Y already target
-  // "updated", and selectSpeciesInShaderStr's groupifyShaderStr needs that name intact to
-  // correctly retarget it to "updated2" for group-1 species - the single, final
-  // fragColor0/fragColor1 assignment happens once, in RDShaderEnforceDirichletBotMRT().
+  // MRT counterpart of dirichletEnforceShader(), used once numGroups(numSpecies)>1. Leaves
+  // "updated" alone, so that selectSpeciesInShaderStr can make it "updated2" for group 1.
   function dirichletEnforceShaderMRT(speciesInd, side) {
     let str = "";
     str += selectSpeciesInShaderStr(
@@ -13840,16 +13234,10 @@ async function VisualPDE(url) {
 
   /**
    * Returns the fields of `options` that the simulation is currently tuning on the user's
-   * behalf, and which therefore shouldn't be enough on their own to replace the URL:
-   * optimiseFPS settles numTimestepsPerFrame over the first seconds of a simulation, and
-   * autoSetColourRange rewrites the colour limits several times a second for as long as
-   * it's enabled. Rewriting a tidy ?preset=... link into a long options string off the back
-   * of the first would be surprising, and off the back of the second would mean rebuilding
-   * the URL for as long as the simulation runs, and never letting it settle. The simulation
-   * overwrites both within
-   * a frame or two of the user setting them by hand, so nothing is lost by ignoring them:
-   * whatever they currently hold is still written into the URL as soon as anything else
-   * changes it.
+   * behalf (numTimestepsPerFrame, via optimiseFPS, and the colour limits, via
+   * autoSetColourRange), which shouldn't on their own replace the URL: otherwise a tidy
+   * ?preset=... link would be replaced unprompted, and with the colour limits, again and
+   * again. Their values are still written into the URL whenever anything else changes it.
    * @returns {string[]} The names of the fields currently being tuned automatically.
    */
   function autoTunedOptionNames() {
@@ -14500,19 +13888,7 @@ async function VisualPDE(url) {
     return [doneDict, stack.slice(0, -1), badNames];
   }
 
-  /**
-   * The `configureCursorDisplay()` function is used to set the cursor display on a canvas element with the id "simCanvas" based on certain conditions.
-   *
-   * Initially, it sets the cursor to the default style ("auto").
-   * If the brush is not enabled or the plot type is either "surface" or "line", the function returns and no further changes are made to the cursor.
-   * If the plot type is "plane", the cursor style is set based on the brush type:
-   * - If the brush type is "circle", the cursor is set to a circle image.
-   * - If the brush type is "hline", the cursor is set to a horizontal line image.
-   * - If the brush type is "vline", the cursor is set to a vertical line image.
-   * - If the brush type is "square", the cursor is set to a square image.
-   *
-   * The `$("#simCanvas").css("cursor", "url('images/cursor-circle.svg') 12 12, auto")` line sets the cursor to an image. The "12 12" part specifies the position of the hotspot, or the cursor's active point. The "auto" part is a fallback cursor style in case the image cannot be displayed.
-   */
+  // Shows the brush's shape as the cursor over a plane plot, if the brush is enabled.
   function configureCursorDisplay() {
     // Default cursor.
     $("#simCanvas").css("cursor", "auto");
@@ -14572,18 +13948,8 @@ async function VisualPDE(url) {
     return /^\s*$/.test(str);
   }
 
-  /**
-   * Starts recording a video from the canvas.
-   * The function first checks if a recording is already in progress, and if so, it returns immediately.
-   * It then checks if the browser supports video recording, and if not, it throws an error.
-   * The video quality is set based on the value of the "video_quality" element in the DOM.
-   * A stream is captured from the canvas at a maximum of 30 frames per second.
-   * The MediaRecorder API is used to record the stream.
-   * When the recording is stopped, the video is created and downloaded.
-   * If the browser is not Chrome or Firefox, a message is shown.
-   * The recording automatically stops after 60 seconds.
-   * A timer is displayed showing the recording time.
-   */
+  // Records a video of the canvas, at most 30 frames per second and 60 seconds long, which
+  // is downloaded when the recording stops.
   function startRecording() {
     if (isRecording) return;
     isRecording = true;
@@ -14661,17 +14027,7 @@ async function VisualPDE(url) {
     }, 1000);
   }
 
-  /**
-   * The `stopRecording()` function is used to stop the video recording.
-   *
-   * If no recording is in progress, the function immediately returns.
-   * If a recording is in progress, it clears the recording timer and stops the MediaRecorder.
-   * The recording display is hidden and the interval that updates the recording time display is cleared.
-   * The recording time display is reset.
-   * The `isRecording` flag is set to false, indicating that no recording is currently in progress.
-   * If this is the first time a video has been recorded, a message is displayed to the user.
-   * This message can be closed by clicking on the close button, and it will not be shown again in future recording sessions.
-   */
+  // Stops any recording, and explains where the video went the first time.
   function stopRecording() {
     if (!isRecording) return;
     window.clearTimeout(recordingTimer);
@@ -14893,9 +14249,6 @@ async function VisualPDE(url) {
       document
         .getElementById("equation_display")
         .classList.toggle("hidden-aug");
-      // document
-      //   .getElementById("typesetCustomEqsButtonRow")
-      //   .classList.toggle("hidden-aug");
       leftGUI.domElement.firstChild.classList.toggle("hidden-aug");
       document.getElementById("left_ui_arrow").classList.toggle("hidden-aug");
       $(".ui.ui_button").toggleClass("hidden-aug");
@@ -15245,8 +14598,6 @@ async function VisualPDE(url) {
     isOptimising = false;
   }
 
-  function queryOptimising() {}
-
   function becomingVisible() {
     // Allow optimisation to occur while the page is visible.
     window.clearTimeout(stabilisingFPSTimer);
@@ -15289,13 +14640,9 @@ async function VisualPDE(url) {
   }
 
   /**
-   * Rebuilds the diffusion matrix popup's grid from scratch to match the current number of
-   * species and their diffusion coefficients. Each grid cell is a plain HTML input (dat.gui
-   * controllers don't support grid layouts) that proxies straight through to the matching
-   * dat.gui controller's own setValue()/__onFinishChange() on change, so autoCorrectSyntax/
-   * setRDEquations/setEquationDisplayType all run exactly as they do for every other
-   * controller in the app, with no duplicated logic - and the "Diffusion coefficients"
-   * folder's own controllers update in lockstep.
+   * Rebuilds the diffusion matrix popup's grid to match the current species and diffusion
+   * coefficients. Each cell is a plain input (dat.gui has no grid layout) that sets the
+   * matching dat.gui controller, so that a change takes effect as it would there.
    */
   function configureDiffusionMatrixGUI() {
     const n = parseInt(options.numSpecies);
@@ -15793,17 +15140,6 @@ async function VisualPDE(url) {
     probeChart.update("none");
   }
 
-  function setProbeAxes(min, max) {
-    if (!probeChart) return;
-    let opts = probeChart.options.scales;
-    opts.y.min = min;
-    opts.y.max = max;
-  }
-
-  function clearProbeAxes(min, max) {
-    if (!probeChart) return;
-  }
-
   function readyForProbeUpdate() {
     return uniforms.t.value >= probeChart.nextUpdateTime;
   }
@@ -15838,19 +15174,6 @@ async function VisualPDE(url) {
     $(".ui").addClass("hidden");
   }
 
-  // Generate a QR code from the link to the current simulation.
-  function generateSimQR(url) {
-    // Remove any existing QR code.
-    $("#link_qr").empty();
-    const qrCode = new QRCode(document.getElementById("link_qr"), {
-      text: url,
-      width: 128,
-      height: 128,
-      colorDark: "#000000",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.H,
-    });
-  }
 
   function shortenURL(base, opts) {
     // Abort any existing fetch request.
@@ -16104,12 +15427,7 @@ async function VisualPDE(url) {
     }
     renderer.setRenderTarget(postTexture);
     renderer.render(simScene, simCamera);
-    let dA;
-    if (options.dimension == 1) {
-      dA = uniforms.dx.value;
-    } else if (options.dimension == 2) {
-      dA = uniforms.dx.value * uniforms.dy.value;
-    }
+    const dA = areaElement();
     const sums = computeTextureSumGPU();
     uniforms.globalIntegralValue1.value = sums[0] * dA;
     uniforms.globalIntegralValue2.value = sums[1] * dA;

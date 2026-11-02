@@ -321,21 +321,11 @@ ${xy}
 // Bindings, index helpers and fetches for a kernel, and the storage textures it writes.
 function prelude(parts) {
   const G = parts.numGroups;
-  const clampConsts = parts.clamp
-    .map(
-      ([cx, cy], g) =>
-        `const CLAMP_X_${g} = ${cx};\nconst CLAMP_Y_${g} = ${cy};`,
-    )
-    .join("\n");
   const sources = [];
-  const loads = [];
   for (let g = 0; g < G; g++) {
     for (let slot = 0; slot < 4; slot++) {
       sources.push(
         `@group(0) @binding(${SOURCE_BINDING + 4 * g + slot}) var src${slot}_${g}: texture_2d<f32>;`,
-      );
-      loads.push(
-        `  if (g == ${g}u && slot == ${slot}u) { return textureLoad(src${slot}_${g}, ij, 0); }`,
       );
     }
   }
@@ -376,18 +366,9 @@ ${sources.join("\n")}
 ${samplers}
 ${outputs}
 
-const G = ${G}u;
-${clampConsts}
-
 fn wrapIndex(k: i32, n: i32, clampIt: bool) -> i32 {
   if (clampIt) { return clamp(k, 0, n - 1); }
   return ((k % n) + n) % n;
-}
-
-// Group g of slot at texel ij.
-fn load(slot: u32, g: u32, ij: vec2i) -> vec4f {
-${loads.join("\n")}
-  return vec4f(0.0);
 }
 
 // Group g of slot s at node (i, j), wrapping or clamping out-of-range indices as the WebGL
@@ -677,7 +658,8 @@ const FORMAT_TYPES = {
   rg32float: "vec2f",
   rgba32float: "vec4f",
 };
-const FORMAT_BYTES = { r32float: 4, rg32float: 8, rgba32float: 16 };
+// Bytes per node of each state format.
+export const FORMAT_BYTES = { r32float: 4, rg32float: 8, rgba32float: 16 };
 
 // Identifiers in WGSL code.
 const identifiers = (code) => code.match(/[A-Za-z_]\w*/g) ?? [];

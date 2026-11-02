@@ -1,5 +1,7 @@
 // clear_shader.js
 
+import { ERFINV_GLSL } from "../rand_shader.js";
+
 export function clearShaderTop() {
   return `varying vec2 textureCoords;
     uniform sampler2D textureSource;
@@ -22,20 +24,7 @@ export function clearShaderTop() {
 
     AUXILIARY_GLSL_FUNS
 
-    const float ALPHA = 0.147;
-    const float INV_ALPHA = 1.0 / ALPHA;
-    const float BETA = 2.0 / (pi * ALPHA);
-    float erfinv(float pERF) {
-      float yERF;
-      if (pERF == -1.0) {
-        yERF = log(1.0 - (-0.99)*(-0.99));
-      } else {
-        yERF = log(1.0 - pERF*pERF);
-      }
-      float zERF = BETA + 0.5 * yERF;
-      return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
-    }
-
+${ERFINV_GLSL}
     void main()
     {
         float x = MINX + textureCoords.x * float(nXDisc) * dx;

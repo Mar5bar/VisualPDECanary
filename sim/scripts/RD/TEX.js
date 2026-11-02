@@ -73,31 +73,12 @@ export function equationTEXFun() {
   return out;
 }
 
-// Generative counterpart to equationTEXFun() above, used only for numSpecies>4 (the
-// 13-entry hand-written array only enumerates every numSpecies/crossDiffusion/algebraic
-// combination up to 4 species - doing the same by hand up to 8 species is combinatorially
-// infeasible: see the 8-species upgrade plan, Stage 10). One line per species, in the same
-// default-notation-placeholder style as equationTEXFun()'s output (default species/reaction
-// names as tokens - the caller substitutes real names in later), so the same downstream
-// TeX post-processing pipeline (setEquationDisplayType in main.js) applies uniformly
-// regardless of which function produced the string.
-//
-// Matches the <=4-species templates' own convention: self-diffusion uses the single-letter
-// "D_{u}" form when cross-diffusion is off (there's only ever one diffusion term, so the
-// doubled subscript is redundant - see out[0]/out[1]/out[4]/out[8] above, all
-// cross-diffusion-off cases) and the doubled "D_{u u}" form when cross-diffusion is on (see
-// out[2] etc., which use "D_{u u}" even for the self term once other species' terms are
-// also present).
-//
-// Algebraic species no longer require cross-diffusion (relaxed - previously the only reason
-// was to limit the <=4-species hand-written equationTEX array's combinatorics, not for any
-// numerical reason). An algebraic species with cross-diffusion off has no diffusion term at
-// all: `others` (species i's own diffusion-term list) reduces to just `[i]` when
-// `!crossDiffusion`, and the trailing `.filter` removes even that when `isAlgebraic` is true
-// (since configureOptions() always zeros an algebraic species' own self-diffusion), leaving
-// `divTerms` empty. setEquationDisplayType()'s shared post-processing pipeline already
-// cleans up the resulting empty "\vnabla \cdot()" (and the stray "= +" left behind), so no
-// special-casing is needed here.
+// Generates the equations' TeX for numSpecies>4, which equationTEXFun()'s hand-written cases
+// don't cover. Uses the same placeholder notation as equationTEXFun() (default species and
+// reaction names, substituted later by setEquationDisplayType in main.js), and likewise
+// writes self-diffusion as "D_{u}" without cross-diffusion and "D_{u u}" with it. An
+// algebraic species without cross-diffusion has no diffusion term; setEquationDisplayType
+// tidies up the empty "\vnabla \cdot()" this leaves.
 //
 // @param {string[]} species - Default species names (e.g. defaultSpecies.slice(0, n)).
 // @param {string[]} reactions - Default reaction tokens (e.g. defaultReactions.slice(0, n)),
@@ -160,15 +141,9 @@ export function getDefaultTeXLabelsDiffusion() {
   TeXStrings["Dqw"] = "$D_{q w}$";
   TeXStrings["Dqq"] = "$D_{q q}$";
 
-  // Species 5-8 (8-species upgrade, Stage 10): no natural single letter, so every pair
-  // touching one of them uses the "U5U1"-style key convention already established for
-  // their dat.gui controller names (Stage 9, main.js's diffCtrlKey/configureGUI) - matching
-  // it means Stage 9's `TeXStrings[texKey] || <plain fallback>` lookups start resolving to
-  // real TeX automatically, no main.js change needed.
-  // Also mirrors Du/Dv/Dw/Dq above: a single-letter-style "Du5".."Du8" form for
-  // self-diffusion, used (like Du/Dv/Dw/Dq) only when cross-diffusion is off - the doubled
-  // "U5U5"-style form above is used when it's on. See buildEquationTEX()'s docstring for the
-  // same on/off distinction in the equation-panel TeX.
+  // Species 5-8 have no single letter, so pairs involving them use "U5U1"-style keys, as
+  // their controllers do (main.js's diffCtrlKey). As for Du..Dq, "Du5".."Du8" are the
+  // self-diffusion labels without cross-diffusion.
   for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
     TeXStrings["Du" + i] = "$D_{u" + i + "}$";
   }
@@ -194,12 +169,12 @@ export function getDefaultTeXLabelsDiffusion() {
 
 export function getDefaultTeXLabelsTimescales() {
   let TeXStrings = {};
-  // Strings for diffusion coefficients.
+  // Strings for timescales.
   TeXStrings["TU"] = "$tau_{u}$";
   TeXStrings["TV"] = "$tau_{v}$";
   TeXStrings["TW"] = "$tau_{w}$";
   TeXStrings["TQ"] = "$tau_{q}$";
-  // Species 5-8 (Stage 10): keys must match timescaleTags ("TU5".."TU8", main.js).
+  // Keys must match timescaleTags ("TU5".."TU8", main.js).
   for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
     TeXStrings["TU" + i] = "$tau_{u" + i + "}$";
   }
@@ -214,7 +189,7 @@ export function getDefaultTeXLabelsReaction() {
   TeXStrings["VFUN"] = "$VFUN$";
   TeXStrings["WFUN"] = "$WFUN$";
   TeXStrings["QFUN"] = "$QFUN$";
-  // Species 5-8 (Stage 10): keys must match reactionTokenOfSpecies() (species_config.js).
+  // Keys must match reactionTokenOfSpecies() (species_config.js).
   for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
     const tag = reactionTokenOfSpecies(i - 1);
     TeXStrings[tag] = "$" + tag + "$";
@@ -246,8 +221,7 @@ export function getDefaultTeXLabelsBCsICs() {
   TeXStrings["vG"] = "$\\text{Ghost node}$";
   TeXStrings["wG"] = "$\\text{Ghost node}$";
   TeXStrings["qG"] = "$\\text{Ghost node}$";
-  // Species 5-8 (Stage 10): keys match Stage 9's controller-naming convention
-  // (defaultSpecies[i]+"BCs"/"dirichlet"+S/"neumann"+S/"robin"+S, S=defaultSpecies[i].toUpperCase()).
+  // Keys must match the controller names (defaultSpecies[i] + "BCs" and so on).
   for (let i = 5; i <= MAX_SPECIES_SUPPORTED; i++) {
     const s = "u" + i;
     TeXStrings[s] = "$" + s + "$";

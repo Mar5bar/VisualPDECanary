@@ -115,6 +115,9 @@ const EXISTING_SUFFIXES = new Set(
 // A derivative suffix: one or more directions, each optionally one-sided (f or b, then 2 for
 // second order).
 const SUFFIX = "(?:[xy](?:[fb]2?)?)+";
+// Matches any derivative suffix of a species, such as u_x or u_xyf2, so that renaming a
+// species renames its derivatives too.
+export const SPECIES_SUFFIX_PATTERN = "_(?:[xy][xybf2]*)";
 const DERIVATIVE_SUFFIX_REGEX = new RegExp(`^_(${SUFFIX})(?!\\w)`);
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -258,11 +261,15 @@ function shiftedCoordinate(name, offset, spacing) {
   return "(" + name + sign + (size == 1 ? "" : size + "*") + spacing + ")";
 }
 
+// The node offsets either side of the offset c, or c itself if it's a whole number.
+function around(c) {
+  return Number.isInteger(c) ? [c] : [c - 0.5, c + 0.5];
+}
+
 // A species' value at offset p: its node there, or the mean of the nodes either side of each
 // half-integer component.
 function node(s, p, ctx) {
   const ind = ctx.speciesIndex(s);
-  const around = (c) => (Number.isInteger(c) ? [c] : [c - 0.5, c + 0.5]);
   const tokens = [];
   for (const i of around(p[0])) {
     for (const j of around(p[1])) tokens.push(nodeToken(ind, i, j));
@@ -338,7 +345,6 @@ function difference(operand, suffix, p, ctx) {
 // shifted value are combined into one weighted sum, cancelling nodes whose weights sum to 0.
 function nodeWeights(s, shifts, ctx) {
   const ind = ctx.speciesIndex(s);
-  const around = (c) => (Number.isInteger(c) ? [c] : [c - 0.5, c + 0.5]);
   const weights = new Map();
   for (const [w, q] of shifts) {
     const is = around(q[0]);
@@ -398,7 +404,7 @@ export function outsideTests(outside, prefix = "") {
   return {
     test(q, axis) {
       // The node itself is inside: nodes outside have nothing to compute.
-      if (q[0] == 0 && q[1] == 0) return "false";
+      if (isZero(q)) return "false";
       const name = "vpdeOutside" + prefix + stencilName(...q) + "XY"[axis];
       if (!tests.has(name)) tests.set(name, outside(q, axis));
       return name;
@@ -552,13 +558,7 @@ export function stateStencilShader({
     out += `vec2 ${C} = ${coords} + vec2(${toFloat(i)}*${step[0]}, ${toFloat(j)}*${step[1]});\n`;
     out += extrapolated(prefix + stencilName(i, j), C, !aligned || i != 0, !aligned || j != 0);
   }
-  for (const [suffix, formula] of STATE_DERIVATIVES) {
-    const value = formula
-      .replace(/\b(C|L|R|T|B|LL|RR|TT|BB)\b/g, (m) => prefix + (m == "C" ? "" : m))
-      .replaceAll("HX", h[0])
-      .replaceAll("HY", h[1]);
-    out += `vec4 ${prefix}${suffix} = ${value};\n`;
-  }
+  out += stateDerivatives(prefix, h);
   return out;
 }
 
@@ -585,14 +585,12 @@ function customDomainStateStencil({ prefix, fetch, coords, step, h, all, mask, t
   }
   const sorted = [...points.values()].sort((a, b) => a[1] - b[1] || a[0] - b[0]);
   const local = (q) => prefix + stencilName(...q);
-  let out = "";
+  let fetches = "";
   for (const [i, j] of sorted) {
     const at = i == 0 && j == 0 ? coords : `${coords} + vec2(${toFloat(i)}*${step[0]}, ${toFloat(j)}*${step[1]})`;
-    out += `vec4 ${local([i, j])} = ${fetch(at)};\n`;
+    fetches += `vec4 ${local([i, j])} = ${fetch(at)};\n`;
   }
-  const fetches = out;
-  out = "";
-  let passes = "";
+  let rest = "";
   if (mask != NO_MASK) {
     for (const axis of axes) {
       for (const p of sorted) {
@@ -619,11 +617,17 @@ function customDomainStateStencil({ prefix, fetch, coords, step, h, all, mask, t
             `if (${tests.test(onAxis(k), axis)}) {\n${local(p)} = mix(${local(p)}, ${value}, ${mask});\n}`,
           );
         }
-        passes += branches.join(" else ") + "\n";
+        rest += branches.join(" else ") + "\n";
       }
     }
   }
-  out += passes;
+  rest += stateDerivatives(prefix, h);
+  return { fetches, rest };
+}
+
+// GLSL declaring the derivatives in STATE_DERIVATIVES of the stencil locals named prefix*.
+function stateDerivatives(prefix, h) {
+  let out = "";
   for (const [suffix, formula] of STATE_DERIVATIVES) {
     const value = formula
       .replace(/\b(C|L|R|T|B|LL|RR|TT|BB)\b/g, (m) => prefix + (m == "C" ? "" : m))
@@ -631,5 +635,5 @@ function customDomainStateStencil({ prefix, fetch, coords, step, h, all, mask, t
       .replaceAll("HY", h[1]);
     out += `vec4 ${prefix}${suffix} = ${value};\n`;
   }
-  return { fetches, rest: out };
+  return out;
 }

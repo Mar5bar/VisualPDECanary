@@ -6,34 +6,18 @@
  */
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { ensureServerRunning, BASE_URL } from "./server.mjs";
+import { GPU_ARGS, newSimContext, decodeFloats } from "./browser-helpers.mjs";
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 let browser, stopServer;
 const pages = {};
 
 before(async () => {
   stopServer = await ensureServerRunning();
-  // ANGLE's Metal backend, so that WebGL and WebGPU both run on the real GPU.
-  browser = await chromium.launch({ args: ["--enable-unsafe-webgpu", "--use-angle=metal"] });
+  browser = await chromium.launch({ args: GPU_ARGS });
   for (const backend of ["webgl", "webgpu"]) {
-    const context = await browser.newContext({
-      serviceWorkers: "block",
-      viewport: { width: 1000, height: 700 },
-    });
-    await context.addInitScript(() => {
-      try {
-        localStorage.setItem("visited", "true");
-      } catch {}
-    });
-    await context.route("**/sim/scripts/**", (route) => {
-      const file = path.join(REPO_ROOT, new URL(route.request().url()).pathname);
-      route.fulfill({ body: fs.readFileSync(file), contentType: "application/javascript" });
-    });
+    const context = await newSimContext(browser);
     const page = await context.newPage();
     await page.goto(BASE_URL + `/sim/?testHooks&noop&backend=${backend}`, { waitUntil: "load" });
     await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
@@ -46,11 +30,6 @@ after(async () => {
   await browser?.close();
   stopServer?.();
 });
-
-function decode(base64) {
-  const bytes = Buffer.from(base64, "base64");
-  return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4);
-}
 
 // Loads the options on both backends, runs the given actions, and returns both states.
 async function onBoth(opts, actions) {
@@ -95,7 +74,7 @@ for (const brushType of ["circle", "square", "hline", "vline"]) {
         ["brush", 0.5, 0.5],
         ["brush", 0.3, 0.6, true],
       ]);
-      const [a, b] = [decode(states.webgl.data), decode(states.webgpu.data)];
+      const [a, b] = [decodeFloats(states.webgl.data), decodeFloats(states.webgpu.data)];
       let worst = 0,
         changed = 0;
       for (let n = 0; n < a.length; n++) {
@@ -115,7 +94,7 @@ test("brush: a custom brush that depends on the value under the brush's centre",
     { ...brushBase, brushType: "custom", brushAction: "replace", brushValue: "u + 0.25*sin(x)", brushRadius: "u" },
     [["brush", 0.4, 0.4]],
   );
-  const [a, b] = [decode(states.webgl.data), decode(states.webgpu.data)];
+  const [a, b] = [decodeFloats(states.webgl.data), decodeFloats(states.webgpu.data)];
   let worst = 0;
   for (let n = 0; n < a.length; n++) worst = Math.max(worst, Math.abs(a[n] - b[n]));
   assert.ok(worst < 1e-5, `largest difference ${worst}`);
@@ -194,7 +173,7 @@ test("domain integrals Int(...) feed back into the equations identically", async
     },
     [["step", 50]],
   );
-  const [a, b] = [decode(states.webgl.data), decode(states.webgpu.data)];
+  const [a, b] = [decodeFloats(states.webgl.data), decodeFloats(states.webgpu.data)];
   let worst = 0;
   for (let n = 0; n < a.length; n += 4) worst = Math.max(worst, Math.abs(a[n] - b[n]));
   assert.ok(worst < 1e-5, `largest difference ${worst}`);
@@ -231,7 +210,7 @@ for (const plotType of ["plane", "surface"]) {
     for (const [backend, page] of Object.entries(pages)) {
       states[backend] = await clickAndRead(page, opts, 0.5, 0.5);
     }
-    const [a, b] = [decode(states.webgl.data), decode(states.webgpu.data)];
+    const [a, b] = [decodeFloats(states.webgl.data), decodeFloats(states.webgpu.data)];
     let drawn = 0,
       differing = 0;
     for (let n = 1; n < a.length; n += 4) {
@@ -294,7 +273,7 @@ test("checkpoints restored onto another grid agree, whatever the number of speci
           [["saveCheckpoint"], ["setSpatialStep", spatialStep], ["resetFromCheckpoint"]],
         );
         for (const backend of ["webgl", "webgpu"]) {
-          results[`${backend}, ${numSpecies} species`] = decode(states[backend].data).filter(
+          results[`${backend}, ${numSpecies} species`] = decodeFloats(states[backend].data).filter(
             (_, k) => k % 4 == 0,
           );
         }
@@ -321,7 +300,7 @@ test("changing the grid mid-run resamples the state identically on both backends
     ["step", 5],
   ]);
   assert.equal(states.webgpu.nX, states.webgl.nX);
-  const [a, b] = [decode(states.webgl.data), decode(states.webgpu.data)];
+  const [a, b] = [decodeFloats(states.webgl.data), decodeFloats(states.webgpu.data)];
   let worst = 0;
   for (let n = 0; n < a.length; n += 4) worst = Math.max(worst, Math.abs(a[n] - b[n]));
   assert.ok(worst < 1e-5, `largest difference ${worst}`);
@@ -359,7 +338,7 @@ test("resampling onto a new grid wraps or clamps at the edges as WebGL's texture
     let worst = 0;
     for (const key of ["data", "dataGroup1"]) {
       if (!states.webgl[key]) continue;
-      const [a, b] = [decode(states.webgl[key]), decode(states.webgpu[key])];
+      const [a, b] = [decodeFloats(states.webgl[key]), decodeFloats(states.webgpu[key])];
       for (let n = 0; n < a.length; n++) worst = Math.max(worst, Math.abs(a[n] - b[n]));
     }
     assert.ok(worst < 1e-5, `${label}: largest difference ${worst}`);
@@ -387,7 +366,7 @@ test("timescales depending on the state are evaluated from the current state", a
       },
       [["step", 50]],
     );
-    const [a, b] = [decode(states.webgl.data), decode(states.webgpu.data)];
+    const [a, b] = [decodeFloats(states.webgl.data), decodeFloats(states.webgpu.data)];
     let worst = 0,
       at = 0;
     for (let n = 0; n < a.length; n += 4) {
@@ -419,7 +398,7 @@ test("the automatic colour range is the plotted values' true min and max", async
     // Back to the page the other tests use.
     await page.goto(BASE_URL + `/sim/?testHooks&noop&backend=${backend}`);
     await page.waitForFunction(() => window.VisualPDETest, null, { timeout: 30000 });
-    const values = decode(post.data).filter((_, k) => k % 4 == 0);
+    const values = decodeFloats(post.data).filter((_, k) => k % 4 == 0);
     const min = values.reduce((a, b) => Math.min(a, b));
     const max = values.reduce((a, b) => Math.max(a, b));
     assert.deepEqual(range, [min, max], backend);
@@ -847,7 +826,7 @@ test("changing boundary conditions in the GUI acts as loading them would", async
     assert.equal(r.changed.state, r.loaded.state, `${backend}: the solution differs`);
     assert.equal(r.changed.post, r.loaded.post, `${backend}: the display differs`);
     // Species 1 only: the post-processed values are its u_xx, at each node.
-    const u = (post) => decode(post).filter((_, k) => k % 4 == 0);
+    const u = (post) => decodeFloats(post).filter((_, k) => k % 4 == 0);
     assert.deepEqual(u(r.five.post), u(r.loaded.post), `${backend}: 5 species display differently`);
   }
 });

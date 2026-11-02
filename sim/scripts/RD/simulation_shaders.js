@@ -1,5 +1,6 @@
 // simulation_shaders.js
 
+import { ERFINV_GLSL } from "../rand_shader.js";
 import {
   groupOfSpecies,
   channelCharOfSpecies,
@@ -240,39 +241,37 @@ function customDomainGhostShader(points, species, twoD, { outside }) {
   return out ? tests.declarations() + out : "";
 }
 
+// The passes of each timestepping scheme, each with its own material.
+export const SCHEME_STAGES = [
+  "FE",
+  "AB2",
+  "Mid1",
+  "Mid2",
+  "RK41",
+  "RK42",
+  "RK43",
+  "RK44",
+];
+
+// The number of state textures each pass reads.
+const NUM_INPUTS = {
+  FE: 2,
+  AB2: 2,
+  Mid1: 1,
+  Mid2: 2,
+  RK41: 1,
+  RK42: 2,
+  RK43: 3,
+  RK44: 4,
+};
+
 /**
  * Generates the top part of a shader for reaction-diffusion simulation based on the given timestepping scheme.
  * @param {string} type - The timestepping scheme to generate the shader for.
  * @returns {string} The generated shader code.
  */
 export function RDShaderTop(type) {
-  let numInputs = 0;
-  switch (type) {
-    case "FE":
-      numInputs = 2;
-      break;
-    case "AB2":
-      numInputs = 2;
-      break;
-    case "Mid1":
-      numInputs = 1;
-      break;
-    case "Mid2":
-      numInputs = 2;
-      break;
-    case "RK41":
-      numInputs = 1;
-      break;
-    case "RK42":
-      numInputs = 2;
-      break;
-    case "RK43":
-      numInputs = 3;
-      break;
-    case "RK44":
-      numInputs = 4;
-      break;
-  }
+  const numInputs = NUM_INPUTS[type] ?? 0;
   let parts = [];
   parts[0] =
     "precision highp float; precision highp sampler2D; varying vec2 textureCoords;";
@@ -301,20 +300,7 @@ export function RDShaderTop(type) {
 
     AUXILIARY_GLSL_FUNS
 
-    const float ALPHA = 0.147;
-    const float INV_ALPHA = 1.0 / ALPHA;
-    const float BETA = 2.0 / (pi * ALPHA);
-    float erfinv(float pERF) {
-      float yERF;
-      if (pERF == -1.0) {
-        yERF = log(1.0 - (-0.99)*(-0.99));
-      } else {
-        yERF = log(1.0 - pERF*pERF);
-      }
-      float zERF = BETA + 0.5 * yERF;
-      return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
-    }
-
+${ERFINV_GLSL}
     void computeRHS(sampler2D textureSource, float t, vec4 uvwqIn, vec4 uvwqLIn, vec4 uvwqRIn, vec4 uvwqTIn, vec4 uvwqBIn, vec4 uvwqLLIn, vec4 uvwqRRIn, vec4 uvwqTTIn, vec4 uvwqBBIn, out highp vec4 result) {
 
         ivec2 texSize = textureSize(textureSource,0);
@@ -506,24 +492,15 @@ export function RDShaderMain(type) {
 }
 
 // ---------------------------------------------------------------------------------------
-// MRT (multiple render target) shader variants, used only once numGroups(numSpecies)>1
-// (i.e. numSpecies>4), supporting all 8 timestepping schemes (Forward Euler, AB2, Midpoint,
-// RK4). Group 0 (species 1-4) is computed exactly as RDShaderTop/RDShaderMain/
-// RDShaderUpdateNormal/RDShaderUpdateCross/RDShaderBot already do; these MRT variants ADD
-// group 1 (species 5-8) alongside it in the same computeRHS call and fragment shader
-// invocation, writing group 0 to output 0 and group 1 to output 1 via GLSL ES 300's
-// layout(location=N) out qualifiers. None of the non-MRT functions above are modified, so
-// the numSpecies<=4 shader text/behaviour is unaffected.
+// MRT (multiple render target) shader variants, used once numGroups(numSpecies)>1 (i.e.
+// numSpecies>4). They compute group 0 (species 1-4) as the shaders above do and group 1
+// (species 5-8) alongside it, writing each group to its own output.
 //
-// Naming conventions used below (must stay in sync with main.js's Stage 5 diffusion/
-// reaction string builders, which *define* the tokens these functions *reference*):
-//   - Stencil samples for species 1-4 use the existing "uvwq"-prefixed locals; species 5-8
-//     use "uvwq2"-prefixed locals (a second full set of the same 9 stencil points).
-//   - Reaction tokens: reactionTokenOfSpecies(i) (species_config.js) - "UFUN".."QFUN" for
-//     species 1-4 (unchanged), "UFUN5".."UFUN8" for species 5-8.
-//   - Diffusion coefficient tokens: "D" + diffusionLabel(i,j) (species_config.js) - legacy
-//     letter-pairs ("Duu","Duv",...) when both i,j<4 (byte-identical to today), numeric
-//     pairs ("D5_5","D1_5",...) if either index is >=4.
+// Naming conventions, shared with main.js's diffusion and reaction string builders:
+//   - Stencil samples for species 1-4 are "uvwq"-prefixed locals; species 5-8 use
+//     "uvwq2"-prefixed locals.
+//   - Reaction tokens: reactionTokenOfSpecies(i) (species_config.js).
+//   - Diffusion coefficient tokens: "D" + diffusionLabel(i,j) (species_config.js).
 // ---------------------------------------------------------------------------------------
 
 // Ordered list of the 9 stencil-point suffixes used throughout these MRT builders (matches
@@ -607,33 +584,7 @@ function computeRHSCallMRT(tex, rhsOut, rhsOutGroup1, time = "t") {
  * @returns {string} The generated shader code.
  */
 export function RDShaderTopMRT(type) {
-  let numInputs = 0;
-  switch (type) {
-    case "FE":
-      numInputs = 2;
-      break;
-    case "AB2":
-      numInputs = 2;
-      break;
-    case "Mid1":
-      numInputs = 1;
-      break;
-    case "Mid2":
-      numInputs = 2;
-      break;
-    case "RK41":
-      numInputs = 1;
-      break;
-    case "RK42":
-      numInputs = 2;
-      break;
-    case "RK43":
-      numInputs = 3;
-      break;
-    case "RK44":
-      numInputs = 4;
-      break;
-  }
+  const numInputs = NUM_INPUTS[type] ?? 0;
   let parts = [];
   parts[0] =
     "uniform sampler2D textureSource;\n    uniform sampler2D textureSourceGroup1;";
@@ -669,20 +620,7 @@ export function RDShaderTopMRT(type) {
 
     AUXILIARY_GLSL_FUNS
 
-    const float ALPHA = 0.147;
-    const float INV_ALPHA = 1.0 / ALPHA;
-    const float BETA = 2.0 / (pi * ALPHA);
-    float erfinv(float pERF) {
-      float yERF;
-      if (pERF == -1.0) {
-        yERF = log(1.0 - (-0.99)*(-0.99));
-      } else {
-        yERF = log(1.0 - pERF*pERF);
-      }
-      float zERF = BETA + 0.5 * yERF;
-      return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
-    }
-
+${ERFINV_GLSL}
     void computeRHS(sampler2D textureSource, float t,
       vec4 uvwqIn, vec4 uvwqLIn, vec4 uvwqRIn, vec4 uvwqTIn, vec4 uvwqBIn, vec4 uvwqLLIn, vec4 uvwqRRIn, vec4 uvwqTTIn, vec4 uvwqBBIn,
       vec4 uvwq2In, vec4 uvwq2LIn, vec4 uvwq2RIn, vec4 uvwq2TIn, vec4 uvwq2BIn, vec4 uvwq2LLIn, vec4 uvwq2RRIn, vec4 uvwq2TTIn, vec4 uvwq2BBIn,
@@ -950,14 +888,6 @@ export function RDShaderBotMRT() {
 }
 
 /**
- * Returns the shader code for a reaction-diffusion simulation with periodic boundary conditions.
- * @returns {string} The shader code.
- */
-export function RDShaderPeriodic() {
-  return ``;
-}
-
-/**
  * Generates shader code for specifying the values of ghost cells in the x-direction.
  * @param {string} [LR] - Determines whether to apply the condition at the left ("L"), right ("R"), or both ("LR"). If undefined, returns both.
  * @returns {string} The shader code for setting the species of ghost cells in the x-direction.
@@ -1047,11 +977,13 @@ export function RDShaderRobinY(TB) {
 
 /**
  * Generates a Robin boundary condition shader for a custom domain in the x-direction.
- * @param {string} TB - Determines whether to apply the condition at the left ("L"), right ("R"), or both ("LR"). If undefined, returns both.
+ * @param {string} LR - Determines whether to apply the condition at the left ("L"), right ("R"), or both ("LR"). If undefined, returns both.
  * @param {string} fun - A function that defines the custom domain.
  * @returns {string} The generated shader code.
  */
 export function RDShaderRobinCustomDomainX(LR, fun) {
+  const funL = fun.replaceAll(/\bx\b/g, "(x-1.25*dx)").replaceAll(/\buvwq\./g, "uvwqL.");
+  const funR = fun.replaceAll(/\bx\b/g, "(x+1.25*dx)").replaceAll(/\buvwq\./g, "uvwqR.");
   const L = `
     if (float(indicatorFunL) <= 0.0 || textureCoords.x - 2.0*step_x < 0.0) {
       if (float(indicatorFunR) <= 0.0) {
@@ -1061,14 +993,8 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
       }
     }
     `
-    .replace(
-      /indicatorFunL/,
-      fun.replaceAll(/\bx\b/g, "(x-1.25*dx)").replaceAll(/\buvwq\./g, "uvwqL."),
-    )
-    .replace(
-      /indicatorFunR/,
-      fun.replaceAll(/\bx\b/g, "(x+1.25*dx)").replaceAll(/\buvwq\./g, "uvwqR."),
-    );
+    .replace(/indicatorFunL/, funL)
+    .replace(/indicatorFunR/, funR);
   const R = `
     if (float(indicatorFunR) <= 0.0 || textureCoords.x + 2.0*step_x > 1.0) {
       if (float(indicatorFunL) <= 0.0) {
@@ -1078,14 +1004,8 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
       }
     }
     `
-    .replace(
-      /indicatorFunR/,
-      fun.replaceAll(/\bx\b/g, "(x+1.25*dx)").replaceAll(/\buvwq\./g, "uvwqR."),
-    )
-    .replace(
-      /indicatorFunL/,
-      fun.replaceAll(/\bx\b/g, "(x-1.25*dx)").replaceAll(/\buvwq\./g, "uvwqL."),
-    );
+    .replace(/indicatorFunR/, funR)
+    .replace(/indicatorFunL/, funL);
   if (LR == undefined) return L + R;
   if (LR == "L") return L;
   if (LR == "R") return R;
@@ -1099,6 +1019,8 @@ export function RDShaderRobinCustomDomainX(LR, fun) {
  * @returns {string} The generated shader code.
  */
 export function RDShaderRobinCustomDomainY(TB, fun) {
+  const funT = fun.replaceAll(/\by\b/g, "(y+1.25*dy)").replaceAll(/\buvwq\./g, "uvwqT.");
+  const funB = fun.replaceAll(/\by\b/g, "(y-1.25*dy)").replaceAll(/\buvwq\./g, "uvwqB.");
   const T = `
     if (float(indicatorFunT) <= 0.0 || textureCoords.y + 2.0*step_y > 1.0){
       if (float(indicatorFunB) <= 0.0) {
@@ -1108,14 +1030,8 @@ export function RDShaderRobinCustomDomainY(TB, fun) {
       }
     }
     `
-    .replace(
-      /indicatorFunT/,
-      fun.replaceAll(/\by\b/g, "(y+1.25*dy)").replaceAll(/\buvwq\./g, "uvwqT."),
-    )
-    .replace(
-      /indicatorFunB/,
-      fun.replaceAll(/\by\b/g, "(y-1.25*dy)").replaceAll(/\buvwq\./g, "uvwqB."),
-    );
+    .replace(/indicatorFunT/, funT)
+    .replace(/indicatorFunB/, funB);
   const B = `
     if (float(indicatorFunB) <= 0.0 || textureCoords.y - 2.0*step_y < 0.0) {
       if (float(indicatorFunT) <= 0.0) {
@@ -1125,14 +1041,8 @@ export function RDShaderRobinCustomDomainY(TB, fun) {
       }
     }
     `
-    .replace(
-      /indicatorFunB/,
-      fun.replaceAll(/\by\b/g, "(y-1.25*dy)").replaceAll(/\buvwq\./g, "uvwqB."),
-    )
-    .replace(
-      /indicatorFunT/,
-      fun.replaceAll(/\by\b/g, "(y+1.25*dy)").replaceAll(/\buvwq\./g, "uvwqT."),
-    );
+    .replace(/indicatorFunB/, funB)
+    .replace(/indicatorFunT/, funT);
   if (TB == undefined) return T + B;
   if (TB == "T") return T;
   if (TB == "B") return B;
@@ -1163,18 +1073,7 @@ export function RDShaderAdvectionPreBC() {
  * @returns {string} The shader code.
  */
 export function RDShaderAdvectionPostBC() {
-  return `
-    uvwqX = (uvwqR - uvwqL) / (2.0*dx);
-    uvwqY = (uvwqT - uvwqB) / (2.0*dy);
-    uvwqXF = (uvwqR - uvwq) / dx;
-    uvwqYF = (uvwqT - uvwq) / dy;
-    uvwqXB = (uvwq - uvwqL) / dx;
-    uvwqYB = (uvwq - uvwqB) / dy;
-    uvwqXFXF = (4.0*uvwqR - 3.0*uvwq - uvwqRR) / (2.0*dx);
-    uvwqYFYF = (4.0*uvwqT - 3.0*uvwq - uvwqTT) / (2.0*dy);
-    uvwqXBXB = (3.0*uvwq - 4.0*uvwqL + uvwqLL) / (2.0*dx);
-    uvwqYBYB = (3.0*uvwq - 4.0*uvwqB + uvwqBB) / (2.0*dy);
-    `;
+  return RDShaderAdvectionPreBC().replaceAll("vec4 ", "");
 }
 
 /**
@@ -1193,10 +1092,7 @@ export function RDShaderDiffusionPreBC() {
  * @returns {string} The shader code.
  */
 export function RDShaderDiffusionPostBC() {
-  return `
-    uvwqXX = (uvwqR - 2.0*uvwq + uvwqL) / (dx*dx);
-    uvwqYY = (uvwqT - 2.0*uvwq + uvwqB) / (dy*dy);
-    `;
+  return RDShaderDiffusionPreBC().replaceAll("vec4 ", "");
 }
 
 /**
@@ -1498,20 +1394,7 @@ export function RDShaderEnforceDirichletTop() {
 
     AUXILIARY_GLSL_FUNS
 
-    const float ALPHA = 0.147;
-    const float INV_ALPHA = 1.0 / ALPHA;
-    const float BETA = 2.0 / (pi * ALPHA);
-    float erfinv(float pERF) {
-      float yERF;
-      if (pERF == -1.0) {
-        yERF = log(1.0 - (-0.99)*(-0.99));
-      } else {
-        yERF = log(1.0 - pERF*pERF);
-      }
-      float zERF = BETA + 0.5 * yERF;
-      return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
-    }
-
+${ERFINV_GLSL}
     void main()
     {
         ivec2 texSize = textureSize(textureSource,0);
@@ -1527,13 +1410,10 @@ export function RDShaderEnforceDirichletTop() {
     `;
 }
 
-// MRT counterpart of RDShaderEnforceDirichletTop(), used only once numGroups(numSpecies)>1
-// (Stage 11.5 of the 8-species upgrade - enforceDirichlet() was previously not MRT-aware at
-// all, so Dirichlet BCs silently had no effect on any species once numSpecies>4). Declares
-// updated/updated2 (rather than writing gl_FragColor directly, as the non-MRT version does)
-// so per-species override blocks built via selectSpeciesInShaderStr - which already knows
-// how to target updated vs updated2 based on a species' group - work unmodified; the final
-// fragColor0/fragColor1 assignment happens once, in RDShaderEnforceDirichletBotMRT() below.
+// MRT counterpart of RDShaderEnforceDirichletTop(), used once numGroups(numSpecies)>1.
+// Writes to updated/updated2 rather than gl_FragColor, so that the per-species blocks built
+// by selectSpeciesInShaderStr can target either group; RDShaderEnforceDirichletBotMRT()
+// writes them out.
 export function RDShaderEnforceDirichletTopMRT() {
   return RDShaderEnforceDirichletTop()
     .replace(
@@ -1629,20 +1509,7 @@ export function globalIntegralShader() {
 
     AUXILIARY_GLSL_FUNS
 
-    const float ALPHA = 0.147;
-    const float INV_ALPHA = 1.0 / ALPHA;
-    const float BETA = 2.0 / (pi * ALPHA);
-    float erfinv(float pERF) {
-      float yERF;
-      if (pERF == -1.0) {
-        yERF = log(1.0 - (-0.99)*(-0.99));
-      } else {
-        yERF = log(1.0 - pERF*pERF);
-      }
-      float zERF = BETA + 0.5 * yERF;
-      return sqrt(sqrt(zERF*zERF - yERF * INV_ALPHA) - zERF) * sign(pERF);
-    }
-
+${ERFINV_GLSL}
     void main()
     {
       ivec2 texSize = textureSize(textureSource,0);
@@ -1668,12 +1535,8 @@ export function globalIntegralShader() {
     }`;
 }
 
-// MRT counterpart of globalIntegralShader(), used only once numGroups(numSpecies)>1. The
-// plan's Stage 7 text assumed no change was needed here (assuming Stage 5's substitution
-// resolving species 5-8 was sufficient) - but like computeDisplayFunShaderMid/probeShader,
-// this template only declares group-0's stencil, so a GLOBAL_INTEGRAL_FUN referencing a
-// group-1 species would compile to reference an undeclared uvwq2. Adds a second sampler +
-// group-1 5-point stencil, mirroring computeDisplayFunShaderMidMRT. Still single-output.
+// MRT counterpart of globalIntegralShader(), used once numGroups(numSpecies)>1: adds group
+// 1's sampler and stencil, so that an integrand can refer to species 5-8.
 export function globalIntegralShaderMRT() {
   return globalIntegralShader()
     .replace(

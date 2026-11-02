@@ -1,8 +1,5 @@
 /**
- * Shared Playwright helpers for driving VisualPDE's dat.gui-based left/right UI panels,
- * extracted from the ad hoc scripts used to manually verify GUI-affecting changes throughout
- * earlier work this session (the species/algebraic controller refactor, the GlobalInt feature,
- * placeholder text). Used by every *.test.mjs file alongside check-presets.mjs.
+ * Shared Playwright helpers for driving VisualPDE's dat.gui-based left/right UI panels.
  */
 import { BASE_URL } from "./server.mjs";
 
@@ -138,4 +135,21 @@ export function collectErrors(page) {
   });
   page.on("pageerror", (err) => errors.push(`[uncaught exception] ${err.message}`));
   return errors;
+}
+
+// Closes the error message, if it's showing.
+export async function dismissError(page) {
+  const err = page.locator("#error");
+  if (await err.isVisible().catch(() => false)) {
+    await err.getByText("Close").click();
+    await page.waitForTimeout(200);
+  }
+}
+
+// The input of the nth reaction term in the "Forcing terms" folder.
+export function reactionTermInput(page, n) {
+  return page
+    .locator("li.title", { hasText: "Forcing terms" })
+    .locator(`xpath=following-sibling::li[${n}]//input`)
+    .first();
 }
